@@ -45,112 +45,168 @@
         .hide-scroll::-webkit-scrollbar {
             display: none;
         }
+
+        /* Login Overlay Styles */
+        #loginOverlay {
+            transition: opacity 0.5s ease;
+        }
     </style>
 </head>
-<body class="text-slate-800 antialiased">
+<body class="text-slate-800 antialiased overflow-hidden">
 
-    <!-- Navigasi -->
-    <nav class="bg-teal-600 text-white shadow-lg sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center space-x-3">
-                    <i class="fa-solid fa-people-roof text-2xl"></i>
-                    <span class="font-bold text-xl tracking-wide">JurnalFamiliPintar</span>
-                </div>
-                <div class="flex items-center space-x-6 hidden md:flex font-semibold">
-                    <a href="#mapa" class="hover:text-teal-200 transition">Laluan Ma&Pa</a>
-                    <a href="#anakku" class="hover:text-teal-200 transition">Laluan Anakku</a>
-                </div>
+    <!-- Login Screen -->
+    <div id="loginOverlay" class="fixed inset-0 bg-teal-700 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
+            <div class="w-20 h-20 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+                <i class="fa-solid fa-lock"></i>
             </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <header class="bg-gradient-to-b from-teal-500 to-teal-700 text-white py-20 text-center px-4">
-        <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Peta Perjalanan Kehidupan Kita</h1>
-        <p class="text-lg md:text-xl max-w-2xl mx-auto opacity-90 mb-8">Setiap fasa ada laluannya. Gunakan kalkulator dan ujian interaktif ini bersama anak-anak. Kami sediakan panduan (Ebook) khusus untuk setiap langkah anda.</p>
-        <div class="flex justify-center space-x-4">
-            <a href="#mapa" class="bg-white text-teal-700 px-6 py-3 rounded-full font-bold shadow-md hover:bg-slate-100 transition">Mula: Ma&Pa</a>
-            <a href="#anakku" class="bg-orange-400 text-white px-6 py-3 rounded-full font-bold shadow-md hover:bg-orange-500 transition">Mula: Anakku</a>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
-        <!-- LALUAN MA&PA TIMELINE -->
-        <section id="mapa" class="mb-24 relative">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-teal-700 mb-2"><i class="fa-solid fa-user-tie mr-2"></i>Laluan Ma&Pa (Ibu Bapa)</h2>
-                <p class="text-slate-500">Kalkulator dan ujian untuk merancang kehidupan, kewangan dan psikologi keluarga.</p>
-            </div>
-
-            <div class="relative timeline-container" id="mapa-timeline">
-                <!-- Dijana oleh JavaScript -->
-            </div>
-        </section>
-
-        <!-- LALUAN ANAKKU TIMELINE -->
-        <section id="anakku" class="mb-24 relative">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-orange-500 mb-2"><i class="fa-solid fa-child-reaching mr-2"></i>Laluan Anakku</h2>
-                <p class="text-slate-500">Ujian kehidupan dan permainan interaktif untuk membina peribadi unggul.</p>
-            </div>
-
-            <div class="relative timeline-container" id="anakku-timeline">
-                <!-- Dijana oleh JavaScript -->
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Modal Launchpad (Interaktif) -->
-    <div id="toolModal" class="fixed inset-0 bg-slate-900 bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto modal-enter hide-scroll">
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Akses Terhad</h2>
+            <p class="text-slate-500 mb-6">Sila masukkan kata laluan untuk mengakses Jurnal Famili Pintar.</p>
             
-            <!-- Modal Header -->
-            <div class="bg-teal-600 p-6 rounded-t-2xl text-white relative flex items-center" id="modalHeader">
-                <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-3xl mr-4" id="modalIcon">
-                    <i class="fa-solid fa-calculator"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold" id="modalTitle">myCHECKLIST</h3>
-                    <p class="text-teal-100 mt-1" id="modalDesc">Penerangan ringkas di sini...</p>
-                </div>
-                <button onclick="closeModal()" class="absolute top-4 right-4 text-white hover:text-red-300 text-2xl transition">
-                    <i class="fa-solid fa-circle-xmark"></i>
-                </button>
+            <div class="relative mb-4">
+                <input type="password" id="passwordInput" 
+                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-teal-500 focus:outline-none transition" 
+                    placeholder="Kata Laluan">
             </div>
-
-            <!-- Modal Action -->
-            <div class="p-6 text-center border-b border-slate-100">
-                <button class="bg-teal-500 hover:bg-teal-600 text-white text-lg font-bold py-4 px-10 rounded-full shadow-lg transform hover:scale-105 transition duration-200" id="modalActionBtn">
-                    <i class="fa-solid fa-play mr-2"></i> Tekan Untuk Mula
-                </button>
-                <p class="text-sm text-slate-400 mt-3" id="actionStatus">Sesuai dilakukan bersama pasangan/anak.</p>
-            </div>
-
-            <!-- Modal Recommendations -->
-            <div class="p-6 bg-slate-50 rounded-b-2xl">
-                <h4 class="text-lg font-bold text-slate-700 mb-4 flex items-center">
-                    <i class="fa-brands fa-google-drive text-teal-500 mr-2"></i> Panduan Berkaitan:
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="modalEbooks">
-                    <!-- Ebooks dinamik di sini -->
-                </div>
-            </div>
-
+            <p id="loginError" class="text-red-500 text-sm mb-4 hidden">Kata laluan salah. Sila cuba lagi.</p>
+            
+            <button onclick="checkLogin()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl shadow-lg transition duration-200">
+                Log Masuk
+            </button>
         </div>
     </div>
 
-    <footer class="bg-slate-800 text-slate-300 py-8 text-center">
-        <p>&copy; 2026 Jurnal Kehidupan Keluarga. Dibina untuk harmoni Ma&Pa dan Anakku.</p>
-    </footer>
+    <!-- Kandungan Utama (Tersembunyi asalnya) -->
+    <div id="mainContent" class="opacity-0 transition-opacity duration-1000">
+        <!-- Navigasi -->
+        <nav class="bg-teal-600 text-white shadow-lg sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-people-roof text-2xl"></i>
+                        <span class="font-bold text-xl tracking-wide">JurnalFamiliPintar</span>
+                    </div>
+                    <div class="flex items-center space-x-6 hidden md:flex font-semibold">
+                        <a href="#mapa" class="hover:text-teal-200 transition">Laluan Ma&Pa</a>
+                        <a href="#anakku" class="hover:text-teal-200 transition">Laluan Anakku</a>
+                        <button onclick="logout()" class="bg-teal-800 px-3 py-1 rounded text-xs hover:bg-red-600 transition">Log Keluar</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <header class="bg-gradient-to-b from-teal-500 to-teal-700 text-white py-20 text-center px-4">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Peta Perjalanan Kehidupan Kita</h1>
+            <p class="text-lg md:text-xl max-w-2xl mx-auto opacity-90 mb-8">Setiap fasa ada laluannya. Gunakan kalkulator dan ujian interaktif ini bersama anak-anak. Kami sediakan panduan (Ebook) khusus untuk setiap langkah anda.</p>
+            <div class="flex justify-center space-x-4">
+                <a href="#mapa" class="bg-white text-teal-700 px-6 py-3 rounded-full font-bold shadow-md hover:bg-slate-100 transition">Mula: Ma&Pa</a>
+                <a href="#anakku" class="bg-orange-400 text-white px-6 py-3 rounded-full font-bold shadow-md hover:bg-orange-500 transition">Mula: Anakku</a>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+            <!-- LALUAN MA&PA TIMELINE -->
+            <section id="mapa" class="mb-24 relative">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-teal-700 mb-2"><i class="fa-solid fa-user-tie mr-2"></i>Laluan Ma&Pa (Ibu Bapa)</h2>
+                    <p class="text-slate-500">Kalkulator dan ujian untuk merancang kehidupan, kewangan dan psikologi keluarga.</p>
+                </div>
+
+                <div class="relative timeline-container" id="mapa-timeline">
+                    <!-- Dijana oleh JavaScript -->
+                </div>
+            </section>
+
+            <!-- LALUAN ANAKKU TIMELINE -->
+            <section id="anakku" class="mb-24 relative">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-orange-500 mb-2"><i class="fa-solid fa-child-reaching mr-2"></i>Laluan Anakku</h2>
+                    <p class="text-slate-500">Ujian kehidupan dan permainan interaktif untuk membina peribadi unggul.</p>
+                </div>
+
+                <div class="relative timeline-container" id="anakku-timeline">
+                    <!-- Dijana oleh JavaScript -->
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Modal Launchpad (Interaktif) -->
+        <div id="toolModal" class="fixed inset-0 bg-slate-900 bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto modal-enter hide-scroll">
+                
+                <!-- Modal Header -->
+                <div class="bg-teal-600 p-6 rounded-t-2xl text-white relative flex items-center" id="modalHeader">
+                    <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-3xl mr-4" id="modalIcon">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold" id="modalTitle">myCHECKLIST</h3>
+                        <p class="text-teal-100 mt-1" id="modalDesc">Penerangan ringkas di sini...</p>
+                    </div>
+                    <button onclick="closeModal()" class="absolute top-4 right-4 text-white hover:text-red-300 text-2xl transition">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Action -->
+                <div class="p-6 text-center border-b border-slate-100">
+                    <button class="bg-teal-500 hover:bg-teal-600 text-white text-lg font-bold py-4 px-10 rounded-full shadow-lg transform hover:scale-105 transition duration-200" id="modalActionBtn">
+                        <i class="fa-solid fa-play mr-2"></i> Tekan Untuk Mula
+                    </button>
+                    <p class="text-sm text-slate-400 mt-3" id="actionStatus">Sesuai dilakukan bersama pasangan/anak.</p>
+                </div>
+
+                <!-- Modal Recommendations -->
+                <div class="p-6 bg-slate-50 rounded-b-2xl">
+                    <h4 class="text-lg font-bold text-slate-700 mb-4 flex items-center">
+                        <i class="fa-brands fa-google-drive text-teal-500 mr-2"></i> Panduan Berkaitan:
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="modalEbooks">
+                        <!-- Ebooks dinamik di sini -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <footer class="bg-slate-800 text-slate-300 py-8 text-center">
+            <p>&copy; 2026 Jurnal Kehidupan Keluarga. Dibina untuk harmoni Ma&Pa dan Anakku.</p>
+        </footer>
+    </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
+        // --- AUTH LOGIC ---
+        const DEFAULT_PASS = "hch#0129443846";
+
+        function checkLogin() {
+            const input = document.getElementById('passwordInput').value;
+            const error = document.getElementById('loginError');
+
+            if (input === DEFAULT_PASS) {
+                sessionStorage.setItem('isLoggedIn', 'true');
+                showApp();
+            } else {
+                error.classList.remove('hidden');
+            }
+        }
+
+        function showApp() {
+            document.getElementById('loginOverlay').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('opacity-0');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function logout() {
+            sessionStorage.removeItem('isLoggedIn');
+            window.location.reload();
+        }
+
         // --- DATA STRUCTURE ---
 
-        // Slot coverImage dikekalkan untuk semua ebook
         const ebooks = {
             "survivalkit": { title: "Survival Kit Ibu Ayah", cover: "fa-book-medical", coverImage: "https://i.postimg.cc/0NQ1P663/(DB0525_D013)_Survival_Kit_Ibu_Ayah.png", color: "text-red-500", gdriveLink: "https://drive.google.com/file/d/1taARvfss3qf1fKXSEvTkb_3rNpcSfC7k/view?usp=sharing" },
             "genz": { title: "Gen Z Bukan Derhaka", cover: "fa-mobile-screen", coverImage: "https://i.postimg.cc/hP85gYrV/cover.png", color: "text-blue-500", gdriveLink: "https://drive.google.com/file/d/1oklm3N_v5GZcYPyqXQ6ji6TXjwGeRHP-/view?usp=sharing" },
@@ -163,7 +219,7 @@
             "tiada": { title: "Bila Kami Tiada", cover: "fa-file-signature", coverImage: "https://i.postimg.cc/wvsfj6yS/(DB0126_D031)_Bila_Kami_Tiada2.png", color: "text-slate-800", gdriveLink: "https://drive.google.com/file/d/1gCAtSXS7XV663XNzXjVV9gWYHpXiTMZO/view?usp=sharing" },
             "wanita": { title: "Wanita Yang Tak Difahami", cover: "fa-venus", coverImage: "https://i.postimg.cc/25w8KT7T/(DB1225_D030)_Wanita_Yang_Tak_Difahami.png", color: "text-pink-400", gdriveLink: "https://drive.google.com/file/d/1sDQ1beo3QzlaYkXvUQWIKjG_KyAD-HLW/view?usp=sharing" },
             "lelaki": { title: "Tenanglah Wahai Lelaki", cover: "fa-mars", coverImage: "https://i.postimg.cc/Rhnm4TwV/1.png", color: "text-blue-600", gdriveLink: "https://drive.google.com/file/d/1j_oZnlMXHpTcRA1yY56vskzIKtIOBwhq/view?usp=sharing" },
-            "hijrah": { title: "Kenapa Manusia Berubah Kisah Hijrah Hati Mencari Kebenaran", cover: "fa-mars", coverImage: "https://i.postimg.cc/qRCQ0kkx/(DB0825-D025)-Kenapa-Manusia-Berubah-Kisah-Hijrah-Hati-Mencari-Kebenaran.png", color: "text-blue-600", gdriveLink: "https://drive.google.com/file/d/1UyRelHlQGuIyXr8n8kGUlXUpl95G4iU-/view?usp=sharing" },
+            "hijrah": { title: "Kenapa Manusia Berubah", cover: "fa-mars", coverImage: "https://i.postimg.cc/qRCQ0kkx/(DB0825-D025)-Kenapa-Manusia-Berubah-Kisah-Hijrah-Hati-Mencari-Kebenaran.png", color: "text-blue-600", gdriveLink: "https://drive.google.com/file/d/1UyRelHlQGuIyXr8n8kGUlXUpl95G4iU-/view?usp=sharing" },
             "simpanan": { title: "Formula Simpanan 10k Setahun", cover: "fa-piggy-bank", coverImage: "https://i.postimg.cc/qBCgkcJK/(DB0725_D023)_Formula_Simpanan_RM10_000_Setahun_Walaupun_Gaji_Biasa_Biasa.png", color: "text-green-500", gdriveLink: "https://drive.google.com/file/d/1AZQZfFbxKUthoFAR9EF7mTCLsKQe1ur4/view?usp=sharing" },
             "pelaburan": { title: "Pelaburan Tanpa Beban", cover: "fa-chart-line", coverImage: "https://i.postimg.cc/BZxsYmZ8/(DB0525_D018)_Pelaburan_Tanpa_Beban.png", color: "text-indigo-500", gdriveLink: "https://drive.google.com/file/d/1_O8D368w74JA5ocX4nEfUOmtmMA6HS4V/view?usp=sharing" },
             "emas": { title: "Rahsia Pelaburan Emas", cover: "fa-coins", coverImage: "https://i.postimg.cc/HxDRbCyS/(DB0525_D017)_Strategi_Bijak_Simpan_Emas_Digital_Fizikal.png", color: "text-yellow-500", gdriveLink: "https://drive.google.com/file/d/1iqiIj8zA1Vvg7pIjwgV4g1PvIgdbDa60/view?usp=sharing" },
@@ -173,13 +229,13 @@
             "tvet": { title: "TVET Laluan Bijak", cover: "fa-person-walking-arrow-right", coverImage: "https://i.postimg.cc/Fskb8StY/TP10-TVET.png", color: "text-red-600", gdriveLink: "https://drive.google.com/file/d/1sS95yFoOJcIOisjvEZ2kJJo22yng7P_e/view?usp=sharing" },
             "terbaik": { title: "Yang Terbaik Untu Anak", cover: "fa-person-walking-arrow-right", coverImage: "https://i.postimg.cc/jjtzDkDG/TP09-Yang-Terbaik-Untuk-Anak.png", color: "text-red-600", gdriveLink: "https://drive.google.com/file/d/153anI1HRLi06y660m0y4Cmqi7_UDG0bL/view?usp=sharing" },
             "asrama": { title: "Tips Lengkap Persedian Masuk Sekolah Asrama", cover: "fa-person-walking-arrow-right", coverImage: "https://i.postimg.cc/JhrkrDFb/TP08-Tips-lengkap-persediaan-masuk-sekolah-asrama.png", color: "text-red-600", gdriveLink: "https://drive.google.com/file/d/1KToiVwgjhqelAP5vQ1Y0SgAelIvbevag/view?usp=sharing" },
-            "tipsgenz": { title: "15 Tips Bijak Fahami Anak Gen Z Tanpa Tekanan", cover: "fa-person-walking-arrow-right", coverImage: "https://i.postimg.cc/gjN776fd/TP07-Tips-Bijak-Fahami-Anak-Gen-Z-Tanpa-Tekanan.png", color: "text-red-600", gdriveLink: "https://drive.google.com/file/d/19c6mPmF3U8sv9-xBrNO2oJAOH06O39QU/view?usp=sharing" },
+            "tipsgenz": { title: "15 Tips Bijak Fahami Anak Gen Z", cover: "fa-person-walking-arrow-right", coverImage: "https://i.postimg.cc/gjN776fd/TP07-Tips-Bijak-Fahami-Anak-Gen-Z-Tanpa-Tekanan.png", color: "text-red-600", gdriveLink: "https://drive.google.com/file/d/19c6mPmF3U8sv9-xBrNO2oJAOH06O39QU/view?usp=sharing" },
             "kerjaya": { title: "Rahsia Kerjaya", cover: "fa-briefcase", coverImage: "https://i.postimg.cc/hP1mB8sM/cover.png", color: "text-teal-600", gdriveLink: "https://drive.google.com/file/d/1eiklisUH1qLYtfj8fVwuIMTSCMEHHHDf/view?usp=sharing" },
-            "bijak": { title: "Tips Bijak Menabung Untuk Masa Depan Anak", cover: "fa-briefcase", coverImage: "https://i.postimg.cc/Bv0CxnV2/Tips-Bijak-Menabung-untuk-Masa-Depan-Anak.png", color: "text-teal-600", gdriveLink: "https://drive.google.com/file/d/1O3Oh613KEWzA_y2jgYb9rxTRb1WF-4Gh/view?usp=sharing" },
+            "bijak": { title: "Tips Bijak Menabung Untuk Anak", cover: "fa-briefcase", coverImage: "https://i.postimg.cc/Bv0CxnV2/Tips-Bijak-Menabung-untuk-Masa-Depan-Anak.png", color: "text-teal-600", gdriveLink: "https://drive.google.com/file/d/1O3Oh613KEWzA_y2jgYb9rxTRb1WF-4Gh/view?usp=sharing" },
             "kewangan": { title: "Tips Kewangan Mudah", cover: "fa-briefcase", coverImage: "https://i.postimg.cc/SNL77zBp/Adakah-Simpanan-dan-Pelaburan-Anda-Selari-dengan-Keperluan-Masa-Depan.png", color: "text-teal-600", gdriveLink: "https://drive.google.com/file/d/1IyeYJaP_69F8JXonyYFxzXKfZDHRoig5/view?usp=sharing" },
             "ai": { title: "AI Senang Duit Masuk", cover: "fa-briefcase", coverImage: "https://i.postimg.cc/c4c1s9G5/cover.png", color: "text-teal-600", gdriveLink: "https://drive.google.com/file/d/1YuvvnCWvpLw3PTVxpToTwijXEkjT3fot/view?usp=sharing" },
             "tipsemas": { title: "30 Tips Motivasi Simpanan Emas", cover: "fa-briefcase", coverImage: "https://i.postimg.cc/vm7cCWtP/TP15-30-tips-Motivasi-Simpan-Emas.png", color: "text-teal-600", gdriveLink: "https://drive.google.com/file/d/1soVdPB5rDZmSLvdoaBvQsiWTPg1BoCFA/view?usp=sharing" },
-            "kaboji": { title: "Sifat Kaboji Dosa Tersembunyi Yang Dianggap Biasa", cover: "fa-briefcase", coverImage: "https://i.postimg.cc/d055RTZx/1.png", color: "text-teal-600", gdriveLink: "https://drive.google.com/file/d/1ac9363-IiG2G96MlVYWqsS650bWGk6F0/view?usp=sharing" },
+            "kaboji": { title: "Sifat Kaboji Dosa Tersembunyi", cover: "fa-briefcase", coverImage: "https://i.postimg.cc/d055RTZx/1.png", color: "text-teal-600", gdriveLink: "https://drive.google.com/file/d/1ac9363-IiG2G96MlVYWqsS650bWGk6F0/view?usp=sharing" },
             "blueprint": { title: "Blueprint Umur 40", cover: "fa-briefcase", coverImage: "https://i.postimg.cc/vHm2Bh16/blueprint-umur-40.png", color: "text-teal-600", gdriveLink: "https://drive.google.com/file/d/1Eqt_PLmcMuVOHborhyV5wlIKPzSQ6m_n/view?usp=sharing" },
             "siri25#1": { title: "Siri 25 Soalan 1", cover: "fa-circle-question", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", color: "text-orange-500", gdriveLink: "https://drive.google.com/file/d/1OOCd0r3NYH24jz2YRL0TEiHNe_da3V1s/view?usp=sharing" },
             "siri25#2": { title: "Siri 25 Soalan 2", cover: "fa-circle-question", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", color: "text-orange-500", gdriveLink: "https://drive.google.com/file/d/1AU6l-Z-Fdsomjwm_SHz1bMLB-o9hsVV1/view?usp=sharing" },
@@ -409,8 +465,21 @@
         }
 
         window.onload = () => {
+            // Check session status
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                showApp();
+            }
+
+            // Render content
             renderTimeline(mapaData, 'mapa-timeline', 'left');
             renderTimeline(anakkuData, 'anakku-timeline', 'right');
+
+            // Enter key support for login
+            document.getElementById('passwordInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    checkLogin();
+                }
+            });
         };
 
     </script>
