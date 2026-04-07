@@ -50,29 +50,50 @@
         #loginOverlay {
             transition: opacity 0.5s ease;
         }
+
+        /* Lock overlay styles */
+        .lock-container { pointer-events: none; }
+        .lock-box { pointer-events: auto; }
     </style>
 </head>
 <body class="text-slate-800 antialiased overflow-hidden">
 
-    <!-- Skrin Log Masuk -->
+    <!-- Skrin Log Masuk Utama -->
     <div id="loginOverlay" class="fixed inset-0 bg-teal-700 z-[100] flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
             <div class="w-20 h-20 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
                 <i class="fa-solid fa-lock"></i>
             </div>
             <h2 class="text-2xl font-bold text-slate-800 mb-2">Akses Terhad</h2>
-            <p class="text-slate-500 mb-6">Sila masukkan kata laluan untuk mengakses Jurnal Famili Pintar.</p>
+            <p class="text-slate-500 mb-6">Sila masukkan kod untuk mengakses Jurnal Utama.</p>
             
             <div class="relative mb-4">
                 <input type="password" id="passwordInput" 
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-teal-500 focus:outline-none transition" 
-                    placeholder="Kata Laluan">
+                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-teal-500 focus:outline-none transition text-center font-bold tracking-widest" 
+                    placeholder="KOD AKSES">
             </div>
-            <p id="loginError" class="text-red-500 text-sm mb-4 hidden">Kata laluan salah. Sila cuba lagi.</p>
+            <p id="loginError" class="text-red-500 text-sm mb-4 hidden">Kod akses salah.</p>
             
             <button onclick="checkLogin()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl shadow-lg transition duration-200">
                 Log Masuk
             </button>
+        </div>
+    </div>
+
+    <!-- Modal Unlock Spesifik Modul -->
+    <div id="unlockModal" class="fixed inset-0 bg-slate-900/80 z-[110] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl modal-enter">
+            <div class="w-16 h-16 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Buka Modul</h3>
+            <p class="text-sm text-slate-500 mb-6 leading-relaxed">Sila masukkan kod akses yang anda terima selepas pembelian.</p>
+            <input type="password" id="unlockCodeInput" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-teal-500 focus:outline-none text-center font-bold tracking-widest uppercase" placeholder="KOD MODUL">
+            <p id="unlockError" class="text-red-500 text-xs mt-2 hidden">Kod tidak sah.</p>
+            <div class="flex space-x-3 mt-6">
+                <button onclick="closeUnlockModal()" class="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-sm">Batal</button>
+                <button onclick="verifyUnlockCode()" class="flex-1 py-3 bg-teal-600 text-white font-bold rounded-xl text-sm">Sahkan</button>
+            </div>
         </div>
     </div>
 
@@ -87,14 +108,15 @@
                         <span class="font-bold text-xl tracking-wide">JurnalFamiliPintar</span>
                     </div>
                     <div class="flex items-center space-x-6 hidden md:flex font-semibold">
-                        <a href="#mapa" onclick="hideProfile()" class="hover:text-teal-200 transition">Laluan Ma&Pa</a>
-                        <a href="#anakku" onclick="hideProfile()" class="hover:text-teal-200 transition">Laluan Anakku</a>
+                        <a href="#mapa-finance" onclick="hideProfile()" class="hover:text-teal-200 transition">Kewangan</a>
+                        <a href="#mapa-parenting" onclick="hideProfile()" class="hover:text-teal-200 transition">Keharmonian</a>
+                        <a href="#mapa-legacy" onclick="hideProfile()" class="hover:text-teal-200 transition">Legasi</a>
+                        <a href="#anakku" onclick="hideProfile()" class="hover:text-teal-200 transition">Zuriat</a>
                         <button onclick="showProfile()" class="hover:text-teal-200 transition flex items-center">
                             <i class="fa-solid fa-id-card mr-1"></i> Profail
                         </button>
                         <button onclick="logout()" class="bg-teal-800 px-3 py-1 rounded text-xs hover:bg-red-600 transition">Log Keluar</button>
                     </div>
-                    <!-- Mobile Menu Button -->
                     <div class="md:hidden flex items-center">
                         <button onclick="showProfile()" class="text-2xl mr-4"><i class="fa-solid fa-id-card"></i></button>
                         <button onclick="logout()" class="text-xl"><i class="fa-solid fa-right-from-bracket"></i></button>
@@ -103,181 +125,122 @@
             </div>
         </nav>
 
-        <!-- Hero Section (Disembunyikan jika Profil Aktif) -->
+        <!-- Hero Section -->
         <header id="heroSection" class="bg-gradient-to-b from-teal-500 to-teal-700 text-white py-16 text-center px-4">
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Jurnal Perjalanan Kehidupan Kita</h1>
-            <p class="text-lg md:text-xl max-w-2xl mx-auto opacity-90 mb-8">Panduan lengkap interaktif untuk kebahagiaan keluarga anda. Setiap fasa ada laluannya. Gunakan kalkulator dan ujian interaktif ini bersama pasangan dan anak-anak. Kami sediakan panduan (Ebook) khusus untuk setiap langkah anda.</p>
-            
-            <!-- Butang Utama -->
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Setiap Keluarga Ada Perjalanan Tersendiri</h1>
+            <p class="text-lg md:text-xl max-w-2xl mx-auto opacity-90 mb-8">Namun tanpa panduan yang betul, kita mudah tersasar — sama ada dalam kewangan, hubungan mahupun cara membesarkan anak.
+
+Melalui ujian dan alat interaktif ini, anda boleh memahami keadaan sebenar keluarga anda dan mengambil langkah yang lebih bijak untuk masa depan yang lebih baik.
+
+Mulakan dengan satu langkah kecil hari ini.</p>
             <div class="flex flex-wrap justify-center gap-4 mb-6">
-                <a href="#mapa" class="bg-white text-teal-700 px-6 py-3 rounded-full font-bold shadow-md hover:bg-slate-100 transition flex items-center">
-                    <i class="fa-solid fa-user-tie mr-2"></i> Ma&Pa
+                <a href="#mapa-finance" class="bg-white text-teal-700 px-6 py-3 rounded-full font-bold shadow-md hover:bg-slate-100 transition flex items-center">
+                    <i class="fa-solid fa-user-tie mr-2"></i> Diriku
                 </a>
                 <a href="#anakku" class="bg-orange-400 text-white px-6 py-3 rounded-full font-bold shadow-md hover:bg-orange-500 transition flex items-center">
                     <i class="fa-solid fa-child-reaching mr-2"></i> Anakku
                 </a>
             </div>
-
-            <!-- Butang Kategori -->
-            <div class="flex flex-wrap justify-center gap-3">
-                <button onclick="showFilterSection('ebook')" class="bg-teal-800 bg-opacity-40 hover:bg-opacity-60 border border-teal-300 px-5 py-2 rounded-lg text-sm font-semibold transition flex items-center">
-                    <i class="fa-solid fa-book mr-2"></i> Koleksi E-book
-                </button>
-                <button onclick="showFilterSection('Kalkulator')" class="bg-teal-800 bg-opacity-40 hover:bg-opacity-60 border border-teal-300 px-5 py-2 rounded-lg text-sm font-semibold transition flex items-center">
-                    <i class="fa-solid fa-calculator mr-2"></i> Kalkulator Kehidupan
-                </a>
-                <button onclick="showFilterSection('Ujian')" class="bg-teal-800 bg-opacity-40 hover:bg-opacity-60 border border-teal-300 px-5 py-2 rounded-lg text-sm font-semibold transition flex items-center">
-                    <i class="fa-solid fa-vial-circle-check mr-2"></i> Ujian & Games
-                </button>
-            </div>
         </header>
 
         <main id="appBody" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-                        <!-- SECTION PROFAIL -->
+            <!-- SECTION PROFAIL -->
             <section id="profileSection" class="hidden mb-24 animate-fade-in">
                 <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
                     <div class="md:flex">
                         <div class="md:w-1/3 bg-teal-50 p-10 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-100">
-                            <!-- SLOT IMEJ CREATOR -->
-                            <div class="relative group">
-                                <div class="w-44 h-44 rounded-full bg-slate-200 overflow-hidden shadow-xl border-4 border-white mb-6">
-                                    <!-- MASUKKAN URL GAMBAR ANDA DI SINI -->
-                                    <img id="creatorImg" src="https://i.postimg.cc/vHT9VzCP/Untitled-design1.png" 
-                                         alt="Profile" 
-                                         class="w-full h-full object-cover"
-                                         onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
-                                </div>
-                                <div class="absolute bottom-6 right-2 bg-teal-600 text-white p-2 rounded-full shadow-lg">
-                                    <i class="fa-solid fa-camera text-xs"></i>
-                                </div>
+                            <div class="w-44 h-44 rounded-full bg-slate-200 overflow-hidden shadow-xl border-4 border-white mb-6">
+                                <img id="creatorImg" src="https://i.postimg.cc/vHT9VzCP/Untitled-design1.png" alt="Profile" class="w-full h-full object-cover">
                             </div>
                             <h3 class="text-2xl font-bold text-teal-800 text-center">Hasnawi CH</h3>
                             <p class="text-slate-500 text-sm font-semibold">Financial Consultant</p>
-                            <div class="flex space-x-3 mt-4">
-                                <a href="#" class="text-teal-600 hover:text-teal-800"><i class="fa-brands fa-facebook text-xl"></i></a>
-                                <a href="#" class="text-teal-600 hover:text-teal-800"><i class="fa-brands fa-tiktok text-xl"></i></a>
-                            </div>
                         </div>
                         <div class="md:w-2/3 p-10">
-                            <div class="flex justify-between items-start mb-4">
-                                <h4 class="text-2xl font-extrabold text-slate-800 underline decoration-teal-500 decoration-4 underline-offset-8">Biodata</h4>
-                                <span class="bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1 rounded-full">Web Creator</span>
-                            </div>
-                            <p class="text-slate-500 mb-8 leading-relaxed text-sm italic">
-                                "Berpengalaman lebih 20 tahun berkhidmat di agensi di bawah kerajaan dalam bidang perakaunan dan sumber manusia. Kini bergerak sebagai perunding bebas dengan Public Mutual, Hans Legasi Resources, UBB Amanah Berhad dan IBS Management.
+                            <h4 class="text-2xl font-extrabold text-slate-800 underline decoration-teal-500 decoration-4 underline-offset-8 mb-4">Biodata</h4>
+                            <p class="text-slate-500 mb-8 leading-relaxed text-sm italic">Berpengalaman lebih 20 tahun berkhidmat dalam sektor awam, khususnya dalam bidang perakaunan dan pengurusan sumber manusia. Kini aktif sebagai perunding bebas dengan beberapa institusi termasuk Public Mutual, Hans Legasi Resources, UBB Amanah Berhad dan IBS Management.
 
-Mempunyai minat mendalam dalam dunia teknologi AI dengan aspirasi membangunkan platform web interaktif yang membantu ibu bapa memahami serta merancang pengurusan kewangan dunia dan akhirat. Platform ini bertujuan menyediakan akses kepada alat bantuan kewangan dan psikologi yang tepat, demi masa depan anak-anak yang lebih terjamin."
-                            </p>
-                            
-                            <div class="bg-slate-50 p-6 rounded-2xl mb-8 border border-slate-100">
-                                <h5 class="font-bold text-slate-800 mb-3 flex items-center">
-                                    <i class="fa-solid fa-star text-yellow-500 mr-2"></i> Bidang Pengalaman:
-                                </h5>
-                                <ul class="grid grid-cols-2 gap-2 text-sm text-slate-600">
-                                    <li class="flex items-center"><i class="fa-solid fa-check text-teal-500 mr-2"></i> Perakaunan & Perancangan Kewangan</li>
-                                    <li class="flex items-center"><i class="fa-solid fa-check text-teal-500 mr-2"></i> Perancangan & Pengurusan Harta Pusaka</li>
-                                    <li class="flex items-center"><i class="fa-solid fa-check text-teal-500 mr-2"></i> Pengurusan Sumber Manusia</li>
-                                    <li class="flex items-center"><i class="fa-solid fa-check text-teal-500 mr-2"></i> Pelaburan Patuh Syariah</li>
-                                </ul>
-                            </div>
+Selain itu, mempunyai minat mendalam dalam penerokaan teknologi, khususnya kecerdasan buatan (AI), dengan aspirasi membangunkan platform interaktif yang membantu ibu bapa memahami serta merancang aspek kewangan dan pembangunan keluarga secara lebih sistematik.
 
-                            <h4 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
-                                <i class="fa-solid fa-comments-dollar mr-2 text-teal-600"></i> Konsultasi Percuma:
-                            </h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <button onclick="contactWhatsApp('Unit Trust')" class="flex items-center justify-between bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 rounded-xl transition-all shadow hover:shadow-lg group">
-                                    <span class="text-sm font-bold">Unit Trust</span>
-                                    <i class="fa-brands fa-whatsapp text-xl"></i>
-                                </button>
-                                <button onclick="contactWhatsApp('LPPSA, Debt Consolidation & Refinance')" class="flex items-center justify-between bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 rounded-xl transition-all shadow hover:shadow-lg group">
-                                    <span class="text-sm font-bold">LPPSA/Loan/Refinance</span>
-                                    <i class="fa-brands fa-whatsapp text-xl"></i>
-                                </button>
-                                <button onclick="contactWhatsApp('Cash Trust')" class="flex items-center justify-between bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 rounded-xl transition-all shadow hover:shadow-lg group">
-                                    <span class="text-sm font-bold">Cash Trust</span>
-                                    <i class="fa-brands fa-whatsapp text-xl"></i>
-                                </button>
-                                <button onclick="contactWhatsApp('Wasiat')" class="flex items-center justify-between bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 rounded-xl transition-all shadow hover:shadow-lg group">
-                                    <span class="text-sm font-bold">Wasiat & Hibah</span>
-                                    <i class="fa-brands fa-whatsapp text-xl"></i>
-                                </button>
-                            </div>
+Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang praktikal, bagi menyokong kesejahteraan keluarga serta masa depan anak-anak yang lebih terarah dan terjamin.</p>
+                            <button onclick="contactWhatsApp('Konsultasi')" class="bg-teal-600 text-white px-6 py-3 rounded-xl font-bold">Tanya & Dapatkan Panduan</button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- SECTION FILTER -->
-            <section id="filterSection" class="mb-24 hidden scroll-mt-24">
-                <div class="flex justify-between items-center mb-8 border-b pb-4">
-                    <h2 class="text-3xl font-bold text-slate-800" id="filterTitle">Kategori</h2>
-                    <button onclick="hideFilterSection()" class="text-slate-400 hover:text-red-500 text-2xl"><i class="fa-solid fa-circle-xmark"></i></button>
-                </div>
-                <div id="filterResults" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-            </section>
-
-            <!-- LALUAN MA&PA TIMELINE -->
+            <!-- TIMELINE CONTENT -->
             <div id="timelineContent">
-                <section id="mapa" class="mb-24 relative scroll-mt-24">
+                <!-- Modul Finance -->
+                <section id="mapa-finance" class="mb-24 relative scroll-mt-24">
                     <div class="text-center mb-12">
-                        <h2 class="text-3xl font-bold text-teal-700 mb-2"><i class="fa-solid fa-user-tie mr-2"></i>Laluan Ma&Pa (Ibu Bapa)</h2>
-                        <p class="text-slate-500">Rancang kehidupan, kewangan dan psikologi keluarga.</p>
+                        <h2 class="text-3xl font-bold text-teal-700 mb-2"><i class="fa-solid fa-sack-dollar mr-2"></i>Adakah kewangan keluarga anda sebenarnya selamat? Jawab 3 soalan untuk tahu tahap sebenar — dan apa perlu buat sekarang</h2>
                     </div>
-                    <div class="relative timeline-container" id="mapa-timeline"></div>
+                    <div class="relative timeline-container" id="finance-timeline"></div>
                 </section>
 
-                <!-- LALUAN ANAKKU TIMELINE -->
+                <!-- Modul Parenting -->
+                <section id="mapa-parenting" class="mb-24 relative scroll-mt-24">
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl font-bold text-pink-600 mb-2"><i class="fa-solid fa-heart-pulse mr-2"></i>Ramai keluarga tak gagal… mereka cuma tak ada sistem. Mulakan dengan 1 ujian ringkas untuk faham keadaan sebenar keluarga anda</h2>
+                    </div>
+                    <div class="relative timeline-container" id="parenting-timeline"></div>
+                </section>
+
+                <!-- Modul Legacy -->
+                <section id="mapa-legacy" class="mb-24 relative scroll-mt-24">
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl font-bold text-indigo-700 mb-2"><i class="fa-solid fa-seedling mr-2"></i>90% keluarga tak sedar mereka ada masalah ini…check sekarang..</h2>
+                    </div>
+                    <div class="relative timeline-container" id="legacy-timeline"></div>
+                </section>
+
+                <!-- Modul Anakku -->
                 <section id="anakku" class="mb-24 relative scroll-mt-24">
                     <div class="text-center mb-12">
-                        <h2 class="text-3xl font-bold text-orange-500 mb-2"><i class="fa-solid fa-child-reaching mr-2"></i>Laluan Anakku</h2>
-                        <p class="text-slate-500">Membina peribadi unggul melalui ujian dan aktiviti interaktif.</p>
+                        <h2 class="text-3xl font-bold text-orange-500 mb-2"><i class="fa-solid fa-child-reaching mr-2"></i>Betul ke anda mengenali anak anda? Try test sekali...</h2>
                     </div>
                     <div class="relative timeline-container" id="anakku-timeline"></div>
                 </section>
             </div>
-
         </main>
 
         <!-- Modal Launchpad -->
         <div id="toolModal" class="fixed inset-0 bg-slate-900 bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto modal-enter hide-scroll">
-                <div class="bg-teal-600 p-6 rounded-t-2xl text-white relative flex items-center" id="modalHeader">
+                <div class="p-6 rounded-t-2xl text-white relative flex items-center" id="modalHeader">
                     <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-3xl mr-4" id="modalIcon"></div>
-                    <div>
-                        <h3 class="text-2xl font-bold" id="modalTitle"></h3>
-                        <p class="text-teal-100 mt-1" id="modalDesc"></p>
-                    </div>
-                    <button onclick="closeModal()" class="absolute top-4 right-4 text-white hover:text-red-300 text-2xl transition">
-                        <i class="fa-solid fa-circle-xmark"></i>
-                    </button>
+                    <div><h3 class="text-2xl font-bold" id="modalTitle"></h3><p class="mt-1" id="modalDesc"></p></div>
+                    <button onclick="closeModal()" class="absolute top-4 right-4 text-white text-2xl"><i class="fa-solid fa-circle-xmark"></i></button>
                 </div>
-
                 <div class="p-6 text-center border-b border-slate-100">
-                    <button class="text-white text-lg font-bold py-4 px-10 rounded-full shadow-lg transform hover:scale-105 transition duration-200" id="modalActionBtn"></button>
+                    <button class="text-white text-lg font-bold py-4 px-10 rounded-full shadow-lg" id="modalActionBtn"></button>
                 </div>
-
                 <div class="p-6 bg-slate-50 rounded-b-2xl">
-                    <h4 class="text-lg font-bold text-slate-700 mb-4 flex items-center">
-                        <i class="fa-brands fa-google-drive text-teal-500 mr-2"></i> Panduan Berkaitan:
-                    </h4>
+                    <h4 class="text-lg font-bold text-slate-700 mb-4 flex items-center"><i class="fa-brands fa-google-drive text-teal-500 mr-2"></i> Panduan Berkaitan:</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="modalEbooks"></div>
                 </div>
             </div>
         </div>
 
         <footer class="bg-slate-800 text-slate-300 py-12 text-center">
-            <p>&copy; 2026 Jurnal Kehidupan Keluarga. Dibina untuk harmoni Ma&Pa dan Anakku.</p>
+            <p>&copy; 2026 Jurnal Kehidupan Keluarga.HCH.</p>
         </footer>
     </div>
 
-    <script>
-        const DEFAULT_PASS = "hch#0129443846";
+   <script>
+        const ACCESS_CODES = { main: 'FIN101', parenting: 'PAR30', legacy: 'L39451', kids: 'ZUR147', admin: 'TRIAL' };
+        const ONPAY_LINKS = { parenting: 'https://daebook.onpay.my/order/form/fp02', legacy: 'https://daebook.onpay.my/order/form/fp03', kids: 'https://daebook.onpay.my/order/form/fp04' };
+        let activeUnlockTarget = '';
 
         function checkLogin() {
-            const input = document.getElementById('passwordInput').value;
-            if (input === DEFAULT_PASS) {
+            const input = document.getElementById('passwordInput').value.trim().toUpperCase();
+            if (input === ACCESS_CODES.main || input === ACCESS_CODES.admin) {
                 sessionStorage.setItem('isLoggedIn', 'true');
+                sessionStorage.setItem('access_finance', 'true');
+                if (input === ACCESS_CODES.admin) {
+                    ['finance', 'parenting', 'legacy', 'kids'].forEach(l => sessionStorage.setItem(`access_${l}`, 'true'));
+                }
                 showApp();
             } else {
                 document.getElementById('loginError').classList.remove('hidden');
@@ -288,35 +251,73 @@ Mempunyai minat mendalam dalam dunia teknologi AI dengan aspirasi membangunkan p
             document.getElementById('loginOverlay').classList.add('hidden');
             document.getElementById('mainContent').classList.remove('opacity-0');
             document.body.classList.remove('overflow-hidden');
+            renderAll();
+            applyAccessControl();
         }
 
-        function logout() {
-            sessionStorage.removeItem('isLoggedIn');
-            window.location.reload();
+        function applyAccessControl() {
+            const modules = [
+                { id: 'mapa-finance', key: 'finance' },
+                { id: 'mapa-parenting', key: 'parenting' },
+                { id: 'mapa-legacy', key: 'legacy' },
+                { id: 'anakku', key: 'kids' }
+            ];
+
+            modules.forEach(mod => {
+                const el = document.getElementById(mod.id);
+                if (!el) return;
+                const hasAccess = sessionStorage.getItem(`access_${mod.key}`) === 'true';
+                const timeline = el.querySelector('.timeline-container');
+                const existingOverlay = document.getElementById(`lock-${mod.id}`);
+
+                if (!hasAccess) {
+                    timeline.style.filter = 'blur(12px)';
+                    if (!existingOverlay) {
+                        const overlay = document.createElement('div');
+                        overlay.id = `lock-${mod.id}`;
+                        overlay.className = "absolute inset-0 z-30 flex items-center justify-center lock-container px-4";
+                        overlay.innerHTML = `
+                            <div class="bg-white/95 p-8 rounded-2xl shadow-xl text-center border border-slate-200 lock-box max-w-[400px]">
+                                <i class="fa-solid fa-lock text-slate-300 text-3xl mb-3"></i>
+                                <h4 class="font-bold text-sm mb-4 text-slate-800">Jom teroka lagi, journey anda baru bermula</h4>
+                                <div class="space-y-2">
+                                    <button onclick="openUnlockModal('${mod.key}')" class="w-full py-2 bg-slate-800 text-white rounded-lg text-xs font-bold">Masukkan Kod</button>
+                                    <a href="${ONPAY_LINKS[mod.key] || '#'}" target="_blank" class="block w-full py-2 bg-teal-600 text-white rounded-lg text-xs font-bold">Dapatkan Akses</a>
+                                </div>
+                            </div>
+                        `;
+                        el.appendChild(overlay);
+                    }
+                } else {
+                    timeline.style.filter = 'none';
+                    if (existingOverlay) existingOverlay.remove();
+                }
+            });
         }
 
-        // --- NAVIGATION FUNCTIONS ---
-        function showProfile() {
-            document.getElementById('profileSection').classList.remove('hidden');
-            document.getElementById('heroSection').classList.add('hidden');
-            document.getElementById('timelineContent').classList.add('hidden');
-            document.getElementById('filterSection').classList.add('hidden');
-            window.scrollTo(0,0);
+        function openUnlockModal(target) {
+            activeUnlockTarget = target;
+            document.getElementById('unlockCodeInput').value = '';
+            document.getElementById('unlockError').classList.add('hidden');
+            document.getElementById('unlockModal').classList.remove('hidden');
         }
 
-        function hideProfile() {
-            document.getElementById('profileSection').classList.add('hidden');
-            document.getElementById('heroSection').classList.remove('hidden');
-            document.getElementById('timelineContent').classList.remove('hidden');
+        function closeUnlockModal() { document.getElementById('unlockModal').classList.add('hidden'); }
+
+        function verifyUnlockCode() {
+            const code = document.getElementById('unlockCodeInput').value.trim().toUpperCase();
+            if (code === ACCESS_CODES[activeUnlockTarget] || code === ACCESS_CODES.admin) {
+                sessionStorage.setItem(`access_${activeUnlockTarget}`, 'true');
+                closeUnlockModal();
+                applyAccessControl();
+            } else {
+                document.getElementById('unlockError').classList.remove('hidden');
+            }
         }
 
-        function contactWhatsApp(topic) {
-            const phoneNumber = "60129443846";
-            const message = encodeURIComponent(`Salam, saya berminat untuk mengetahui lebih lanjut mengenai perkhidmatan ${topic}. Boleh bantu saya?`);
-            window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
-        }
+        function logout() { sessionStorage.clear(); window.location.reload(); }
 
-        // --- DATA ---
+        // --- DATA & RENDER ---
         const ebooks = {
             "survivalkit": { title: "Survival Kit Ibu Ayah", coverImage: "https://i.postimg.cc/0NQ1P663/(DB0525_D013)_Survival_Kit_Ibu_Ayah.png", gdriveLink: "https://drive.google.com/file/d/1taARvfss3qf1fKXSEvTkb_3rNpcSfC7k/view?usp=sharing" },
             "genz": { title: "Gen Z Bukan Derhaka", coverImage: "https://i.postimg.cc/hP85gYrV/cover.png", gdriveLink: "https://drive.google.com/file/d/1oklm3N_v5GZcYPyqXQ6ji6TXjwGeRHP-/view?usp=sharing" },
@@ -334,7 +335,7 @@ Mempunyai minat mendalam dalam dunia teknologi AI dengan aspirasi membangunkan p
             "pelaburan": { title: "Pelaburan Tanpa Beban", coverImage: "https://i.postimg.cc/BZxsYmZ8/(DB0525_D018)_Pelaburan_Tanpa_Beban.png", gdriveLink: "https://drive.google.com/file/d/1_O8D368w74JA5ocX4nEfUOmtmMA6HS4V/view?usp=sharing" },
             "emas": { title: "Rahsia Pelaburan Emas", coverImage: "https://i.postimg.cc/HxDRbCyS/(DB0525_D017)_Strategi_Bijak_Simpan_Emas_Digital_Fizikal.png", gdriveLink: "https://drive.google.com/file/d/1iqiIj8zA1Vvg7pIjwgV4g1PvIgdbDa60/view?usp=sharing" },
             "mudah": { title: "5 Sebab Melabur Itu Mudah", coverImage: "https://i.postimg.cc/ZqTynWfc/Screenshot_2025_02_24_114638.png", gdriveLink: "https://drive.google.com/file/d/1paZ_f49l5MDvvJnjkmumBvyq3XZInn-H/view?usp=sharing" },
-            "dibuang": { title: "Dibuang Kerja?", coverImage: "https://i.postimg.cc/mDP3ZckG/Screenshot_2025_02_24_114155.png", gdriveLink: "https://drive.google.com/file/d/1305ZF-j0ns7Qqx0H-bZhHxX6HgYhQe_Y/view?usp=sharing" },
+            "dibuang": { title: "5 Langkah Bijak Untuk Bertahan & Bangkit", coverImage: "https://i.postimg.cc/mDP3ZckG/Screenshot_2025_02_24_114155.png", gdriveLink: "https://drive.google.com/file/d/1305ZF-j0ns7Qqx0H-bZhHxX6HgYhQe_Y/view?usp=sharing" },
             "temuduga": { title: "Cemerlang Dalam Temuduga", coverImage: "https://i.postimg.cc/sgKYRFy6/(DB0725-D024)-CEMERLANG-DALAM-TEMUDUGA-cover.png", gdriveLink: "https://drive.google.com/file/d/1aP-kll9rQqqp11bOOtjSRJYeJud_fG2o/view?usp=sharing" },
             "tvet": { title: "TVET Laluan Bijak", coverImage: "https://i.postimg.cc/Fskb8StY/TP10-TVET.png", gdriveLink: "https://drive.google.com/file/d/1sS95yFoOJcIOisjvEZ2kJJo22yng7P_e/view?usp=sharing" },
             "terbaik": { title: "Yang Terbaik Untuk Anak", coverImage: "https://i.postimg.cc/jjtzDkDG/TP09-Yang-Terbaik-Untuk-Anak.png", gdriveLink: "https://drive.google.com/file/d/153anI1HRLi06y660m0y4Cmqi7_UDG0bL/view?usp=sharing" },
@@ -347,199 +348,143 @@ Mempunyai minat mendalam dalam dunia teknologi AI dengan aspirasi membangunkan p
             "tipsemas": { title: "30 Tips Motivasi Simpan Emas", coverImage: "https://i.postimg.cc/vm7cCWtP/TP15-30-tips-Motivasi-Simpan-Emas.png", gdriveLink: "https://drive.google.com/file/d/1soVdPB5rDZmSLvdoaBvQsiWTPg1BoCFA/view?usp=sharing" },
             "kaboji": { title: "Sifat Kaboji Dosa Tersembunyi", coverImage: "https://i.postimg.cc/d055RTZx/1.png", gdriveLink: "https://drive.google.com/file/d/1ac9363-IiG2G96MlVYWqsS650bWGk6F0/view?usp=sharing" },
             "blueprint": { title: "Blueprint Umur 40", coverImage: "https://i.postimg.cc/vHm2Bh16/blueprint-umur-40.png", gdriveLink: "https://drive.google.com/file/d/1Eqt_PLmcMuVOHborhyV5wlIKPzSQ6m_n/view?usp=sharing" },
-            "siri25#1": { title: "Siri 25 Soalan 1", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1OOCd0r3NYH24jz2YRL0TEiHNe_da3V1s/view?usp=sharing" },
-            "siri25#2": { title: "Siri 25 Soalan 2", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1AU6l-Z-Fdsomjwm_SHz1bMLB-o9hsVV1/view?usp=sharing" },
-            "siri25#3": { title: "Siri 25 Soalan 3", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1jpahNSGQyiHk2IdxXdTWWUSEuhp-nPFq/view?usp=sharing" },
+            "kurus": { title: "Kuruskan Badan Bersihkan Jiwa", coverImage: "https://i.postimg.cc/hvB24KTX/(DB0525-D015)-Kuruskan-Badan-Bersihkan-Jiwa.png", gdriveLink: "https://drive.google.com/file/d/16TsPbpBjwsBzXd0BHn_xnBasQG2lFat8/view?usp=sharing" },
+            "resipi": { title: "Resepi 7 Hari Sihat", coverImage: "https://i.postimg.cc/KcDNrStj/Resipi-7-Hari-Sihat-cover.png", gdriveLink: "https://drive.google.com/file/d/1TAIf8hb6zZ71kr6N60GhHukFMo3dEcVD/view?usp=sharing" },
+            "ramadhan": { title: "Kurus Ramadhan Maintain Raya", coverImage: "https://i.postimg.cc/kgpw6QKf/cover.png", gdriveLink: "https://drive.google.com/file/d/1DOeiQgJbPQK7sMF1LWZ-bb-at5nMbthU/view?usp=sharing" },
             "solat": { title: "Kisah Solat dalam Peristiwa Israk Mikraj", coverImage: "https://i.postimg.cc/RV9DmRTy/Kisah-Solat-dalam-Peristiwa-Israk-Mikraj.png", gdriveLink: "https://drive.google.com/file/d/1dcipiwcaskv-ntWpl7kC1YKOoQg38cDK/view?usp=sharing" },
             "iman": { title: "Iman & Islam – Harta Paling Berharga", coverImage: "https://i.postimg.cc/0rRtbBck/Iman-Islam-Harta-Paling-Berharga.png", gdriveLink: "https://drive.google.com/file/d/1_aDIrYVaPCATsEzPqPq0gPncQhCe51yO/view?usp=sharing" },
+            "fatihah": { title: "Kisah Surah Al-Fatihah", coverImage: "https://i.postimg.cc/Qx5dSTq8/Kisah-Surah-Al-Fatihah.png", gdriveLink: "https://drive.google.com/file/d/1Pe9tBD_R0D8igGQOgyLbA09jgZDUqNnH/view?usp=sharing" },
             "tata": { title: "Hari Minggu Bersama Tata", coverImage: "https://i.postimg.cc/gkGKy2V1/Screenshot_2025_02_03_150820.png", gdriveLink: "https://drive.google.com/file/d/1mcp5p6-pLh1EmRdoLw3vLKz4Acl0DGcY/view?usp=sharing" }
         };
 
-        const mapaData = [
-            { fasa: "Karier & Kewangan", desc: "Membina ekonomi keluarga.", icon: "fa-sack-dollar", color: "teal", tools: [
-                { id: "mychecklist", title: "myCHECKLIST", type: "Kalkulator", icon: "fa-list-check", desc: "Semak status hala tuju kerjaya dan kestabilan semasa anda.", reqs: ["kerjaya", "dibuang", "temuduga"], githubLink: "https://fin-think.github.io/myCHECKLIST/" },
-                { id: "mydebt", title: "myDEBT", type: "Kalkulator", icon: "fa-credit-card", desc: "Kira nisbah hutang kepada pendapatan (DSR) dan rancang strategi.", reqs: ["simpanan", "kewangan"], githubLink: "https://fin-think.github.io/myDEBT/" },
-                { id: "myarrahnu", title: "myARRAHNU", type: "Kalkulator", icon: "fa-coins", desc: "Mengenali fungsi Ar Rahnu sebagai instrumen kewangan.", reqs: ["emas", "tipsemas"], githubLink: "https://fin-think.github.io/myARRAHNU/" },
-                { id: "myut-fb", title: "myUT-FP", type: "Kalkulator", icon: "fa-umbrella-beach", desc: "Ukur tahap kewangan anda untuk bersara dengan selesa kelak.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "https://fin-think.github.io/myUT-FP/" }
-            ]},
-            { fasa: "Keharmonian Pasangan", desc: "Memahami pasangan dan cabaran keluarga moden.", icon: "fa-heart-pulse", color: "pink", tools: [
-                { id: "mylove", title: "myLOVE", type: "Ujian", icon: "fa-hand-holding-heart", desc: "Mengenali bahasa cinta.", reqs: ["wanita", "lelaki"], githubLink: "https://daebook89.github.io/myLOVE/" },
-                { id: "mypsiko", title: "myPSIKO", type: "Ujian", icon: "fa-brain", desc: "Ketahui tahap kesihatan mental dan stres anda.", reqs: ["survivalkit", "dilema"], githubLink: "https://daebook89.github.io/myPSIKO/" },
-                { id: "mypersonaliti", title: "myPERSONALITI", type: "Ujian", icon: "fa-fingerprint", desc: "Fahami jenis personaliti anda dalam menguruskan keluarga.", reqs: ["genz", "digital"], githubLink: "https://daebook89.github.io/myPERSONALITI/" },
-                { id: "mybirthday", title: "myBIRTHDAY", type: "Kalkulator", icon: "fa-cake-candles", desc: "Kalendar bermakna untuk merancang masa depan keluarga.", reqs: ["qawwam"], githubLink: "https://daebook89.github.io/myBIRTHDAY/" }
-            ]},
-            { fasa: "Legasi & Masa Depan", desc: "Persediaan pendidikan dan perlindungan waris.", icon: "fa-seedling", color: "indigo", tools: [
-                { id: "myedukids", title: "myEDUkids", type: "Kalkulator", icon: "fa-graduation-cap", desc: "Kira kos pendidikan masa depan dan rancang tabung pengajian.", reqs: ["sbp", "masadepan", "bijak"], githubLink: "https://fin-think.github.io/myEDUkids/" },
-                { id: "myplan4us", title: "myPLAN4US", type: "Kalkulator", icon: "fa-piggy-bank", desc: "Kira pendapatan dan simpanan untuk persaraan.", reqs: ["tiada", "kewangan"], githubLink: "https://fin-think.github.io/myPLAN4US/" },
-                { id: "mychecklist2.0", title: "myCHECKLIST2.0", type: "Ujian", icon: "fa-shield-check", desc: "Sejauh mana bersedia menghadapi umur 40.", reqs: ["hijrah", "kaboji", "blueprint"], githubLink: "https://daebook89.github.io/myCHECKLIST2.0/" },
-                { id: "mywaris", title: "myWARIS", type: "Kalkulator", icon: "fa-file-contract", desc: "Kalkulator faraid asas dan pengurusan harta pusaka.", reqs: ["tiada"], githubLink: "https://fin-think.github.io/myWARIS/" }
-            ]}
-        ];
+        const timelineData = {
+            finance: [{ 
+                fasa: "Langkah pertama: Stabilkan asas keluarga", desc: "EKONOMI", icon: "fa-sack-dollar", color: "teal", 
+                tools: [
+                    { id: "mychecklist", title: "myCHECKLIST", type: "Kalkulator", icon: "fa-list-check", desc: "Semak status hala tuju kerjaya dan kestabilan semasa anda.", reqs: ["kerjaya", "dibuang", "temuduga"], githubLink: "https://fin-think.github.io/myCHECKLIST/" },
+                    { id: "mydebt", title: "myDEBT", type: "Kalkulator", icon: "fa-credit-card", desc: "Kira nisbah hutang kepada pendapatan (DSR) dan rancang strategi.", reqs: ["simpanan", "kewangan"], githubLink: "https://fin-think.github.io/myDEBT/" },
+                    { id: "myarrahnu", title: "myARRAHNU", type: "Kalkulator", icon: "fa-coins", desc: "Mengenali fungsi Ar Rahnu sebagai instrumen kewangan.", reqs: ["emas", "tipsemas"], githubLink: "https://fin-think.github.io/myARRAHNU/" },
+                    { id: "myut-fb", title: "myUT-FP", type: "Kalkulator", icon: "fa-umbrella-beach", desc: "Ukur tahap kewangan anda untuk bersara dengan selesa kelak.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "https://fin-think.github.io/myUT-FP/" },
+                    { id: "myhealth", title: "myHEALTH", type: "Kalkulator", icon: "fa-stethoscope", desc: "Ukur tahap kesihatan anda.", reqs: ["resipi", "kurus","ramadhan" ], githubLink: "https://daebook89.github.io/myHEALTH/" }
+                ]
+            }],
+            parenting: [{ 
+                fasa: "Langkah kedua: Kuatkan hubungan", desc: "HUBUNGAN", icon: "fa-heart-pulse", color: "pink", 
+                tools: [ 
+                    { id: "mylove", title: "myLOVE", type: "Ujian", icon: "fa-hand-holding-heart", desc: "Mengenali bahasa cinta.", reqs: ["wanita", "lelaki"], githubLink: "https://daebook89.github.io/myLOVE/" },
+                    { id: "mypsiko", title: "myPSIKO", type: "Ujian", icon: "fa-brain", desc: "Ketahui tahap kesihatan mental dan stres anda.", reqs: ["survivalkit", "dilema"], githubLink: "https://daebook89.github.io/myPSIKO/" },
+                    { id: "mypersonaliti", title: "myPERSONALITI", type: "Ujian", icon: "fa-fingerprint", desc: "Fahami jenis personaliti anda dalam menguruskan keluarga.", reqs: ["genz", "digital"], githubLink: "https://daebook89.github.io/myPERSONALITI/" },
+                    { id: "mybirthday", title: "myBIRTHDAY", type: "Kalkulator", icon: "fa-cake-candles", desc: "Kalendar bermakna untuk merancang masa depan keluarga.", reqs: ["qawwam"], githubLink: "https://daebook89.github.io/myBIRTHDAY/" }
+                ] 
+            }],
+            legacy: [{ 
+                fasa: "Langkah Ketiga: Bersedia Sekarang", desc: "WARISAN", icon: "fa-seedling", color: "indigo", 
+                tools: [
+                    { id: "myedukids", title: "myEDUkids", type: "Kalkulator", icon: "fa-graduation-cap", desc: "Kira kos pendidikan masa depan dan rancang tabung pengajian.", reqs: ["sbp", "masadepan", "bijak"], githubLink: "https://fin-think.github.io/myEDUkids/" },
+                    { id: "myplan4us", title: "myPLAN4US", type: "Kalkulator", icon: "fa-wallet", desc: "Kira pendapatan dan simpanan untuk persaraan.", reqs: ["tiada", "kewangan"], githubLink: "https://fin-think.github.io/myPLAN4US/" },
+                    { id: "mychecklist2.0", title: "myCHECKLIST2.0", type: "Ujian", icon: "fa-list-check", desc: "Sejauh mana bersedia menghadapi umur 40.", reqs: ["hijrah", "kaboji", "blueprint"], githubLink: "https://daebook89.github.io/myCHECKLIST2.0/" },
+                    { id: "mywaris", title: "myWARIS", type: "Kalkulator", icon: "fa-file-contract", desc: "Kalkulator faraid asas dan pengurusan harta pusaka.", reqs: ["tiada"], githubLink: "https://fin-think.github.io/myWARIS/" }
+                ] 
+            }],
+            kids: [
+                { fasa: "Asas Kerohanian", desc: "Membentuk teras agama.", icon: "fa-moon", color: "orange", tools: [
+                    { id: "myintegrity", title: "myINTEGRITY", type: "Ujian", icon: "fa-scale-balanced", desc: "Ukur kejujuran dan pemahaman moral anak.", reqs: ["yolo"], githubLink: "https://daebook89.github.io/myINTEGRITY" },
+                    { id: "mysolat", title: "mySOLAT", type: "Ujian", icon: "fa-person-praying", desc: "Semak pemahaman rukun dan kelancaran solat anak.", reqs: ["tata", "solat", "siri25#3"], githubLink: "https://daebook89.github.io/mySOLAT" },
+                    { id: "myfatihah", title: "myFATIHAH", type: "Ujian", icon: "fa-book-quran", desc: "Ujian asas Surah Al-Fatihah.", reqs: ["fatihah", "tata", "siri25#3"], githubLink: "https://daebook89.github.io/myFATIHAH" },
+                    { id: "myrukun", title: "myRUKUN", type: "Ujian", icon: "fa-hand-sparkles", desc: "Kuiz pemahaman Rukun Islam & Rukun Iman.", reqs: ["iman", "siri25#3"], githubLink: "https://daebook89.github.io/myRUKUN" }
+                ]},
+                { fasa: "Minda & Games", desc: "Belajar sambil bermain.", icon: "fa-gamepad", color: "blue", tools: [
+                    { id: "gamemath", title: "Math Game", type: "Game", icon: "fa-calculator", desc: "Minda mengira pantas.", reqs: ["ai"], githubLink: "https://daebook89.github.io/myMATH" },
+                    { id: "gameeng", title: "English Game", type: "Game", icon: "fa-spell-check", desc: "Kosa kata Inggeris interaktif.", reqs: ["digital"], githubLink: "https://daebook89.github.io/myENGLISH" },
+                    { id: "gamebmsains", title: "Sains Game", type: "Game", icon: "fa-flask", desc: "Pengembaraan dunia sains.", reqs: ["digital", "siri25#1", "siri25#2"], githubLink: "https://daebook89.github.io/mySAINS" },
+                    { id: "gamekafa", title: "KAFA Game", type: "Game", icon: "fa-star-and-crescent", desc: "Ujian pantas silibus KAFA.", reqs: ["solat", "siri25#3"], githubLink: "https://daebook89.github.io/myKAFA" }
+                ]},
+                { fasa: "Psikologi Membesar", desc: "Menangani emosi remaja.", icon: "fa-masks-theater", color: "purple", tools: [
+                    { id: "mypersonalitids", title: "myPERSONALITIkids", type: "Ujian", icon: "fa-puzzle-piece", desc: "Kenali potensi dan laluan belajar terbaik untuk anak.", reqs: ["digital", "tvet", "asrama", "ai"], githubLink: "https://daebook89.github.io/myPERSONALITIkids/" },
+                    { id: "mypsikokids", title: "myPSIKOkids", type: "Ujian", icon: "fa-face-smile", desc: "Uji tahap emosi dan sosial kanak-kanak.", reqs: ["digital", "survivalkit"], githubLink: "https://daebook89.github.io/myPSIKOkids/" },
+                    { id: "mypsikoteens", title: "myPSIKOteens", type: "Ujian", icon: "fa-headphones", desc: "Ujian menilai aspek spiritual dan disiplin diri remaja.", reqs: ["genz", "yolo"], githubLink: "https://daebook89.github.io/myPSIKOteens/" },
+                    { id: "mypsikoteens2", title: "myPSIKOteens2.0", type: "Ujian", icon: "fa-vr-cardboard", desc: "Menilai dan menangani kesan sosial media.", reqs: ["genz", "dilema", "tipsgenz"], githubLink: "https://daebook89.github.io/myPSIKOteens2.0/" }
+                ]}
+            ]
+        };
 
-        const anakkuData = [
-            { fasa: "Asas Kerohanian", desc: "Membentuk teras agama.", icon: "fa-moon", color: "orange", tools: [
-                { id: "myintegrity", title: "myINTEGRITY", type: "Ujian", icon: "fa-scale-balanced", desc: "Ukur kejujuran dan pemahaman moral anak.", reqs: ["yolo"], githubLink: "https://daebook89.github.io/myINTEGRITY" },
-                { id: "mysolat", title: "mySOLAT", type: "Ujian", icon: "fa-person-praying", desc: "Semak pemahaman rukun dan kelancaran solat anak.", reqs: ["tata", "siri25#3", "solat"], githubLink: "https://daebook89.github.io/mySOLAT" },
-                { id: "myfatihah", title: "myFATIHAH", type: "Ujian", icon: "fa-book-quran", desc: "Ujian bacaan dan tajwid asas Surah Al-Fatihah.", reqs: ["siri25#3", "tata"], githubLink: "https://daebook89.github.io/myFATIHAH" },
-                { id: "myrukun", title: "myRUKUN", type: "Ujian", icon: "fa-hand-sparkles", desc: "Kuiz pemahaman Rukun Islam & Rukun Iman.", reqs: ["siri25#3", "iman"], githubLink: "https://daebook89.github.io/myRUKUN" }
-            ]},
-            { fasa: "Minda & Games", desc: "Belajar sambil bermain.", icon: "fa-gamepad", color: "blue", tools: [
-                { id: "gamemath", title: "Math Game", type: "Game", icon: "fa-calculator", desc: "Minda mengira pantas.", reqs: ["siri25#1"], githubLink: "https://daebook89.github.io/myMATH" },
-                { id: "gameeng", title: "English Game", type: "Game", icon: "fa-spell-check", desc: "Kosa kata Inggeris interaktif.", reqs: ["siri25#2"], githubLink: "https://daebook89.github.io/myENGLISH" },
-                { id: "gamebmsains", title: "Sains Game", type: "Game", icon: "fa-flask", desc: "Pengembaraan dunia sains.", reqs: ["siri25#1", "siri25#2"], githubLink: "https://daebook89.github.io/mySAINS" },
-                { id: "gamekafa", title: "KAFA Game", type: "Game", icon: "fa-star-and-crescent", desc: "Ujian pantas silibus KAFA.", reqs: ["siri25#3"], githubLink: "https://daebook89.github.io/myKAFA" }
-            ]},
-            { fasa: "Psikologi Membesar", desc: "Menangani emosi remaja.", icon: "fa-masks-theater", color: "purple", tools: [
-                { id: "mypersonalitids", title: "myPERSONALITIkids", type: "Ujian", icon: "fa-puzzle-piece", desc: "Kenali potensi dan laluan belajar terbaik untuk anak.", reqs: ["digital", "tvet", "asrama", "ai"], githubLink: "https://daebook89.github.io/myPERSONALITIkids/" },
-                { id: "mypsikokids", title: "myPSIKOkids", type: "Ujian", icon: "fa-face-smile", desc: "Uji tahap emosi dan sosial kanak-kanak.", reqs: ["digital", "survivalkit"], githubLink: "https://daebook89.github.io/myPSIKOkids/" },
-                { id: "mypsikoteens", title: "myPSIKOteens", type: "Ujian", icon: "fa-headphones", desc: "Ujian menilai aspek spiritual dan disiplin diri remaja.", reqs: ["genz", "yolo"], githubLink: "https://daebook89.github.io/myPSIKOteens/" },
-                { id: "mypsikoteens2", title: "myPSIKOteens2.0", type: "Ujian", icon: "fa-vr-cardboard", desc: "Menilai dan menangani kesan sosial media.", reqs: ["genz", "dilema", "tipsgenz"], githubLink: "https://daebook89.github.io/myPSIKOteens2.0/" }
-            ]}
-        ];
-
-        // --- RENDER FUNCTIONS ---
-        function renderTimeline(data, containerId, color) {
+        function renderTimeline(data, containerId) {
             const container = document.getElementById(containerId);
-            let html = '';
-            data.forEach((stage, index) => {
-                const isLeft = index % 2 === 0;
-                const flexDir = isLeft ? 'md:flex-row-reverse' : 'md:flex-row';
-                const textAlignment = isLeft ? 'md:text-right md:pr-12' : 'md:text-left md:pl-12';
-                html += `
-                    <div class="relative z-10 mb-8 flex items-center justify-start ${flexDir} md:justify-center px-4 md:px-0">
-                        <div class="w-full md:w-1/2 ${textAlignment} mb-4 md:mb-0 ml-12 md:ml-0">
-                            <h3 class="text-2xl font-bold text-${stage.color}-600 bg-white inline-block px-4 py-1 rounded-full shadow-sm border border-${stage.color}-100">
-                                <i class="fa-solid ${stage.icon} mr-2"></i>${stage.fasa}
-                            </h3>
-                            <p class="text-slate-500 mt-2 text-sm">${stage.desc}</p>
-                        </div>
-                        <div class="absolute left-[8px] md:left-1/2 transform md:-translate-x-1/2 w-10 h-10 bg-${stage.color}-500 border-4 border-white rounded-full flex items-center justify-center text-white z-20 shadow-md">
-                            <span class="font-bold">${index + 1}</span>
-                        </div>
-                        <div class="w-full md:w-1/2 hidden md:block"></div>
-                    </div>
-                    <div class="relative z-10 mb-16 px-4 md:px-0">
-                        <div class="ml-12 md:ml-0 grid grid-cols-1 md:grid-cols-2 gap-4 w-full md:w-5/6 lg:w-3/4 mx-auto">
-                            ${stage.tools.map(tool => `
-                                <div onclick="openModal('${tool.id}', '${stage.color}')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-${stage.color}-300 cursor-pointer transition transform hover:-translate-y-1 group">
-                                    <div class="flex items-center mb-3">
-                                        <div class="w-10 h-10 rounded-full bg-${stage.color}-100 text-${stage.color}-600 flex items-center justify-center text-lg mr-3 group-hover:bg-${stage.color}-600 group-hover:text-white transition">
-                                            <i class="fa-solid ${tool.icon}"></i>
-                                        </div>
-                                        <div>
-                                            <h4 class="font-bold text-slate-800">${tool.title}</h4>
-                                            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-500">${tool.type}</span>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-slate-500 line-clamp-2">${tool.desc}</p>
+            if (!container || !data) return;
+            
+            container.innerHTML = data.map(stage => `
+                <div class="relative z-10 mb-8 flex flex-col items-center px-4">
+                    <h3 class="text-lg font-bold text-${stage.color}-600 bg-white px-6 py-2 rounded-full shadow-sm border border-${stage.color}-100 mb-6 uppercase tracking-tight">
+                        <i class="fa-solid ${stage.icon} mr-2"></i>${stage.fasa}
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl pointer-events-auto">
+                        ${stage.tools.map(tool => `
+                            <div onclick="openModal('${tool.id}', '${stage.color}')" class="bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
+                                <div class="w-12 h-12 rounded-xl bg-${stage.color}-50 text-${stage.color}-600 flex items-center justify-center text-xl mr-4 group-hover:bg-${stage.color}-600 group-hover:text-white transition">
+                                    <i class="fa-solid ${tool.icon}"></i>
                                 </div>
-                            `).join('')}
-                        </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-slate-800 text-sm">${tool.title}</h4>
+                                    <p class="text-xs text-slate-500">${tool.desc}</p>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
-                `;
-            });
-            container.innerHTML = html;
+                </div>
+            `).join('');
         }
 
-        // --- FILTER LOGIC ---
-        function showFilterSection(category) {
-            hideProfile(); // Pastikan profil tertutup
-            const section = document.getElementById('filterSection');
-            const results = document.getElementById('filterResults');
-            const title = document.getElementById('filterTitle');
-            
-            section.classList.remove('hidden');
-            results.innerHTML = '';
-            
-            if (category === 'ebook') {
-                title.textContent = "Koleksi Semua E-book";
-                Object.values(ebooks).forEach(eb => {
-                    results.innerHTML += `
-                        <div class="bg-white border p-4 rounded-xl flex items-center shadow-sm">
-                            <img src="${eb.coverImage}" class="w-16 h-20 object-cover rounded mr-4 shadow">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-800 mb-2">${eb.title}</h4>
-                                <a href="${eb.gdriveLink}" target="_blank" class="bg-teal-600 text-white px-3 py-1 text-xs rounded hover:bg-teal-700 transition">Buka GDrive</a>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                title.textContent = `Semua ${category}`;
-                const allTools = [...mapaData, ...anakkuData].flatMap(s => s.tools.map(t => ({...t, color: s.color})));
-                const filtered = allTools.filter(t => t.type === category);
-                
-                filtered.forEach(tool => {
-                    results.innerHTML += `
-                        <div onclick="openModal('${tool.id}', '${tool.color}')" class="bg-white p-5 rounded-xl border-2 border-transparent hover:border-${tool.color}-400 cursor-pointer shadow-sm transition">
-                            <div class="flex items-center mb-2">
-                                <i class="fa-solid ${tool.icon} text-${tool.color}-500 mr-3 text-xl"></i>
-                                <h4 class="font-bold">${tool.title}</h4>
-                            </div>
-                            <p class="text-xs text-slate-500">${tool.desc}</p>
-                        </div>
-                    `;
-                });
-            }
-            
-            section.scrollIntoView({ behavior: 'smooth' });
+        function renderAll() {
+            renderTimeline(timelineData.finance, 'finance-timeline');
+            renderTimeline(timelineData.parenting, 'parenting-timeline');
+            renderTimeline(timelineData.legacy, 'legacy-timeline');
+            renderTimeline(timelineData.kids, 'anakku-timeline');
         }
 
-        function hideFilterSection() {
-            document.getElementById('filterSection').classList.add('hidden');
-        }
-
-        // --- MODAL ---
-        function openModal(toolId, toolColor) {
+        function openModal(toolId, color) {
             let tool = null;
-            [...mapaData, ...anakkuData].forEach(stage => {
-                const found = stage.tools.find(t => t.id === toolId);
-                if (found) tool = { ...found, color: toolColor };
+            Object.values(timelineData).forEach(stages => {
+                stages.forEach(s => {
+                    const found = s.tools.find(t => t.id === toolId);
+                    if (found) tool = found;
+                });
             });
             if (!tool) return;
 
             document.getElementById('modalTitle').textContent = tool.title;
             document.getElementById('modalDesc').textContent = tool.desc;
             document.getElementById('modalIcon').innerHTML = `<i class="fa-solid ${tool.icon}"></i>`;
-            document.getElementById('modalHeader').className = `p-6 rounded-t-2xl text-white relative flex items-center bg-${tool.color}-600`;
-            
+            document.getElementById('modalHeader').className = `p-6 rounded-t-2xl text-white relative flex items-center bg-${color}-600`;
             const btn = document.getElementById('modalActionBtn');
-            btn.className = `bg-${tool.color}-500 hover:bg-${tool.color}-600 text-white text-lg font-bold py-4 px-10 rounded-full transition bg-${tool.color}-500`;
-            btn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> Tekan Untuk Mula`;
+            btn.className = `bg-${color}-500 text-white py-4 px-10 rounded-full font-bold shadow-lg`;
+            btn.textContent = `Lancarkan ${tool.title}`;
             btn.onclick = () => window.open(tool.githubLink, '_blank');
 
             const ebContainer = document.getElementById('modalEbooks');
             ebContainer.innerHTML = '';
-            tool.reqs.forEach(id => {
-                const eb = ebooks[id];
+            tool.reqs.forEach(rid => {
+                const eb = ebooks[rid];
                 if (eb) {
                     ebContainer.innerHTML += `
-                        <div class="bg-white border rounded-lg p-3 flex items-center shadow-sm">
-                            <img src="${eb.coverImage}" class="w-10 h-14 object-cover rounded mr-3">
-                            <div class="flex-1">
-                                <h5 class="font-bold text-xs text-slate-800 line-clamp-1">${eb.title}</h5>
-                                <a href="${eb.gdriveLink}" target="_blank" class="text-[10px] bg-slate-800 text-white px-2 py-1 rounded mt-1 inline-block">Baca</a>
-                            </div>
-                        </div>
-                    `;
+                        <div class="bg-white border rounded-lg p-3 flex items-center cursor-pointer hover:bg-slate-100 transition" onclick="window.open('${eb.gdriveLink}', '_blank')">
+                            <img src="${eb.coverImage}" class="w-10 h-14 object-cover mr-3 shadow-sm">
+                            <h5 class="font-bold text-xs">${eb.title}</h5>
+                        </div>`;
                 }
             });
-
             document.getElementById('toolModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
         }
 
-        function closeModal() {
-            document.getElementById('toolModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
+        function closeModal() { document.getElementById('toolModal').classList.add('hidden'); }
+        function showProfile() { document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('timelineContent').classList.add('hidden'); }
+        function hideProfile() { document.getElementById('profileSection').classList.add('hidden'); document.getElementById('timelineContent').classList.remove('hidden'); }
+        function contactWhatsApp(t) { window.open(`https://wa.me/60129443846?text=Bantuan%20${t}`, '_blank'); }
 
-        window.onload = () => {
-            if (sessionStorage.getItem('isLoggedIn') === 'true') showApp();
-            renderTimeline(mapaData, 'mapa-timeline', 'teal');
-            renderTimeline(anakkuData, 'anakku-timeline', 'orange');
-            document.getElementById('passwordInput').addEventListener('keypress', (e) => e.key === 'Enter' && checkLogin());
-        };
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                showApp();
+            }
+        });
     </script>
 </body>
 </html>
