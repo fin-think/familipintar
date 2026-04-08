@@ -174,7 +174,7 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
                 <!-- Modul Finance -->
                 <section id="mapa-finance" class="mb-24 relative scroll-mt-24">
                     <div class="text-center mb-12">
-                        <h2 class="text-3xl font-bold text-teal-700 mb-2"><i class="fa-solid fa-sack-dollar mr-2"></i>Adakah kewangan keluarga anda sebenarnya selamat? Jawab 3 soalan untuk tahu tahap sebenar — dan apa perlu buat sekarang</h2>
+                        <h2 class="text-3xl font-bold text-teal-700 mb-2"><i class="fa-solid fa-sack-dollar mr-2"></i>Adakah kewangan keluarga anda sebenarnya selamat? Semak dan kira untuk tahu tahap sebenar — dan apa perlu buat sekarang</h2>
                     </div>
                     <div class="relative timeline-container" id="finance-timeline"></div>
                 </section>
@@ -182,7 +182,7 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
                 <!-- Modul Parenting -->
                 <section id="mapa-parenting" class="mb-24 relative scroll-mt-24">
                     <div class="text-center mb-12">
-                        <h2 class="text-3xl font-bold text-pink-600 mb-2"><i class="fa-solid fa-heart-pulse mr-2"></i>Ramai keluarga tak gagal… mereka cuma tak ada sistem. Mulakan dengan 1 ujian ringkas untuk faham keadaan sebenar keluarga anda</h2>
+                        <h2 class="text-3xl font-bold text-pink-600 mb-2"><i class="fa-solid fa-heart-pulse mr-2"></i>Ramai keluarga tak gagal… mereka cuma tak ada sistem. Mulakan dengan 1 ujian ringkas untuk faham keadaan sebenar keluarga anda - pasangan anda?</h2>
                     </div>
                     <div class="relative timeline-container" id="parenting-timeline"></div>
                 </section>
@@ -363,8 +363,8 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
                 tools: [
                     { id: "mychecklist", title: "myCHECKLIST", type: "Kalkulator", icon: "fa-list-check", desc: "Semak status hala tuju kerjaya dan kestabilan semasa anda.", reqs: ["kerjaya", "dibuang", "temuduga"], githubLink: "https://fin-think.github.io/myCHECKLIST/" },
                     { id: "mydebt", title: "myDEBT", type: "Kalkulator", icon: "fa-credit-card", desc: "Kira nisbah hutang kepada pendapatan (DSR) dan rancang strategi.", reqs: ["simpanan", "kewangan"], githubLink: "https://fin-think.github.io/myDEBT/" },
-                    { id: "myarrahnu", title: "myARRAHNU", type: "Kalkulator", icon: "fa-coins", desc: "Mengenali fungsi Ar Rahnu sebagai instrumen kewangan.", reqs: ["emas", "tipsemas"], githubLink: "https://fin-think.github.io/myARRAHNU/" },
                     { id: "myut-fb", title: "myUT-FP", type: "Kalkulator", icon: "fa-umbrella-beach", desc: "Ukur tahap kewangan anda untuk bersara dengan selesa kelak.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "https://fin-think.github.io/myUT-FP/" },
+                    { id: "myarrahnu", title: "myARRAHNU", type: "Kalkulator", icon: "fa-coins", desc: "Mengenali fungsi Ar Rahnu sebagai instrumen kewangan.", reqs: ["emas", "tipsemas"], githubLink: "https://fin-think.github.io/myARRAHNU/" },
                     { id: "myhealth", title: "myHEALTH", type: "Kalkulator", icon: "fa-stethoscope", desc: "Ukur tahap kesihatan anda.", reqs: ["resipi", "kurus","ramadhan" ], githubLink: "https://daebook89.github.io/myHEALTH/" }
                 ]
             }],
@@ -374,7 +374,7 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
                     { id: "mylove", title: "myLOVE", type: "Ujian", icon: "fa-hand-holding-heart", desc: "Mengenali bahasa cinta.", reqs: ["wanita", "lelaki"], githubLink: "https://daebook89.github.io/myLOVE/" },
                     { id: "mypsiko", title: "myPSIKO", type: "Ujian", icon: "fa-brain", desc: "Ketahui tahap kesihatan mental dan stres anda.", reqs: ["survivalkit", "dilema"], githubLink: "https://daebook89.github.io/myPSIKO/" },
                     { id: "mypersonaliti", title: "myPERSONALITI", type: "Ujian", icon: "fa-fingerprint", desc: "Fahami jenis personaliti anda dalam menguruskan keluarga.", reqs: ["genz", "digital"], githubLink: "https://daebook89.github.io/myPERSONALITI/" },
-                    { id: "mybirthday", title: "myBIRTHDAY", type: "Kalkulator", icon: "fa-cake-candles", desc: "Kalendar bermakna untuk merancang masa depan keluarga.", reqs: ["qawwam"], githubLink: "https://daebook89.github.io/myBIRTHDAY/" }
+                    { id: "myfamiliplan", title: "myFAMILIPLAN", type: "Kalkulator", icon: "fa-cake-candles", desc: "Kalendar bermakna untuk merancang masa depan keluarga.", reqs: ["qawwam"], githubLink: "https://daebook89.github.io/myBIRTHDAY/" }
                 ] 
             }],
             legacy: [{ 
@@ -403,7 +403,7 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
                     { id: "mypersonalitids", title: "myPERSONALITIkids", type: "Ujian", icon: "fa-puzzle-piece", desc: "Kenali potensi dan laluan belajar terbaik untuk anak.", reqs: ["digital", "tvet", "asrama", "ai"], githubLink: "https://daebook89.github.io/myPERSONALITIkids/" },
                     { id: "mypsikokids", title: "myPSIKOkids", type: "Ujian", icon: "fa-face-smile", desc: "Uji tahap emosi dan sosial kanak-kanak.", reqs: ["digital", "survivalkit"], githubLink: "https://daebook89.github.io/myPSIKOkids/" },
                     { id: "mypsikoteens", title: "myPSIKOteens", type: "Ujian", icon: "fa-headphones", desc: "Ujian menilai aspek spiritual dan disiplin diri remaja.", reqs: ["genz", "yolo"], githubLink: "https://daebook89.github.io/myPSIKOteens/" },
-                    { id: "mypsikoteens2", title: "myPSIKOteens2.0", type: "Ujian", icon: "fa-vr-cardboard", desc: "Menilai dan menangani kesan sosial media.", reqs: ["genz", "dilema", "tipsgenz"], githubLink: "https://daebook89.github.io/myPSIKOteens2.0/" }
+                    { id: "mypsikoteens2", title: "myPSIKOteens2.0", type: "Ujian", icon: "fa-vr-cardboard", desc: "Menilai dan menangani kesan sosial media.", reqs: ["genz", "dilema", "yolo", "tipsgenz"], githubLink: "https://daebook89.github.io/myPSIKOteens2.0/" }
                 ]}
             ]
         };
