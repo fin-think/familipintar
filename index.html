@@ -23,7 +23,7 @@
             bottom: 0;
             left: 24px;
             width: 4px;
-            background-color: #e2e8f0;
+            background-color: #38b6ff;
             z-index: 0;
         }
 
@@ -51,19 +51,42 @@
             transition: opacity 0.5s ease;
         }
 
-        /* Lock overlay styles */
         .lock-container { pointer-events: none; }
         .lock-box { pointer-events: auto; }
+        
+        .confetti-icon {
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .logo-nav {
+            height: 32px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .login-hero-img {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin-bottom: 1.5rem;
+        }
     </style>
 </head>
 <body class="text-slate-800 antialiased overflow-hidden">
 
     <!-- Skrin Log Masuk Utama -->
-    <div id="loginOverlay" class="fixed inset-0 bg-teal-700 z-[100] flex items-center justify-center p-4">
+    <div id="loginOverlay" class="fixed inset-0 bg-sky-400 z-[100] flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
-            <div class="w-20 h-20 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
-                <i class="fa-solid fa-lock"></i>
+            <!-- SLOT IMEJ LOG MASUK -->
+            <div class="flex justify-center">
+                <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Utama" class="login-hero-img">
             </div>
+            
             <h2 class="text-2xl font-bold text-slate-800 mb-2">Akses Terhad</h2>
             <p class="text-slate-500 mb-6">Sila masukkan kod untuk mengakses Jurnal Utama.</p>
             
@@ -74,9 +97,24 @@
             </div>
             <p id="loginError" class="text-red-500 text-sm mb-4 hidden">Kod akses salah.</p>
             
-            <button onclick="checkLogin()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl shadow-lg transition duration-200">
+            <button onclick="checkLogin()" class="w-full bg-sky-400 hover:bg-sky-700 text-white font-bold py-3 rounded-xl shadow-lg transition duration-200">
                 Log Masuk
             </button>
+        </div>
+    </div>
+
+    <!-- Modal Workflow / Tahniah -->
+    <div id="workflowModal" class="fixed inset-0 bg-slate-900/90 z-[120] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl modal-enter">
+            <div id="workflowIcon" class="w-20 h-20 rounded-full flex items-center justify-center text-3xl mx-auto mb-6">
+                <!-- Ikon dinamik di sini -->
+            </div>
+            <h3 id="workflowTitle" class="text-xl font-bold mb-2"></h3>
+            <p id="workflowMsg" class="text-sm text-slate-500 mb-6 leading-relaxed"></p>
+            
+            <div id="workflowButtons" class="space-y-3">
+                <!-- Butang dinamik di sini -->
+            </div>
         </div>
     </div>
 
@@ -99,12 +137,12 @@
 
     <!-- Kandungan Utama -->
     <div id="mainContent" class="opacity-0 transition-opacity duration-1000">
-        <!-- Navigasi -->
-        <nav class="bg-teal-600 text-white shadow-lg sticky top-0 z-40">
+        <nav class="bg-white-400 text-blue shadow-lg sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo(0,0); hideProfile();">
-                        <i class="fa-solid fa-people-roof text-2xl"></i>
+                        <!-- SLOT IMEJ LOGO NAVIGASI -->
+                        <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo" class="logo-nav">
                         <span class="font-bold text-xl tracking-wide">JurnalFamiliPintar</span>
                     </div>
                     <div class="flex items-center space-x-6 hidden md:flex font-semibold">
@@ -115,7 +153,7 @@
                         <button onclick="showProfile()" class="hover:text-teal-200 transition flex items-center">
                             <i class="fa-solid fa-id-card mr-1"></i> Profail
                         </button>
-                        <button onclick="logout()" class="bg-teal-800 px-3 py-1 rounded text-xs hover:bg-red-600 transition">Log Keluar</button>
+                        <button onclick="logout()" class="bg-sky-400 px-3 py-1 rounded text-xs hover:bg-red-600 transition">Log Keluar</button>
                     </div>
                     <div class="md:hidden flex items-center">
                         <button onclick="showProfile()" class="text-2xl mr-4"><i class="fa-solid fa-id-card"></i></button>
@@ -125,26 +163,20 @@
             </div>
         </nav>
 
-        <!-- Hero Section -->
-        <header id="heroSection" class="bg-gradient-to-b from-teal-500 to-teal-700 text-white py-16 text-center px-4">
+        <header id="heroSection" class="bg-gradient-to-b from-sky-400 to-sky-600 text-white py-16 text-center px-4">
             <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Setiap Keluarga Ada Perjalanan Tersendiri</h1>
-            <p class="text-lg md:text-xl max-w-2xl mx-auto opacity-90 mb-8">Namun tanpa panduan yang betul, kita mudah tersasar — sama ada dalam kewangan, hubungan mahupun cara membesarkan anak.
-
-Melalui ujian dan alat interaktif ini, anda boleh memahami keadaan sebenar keluarga anda dan mengambil langkah yang lebih bijak untuk masa depan yang lebih baik.
-
-Mulakan dengan satu langkah kecil hari ini.</p>
+            <p class="text-lg md:text-xl max-w-2xl mx-auto opacity-90 mb-8">Namun tanpa panduan yang betul, kita mudah tersasar — sama ada dalam kewangan, hubungan mahupun cara membesarkan anak. Melalui ujian dan alat interaktif ini, anda boleh memahami keadaan sebenar keluarga anda dan mengambil langkah yang lebih bijak untuk masa depan yang lebih baik. Mulakan dengan satu langkah kecil hari ini.</p>
             <div class="flex flex-wrap justify-center gap-4 mb-6">
                 <a href="#mapa-finance" class="bg-white text-teal-700 px-6 py-3 rounded-full font-bold shadow-md hover:bg-slate-100 transition flex items-center">
-                    <i class="fa-solid fa-user-tie mr-2"></i> Diriku
+                    <i class="fa-solid fa-user-tie mr-2"></i> Untuk Saya
                 </a>
                 <a href="#anakku" class="bg-orange-400 text-white px-6 py-3 rounded-full font-bold shadow-md hover:bg-orange-500 transition flex items-center">
-                    <i class="fa-solid fa-child-reaching mr-2"></i> Anakku
+                    <i class="fa-solid fa-child-reaching mr-2"></i> Untuk Anak 
                 </a>
             </div>
         </header>
 
         <main id="appBody" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
             <!-- SECTION PROFAIL -->
             <section id="profileSection" class="hidden mb-24 animate-fade-in">
                 <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
@@ -158,46 +190,37 @@ Mulakan dengan satu langkah kecil hari ini.</p>
                         </div>
                         <div class="md:w-2/3 p-10">
                             <h4 class="text-2xl font-extrabold text-slate-800 underline decoration-teal-500 decoration-4 underline-offset-8 mb-4">Biodata</h4>
-                            <p class="text-slate-500 mb-8 leading-relaxed text-sm italic">Berpengalaman lebih 20 tahun berkhidmat dalam sektor awam, khususnya dalam bidang perakaunan dan pengurusan sumber manusia. Kini aktif sebagai perunding bebas dengan beberapa institusi termasuk Public Mutual, Hans Legasi Resources, UBB Amanah Berhad dan IBS Management.
-
-Selain itu, mempunyai minat mendalam dalam penerokaan teknologi, khususnya kecerdasan buatan (AI), dengan aspirasi membangunkan platform interaktif yang membantu ibu bapa memahami serta merancang aspek kewangan dan pembangunan keluarga secara lebih sistematik.
-
-Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang praktikal, bagi menyokong kesejahteraan keluarga serta masa depan anak-anak yang lebih terarah dan terjamin.</p>
-                            <button onclick="contactWhatsApp('Konsultasi')" class="bg-teal-600 text-white px-6 py-3 rounded-xl font-bold">Tanya & Dapatkan Panduan</button>
+                            <p class="text-slate-500 mb-8 leading-relaxed text-sm italic">Berpengalaman lebih 20 tahun berkhidmat dalam sektor awam, khususnya dalam bidang perakaunan dan pengurusan sumber manusia. Kini aktif sebagai perunding bebas dengan beberapa institusi termasuk Public Mutual, Hans Legasi Resources, UBB Amanah Berhad dan IBS Management. Selain itu, mempunyai minat mendalam dalam penerokaan teknologi, khususnya kecerdasan buatan (AI), dengan aspirasi membangunkan platform interaktif yang membantu ibu bapa memahami serta merancang aspek kewangan dan pembangunan keluarga secara lebih sistematik. Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang praktikal, bagi menyokong kesejahteraan keluarga serta masa depan anak-anak yang lebih terarah dan terjamin.</p>
+                            <button onclick="contactWhatsApp('Konsultasi')" class="bg-sky-400 text-white px-6 py-3 rounded-xl font-bold">Tanya & Dapatkan Panduan</button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- TIMELINE CONTENT -->
             <div id="timelineContent">
-                <!-- Modul Finance -->
                 <section id="mapa-finance" class="mb-24 relative scroll-mt-24">
-                    <div class="text-center mb-12">
-                        <h2 class="text-3xl font-bold text-teal-700 mb-2"><i class="fa-solid fa-sack-dollar mr-2"></i>Adakah kewangan keluarga anda sebenarnya selamat? Semak dan kira untuk tahu tahap sebenar — dan apa perlu buat sekarang</h2>
+                    <div class="text-center mb-12 px-4">
+                        <h2 class="text-3xl font-bold text-sky-600 mb-2"><i class="fa-solid fa-sack-dollar mr-2"></i>Adakah kewangan keluarga anda sebenarnya selamat? Semak dan kira untuk tahu tahap sebenar — dan apa perlu buat sekarang</h2>
                     </div>
                     <div class="relative timeline-container" id="finance-timeline"></div>
                 </section>
 
-                <!-- Modul Parenting -->
                 <section id="mapa-parenting" class="mb-24 relative scroll-mt-24">
-                    <div class="text-center mb-12">
+                    <div class="text-center mb-12 px-4">
                         <h2 class="text-3xl font-bold text-pink-600 mb-2"><i class="fa-solid fa-heart-pulse mr-2"></i>Ramai keluarga tak gagal… mereka cuma tak ada sistem. Mulakan dengan 1 ujian ringkas untuk faham keadaan sebenar keluarga anda - pasangan anda?</h2>
                     </div>
                     <div class="relative timeline-container" id="parenting-timeline"></div>
                 </section>
 
-                <!-- Modul Legacy -->
                 <section id="mapa-legacy" class="mb-24 relative scroll-mt-24">
-                    <div class="text-center mb-12">
+                    <div class="text-center mb-12 px-4">
                         <h2 class="text-3xl font-bold text-indigo-700 mb-2"><i class="fa-solid fa-seedling mr-2"></i>90% keluarga tak sedar mereka ada masalah ini…check sekarang..</h2>
                     </div>
                     <div class="relative timeline-container" id="legacy-timeline"></div>
                 </section>
 
-                <!-- Modul Anakku -->
                 <section id="anakku" class="mb-24 relative scroll-mt-24">
-                    <div class="text-center mb-12">
+                    <div class="text-center mb-12 px-4">
                         <h2 class="text-3xl font-bold text-orange-500 mb-2"><i class="fa-solid fa-child-reaching mr-2"></i>Betul ke anda mengenali anak anda? Try test sekali...</h2>
                     </div>
                     <div class="relative timeline-container" id="anakku-timeline"></div>
@@ -224,7 +247,7 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
         </div>
 
         <footer class="bg-slate-800 text-slate-300 py-12 text-center">
-            <p>&copy; 2026 Jurnal Kehidupan Keluarga.HCH.</p>
+            <p>&copy; 2026 Jurnal Kehidupan Keluarga. HCH.</p>
         </footer>
     </div>
 
@@ -262,14 +285,12 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
                 { id: 'mapa-legacy', key: 'legacy' },
                 { id: 'anakku', key: 'kids' }
             ];
-
             modules.forEach(mod => {
                 const el = document.getElementById(mod.id);
                 if (!el) return;
                 const hasAccess = sessionStorage.getItem(`access_${mod.key}`) === 'true';
                 const timeline = el.querySelector('.timeline-container');
                 const existingOverlay = document.getElementById(`lock-${mod.id}`);
-
                 if (!hasAccess) {
                     timeline.style.filter = 'blur(12px)';
                     if (!existingOverlay) {
@@ -301,9 +322,7 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
             document.getElementById('unlockError').classList.add('hidden');
             document.getElementById('unlockModal').classList.remove('hidden');
         }
-
         function closeUnlockModal() { document.getElementById('unlockModal').classList.add('hidden'); }
-
         function verifyUnlockCode() {
             const code = document.getElementById('unlockCodeInput').value.trim().toUpperCase();
             if (code === ACCESS_CODES[activeUnlockTarget] || code === ACCESS_CODES.admin) {
@@ -314,10 +333,8 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
                 document.getElementById('unlockError').classList.remove('hidden');
             }
         }
-
         function logout() { sessionStorage.clear(); window.location.reload(); }
 
-        // --- DATA & RENDER ---
         const ebooks = {
             "survivalkit": { title: "Survival Kit Ibu Ayah", coverImage: "https://i.postimg.cc/0NQ1P663/(DB0525_D013)_Survival_Kit_Ibu_Ayah.png", gdriveLink: "https://drive.google.com/file/d/1taARvfss3qf1fKXSEvTkb_3rNpcSfC7k/view?usp=sharing" },
             "genz": { title: "Gen Z Bukan Derhaka", coverImage: "https://i.postimg.cc/hP85gYrV/cover.png", gdriveLink: "https://drive.google.com/file/d/1oklm3N_v5GZcYPyqXQ6ji6TXjwGeRHP-/view?usp=sharing" },
@@ -332,78 +349,78 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
             "lelaki": { title: "Tenanglah Wahai Lelaki", coverImage: "https://i.postimg.cc/Rhnm4TwV/1.png", gdriveLink: "https://drive.google.com/file/d/1j_oZnlMXHpTcRA1yY56vskzIKtIOBwhq/view?usp=sharing" },
             "hijrah": { title: "Kenapa Manusia Berubah", coverImage: "https://i.postimg.cc/qRCQ0kkx/(DB0825-D025)-Kenapa-Manusia-Berubah-Kisah-Hijrah-Hati-Mencari-Kebenaran.png", gdriveLink: "https://drive.google.com/file/d/1UyRelHlQGuIyXr8n8kGUlXUpl95G4iU-/view?usp=sharing" },
             "simpanan": { title: "Formula Simpanan 10k", coverImage: "https://i.postimg.cc/qBCgkcJK/(DB0725_D023)_Formula_Simpanan_RM10_000_Setahun_Walaupun_Gaji_Biasa_Biasa.png", gdriveLink: "https://drive.google.com/file/d/1AZQZfFbxKUthoFAR9EF7mTCLsKQe1ur4/view?usp=sharing" },
-            "pelaburan": { title: "Pelaburan Tanpa Beban", coverImage: "https://i.postimg.cc/BZxsYmZ8/(DB0525_D018)_Pelaburan_Tanpa_Beban.png", gdriveLink: "https://drive.google.com/file/d/1_O8D368w74JA5ocX4nEfUOmtmMA6HS4V/view?usp=sharing" },
+            "pelaburan": { title: "Pelaburan Tanpa Beban", coverImage: "https://i.postimg.cc/BZxsYmZ8/(DB0525_D018)_Pelaburan_Tanpa_Beban.png", gdriveLink: "https://drive.google.com/file/d/_O8D368w74JA5ocX4nEfUOmtmMA6HS4V/view?usp=sharing" },
             "emas": { title: "Rahsia Pelaburan Emas", coverImage: "https://i.postimg.cc/HxDRbCyS/(DB0525_D017)_Strategi_Bijak_Simpan_Emas_Digital_Fizikal.png", gdriveLink: "https://drive.google.com/file/d/1iqiIj8zA1Vvg7pIjwgV4g1PvIgdbDa60/view?usp=sharing" },
             "mudah": { title: "5 Sebab Melabur Itu Mudah", coverImage: "https://i.postimg.cc/ZqTynWfc/Screenshot_2025_02_24_114638.png", gdriveLink: "https://drive.google.com/file/d/1paZ_f49l5MDvvJnjkmumBvyq3XZInn-H/view?usp=sharing" },
-            "dibuang": { title: "5 Langkah Bijak Untuk Bertahan & Bangkit", coverImage: "https://i.postimg.cc/mDP3ZckG/Screenshot_2025_02_24_114155.png", gdriveLink: "https://drive.google.com/file/d/1305ZF-j0ns7Qqx0H-bZhHxX6HgYhQe_Y/view?usp=sharing" },
-            "temuduga": { title: "Cemerlang Dalam Temuduga", coverImage: "https://i.postimg.cc/sgKYRFy6/(DB0725-D024)-CEMERLANG-DALAM-TEMUDUGA-cover.png", gdriveLink: "https://drive.google.com/file/d/1aP-kll9rQqqp11bOOtjSRJYeJud_fG2o/view?usp=sharing" },
+            "dibuang": { title: "Langkah Bijak Bertahan", coverImage: "https://i.postimg.cc/mDP3ZckG/Screenshot_2025_02_24_114155.png", gdriveLink: "https://drive.google.com/file/d/1305ZF-j0ns7Qqx0H-bZhHxX6HgYhQe_Y/view?usp=sharing" },
+            "temuduga": { title: "Cemerlang Temuduga", coverImage: "https://i.postimg.cc/sgKYRFy6/(DB0725-D024)-CEMERLANG-DALAM-TEMUDUGA-cover.png", gdriveLink: "https://drive.google.com/file/d/1aP-kll9rQqqp11bOOtjSRJYeJud_fG2o/view?usp=sharing" },
             "tvet": { title: "TVET Laluan Bijak", coverImage: "https://i.postimg.cc/Fskb8StY/TP10-TVET.png", gdriveLink: "https://drive.google.com/file/d/1sS95yFoOJcIOisjvEZ2kJJo22yng7P_e/view?usp=sharing" },
             "terbaik": { title: "Yang Terbaik Untuk Anak", coverImage: "https://i.postimg.cc/jjtzDkDG/TP09-Yang-Terbaik-Untuk-Anak.png", gdriveLink: "https://drive.google.com/file/d/153anI1HRLi06y660m0y4Cmqi7_UDG0bL/view?usp=sharing" },
             "asrama": { title: "Tips Sekolah Asrama", coverImage: "https://i.postimg.cc/JhrkrDFb/TP08-Tips-lengkap-persediaan-masuk-sekolah-asrama.png", gdriveLink: "https://drive.google.com/file/d/1KToiVwgjhqelAP5vQ1Y0SgAelIvbevag/view?usp=sharing" },
-            "tipsgenz": { title: "15 Tips Bijak Fahami Gen Z", coverImage: "https://i.postimg.cc/gjN776fd/TP07-Tips-Bijak-Fahami-Anak-Gen-Z-Tanpa-Tekanan.png", gdriveLink: "https://drive.google.com/file/d/19c6mPmF3U8sv9-xBrNO2oJAOH06O39QU/view?usp=sharing" },
+            "tipsgenz": { title: "15 Tips Fahami Gen Z", coverImage: "https://i.postimg.cc/gjN776fd/TP07-Tips-Bijak-Fahami-Anak-Gen-Z-Tanpa-Tekanan.png", gdriveLink: "https://drive.google.com/file/d/19c6mPmF3U8sv9-xBrNO2oJAOH06O39QU/view?usp=sharing" },
             "kerjaya": { title: "Rahsia Kerjaya", coverImage: "https://i.postimg.cc/hP1mB8sM/cover.png", gdriveLink: "https://drive.google.com/file/d/1eiklisUH1qLYtfj8fVwuIMTSCMEHHHDf/view?usp=sharing" },
-            "bijak": { title: "Tips Menabung Untuk Anak", coverImage: "https://i.postimg.cc/Bv0CxnV2/Tips-Bijak-Menabung-untuk-Masa-Depan-Anak.png", gdriveLink: "https://drive.google.com/file/d/1O3Oh613KEWzA_y2jgYb9rxTRb1WF-4Gh/view?usp=sharing" },
+            "bijak": { title: "Menabung Untuk Anak", coverImage: "https://i.postimg.cc/Bv0CxnV2/Tips-Bijak-Menabung-untuk-Masa-Depan-Anak.png", gdriveLink: "https://drive.google.com/file/d/1O3Oh613KEWzA_y2jgYb9rxTRb1WF-4Gh/view?usp=sharing" },
             "kewangan": { title: "Tips Kewangan Mudah", coverImage: "https://i.postimg.cc/SNL77zBp/Adakah-Simpanan-dan-Pelaburan-Anda-Selari-dengan-Keperluan-Masa-Depan.png", gdriveLink: "https://drive.google.com/file/d/1IyeYJaP_69F8JXonyYFxzXKfZDHRoig5/view?usp=sharing" },
             "ai": { title: "AI Senang Duit Masuk", coverImage: "https://i.postimg.cc/c4c1s9G5/cover.png", gdriveLink: "https://drive.google.com/file/d/1YuvvnCWvpLw3PTVxpToTwijXEkjT3fot/view?usp=sharing" },
-            "tipsemas": { title: "30 Tips Motivasi Simpan Emas", coverImage: "https://i.postimg.cc/vm7cCWtP/TP15-30-tips-Motivasi-Simpan-Emas.png", gdriveLink: "https://drive.google.com/file/d/1soVdPB5rDZmSLvdoaBvQsiWTPg1BoCFA/view?usp=sharing" },
-            "kaboji": { title: "Sifat Kaboji Dosa Tersembunyi", coverImage: "https://i.postimg.cc/d055RTZx/1.png", gdriveLink: "https://drive.google.com/file/d/1ac9363-IiG2G96MlVYWqsS650bWGk6F0/view?usp=sharing" },
+            "tipsemas": { title: "30 Tips Motivasi Emas", coverImage: "https://i.postimg.cc/vm7cCWtP/TP15-30-tips-Motivasi-Simpan-Emas.png", gdriveLink: "https://drive.google.com/file/d/1soVdPB5rDZmSLvdoaBvQsiWTPg1BoCFA/view?usp=sharing" },
+            "kaboji": { title: "Sifat Kaboji", coverImage: "https://i.postimg.cc/d055RTZx/1.png", gdriveLink: "https://drive.google.com/file/d/1ac9363-IiG2G96MlVYWqsS650bWGk6F0/view?usp=sharing" },
             "blueprint": { title: "Blueprint Umur 40", coverImage: "https://i.postimg.cc/vHm2Bh16/blueprint-umur-40.png", gdriveLink: "https://drive.google.com/file/d/1Eqt_PLmcMuVOHborhyV5wlIKPzSQ6m_n/view?usp=sharing" },
-            "kurus": { title: "Kuruskan Badan Bersihkan Jiwa", coverImage: "https://i.postimg.cc/hvB24KTX/(DB0525-D015)-Kuruskan-Badan-Bersihkan-Jiwa.png", gdriveLink: "https://drive.google.com/file/d/16TsPbpBjwsBzXd0BHn_xnBasQG2lFat8/view?usp=sharing" },
-            "resipi": { title: "Resepi 7 Hari Sihat", coverImage: "https://i.postimg.cc/KcDNrStj/Resipi-7-Hari-Sihat-cover.png", gdriveLink: "https://drive.google.com/file/d/1TAIf8hb6zZ71kr6N60GhHukFMo3dEcVD/view?usp=sharing" },
-            "ramadhan": { title: "Kurus Ramadhan Maintain Raya", coverImage: "https://i.postimg.cc/kgpw6QKf/cover.png", gdriveLink: "https://drive.google.com/file/d/1DOeiQgJbPQK7sMF1LWZ-bb-at5nMbthU/view?usp=sharing" },
-            "solat": { title: "Kisah Solat dalam Peristiwa Israk Mikraj", coverImage: "https://i.postimg.cc/RV9DmRTy/Kisah-Solat-dalam-Peristiwa-Israk-Mikraj.png", gdriveLink: "https://drive.google.com/file/d/1dcipiwcaskv-ntWpl7kC1YKOoQg38cDK/view?usp=sharing" },
-            "iman": { title: "Iman & Islam – Harta Paling Berharga", coverImage: "https://i.postimg.cc/0rRtbBck/Iman-Islam-Harta-Paling-Berharga.png", gdriveLink: "https://drive.google.com/file/d/1_aDIrYVaPCATsEzPqPq0gPncQhCe51yO/view?usp=sharing" },
-            "fatihah": { title: "Kisah Surah Al-Fatihah", coverImage: "https://i.postimg.cc/Qx5dSTq8/Kisah-Surah-Al-Fatihah.png", gdriveLink: "https://drive.google.com/file/d/1Pe9tBD_R0D8igGQOgyLbA09jgZDUqNnH/view?usp=sharing" },
-            "tata": { title: "Hari Minggu Bersama Tata", coverImage: "https://i.postimg.cc/gkGKy2V1/Screenshot_2025_02_03_150820.png", gdriveLink: "https://drive.google.com/file/d/1mcp5p6-pLh1EmRdoLw3vLKz4Acl0DGcY/view?usp=sharing" }
+            "kurus": { title: "Kuruskan Badan", coverImage: "https://i.postimg.cc/hvB24KTX/(DB0525-D015)-Kuruskan-Badan-Bersihkan-Jiwa.png", gdriveLink: "https://drive.google.com/file/d/16TsPbpBjwsBzXd0BHn_xnBasQG2lFat8/view?usp=sharing" },
+            "resipi": { title: "Resepi Sihat", coverImage: "https://i.postimg.cc/KcDNrStj/Resipi-7-Hari-Sihat-cover.png", gdriveLink: "https://drive.google.com/file/d/1TAIf8hb6zZ71kr6N60GhHukFMo3dEcVD/view?usp=sharing" },
+            "ramadhan": { title: "Kurus Ramadhan", coverImage: "https://i.postimg.cc/kgpw6QKf/cover.png", gdriveLink: "https://drive.google.com/file/d/1DOeiQgJbPQK7sMF1LWZ-bb-at5nMbthU/view?usp=sharing" },
+            "solat": { title: "Kisah Israk Mikraj", coverImage: "https://i.postimg.cc/RV9DmRTy/Kisah-Solat-dalam-Peristiwa-Israk-Mikraj.png", gdriveLink: "https://drive.google.com/file/d/1dcipiwcaskv-ntWpl7kC1YKOoQg38cDK/view?usp=sharing" },
+            "iman": { title: "Iman & Islam", coverImage: "https://i.postimg.cc/0rRtbBck/Iman-Islam-Harta-Paling-Berharga.png", gdriveLink: "https://drive.google.com/file/d/1_aDIrYVaPCATsEzPqPq0gPncQhCe51yO/view?usp=sharing" },
+            "fatihah": { title: "Al-Fatihah", coverImage: "https://i.postimg.cc/Qx5dSTq8/Kisah-Surah-Al-Fatihah.png", gdriveLink: "https://drive.google.com/file/d/1Pe9tBD_R0D8igGQOgyLbA09jgZDUqNnH/view?usp=sharing" },
+            "tata": { title: "Minggu Bersama Tata", coverImage: "https://i.postimg.cc/gkGKy2V1/Screenshot_2025_02_03_150820.png", gdriveLink: "https://drive.google.com/file/d/1mcp5p6-pLh1EmRdoLw3vLKz4Acl0DGcY/view?usp=sharing" }
         };
 
         const timelineData = {
             finance: [{ 
-                fasa: "Langkah pertama: Stabilkan asas keluarga", desc: "EKONOMI", icon: "fa-sack-dollar", color: "teal", 
+                fasa: "Langkah pertama: Stabilkan asas keluarga", icon: "fa-sack-dollar", color: "sky", 
                 tools: [
-                    { id: "mychecklist", title: "myCHECKLIST", type: "Kalkulator", icon: "fa-list-check", desc: "Semak status hala tuju kerjaya dan kestabilan semasa anda.", reqs: ["kerjaya", "dibuang", "temuduga"], githubLink: "https://fin-think.github.io/myCHECKLIST/" },
-                    { id: "mydebt", title: "myDEBT", type: "Kalkulator", icon: "fa-credit-card", desc: "Kira nisbah hutang kepada pendapatan (DSR) dan rancang strategi.", reqs: ["simpanan", "kewangan"], githubLink: "https://fin-think.github.io/myDEBT/" },
-                    { id: "myut-fb", title: "myUT-FP", type: "Kalkulator", icon: "fa-umbrella-beach", desc: "Ukur tahap kewangan anda untuk bersara dengan selesa kelak.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "https://fin-think.github.io/myUT-FP/" },
-                    { id: "myarrahnu", title: "myARRAHNU", type: "Kalkulator", icon: "fa-coins", desc: "Mengenali fungsi Ar Rahnu sebagai instrumen kewangan.", reqs: ["emas", "tipsemas"], githubLink: "https://fin-think.github.io/myARRAHNU/" },
-                    { id: "myhealth", title: "myHEALTH", type: "Kalkulator", icon: "fa-stethoscope", desc: "Ukur tahap kesihatan anda.", reqs: ["resipi", "kurus","ramadhan" ], githubLink: "https://daebook89.github.io/myHEALTH/" }
+                    { id: "mychecklist", title: "myCHECKLIST", icon: "fa-list-check", desc: "Semak status hala tuju kerjaya dan kestabilan semasa anda.", reqs: ["kerjaya", "dibuang", "temuduga"], githubLink: "https://fin-think.github.io/myCHECKLIST/", nextStep: "mydebt", nextMsg: "Lengkapkan semakan status kewangan dengan kiraan nisbah hutang anda." },
+                    { id: "mydebt", title: "myDEBT", icon: "fa-credit-card", desc: "Kira nisbah hutang kepada pendapatan (DSR) dan rancang strategi.", reqs: ["simpanan", "kewangan"], githubLink: "https://fin-think.github.io/myDEBT/", nextStep: "myut-fb", nextMsg: "Sekarang, rancang pula masa depan dan persaraan anda selepas hutang terurus." },
+                    { id: "myut-fb", title: "myUT-FP", icon: "fa-umbrella-beach", desc: "Ukur tahap kewangan masa depan anda untuk bersara dengan selesa kelak.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "https://fin-think.github.io/myUT-FP/", nextStep: "myarrahnu", nextMsg: "Pelbagaikan instrumen kewangan anda dengan simpanan emas." },
+                    { id: "myarrahnu", title: "myARRAHNU", icon: "fa-coins", desc: "Mengenali fungsi Ar Rahnu sebagai instrumen kewangan.", reqs: ["emas", "tipsemas"], githubLink: "https://fin-think.github.io/myARRAHNU/", nextStep: "myhealth", nextMsg: "Kewangan mantap perlu tubuh badan yang sihat. Jom semak kesihatan!" },
+                    { id: "myhealth", title: "myHEALTH", icon: "fa-stethoscope", desc: "Ukur tahap kesihatan.", reqs: ["resipi", "kurus","ramadhan" ], githubLink: "https://daebook89.github.io/myHEALTH/", isEndLevel: true, finishMsg: "Tahniah! Anda telah melengkapkan modul Kewangan. Sila dapatkan kod akses untuk modul Keharmonian seterusnya." }
                 ]
             }],
             parenting: [{ 
-                fasa: "Langkah kedua: Kuatkan hubungan", desc: "HUBUNGAN", icon: "fa-heart-pulse", color: "pink", 
+                fasa: "Langkah kedua: Kuatkan hubungan", icon: "fa-heart-pulse", color: "pink", 
                 tools: [ 
-                    { id: "mylove", title: "myLOVE", type: "Ujian", icon: "fa-hand-holding-heart", desc: "Mengenali bahasa cinta.", reqs: ["wanita", "lelaki"], githubLink: "https://daebook89.github.io/myLOVE/" },
-                    { id: "mypsiko", title: "myPSIKO", type: "Ujian", icon: "fa-brain", desc: "Ketahui tahap kesihatan mental dan stres anda.", reqs: ["survivalkit", "dilema"], githubLink: "https://daebook89.github.io/myPSIKO/" },
-                    { id: "mypersonaliti", title: "myPERSONALITI", type: "Ujian", icon: "fa-fingerprint", desc: "Fahami jenis personaliti anda dalam menguruskan keluarga.", reqs: ["genz", "digital"], githubLink: "https://daebook89.github.io/myPERSONALITI/" },
-                    { id: "myfamiliplan", title: "myFAMILIPLAN", type: "Kalkulator", icon: "fa-cake-candles", desc: "Kalendar bermakna untuk merancang masa depan keluarga.", reqs: ["qawwam"], githubLink: "https://daebook89.github.io/myBIRTHDAY/" }
+                    { id: "mylove", title: "myLOVE", icon: "fa-hand-holding-heart", desc: "Mengenali bahasa cinta.", reqs: ["wanita", "lelaki"], githubLink: "https://daebook89.github.io/myLOVE/", nextStep: "mypsiko", nextMsg: "Fahami pula tahap emosi dan tekanan anda sebagai ibubapa, ukur skor Indeks Keibubapaan Positif." },
+                    { id: "mypsiko", title: "myPSIKO", icon: "fa-brain", desc: "Kesihatan mental & stres sebagai ibubapa.", reqs: ["survivalkit", "dilema"], githubLink: "https://daebook89.github.io/myPSIKO/", nextStep: "mypersonaliti", nextMsg: "Positif? Jom kenali personaliti dalam mengurus keluarga." },
+                    { id: "mypersonaliti", title: "myPERSONALITI", icon: "fa-fingerprint", desc: "Fahami jenis personaliti anda dalam menguruskan keluarga.", reqs: ["genz", "digital"], githubLink: "https://daebook89.github.io/myPERSONALITI/", nextStep: "myfamiliplan", nextMsg: "Dah kenal personaliti? Mari rancang masa depan keluarga, bila nak ada cucu?" },
+                    { id: "myfamiliplan", title: "myFAMILIPLAN", icon: "fa-cake-candles", desc: "Kalendar bermakna untuk merancang masa depan keluarga", reqs: ["qawwam"], githubLink: "https://daebook89.github.io/myBIRTHDAY/", isEndLevel: true, finishMsg: "Luar biasa! Anda memang positif dan kini lebih terancang. Teruskan ke modul Legasi untuk masa depan anda dan zuriat." }
                 ] 
             }],
             legacy: [{ 
-                fasa: "Langkah Ketiga: Bersedia Sekarang", desc: "WARISAN", icon: "fa-seedling", color: "indigo", 
+                fasa: "Langkah Ketiga: Bersedia Sekarang", icon: "fa-seedling", color: "indigo", 
                 tools: [
-                    { id: "myedukids", title: "myEDUkids", type: "Kalkulator", icon: "fa-graduation-cap", desc: "Kira kos pendidikan masa depan dan rancang tabung pengajian.", reqs: ["sbp", "masadepan", "bijak"], githubLink: "https://fin-think.github.io/myEDUkids/" },
-                    { id: "myplan4us", title: "myPLAN4US", type: "Kalkulator", icon: "fa-wallet", desc: "Kira pendapatan dan simpanan untuk persaraan.", reqs: ["tiada", "kewangan"], githubLink: "https://fin-think.github.io/myPLAN4US/" },
-                    { id: "mychecklist2.0", title: "myCHECKLIST2.0", type: "Ujian", icon: "fa-list-check", desc: "Sejauh mana bersedia menghadapi umur 40.", reqs: ["hijrah", "kaboji", "blueprint"], githubLink: "https://daebook89.github.io/myCHECKLIST2.0/" },
-                    { id: "mywaris", title: "myWARIS", type: "Kalkulator", icon: "fa-file-contract", desc: "Kalkulator faraid asas dan pengurusan harta pusaka.", reqs: ["tiada"], githubLink: "https://fin-think.github.io/myWARIS/" }
+                    { id: "myedukids", title: "myEDUkids", icon: "fa-graduation-cap", desc: "Kira kos pendidikan masa depan dan rancang tabung pengajian.", reqs: ["sbp", "masadepan", "bijak"], githubLink: "https://fin-think.github.io/myEDUkids/", nextStep: "myplan4us", nextMsg: "Pendidikan anak selesai? Jom kira tabung persaraan anda pula." },
+                    { id: "myplan4us", title: "myPLAN4US", icon: "fa-wallet", desc: "Rancang persaraan dengan pasangan.", reqs: ["tiada", "kewangan"], githubLink: "https://fin-think.github.io/myPLAN4US/", nextStep: "mychecklist2.0", nextMsg: "Sejauh mana persediaan anda menghadapi usia 40 tahun?" },
+                    { id: "mychecklist2.0", title: "myCHECKLIST2.0", icon: "fa-list-check", desc: "Persediaan umur 40.", reqs: ["hijrah", "kaboji", "blueprint"], githubLink: "https://daebook89.github.io/myCHECKLIST2.0/", nextStep: "mywaris", nextMsg: "Akhir sekali, pastikan harta pusaka terurus dengan baik." },
+                    { id: "mywaris", title: "myWARIS", icon: "fa-file-contract", desc: "Kalkulator faraid dan pengurusan harta pusaka.", reqs: ["tiada"], githubLink: "https://fin-think.github.io/myWARIS/", isEndLevel: true, finishMsg: "Perancangan legasi anda kini lengkap. Fokus seterusnya adalah pembangunan moral zuriat dalam modul Anakku." }
                 ] 
             }],
             kids: [
-                { fasa: "Asas Kerohanian", desc: "Membentuk teras agama.", icon: "fa-moon", color: "orange", tools: [
-                    { id: "myintegrity", title: "myINTEGRITY", type: "Ujian", icon: "fa-scale-balanced", desc: "Ukur kejujuran dan pemahaman moral anak.", reqs: ["yolo"], githubLink: "https://daebook89.github.io/myINTEGRITY" },
-                    { id: "mysolat", title: "mySOLAT", type: "Ujian", icon: "fa-person-praying", desc: "Semak pemahaman rukun dan kelancaran solat anak.", reqs: ["tata", "solat", "siri25#3"], githubLink: "https://daebook89.github.io/mySOLAT" },
-                    { id: "myfatihah", title: "myFATIHAH", type: "Ujian", icon: "fa-book-quran", desc: "Ujian asas Surah Al-Fatihah.", reqs: ["fatihah", "tata", "siri25#3"], githubLink: "https://daebook89.github.io/myFATIHAH" },
-                    { id: "myrukun", title: "myRUKUN", type: "Ujian", icon: "fa-hand-sparkles", desc: "Kuiz pemahaman Rukun Islam & Rukun Iman.", reqs: ["iman", "siri25#3"], githubLink: "https://daebook89.github.io/myRUKUN" }
+                { fasa: "Asas Kerohanian", icon: "fa-moon", color: "teal", tools: [
+                    { id: "myintegrity", title: "myINTEGRITY", icon: "fa-scale-balanced", desc: "Ukur kejujuran dan pemahaman moral anak.", reqs: ["yolo"], githubLink: "https://daebook89.github.io/myINTEGRITY", nextStep: "mypsikokids", nextMsg: "Anak-anak memang berintegriti, soleh & solehah ke tak?" },
+                    { id: "mypsikokids", title: "myPSIKOkids", icon: "fa-face-smile", desc: "Emosi & sosial.", reqs: ["digital", "survivalkit"], githubLink: "https://daebook89.github.io/myPSIKOkids/", nextStep: "mysolat", nextMsg: "Alhamdulillah, mari semak kelancaran solat mereka pula." },
+                    { id: "mysolat", title: "mySOLAT", icon: "fa-person-praying", desc: "Semak pemahaman rukun dan kelancaran solat anak.", reqs: ["tata", "solat"], githubLink: "https://daebook89.github.io/mySOLAT", nextStep: "myfatihah", nextMsg: "Bagus! Mari perhalusi bacaan dab kefahaman Al-Fatihah anak anda." },
+                    { id: "myfatihah", title: "myFATIHAH", icon: "fa-book-quran", desc: "Ujian Surah Al-Fatihah.", reqs: ["fatihah", "tata"], githubLink: "https://daebook89.github.io/myFATIHAH", nextStep: "myrukun", nextMsg: "Sempurnakan rukun Islam & Iman mereka melalui kuiz interaktif." },
+                    { id: "myrukun", title: "myRUKUN", icon: "fa-hand-sparkles", desc: "Kuiz pemahaman Rukun Islam & Rukun Iman.", reqs: ["iman"], githubLink: "https://daebook89.github.io/myRUKUN", nextStep: "gamemath", nextMsg: "Asas agama mantap! Kini masanya mencabar minda dengan permainan dan ujian mudah, chill bersama anak." }
                 ]},
-                { fasa: "Minda & Games", desc: "Belajar sambil bermain.", icon: "fa-gamepad", color: "blue", tools: [
-                    { id: "gamemath", title: "Math Game", type: "Game", icon: "fa-calculator", desc: "Minda mengira pantas.", reqs: ["ai"], githubLink: "https://daebook89.github.io/myMATH" },
-                    { id: "gameeng", title: "English Game", type: "Game", icon: "fa-spell-check", desc: "Kosa kata Inggeris interaktif.", reqs: ["digital"], githubLink: "https://daebook89.github.io/myENGLISH" },
-                    { id: "gamebmsains", title: "Sains Game", type: "Game", icon: "fa-flask", desc: "Pengembaraan dunia sains.", reqs: ["digital", "siri25#1", "siri25#2"], githubLink: "https://daebook89.github.io/mySAINS" },
-                    { id: "gamekafa", title: "KAFA Game", type: "Game", icon: "fa-star-and-crescent", desc: "Ujian pantas silibus KAFA.", reqs: ["solat", "siri25#3"], githubLink: "https://daebook89.github.io/myKAFA" }
+                { fasa: "Minda & Games", icon: "fa-gamepad", color: "blue", tools: [
+                    { id: "gamemath", title: "Math Game", icon: "fa-calculator", desc: "Minda pantas.", reqs: ["ai"], githubLink: "https://daebook89.github.io/myMATH", nextStep: "gameeng", nextMsg: "Hebat! Teruskan dengan pengembaraan kosa kata bahasa Inggeris." },
+                    { id: "gameeng", title: "English Game", icon: "fa-spell-check", desc: "Inggeris interaktif.", reqs: ["digital"], githubLink: "https://daebook89.github.io/myENGLISH", nextStep: "gamebmsains", nextMsg: "Jom terokai dunia sains pula!" },
+                    { id: "gamebmsains", title: "Sains Game", icon: "fa-flask", desc: "Dunia sains.", reqs: ["digital"], githubLink: "https://daebook89.github.io/mySAINS", nextStep: "gamekafa", nextMsg: "Cabar pengetahuan silibus KAFA mereka sekarang." },
+                    { id: "gamekafa", title: "KAFA Game", icon: "fa-star-and-crescent", desc: "Silibus KAFA.", reqs: ["solat"], githubLink: "https://daebook89.github.io/myKAFA", nextStep: "mypersonalitids", nextMsg: "Mari kenali potensi dan personaliti anak untuk perancangan masa depan mereka." }
                 ]},
-                { fasa: "Psikologi Membesar", desc: "Menangani emosi remaja.", icon: "fa-masks-theater", color: "purple", tools: [
-                    { id: "mypersonalitids", title: "myPERSONALITIkids", type: "Ujian", icon: "fa-puzzle-piece", desc: "Kenali potensi dan laluan belajar terbaik untuk anak.", reqs: ["digital", "tvet", "asrama", "ai"], githubLink: "https://daebook89.github.io/myPERSONALITIkids/" },
-                    { id: "mypsikokids", title: "myPSIKOkids", type: "Ujian", icon: "fa-face-smile", desc: "Uji tahap emosi dan sosial kanak-kanak.", reqs: ["digital", "survivalkit"], githubLink: "https://daebook89.github.io/myPSIKOkids/" },
-                    { id: "mypsikoteens", title: "myPSIKOteens", type: "Ujian", icon: "fa-headphones", desc: "Ujian menilai aspek spiritual dan disiplin diri remaja.", reqs: ["genz", "yolo"], githubLink: "https://daebook89.github.io/myPSIKOteens/" },
-                    { id: "mypsikoteens2", title: "myPSIKOteens2.0", type: "Ujian", icon: "fa-vr-cardboard", desc: "Menilai dan menangani kesan sosial media.", reqs: ["genz", "dilema", "yolo", "tipsgenz"], githubLink: "https://daebook89.github.io/myPSIKOteens2.0/" }
+                { fasa: "Psikologi Tumbesaran", icon: "fa-masks-theater", color: "purple", tools: [
+                    { id: "mypersonalitids", title: "myPERSONALITIkids", icon: "fa-puzzle-piece", desc: "Potensi & personaliti anak.", reqs: ["digital", "tvet", "asrama", "ai"], githubLink: "https://daebook89.github.io/myPERSONALITIkids/", nextStep: "mypsikoteens", nextMsg: "Mari fahami tahap emosi dan sosial mereka pula." },
+                    { id: "mypsikoteens", title: "myPSIKOteens", icon: "fa-headphones", desc: "Ujian menilai aspek spiritual dan disiplin diri remaja.", reqs: ["genz", "yolo"], githubLink: "https://daebook89.github.io/myPSIKOteens/", nextStep: "mypsikoteens2", nextMsg: "Langkah terakhir: Menilai dan menangani kesan sosial media terhadap mereka." },
+                    { id: "mypsikoteens2", title: "myPSIKOteens2.0", icon: "fa-vr-cardboard", desc: "Menilai dan menangani kesan sosial media pada anak remaja.", reqs: ["genz", "dilema", "yolo", "tipsgenz"], githubLink: "https://daebook89.github.io/myPSIKOteens2.0/", isEndLevel: true, finishMsg: "Syabas! Anda telah melengkapkan seluruh Jurnal Famili Pintar. Semoga input ini membantu membina keluarga yang bahagia dan berjaya." }
                 ]}
             ]
         };
@@ -411,13 +428,12 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
         function renderTimeline(data, containerId) {
             const container = document.getElementById(containerId);
             if (!container || !data) return;
-            
             container.innerHTML = data.map(stage => `
                 <div class="relative z-10 mb-8 flex flex-col items-center px-4">
                     <h3 class="text-lg font-bold text-${stage.color}-600 bg-white px-6 py-2 rounded-full shadow-sm border border-${stage.color}-100 mb-6 uppercase tracking-tight">
                         <i class="fa-solid ${stage.icon} mr-2"></i>${stage.fasa}
                     </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl pointer-events-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
                         ${stage.tools.map(tool => `
                             <div onclick="openModal('${tool.id}', '${stage.color}')" class="bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
                                 <div class="w-12 h-12 rounded-xl bg-${stage.color}-50 text-${stage.color}-600 flex items-center justify-center text-xl mr-4 group-hover:bg-${stage.color}-600 group-hover:text-white transition">
@@ -458,7 +474,18 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
             const btn = document.getElementById('modalActionBtn');
             btn.className = `bg-${color}-500 text-white py-4 px-10 rounded-full font-bold shadow-lg`;
             btn.textContent = `Lancarkan ${tool.title}`;
-            btn.onclick = () => window.open(tool.githubLink, '_blank');
+            
+            btn.onclick = () => {
+                window.open(tool.githubLink, '_blank');
+                setTimeout(() => {
+                    closeModal();
+                    if (tool.isEndLevel) {
+                        showCongratsModal(tool.finishMsg, color);
+                    } else if (tool.nextStep) {
+                        showNextStepModal(tool.nextStep, tool.nextMsg);
+                    }
+                }, 800);
+            };
 
             const ebContainer = document.getElementById('modalEbooks');
             ebContainer.innerHTML = '';
@@ -475,9 +502,68 @@ Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang
             document.getElementById('toolModal').classList.remove('hidden');
         }
 
+        function showCongratsModal(msg, color) {
+            const iconBox = document.getElementById('workflowIcon');
+            iconBox.className = `w-20 h-20 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 confetti-icon`;
+            iconBox.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
+            
+            document.getElementById('workflowTitle').textContent = "TAHNIAH!";
+            document.getElementById('workflowMsg').textContent = msg;
+            
+            const btnBox = document.getElementById('workflowButtons');
+            btnBox.innerHTML = `
+                <button onclick="closeWorkflowModal()" class="w-full py-4 bg-${color}-600 text-white font-bold rounded-2xl shadow-lg hover:bg-${color}-700 transition">
+                    Alhamdulillah, Selesai!
+                </button>
+            `;
+            
+            document.getElementById('workflowModal').classList.remove('hidden');
+        }
+
+        function showNextStepModal(nextToolId, msg) {
+            let nextTool = null;
+            let nextColor = 'teal';
+            Object.keys(timelineData).forEach(cat => {
+                timelineData[cat].forEach(s => {
+                    const found = s.tools.find(t => t.id === nextToolId);
+                    if (found) {
+                        nextTool = found;
+                        nextColor = (cat === 'finance') ? 'teal' : (cat === 'parenting') ? 'pink' : (cat === 'legacy') ? 'indigo' : 'orange';
+                    }
+                });
+            });
+
+            if (!nextTool) return;
+
+            const iconBox = document.getElementById('workflowIcon');
+            iconBox.className = `w-20 h-20 bg-${nextColor}-100 text-${nextColor}-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-6`;
+            iconBox.innerHTML = `<i class="fa-solid fa-arrow-right-long"></i>`;
+            
+            document.getElementById('workflowTitle').textContent = "Langkah Seterusnya";
+            document.getElementById('workflowMsg').textContent = msg;
+            
+            const btnBox = document.getElementById('workflowButtons');
+            btnBox.innerHTML = `
+                <button id="nextActionBtn" class="w-full py-4 bg-${nextColor}-600 text-white font-bold rounded-2xl shadow-lg transition">
+                    Teruskan ke ${nextTool.title}
+                </button>
+                <button onclick="closeWorkflowModal()" class="w-full py-3 bg-slate-100 text-slate-500 font-bold rounded-2xl text-sm hover:bg-slate-200 transition">
+                    Mungkin Nanti
+                </button>
+            `;
+
+            document.getElementById('nextActionBtn').onclick = () => {
+                closeWorkflowModal();
+                openModal(nextToolId, nextColor);
+            };
+
+            document.getElementById('workflowModal').classList.remove('hidden');
+        }
+
+        function closeWorkflowModal() { document.getElementById('workflowModal').classList.add('hidden'); }
         function closeModal() { document.getElementById('toolModal').classList.add('hidden'); }
-        function showProfile() { document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('timelineContent').classList.add('hidden'); }
-        function hideProfile() { document.getElementById('profileSection').classList.add('hidden'); document.getElementById('timelineContent').classList.remove('hidden'); }
+        function showProfile() { document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('timelineContent').classList.add('hidden'); document.getElementById('heroSection').classList.add('hidden'); }
+        function hideProfile() { document.getElementById('profileSection').classList.add('hidden'); document.getElementById('timelineContent').classList.remove('hidden'); document.getElementById('heroSection').classList.remove('hidden'); }
         function contactWhatsApp(t) { window.open(`https://wa.me/60129443846?text=Bantuan%20${t}`, '_blank'); }
 
         document.addEventListener('DOMContentLoaded', () => {
