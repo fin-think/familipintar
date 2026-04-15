@@ -267,6 +267,7 @@
         const ACCESS_CODES = { main: 'FIN101', parenting: 'PAR30', legacy: 'L39451KU', kids: '#ZUR147', admin: 'HCH0129443846' };
         const ONPAY_LINKS = { parenting: 'https://toyyibpay.com/Famili-Pintar-2', legacy: 'https://toyyibpay.com/Famili-Pintar-3', kids: 'https://toyyibpay.com/Famili-Pintar-4' };
         let activeUnlockTarget = '';
+        let currentSectionId = '';
 
         function checkLogin() {
             const input = document.getElementById('passwordInput').value.trim().toUpperCase();
@@ -399,8 +400,8 @@
                 fasa: "Langkah pertama: Stabilkan asas keluarga", icon: "fa-sack-dollar", color: "sky", 
                 tools: [
                     { id: "dchecklist", title: "d'CHECKLIST", icon: "fa-list-check", desc: "Semak status hala tuju kerjaya dan kestabilan semasa anda.", reqs: ["temuduga", "kerjaya", "dibuang"], githubLink: "https://fin-think.github.io/dCHECKLIST/", nextStep: "ddebt", nextMsg: "Lengkapkan semakan status kewangan dengan kiraan nisbah hutang anda." },
-                    { id: "ddebt", title: "d'DEBT", icon: "fa-credit-card", desc: "Kira nisbah hutang kepada pendapatan (DSR) dan rancang strategi.", reqs: ["simpanan"], githubLink: "https://fin-think.github.io/dDEBT/", nextStep: "myfp", nextMsg: "Sekarang, rancang pula masa depan dan persaraan anda selepas hutang terurus." },
-                    { id: "myfp", title: "myUT-FP", icon: "fa-umbrella-beach", desc: "Ukur tahap kewangan masa depan anda untuk bersara dengan selesa kelak.", reqs: ["mudah", "pelaburan"], githubLink: "https://fin-think.github.io/myUT-FP/", nextStep: "darrahnu", nextMsg: "Pelbagaikan instrumen kewangan anda dengan simpanan emas." },
+                    { id: "ddebt", title: "d'DEBT", icon: "fa-credit-card", desc: "Kira nisbah hutang kepada pendapatan (DSR) dan rancang strategi.", reqs: ["simpanan", "kewangan"], githubLink: "https://fin-think.github.io/dDEBT/", nextStep: "myfp", nextMsg: "Sekarang, rancang pula masa depan dan persaraan anda selepas hutang terurus." },
+                    { id: "myfp", title: "myUT-FP", icon: "fa-umbrella-beach", desc: "Ukur tahap kewangan masa depan anda untuk bersara dengan selesa kelak.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "https://fin-think.github.io/myUT-FP/", nextStep: "darrahnu", nextMsg: "Pelbagaikan instrumen kewangan anda dengan simpanan emas." },
                     { id: "darrahnu", title: "d'ARRAHNU", icon: "fa-coins", desc: "Mengenali fungsi Ar Rahnu sebagai instrumen kewangan.", reqs: ["emas", "tipsemas"], githubLink: "https://fin-think.github.io/dARRAHNU1.0/", nextStep: "dhealth", nextMsg: "Kewangan mantap perlu tubuh badan yang sihat. Jom semak kesihatan!" },
                     { id: "dhealth", title: "d'HEALTH", icon: "fa-stethoscope", desc: "Ukur tahap kesihatan demi masa depan.", reqs: ["resipi", "kurus","ramadhan" ], githubLink: "https://daebook89.github.io/dHEALTH/", isEndLevel: true, finishMsg: "Tahniah! Anda telah melengkapkan modul Kewangan. Sila dapatkan kod akses untuk modul Keharmonian seterusnya." }
                 ]
@@ -417,10 +418,10 @@
             legacy: [{ 
                 fasa: "Langkah Ketiga: Bersedia Sekarang", icon: "fa-seedling", color: "indigo", 
                 tools: [
-                    { id: "dedukids", title: "d'EDUkids", icon: "fa-graduation-cap", desc: "Kira kos pendidikan masa depan dan rancang tabung pengajian.", reqs: ["bijak", "masadepan", "sbp"], githubLink: "https://fin-think.github.io/dEDUkids/", nextStep: "dplan4us", nextMsg: "Pendidikan anak selesai? Jom kira tabung persaraan anda pula." },
+                    { id: "dedukids", title: "d'EDUkids", icon: "fa-graduation-cap", desc: "Kira kos pendidikan masa depan dan rancang tabung pengajian.", reqs: ["bijak", "sbp", "masadepan"], githubLink: "https://fin-think.github.io/dEDUkids/", nextStep: "dplan4us", nextMsg: "Pendidikan anak selesai? Jom kira tabung persaraan anda pula." },
                     { id: "dplan4us", title: "d'PLAN4US", icon: "fa-wallet", desc: "Rancang persaraan dengan pasangan.", reqs: ["kewangan"], githubLink: "https://fin-think.github.io/dPLAN4US/", nextStep: "dchecklist40", nextMsg: "Sejauh mana persediaan anda menghadapi usia 40 tahun?" },
                     { id: "dchecklist40", title: "d'CHECKLIST40", icon: "fa-list-check", desc: "Apa persediaan untuk umur 40.", reqs: ["hijrah", "blueprint", "kaboji"], githubLink: "https://daebook89.github.io/dCHECKLIST40/", nextStep: "mywaris", nextMsg: "Akhir sekali, pastikan harta pusaka terurus dengan baik." },
-                    { id: "mywaris", title: "myWARIS", icon: "fa-file-contract", desc: "Kalkulator faraid dan pengurusan harta pusaka.", reqs: ["tiada"], githubLink: "https://fin-think.github.io/myWARIS/", isEndLevel: true, finishMsg: "Perancangan legasi anda kini lengkap. Fokus seterusnya adalah pembangunan akhlak & potensi diri serta self defense anak dalam dunia mencabar." }
+                    { id: "mywaris", title: "myWARIS", icon: "fa-file-contract", desc: "Kalkulator faraid dan pengurusan harta pusaka.", reqs: ["tiada"], githubLink: "https://fin-think.github.io/myWARIS/", isEndLevel: true, finishMsg: "Perancangan legasi anda kini lengkap. Fokus seterusnya adalah pembangunan moral zuriat dalam modul Anakku." }
                 ] 
             }],
             kids: [
@@ -456,7 +457,7 @@
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
                         ${stage.tools.map(tool => `
-                            <div onclick="openModal('${tool.id}', '${stage.color}')" class="bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
+                            <div onclick="openModal('${tool.id}', '${stage.color}', '${containerId.replace('-timeline', '')}')" class="bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
                                 <div class="w-12 h-12 rounded-xl bg-${stage.color}-50 text-${stage.color}-600 flex items-center justify-center text-xl mr-4 group-hover:bg-${stage.color}-600 group-hover:text-white transition">
                                     <i class="fa-solid ${tool.icon}"></i>
                                 </div>
@@ -478,7 +479,8 @@
             renderTimeline(timelineData.kids, 'anakku-timeline');
         }
 
-        function openModal(toolId, color) {
+        function openModal(toolId, color, sectionId) {
+            if (sectionId) currentSectionId = sectionId;
             let tool = null;
             Object.values(timelineData).forEach(stages => {
                 stages.forEach(s => {
@@ -494,16 +496,16 @@
             document.getElementById('modalHeader').className = `p-6 rounded-t-2xl text-white relative flex items-center bg-${color}-600`;
             const btn = document.getElementById('modalActionBtn');
             btn.className = `bg-${color}-500 text-white py-4 px-10 rounded-full font-bold shadow-lg`;
-            btn.textContent = `Jom guna ${tool.title}`;
+            btn.textContent = `Lancarkan ${tool.title}`;
             
             btn.onclick = () => {
                 window.open(tool.githubLink, '_blank');
                 setTimeout(() => {
                     closeModal();
                     if (tool.isEndLevel) {
-                        showCongratsModal(tool.finishMsg, color);
+                        showCongratsModal(tool.finishMsg, color, toolId);
                     } else if (tool.nextStep) {
-                        showNextStepModal(tool.nextStep, tool.nextMsg);
+                        showNextStepModal(tool.nextStep, tool.nextMsg, toolId, color);
                     }
                 }, 800);
             };
@@ -523,7 +525,7 @@
             document.getElementById('toolModal').classList.remove('hidden');
         }
 
-        function showCongratsModal(msg, color) {
+        function showCongratsModal(msg, color, currentToolId) {
             const iconBox = document.getElementById('workflowIcon');
             iconBox.className = `w-20 h-20 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 confetti-icon`;
             iconBox.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
@@ -536,20 +538,26 @@
                 <button onclick="closeWorkflowModal()" class="w-full py-4 bg-${color}-600 text-white font-bold rounded-2xl shadow-lg hover:bg-${color}-700 transition">
                     Alhamdulillah, Selesai!
                 </button>
+                <button onclick="backToTool('${currentToolId}', '${color}')" class="w-full py-3 bg-slate-100 text-slate-500 font-bold rounded-2xl text-sm hover:bg-slate-200 transition">
+                    Baca Ebook dulu
+                </button>
             `;
             
             document.getElementById('workflowModal').classList.remove('hidden');
         }
 
-        function showNextStepModal(nextToolId, msg) {
+        function showNextStepModal(nextToolId, msg, currentToolId, currentColor) {
             let nextTool = null;
             let nextColor = 'teal';
+            let nextSecId = '';
+
             Object.keys(timelineData).forEach(cat => {
                 timelineData[cat].forEach(s => {
                     const found = s.tools.find(t => t.id === nextToolId);
                     if (found) {
                         nextTool = found;
                         nextColor = (cat === 'finance') ? 'sky' : (cat === 'parenting') ? 'pink' : (cat === 'legacy') ? 'indigo' : 'orange';
+                        nextSecId = (cat === 'kids') ? 'anakku' : 'mapa-' + cat;
                     }
                 });
             });
@@ -568,19 +576,21 @@
                 <button id="nextActionBtn" class="w-full py-4 bg-${nextColor}-600 text-white font-bold rounded-2xl shadow-lg transition">
                     Teruskan ke ${nextTool.title}
                 </button>
-                <button onclick="closeWorkflowModal()" class="w-full py-3 bg-slate-100 text-slate-500 font-bold rounded-2xl text-sm hover:bg-slate-200 transition">
+                <button onclick="backToTool('${currentToolId}', '${currentColor}')" class="w-full py-3 bg-slate-100 text-slate-500 font-bold rounded-2xl text-sm hover:bg-slate-200 transition">
                     Baca Ebook dulu 
                 </button>
             `;
 
             document.getElementById('nextActionBtn').onclick = () => {
                 closeWorkflowModal();
-                openModal(nextToolId, nextColor);
+                openModal(nextToolId, nextColor, nextSecId);
             };
 
             document.getElementById('workflowModal').classList.remove('hidden');
         }
 
+        function triggerNext(tid, col, sid) { closeWorkflowModal(); openModal(tid, col, sid); }
+        function backToTool(toolId, color) { closeWorkflowModal(); openModal(toolId, color, currentSectionId); }
         function closeWorkflowModal() { document.getElementById('workflowModal').classList.add('hidden'); }
         function closeModal() { document.getElementById('toolModal').classList.add('hidden'); }
         function showProfile() { document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('timelineContent').classList.add('hidden'); document.getElementById('heroSection').classList.add('hidden'); }
