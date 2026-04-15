@@ -80,39 +80,72 @@
 </head>
 <body class="text-slate-800 antialiased overflow-hidden">
 
-    <!-- Skrin Log Masuk Utama -->
-    <div id="loginOverlay" class="fixed inset-0 bg-sky-400 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center">
-            <div class="flex justify-center mb-4">
-                <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Utama" class="login-hero-img">
-            </div>
-            
-            <h2 class="text-xl font-bold text-slate-800 mb-1">Akses Terhad</h2>
-            <p class="text-slate-500 text-sm mb-6">Sila masukkan kod untuk mengakses Jurnal Utama.</p>
-            
-            <div class="relative mb-4">
-                <input type="password" id="passwordInput" 
-                    class="w-full px-4 py-3 border-2 border-slate-100 bg-slate-50 rounded-xl focus:border-sky-400 focus:bg-white focus:outline-none transition text-center font-bold tracking-widest uppercase" 
-                    placeholder="KOD AKSES">
-            </div>
-            <p id="loginError" class="text-red-500 text-xs mb-4 hidden">Kod akses salah.</p>
-            
-            <div class="space-y-3">
-                <button onclick="checkLogin()" class="w-full bg-sky-600 hover:bg-sky-400 text-white font-bold py-3.5 rounded-xl shadow-lg transition duration-200">
-                    Log Masuk
-                </button>
-                
-                <div class="relative flex py-2 items-center">
-                    <div class="flex-grow border-t border-slate-200"></div>
-                    <span class="flex-shrink mx-4 text-slate-400 text-xs uppercase tracking-widest">Atau</span>
-                    <div class="flex-grow border-t border-slate-200"></div>
-                </div>
+    <!-- SKRIN LOG MASUK (TANPA KOTAK) -->
+    <div id="loginOverlay" class="fixed inset-0 z-[100] login-gradient flex flex-col items-center justify-center p-6 text-center overflow-y-auto">
+        
+        <!-- 1. LOGO ATAS -->
+        <div class="mb-4 transform transition-all duration-700">
+            <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="w-32 h-32 md:w-40 md:h-40-auto object-contain mx-auto">
+        </div>
 
-                <!-- Butang Dapatkan Akses Baru -->
-                <a href=" https://fin-think.github.io/landingpage1/" target="_blank" class="block w-full border-2 border-sky-400 text-sky-400 hover:bg-sky-400 font-bold py-3 rounded-xl transition duration-200">
-                    Dapatkan Kod Akses
-                </a>
-            </div>
+        <!-- 2. WELCOME NOTE -->
+        <div class="max-w-6xl mx-auto mb-10">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
+                Selamat Datang ke <span class="text-yellow-500">Famili</span> <span class="text-sky-500">Pintar</span>
+            </h1>
+            <p class="text-slate-600 text-base md:text-lg leading-relaxed">
+                Selamat datang ke perjalanan keluarga anda.
+
+Setiap keluarga mempunyai fasa dan cabaran tersendiri. Namun tanpa panduan yang jelas, kita mudah tersasar — dalam kewangan, hubungan, dan cara membentuk masa depan anak.
+
+Persoalannya…
+Adakah anda benar-benar tahu keadaan sebenar keluarga anda sekarang?
+
+Di sinilah langkah pertama bermula.
+
+Melalui ujian dan alat interaktif yang ringkas, anda boleh melihat gambaran sebenar — bukan sekadar andaian.
+
+Ambil sedikit masa hari ini…
+dan mulakan dengan satu langkah kecil ke arah masa depan yang lebih terarah.
+            </p>
+        </div>
+
+        <!-- 3. CTA BUTTONS -->
+        <div class="mb-12 flex flex-col sm:flex-row gap-4">
+            <a href="https://fin-think.github.io/landingpage1/" target="_blank" 
+               class="px-10 py-4 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-2xl shadow-lg shadow-sky-200 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center">
+                <i class="fa-solid fa-rocket mr-2"></i> Dapatkan Kod Akses
+            </a>
+            <button onclick="window.scrollTo({top: 500, behavior: 'smooth'})" 
+                class="hidden">
+                Pelajari Lebih Lanjut
+            </button>
+        </div>
+
+        <!-- 4. DIVIDER -->
+        <div class="w-full max-w-sm flex items-center mb-6">
+            <div class="flex-grow border-t border-slate-200"></div>
+            <span class="px-4 text-slate-400 text-xs font-bold uppercase tracking-widest">Sudah Ada Kod?</span>
+            <div class="flex-grow border-t border-slate-200"></div>
+        </div>
+
+        <!-- 5. AKSES INPUT -->
+        <div class="w-full max-w-xs space-y-4">
+            <input type="password" id="passwordInput" 
+                class="w-full px-6 py-4 rounded-2xl input-access text-center font-bold tracking-[0.3em] uppercase outline-none placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400" 
+                placeholder="MASUKKAN KOD">
+            
+            <p id="loginError" class="text-red-500 text-xs hidden font-semibold italic">Kod akses tidak sah. Sila cuba lagi.</p>
+            
+            <button onclick="checkLogin()" 
+                class="w-full py-4 text-sky-600 font-bold hover:text-sky-700 flex items-center justify-center group transition">
+                Log Masuk Sekarang <i class="fa-solid fa-arrow-right-long ml-2 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+        </div>
+
+        <!-- FOOTER HALUS -->
+        <div class="mt-16 opacity-40">
+            <p class="text-[10px] font-bold tracking-[0.4em] text-slate-500 uppercase">HCH x DAEBOOK &copy; 2026</p>
         </div>
     </div>
 
@@ -202,7 +235,7 @@
                         </div>
                         <div class="md:w-2/3 p-10">
                             <h4 class="text-2xl font-extrabold text-slate-800 underline decoration-teal-500 decoration-4 underline-offset-8 mb-4">Biodata</h4>
-                            <p class="text-slate-500 mb-8 leading-relaxed text-sm italic">Berpengalaman lebih 20 tahun berkhidmat dalam sektor awam, khususnya dalam bidang perakaunan dan pengurusan sumber manusia. Kini aktif sebagai perunding bebas dengan beberapa institusi dalam bidang perancangan pelaburan patuh Syariah, perancangan dan pengurusan pewarisan Islam serta pembiayaan kewangan. Selain itu, mempunyai minat mendalam dalam penerokaan teknologi, khususnya kecerdasan buatan (AI), dengan aspirasi membangunkan platform interaktif yang membantu ibu bapa memahami serta merancang aspek kewangan dan pembangunan keluarga secara lebih sistematik. Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang praktikal, bagi menyokong kesejahteraan keluarga serta masa depan anak-anak yang lebih terarah dan terjamin.</p>
+                            <p class="text-slate-500 mb-8 leading-relaxed text-sm italic">Berpengalaman lebih 20 tahun berkhidmat dalam sektor awam, khususnya dalam bidang kewangan, perakaunan dan pengurusan sumber manusia. Kini aktif sebagai perunding bebas dengan beberapa institusi dalam bidang perancangan pelaburan patuh Syariah, perancangan dan pengurusan pewarisan Islam serta pembiayaan kewangan. Selain itu, mempunyai minat mendalam dalam penerokaan teknologi, khususnya kecerdasan buatan (AI), dengan aspirasi membangunkan platform interaktif yang membantu ibu bapa memahami serta merancang aspek kewangan dan pembangunan keluarga secara lebih sistematik. Inisiatif ini bertujuan menyediakan akses kepada alat penilaian dan panduan yang praktikal, bagi menyokong kesejahteraan keluarga serta masa depan anak-anak yang lebih terarah dan terjamin.</p>
                             <button onclick="contactWhatsApp('Konsultasi')" class="bg-sky-400 text-white px-6 py-3 rounded-xl font-bold">Tanya & Dapatkan Panduan</button>
                         </div>
                     </div>
@@ -264,7 +297,7 @@
     </div>
 
    <script>
-        const ACCESS_CODES = { main: 'FIN101', parenting: 'PAR30', legacy: 'L39451KU', kids: '#ZUR147', admin: 'HCH0129443846' };
+        const ACCESS_CODES = { main: 'FIN101', parenting: 'PAR30', legacy: 'L39451KU', kids: '#ZUR147', admin: 'BI5MILLAH' };
         const ONPAY_LINKS = { parenting: 'https://toyyibpay.com/Famili-Pintar-2', legacy: 'https://toyyibpay.com/Famili-Pintar-3', kids: 'https://toyyibpay.com/Famili-Pintar-4' };
         let activeUnlockTarget = '';
         let currentSectionId = '';
@@ -427,7 +460,7 @@
             kids: [
                 { fasa: "Asas Kerohanian", icon: "fa-moon", color: "teal", tools: [
                     { id: "dintegrity", title: "d'INTEGRITY", icon: "fa-scale-balanced", desc: "Ukur kejujuran dan pemahaman moral anak.", reqs: ["yolo"], githubLink: "https://daebook89.github.io/dINTEGRITY", nextStep: "dpsikokids", nextMsg: "Anak-anak memang berintegriti, soleh & solehah ke tak?" },
-                    { id: "dpsikokids", title: "d'PSIKOkids", icon: "fa-face-smile", desc: "Nilai emosi & sosial anak.", reqs: ["digital"], githubLink: "https://daebook89.github.io/dPSIKOkids/", nextStep: "dsolat", nextMsg: "Alhamdulillah, mari semak kelancaran solat mereka pula." },
+                    { id: "dpsikokids", title: "d'PSIKOkids", icon: "fa-face-smile", desc: "Nilai emosi & sosial anak.", reqs: ["digital", "tata"], githubLink: "https://daebook89.github.io/dPSIKOkids/", nextStep: "dsolat", nextMsg: "Alhamdulillah, mari semak kelancaran solat mereka pula." },
                     { id: "dsolat", title: "d'SOLAT", icon: "fa-person-praying", desc: "Semak pemahaman rukun dan kelancaran solat anak.", reqs: ["solat"], githubLink: "https://daebook89.github.io/dSOLAT", nextStep: "dfatihah", nextMsg: "Bagus! Mari perhalusi bacaan dab kefahaman Al-Fatihah anak anda." },
                     { id: "dfatihah", title: "d'FATIHAH", icon: "fa-book-quran", desc: "Uji kefahaman Surah Al-Fatihah anak.", reqs: ["fatihah"], githubLink: "https://daebook89.github.io/dFATIHAH", nextStep: "drukun", nextMsg: "Sempurnakan rukun Islam & Iman mereka melalui kuiz interaktif." },
                     { id: "drukun", title: "d'RUKUN", icon: "fa-hand-sparkles", desc: "Kuiz pemahaman Rukun Islam & Rukun Iman.", reqs: ["iman"], githubLink: "https://daebook89.github.io/dRUKUN", nextStep: "gamemath", nextMsg: "Asas agama mantap! Kini masanya mencabar minda dengan permainan dan ujian mudah, chill bersama anak." }
