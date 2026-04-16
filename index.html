@@ -1,12 +1,23 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S3RP7E4460"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-S3RP7E4460');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Famili Pintar</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-database-compat.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         
@@ -312,25 +323,71 @@ Mulakan penilaian pertama anda sekarang.</p>
     </div>
 
    <script>
-        const ACCESS_CODES = { main: 'FIN101', parenting: 'PAR30', legacy: 'L39451KU', kids: '#ZUR147', admin: 'BI5MILLAH' };
+        // MODIFIED: Inisialisasi ACCESS_CODES
+        let ACCESS_CODES = { main: '', parenting: '', legacy: '', kids: '', admin: '' };
+
+        // ADDED: Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+            authDomain: "familipintar.firebaseapp.com",
+            databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "familipintar",
+            storageBucket: "familipintar.firebasestorage.app",
+            messagingSenderId: "277029764059",
+            appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe",
+            measurementId: "G-S3RP7E4460"
+        };
+        
+        //console.log("Memulakan Firebase...");
+        firebase.initializeApp(firebaseConfig);
+
+        // MODIFIED: Fetch data real-time dengan Log Debugging
+        firebase.database().ref('access_code').on('value', (snapshot) => {
+            const data = snapshot.val();
+            //console.log("Data diterima dari Firebase:", data); // Lihat ini di Console (F12)
+
+            if (data) {
+                if (typeof data === 'string') {
+                    ACCESS_CODES.main = data;
+                } else if (typeof data === 'object') {
+                    ACCESS_CODES = { ...ACCESS_CODES, ...data };
+                }
+                //console.log("Kod Akses Aktif:", ACCESS_CODES);
+            } else {
+                console.warn("Amaran: Path 'access_code' kosong atau tidak dijumpai di database.");
+            }
+        }, (error) => {
+            console.error("Ralat Firebase:", error.message);
+        });
+
         const ONPAY_LINKS = { parenting: 'https://toyyibpay.com/Famili-Pintar-2', legacy: 'https://toyyibpay.com/Famili-Pintar-3', kids: 'https://toyyibpay.com/Famili-Pintar-4' };
         let activeUnlockTarget = '';
         let currentSectionId = '';
 
         function checkLogin() {
             const input = document.getElementById('passwordInput').value.trim().toUpperCase();
-            if (input === ACCESS_CODES.main || input === ACCESS_CODES.admin) {
+            //console.log("Percubaan Login dengan kod:", input);
+            console.log("Membandingkan dengan:", ACCESS_CODES);
+
+            // Periksa kod utama atau kod admin
+            if ((ACCESS_CODES.main && input === ACCESS_CODES.main.toUpperCase()) || 
+                (ACCESS_CODES.admin && input === ACCESS_CODES.admin.toUpperCase())) {
+                
+                console.log("Login Berjaya!");
                 sessionStorage.setItem('isLoggedIn', 'true');
                 sessionStorage.setItem('access_finance', 'true');
-                if (input === ACCESS_CODES.admin) {
+                
+                if (ACCESS_CODES.admin && input === ACCESS_CODES.admin.toUpperCase()) {
                     ['finance', 'parenting', 'legacy', 'kids'].forEach(l => sessionStorage.setItem(`access_${l}`, 'true'));
                 }
                 showApp();
             } else {
+                console.error("Kod salah atau belum dimuatkan sepenuhnya.");
                 document.getElementById('loginError').classList.remove('hidden');
             }
         }
 
+        // Selebihnya kod asal dikekalkan tanpa perubahan...
         function showApp() {
             document.getElementById('loginOverlay').classList.add('hidden');
             document.getElementById('mainContent').classList.remove('opacity-0');
@@ -386,7 +443,8 @@ Mulakan penilaian pertama anda sekarang.</p>
         function closeUnlockModal() { document.getElementById('unlockModal').classList.add('hidden'); }
         function verifyUnlockCode() {
             const code = document.getElementById('unlockCodeInput').value.trim().toUpperCase();
-            if (code === ACCESS_CODES[activeUnlockTarget] || code === ACCESS_CODES.admin) {
+            if ((ACCESS_CODES[activeUnlockTarget] && code === ACCESS_CODES[activeUnlockTarget].toUpperCase()) || 
+                (ACCESS_CODES.admin && code === ACCESS_CODES.admin.toUpperCase())) {
                 sessionStorage.setItem(`access_${activeUnlockTarget}`, 'true');
                 closeUnlockModal();
                 applyAccessControl();
