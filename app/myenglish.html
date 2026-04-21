@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myENGLISH - Sekolah Rendah & Menengah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px; }
+        .option-btn { transition: all 0.2s ease; border: 2px solid #e2e8f0; }
+        .option-btn:hover { border-color: #667eea; background-color: #f8fafc; transform: translateY(-2px); }
+        .option-btn.selected { border-color: #667eea; background-color: #ebf4ff; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Container Utama -->
+    <div id="app" class="max-w-2xl w-full glass-card shadow-2xl overflow-hidden">
+        <!-- Start Screen -->
+        <div id="start-screen" class="p-8 text-center">
+            <div class="mb-6 text-6xl text-indigo-600">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">myENGLISH</h1>
+            <p class="text-gray-600 mb-8">Uji tahap penguasaan Bahasa Inggeris anda mengikut silibus sekolah Malaysia.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="showLevels('primary')" class="p-6 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold shadow-lg transition">
+                    <i class="fas fa-child mb-2 block text-2xl"></i>
+                    Primary School<br><span class="text-xs font-normal">(Level 1 - 6)</span>
+                </button>
+                <button onclick="showLevels('secondary')" class="p-6 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-semibold shadow-lg transition">
+                    <i class="fas fa-user-graduate mb-2 block text-2xl"></i>
+                    Secondary School<br><span class="text-xs font-normal">(Level 1 - 5)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Level Selection Screen -->
+        <div id="level-screen" class="p-8 hidden">
+            <button onclick="goBack('start')" class="text-indigo-600 mb-4 hover:underline flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Kembali
+            </button>
+            <h2 id="level-title" class="text-2xl font-bold text-gray-800 mb-6 text-center">Pilih Tahun/Tingkatan</h2>
+            <div id="level-buttons" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <!-- Levels will be injected here -->
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="p-8 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <span id="quiz-info" class="text-sm font-semibold text-indigo-600 px-3 py-1 bg-indigo-50 rounded-full">Primary Level 1</span>
+                <span id="score-display" class="text-sm font-bold text-green-600">Score: 0</span>
+            </div>
+            
+            <div class="w-full bg-gray-200 h-2 rounded-full mb-8">
+                <div id="progress-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-300" style="width: 10%"></div>
+            </div>
+
+            <div id="question-container">
+                <h3 id="question-text" class="text-xl font-semibold text-gray-800 mb-6">Loading question...</h3>
+                <div id="options-container" class="space-y-3">
+                    <!-- Options injected here -->
+                </div>
+            </div>
+            
+            <div class="mt-8 flex justify-end">
+                <button id="next-btn" onclick="nextQuestion()" disabled class="px-6 py-2 bg-gray-300 text-white rounded-lg font-semibold cursor-not-allowed transition">
+                    Next Question <i class="fas fa-chevron-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="p-8 hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Quiz Completed!</h2>
+                <div class="text-6xl font-bold text-indigo-600 my-4" id="final-score">0/10</div>
+                <p id="feedback-msg" class="text-gray-600 italic">Well done!</p>
+            </div>
+
+            <div class="space-y-4 max-h-60 overflow-y-auto mb-8 p-4 border border-gray-100 rounded-lg bg-gray-50">
+                <h4 class="font-bold text-gray-700">Review Answers:</h4>
+                <div id="review-list" class="text-sm space-y-3">
+                    <!-- Review items injected here -->
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition">
+                <i class="fas fa-redo mr-2"></i> Play Again
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer Diletakkan Di Luar Glass-Card -->
+    <footer class="mt-8 text-center text-white/80 text-xs max-w-2xl px-4">
+        <p>Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut. <br class="sm:hidden"> <strong>© HCH</strong></p>
+    </footer>
+
+    <script>
+        // Quiz Data
+        const quizData = {
+            primary: {
+                level1: [
+                    { q: "What is the color of a banana?", a: ["Red", "Yellow", "Blue"], c: 1, r: "Bananas are yellow when ripe." },
+                    { q: "Choose the correct spelling:", a: ["Apple", "Apel", "Aple"], c: 0, r: "The correct spelling is A-P-P-L-E." },
+                    { q: "I ___ a student.", a: ["is", "am", "are"], c: 1, r: "Use 'am' with the pronoun 'I'." },
+                    { q: "A cat says ___.", a: ["Moo", "Meow", "Woof"], c: 1, r: "Cats 'meow', cows 'moo', and dogs 'woof'." },
+                    { q: "One, two, ___, four.", a: ["Five", "Three", "Six"], c: 1, r: "The sequence is 1, 2, 3, 4." },
+                    { q: "Is this a pen? (Yes/No)", a: ["Yes, it is.", "No, it is."], c: 0, r: "Formal positive response is 'Yes, it is'." },
+                    { q: "My ___ is Sarah.", a: ["name", "age", "color"], c: 0, r: "We use 'name' to introduce ourselves." },
+                    { q: "The elephant is ___.", a: ["small", "big", "tiny"], c: 1, r: "Elephants are large animals." },
+                    { q: "I have two ___.", a: ["eyes", "nose", "mouth"], c: 0, r: "We have two eyes but only one nose and mouth." },
+                    { q: "Capital letter of 'b' is ___.", a: ["D", "P", "B"], c: 2, r: "'B' is the uppercase of 'b'." }
+                ],
+                level2: [
+                    { q: "A ___ lives in water.", a: ["Bird", "Fish", "Lion"], c: 1, r: "Fish have gills to breathe underwater." },
+                    { q: "They ___ playing football.", a: ["is", "am", "are"], c: 2, r: "Plural subject 'They' takes the verb 'are'." },
+                    { q: "Opposite of 'Happy' is ___.", a: ["Angry", "Sad", "Glad"], c: 1, r: "Sad is the antonym of Happy." },
+                    { q: "We wear ___ on our feet.", a: ["Gloves", "Hats", "Shoes"], c: 2, r: "Shoes protect our feet." },
+                    { q: "She ___ to school every day.", a: ["go", "goes", "going"], c: 1, r: "Third-person singular 'She' takes 'goes'." },
+                    { q: "What is 10 + 5 in words?", a: ["Twelve", "Fifteen", "Fifty"], c: 1, r: "10 + 5 = 15 (Fifteen)." },
+                    { q: "Which one is a fruit?", a: ["Carrot", "Mango", "Cabbage"], c: 1, r: "Mango is a fruit, others are vegetables." },
+                    { q: "The sun rises in the ___.", a: ["West", "North", "East"], c: 2, r: "The sun always rises in the East." },
+                    { q: "A doctor works in a ___.", a: ["School", "Hospital", "Farm"], c: 1, r: "Hospitals are where doctors treat patients." },
+                    { q: "Is it 'a' or 'an' apple?", a: ["a apple", "an apple"], c: 1, r: "Use 'an' before words starting with vowel sounds." }
+                ],
+                level3: [
+                    { q: "Yesterday, I ___ a sandwich.", a: ["eat", "ate", "eaten"], c: 1, r: "Past tense of 'eat' is 'ate'." },
+                    { q: "The mouse is ___ the box.", a: ["under", "between", "on"], c: 0, r: "Prepositions describe location." },
+                    { q: "Can you swim? Yes, I ___.", a: ["can", "cant", "do"], c: 0, r: "Positive response to 'Can you' is 'I can'." },
+                    { q: "___ are you from?", a: ["What", "Where", "Who"], c: 1, r: "'Where' is used to ask about place/origin." },
+                    { q: "There ___ some milk in the fridge.", a: ["is", "are", "am"], c: 0, r: "Milk is uncountable, so use 'is'." },
+                    { q: "Which is a 'Proper Noun'?", a: ["city", "Kuala Lumpur", "building"], c: 1, r: "Specific names like 'Kuala Lumpur' are Proper Nouns." },
+                    { q: "He is the ___ boy in class.", a: ["tall", "taller", "tallest"], c: 2, r: "Superlative degree uses '-est'." },
+                    { q: "Be quiet! The baby ___.", a: ["sleep", "is sleeping", "slept"], c: 1, r: "Present continuous describes current action." },
+                    { q: "I brush my teeth ___ a day.", a: ["twice", "two", "second"], c: 0, r: "'Twice' means two times." },
+                    { q: "A ___ flies an airplane.", a: ["Driver", "Pilot", "Sailor"], c: 1, r: "Pilots operate aircraft." }
+                ],
+                level4: [
+                   { q: "Ali ___ his homework last night.", a: ["finish", "finishing", "finished"], c: 2, r: "Simple past tense for completed actions." },
+                   { q: "I enjoy ___ books.", a: ["read", "reading", "reads"], c: 1, r: "Gerund (-ing) follows verbs of preference like 'enjoy'." },
+                   { q: "The blue car is ___ than the red one.", a: ["fast", "faster", "fastest"], c: 1, r: "Comparative degree uses '-er' + than." },
+                   { q: "___ do you go to school? By bus.", a: ["How", "Why", "When"], c: 0, r: "'How' asks about the method or way." },
+                   { q: "Please sit ___.", a: ["up", "down", "in"], c: 1, r: "The common phrasal verb is 'sit down'." },
+                   { q: "A group of lions is called a ___.", a: ["Pride", "Pack", "Flock"], c: 0, r: "Lions live in a 'Pride'." },
+                   { q: "I have ___ money left.", a: ["many", "little", "few"], c: 1, r: "'Little' is used for uncountable nouns like money." },
+                   { q: "Whose bag is this? It is ___.", a: ["my", "mine", "me"], c: 1, r: "'Mine' is a possessive pronoun." },
+                   { q: "You ___ wash your hands before eating.", a: ["must", "might", "may"], c: 0, r: "'Must' indicates necessity or obligation." },
+                   { q: "He was born ___ January.", a: ["at", "on", "in"], c: 2, r: "Use 'in' for months." }
+                ],
+                level5: [
+                   { q: "If it rains, we ___ stay home.", a: ["will", "would", "shall"], c: 0, r: "First conditional: If + present, will + base verb." },
+                   { q: "She has been living here ___ 2010.", a: ["for", "since", "during"], c: 1, r: "'Since' indicates a specific point in time." },
+                   { q: "Neither Sarah ___ John is coming.", a: ["or", "nor", "and"], c: 1, r: "The pair is 'Neither... nor'." },
+                   { q: "The cake was baked ___ my mother.", a: ["with", "by", "from"], c: 1, r: "Passive voice uses 'by' for the agent." },
+                   { q: "This is the man ___ helped me.", a: ["which", "who", "whom"], c: 1, r: "'Who' refers to subjects (people)." },
+                   { q: "The plural of 'Knife' is ___.", a: ["Knifes", "Knive", "Knives"], c: 2, r: "Words ending in -f/-fe often change to -ves." },
+                   { q: "Stop ___! You are making noise.", a: ["shout", "shouted", "shouting"], c: 2, r: "Verbs like 'stop' are followed by gerunds." },
+                   { q: "I am interested ___ learning English.", a: ["on", "at", "in"], c: 2, r: "The correct preposition is 'interested in'." },
+                   { q: "The luggage ___ very heavy.", a: ["is", "are", "were"], c: 0, r: "Luggage is an uncountable noun." },
+                   { q: "I ___ finished my work already.", a: ["has", "have", "am"], c: 1, r: "Present perfect: I + have + past participle." }
+                ],
+                level6: [
+                    { q: "Select the correctly punctuated sentence:", a: ["Where is the cat?", "where is the cat.", "Where is the cat!"], c: 0, r: "Questions must end with a question mark." },
+                    { q: "The cat licked ___ paw.", a: ["it's", "its", "it"], c: 1, r: "'Its' is possessive; 'it's' is a contraction of 'it is'." },
+                    { q: "Which is a synonym for 'Huge'?", a: ["Small", "Tiny", "Enormous"], c: 2, r: "Enormous means very large." },
+                    { q: "He works ___ than his brother.", a: ["hard", "harder", "hardest"], c: 1, r: "Comparative comparison." },
+                    { q: "We ___ to the zoo last Sunday.", a: ["go", "went", "gone"], c: 1, r: "Past tense of 'go' is 'went'." },
+                    { q: "Which word is a verb?", a: ["Beautiful", "Quickly", "Run"], c: 2, r: "'Run' is an action word (verb)." },
+                    { q: "The book is ___ the table.", a: ["in", "on", "at"], c: 1, r: "On indicates surface contact." },
+                    { q: "They ___ lunch right now.", a: ["eat", "are eating", "ate"], c: 1, r: "Present continuous for current actions." },
+                    { q: "I ___ a new bike tomorrow.", a: ["buy", "bought", "will buy"], c: 2, r: "Future tense for tomorrow." },
+                    { q: "Which is an adjective?", a: ["Happily", "Happiness", "Happy"], c: 2, r: "Happy describes a noun." }
+                ]
+            },
+            secondary: {
+                level1: [
+                    { q: "He ___ play the piano very well.", a: ["can", "cans", "coulds"], c: 0, r: "Modal 'can' doesn't change for subjects." },
+                    { q: "I haven't seen him ___ a long time.", a: ["since", "for", "during"], c: 1, r: "'For' is used for a duration of time." },
+                    { q: "If I ___ you, I would study harder.", a: ["am", "was", "were"], c: 2, r: "Subjunctive mood: 'If I were' for hypothetical situations." },
+                    { q: "Choose the compound word:", a: ["Butterfly", "Flying", "Beautiful"], c: 0, r: "Butter + Fly = Butterfly." },
+                    { q: "The news ___ shocking.", a: ["was", "were", "are"], c: 0, r: "'News' is singular." },
+                    { q: "She doesn't like coffee, ___ she?", a: ["does", "doesn't", "is"], c: 0, r: "Question tag for negative statement is positive." },
+                    { q: "I look forward to ___ you.", a: ["see", "seeing", "seen"], c: 1, r: "'Look forward to' is followed by a gerund." },
+                    { q: "That is the house ___ I was born.", a: ["where", "which", "when"], c: 0, r: "'Where' refers to place." },
+                    { q: "He is ___ honest man.", a: ["a", "an", "the"], c: 1, r: "Honest starts with a vowel sound (silent h)." },
+                    { q: "They ___ finished the project yet.", a: ["hasn't", "haven't", "didn't"], c: 1, r: "Present perfect negative for 'They'." }
+                ],
+                level2: [
+                    { q: "The bridge was built ___ 1990.", a: ["at", "on", "in"], c: 2, r: "Use 'in' for years." },
+                    { q: "I prefer tea ___ coffee.", a: ["than", "to", "over"], c: 1, r: "The correct preposition is 'prefer... to'." },
+                    { q: "The police ___ investigating the case.", a: ["is", "are", "was"], c: 1, r: "'Police' is always plural." },
+                    { q: "Despite ___ ill, he went to work.", a: ["be", "being", "been"], c: 1, r: "'Despite' is followed by a gerund or noun." },
+                    { q: "You ___ smoke here. It's forbidden.", a: ["mustn't", "shouldn't", "don't"], c: 0, r: "'Mustn't' indicates prohibition." },
+                    { q: "The more you study, the ___ you learn.", a: ["many", "much", "more"], c: 2, r: "Double comparative structure." },
+                    { q: "By the time we arrived, the movie ___.", a: ["starts", "has started", "had started"], c: 2, r: "Past perfect for action before another past action." },
+                    { q: "Which is a synonym for 'Reluctant'?", a: ["Willing", "Unwilling", "Eager"], c: 1, r: "Reluctant means unwilling." },
+                    { q: "I'll call you as soon as I ___.", a: ["arrive", "arrived", "will arrive"], c: 0, r: "Future time clause uses present tense." },
+                    { q: "It's time you ___ home.", a: ["go", "went", "going"], c: 1, r: "'It's time' is followed by past simple for current advice." }
+                ],
+                level3: [
+                    { q: "Hardly ___ I entered when it rained.", a: ["did", "had", "was"], c: 1, r: "Hardly had I... when..." },
+                    { q: "I wish I ___ more money.", a: ["have", "had", "would have"], c: 1, r: "Wish + past simple for current regrets." },
+                    { q: "He is used to ___ early.", a: ["wake up", "waking up", "woke up"], c: 1, r: "'Be used to' + gerund (habit)." },
+                    { q: "I don't mind ___ you with that.", a: ["help", "to help", "helping"], c: 2, r: "'Mind' is followed by a gerund." },
+                    { q: "Neither of the candidates ___ suitable.", a: ["is", "are", "were"], c: 0, r: "'Neither of' takes a singular verb." },
+                    { q: "The thief admitted ___ the jewels.", a: ["steal", "stealing", "to steal"], c: 1, r: "'Admit' + gerund." },
+                    { q: "Had I known, I ___ helped you.", a: ["will have", "would have", "had"], c: 1, r: "Third conditional structure." },
+                    { q: "Which word means 'to improve'?", a: ["Aggravate", "Ameliorate", "Deteriorate"], c: 1, r: "Ameliorate means to make better." },
+                    { q: "She is the woman ___ daughter won.", a: ["who", "whom", "whose"], c: 2, r: "'Whose' shows possession." },
+                    { q: "They made him ___ the room.", a: ["clean", "to clean", "cleaned"], c: 0, r: "'Make' + object + base verb." }
+                ],
+                level4: [
+                    { q: "Under no circumstances ___ you leave.", a: ["you should", "should you", "must you"], c: 1, r: "Inversion after negative expressions." },
+                    { q: "I'd rather you ___ tell her.", a: ["don't", "didn't", "not"], c: 1, r: "'I'd rather' + subject + past simple." },
+                    { q: "The data ___ being analyzed now.", a: ["is", "are", "was"], c: 1, r: "'Data' is technically plural (singular: datum)." },
+                    { q: "Success depends ___ hard work.", a: ["in", "on", "at"], c: 1, r: "'Depend on' is the correct collocation." },
+                    { q: "Seldom ___ such a beautiful sight.", a: ["I have seen", "have I seen", "did I saw"], c: 1, r: "Inversion after 'Seldom'." },
+                    { q: "He suggested ___ a break.", a: ["take", "to take", "taking"], c: 2, r: "'Suggest' + gerund." },
+                    { q: "If only I ___ her advice earlier.", a: ["take", "took", "had taken"], c: 2, r: "Regret about the past: 'If only' + past perfect." },
+                    { q: "The committee ___ unable to agree.", a: ["is", "are", "has"], c: 1, r: "Collective nouns take plural when members act individually." },
+                    { q: "The car needs ___.", a: ["wash", "washing", "to wash"], c: 1, r: "'Need' + gerund has passive meaning." },
+                    { q: "Regardless ___ the cost, we will go.", a: ["of", "to", "with"], c: 0, r: "'Regardless of' is the correct phrase." }
+                ],
+                level5: [
+                    { q: "By next year, I ___ for ten years.", a: ["will work", "will be working", "will have worked"], c: 2, r: "Future perfect for duration up to a point." },
+                    { q: "Scarcely ___ started when it stopped.", a: ["he had", "had he", "did he"], c: 1, r: "Inversion: Scarcely had + subject + past participle." },
+                    { q: "Were it not for your help, I ___.", a: ["fail", "would fail", "would have failed"], c: 2, r: "Second conditional inversion variant." },
+                    { q: "She was accused ___ shoplifting.", a: ["of", "with", "for"], c: 0, r: "'Accused of' is the correct preposition." },
+                    { q: "I'm not used to ___ treated like this.", a: ["be", "being", "been"], c: 1, r: "'Not used to' + gerund." },
+                    { q: "Which is a synonym for 'Ubiquitous'?", a: ["Rare", "Omnipresent", "Local"], c: 1, r: "Ubiquitous means found everywhere." },
+                    { q: "The manager ___ for the error.", a: ["apologized", "excused", "regretted"], c: 0, r: "'Apologized for' is correct." },
+                    { q: "Hardly anyone ___ the answer.", a: ["know", "knows", "knowing"], c: 1, r: "'Hardly anyone' is a singular subject." },
+                    { q: "The document, ___ was lost, is found.", a: ["which", "who", "that"], c: 0, r: "Non-defining relative clause uses 'which'." },
+                    { q: "He works as if he ___ a robot.", a: ["is", "was", "were"], c: 2, r: "Hypothetical comparison uses 'were'." }
+                ]
+            }
+        };
+
+        // State Management
+        let currentQuiz = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+        let currentLevelLabel = "";
+
+        // UI Functions
+        function showLevels(category) {
+            const screen = document.getElementById('level-screen');
+            const container = document.getElementById('level-buttons');
+            const title = document.getElementById('level-title');
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            screen.classList.remove('hidden');
+            
+            container.innerHTML = '';
+            title.innerText = category === 'primary' ? 'Primary School Levels' : 'Secondary School Levels';
+
+            const levels = category === 'primary' 
+                ? ['level1', 'level2', 'level3', 'level4', 'level5', 'level6'] 
+                : ['level1', 'level2', 'level3', 'level4', 'level5'];
+
+            levels.forEach(lvl => {
+                const btn = document.createElement('button');
+                btn.className = "p-4 bg-white border-2 border-gray-200 rounded-lg font-bold text-gray-700 hover:border-indigo-500 hover:text-indigo-500 transition";
+                const label = lvl.charAt(0).toUpperCase() + lvl.slice(1).replace(/(\d)/, ' $1');
+                btn.innerText = label;
+                btn.onclick = () => startQuiz(category, lvl, label);
+                container.appendChild(btn);
+            });
+        }
+
+        function goBack(to) {
+            document.getElementById('level-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        }
+
+        function startQuiz(cat, lvl, label) {
+            currentQuiz = quizData[cat][lvl];
+            currentLevelLabel = label;
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            
+            document.getElementById('level-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('quiz-info').innerText = label;
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = currentQuiz[currentQuestionIndex];
+            const qText = document.getElementById('question-text');
+            const optContainer = document.getElementById('options-container');
+            const nextBtn = document.getElementById('next-btn');
+            const progress = document.getElementById('progress-bar');
+            
+            // Reset UI
+            nextBtn.disabled = true;
+            nextBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+            nextBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+            
+            // Set Progress
+            progress.style.width = `${((currentQuestionIndex + 1) / currentQuiz.length) * 100}%`;
+            document.getElementById('score-display').innerText = `Score: ${score}`;
+
+            qText.innerText = `${currentQuestionIndex + 1}. ${q.q}`;
+            optContainer.innerHTML = '';
+
+            q.a.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full p-4 text-left rounded-xl font-medium text-gray-700 hover:shadow-md";
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(index, btn);
+                optContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(index, btn) {
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.classList.remove('selected', 'bg-indigo-50', 'border-indigo-500'));
+            
+            btn.classList.add('selected', 'bg-indigo-50', 'border-indigo-500');
+            
+            userAnswers[currentQuestionIndex] = index;
+            
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = false;
+            nextBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+            nextBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+        }
+
+        function nextQuestion() {
+            // Check answer
+            if (userAnswers[currentQuestionIndex] === currentQuiz[currentQuestionIndex].c) {
+                score++;
+            }
+
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < currentQuiz.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            
+            document.getElementById('final-score').innerText = `${score}/${currentQuiz.length}`;
+            
+            const feedback = document.getElementById('feedback-msg');
+            if (score === 10) feedback.innerText = "Excellent! Perfect Score!";
+            else if (score >= 7) feedback.innerText = "Very Good! Keep it up!";
+            else if (score >= 5) feedback.innerText = "Good effort, but you can do better!";
+            else feedback.innerText = "Keep practicing. You'll get there!";
+
+            const reviewList = document.getElementById('review-list');
+            reviewList.innerHTML = '';
+
+            currentQuiz.forEach((q, i) => {
+                const isCorrect = userAnswers[i] === q.c;
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-lg ${isCorrect ? 'bg-green-50 border-l-4 border-green-500' : 'bg-red-50 border-l-4 border-red-500'}`;
+                div.innerHTML = `
+                    <p class="font-bold">Q${i+1}: ${q.q}</p>
+                    <p class="${isCorrect ? 'text-green-700' : 'text-red-700'}">
+                        Your answer: ${q.a[userAnswers[i]]} ${isCorrect ? '✓' : '✗'}
+                    </p>
+                    ${!isCorrect ? `<p class="text-green-700 font-medium">Correct answer: ${q.a[q.c]}</p>` : ''}
+                    <p class="text-gray-600 mt-1 italic text-xs"><strong>Ulasan:</strong> ${q.r}</p>
+                `;
+                reviewList.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
