@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ms" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Ujian Penilaian Kelas Kafa (UPKK)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Amiri:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0fdf4;
+        }
+
+        .arabic-text {
+            font-family: 'Amiri', serif;
+            font-size: 1.5rem;
+            direction: rtl;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+        }
+
+        .selected-option {
+            background-color: #22c55e !important;
+            color: white !important;
+            border-color: #16a34a !important;
+        }
+
+        .subject-card {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .subject-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .score-badge {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="max-w-2xl w-full flex flex-col items-center">
+        
+        <!-- Bekas Utama -->
+        <div class="w-full bg-white rounded-2xl shadow-xl overflow-hidden relative">
+            
+            <!-- Pengepala -->
+            <div class="bg-green-600 p-6 text-center text-white">
+                <h1 class="text-2xl md:text-3xl font-bold tracking-wide">Simulasi Ujian UPKK</h1>
+                <p class="text-green-100 mt-2">1 Soalan Betul = 10 Markah</p>
+            </div>
+
+            <!-- Skrin Utama -->
+            <div id="home-screen" class="p-6 md:p-8 fade-in">
+                <div class="text-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">Pilih Mata Pelajaran</h2>
+                    <p class="text-gray-500 text-sm">Kumpul markah anda hari demi hari.</p>
+                </div>
+                
+                <div id="subjects-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Kad Subjek dimasukkan melalui JS -->
+                </div>
+
+                <div class="mt-8 text-center">
+                    <button onclick="resetAllScores()" class="text-xs text-red-400 hover:text-red-600 underline">
+                        Padam Semua Rekod Markah
+                    </button>
+                </div>
+            </div>
+
+            <!-- Skrin Kuiz -->
+            <div id="quiz-screen" class="p-6 md:p-8 hidden fade-in">
+                <div class="mb-6">
+                    <div class="flex justify-between text-sm font-semibold text-gray-500 mb-2">
+                        <span>Soalan <span id="current-q-num">1</span>/10</span>
+                        <span id="subject-badge" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs">Subjek</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progress-bar" class="bg-green-600 h-2.5 rounded-full" style="width: 10%"></div>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 id="question-text" class="text-xl md:text-2xl font-bold text-gray-800 leading-snug"></h3>
+                </div>
+
+                <div id="options-container" class="space-y-3 mb-8"></div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="quitQuiz()" class="text-gray-400 hover:text-gray-600 font-semibold px-4">
+                        Batal
+                    </button>
+                    <button id="next-btn" onclick="nextQuestion()" disabled class="bg-gray-300 text-gray-500 font-bold py-3 px-8 rounded-xl cursor-not-allowed transition duration-300">
+                        Seterusnya <i class="fas fa-chevron-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Skrin Keputusan -->
+            <div id="result-screen" class="p-8 hidden fade-in text-center">
+                <div id="result-icon" class="mb-6"></div>
+                <h2 id="result-title" class="text-3xl font-bold text-gray-800 mb-2">Tahniah!</h2>
+                <p id="result-subtitle" class="text-gray-600 mb-6"></p>
+                
+                <div class="bg-green-50 rounded-xl p-6 mb-8 border border-green-200">
+                    <p class="text-sm text-gray-500 uppercase tracking-wider font-semibold">Markah Sesi Ini</p>
+                    <div id="score-text" class="text-7xl font-extrabold text-green-600 my-2">0</div>
+                    <p class="text-sm text-gray-400 italic">Jumlah terkumpul anda telah bertambah!</p>
+                </div>
+
+                <button onclick="reviewAnswers()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl mb-3 shadow-md">
+                    Semak Jawapan <i class="fas fa-list-check ml-2"></i>
+                </button>
+                <button onclick="restartQuiz()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md">
+                    Kembali Ke Menu <i class="fas fa-home ml-2"></i>
+                </button>
+            </div>
+
+            <!-- Skrin Semakan -->
+            <div id="review-screen" class="p-6 hidden fade-in">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Semakan Jawapan</h2>
+                <div id="review-container" class="space-y-6 max-h-96 overflow-y-auto pr-2"></div>
+                <div class="mt-6">
+                    <button onclick="showResultScreen()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl">
+                        Kembali ke Keputusan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="w-full mt-6 mb-4 text-center text-gray-400 text-xs px-4">
+            <p>Sistem Pengumpulan Markah Latih Tubi UPKK</p>
+        </footer>
+    </div>
+
+    <script>
+        const subjects = [
+            { id: 'aqidah', name: 'Ulum Syariah (Aqidah)', label: 'Aqidah', icon: 'fa-heart', color: 'green' },
+            { id: 'ibadah', name: 'Ulum Syariah (Ibadah)', label: 'Ibadah', icon: 'fa-mosque', color: 'blue' },
+            { id: 'sirah', name: 'Sirah', label: 'Sirah', icon: 'fa-history', color: 'yellow' },
+            { id: 'adab', name: 'Adab (Akhlak)', label: 'Adab', icon: 'fa-hands-praying', color: 'purple' },
+            { id: 'tajwid', name: 'Al-Quran (Tajwid)', label: 'Tajwid', icon: 'fa-book-open', color: 'red' },
+            { id: 'arab', name: 'Lughatul Quran', label: 'B. Arab', icon: 'fa-language', color: 'orange' },
+            { id: 'jawi', name: 'Pelajaran Jawi', label: 'Jawi', icon: 'fa-pen-nib', color: 'teal' }
+        ];
+
+        // Soalan tetap 10 bagi setiap subjek
+        const allQuestions = [
+            { subject: "Ulum Syariah (Aqidah)", question: "Berapakah bilangan Rukun Iman?", options: ["5 Perkara", "6 Perkara", "13 Perkara", "20 Perkara"], answer: 1 },
+            { subject: "Ulum Syariah (Aqidah)", question: "Allah bersifat 'Wujud' (Ada). Lawannya ialah...", options: ["'Adam (Tiada)", "Fana' (Binas)", "Jahlun (Bodoh)", "Maut (Mati)"], answer: 0 },
+            { subject: "Ulum Syariah (Aqidah)", question: "Rukun Islam yang ketiga ialah...", options: ["Syahadah", "Solat", "Puasa", "Zakat"], answer: 3 },
+            { subject: "Ulum Syariah (Aqidah)", question: "Malaikat yang meniup sangkakala ialah...", options: ["Jibril", "Mikail", "Israfil", "Izrail"], answer: 2 },
+            { subject: "Ulum Syariah (Aqidah)", question: "Kitab Taurat diturunkan kepada Nabi...", options: ["Muhammad SAW", "Musa AS", "Isa AS", "Daud AS"], answer: 1 },
+            { subject: "Ulum Syariah (Aqidah)", question: "Beriman kepada hari kebangkitan ialah beriman kepada...", options: ["Malaikat", "Kitab", "Rasul", "Hari Kiamat"], answer: 3 },
+            { subject: "Ulum Syariah (Aqidah)", question: "Sifat Rasul 'Fathonah' bermaksud...", options: ["Siddiq", "Amanah", "Tabligh", "Bijaksana"], answer: 3 },
+            { subject: "Ulum Syariah (Aqidah)", question: "Syirik kepada Allah hukumnya...", options: ["Harus", "Makruh", "Haram & Dosa Besar", "Sunat"], answer: 2 },
+            { subject: "Ulum Syariah (Aqidah)", question: "Bilangan Rasul yang WAJIB diketahui ialah...", options: ["10 orang", "25 orang", "99 orang", "313 orang"], answer: 1 },
+            { subject: "Ulum Syariah (Aqidah)", question: "Nama Allah 'Al-Khaliq' bermaksud Allah Maha...", options: ["Pencipta", "Mengetahui", "Mendengar", "Pengampun"], answer: 0 },
+
+            { subject: "Ulum Syariah (Ibadah)", question: "Membatalkan wuduk jika seseorang itu...", options: ["Makan", "Bercakap", "Tidur tidak tetap punggung", "Potong kuku"], answer: 2 },
+            { subject: "Ulum Syariah (Ibadah)", question: "Solat yang mengiringi solat fardu ialah...", options: ["Rawatib", "Dhuha", "Tahajjud", "Hajat"], answer: 0 },
+            { subject: "Ulum Syariah (Ibadah)", question: "Jumlah rakaat solat fardu sehari semalam ialah...", options: ["12 rakaat", "15 rakaat", "17 rakaat", "20 rakaat"], answer: 2 },
+            { subject: "Ulum Syariah (Ibadah)", question: "Niat dalam solat adalah...", options: ["Al-Fatihah", "Takbir", "Rukun", "Rukuk"], answer: 2 },
+            { subject: "Ulum Syariah (Ibadah)", question: "Darah atau muntah adalah najis...", options: ["Mukhaffafah", "Mutawassitah", "Mughallazah", "Ma'fu"], answer: 1 },
+            { subject: "Ulum Syariah (Ibadah)", question: "Alat untuk bertayammum ialah...", options: ["Air", "Daun", "Kain", "Debu tanah suci"], answer: 3 },
+            { subject: "Ulum Syariah (Ibadah)", question: "Gelincir matahari tanda bermulanya waktu...", options: ["Syuruk", "Asar", "Zohor", "Maghrib"], answer: 2 },
+            { subject: "Ulum Syariah (Ibadah)", question: "Hukum puasa Ramadan adalah...", options: ["Sunat", "Harus", "Makruh", "Fardu Ain"], answer: 3 },
+            { subject: "Ulum Syariah (Ibadah)", question: "Zakat yang dibayar pada bulan Ramadan ialah...", options: ["Fitrah", "Perniagaan", "Pertanian", "Emas"], answer: 0 },
+            { subject: "Ulum Syariah (Ibadah)", question: "Haid dan Nifas menyebabkan wanita wajib...", options: ["Wuduk", "Mandi Wajib", "Solat", "Puasa"], answer: 1 },
+
+            { subject: "Sirah", question: "Wahyu pertama diturunkan di...", options: ["Gua Thur", "Bukit Safa", "Masjidil Haram", "Gua Hira'"], answer: 3 },
+            { subject: "Sirah", question: "Siapakah Khalifah Islam yang pertama?", options: ["Umar", "Uthman", "Ali", "Abu Bakar"], answer: 3 },
+            { subject: "Sirah", question: "Tahun kelahiran Nabi Muhammad SAW dipanggil...", options: ["Tahun Hijrah", "Tahun Gajah", "Tahun Duka", "Tahun Perang"], answer: 1 },
+            { subject: "Sirah", question: "Nama bapa Nabi Muhammad SAW ialah...", options: ["Abu Talib", "Abdul Muttalib", "Abdullah", "Hamzah"], answer: 2 },
+            { subject: "Sirah", question: "Isteri pertama Nabi Muhammad SAW ialah...", options: ["Aisyah", "Khadijah", "Aminah", "Fatimah"], answer: 1 },
+            { subject: "Sirah", question: "Penghijrahan Nabi ke Madinah dipanggil...", options: ["Israk Mikraj", "Haji Wida'", "Hijrah", "Fathu Makkah"], answer: 2 },
+            { subject: "Sirah", question: "Nama ibu susuan Nabi Muhammad SAW ialah...", options: ["Aminah", "Ummu Aiman", "Thuwaibah", "Halimatus Saadiah"], answer: 3 },
+            { subject: "Sirah", question: "Masjid pertama yang dibina oleh Nabi ialah...", options: ["Masjid Nabawi", "Masjid Quba'", "Masjidil Aqsa", "Masjidil Haram"], answer: 1 },
+            { subject: "Sirah", question: "Abu Lahab adalah bapa saudara Nabi yang...", options: ["Mendukung Islam", "Melindungi Nabi", "Menentang Islam", "Memasuki Islam"], answer: 2 },
+            { subject: "Sirah", question: "Perang Badar adalah perang besar yang...", options: ["Pertama", "Terakhir", "Paling lama", "Tiada pemenang"], answer: 0 },
+
+            { subject: "Adab (Akhlak)", question: "Masuk ke tandas mestilah dengan kaki...", options: ["Kiri", "Kanan", "Dua-dua", "Lompat"], answer: 0 },
+            { subject: "Adab (Akhlak)", question: "Antara adab makan ialah menggunakan tangan...", options: ["Kiri", "Kanan", "Dua-dua", "Sudu sahaja"], answer: 1 },
+            { subject: "Adab (Akhlak)", question: "Berbuat baik kepada kedua ibu bapa dipanggil...", options: ["Ukhuwah", "Birrul Walidain", "Silaturrahim", "Mahabbah"], answer: 1 },
+            { subject: "Adab (Akhlak)", question: "Tujuan kita menziarahi orang sakit adalah untuk...", options: ["Makan", "Bising", "Doakan kesembuhan", "Minta harta"], answer: 2 },
+            { subject: "Adab (Akhlak)", question: "Pakaian seorang Muslim mestilah...", options: ["Ketat", "Mahal", "Menutup Aurat", "Terdedah"], answer: 2 },
+            { subject: "Adab (Akhlak)", question: "Selepas bersin, kita disunatkan mengucap...", options: ["Astaghfirullah", "Alhamdulillah", "Allahu Akbar", "Subhanallah"], answer: 1 },
+            { subject: "Adab (Akhlak)", question: "Masuk ke dalam masjid disunatkan kaki...", options: ["Kiri", "Kanan", "Serentak", "Mana-mana"], answer: 1 },
+            { subject: "Adab (Akhlak)", question: "Sebelum tidur, adabnya adalah membaca...", options: ["Buku cerita", "Doa tidur", "Lagu", "Berita"], answer: 1 },
+            { subject: "Adab (Akhlak)", question: "Hukum memberi salam kepada sesama Muslim ialah...", options: ["Wajib", "Sunat", "Haram", "Makruh"], answer: 1 },
+            { subject: "Adab (Akhlak)", question: "Apabila guru sedang mengajar, kita hendaklah...", options: ["Bercakap", "Tidur", "Mendengar dengan tekun", "Main telefon"], answer: 2 },
+
+            { subject: "Al-Quran (Tajwid)", question: "Nun Mati bertemu huruf Ba dipanggil hukum...", options: ["Izhar", "Idgham", "Iqlab", "Ikhfa'"], answer: 2 },
+            { subject: "Al-Quran (Tajwid)", question: "Huruf Mim dan Nun yang mempunyai tanda Sabdu ialah...", options: ["Mad", "Wajibul Ghunnah", "Qalqalah", "Izhar"], answer: 1 },
+            { subject: "Al-Quran (Tajwid)", question: "Huruf Idgham Maal Ghunnah ada berapa?", options: ["2", "4", "6", "15"], answer: 1 },
+            { subject: "Al-Quran (Tajwid)", question: "Bacaan yang jelas dan terang dipanggil...", options: ["Ikhfa'", "Idgham", "Izhar", "Iqlab"], answer: 2 },
+            { subject: "Al-Quran (Tajwid)", question: "Huruf Qalqalah hendaklah dibaca secara...", options: ["Dengung", "Lantunan", "Sembunyi", "Panjang"], answer: 1 },
+            { subject: "Al-Quran (Tajwid)", question: "Mad Asli dibaca dengan panjang...", options: ["2 Harakat", "4 Harakat", "6 Harakat", "1 Harakat"], answer: 0 },
+            { subject: "Al-Quran (Tajwid)", question: "Alif Lam Qamariah cara bacanya adalah...", options: ["Masuk (Idgham)", "Jelas (Izhar)", "Dengung", "Sembunyi"], answer: 1 },
+            { subject: "Al-Quran (Tajwid)", question: "Tanda Mim kecil (م) di atas ayat bermaksud...", options: ["Berhenti", "Wajib Berhenti", "Terus", "Saktah"], answer: 1 },
+            { subject: "Al-Quran (Tajwid)", question: "Terdapat berapa huruf Ikhfa' Hakiki?", options: ["5", "6", "15", "28"], answer: 2 },
+            { subject: "Al-Quran (Tajwid)", question: "Huruf Idgham Bila Ghunnah ialah...", options: ["Lam dan Ra", "Wau dan Ya", "Mim dan Nun", "Ba dan Ta"], answer: 0 },
+
+            { subject: "Lughatul Quran", question: "Apakah nombor bagi <span class='arabic-text'>تِسْعَةٌ</span>?", options: ["7", "8", "9", "10"], answer: 2 },
+            { subject: "Lughatul Quran", question: "<span class='arabic-text'>سَبُّورَةٌ</span> bermaksud...", options: ["Meja", "Kerusi", "Papan Hitam", "Beg"], answer: 2 },
+            { subject: "Lughatul Quran", question: "<span class='arabic-text'>مِرْوَحَةٌ</span> bermaksud...", options: ["Lampu", "Kipas", "Jam", "Almari"], answer: 1 },
+            { subject: "Lughatul Quran", question: "Erti bagi <span class='arabic-text'>أَنَا</span> ialah...", options: ["Kami", "Dia", "Saya", "Kamu"], answer: 2 },
+            { subject: "Lughatul Quran", question: "<span class='arabic-text'>مُدَرِّسَةٌ</span> bermaksud...", options: ["Guru L", "Guru P", "Murid L", "Murid P"], answer: 1 },
+            { subject: "Lughatul Quran", question: "<span class='arabic-text'>أَبٌ</span> bermaksud...", options: ["Ibu", "Bapa", "Abang", "Kakak"], answer: 1 },
+            { subject: "Lughatul Quran", question: "<span class='arabic-text'>يَوْمُ الأَحَدِ</span> ialah hari...", options: ["Isnin", "Sabtu", "Jumaat", "Ahad"], answer: 3 },
+            { subject: "Lughatul Quran", question: "<span class='arabic-text'>مَاءٌ</span> bermaksud...", options: ["Susu", "Air", "Nasi", "Roti"], answer: 1 },
+            { subject: "Lughatul Quran", question: "<span class='arabic-text'>عَيْنٌ</span> bermaksud...", options: ["Telinga", "Tangan", "Mata", "Kaki"], answer: 2 },
+            { subject: "Lughatul Quran", question: "Nombor <span class='arabic-text'>أَرْبَعَةٌ</span> ialah...", options: ["1", "2", "3", "4"], answer: 3 },
+
+            { subject: "Pelajaran Jawi", question: "Ejaan 'Puasa' dalam Jawi ialah...", options: ["ڤواسه", "ڤواسا", "ڤوسا", "ڤواس"], answer: 1 },
+            { subject: "Pelajaran Jawi", question: "Ejaan 'Solat' mengikut istilah asal...", options: ["سولت", "صولت", "صلاة", "صلة"], answer: 2 },
+            { subject: "Pelajaran Jawi", question: "Ejaan 'Rumah' ialah...", options: ["رومه", "روما", "رomحه", "روماه"], answer: 0 },
+            { subject: "Pelajaran Jawi", question: "Ejaan 'Ilmu' ialah...", options: ["عليمو", "عليم", "علمو", "علم"], answer: 3 },
+            { subject: "Pelajaran Jawi", question: "Ejaan 'Sembahyang' ialah...", options: ["سمبهيڠ", "سمبهيڠن", "سمبهي", "سمباي"], answer: 0 },
+            { subject: "Pelajaran Jawi", question: "Ejaan 'Buku' ialah...", options: ["بوكو", "بوکو", "بوقu", "بوك"], answer: 0 },
+            { subject: "Pelajaran Jawi", question: "Ejaan 'Masjid' ialah...", options: ["مسجيد", "مسجد", "مستجد", "ميسجد"], answer: 1 },
+            { subject: "Pelajaran Jawi", question: "Ejaan 'Zakat' ialah...", options: ["زاكت", "زكات", "زكاة", "ذكات"], answer: 2 },
+            { subject: "Pelajaran Jawi", question: "Ejaan 'Kucing' ialah...", options: ["كوچيڠ", "كوچيڠ", "كوجيڠ", "قوچيڠ"], answer: 0 },
+            { subject: "Pelajaran Jawi", question: "Ejaan 'Makan' ialah...", options: ["ماكن", "ماکن", "مکن", "ماکان"], answer: 0 }
+        ];
+
+        let currentSubject = null;
+        let currentSubjectQuestions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let selectedOptionIndex = null;
+
+        const POINTS_PER_QUESTION = 10;
+
+        function renderHome() {
+            const grid = document.getElementById('subjects-grid');
+            grid.innerHTML = '';
+            
+            const todayKey = new Date().toISOString().split('T')[0];
+            const scoresData = JSON.parse(localStorage.getItem('upkk_scores_v4') || '{}');
+
+            subjects.forEach(sub => {
+                const subData = scoresData[sub.id] || { daily: {}, totalAccumulated: 0 };
+                const todayTotal = subData.daily[todayKey] || 0;
+                const totalAllTime = subData.totalAccumulated || 0;
+
+                grid.innerHTML += `
+                    <button onclick="startQuiz('${sub.id}')" class="subject-card p-4 border-2 border-${sub.color}-100 rounded-xl bg-${sub.color}-50 flex items-center hover:border-${sub.color}-500 text-left">
+                        <div class="w-12 h-12 rounded-lg bg-${sub.color}-600 text-white flex items-center justify-center mr-4 shrink-0 shadow-sm">
+                            <i class="fas ${sub.icon} text-xl"></i>
+                        </div>
+                        <div class="flex-grow overflow-hidden">
+                            <span class="block font-bold text-gray-800 truncate">${sub.label}</span>
+                            <div class="flex flex-wrap gap-2 mt-1">
+                                <span class="score-badge bg-${sub.color}-100 text-${sub.color}-800">
+                                    Hari Ini: <b>${todayTotal}</b>
+                                </span>
+                                <span class="score-badge bg-gray-200 text-gray-700">
+                                    Terkumpul: <b>${totalAllTime}</b>
+                                </span>
+                            </div>
+                        </div>
+                    </button>
+                `;
+            });
+        }
+
+        function startQuiz(subId) {
+            currentSubject = subjects.find(s => s.id === subId);
+            currentSubjectQuestions = allQuestions.filter(q => q.subject === currentSubject.name);
+            
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            
+            currentQuestionIndex = 0;
+            userAnswers = new Array(currentSubjectQuestions.length).fill(null);
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            selectedOptionIndex = null;
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = true;
+            nextBtn.className = "bg-gray-300 text-gray-500 font-bold py-3 px-8 rounded-xl cursor-not-allowed";
+
+            const q = currentSubjectQuestions[currentQuestionIndex];
+            document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
+            document.getElementById('subject-badge').innerText = currentSubject.label;
+            
+            const progress = ((currentQuestionIndex + 1) / currentSubjectQuestions.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+            
+            document.getElementById('question-text').innerHTML = q.question;
+            
+            if (currentQuestionIndex === currentSubjectQuestions.length - 1) {
+                nextBtn.innerHTML = 'Hantar <i class="fas fa-paper-plane ml-2"></i>';
+            } else {
+                nextBtn.innerHTML = 'Seterusnya <i class="fas fa-chevron-right ml-2"></i>';
+            }
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-4 border-2 border-gray-200 rounded-xl bg-white hover:bg-green-50 focus:outline-none font-semibold text-gray-700";
+                btn.innerHTML = `<span class="inline-block w-8 h-8 rounded-full bg-gray-100 text-center text-xs leading-8 mr-3 border border-gray-300 font-bold">${String.fromCharCode(65 + idx)}</span> ${opt}`;
+                btn.onclick = () => selectOption(idx, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectOption(idx, btn) {
+            selectedOptionIndex = idx;
+            const container = document.getElementById('options-container');
+            Array.from(container.children).forEach(b => b.classList.remove('selected-option'));
+            btn.classList.add('selected-option');
+            
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = false;
+            nextBtn.className = "bg-green-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-green-700 cursor-pointer shadow-md";
+        }
+
+        function nextQuestion() {
+            userAnswers[currentQuestionIndex] = selectedOptionIndex;
+            if (currentQuestionIndex < currentSubjectQuestions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                saveAndShowResults();
+            }
+        }
+
+        function saveAndShowResults() {
+            const correctCount = userAnswers.reduce((acc, ans, idx) => 
+                ans === currentSubjectQuestions[idx].answer ? acc + 1 : acc, 0);
+            
+            // Pengiraan baru: 1 soalan = 10 markah
+            const sessionScore = correctCount * POINTS_PER_QUESTION;
+
+            // Simpan Skor
+            const todayKey = new Date().toISOString().split('T')[0];
+            const scoresData = JSON.parse(localStorage.getItem('upkk_scores_v4') || '{}');
+            
+            if (!scoresData[currentSubject.id]) {
+                scoresData[currentSubject.id] = { daily: {}, totalAccumulated: 0 };
+            }
+            
+            const sub = scoresData[currentSubject.id];
+            
+            // Tambah markah berdasarkan mata (bukan bilangan)
+            sub.daily[todayKey] = (sub.daily[todayKey] || 0) + sessionScore;
+            sub.totalAccumulated += sessionScore;
+            
+            localStorage.setItem('upkk_scores_v4', JSON.stringify(scoresData));
+
+            // Papar UI
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('score-text').innerText = sessionScore;
+            document.getElementById('result-subtitle').innerText = currentSubject.name;
+
+            const icon = document.getElementById('result-icon');
+            if (sessionScore >= 80) icon.innerHTML = '<i class="fas fa-star text-7xl text-yellow-400"></i>';
+            else if (sessionScore >= 50) icon.innerHTML = '<i class="fas fa-smile text-7xl text-blue-500"></i>';
+            else icon.innerHTML = '<i class="fas fa-book text-7xl text-gray-400"></i>';
+        }
+
+        function reviewAnswers() {
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('review-screen').classList.remove('hidden');
+            const container = document.getElementById('review-container');
+            container.innerHTML = '';
+
+            currentSubjectQuestions.forEach((q, i) => {
+                const isCorrect = userAnswers[i] === q.answer;
+                container.innerHTML += `
+                    <div class="p-4 border rounded-xl ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
+                        <p class="font-bold mb-2 text-gray-800">${i+1}. ${q.question}</p>
+                        <p class="text-sm">Pilihan: <span class="${isCorrect ? 'text-green-600' : 'text-red-600'} font-bold">${q.options[userAnswers[i]] || 'Tiada'}</span></p>
+                        ${!isCorrect ? `<p class="text-sm">Jawapan: <span class="text-green-600 font-bold">${q.options[q.answer]}</span></p>` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        function showResultScreen() {
+            document.getElementById('review-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+        }
+
+        function restartQuiz() {
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('home-screen').classList.remove('hidden');
+            renderHome();
+        }
+
+        function quitQuiz() {
+            if(confirm('Batal sesi? Markah tidak akan dikira.')) {
+                document.getElementById('quiz-screen').classList.add('hidden');
+                document.getElementById('home-screen').classList.remove('hidden');
+                renderHome();
+            }
+        }
+
+        function resetAllScores() {
+            if(confirm('Padam semua rekod markah anda secara kekal?')) {
+                localStorage.removeItem('upkk_scores_v4');
+                renderHome();
+            }
+        }
+
+        window.onload = renderHome;
+    </script>
+</body>
+</html>
