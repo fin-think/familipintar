@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myEDUkids</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 p-3 md:p-8 text-slate-900">
+
+    <div class="max-w-6xl mx-auto bg-white rounded-2xl md:rounded-3xl shadow-xl overflow-hidden border border-blue-100">
+        
+        <!-- Header -->
+        <div class="bg-white p-5 md:p-6 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <i data-lucide="graduation-cap" class="text-white w-6 h-6"></i>
+                </div>
+                <h1 class="text-xl md:text-2xl font-black text-blue-700 uppercase tracking-tight">
+                    my<span class="text-blue-900">EDUkids</span>
+                </h1>
+            </div>
+            <div class="hidden sm:block text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-widest text-right">
+                Perancangan Dana Pendidikan<br>Multi-Anak
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-0">
+            
+            <!-- Input Section (Left) -->
+            <div class="lg:col-span-7 p-5 md:p-8 bg-white border-r border-gray-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <i data-lucide="users" class="text-blue-600 w-5 h-5"></i>
+                        Senarai Anak (<span id="child-count">1</span>/10)
+                    </h2>
+                    <button onclick="addChild()" class="flex items-center gap-1 text-xs md:text-sm font-bold text-blue-600 hover:text-blue-800 transition p-2 bg-blue-50 rounded-lg">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        Tambah
+                    </button>
+                </div>
+
+                <!-- Container for Children Forms -->
+                <div id="children-container" class="space-y-4 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
+                    <!-- Form akan dijana oleh JS -->
+                </div>
+
+                <button onclick="calculateTotal()" class="w-full mt-6 bg-blue-700 hover:bg-blue-800 text-white font-black py-4 md:py-5 rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 text-sm md:text-base uppercase tracking-wider">
+                    <i data-lucide="target" class="w-5 h-5"></i>
+                    KIRA DANA KELUARGA
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Results Section (Right) -->
+            <div id="results-section" class="lg:col-span-5 p-5 md:p-8 bg-slate-50">
+                <!-- Placeholder -->
+                <div id="placeholder" class="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-40 py-10">
+                    <div class="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center shadow-sm">
+                        <i data-lucide="trending-up" class="text-blue-300 w-10 h-10"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base md:text-lg font-bold text-gray-500 uppercase">Analisis Strategik</h3>
+                        <p class="text-xs text-gray-400 max-w-xs mx-auto">Sila lengkapkan butiran anak untuk melihat keperluan pelaburan.</p>
+                    </div>
+                </div>
+
+                <!-- Summary Content (Hidden initially) -->
+                <div id="summary-content" class="hidden space-y-5 animate-in fade-in duration-500">
+                    <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-2xl p-5 md:p-6 text-white shadow-xl relative overflow-hidden">
+                        <h3 class="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-1">Total Keperluan Dana</h3>
+                        <div id="total-future-cost" class="text-2xl md:text-3xl font-black mb-4">RM 0</div>
+                        <div class="space-y-2 border-t border-blue-700 pt-4">
+                            <div class="flex justify-between text-xs md:text-sm">
+                                <span class="opacity-70">Dana Belum Cukup:</span>
+                                <span id="total-gap" class="font-bold text-red-300">RM 0</span>
+                            </div>
+                            <div class="flex justify-between items-end">
+                                <span class="text-[10px] md:text-xs opacity-70">Simpanan Bulanan:</span>
+                                <span id="total-monthly" class="text-xl md:text-2xl font-black text-emerald-400">RM 0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Solutions -->
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2 uppercase tracking-wide">
+                            <i data-lucide="lightbulb" class="text-amber-500 w-4 h-4"></i>
+                            Solusi myEDUkids
+                        </h4>
+
+                        <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-3">
+                            <div class="bg-blue-50 p-2 rounded-lg h-fit text-blue-600 shrink-0">
+                                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-blue-900 text-[11px] md:text-xs uppercase mb-1">Unit Trust (Joint Account)</h5>
+                                <p class="text-[10px] md:text-xs text-gray-600">Pelaburan konsisten dalam Dana Ekuiti. Akaun bersama memudahkan pengurusan semua anak.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-3">
+                            <div class="bg-amber-50 p-2 rounded-lg h-fit text-amber-500 shrink-0">
+                                <i data-lucide="coins" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-amber-900 text-[11px] md:text-xs uppercase mb-1">Emas 1g/Bulan</h5>
+                                <p class="text-[10px] md:text-xs text-gray-600">Pelindung inflasi terbaik. Beli 1g sebulan atau sebagai hadiah hari lahir.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-3">
+                            <div class="bg-emerald-50 p-2 rounded-lg h-fit text-emerald-600 shrink-0">
+                                <i data-lucide="wallet" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-emerald-900 text-[11px] md:text-xs uppercase mb-1">ASB & Simpan SSPN</h5>
+                                <p class="text-[10px] md:text-xs text-gray-600">Manfaatkan pelepasan cukai SSPN (RM8k) dan dividen ASB yang stabil.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 flex items-start gap-2">
+                            <i data-lucide="gift" class="text-blue-600 shrink-0 mt-0.5 w-4 h-4"></i>
+                            <p class="text-[10px] md:text-[11px] text-blue-900">
+                                <strong>Tip:</strong> Jadikan pelaburan sebagai 'hadiah' wajib. Dana pendidikan adalah harta paling bernilai.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 p-3 text-center text-[9px] text-gray-400 border-t border-gray-100 uppercase tracking-widest font-bold">
+            DISCLAIMER:Anggaran sahaja untuk rujukan. Bukan nasihat kewangan dan hasil sebenar mungkin berbeza.<p>Ingin membangunkan kalkulator interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH
+        </div>
+    </div>
+
+    <script>
+        let children = [
+            { id: Date.now(), name: '', currentAge: 1, entryAge: 18, currentCost: 50000, currentSavings: 0 }
+        ];
+
+        function renderChildren() {
+            const container = document.getElementById('children-container');
+            container.innerHTML = '';
+            document.getElementById('child-count').innerText = children.length;
+
+            children.forEach((child, index) => {
+                const childDiv = document.createElement('div');
+                childDiv.className = "p-4 md:p-5 bg-gray-50 rounded-xl border border-gray-200 relative mb-4";
+                childDiv.innerHTML = `
+                    <div class="absolute -left-2 top-4 bg-blue-600 text-white w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-md z-10">
+                        ${index + 1}
+                    </div>
+                    ${children.length > 1 ? `
+                        <button onclick="removeChild(${child.id})" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition p-1">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    ` : ''}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 ml-4">
+                        <div class="md:col-span-1">
+                            <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Nama Anak</label>
+                            <input type="text" placeholder="Contoh: Aminah" class="w-full p-2 text-sm bg-white border border-gray-200 rounded-lg outline-none" 
+                                value="${child.name}" onchange="updateChildValue(${child.id}, 'name', this.value)">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Umur</label>
+                                <input type="number" class="w-full p-2 text-sm bg-white border border-gray-200 rounded-lg" 
+                                    value="${child.currentAge}" onchange="updateChildValue(${child.id}, 'currentAge', Number(this.value))">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Uni (Umur)</label>
+                                <input type="number" class="w-full p-2 text-sm bg-white border border-gray-200 rounded-lg" 
+                                    value="${child.entryAge}" onchange="updateChildValue(${child.id}, 'entryAge', Number(this.value))">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-blue-700 mb-1 uppercase">Kos Sekarang (RM)</label>
+                            <input type="number" class="w-full p-2 text-sm bg-blue-50 border border-blue-100 rounded-lg font-bold text-blue-900" 
+                                value="${child.currentCost}" onchange="updateChildValue(${child.id}, 'currentCost', Number(this.value))">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase">Simpanan (RM)</label>
+                            <input type="number" class="w-full p-2 text-sm bg-white border border-gray-200 rounded-lg" 
+                                value="${child.currentSavings}" onchange="updateChildValue(${child.id}, 'currentSavings', Number(this.value))">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(childDiv);
+            });
+            lucide.createIcons();
+        }
+
+        function addChild() {
+            if (children.length < 10) {
+                children.push({ id: Date.now(), name: '', currentAge: 1, entryAge: 18, currentCost: 50000, currentSavings: 0 });
+                renderChildren();
+            }
+        }
+
+        function removeChild(id) {
+            children = children.filter(c => c.id !== id);
+            renderChildren();
+        }
+
+        function updateChildValue(id, field, value) {
+            const index = children.findIndex(c => c.id === id);
+            if (index !== -1) children[index][field] = value;
+        }
+
+        function calculateTotal() {
+            const inflation = 0.04;
+            const returns = 0.06;
+            
+            let totalFutureCost = 0;
+            let totalGap = 0;
+            let totalMonthly = 0;
+
+            children.forEach(child => {
+                const years = child.entryAge - child.currentAge;
+                if (years > 0) {
+                    const fvCost = child.currentCost * Math.pow(1 + inflation, years);
+                    const fvSavings = child.currentSavings * Math.pow(1 + returns, years);
+                    const gap = Math.max(0, fvCost - fvSavings);
+                    
+                    const r = returns / 12;
+                    const n = years * 12;
+                    const monthly = gap > 0 ? (gap * r) / (Math.pow(1 + r, n) - 1) : 0;
+
+                    totalFutureCost += fvCost;
+                    totalGap += gap;
+                    totalMonthly += monthly;
+                }
+            });
+
+            document.getElementById('total-future-cost').innerText = `RM ${Math.round(totalFutureCost).toLocaleString()}`;
+            document.getElementById('total-gap').innerText = `RM ${Math.round(totalGap).toLocaleString()}`;
+            document.getElementById('total-monthly').innerText = `RM ${Math.round(totalMonthly).toLocaleString()}`;
+            
+            document.getElementById('placeholder').classList.add('hidden');
+            document.getElementById('summary-content').classList.remove('hidden');
+        }
+
+        // Init
+        renderChildren();
+    </script>
+</body>
+</html>
