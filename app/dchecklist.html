@@ -1,25 +1,265 @@
 <!DOCTYPE html>
-<html>
+<html lang="ms">
 <head>
-  <title>Loading...</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myCHECKLIST</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .text-mobile-sm { font-size: 0.95rem; }
+        .text-mobile-xs { font-size: 0.85rem; }
+
+        .checkbox-custom:checked + label .check-box { background-color: #10b981; border-color: #10b981; }
+        .checkbox-custom:checked + label .check-icon { display: block; }
+        .checkbox-custom:checked + label .text-content { text-decoration: line-through; opacity: 0.5; }
+        
+        @keyframes pulse-red {
+            0%, 100% { background-color: rgba(239, 68, 68, 0.1); }
+            50% { background-color: rgba(239, 68, 68, 0.2); }
+        }
+        .urgent-bg { animation: pulse-red 2s infinite; }
+        
+        /* Bonus badge animation */
+        .bonus-badge {
+            background: linear-gradient(45deg, #f59e0b, #fbbf24);
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+        }
+    </style>
 </head>
-<body>
+<body class="bg-slate-50 min-h-screen py-6 px-4 flex flex-col items-center">
 
-<script>
-  // FORCE unlock (test dulu)
-  localStorage.setItem("paid_user", "true");
+    <div class="w-full max-w-md md:max-w-xl">
+        <!-- Legend Kategori Umur -->
+        <div class="mb-4 text-center">
+            <span class="text-[12px] font-black uppercase tracking-widest text-slate-500">Pilih Kategori Umur</span>
+        </div>
+        
+        <!-- Selector Umur -->
+        <div class="mb-8 flex bg-white p-2 rounded-2xl shadow-md border border-slate-200">
+            <button onclick="setAgeGroup('20-30')" id="btn-20-30" class="flex-1 py-4 rounded-xl font-extrabold text-sm transition-all age-btn bg-blue-600 text-white shadow-lg">20-30</button>
+            <button onclick="setAgeGroup('30-40')" id="btn-30-40" class="flex-1 py-4 rounded-xl font-extrabold text-sm transition-all age-btn text-slate-400">30-40</button>
+            <button onclick="setAgeGroup('40-50')" id="btn-40-50" class="flex-1 py-4 rounded-xl font-extrabold text-sm transition-all age-btn text-slate-400">40-50</button>
+        </div>
 
-  const isPaid = localStorage.getItem("paid_user");
+        <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden">
+            <!-- Header -->
+            <div class="bg-slate-900 p-8 text-white relative">
+                <div class="flex justify-between items-start mb-1">
+                    <h1 class="text-2xl font-black tracking-tighter italic text-blue-400">myCHECKLIST</h1>
+                    <div id="bonusIndicator" class="hidden bonus-badge text-[9px] font-black px-2 py-1 rounded-full text-slate-900 animate-bounce uppercase">Legacy Bonus Active</div>
+                </div>
+                <p id="ageGroupLabel" class="text-white text-[11px] font-black uppercase tracking-[0.3em] mb-8 opacity-80"></p>
+                
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex-shrink-0">
+                        <span class="text-[11px] font-black uppercase tracking-widest opacity-40 block mb-1">Finance Health</span>
+                        <span id="percentageText" class="text-5xl font-black tabular-nums tracking-tighter">0%</span>
+                    </div>
+                    <div class="flex-grow">
+                        <div class="h-3 bg-white/10 rounded-full mb-3 overflow-hidden">
+                            <div id="progressBar" class="h-full bg-blue-500 transition-all duration-700 ease-out" style="width: 0%"></div>
+                        </div>
+                        <span id="statusBadge" class="text-[11px] font-black py-1.5 px-4 rounded-full border uppercase tracking-widest">Kritikal</span>
+                    </div>
+                </div>
+            </div>
 
-  if (!isPaid) {
-    window.location.href = "https://familipintar.com";
-  } else {
-    document.write(`
-      <iframe src="https://fin-think.github.io/dCHECKLIST/" 
-      width="100%" height="100%" style="border:none;"></iframe>
-    `);
-  }
-</script>
+            <!-- Content Area -->
+            <div id="checklistContent" class="p-6 space-y-10">
+                <!-- Sections Injected Here -->
+            </div>
 
+            <!-- Real-time Results Summary -->
+            <div id="summaryArea" class="px-6 pb-10">
+                <div id="warningBox" class="urgent-bg border-2 border-red-200 rounded-[2rem] p-6 hidden">
+                    <div class="flex items-start">
+                        <div class="p-2 bg-red-100 rounded-lg text-red-600 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-red-700 font-black text-mobile-sm uppercase tracking-tight">Tindakan Segera (A.S.A.P)</h4>
+                            <p class="text-red-600 text-mobile-xs mt-1 font-bold leading-relaxed">
+                                Sila penuhi kriteria teras (Skor 100%) untuk status selamat:
+                            </p>
+                            <div id="missingItems" class="mt-4 flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="successBox" class="bg-emerald-50 border-2 border-emerald-200 rounded-[2rem] p-6 hidden">
+                    <div class="flex items-center text-emerald-700">
+                        <div class="p-2 bg-emerald-100 rounded-lg mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="font-black text-mobile-sm uppercase">Tahniah! Skor Selamat</h4>
+                            <p id="successDesc" class="text-mobile-xs font-bold opacity-80 uppercase">Teras kewangan anda kini kukuh.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                <p class="text-[11px] text-slate-400 font-black uppercase" id="currentDate"></p>
+                <p class="text-[11px] text-slate-900 font-black uppercase italic tracking-tighter">DISCLAIMER: Anggaran sahaja untuk rujukan dan panduan. Bukan nasihat kewangan dan hasil sebenar mungkin berbeza.</p>
+            </div>
+        </div>
+        
+        <div class="mt-8 mb-10 text-center">
+            <p class="text-slate-400 text-[11px] font-bold uppercase tracking-[0.2em] px-4 leading-relaxed">Ingin membangunkan kalkulator interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut.</p>
+        </div>
+    </div>
+
+    <script>
+        const config = {
+            "20-30": {
+                label: "FASA PEMBINAAN: 20-30 TAHUN",
+                sections: [
+                    { isBonus: false, title: "Income & Savings", items: ["Gaji Minimum (Basic RM2.5k+)", "Tunai Kecemasan (3 bln Gaji)", "Simpanan KWSP RM26k (Umur 30)"] },
+                    { isBonus: false, title: "Protection & Assets", items: ["ASB/ Tabung Haji (Min RM10k)", "Emas Fizikal/ Digital (Min 10g)", "Insurans Perubatan (Medical Card)"] },
+                    { isBonus: true, title: "Legacy (Bonus Points)", items: ["Penyediaan Wasiat", "Hibah Takaful Asas", "Harta Sepencarian"] }
+                ]
+            },
+            "30-40": {
+                label: "FASA PENGUKUHAN: 30-40 TAHUN",
+                sections: [
+                    { isBonus: false, title: "Income & Savings", items: ["Gaji Minimum (Basic RM5k+)", "Tunai Kecemasan (6 bln Gaji)", "Simpanan KWSP RM74k (Umur 40)"] },
+                    { isBonus: false, title: "Protection & Assets", items: ["ASB/ Unit Trust (Min RM50k)", "Hartanah Kediaman (Rumah 1)", "Emas Fizikal (Min 50g)"] },
+                    { isBonus: true, title: "Legacy (Bonus Points)", items: ["Wasiat (Draft Terkini)", "Hibah Harta", "Harta Sepencarian"] }
+                ]
+            },
+            "40-50": {
+                label: "FASA MATANG: 40-50 TAHUN",
+                sections: [
+                    { isBonus: false, title: "Income & Savings", items: ["Gaji Minimum (Basic RM8k+)", "Passive Income", "Tunai Kecemasan (12 bln Gaji)", "Simpanan KWSP RM150k (Umur 50)"] },
+                    { isBonus: false, title: "Protection & Assets", items: ["ASB (Min RM150k)", "Emas Fizikal/ Digital (Min 100g)", "Unit Trust (MinRM150k)"] },
+                    { isBonus: true, title: "Legacy (Bonus Points)", items: ["Amanah (Cash Trust)", "Wasiat (Draft Terkini)", "Hibah Harta", "Harta Sepencarian"] }
+                ]
+            }
+        };
+
+        let currentAgeGroup = "20-30";
+
+        function setAgeGroup(group) {
+            currentAgeGroup = group;
+            document.querySelectorAll('.age-btn').forEach(btn => {
+                btn.className = "flex-1 py-4 rounded-xl font-extrabold text-sm transition-all age-btn text-slate-400";
+            });
+            const activeBtn = document.getElementById(`btn-${group}`);
+            activeBtn.className = "flex-1 py-4 rounded-xl font-extrabold text-sm transition-all age-btn bg-blue-600 text-white shadow-lg";
+            
+            document.getElementById('ageGroupLabel').innerText = config[group].label;
+            renderChecklist();
+            updateStatus();
+        }
+
+        function renderChecklist() {
+            const container = document.getElementById('checklistContent');
+            container.innerHTML = '';
+            
+            config[currentAgeGroup].sections.forEach((section, sIdx) => {
+                const sectionEl = document.createElement('div');
+                const titleColor = section.isBonus ? 'text-amber-500' : 'text-blue-600';
+                const borderColor = section.isBonus ? 'border-amber-500' : 'border-blue-600';
+                
+                sectionEl.innerHTML = `
+                    <h3 class="text-[12px] font-black uppercase tracking-[0.2em] ${titleColor} mb-5 border-l-4 ${borderColor} pl-3">
+                        ${section.title}
+                    </h3>
+                    <div class="space-y-4">
+                        ${section.items.map((item, iIdx) => `
+                            <div class="group relative">
+                                <input type="checkbox" id="cb-${sIdx}-${iIdx}" 
+                                       data-bonus="${section.isBonus}" 
+                                       class="checkbox-custom hidden" onchange="updateStatus()">
+                                <label for="cb-${sIdx}-${iIdx}" class="flex items-center p-6 rounded-3xl border-2 border-slate-100 bg-white hover:border-blue-200 transition-all cursor-pointer shadow-sm active:bg-slate-50">
+                                    <span class="text-content text-mobile-sm font-extrabold text-slate-700 flex-1 uppercase tracking-tight">${item}</span>
+                                    <div class="check-box w-7 h-7 rounded-xl border-2 border-slate-200 flex items-center justify-center transition-all bg-slate-50">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="check-icon hidden w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </div>
+                                </label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(sectionEl);
+            });
+        }
+
+        function updateStatus() {
+            const coreCheckboxes = document.querySelectorAll('.checkbox-custom[data-bonus="false"]');
+            const bonusCheckboxes = document.querySelectorAll('.checkbox-custom[data-bonus="true"]');
+            
+            const coreChecked = document.querySelectorAll('.checkbox-custom[data-bonus="false"]:checked');
+            const bonusChecked = document.querySelectorAll('.checkbox-custom[data-bonus="true"]:checked');
+            
+            // Calculate Core Score (Max 100%)
+            const corePercentage = Math.round((coreChecked.length / coreCheckboxes.length) * 100);
+            
+            // Calculate Bonus (Each bonus item adds a fixed amount, e.g., 5% per item)
+            const bonusScore = bonusChecked.length * 5;
+            const totalScore = corePercentage + bonusScore;
+            
+            document.getElementById('percentageText').innerText = totalScore + "%";
+            document.getElementById('progressBar').style.width = Math.min(totalScore, 100) + "%";
+            
+            // Update UI Indicators
+            const bonusIndicator = document.getElementById('bonusIndicator');
+            if (bonusChecked.length > 0) bonusIndicator.classList.remove('hidden');
+            else bonusIndicator.classList.add('hidden');
+
+            const badge = document.getElementById('statusBadge');
+            if (corePercentage < 50) {
+                badge.innerText = "Kritikal";
+                badge.className = "text-[11px] font-black py-1.5 px-4 bg-red-500 text-white rounded-full uppercase tracking-widest";
+            } else if (corePercentage < 100) {
+                badge.innerText = "Waspada";
+                badge.className = "text-[11px] font-black py-1.5 px-4 bg-amber-500 text-white rounded-full uppercase tracking-widest";
+            } else {
+                badge.innerText = "Selamat";
+                badge.className = "text-[11px] font-black py-1.5 px-4 bg-emerald-500 text-white rounded-full uppercase tracking-widest";
+            }
+
+            const warningBox = document.getElementById('warningBox');
+            const successBox = document.getElementById('successBox');
+            const missingItems = document.getElementById('missingItems');
+            
+            if (corePercentage < 100) {
+                warningBox.classList.remove('hidden');
+                successBox.classList.add('hidden');
+                
+                missingItems.innerHTML = '';
+                coreCheckboxes.forEach(cb => {
+                    if (!cb.checked) {
+                        const labelText = cb.nextElementSibling.querySelector('.text-content').innerText;
+                        const tag = document.createElement('span');
+                        tag.className = "text-[10px] font-black bg-red-600 text-white px-3 py-1.5 rounded-lg tracking-tight uppercase mb-1 mr-1 shadow-sm";
+                        tag.innerText = labelText;
+                        missingItems.appendChild(tag);
+                    }
+                });
+            } else {
+                warningBox.classList.add('hidden');
+                successBox.classList.remove('hidden');
+                const desc = document.getElementById('successDesc');
+                desc.innerText = bonusChecked.length > 0 
+                    ? `Teras kewangan kukuh + Bonus Legacy ${bonusScore}% Aktif!` 
+                    : "Teras kewangan anda kini kukuh.";
+            }
+        }
+
+        document.getElementById('currentDate').innerText = "KEMASKINI: " + new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' });
+        setAgeGroup('20-30');
+    </script>
 </body>
 </html>
