@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myWARIS - Solusi Pewarisan Anda</title>
+     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 pb-10">
+    <div id="app" class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="bg-emerald-800 text-white p-6 shadow-lg rounded-b-3xl mb-8 flex flex-col md:flex-row items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="bg-white p-2 rounded-xl">
+                    <img src="https://i.postimg.cc/N0n5P1R7/LOGO-HANS-LEGASI-BARU-transparent.png" alt="myMAWARIS Logo" class="w-12 h-12">
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">myWARIS</h1>
+                    <p class="text-emerald-100 text-sm italic">Solusi Pewarisan Anda</p>
+                </div>
+            </div>
+            <div class="hidden md:flex gap-4 mt-4 md:mt-0 text-xs font-medium uppercase tracking-widest no-print">
+                <span id="nav-step-1" class="text-white">Waris</span>
+                <span>•</span>
+                <span id="nav-step-2" class="text-emerald-400">Harta</span>
+                <span>•</span>
+                <span id="nav-step-3" class="text-emerald-400">Solusi</span>
+            </div>
+        </header>
+
+        <main class="px-6">
+            <!-- Progress Bar -->
+            <div class="mb-8 no-print">
+                <div class="flex justify-between items-center mb-2 text-emerald-700 font-bold text-xs uppercase">
+                    <span>Progress Analisa</span>
+                    <span id="progress-text">33%</span>
+                </div>
+                <div class="h-2 w-full bg-emerald-100 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 33.33%;"></div>
+                </div>
+            </div>
+
+            <!-- STEP 1: PROFIL -->
+            <section id="step-1" class="space-y-6">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <i data-lucide="users" class="text-emerald-600"></i> Analisa Status & Waris
+                </h2>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="p-4 border rounded-xl bg-white shadow-sm">
+                        <label class="block text-sm font-semibold mb-2 text-emerald-700">Jantina Si Mati</label>
+                        <div class="flex gap-4">
+                            <button onclick="updateProfile('jantina', 'lelaki')" id="btn-jantina-lelaki" class="flex-1 py-2 px-4 rounded-lg border-2 bg-emerald-600 text-white border-emerald-600">Lelaki</button>
+                            <button onclick="updateProfile('jantina', 'perempuan')" id="btn-jantina-perempuan" class="flex-1 py-2 px-4 rounded-lg border-2 bg-white text-gray-600 border-gray-200">Perempuan</button>
+                        </div>
+                    </div>
+                    <div class="p-4 border rounded-xl bg-white shadow-sm">
+                        <label class="block text-sm font-semibold mb-2">Status Perkahwinan</label>
+                        <select onchange="updateProfile('status', this.value)" class="w-full p-2 border rounded-lg">
+                            <option value="kahwin">Berkahwin</option>
+                            <option value="bujang">Bujang / Tak Kahwin</option>
+                        </select>
+                    </div>
+                    
+                    <div class="p-4 border rounded-xl bg-white shadow-sm">
+                        <label class="block text-sm font-semibold mb-2">Status Ayah Kandung</label>
+                        <select onchange="updateProfile('statusAyah', this.value)" class="w-full p-2 border rounded-lg">
+                            <option value="ada">Masih Ada</option>
+                            <option value="tiada">Tiada (Meninggal)</option>
+                        </select>
+                    </div>
+                    <div class="p-4 border rounded-xl bg-white shadow-sm">
+                        <label class="block text-sm font-semibold mb-2">Status Ibu Kandung</label>
+                        <select onchange="updateProfile('statusIbu', this.value)" class="w-full p-2 border rounded-lg">
+                            <option value="ada">Masih Ada</option>
+                            <option value="tiada">Tiada (Meninggal)</option>
+                        </select>
+                    </div>
+
+                    <div class="p-4 border rounded-xl bg-white shadow-sm space-y-3">
+                        <label class="block text-sm font-bold text-emerald-800 border-b pb-1">Bilangan Anak</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-gray-500 block">Lelaki</label>
+                                <input type="number" oninput="updateProfile('bilAnakLelaki', this.value)" value="0" class="w-full p-2 border rounded">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 block">Perempuan</label>
+                                <input type="number" oninput="updateProfile('bilAnakPerempuan', this.value)" value="0" class="w-full p-2 border rounded">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 border rounded-xl bg-white shadow-sm space-y-3">
+                        <label class="block text-sm font-bold text-emerald-800 border-b pb-1">Bilangan Adik-Beradik</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-gray-500 block">Lelaki</label>
+                                <input type="number" oninput="updateProfile('bilAdikLelaki', this.value)" value="0" class="w-full p-2 border rounded">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 block">Perempuan</label>
+                                <input type="number" oninput="updateProfile('bilAdikPerempuan', this.value)" value="0" class="w-full p-2 border rounded">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="nextStep(2)" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition">Seterusnya: Harta & Hutang</button>
+            </section>
+
+            <!-- STEP 2: HARTA & HUTANG -->
+            <section id="step-2" class="hidden space-y-6">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2 mb-4">
+                            <i data-lucide="wallet" class="text-emerald-600"></i> Analisa Harta
+                        </h2>
+                        <div id="assets-container" class="space-y-3"></div>
+                        <button onclick="addAsset()" class="mt-2 text-emerald-600 text-sm font-bold flex items-center gap-1 hover:underline p-2">
+                            <i data-lucide="plus-circle" size="16"></i> Tambah Harta Lain
+                        </button>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2 mb-4">
+                            <i data-lucide="alert-triangle" class="text-red-500"></i> Analisa Hutang
+                        </h2>
+                        <div id="debts-container" class="space-y-3"></div>
+                        <button onclick="addDebt()" class="mt-2 text-red-600 text-sm font-bold flex items-center gap-1 hover:underline p-2">
+                            <i data-lucide="plus-circle" size="16"></i> Tambah Hutang Lain
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-6 rounded-2xl border-2 border-amber-200">
+                    <h3 class="font-bold text-amber-900 flex items-center gap-2 mb-4">
+                        <i data-lucide="file-text" size="20"></i> Wasiat 1/3 (Bukan Waris)
+                    </h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <input oninput="updateWasiat('penerima', this.value)" class="w-full p-2 border rounded-lg" placeholder="Penerima Wasiat">
+                        <input type="number" oninput="updateWasiat('nilaiCustom', this.value)" class="w-full p-2 border rounded-lg" placeholder="Nilai RM">
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="nextStep(1)" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">Kembali</button>
+                    <button onclick="nextStep(3)" class="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl">Kira & Solusi</button>
+                </div>
+            </section>
+
+            <!-- STEP 3: RESULT -->
+            <section id="step-3" class="hidden space-y-8 pb-12">
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="p-6 bg-emerald-50 rounded-2xl text-center shadow-sm">
+                        <p class="text-xs font-bold uppercase text-emerald-600">Total Harta</p>
+                        <p id="res-total-assets" class="text-2xl font-black text-emerald-900">RM 0</p>
+                    </div>
+                    <div class="p-6 bg-red-50 rounded-2xl text-center shadow-sm">
+                        <p class="text-xs font-bold uppercase text-red-600">Total Hutang</p>
+                        <p id="res-total-debts" class="text-2xl font-black text-red-900">RM 0</p>
+                    </div>
+                    <div class="p-6 bg-blue-50 rounded-2xl text-center shadow-sm">
+                        <p class="text-xs font-bold uppercase text-blue-600">Harta Bersih Faraid</p>
+                        <p id="res-net-estate" class="text-2xl font-black text-blue-900">RM 0</p>
+                    </div>
+                </div>
+
+                <div class="bg-white border-2 border-emerald-100 rounded-3xl overflow-hidden shadow-sm">
+                    <div class="bg-emerald-800 text-white p-4 flex justify-between items-center">
+                        <h3 class="font-bold flex items-center gap-2"><i data-lucide="calculator" size="20"></i> Kiraan Bahagian Faraid</h3>
+                    </div>
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-50 border-b text-xs font-bold uppercase text-gray-500">
+                                <th class="px-6 py-3">Waris</th>
+                                <th class="px-6 py-3 text-center">Bahagian (%)</th>
+                                <th class="px-6 py-3 text-right">Nilai (RM)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="faraid-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="p-6 bg-gradient-to-br from-indigo-900 to-indigo-700 text-white rounded-3xl shadow-xl flex flex-col">
+                        <h3 class="font-bold text-lg mb-4 flex items-center gap-2 border-b border-white/20 pb-2">
+                            <i data-lucide="shield-check"></i> Sedia Cash Urus Kematian
+                        </h3>
+                        <div class="space-y-4 flex-grow">
+                            <div class="bg-white/10 p-4 rounded-xl space-y-3">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span>Hibah Takaful (RM):</span>
+                                    <input type="number" oninput="updateTakaful('hibahTakaful', this.value)" value="0" class="bg-transparent border-b border-indigo-400 text-right w-28 outline-none font-bold">
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <span>Tunai (RM):</span>
+                                    <input type="number" oninput="updateTakaful('tunaiAmanah', this.value)" value="0" class="bg-transparent border-b border-indigo-400 text-right w-28 outline-none font-bold">
+                                </div>
+                            </div>
+                            <div id="cash-analysis-box" class="bg-white/5 p-4 rounded-xl space-y-3 border border-white/10"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-white border-2 border-gray-100 rounded-3xl shadow-sm">
+                        <h3 class="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="briefcase" class="text-emerald-600"></i> Solusi & Cadangan
+                        </h3>
+                        <ul id="solutions-list" class="space-y-3 text-sm"></ul>
+                    </div>
+                </div>
+
+                <!-- Action Buttons Section -->
+                <div class="flex flex-col gap-4 no-print">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <button onclick="nextStep(2)" class="flex-1 bg-gray-200 text-gray-700 font-bold py-4 rounded-2xl">Ubah Data</button>
+                        <button onclick="window.print()" class="flex-1 bg-emerald-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2">
+                            <i data-lucide="printer" size="20"></i> Cetak Laporan (PDF)
+                        </button>
+                    </div>
+                    <!-- New eWasiat Button -->
+                    <button onclick="gotoEWasiat()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-indigo-700 transition shadow-lg">
+                        <i data-lucide="file-signature" size="20"></i> Permohonan eWasiat
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-12 py-8 text-center text-gray-400 text-xs border-t no-print">
+            <p>DISCLAIMER: Keputusan ini adalah anggaran berdasarkan input dan bukan hasil sebenar.<p>Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- SLOT UNTUK LINK EXTERNAL ---
+        const EWASIAT_URL = "https://wasiatku.my?cid=182"; // Tukar link di sini nnt
+
+        // State
+        let currentStep = 1;
+        let profile = {
+            jantina: 'lelaki',
+            status: 'kahwin',
+            statusAyah: 'ada',
+            statusIbu: 'ada',
+            bilAnakLelaki: 0,
+            bilAnakPerempuan: 0,
+            bilAdikLelaki: 0,
+            bilAdikPerempuan: 0
+        };
+        let assets = [
+            { id: 1, name: 'Rumah Kediaman', value: 0, hibah: false },
+            { id: 2, name: 'Simpanan Bank', value: 0, hibah: false },
+            { id: 3, name: 'EPF (KWSP)', value: 0, hibah: false },
+            { id: 4, name: 'Kenderaan', value: 0, hibah: false }
+        ];
+        let debts = [
+            { id: 1, name: 'Hutang Rumah', value: 0 },
+            { id: 2, name: 'Hutang Kereta', value: 0 },
+            { id: 3, name: 'Hutang Peribadi', value: 0 }
+        ];
+        let wasiat = { penerima: '', nilaiCustom: 0 };
+        let takaful = { hibahTakaful: 0, tunaiAmanah: 0 };
+
+        // Functions
+        function updateProfile(key, val) {
+            profile[key] = isNaN(val) ? val : Number(val);
+            if (key === 'jantina') {
+                document.getElementById('btn-jantina-lelaki').className = val === 'lelaki' ? 'flex-1 py-2 px-4 rounded-lg border-2 bg-emerald-600 text-white border-emerald-600' : 'flex-1 py-2 px-4 rounded-lg border-2 bg-white text-gray-600 border-gray-200';
+                document.getElementById('btn-jantina-perempuan').className = val === 'perempuan' ? 'flex-1 py-2 px-4 rounded-lg border-2 bg-emerald-600 text-white border-emerald-600' : 'flex-1 py-2 px-4 rounded-lg border-2 bg-white text-gray-600 border-gray-200';
+            }
+        }
+
+        function updateWasiat(key, val) { wasiat[key] = val; }
+        function updateTakaful(key, val) { 
+            takaful[key] = Number(val); 
+            if(currentStep === 3) renderResults(); 
+        }
+
+        function renderAssets() {
+            const container = document.getElementById('assets-container');
+            container.innerHTML = assets.map((a, i) => `
+                <div class="p-4 border rounded-xl bg-white shadow-sm">
+                    <input class="w-full font-bold mb-2 border-b outline-none focus:border-emerald-500" value="${a.name}" oninput="assets[${i}].name=this.value">
+                    <div class="flex gap-2 items-center mt-2">
+                        <span class="text-gray-500 font-bold">RM</span>
+                        <input type="number" class="w-full p-2 border rounded font-mono" value="${a.value}" oninput="assets[${i}].value=Number(this.value)">
+                    </div>
+                    <label class="flex items-center gap-2 mt-3 text-xs text-gray-600 cursor-pointer">
+                        <input type="checkbox" ${a.hibah ? 'checked' : ''} onchange="assets[${i}].hibah=this.checked"> Dah Hibah?
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        function renderDebts() {
+            const container = document.getElementById('debts-container');
+            container.innerHTML = debts.map((d, i) => `
+                <div class="p-4 border rounded-xl bg-white shadow-sm border-red-100">
+                    <input class="w-full font-bold mb-2 border-b outline-none focus:border-red-500" value="${d.name}" oninput="debts[${i}].name=this.value">
+                    <div class="flex gap-2 items-center mt-2">
+                        <span class="text-gray-500 font-bold">RM</span>
+                        <input type="number" class="w-full p-2 border rounded font-mono" value="${d.value}" oninput="debts[${i}].value=Number(this.value)">
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addAsset() { assets.push({id: Date.now(), name: 'Harta Baru', value: 0, hibah: false}); renderAssets(); }
+        function addDebt() { debts.push({id: Date.now(), name: 'Hutang Baru', value: 0}); renderDebts(); }
+
+        function nextStep(s) {
+            document.getElementById(`step-${currentStep}`).classList.add('hidden');
+            document.getElementById(`step-${s}`).classList.remove('hidden');
+            
+            document.getElementById(`nav-step-${currentStep}`).classList.replace('text-white', 'text-emerald-400');
+            document.getElementById(`nav-step-${s}`).classList.replace('text-emerald-400', 'text-white');
+            
+            currentStep = s;
+            const progress = (s/3)*100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('progress-text').innerText = `${Math.round(progress)}%`;
+
+            if (s === 2) { renderAssets(); renderDebts(); }
+            if (s === 3) renderResults();
+            window.scrollTo(0,0);
+        }
+
+        function calculateFaraid(net) {
+            let shares = [];
+            let currentNet = net;
+            const al = Number(profile.bilAnakLelaki);
+            const ap = Number(profile.bilAnakPerempuan);
+            const adaAnak = al > 0 || ap > 0;
+
+            // 1. Ashabul Furud
+            if (profile.status === 'kahwin') {
+                let s = profile.jantina === 'lelaki' ? (adaAnak ? 0.125 : 0.25) : (adaAnak ? 0.25 : 0.5);
+                const amt = net * s;
+                shares.push({ name: profile.jantina === 'lelaki' ? 'Isteri' : 'Suami', percent: s * 100, amount: amt });
+                currentNet -= amt;
+            }
+            if (profile.statusAyah === 'ada') {
+                let s = 0.1667; // 1/6
+                const amt = net * s;
+                shares.push({ name: 'Ayah Kandung', percent: s * 100, amount: amt });
+                currentNet -= amt;
+            }
+            if (profile.statusIbu === 'ada') {
+                let s = 0.1667; // 1/6
+                const amt = net * s;
+                shares.push({ name: 'Ibu Kandung', percent: s * 100, amount: amt });
+                currentNet -= amt;
+            }
+
+            // 2. Anak-anak (Asabah)
+            if (adaAnak) {
+                if (al > 0 && ap > 0) {
+                    // Ada lelaki dan perempuan: Pecahkan
+                    const totalHeads = (al * 2) + ap;
+                    const onePart = currentNet / totalHeads;
+                    
+                    shares.push({ 
+                        name: `Anak Lelaki (${al} orang)`, 
+                        percent: ((al * 2) / totalHeads) * (currentNet / net * 100), 
+                        amount: onePart * al * 2 
+                    });
+                    shares.push({ 
+                        name: `Anak Perempuan (${ap} orang)`, 
+                        percent: (ap / totalHeads) * (currentNet / net * 100), 
+                        amount: onePart * ap 
+                    });
+                } else if (al > 0) {
+                    // Hanya lelaki
+                    shares.push({ 
+                        name: `Anak Lelaki (${al} orang)`, 
+                        percent: (currentNet / net) * 100, 
+                        amount: currentNet 
+                    });
+                } else if (ap > 0) {
+                    // Hanya perempuan (Ashabul Furud)
+                    let s = ap === 1 ? 0.5 : 0.6667;
+                    const amt = net * s;
+                    shares.push({ name: `Anak Perempuan (${ap} orang)`, percent: s * 100, amount: amt });
+                }
+            } else {
+                // Tiada anak: Adik beradik mungkin dapat
+                if (Number(profile.bilAdikLelaki) > 0 || Number(profile.bilAdikPerempuan) > 0) {
+                    shares.push({ 
+                        name: `Adik Beradik (${profile.bilAdikLelaki}L, ${profile.bilAdikPerempuan}P)`, 
+                        percent: (currentNet / net) * 100, 
+                        amount: currentNet 
+                    });
+                }
+            }
+
+            return shares;
+        }
+
+        function renderResults() {
+            const totalA = assets.reduce((s, a) => s + a.value, 0);
+            const totalD = debts.reduce((s, d) => s + d.value, 0);
+            const assetsForFaraid = assets.filter(a => !a.hibah).reduce((s, a) => s + a.value, 0);
+            const wasiatVal = Math.min(wasiat.nilaiCustom, totalA/3);
+            const net = Math.max(0, assetsForFaraid - totalD - wasiatVal);
+
+            document.getElementById('res-total-assets').innerText = `RM ${totalA.toLocaleString()}`;
+            document.getElementById('res-total-debts').innerText = `RM ${totalD.toLocaleString()}`;
+            document.getElementById('res-net-estate').innerText = `RM ${net.toLocaleString()}`;
+
+            const table = document.getElementById('faraid-table-body');
+            const results = calculateFaraid(net);
+            table.innerHTML = results.map(r => `
+                <tr class="border-b">
+                    <td class="px-6 py-4 font-bold text-gray-700">${r.name}</td>
+                    <td class="px-6 py-4 text-center text-emerald-600">${r.percent.toFixed(2)}%</td>
+                    <td class="px-6 py-4 text-right font-bold">RM ${r.amount.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                </tr>
+            `).join('');
+
+            const estCost = totalA * 0.03;
+            const readyCash = takaful.hibahTakaful + takaful.tunaiAmanah;
+            const isSufficient = readyCash >= estCost;
+            const gap = estCost - readyCash;
+
+            const analysisBox = document.getElementById('cash-analysis-box');
+            analysisBox.innerHTML = `
+                <div class="flex justify-between items-center text-xs text-indigo-200 uppercase font-bold">
+                    <span>Anggaran Kos Urus Pusaka (3%):</span>
+                    <span class="text-white text-sm">RM ${estCost.toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between items-center text-xs text-indigo-200 uppercase font-bold">
+                    <span>Total Tunai Sedia Ada:</span>
+                    <span class="text-white text-sm">RM ${readyCash.toLocaleString()}</span>
+                </div>
+                <div class="mt-2 p-3 rounded-lg flex items-center gap-3 ${isSufficient ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}">
+                    <i data-lucide="${isSufficient ? 'check-circle-2' : 'x-circle'}"></i>
+                    <div class="text-sm">
+                        <p class="font-bold">${isSufficient ? 'Tunai Mencukupi' : 'Tunai Tidak Mencukupi'}</p>
+                        <p class="text-xs opacity-90">${isSufficient ? 'Lebihan tunai boleh digunakan untuk hutang lain.' : `Kurangan tunai RM ${gap.toLocaleString()}.`}</p>
+                    </div>
+                </div>
+            `;
+
+            const solList = document.getElementById('solutions-list');
+            let sols = [
+                `<li><strong>Lantik Wasi:</strong> Digalakkan lantik syarikat amanah profesional.</li>`,
+                `<li><strong>Harta Sepencarian:</strong> ${profile.status === 'kahwin' ? 'Wujud hak pasangan sebanyak 50% sebelum faraid.' : 'Deklarasi aset utama untuk kemudahan waris.'}</li>`
+            ];
+            if (!isSufficient) {
+                sols.push(`<li class="text-red-600 font-semibold italic">Cadangan: Tambah Hibah Takaful (Asset Protection) RM ${gap.toLocaleString()} untuk elakkan aset beku.</li>`);
+            }
+            solList.innerHTML = sols.join('');
+            lucide.createIcons();
+        }
+
+        function gotoEWasiat() {
+            window.open(EWASIAT_URL, '_blank');
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
