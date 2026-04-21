@@ -1,0 +1,16 @@
+<script>
+  const isPaid = localStorage.getItem("paid_user");
+
+  if (!isPaid) {
+    window.location.href = "/";
+  }
+</script>
+
+<div id="app"></div>
+
+<script>
+  const url = "https://fin-think.github.io/dCHECKLIST/";
+
+  document.getElementById("app").innerHTML =
+    `<iframe src="${url}" width="100%" height="100%" style="border:none;"></iframe>`;
+</script>
