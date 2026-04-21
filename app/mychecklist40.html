@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myCHECKLIST40</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
+        .checkbox-custom { width: 1.25rem; height: 1.25rem; accent-color: #059669; cursor: pointer; }
+        .section-title { border-left: 4px solid #059669; padding-left: 0.75rem; margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-3xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-emerald-800 mb-2">myCHECKLIST40</h1>
+            <p class="text-gray-600 italic text-sm">"Ya Tuhanku, tunjukilah aku untuk mensyukuri nikmat-Mu yang telah Engkau berikan kepadaku..." (Surah Al-Ahqaf: 15)</p>
+        </div>
+
+        <div id="checklist-form" class="space-y-6 pb-20">
+            <!-- 1. SOLAT -->
+            <section class="card p-6">
+                <h2 class="section-title text-xl font-semibold text-emerald-700">Rukun Islam: Solat</h2>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="solat5" class="checkbox-custom mt-1" data-score="15">
+                        <label for="solat5" class="text-gray-700 font-medium">Cukup Solat Fardu 5 Waktu sehari semalam.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="berjemaah" class="checkbox-custom mt-1" data-score="5">
+                        <label for="berjemaah" class="text-gray-700">Sentiasa mengutamakan Solat Berjemaah (Masjid/Surau).</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="awalwaktu" class="checkbox-custom mt-1" data-score="5">
+                        <label for="awalwaktu" class="text-gray-700">Menjaga Awal Waktu (Azan terus bersedia).</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="qadha" class="checkbox-custom mt-1" data-score="5">
+                        <label for="qadha" class="text-gray-700">Sudah mula/selesai qadha solat-solat lama yang ditinggalkan.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="tahajjud" class="checkbox-custom mt-1" data-score="5">
+                        <label for="tahajjud" class="text-gray-700">Melazimi Solat Sunat (Tahajjud/Witir/Dhuha).</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. AL-QURAN -->
+            <section class="card p-6">
+                <h2 class="section-title text-xl font-semibold text-emerald-700">Al-Quran & Hafalan</h2>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="bacaanHarian" class="checkbox-custom mt-1" data-score="10">
+                        <label for="bacaanHarian" class="text-gray-700 font-medium">Membaca Al-Quran setiap hari (wirid harian).</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="lazim" class="checkbox-custom mt-1" data-score="5">
+                        <label for="lazim" class="text-gray-700">Sudah hafal & lancar Surah Lazim (Juz Amma).</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="pilihan" class="checkbox-custom mt-1" data-score="10">
+                        <label for="pilihan" class="text-gray-700">Bacaan harian surah pilihan (Yasin, Al-Waqiah, Al-Mulk, Al-Kahfi).</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="tadabbur" class="checkbox-custom mt-1" data-score="5">
+                        <label for="tadabbur" class="text-gray-700">Kerap membaca terjemahan & tadabbur makna ayat.</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. HAJI & UMRAH -->
+            <section class="card p-6">
+                <h2 class="section-title text-xl font-semibold text-emerald-700">Haji & Umrah</h2>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="daftarHaji" class="checkbox-custom mt-1" data-score="5">
+                        <label for="daftarHaji" class="text-gray-700">Sudah mendaftar Haji (Tabung Haji).</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="umrah" class="checkbox-custom mt-1" data-score="10">
+                        <label for="umrah" class="text-gray-700">Sudah menunaikan Umrah/Haji sekurang-kurangnya sekali.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="tabungan" class="checkbox-custom mt-1" data-score="5">
+                        <label for="tabungan" class="text-gray-700">Mempunyai tabungan/perancangan khusus ke tanah suci.</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. PUASA -->
+            <section class="card p-6">
+                <h2 class="section-title text-xl font-semibold text-emerald-700">Puasa Wajib & Sunat</h2>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="puasaWajib" class="checkbox-custom mt-1" data-score="15">
+                        <label for="puasaWajib" class="text-gray-700 font-medium">Menyempurnakan Puasa Ramadhan.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="qadhaPuasa" class="checkbox-custom mt-1" data-score="5">
+                        <label for="qadhaPuasa" class="text-gray-700">Sudah qadha puasa yang tertinggal / bayar Fidyah.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="puasaIsninKhamis" class="checkbox-custom mt-1" data-score="10">
+                        <label for="puasaIsninKhamis" class="text-gray-700">Melazimi Puasa Sunat Isnin & Khamis.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="puasaHariPutih" class="checkbox-custom mt-1" data-score="5">
+                        <label for="puasaHariPutih" class="text-gray-700">Berpuasa Hari Putih (13, 14, 15 haribulan Hijrah).</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. SEDEKAH, ZAKAT & WAKAF -->
+            <section class="card p-6">
+                <h2 class="section-title text-xl font-semibold text-emerald-700">Sedekah, Zakat & Wakaf</h2>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="zakat" class="checkbox-custom mt-1" data-score="15">
+                        <label for="zakat" class="text-gray-700 font-medium">Melunaskan Zakat Harta / Pendapatan / Fitrah.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="sedekah" class="checkbox-custom mt-1" data-score="10">
+                        <label for="sedekah" class="text-gray-700">Melazimi sedekah harian (contoh: Sedekah Subuh).</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="wakaf" class="checkbox-custom mt-1" data-score="10">
+                        <label for="wakaf" class="text-gray-700">Mempunyai bahagian dlm Wakaf (masjid/tahfiz/al-Quran dll) sbg saham akhirat.</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. TAZKIYAH JIWA (PEMBERSIHAN HATI) -->
+            <section class="card p-6">
+                <h2 class="section-title text-xl font-semibold text-emerald-700">Tazkiyah Jiwa & Akhlak (Mazmumah & Mahmudah)</h2>
+                <p class="text-xs text-emerald-600 mb-4">* Tandakan jika anda TELAH berjaya meninggalkan sifat negatif atau mengamalkan sifat positif berikut:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="mengumpat" class="checkbox-custom mt-1" data-score="10">
+                        <label for="mengumpat" class="text-gray-700">Meninggalkan Ghibah (Mengumpat) & Fitnah.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="riya" class="checkbox-custom mt-1" data-score="10">
+                        <label for="riya" class="text-gray-700">Menjaga niat daripada Riya' (Inginkan pujian).</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="ujub" class="checkbox-custom mt-1" data-score="5">
+                        <label for="ujub" class="text-gray-700">Menjaga hati daripada Ujub (Kagum diri).</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="hasad" class="checkbox-custom mt-1" data-score="10">
+                        <label for="hasad" class="text-gray-700">Bersih dari Hasad Dengki & Sombong.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="sabar" class="checkbox-custom mt-1" data-score="5">
+                        <label for="sabar" class="text-gray-700">Mengamalkan Sabar & Redha dengan ujian.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="zikir" class="checkbox-custom mt-1" data-score="5">
+                        <label for="zikir" class="text-gray-700">Melazimi Zikir & Istighfar setiap hari.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="taubat" class="checkbox-custom mt-1" data-score="10">
+                        <label for="taubat" class="text-gray-700">Sentiasa memperbaharui Taubat Nasuha.</label>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="maaf" class="checkbox-custom mt-1" data-score="5">
+                        <label for="maaf" class="text-gray-700">Sudah meminta maaf & menjaga silaturrahim.</label>
+                    </div>
+                </div>
+            </section>
+
+            <button onclick="calculateResult()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl hover:bg-emerald-700 transition shadow-lg sticky bottom-4">
+                Lihat Keputusan & Saranan
+            </button>
+        </div>
+
+        <!-- Result Container -->
+        <div id="result-container" class="hidden mt-8 space-y-6 pb-20">
+            <div class="card p-8 border-2 border-emerald-500">
+                <div class="text-center">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Tahap Persediaan Diri</h3>
+                    <div id="score-display" class="text-5xl font-black text-emerald-600 mb-4">0%</div>
+                </div>
+                <div id="suggestion-text" class="text-gray-700 leading-relaxed space-y-4">
+                    <!-- Suggestions will be injected here -->
+                </div>
+                <button onclick="resetForm()" class="mt-8 text-emerald-600 underline text-sm block mx-auto">Isi Semula Checklist</button>
+            </div>
+        </div>
+
+        <footer class="mt-8 text-center text-gray-400 text-xs">
+            <p>Ingin membangunkan kalkulator interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut.</p>
+        </footer>
+    </div>
+
+    <script>
+        function calculateResult() {
+            const checkboxes = document.querySelectorAll('.checkbox-custom');
+            let totalScore = 0;
+            let maxScore = 0;
+
+            const hafalPilihan = document.getElementById('pilihan').checked;
+            const jagaLidah = document.getElementById('mengumpat').checked;
+            const solatCukup = document.getElementById('solat5').checked;
+            const puasaSempurna = document.getElementById('puasaWajib').checked;
+            const zakatSelesai = document.getElementById('zakat').checked;
+
+            checkboxes.forEach(cb => {
+                const val = parseInt(cb.getAttribute('data-score'));
+                maxScore += val;
+                if (cb.checked) totalScore += val;
+            });
+
+            const percent = Math.round((totalScore / maxScore) * 100);
+            displayResult(percent, { hafalPilihan, jagaLidah, solatCukup, puasaSempurna, zakatSelesai });
+        }
+
+        function displayResult(percent, stats) {
+            document.getElementById('checklist-form').classList.add('hidden');
+            const resContainer = document.getElementById('result-container');
+            resContainer.classList.remove('hidden');
+            document.getElementById('score-display').innerText = percent + "%";
+
+            const sug = document.getElementById('suggestion-text');
+            let content = "";
+
+            // Logic for Quran suggestion
+            let quranAdvice = stats.hafalPilihan ? 
+                "<li><strong>Tadabbur & Amal:</strong> Alhamdulillah anda sudah menghafal surah-surah utama (Yasin/Mulk/Waqiah). Fokus sekarang adalah memahami tafsir dan menjadikannya amalan tetap dalam solat.</li>" : 
+                "<li><strong>Hafalan Penyelamat:</strong> Mulakan dengan menghafal Surah Al-Mulk sebagai pendinding azab kubur, diikuti Yasin dan Al-Waqiah.</li>";
+
+            // Logic for Tongue suggestion
+            let tongueAdvice = stats.jagaLidah ?
+                "<li><strong>Lidah Berzikir:</strong> Teruskan menjaga lisan. Gunakan lidah yang biasa menjaga aib orang untuk sentiasa berzikir kepada Allah.</li>" :
+                "<li><strong>Hentikan Mengumpat:</strong> Usia 40 tidak layak lagi untuk sibuk dengan aib orang lain. Mengumpat menghapuskan pahala amal sekelip mata. Segera minta maaf pada yang berkaitan.</li>";
+
+            if (percent < 50) {
+                content = `
+                    <p class="font-bold text-red-600 text-lg text-center">⚠ SEGERA BERUBAH!</p>
+                    <p>Usia anda telah mencapai kematangan. Jika amalan masih di tahap ini, bimbang kita tidak punya waktu yang cukup untuk bertaubat.</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        ${!stats.solatCukup ? '<li><strong>Solat Tiang Agama:</strong> Perbaiki solat 5 waktu anda serta-merta.</li>' : ''}
+                        ${!stats.puasaSempurna ? '<li><strong>Hutang Puasa:</strong> Segera ganti (qadha) puasa wajib yang tertinggal. Ia adalah hutang dengan Allah.</li>' : ''}
+                        ${!stats.zakatSelesai ? '<li><strong>Penyucian Harta:</strong> Segera tunaikan zakat. Harta yang tidak dizakatkan tidak berkat dan menahan rezeki.</li>' : ''}
+                        ${tongueAdvice}
+                        <li><strong>Taubat Nasuha:</strong> Menangis lah di hadapan Allah atas kekurangan diri sebelum terlambat.</li>
+                    </ul>
+                `;
+            } else if (percent < 85) {
+                content = `
+                    <p class="font-bold text-amber-600 text-lg text-center">💡 TINGKATKAN KUALITI AMAL</p>
+                    <p>Anda di jalan yang baik, namun perlukan lebih kesungguhan untuk membuang penyakit hati yang halus (Mazmumah).</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        ${quranAdvice}
+                        <li><strong>Penyakit Hati:</strong> Awasi <em>Riya'</em> dan <em>Ujub</em>. Jangan biarkan amal soleh anda dicemari rasa ingin dipuji manusia.</li>
+                        ${tongueAdvice}
+                    </ul>
+                `;
+            } else {
+                content = `
+                    <p class="font-bold text-emerald-600 text-lg text-center">✨ TERUSKAN ISTIQAMAH</p>
+                    <p>Syabas! Kekalkan momentum ini demi Husnul Khatimah. Fokus kepada keikhlasan yang mutlak.</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>Hablumminannas:</strong> Pastikan urusan dengan manusia selesai (maaf-memaafkan).</li>
+                        <li><strong>Zikir Nafas:</strong> Basahkan lidah dengan zikir dalam setiap hela nafas.</li>
+                        ${quranAdvice}
+                    </ul>
+                `;
+            }
+
+            sug.innerHTML = content;
+            window.scrollTo(0, 0);
+        }
+
+        function resetForm() {
+            const checkboxes = document.querySelectorAll('.checkbox-custom');
+            checkboxes.forEach(cb => cb.checked = false);
+            document.getElementById('checklist-form').classList.remove('hidden');
+            document.getElementById('result-container').classList.add('hidden');
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
