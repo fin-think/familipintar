@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myLOVE</title>
+    <style>
+        :root {
+            --primary-love: #ff4d6d;
+            --secondary-love: #ff85a1;
+            --bg-gradient: linear-gradient(135deg, #fff1f2 0%, #ffd1dc 100%);
+            --glass-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Latar Belakang Animasi Hati */
+        .heart-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .heart-shape {
+            position: absolute;
+            bottom: -10%;
+            color: var(--primary-love);
+            animation: floating 12s linear infinite;
+        }
+
+        /* Container Utama */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 2px solid white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 50px rgba(255, 77, 109, 0.15);
+            position: relative;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .heart-main {
+            font-size: 60px;
+            color: var(--primary-love);
+            animation: beat 1.2s infinite;
+            display: inline-block;
+        }
+
+        @keyframes beat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.25); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.15); }
+            60% { transform: scale(1); }
+        }
+
+        h1 {
+            color: #c9184a;
+            font-family: 'Georgia', serif;
+            margin-top: 15px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #a4133c;
+            font-style: italic;
+            margin-top: 8px;
+            font-size: 1rem;
+        }
+
+        /* Grid Soalan */
+        .questions-container {
+            max-height: 55vh;
+            overflow-y: auto;
+            padding-right: 15px;
+            margin-bottom: 20px;
+        }
+
+        .questions-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .questions-container::-webkit-scrollbar-thumb {
+            background: var(--secondary-love);
+            border-radius: 10px;
+        }
+
+        .question-box {
+            margin-bottom: 25px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            border-left: 6px solid var(--primary-love);
+            transition: all 0.3s ease;
+        }
+
+        .question-box:hover {
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            color: #590d22;
+            font-weight: 600;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px 18px;
+            background: white;
+            border: 1px solid #ffccd5;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #800f2f;
+            font-size: 0.95rem;
+        }
+
+        .option-label:hover {
+            border-color: var(--primary-love);
+            background: #fff0f3;
+            transform: translateX(5px);
+        }
+
+        input[type="radio"] {
+            margin-right: 12px;
+            accent-color: var(--primary-love);
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(45deg, #ff4d6d, #ff758f);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 50px;
+            width: 100%;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(255, 77, 109, 0.3);
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 77, 109, 0.4);
+            filter: brightness(1.1);
+        }
+
+        /* Keputusan */
+        #result-area {
+            display: none;
+            text-align: center;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-display {
+            padding: 35px;
+            background: white;
+            border-radius: 25px;
+            border: 3px double var(--primary-love);
+            margin: 20px 0;
+        }
+
+        .score-badge {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-love);
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-size: 1.6rem;
+            color: #c9184a;
+            margin-bottom: 15px;
+        }
+
+        .result-text {
+            line-height: 1.7;
+            color: #590d22;
+            font-size: 1.1rem;
+        }
+
+        .btn-redo {
+            background: none;
+            color: var(--primary-love);
+            border: 2px solid var(--primary-love);
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 20px 0;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-redo:hover {
+            background: var(--primary-love);
+            color: white;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 77, 109, 0.2);
+            text-align: center;
+            color: #a4133c;
+            font-size: 0.85rem;
+        }
+
+        .footer-heart {
+            color: var(--primary-love);
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 600px) {
+            .card { padding: 25px; }
+            h1 { font-size: 1.5rem; }
+            .question-text { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="heart-bg" id="heart-bg"></div>
+
+<div class="card">
+    <div id="quiz-ui">
+        <header>
+            <div class="heart-main">❤</div>
+            <h1>myLOVE : Bicara Hati Suami Isteri</h1>
+            <p class="subtitle">10 Langkah Menuju Kebahagiaan Abadi</p>
+        </header>
+
+        <form id="loveQuiz">
+            <div class="questions-container">
+                <div class="question-box">
+                    <p class="question-text">1. Adakah anda masih rasa berdebar (tanda cinta) atau tenang apabila melihat pasangan pulang ke rumah?</p>
+                    <div class="options">
+                        <label class="option-label"><input type="radio" name="q1" value="3" required> Ya, ia adalah saat yang paling saya tunggu.</label>
+                        <label class="option-label"><input type="radio" name="q1" value="2"> Kadang-kadang, bergantung pada keadaan hari tersebut.</label>
+                        <label class="option-label"><input type="radio" name="q1" value="1"> Saya rasa biasa sahaja, tiada apa yang istimewa.</label>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <p class="question-text">2. Sejauh mana anda merasa pasangan adalah "Safe Space" untuk anda menangis atau meluah?</p>
+                    <div class="options">
+                        <label class="option-label"><input type="radio" name="q2" value="3"> Dia adalah satu-satunya tempat saya mengadu.</label>
+                        <label class="option-label"><input type="radio" name="q2" value="2"> Saya boleh meluah, tapi saya tapis sesetengah perkara.</label>
+                        <label class="option-label"><input type="radio" name="q2" value="1"> Saya lebih suka meluah pada kawan atau simpan sendiri.</label>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <p class="question-text">3. Adakah anda kerap memuji kebaikan atau penampilan pasangan anda secara jujur?</p>
+                    <div class="options">
+                        <label class="option-label"><input type="radio" name="q3" value="3"> Ya, saya suka buat dia rasa dihargai setiap hari.</label>
+                        <label class="option-label"><input type="radio" name="q3" value="2"> Jarang sekali, tapi saya hargai dia dalam hati.</label>
+                        <label class="option-label"><input type="radio" name="q3" value="1"> Kami jarang memuji, biasanya lebih kepada teguran.</label>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <p class="question-text">4. Apabila pasangan bercakap, adakah anda memberi perhatian penuh (meletakkan telefon/gangguan)?</p>
+                    <div class="options">
+                        <label class="option-label"><input type="radio" name="q4" value="3"> Ya, saya mahu dia tahu saya mendengar dengan hati.</label>
+                        <label class="option-label"><input type="radio" name="q4" value="2"> Kadang-kadang, kalau saya tidak terlalu sibuk.</label>
+                        <label class="option-label"><input type="radio" name="q4" value="1"> Saya selalu dengar sambil buat kerja lain.</label>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <p class="question-text">5. Adakah anda masih mencari peluang untuk "Dating" atau keluar berdua-duaan tanpa anak/hal lain?</p>
+                    <div class="options">
+                        <label class="option-label"><input type="radio" name="q5" value="3"> Ya, kami sentiasa cari masa untuk 'me-time' berdua.</label>
+                        <label class="option-label"><input type="radio" name="q5" value="2"> Ada niat, tapi sangat susah nak laksanakan.</label>
+                        <label class="option-label"><input type="radio" name="q5" value="1"> Rasanya sudah lama kami tidak berdua-duaan.</label>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <p class="question-text">6. Jika pasangan anda dalam kesedihan, adakah anda tahu cara terbaik untuk memujuknya?</p>
+                    <div class="options">
+                        <label class="option-label"><input type="radio" name="q6" value="3"> Ya, saya faham sangat bahasa kasihnya.</label>
+                        <label class="option-label"><input type="radio" name="q6" value="2"> Saya cuba memujuk, tapi kadang-kadang tidak kena cara.</label>
+                        <label class="option-label"><input type="radio" name="q6" value="1"> Saya biasanya biarkan dia tenang sendiri.</label>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <p class="question-text">7. Adakah anda rasa pasangan meletakkan kepentingan anda melebihi hobi atau kawan-kawannya?</p>
+                    <div class="options">
+                        <label class="option-label"><input type="radio" name="q7" value="3"> Sangat pasti, saya adalah keutamaannya.</label>
+                        <label class="option-label"><input type="radio" name="q7" value="2"> Dia cuba bahagi masa, tapi ada kalanya saya rasa terpinggir.</label>
+                        <label class="option-label"><input type="radio" name="q7" value="1"> Saya rasa hobi/kawannya lebih penting dari saya.</label>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <p class="question-text">8. Seberapa kerap anda dan pasangan ketawa besar bersama tentang perkara-perkara remeh?</p>
+                    <div class="options">
+                        <label class="option-label"><input type="radio" name="q8" value="3"> Sangat kerap, kami suka bergurau senda.</label>
+                        <label class="option-label"><input type="radio" name="q8" value="2"> Sekali-sekala bila suasana ceria.</label>
+                        <label class="option-label"><input type="radio" name="q8" value="1"> Jarang sangat, perbualan kami lebih kepada urusan rumah.</label>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <p class="question-text">9. Adakah anda berasa bersyukur dan bertuah memiliki dia sebagai teman hidup anda?</p>
+                    <div class="options">
+                        <label class="option-label"><input type="radio" name="q9" value="3"> Setiap hari saya bersyukur dia ada di sisi saya.</label>
+                        <label class="option-label"><input type="radio" name="q9" value="2"> Ada ketikanya saya rasa syukur, ada kalanya saya ragu.</label>
+                        <label class="option-label"><input type="radio" name="q9" value="1"> Saya sering terfikir bagaimana jika saya dengan orang lain.</label>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <p class="question-text">10. Jika dunia berakhir esok, adakah anda gembira kerana telah menghabiskan hidup bersamanya?</p>
+                    <div class="options">
+                        <label class="option-label"><input type="radio" name="q10" value="3"> Ya, dialah pilihan terbaik dalam hidup saya.</label>
+                        <label class="option-label"><input type="radio" name="q10" value="2"> Ya, saya rasa ia satu perjalanan yang cukup baik.</label>
+                        <label class="option-label"><input type="radio" name="q10" value="1"> Saya rasa ada banyak perkara yang saya kesalkan.</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn-submit" onclick="showLoveResult()">Ungkapkan Rahsia Cinta 💖</button>
+        </form>
+    </div>
+
+    <!-- Area Keputusan -->
+    <div id="result-area">
+        <header>
+            <div class="heart-main">💖</div>
+            <h1>Keputusan Hati</h1>
+        </header>
+        <div class="result-display">
+            <div class="score-badge" id="score-text">0</div>
+            <h2 id="result-type" class="result-title">Menganalisis...</h2>
+            <p id="result-msg" class="result-text"></p>
+        </div>
+        <button class="btn-redo" onclick="location.reload()">Mula Semula</button>
+    </div>
+
+    <!-- Footer Kemas -->
+    <footer>
+        <p><span class="footer-heart">❤</span> Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH</p>
+        <p style="margin-top: 5px; opacity: 0.7; font-size: 0.75rem;">DISCLAIMER: Keputusan ini adalah anggaran berdasarkan input dan bukan keputusan sebenar.</p>
+    </footer>
+</div>
+
+<script>
+    function initHearts() {
+        const container = document.getElementById('heart-bg');
+        for(let i = 0; i < 20; i++) {
+            const heart = document.createElement('div');
+            heart.className = 'heart-shape';
+            heart.innerHTML = '❤';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = (Math.random() * 6 + 6) + 's';
+            heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            heart.style.opacity = Math.random() * 0.5 + 0.2;
+            container.appendChild(heart);
+        }
+    }
+    initHearts();
+
+    function showLoveResult() {
+        const form = document.getElementById('loveQuiz');
+        const formData = new FormData(form);
+        let score = 0;
+        let count = 0;
+
+        for (let value of formData.values()) {
+            score += parseInt(value);
+            count++;
+        }
+
+        if (count < 10) {
+            const btn = document.querySelector('.btn-submit');
+            btn.innerText = "Sila Jawab Semua 10 Soalan... ❤️";
+            btn.style.background = "#d90429";
+            setTimeout(() => {
+                btn.innerText = "Ungkapkan Rahsia Cinta ✨";
+                btn.style.background = "linear-gradient(45deg, #ff4d6d, #ff758f)";
+            }, 2500);
+            return;
+        }
+
+        document.getElementById('quiz-ui').style.display = 'none';
+        const resArea = document.getElementById('result-area');
+        resArea.style.display = 'block';
+
+        const scoreText = document.getElementById('score-text');
+        const resType = document.getElementById('result-type');
+        const resMsg = document.getElementById('result-msg');
+
+        scoreText.innerText = score + "/30";
+
+        if (score >= 26) {
+            resType.innerText = "Cinta Syurga (Platinum)";
+            resMsg.innerText = "Luar biasa! Hubungan anda adalah contoh cinta yang sejati dan sangat matang. Anda berdua berjaya membina kepercayaan dan kasih sayang yang kukuh. Teruskan berkongsi kebahagiaan ini, anda berdua adalah 'Soulmate' sejati.";
+        } else if (score >= 20) {
+            resType.innerText = "Cinta Bersemi (Emas)";
+            resMsg.innerText = "Hubungan anda sangat sihat dan stabil. Ada sedikit ruang untuk menambah 'sparks' atau kejutan romantis untuk memastikan api cinta sentiasa membara. Luangkan lebih masa berkualiti untuk mendengar perkara-perkara kecil.";
+        } else if (score >= 14) {
+            resType.innerText = "Cinta Perlu Belai (Perak)";
+            resMsg.innerText = "Anda masih sayangkan satu sama lain, namun rutin harian mungkin mula menenggelamkan rasa romantik. Jangan biarkan ia menjadi tawar. Mulakan dengan ucapan terima kasih dan pelukan lebih kerap. Komunikasi adalah kunci utama.";
+        } else {
+            resType.innerText = "Harapan Yang Perlu Disiram";
+            resMsg.innerText = "Hubungan anda mungkin sedang melalui fasa yang sangat mencabar. Mungkin banyak perkara yang dipendam. Ambillah masa untuk duduk berdua, tanpa gangguan, dan berbincang dari hati ke hati tentang apa yang anda berdua perlukan.";
+        }
+    }
+</script>
+
+</body>
+</html>
