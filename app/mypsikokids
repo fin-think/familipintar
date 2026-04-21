@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myPSIKOkids</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #fef9c3 0%, #fef3c7 100%);
+            min-height: 100vh;
+        }
+        .heading-font {
+            font-family: 'Fredoka One', cursive;
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:active {
+            transform: scale(0.98);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .progress-bar {
+            transition: width 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center p-4">
+
+    <!-- Bekas Utama Aplikasi -->
+    <div id="app-container" class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-yellow-400">
+        
+        <!-- Pengepala (Header) -->
+        <div class="bg-yellow-400 p-6 text-center">
+            <h1 class="heading-font text-3xl text-yellow-900">myPSIKOkids</h1>
+            <p class="text-sm font-semibold text-yellow-800 opacity-80">Kembara Menjadi Anak Syurga 🌈</p>
+        </div>
+
+        <!-- Bar Kemajuan (Progress Bar) -->
+        <div id="progress-container" class="hidden h-3 bg-yellow-100">
+            <div id="progress-fill" class="progress-bar h-full bg-green-400" style="width: 0%"></div>
+        </div>
+
+        <!-- Ruang Kandungan -->
+        <div id="content" class="p-8">
+            <!-- Skrin Selamat Datang -->
+            <div id="screen-welcome" class="text-center space-y-6 text-yellow-900">
+                <div class="text-6xl text-center">
+                    <span class="inline-block animate-bounce">😇</span>
+                </div>
+                <h2 class="heading-font text-2xl text-gray-800">Assalamualaikum Wira & Wirawati Kecil!</h2>
+                <p class="text-gray-600 leading-relaxed">
+                    Adakah adik-adik bersedia untuk menjadi <b>Anak yang Soleh & Solehah</b>? Jom ikuti kembara 10 soalan ini untuk melihat betapa besarnya kasih sayang kita pada Ibu dan Ayah!
+                </p>
+                <button onclick="startQuiz()" class="w-full bg-green-500 hover:bg-green-600 text-white heading-font text-xl py-4 rounded-2xl shadow-lg transform transition active:scale-95">
+                    Mula Kembara! 🚀
+                </button>
+            </div>
+
+            <!-- Skrin Soalan Ujian -->
+            <div id="screen-quiz" class="hidden space-y-6">
+                <div id="question-box" class="fade-in">
+                    <p id="question-text" class="text-lg font-bold text-gray-800 mb-6"></p>
+                    <div id="options-container" class="space-y-4">
+                        <!-- Pilihan jawapan akan dimasukkan di sini melalui JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skrin Keputusan -->
+            <div id="screen-result" class="hidden text-center space-y-6 fade-in">
+                <div id="result-emoji" class="text-7xl">🌟</div>
+                <h2 id="result-title" class="heading-font text-2xl text-gray-800">Keputusan Ujian</h2>
+                <div id="result-message" class="bg-yellow-50 p-4 rounded-xl text-gray-700 italic border-l-4 border-yellow-400 text-sm leading-relaxed">
+                    <!-- Mesej keputusan -->
+                </div>
+                
+                <div class="p-4 bg-green-50 rounded-2xl border-2 border-green-100">
+                    <p class="font-bold text-green-800 mb-2">Tugasan Kasih Sayang: ❤️</p>
+                    <p id="result-task" class="text-sm text-green-700"></p>
+                </div>
+
+                <button onclick="location.reload()" class="text-blue-500 font-bold underline">Mula Semula</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-8 text-yellow-900 text-xs font-semibold text-center opacity-60">
+        DISCLAIMER: Keputusan ini adalah anggaran berdasarkan input dan bukan jaminan pulangan sebenar.<p>
+
+Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH
+    </footer>
+
+    <script>
+        // Senarai 10 soalan psikometrik kanak-kanak
+        const questions = [
+            {
+                question: "1. Ibu nampak penat sangat lipat kain. Apa adik buat?",
+                options: [
+                    { text: "Terus tolong Ibu lipat sama-sama.", score: 10 },
+                    { text: "Tanya 'Ibu penat ke?' lepas tu sambung main.", score: 5 },
+                    { text: "Buat tak tahu saja.", score: 0 }
+                ]
+            },
+            {
+                question: "2. Ayah baru balik kerja dan nampak letih. Apa adik nak buat?",
+                options: [
+                    { text: "Ambilkan air sejuk untuk Ayah tanpa diminta.", score: 10 },
+                    { text: "Tunggu Ayah panggil baru datang salam.", score: 5 },
+                    { text: "Terus minta Ayah belikan mainan baru.", score: 0 }
+                ]
+            },
+            {
+                question: "3. Terpecahkan pasu kesayangan Ibu secara tak sengaja. Macam mana?",
+                options: [
+                    { text: "Terus mengaku salah, minta maaf dan janji tak buat lagi.", score: 10 },
+                    { text: "Tunggu Ibu tanya baru cakap 'adik tak sengaja'.", score: 5 },
+                    { text: "Sorokkan pecahannya supaya Ibu tak tahu.", score: 0 }
+                ]
+            },
+            {
+                question: "4. Bila berbual dengan Ibu dan Ayah, suara adik biasanya macam mana?",
+                options: [
+                    { text: "Suara yang lembut, sopan dan hormat.", score: 10 },
+                    { text: "Kadang-kadang tinggi sikit kalau tengah marah.", score: 5 },
+                    { text: "Suka menjerit atau membantah kata mereka.", score: 0 }
+                ]
+            },
+            {
+                question: "5. Adik ingat tak nak doakan Ibu Ayah selepas solat?",
+                options: [
+                    { text: "Mesti! Setiap kali habis solat adik doa untuk mereka.", score: 10 },
+                    { text: "Kadang-kadang kalau Ibu atau Ayah ingatkan.", score: 5 },
+                    { text: "Jarang sekali atau tak pernah doa.", score: 0 }
+                ]
+            },
+            {
+                question: "6. Adik tengah seronok main game, tiba-tiba Ibu panggil minta tolong buangkan sampah. Apa reaksi adik?",
+                options: [
+                    { text: "Berhenti main sekejap dan terus pergi tolong Ibu.", score: 10 },
+                    { text: "Cakap 'sekejap ya Ibu' tapi lambat sangat pergi.", score: 5 },
+                    { text: "Marah-marah sebab kena ganggu tengah main.", score: 0 }
+                ]
+            },
+            {
+                question: "7. Lepas habis main permainan, siapa yang patut kemaskan ruang tamu?",
+                options: [
+                    { text: "Adik kemas sendiri sebab adik yang main.", score: 10 },
+                    { text: "Kemas separuh saja, yang lain biar Ibu kemas.", score: 5 },
+                    { text: "Biarkan saja bersepah sampai Ibu marah.", score: 0 }
+                ]
+            },
+            {
+                question: "8. Adik nampak adik kecil menangis, manakala Ibu sedang sibuk memasak di dapur. Apa tindakan adik?",
+                options: [
+                    { text: "Pergi pujuk adik kecil supaya Ibu boleh masak dengan tenang.", score: 10 },
+                    { text: "Panggil Ibu beritahu adik menangis tapi tak buat apa-apa.", score: 5 },
+                    { text: "Buat tak tahu saja walaupun adik tengah nangis kuat.", score: 0 }
+                ]
+            },
+            {
+                question: "9. Cikgu bagi kerja sekolah banyak, tapi adik rasa malas. Adik tahu Ibu Ayah nak adik pandai. Apa adik buat?",
+                options: [
+                    { text: "Selesaikan kerja sekolah supaya Ibu Ayah bangga dan gembira.", score: 10 },
+                    { text: "Buat separuh saja, selebihnya tidur.", score: 5 },
+                    { text: "Langsung tak buat dan bagi alasan pada Ibu Ayah.", score: 0 }
+                ]
+            },
+            {
+                question: "10. Sebelum adik masuk tidur malam ni, apa yang adik nak buat pada Ibu Ayah?",
+                options: [
+                    { text: "Salam, peluk, cium dan ucap 'Selamat Malam, Adik Sayang Ibu Ayah'.", score: 10 },
+                    { text: "Cakap 'Goodnight' dari jauh saja.", score: 5 },
+                    { text: "Terus masuk bilik dan tidur tanpa cakap apa-apa.", score: 0 }
+                ]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let totalScore = 0;
+
+        // Memulakan kuiz
+        function startQuiz() {
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('progress-container').classList.remove('hidden');
+            document.getElementById('screen-quiz').classList.remove('hidden');
+            showQuestion();
+        }
+
+        // Memaparkan soalan mengikut indeks
+        function showQuestion() {
+            const q = questions[currentQuestionIndex];
+            document.getElementById('question-text').innerText = q.question;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            // Kemas kini bar kemajuan
+            const progress = (currentQuestionIndex / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 bg-white border-2 border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 rounded-2xl transition flex items-center group active:scale-95";
+                btn.innerHTML = `
+                    <div class="w-8 h-8 flex items-center justify-center bg-gray-100 group-hover:bg-yellow-200 rounded-full mr-4 font-bold text-gray-500 group-hover:text-yellow-700 transition">?</div>
+                    <span class="flex-1 font-semibold text-gray-700">${opt.text}</span>
+                `;
+                btn.onclick = () => selectOption(opt.score);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // Mengendalikan pemilihan jawapan
+        function selectOption(score) {
+            totalScore += score;
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        // Memaparkan keputusan akhir
+        function showResult() {
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('progress-container').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+
+            const emoji = document.getElementById('result-emoji');
+            const title = document.getElementById('result-title');
+            const message = document.getElementById('result-message');
+            const task = document.getElementById('result-task');
+
+            if (totalScore >= 80) {
+                emoji.innerText = "🏆";
+                title.innerText = "Masha-Allah! Wira Syurga Sejati";
+                message.innerText = "Tahniah adik! Markah adik menunjukkan adik seorang anak yang sangat menyayangi Ibu dan Ayah. Teruskan sifat mulia ini ya. Adik adalah kebanggaan dunia dan akhirat!";
+                task.innerText = "Pergi peluk Ibu dan Ayah sekarang, bisikkan 'Terima kasih jaga adik, adik sayang sangat dekat Ibu & Ayah!'";
+            } else if (totalScore >= 50) {
+                emoji.innerText = "💎";
+                title.innerText = "Permata Hati Ibu & Ayah";
+                message.innerText = "Adik seorang anak yang baik. Ada banyak perkara hebat yang adik dah buat. Jom kita cuba tingkatkan lagi usaha untuk bantu Ibu Ayah tanpa perlu disuruh!";
+                task.innerText = "Cari satu kerja rumah (seperti susun kasut atau kemas meja) dan buat sekarang untuk kejutan buat Ibu Ayah!";
+            } else {
+                emoji.innerText = "🌱";
+                title.innerText = "Wira Kecil Sedang Belajar";
+                message.innerText = "Setiap wira bermula dari langkah pertama! Adik ada hati yang murni, jom kita mula belajar untuk lebih rajin membantu dan bercakap dengan lembut pada Ibu Ayah mulai hari ini.";
+                task.innerText = "Pergi salam tangan Ibu dan Ayah, kemudian tanya mereka 'Ada apa-apa yang adik boleh tolong?'";
+            }
+        }
+    </script>
+</body>
+</html>
