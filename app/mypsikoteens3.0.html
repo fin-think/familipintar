@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myPSIKOteens 3.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans text-slate-800">
+
+    <!-- Header Container -->
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col min-h-[500px]">
+        
+        <div class="bg-indigo-600 p-6 text-center">
+            <h1 class="text-2xl font-bold text-white tracking-wide">myPSIKOteens 3.0</h1>
+            <p class="text-indigo-200 text-sm mt-1">Instrumen Refleksi Kecenderungan Kendiri</p>
+        </div>
+
+        <div class="flex-grow p-6 sm:p-10 flex flex-col justify-center">
+            
+            <!-- INTRO STEP -->
+            <div id="step-intro" class="text-center animate-fade-in block">
+                <i data-lucide="shield-alert" class="w-12 h-12 text-indigo-500 mx-auto mb-4"></i>
+                <h2 class="text-xl font-semibold mb-4">Selamat Datang ke Sesi Refleksi</h2>
+                <p class="text-slate-600 mb-6 leading-relaxed">
+                    Ujian ini direka untuk membantu anda memahami perasaan, tarikan emosi, dan kecenderungan dalaman anda. 
+                    Tiada jawapan yang betul atau salah. Sila jawab dengan jujur mengikut apa yang paling dekat dengan hati anda pada masa ini.
+                </p>
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8 text-sm text-amber-800 text-left">
+                    <strong>Nota Privasi:</strong> Jawapan anda tidak disimpan di mana-mana pelayan (server). Ia diproses secara terus di peranti anda untuk privasi mutlak.
+                </div>
+                <button onclick="startQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center mx-auto">
+                    Mula Ujian <i data-lucide="arrow-right" class="ml-2 w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- QUIZ STEP -->
+            <div id="step-quiz" class="animate-fade-in hidden">
+                <div class="mb-6">
+                    <div class="flex justify-between text-sm text-slate-500 mb-2 font-medium">
+                        <span id="q-counter">Soalan 1 daripada 10</span>
+                        <span id="q-percentage">10%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2.5">
+                        <div id="q-progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 10%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 rounded-xl p-6 mb-6 text-center border border-slate-100 shadow-inner">
+                    <div id="q-icon-container" class="flex justify-center">
+                        <!-- Icon injected via JS -->
+                    </div>
+                    <h3 id="q-text" class="text-lg font-medium text-slate-800 mt-2">
+                        <!-- Question injected via JS -->
+                    </h3>
+                </div>
+
+                <div id="q-options" class="space-y-3">
+                    <!-- Options injected via JS -->
+                </div>
+            </div>
+
+            <!-- RESULT STEP -->
+            <div id="step-result" class="text-center animate-fade-in hidden">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-indigo-100 rounded-full mb-6">
+                    <i data-lucide="user-check" class="w-10 h-10 text-indigo-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Keputusan Refleksi Anda</h2>
+                
+                <div class="bg-white border-2 border-indigo-100 rounded-xl p-6 mt-6 mb-6 shadow-sm">
+                    <h3 id="r-title" class="text-xl font-bold text-indigo-700 mb-3">
+                        <!-- Result Title injected via JS -->
+                    </h3>
+                    <p id="r-desc" class="text-slate-600 leading-relaxed mb-4">
+                        <!-- Result Desc injected via JS -->
+                    </p>
+                </div>
+
+                <!-- Bahagian Nasihat Agama -->
+                <div id="r-advice-container" class="bg-emerald-50 border-2 border-emerald-100 rounded-xl p-6 mb-8 text-left shadow-sm hidden">
+                    <h4 class="font-bold text-emerald-800 mb-2 flex items-center">
+                        <i data-lucide="book-open" class="w-5 h-5 mr-2"></i> Bimbingan & Sokongan Rohani
+                    </h4>
+                    <p id="r-advice-text" class="text-emerald-700 text-sm leading-relaxed">
+                        <!-- Advice injected via JS -->
+                    </p>
+                </div>
+
+                <div class="text-sm text-slate-500 mb-8 bg-slate-50 p-4 rounded-lg text-left border border-slate-200">
+                    <strong>Penafian Penting:</strong> Keputusan ini hanyalah satu panduan indikatif berdasarkan instrumen saringan ringkas dan <b>bukan</b> satu diagnosis klinikal. Identiti dan orientasi manusia adalah kompleks dan boleh berkembang. Jika anda memerlukan sokongan emosi, sila rujuk kaunselor atau pakar psikologi bertauliah.
+                </div>
+
+                <button onclick="restartApp()" class="bg-slate-800 hover:bg-slate-900 text-white font-medium py-3 px-8 rounded-full transition-all duration-300 flex items-center justify-center mx-auto">
+                    <i data-lucide="refresh-ccw" class="mr-2 w-5 h-5"></i> Ulang Ujian
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Required Footer Disclaimer -->
+    <footer class="mt-10 text-center text-slate-500 text-sm max-w-2xl px-4">
+        <p class="mb-2 border-b border-slate-300 pb-2 inline-block">
+            Ujian ini disediakan untuk tujuan pendidikan dan kesedaran kendiri.
+        </p>
+        <p class="font-medium text-slate-700">
+            Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH
+        </p>
+    </footer>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        const questions = [
+            {
+                id: 1, icon: "heart", iconColor: "text-rose-500",
+                question: "Apabila anda membayangkan masa depan yang bahagia dan romantis, siapakah yang sering berada di fikiran anda?",
+                options: [
+                    { text: "Hanya individu berlainan jantina dengan saya", score: 1 },
+                    { text: "Kebanyakannya individu berlainan jantina, jarang-jarang sama jantina", score: 2 },
+                    { text: "Kedua-duanya (sama atau berlainan jantina) sama rata", score: 3 },
+                    { text: "Kebanyakannya individu sama jantina, jarang-jarang berlainan jantina", score: 4 },
+                    { text: "Hanya individu yang sama jantina dengan saya", score: 5 }
+                ]
+            },
+            {
+                id: 2, icon: "activity", iconColor: "text-blue-500",
+                question: "Dari segi tarikan fizikal atau rasa 'debaran' di dada, anda paling kerap merasakannya terhadap...",
+                options: [
+                    { text: "Hanya individu berlainan jantina", score: 1 },
+                    { text: "Lebih kerap kepada individu berlainan jantina", score: 2 },
+                    { text: "Seimbang antara kedua-dua jantina", score: 3 },
+                    { text: "Lebih kerap kepada individu sama jantina", score: 4 },
+                    { text: "Hanya individu sama jantina", score: 5 }
+                ]
+            },
+            {
+                id: 3, icon: "brain", iconColor: "text-purple-500",
+                question: "Dalam fantasi, mimpi, atau lamunan peribadi anda, siapakah yang sering menjadi watak utama yang menarik minat anda?",
+                options: [
+                    { text: "Eksklusif berlainan jantina", score: 1 },
+                    { text: "Dominan berlainan jantina", score: 2 },
+                    { text: "Tiada kecenderungan khusus / kedua-duanya", score: 3 },
+                    { text: "Dominan sama jantina", score: 4 },
+                    { text: "Eksklusif sama jantina", score: 5 }
+                ]
+            },
+            {
+                id: 4, icon: "user-check", iconColor: "text-teal-500",
+                question: "Siapakah yang anda rasa paling mudah untuk membina hubungan emosi yang sangat mendalam (yang berpotensi melebihi kawan biasa)?",
+                options: [
+                    { text: "Hanya mereka yang berlainan jantina", score: 1 },
+                    { text: "Selalunya berlainan jantina", score: 2 },
+                    { text: "Sama sahaja untuk mana-mana jantina", score: 3 },
+                    { text: "Selalunya sama jantina", score: 4 },
+                    { text: "Hanya mereka yang sama jantina", score: 5 }
+                ]
+            },
+            {
+                id: 5, icon: "eye", iconColor: "text-indigo-500",
+                question: "Apabila anda menonton filem romantis atau melihat pasangan yang bahagia, anda lebih mudah membayangkan diri anda di tempat siapa bersama...",
+                options: [
+                    { text: "Pasangan yang berlainan jantina secara eksklusif", score: 1 },
+                    { text: "Selalunya pasangan berlainan jantina", score: 2 },
+                    { text: "Boleh bayangkan kedua-duanya", score: 3 },
+                    { text: "Selalunya pasangan sama jantina", score: 4 },
+                    { text: "Pasangan sama jantina secara eksklusif", score: 5 }
+                ]
+            },
+            {
+                id: 6, icon: "users", iconColor: "text-orange-500",
+                question: "Sepanjang anda membesar, jika anda pernah mempunyai perasaan 'crush' (suka dalam diam), golongan manakah yang lebih mendominasi senarai tersebut?",
+                options: [
+                    { text: "Semuanya berlainan jantina", score: 1 },
+                    { text: "Hampir semuanya berlainan jantina", score: 2 },
+                    { text: "Bercampur antara kedua-duanya", score: 3 },
+                    { text: "Hampir semuanya sama jantina", score: 4 },
+                    { text: "Semuanya sama jantina", score: 5 }
+                ]
+            },
+            {
+                id: 7, icon: "message-circle", iconColor: "text-pink-500",
+                question: "Jika anda diberi ruang yang 100% selamat tanpa sebarang hukuman sosial, dengan siapakah anda akan memilih untuk meneroka hubungan romantis?",
+                options: [
+                    { text: "Hanya dengan jantina berlainan", score: 1 },
+                    { text: "Berkemungkinan besar dengan jantina berlainan", score: 2 },
+                    { text: "Terbuka kepada mana-mana jantina", score: 3 },
+                    { text: "Berkemungkinan besar dengan sama jantina", score: 4 },
+                    { text: "Hanya dengan sama jantina", score: 5 }
+                ]
+            },
+            {
+                id: 8, icon: "star", iconColor: "text-yellow-500",
+                question: "Sejauh mana anda berasa selesa dengan idea untuk hidup bersama, membina keluarga, dan menua bersama seseorang dari jantina yang...",
+                options: [
+                    { text: "Berlainan jantina sahaja (Sangat selesa)", score: 1 },
+                    { text: "Berlainan jantina (Selesa)", score: 2 },
+                    { text: "Mana-mana jantina (Tiada masalah)", score: 3 },
+                    { text: "Sama jantina (Selesa)", score: 4 },
+                    { text: "Sama jantina sahaja (Sangat selesa)", score: 5 }
+                ]
+            },
+            {
+                id: 9, icon: "book-open", iconColor: "text-cyan-500",
+                question: "Secara naluri, bagaimanakah anda melihat atau melabel kecenderungan dalaman anda pada waktu ini?",
+                options: [
+                    { text: "100% Lurus (Heteroseksual)", score: 1 },
+                    { text: "Kebanyakannya Lurus", score: 2 },
+                    { text: "Di tengah-tengah / Keliru", score: 3 },
+                    { text: "Kebanyakannya ke arah sejenis", score: 4 },
+                    { text: "100% ke arah sejenis (Homoseksual)", score: 5 }
+                ]
+            },
+            {
+                id: 10, icon: "smile", iconColor: "text-fuchsia-500",
+                question: "Apabila membaca novel, komik, atau cerita rekaan yang melibatkan kisah cinta, anda mendapati diri anda paling terkesan atau 'tersenyum sendirian' (feel butterflies) jika ia mengisahkan...",
+                options: [
+                    { text: "Percintaan antara lelaki dan wanita secara eksklusif", score: 1 },
+                    { text: "Kebanyakannya percintaan berlainan jantina", score: 2 },
+                    { text: "Tidak kisah jantina, asalkan jalan ceritanya menyentuh emosi", score: 3 },
+                    { text: "Kebanyakannya percintaan antara jantina yang sama", score: 4 },
+                    { text: "Percintaan antara jantina yang sama secara eksklusif", score: 5 }
+                ]
+            }
+        ];
+
+        let currentQIndex = 0;
+        let totalScore = 0;
+
+        function showStep(stepId) {
+            document.getElementById('step-intro').classList.add('hidden');
+            document.getElementById('step-quiz').classList.add('hidden');
+            document.getElementById('step-result').classList.add('hidden');
+            
+            document.getElementById('step-intro').classList.remove('block');
+            document.getElementById('step-quiz').classList.remove('block');
+            document.getElementById('step-result').classList.remove('block');
+            
+            document.getElementById(stepId).classList.remove('hidden');
+            document.getElementById(stepId).classList.add('block');
+        }
+
+        function startQuiz() {
+            currentQIndex = 0;
+            totalScore = 0;
+            showStep('step-quiz');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQIndex];
+            
+            // Update Progress
+            document.getElementById('q-counter').innerText = `Soalan ${currentQIndex + 1} daripada ${questions.length}`;
+            const percentage = Math.round(((currentQIndex + 1) / questions.length) * 100);
+            document.getElementById('q-percentage').innerText = `${percentage}%`;
+            document.getElementById('q-progress-bar').style.width = `${percentage}%`;
+
+            // Update Content
+            document.getElementById('q-icon-container').innerHTML = `<i data-lucide="${q.icon}" class="w-8 h-8 ${q.iconColor} mb-4"></i>`;
+            document.getElementById('q-text').innerText = q.question;
+
+            // Update Options
+            const optionsContainer = document.getElementById('q-options');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500";
+                btn.innerHTML = `<span class="text-slate-700 font-medium">${opt.text}</span>`;
+                btn.onclick = () => handleAnswer(opt.score);
+                optionsContainer.appendChild(btn);
+            });
+
+            // Re-initialize icons for new dynamic content
+            lucide.createIcons();
+        }
+
+        function handleAnswer(score) {
+            totalScore += score;
+            
+            if (currentQIndex < questions.length - 1) {
+                currentQIndex++;
+                renderQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function getResultAnalysis() {
+            const nasihatAgama = "Sebagai seorang Muslim, setiap bentuk perasaan yang bergelojak di dalam jiwa adalah sebahagian daripada ujian kehidupan (mujahadah). Islam mengajar kita bahawa nilai seseorang terletak pada takwa dan usahanya menahan diri daripada perkara yang dilarang. Jika anda berasa keliru dengan identiti anda, janganlah berputus asa dengan rahmat Allah. Perbanyakkan doa memohon ketetapan hati, jaga batas-batas syariat, dan anda amat dinasihatkan untuk mendapatkan bimbingan daripada Kaunselor Syarie atau pakar yang bertauliah untuk membantu anda mencari ketenangan dari sudut rohani dan psikologi.";
+
+            if (totalScore >= 10 && totalScore <= 16) {
+                return {
+                    title: "Kecenderungan Heteroseksual",
+                    desc: "Berdasarkan jawapan anda, tarikan emosi dan fizikal anda tertumpu secara eksklusif atau sangat dominan terhadap individu yang berlainan jantina. Ini adalah norma biasa mengikut fitrah penciptaan.",
+                    nasihat: null
+                };
+            } else if (totalScore >= 17 && totalScore <= 26) {
+                return {
+                    title: "Dominan Heteroseksual (Terdapat Sedikit Fleksibiliti)",
+                    desc: "Anda mempunyai kecenderungan utama terhadap jantina berlainan, namun mungkin terdapat ruang keterbukaan emosi, rasa kagum mendalam, atau sedikit tarikan terhadap jantina yang sama dalam situasi tertentu.",
+                    nasihat: nasihatAgama
+                };
+            } else if (totalScore >= 27 && totalScore <= 33) {
+                return {
+                    title: "Kecenderungan Spektrum Tengah / Biseksual",
+                    desc: "Anda menunjukkan tarikan yang agak seimbang antara kedua-dua jantina. Anda mungkin sedang mengalami fasa penerokaan emosi atau mendapati diri anda tertarik kepada keperibadian seseorang melebihi jantina fizikal mereka.",
+                    nasihat: nasihatAgama
+                };
+            } else if (totalScore >= 34 && totalScore <= 43) {
+                return {
+                    title: "Dominan Homoseksual (Fleksibel)",
+                    desc: "Jawapan anda menunjukkan kecenderungan yang kuat terhadap individu sama jantina, walaupun anda mungkin masih menyimpan sedikit ruang keterbukaan atau kemampuan membina hubungan dengan jantina berlainan.",
+                    nasihat: nasihatAgama
+                };
+            } else {
+                return {
+                    title: "Kecenderungan Homoseksual",
+                    desc: "Berdasarkan pemarkahan ini, tarikan emosi, romantik, dan fizikal anda sangat dominan atau eksklusif terhadap individu dari jantina yang sama.",
+                    nasihat: nasihatAgama
+                };
+            }
+        }
+
+        function showResult() {
+            showStep('step-result');
+            const analysis = getResultAnalysis();
+            
+            document.getElementById('r-title').innerText = analysis.title;
+            document.getElementById('r-desc').innerText = analysis.desc;
+
+            const adviceContainer = document.getElementById('r-advice-container');
+            if (analysis.nasihat) {
+                adviceContainer.classList.remove('hidden');
+                document.getElementById('r-advice-text').innerText = analysis.nasihat;
+            } else {
+                adviceContainer.classList.add('hidden');
+            }
+            
+            // Re-initialize icons just in case
+            lucide.createIcons();
+        }
+
+        function restartApp() {
+            showStep('step-intro');
+            currentQIndex = 0;
+            totalScore = 0;
+        }
+    </script>
+</body>
+</html>
