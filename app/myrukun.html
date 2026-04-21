@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuiz Bijak Agama</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            min-height: 100vh;
+        }
+        h1, h2, h3 {
+            font-family: 'Fredoka One', cursive;
+        }
+        .card {
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background-color: #4F46E5;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #3730a3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-primary:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        .option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #4F46E5;
+            background-color: #f5f3ff;
+        }
+        .correct {
+            background-color: #d1fae5 !important;
+            border-color: #10b981 !important;
+            color: #065f46;
+        }
+        .wrong {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #991b1b;
+        }
+        .hidden { display: none; }
+        #timer-bar {
+            transition: width 1s linear;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-2xl mx-auto">
+        <!-- HEADER -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl text-indigo-600 mb-2">Jom Bijak Agama! 🌟</h1>
+            <p class="text-gray-600 italic">Pilih kategori dan mula menguji minda</p>
+        </header>
+
+        <!-- MAIN MENU -->
+        <div id="main-menu" class="card p-8 text-center">
+            <h2 class="text-2xl mb-6 text-gray-800 underline decoration-indigo-200">Menu Utama</h2>
+            
+            <!-- OBJECTIVES SECTION -->
+            <div class="bg-indigo-50 p-6 rounded-xl mb-8 text-left border-l-4 border-indigo-500">
+                <h3 class="font-bold text-indigo-800 mb-2 text-lg">🎯 Objektif Permainan:</h3>
+                <ul class="list-disc list-inside text-gray-700 space-y-1 text-sm">
+                    <li>Mengukuhkan ingatan tentang Rukun Islam & Rukun Iman.</li>
+                    <li>Menguji kepantasan berfikir dalam mod Cabaran Kilat.</li>
+                    <li>Membantu anak-anak membezakan antara Rukun Islam dan Iman.</li>
+                    <li>Membina keyakinan menjawab soalan asas fardu ain.</li>
+                </ul>
+            </div>
+
+            <!-- MENU BUTTONS -->
+            <div class="grid grid-cols-1 gap-4 mb-8">
+                <button onclick="startQuiz('islam')" class="btn-primary bg-emerald-500 hover:bg-emerald-600 shadow-[0_4px_0_#059669]">
+                    <span>🕌</span> 1. Rukun Islam (10 Soalan)
+                </button>
+                <button onclick="startQuiz('iman')" class="btn-primary bg-amber-500 hover:bg-amber-600 shadow-[0_4px_0_#d97706]">
+                    <span>✨</span> 2. Rukun Iman (10 Soalan)
+                </button>
+                <div class="border-t-2 border-dashed border-gray-200 my-2 pt-4">
+                    <p class="text-xs font-bold text-rose-500 mb-2 uppercase tracking-widest">Mod Cabaran</p>
+                    <!-- SETTINGS FOR MENU 3 ONLY -->
+                    <div class="bg-rose-50 p-4 rounded-xl mb-4 border border-rose-100">
+                        <label class="block text-xs font-bold text-rose-700 mb-2 italic">Set Masa Cabaran Kilat (saat):</label>
+                        <div class="flex items-center justify-center gap-4">
+                            <input type="range" id="timer-setting" min="10" max="30" value="20" class="w-full h-2 bg-rose-200 rounded-lg appearance-none cursor-pointer accent-rose-600">
+                            <span id="timer-val" class="font-bold text-rose-600 w-12 text-lg">20s</span>
+                        </div>
+                    </div>
+                    <button onclick="startQuiz('gabungan')" class="btn-primary bg-rose-500 hover:bg-rose-600 shadow-[0_4px_0_#e11d48] w-full">
+                        <span>⚡</span> 3. Cabaran Kilat (Gabungan)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUIZ AREA -->
+        <div id="quiz-area" class="card p-8 hidden">
+            <!-- Timer Bar (Only visible/active in Menu 3) -->
+            <div id="timer-container" class="w-full bg-gray-200 rounded-full h-3 mb-6 overflow-hidden hidden">
+                <div id="timer-bar" class="bg-rose-500 h-full w-full"></div>
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <span id="quiz-title" class="text-xl font-bold text-indigo-600">Kuiz</span>
+                <span id="progress" class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-bold">Soalan 1/10</span>
+            </div>
+
+            <div id="question-container">
+                <h3 id="question-text" class="text-xl text-gray-800 mb-6 font-semibold">Soalan di sini?</h3>
+                <div id="options-container" class="space-y-3"></div>
+            </div>
+
+            <div id="feedback-box" class="mt-6 p-4 rounded-xl hidden">
+                <p id="feedback-text" class="font-bold text-center text-lg"></p>
+                <button id="next-btn" onclick="nextQuestion()" class="mt-4 btn-primary w-full">Seterusnya ➔</button>
+            </div>
+        </div>
+
+        <!-- RESULT AREA -->
+        <div id="result-area" class="card p-8 text-center hidden">
+            <h2 class="text-3xl mb-4 text-indigo-600">Alhamdulillah! 🎉</h2>
+            <div class="mb-6 bg-slate-50 p-4 rounded-2xl">
+                <p class="text-gray-500 text-sm mb-1 uppercase tracking-wider">Kategori Tamat:</p>
+                <p id="res-category" class="font-bold text-indigo-800 text-lg"></p>
+            </div>
+            <p class="text-xl mb-2 text-gray-600">Skor anda:</p>
+            <div class="text-6xl font-bold text-indigo-600 mb-6"><span id="final-score">0</span>/10</div>
+            <div id="score-comment" class="mb-8 text-lg text-gray-700 italic font-medium px-4">Hebatnya anda!</div>
+            <button onclick="showMenu()" class="btn-primary w-full bg-indigo-600 shadow-[0_4px_0_#312e81]">Kembali ke Menu Utama</button>
+        </div>
+
+        <footer class="mt-8 text-center text-gray-400 text-xs">
+            <p>Ingin membangunkan ujian interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut.</p>
+        </footer>
+    </div>
+
+    <script>
+        const quizData = {
+            islam: [
+                { q: "Berapakah jumlah kesemuanya Rukun Islam?", a: ["5 perkara", "6 perkara", "4 perkara", "3 perkara"], c: 0 },
+                { q: "Rukun Islam yang pertama ialah mengucap dua kalimah...", a: ["Puji-pujian", "Syahadah", "Zikir", "Selawat"], c: 1 },
+                { q: "Selepas mengucap syahadah, kewajipan harian seorang Muslim ialah?", a: ["Zakat", "Haji", "Solat 5 waktu", "Puasa"], c: 2 },
+                { q: "Betul atau Salah: Zakat adalah rukun Islam yang keempat (4).", a: ["Betul", "Salah"], c: 0 },
+                { q: "Antara berikut, yang manakah merupakan rukun Islam?", a: ["Percaya Malaikat", "Percaya Kiamat", "Mengerjakan Haji", "Percaya Kitab"], c: 2 },
+                { q: "Kanak-kanak Islam dikehendaki berpuasa di bulan?", a: ["Syawal", "Ramadhan", "Rejab", "Muharram"], c: 1 },
+                { q: "Mengerjakan Haji adalah wajib bagi mereka yang?", a: ["Kaya sahaja", "Mampu", "Tua sahaja", "Kanak-kanak"], c: 1 },
+                { q: "Solat fardu dalam sehari semalam ada berapa waktu?", a: ["4 waktu", "6 waktu", "5 waktu", "3 waktu"], c: 2 },
+                { q: "Rukun Islam yang ketiga (3) ialah menunaikan?", a: ["Solat", "Puasa", "Haji", "Zakat"], c: 1 },
+                { q: "Zakat bermaksud mengeluarkan sebahagian ______ untuk diberikan kepada asnaf.", a: ["Tenaga", "Harta", "Makanan", "Masa"], c: 1 }
+            ],
+            iman: [
+                { q: "Rukun Iman ada berapa perkara kesemuanya?", a: ["5 perkara", "6 perkara", "7 perkara", "4 perkara"], c: 1 },
+                { q: "Rukun Iman yang pertama ialah percaya kepada...", a: ["Malaikat", "Rasul", "Allah SWT", "Hari Kiamat"], c: 2 },
+                { q: "Kita wajib percaya kepada Malaikat. Malaikat adalah rukun Iman ke-?", a: ["Dua", "Satu", "Tiga", "Enam"], c: 0 },
+                { q: "Antara berikut, yang manakah merupakan rukun Iman?", a: ["Percaya Hari Kiamat", "Mengucap Syahadah", "Zakat", "Puasa"], c: 0 },
+                { q: "Percaya kepada Kitab-kitab Allah adalah rukun yang ke-?", a: ["Satu", "Dua", "Tiga", "Empat"], c: 2 },
+                { q: "Siapakah yang membawa wahyu kepada para Nabi?", a: ["Jin", "Malaikat", "Manusia", "Haiwan"], c: 1 },
+                { q: "Rukun Iman yang terakhir (ke-6) ialah percaya kepada?", a: ["Hari Kiamat", "Qada' dan Qadar", "Malaikat", "Kitab"], c: 1 },
+                { q: "Percaya kepada Rasul adalah rukun Iman yang ke-4. Betul atau Salah?", a: ["Betul", "Salah"], c: 0 },
+                { q: "Segala kejadian yang berlaku adalah atas ketentuan Allah. Ini disebut?", a: ["Malaikat", "Hari Kiamat", "Qada' dan Qadar", "Rasul"], c: 2 },
+                { q: "Umat Islam percaya dunia akan hancur pada suatu hari nanti. Ini ialah?", a: ["Hari Lahir", "Hari Kiamat", "Hari Jumaat", "Hari Raya"], c: 1 }
+            ]
+        };
+
+        let currentQuiz = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timerInterval;
+        let timeLeft = 20;
+        let maxTime = 20;
+        let isTimedMode = false;
+
+        document.getElementById('timer-setting').addEventListener('input', (e) => {
+            const val = e.target.value;
+            document.getElementById('timer-val').innerText = val + 's';
+            maxTime = parseInt(val);
+        });
+
+        function startQuiz(type) {
+            let questions = [];
+            let title = "";
+            isTimedMode = false;
+            document.getElementById('timer-container').classList.add('hidden');
+
+            if (type === 'islam') {
+                questions = [...quizData.islam];
+                title = "Kuiz Rukun Islam";
+            } else if (type === 'iman') {
+                questions = [...quizData.iman];
+                title = "Kuiz Rukun Iman";
+            } else {
+                questions = [...quizData.islam, ...quizData.iman];
+                title = "⚡ Cabaran Kilat (Gabungan)";
+                isTimedMode = true;
+                document.getElementById('timer-container').classList.remove('hidden');
+            }
+
+            currentQuiz = shuffle(questions).slice(0, 10);
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('result-area').classList.add('hidden');
+            document.getElementById('quiz-area').classList.remove('hidden');
+            document.getElementById('quiz-title').innerText = title;
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            clearInterval(timerInterval);
+            const q = currentQuiz[currentQuestionIndex];
+            document.getElementById('progress').innerText = `Soalan ${currentQuestionIndex + 1}/10`;
+            document.getElementById('question-text').innerText = q.q;
+            document.getElementById('feedback-box').classList.add('hidden');
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            q.a.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = option;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            if (isTimedMode) {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            timeLeft = maxTime;
+            const timerBar = document.getElementById('timer-bar');
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = '#10b981';
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const percentage = (timeLeft / maxTime) * 100;
+                timerBar.style.width = percentage + '%';
+
+                if (timeLeft < 5) {
+                    timerBar.style.backgroundColor = '#f43f5e';
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    autoWrong();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(index, btn) {
+            clearInterval(timerInterval);
+            const q = currentQuiz[currentQuestionIndex];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            buttons.forEach(b => b.disabled = true);
+            
+            const isCorrect = (index === q.c);
+            buttons[q.c].classList.add('correct');
+
+            if (isCorrect) {
+                score++;
+                btn.classList.add('correct');
+                showFeedback("Syabas! Jawapan anda TEPAT! ✨", true);
+            } else {
+                btn.classList.add('wrong');
+                showFeedback("Kurang tepat. Teruskan belajar ya! 😊", false);
+            }
+        }
+
+        function autoWrong() {
+            const q = currentQuiz[currentQuestionIndex];
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.disabled = true);
+            buttons[q.c].classList.add('correct');
+            showFeedback("Alamak, masa sudah tamat! ⏰", false);
+        }
+
+        function showFeedback(text, isCorrect) {
+            const box = document.getElementById('feedback-box');
+            const feedbackText = document.getElementById('feedback-text');
+            box.classList.remove('hidden');
+            box.className = `mt-6 p-4 rounded-xl border-2 ${isCorrect ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`;
+            feedbackText.innerText = text;
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < 10) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            clearInterval(timerInterval);
+            document.getElementById('quiz-area').classList.add('hidden');
+            document.getElementById('result-area').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('res-category').innerText = document.getElementById('quiz-title').innerText;
+            
+            let comment = "";
+            if (score === 10) comment = "Masyallah! Anda sangat bijak dan hebat! 🏆";
+            else if (score >= 7) comment = "Bagus sekali! Sikit lagi nak dapat skor penuh! 🌟";
+            else if (score >= 4) comment = "Tahniah! Teruskan belajar untuk lebih mahir. 💪";
+            else comment = "Mari kita baca lagi tentang Rukun Islam & Iman dan cuba semula! ❤️";
+            
+            document.getElementById('score-comment').innerText = comment;
+        }
+
+        function showMenu() {
+            document.getElementById('result-area').classList.add('hidden');
+            document.getElementById('main-menu').classList.remove('hidden');
+        }
+
+        function shuffle(array) {
+            const newArr = [...array];
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        }
+    </script>
+</body>
+</html>
