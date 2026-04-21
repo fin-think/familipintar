@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myMATH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div id="app" class="max-w-2xl w-full glass rounded-3xl shadow-2xl overflow-hidden min-h-[600px] flex flex-col">
+        
+        <!-- Header -->
+        <div class="p-6 text-center border-b border-gray-100">
+            <h1 class="text-3xl font-bold text-indigo-700">myMATH<span class="text-purple-600">Genius</span></h1>
+            <p id="sub-header" class="text-gray-500 text-sm">Cabaran Matematik Sekolah Malaysia</p>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="flex-1 flex flex-col items-center justify-center p-8 space-y-6">
+            <div class="text-center">
+                <i class="fas fa-calculator text-6xl text-indigo-500 mb-4"></i>
+                <h2 class="text-xl font-semibold">Pilih Kategori Anda</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                <button onclick="showLevels('rendah')" class="bg-blue-500 hover:bg-blue-600 text-white p-6 rounded-2xl flex flex-col items-center card-hover shadow-lg">
+                    <span class="text-2xl mb-2">🏫</span>
+                    <span class="font-bold">Sekolah Rendah</span>
+                    <span class="text-xs opacity-80">Level 1 - 6</span>
+                </button>
+                <button onclick="showLevels('menengah')" class="bg-purple-500 hover:bg-purple-600 text-white p-6 rounded-2xl flex flex-col items-center card-hover shadow-lg">
+                    <span class="text-2xl mb-2">🎓</span>
+                    <span class="font-bold">Sekolah Menengah</span>
+                    <span class="text-xs opacity-80">Level 1 - 5</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Level Selection Screen -->
+        <div id="level-screen" class="hidden flex-1 flex flex-col p-8 overflow-y-auto">
+            <div class="flex items-center mb-6">
+                <button onclick="goBack('start-screen')" class="text-indigo-600 hover:text-indigo-800 flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i> Kembali
+                </button>
+                <h2 id="level-title" class="flex-1 text-center font-bold text-xl text-gray-700">Pilih Tahap</h2>
+            </div>
+            <div id="level-buttons" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden flex-1 flex flex-col p-8">
+            <div class="flex justify-between items-center mb-6">
+                <div class="bg-indigo-100 text-indigo-800 px-4 py-1 rounded-full text-sm font-semibold">
+                    Soalan <span id="current-q">1</span>/10
+                </div>
+                <div class="bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm font-semibold">
+                    Skor: <span id="score">0</span>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col items-center justify-center text-center">
+                <div id="question-text" class="text-3xl font-bold text-gray-800 mb-10 min-h-[80px] flex items-center justify-center">
+                    -- Soalan --
+                </div>
+
+                <div id="options-container" class="grid grid-cols-1 gap-4 w-full max-w-md"></div>
+            </div>
+            
+            <div class="mt-8">
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width: 10%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden flex-1 flex flex-col items-center justify-center p-8 space-y-6">
+            <div id="result-icon" class="text-7xl">🏆</div>
+            <h2 class="text-2xl font-bold text-gray-800">Tamat Permainan!</h2>
+            <div class="text-center">
+                <p class="text-gray-500">Skor Akhir Anda:</p>
+                <p id="final-score" class="text-6xl font-black text-indigo-600">0</p>
+            </div>
+            <div id="feedback-text" class="text-lg text-gray-600 text-center font-medium">
+                Hebat! Teruskan usaha anda.
+            </div>
+            <div class="flex flex-col w-full space-y-3">
+                <button onclick="showReview()" class="bg-green-600 text-white w-full py-3 rounded-xl font-bold hover:bg-green-700 shadow-md flex items-center justify-center">
+                    <i class="fas fa-list-check mr-2"></i> Semak Jawapan & Penjelasan
+                </button>
+                <button onclick="location.reload()" class="bg-indigo-600 text-white w-full py-3 rounded-xl font-bold hover:bg-indigo-700 shadow-md">
+                    Main Semula
+                </button>
+            </div>
+        </div>
+
+        <!-- Review Screen -->
+        <div id="review-screen" class="hidden flex-1 flex flex-col p-6 overflow-hidden">
+            <div class="flex items-center mb-4">
+                <button onclick="switchScreen('result-screen')" class="text-indigo-600 hover:text-indigo-800 flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i> Kembali
+                </button>
+                <h2 class="flex-1 text-center font-bold text-xl text-gray-700">Analisis Jawapan</h2>
+            </div>
+            <div id="review-list" class="flex-1 overflow-y-auto space-y-4 pr-2">
+                <!-- Review items generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Diletakkan Secara Berasingan di Bawah App Container -->
+    <footer class="mt-6 text-center text-white/70 text-xs max-w-2xl px-4">
+        <p>Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi pembangun web untuk perbincangan lanjut. © HCH</p>
+    </footer>
+
+    <script>
+        const state = {
+            category: null,
+            level: null,
+            currentQuestionIndex: 0,
+            score: 0,
+            questions: [], 
+            correctAnswer: null
+        };
+
+        const config = {
+            rendah: {
+                title: "Sekolah Rendah",
+                levels: ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Level 6"]
+            },
+            menengah: {
+                title: "Sekolah Menengah",
+                levels: ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5"]
+            }
+        };
+
+        function showLevels(category) {
+            state.category = category;
+            const levels = config[category].levels;
+            const container = document.getElementById('level-buttons');
+            container.innerHTML = '';
+            document.getElementById('level-title').innerText = config[category].title;
+            
+            levels.forEach((level, index) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white border-2 border-gray-100 p-4 rounded-xl font-semibold text-gray-700 hover:border-indigo-400 hover:bg-indigo-50 transition-all card-hover";
+                btn.innerText = level;
+                btn.onclick = () => startQuiz(level, index + 1);
+                container.appendChild(btn);
+            });
+            switchScreen('level-screen');
+        }
+
+        function switchScreen(screenId) {
+            ['start-screen', 'level-screen', 'quiz-screen', 'result-screen', 'review-screen'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.classList.add('hidden');
+            });
+            const target = document.getElementById(screenId);
+            if(target) target.classList.remove('hidden');
+        }
+
+        function goBack(target) {
+            switchScreen(target);
+        }
+
+        function generateQuestion(category, levelValue) {
+            let num1, num2, operator, question, answer, explanation;
+            
+            if (category === 'rendah') {
+                if (levelValue <= 2) { 
+                    num1 = Math.floor(Math.random() * (levelValue * 20)) + 5;
+                    num2 = Math.floor(Math.random() * (levelValue * 10)) + 1;
+                    operator = Math.random() > 0.5 ? '+' : '-';
+                    if (operator === '-' && num1 < num2) [num1, num2] = [num2, num1];
+                    answer = operator === '+' ? num1 + num2 : num1 - num2;
+                    explanation = `Langkah: Kira ${num1} ${operator === '+' ? 'tambah' : 'tolak'} ${num2}.`;
+                } else if (levelValue <= 4) { 
+                    const ops = ['+', '-', 'x'];
+                    operator = ops[Math.floor(Math.random() * ops.length)];
+                    num1 = Math.floor(Math.random() * 50) + 10;
+                    num2 = operator === 'x' ? Math.floor(Math.random() * 8) + 2 : Math.floor(Math.random() * 50);
+                    if (operator === '+' ) answer = num1 + num2;
+                    else if (operator === '-') { if(num1 < num2) [num1,num2]=[num2,num1]; answer = num1 - num2; }
+                    else answer = num1 * num2;
+                    explanation = `Langkah: Selesaikan operasi ${operator === 'x' ? 'darab' : 'aritmetik'} tersebut.`;
+                } else { 
+                    const ops = ['+', '-', 'x', '÷'];
+                    operator = ops[Math.floor(Math.random() * ops.length)];
+                    if (operator === '÷') {
+                        num2 = Math.floor(Math.random() * 9) + 2;
+                        answer = Math.floor(Math.random() * 12) + 1;
+                        num1 = num2 * answer;
+                        explanation = `Langkah: ${num1} dibahagi dengan ${num2} bersamaan ${answer}.`;
+                    } else {
+                        num1 = Math.floor(Math.random() * 100);
+                        num2 = Math.floor(Math.random() * 50);
+                        answer = operator === '+' ? num1 + num2 : (operator === '-' ? num1 - num2 : num1 * num2);
+                        explanation = `Langkah: Kira hasil bagi ${num1} ${operator} ${num2}.`;
+                    }
+                }
+            } else { 
+                if (levelValue <= 2) { 
+                    const ops = ['+', '-', 'x'];
+                    operator = ops[Math.floor(Math.random() * ops.length)];
+                    num1 = Math.floor(Math.random() * 30) - 15;
+                    num2 = Math.floor(Math.random() * 30) - 15;
+                    answer = operator === '+' ? num1 + num2 : (operator === '-' ? num1 - num2 : num1 * num2);
+                    explanation = `Langkah: Berhati-hati dengan tanda negatif. ${num1} ${operator} (${num2}) = ${answer}.`;
+                } else { 
+                    const types = ['square', 'root', 'linear'];
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    if (type === 'square') {
+                        num1 = Math.floor(Math.random() * 15) + 2;
+                        question = `${num1}² = ?`;
+                        answer = num1 * num1;
+                        explanation = `Langkah: Kuasa dua bermaksud ${num1} × ${num1} = ${answer}.`;
+                    } else if (type === 'root') {
+                        const base = Math.floor(Math.random() * 12) + 2;
+                        num1 = base * base;
+                        question = `√${num1} = ?`;
+                        answer = base;
+                        explanation = `Langkah: Cari nombor yang didarab dengan dirinya sendiri menghasilkan ${num1}. ${base} × ${base} = ${num1}.`;
+                    } else {
+                        num1 = Math.floor(Math.random() * 8) + 2;
+                        answer = Math.floor(Math.random() * 10) + 1;
+                        const total = num1 * answer;
+                        question = `Selesaikan: ${num1}x = ${total}`;
+                        explanation = `Langkah: Bahagikan kedua-dua belah dengan ${num1}. x = ${total} ÷ ${num1} = ${answer}.`;
+                    }
+                }
+            }
+
+            if (!question) question = `${num1} ${operator} ${num2} = ?`;
+            return { question, answer, explanation };
+        }
+
+        function startQuiz(levelName, levelValue) {
+            state.level = levelName;
+            state.currentQuestionIndex = 0;
+            state.score = 0;
+            state.questions = [];
+            
+            for(let i=0; i<10; i++) {
+                state.questions.push(generateQuestion(state.category, levelValue));
+            }
+            
+            document.getElementById('sub-header').innerText = `${config[state.category].title} - ${levelName}`;
+            switchScreen('quiz-screen');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const qData = state.questions[state.currentQuestionIndex];
+            state.correctAnswer = qData.answer;
+            
+            document.getElementById('current-q').innerText = state.currentQuestionIndex + 1;
+            document.getElementById('score').innerText = state.score;
+            document.getElementById('question-text').innerText = qData.question;
+            document.getElementById('progress-bar').style.width = `${((state.currentQuestionIndex + 1) / 10) * 100}%`;
+
+            const options = generateOptions(qData.answer);
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full py-4 px-6 bg-white border-2 border-gray-200 rounded-xl font-bold text-lg text-gray-700 hover:border-indigo-500 hover:bg-indigo-50 transition-all";
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function generateOptions(correct) {
+            let opts = [correct];
+            while (opts.length < 4) {
+                let offset = Math.floor(Math.random() * 15) + 1;
+                let wrong = Math.random() > 0.5 ? correct + offset : correct - offset;
+                if (!opts.includes(wrong)) opts.push(wrong);
+            }
+            return opts.sort(() => Math.random() - 0.5);
+        }
+
+        function checkAnswer(selected, btn) {
+            const currentQ = state.questions[state.currentQuestionIndex];
+            currentQ.userChoice = selected;
+
+            const allBtns = document.querySelectorAll('#options-container button');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (selected === state.correctAnswer) {
+                state.score += 10;
+                btn.classList.replace('bg-white', 'bg-green-500');
+                btn.classList.replace('border-gray-200', 'border-green-500');
+                btn.classList.add('text-white');
+            } else {
+                btn.classList.replace('bg-white', 'bg-red-500');
+                btn.classList.replace('border-gray-200', 'border-red-500');
+                btn.classList.add('text-white');
+                
+                allBtns.forEach(b => {
+                    if (parseFloat(b.innerText) === state.correctAnswer) {
+                        b.classList.add('bg-green-200', 'border-green-500');
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                state.currentQuestionIndex++;
+                if (state.currentQuestionIndex < 10) {
+                    loadQuestion();
+                } else {
+                    showResult();
+                }
+            }, 1200);
+        }
+
+        function showResult() {
+            switchScreen('result-screen');
+            document.getElementById('final-score').innerText = state.score;
+            
+            let feedback = state.score >= 80 ? "Luar Biasa! Anda adalah Pakar Matematik!" : 
+                          (state.score >= 50 ? "Bagus! Teruskan latihan untuk lebih mahir." : 
+                          "Jangan putus asa, cuba lagi untuk skor lebih tinggi!");
+            let icon = state.score >= 80 ? "👑" : (state.score >= 50 ? "🌟" : "📚");
+            
+            document.getElementById('feedback-text').innerText = feedback;
+            document.getElementById('result-icon').innerText = icon;
+        }
+
+        function showReview() {
+            const list = document.getElementById('review-list');
+            list.innerHTML = '';
+            
+            state.questions.forEach((q, index) => {
+                const isCorrect = q.userChoice === q.answer;
+                const item = document.createElement('div');
+                item.className = `p-4 rounded-2xl border-l-8 ${isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500 shadow-sm'}`;
+                
+                item.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold text-gray-700">Soalan ${index + 1}</span>
+                        <i class="fas ${isCorrect ? 'fa-check-circle text-green-600' : 'fa-times-circle text-red-600'}"></i>
+                    </div>
+                    <div class="text-xl font-bold mb-2 text-gray-800">${q.question}</div>
+                    <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+                        <div class="p-2 rounded bg-white border">Jawapan Anda: <span class="font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}">${q.userChoice}</span></div>
+                        <div class="p-2 rounded bg-white border">Jawapan Betul: <span class="font-bold text-green-600">${q.answer}</span></div>
+                    </div>
+                    <div class="text-xs text-gray-600 bg-indigo-50 p-3 rounded-lg border border-indigo-100 italic">
+                        <i class="fas fa-lightbulb text-indigo-500 mr-1"></i> ${q.explanation}
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+            
+            switchScreen('review-screen');
+        }
+    </script>
+</body>
+</html>
