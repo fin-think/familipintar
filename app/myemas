@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myEMAS-Kalkulator Strategi Ar-Rahnu & Exit Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        .card { background: white; border-radius: 1rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        .step-number { width: 24px; height: 24px; background: #eab308; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: 10px; flex-shrink: 0; }
+        .btn-overlap { background: #1e293b; color: #fbbf24; border: 1px solid #fbbf24; transition: all 0.3s ease; }
+        .btn-overlap:hover { background: #fbbf24; color: #1e293b; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-12">
+
+    <!-- Header -->
+    <div class="gradient-bg text-white py-10 px-4 text-center mb-8">
+        <h1 class="text-3xl font-bold mb-2 tracking-tight text-yellow-400">myEMAS-Kalkulator Strategi Emas Ar-Rahnu</h1>
+        <p class="opacity-80 max-w-2xl mx-auto text-sm leading-relaxed text-gray-300">Teknik memusing modal (overlapping) untuk kumpul lebih banyak gram emas (cth: kumpul 5g, 10g) semasa harga rendah/menaik.</p>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Kolum Kiri: Arahan & Input -->
+        <div class="lg:col-span-4 space-y-6">
+            
+            <!-- Navigation / Other Tools -->
+            <div class="flex gap-2 mb-4">
+                <button onclick="window.location.reload()" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider bg-white border border-gray-200 shadow-sm text-gray-600 hover:bg-gray-50 transition">Utama</button>
+                
+                <!-- MEMBAIKI RALAT SINTAKS PADA URL -->
+                <button onclick="window.location.href='https://fin-think.github.io/dARRAHNU2.0/'" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider btn-overlap shadow-sm flex items-center justify-center gap-2">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z"></path><path d="M5 5a2 2 0 012-2h6a2 2 0 012 2v2H7a2 2 0 00-2 2v6H3a2 2 0 01-2-2V7a2 2 0 012-2h2V5z"></path></svg>
+                    Overlap
+                </button>
+            </div>
+
+            <!-- Panduan Ringkas -->
+            <div class="card p-5 bg-yellow-50 border border-yellow-200">
+                <h2 class="font-bold text-yellow-800 text-sm mb-3 uppercase tracking-wider flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h.01a1 1 0 100-2H10zm3 0a1 1 0 000 2h.01a1 1 0 100-2H13zm-6 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h.01a1 1 0 100-2H10zm3 0a1 1 0 000 2h.01a1 1 0 100-2H13z" clip-rule="evenodd"></path></svg>
+                    Cara Guna Kalkulator
+                </h2>
+                <div class="space-y-3 text-xs text-yellow-900 leading-relaxed">
+                    <div class="flex items-start">
+                        <span class="step-number">1</span>
+                        <p>Masukkan <b>Modal Gram</b> asal anda (cth: 10g atau 20g).</p>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="step-number">2</span>
+                        <p>Duit pinjaman akan digunakan untuk beli kepingan emas baru (cth: 5g atau 1g).</p>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="step-number">3</span>
+                        <p>Tekan jana, sistem akan kira berapa keping emas anda boleh tambah untuk setiap kitaran.</p>
+                    </div>   
+                    <div class="flex items-start">
+                        <span class="step-number">4</span>
+                        <p>Untuk kira overlapping & berapa keuntungan setiap kali harga emas naik, klik butang 'overlap'.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="card p-6 border-t-4 border-yellow-500">
+                <h2 class="text-lg font-bold mb-4 text-gray-800 text-center">Parameter Input</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase">Modal Emas Asal (Gram)</label>
+                        <input type="number" id="gramAwal" value="20" class="w-full mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700 bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase">Harga Semasa (RM/g)</label>
+                        <input type="number" id="hargaBeli" value="385" class="w-full mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700 bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase">Margin Pinjaman Ar-Rahnu (%)</label>
+                        <input type="number" id="margin" value="70" class="w-full mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700 bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase">Kadar Upah Simpan (Bulanan %)</label>
+                        <input type="number" id="upahKadar" value="0.75" step="0.01" class="w-full mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700 bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase">Target Kenaikan Harga Nanti (%)</label>
+                        <input type="number" id="kenaikan" value="15" class="w-full mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700 bg-gray-50">
+                    </div>
+                    
+                    <button onclick="kira()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-black py-4 rounded-xl transition duration-200 shadow-lg transform active:scale-95 text-sm uppercase tracking-widest">
+                        JANA PROJEKSI EMAS
+                    </button>
+                </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="card p-5 border-l-4 border-red-500 bg-red-50">
+                <h3 class="text-red-700 font-bold text-xs mb-2 flex items-center uppercase tracking-widest">
+                    ⚠️ Amaran Risiko
+                </h3>
+                <p class="text-[11px] text-red-800 leading-relaxed italic">
+                    Teknik gandaan ini menggunakan leverage. Jika harga emas turun, kos upah simpan boleh 'memakan' modal anda. Pastikan ada wang kecemasan untuk bayar upah simpan bulanan.
+                </p>
+            </div>
+        </div>
+
+        <!-- Kolum Kanan: Output -->
+        <div class="lg:col-span-8 space-y-6">
+            
+            <div id="results" class="hidden space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                
+                <!-- Summary Section -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="card p-5 text-center border-b-4 border-blue-500 bg-blue-50">
+                        <p class="text-[10px] text-blue-800 font-bold uppercase mb-1">Emas Akhir Terkumpul</p>
+                        <p id="resTotalGram" class="text-3xl font-black text-blue-600">-</p>
+                        <p id="resTotalGramKeping" class="text-[10px] text-blue-500 mt-1"></p>
+                    </div>
+                    <div class="card p-5 text-center border-b-4 border-purple-500 bg-purple-50">
+                        <p class="text-[10px] text-purple-800 font-bold uppercase mb-1">Hutang Bank + Upah</p>
+                        <p id="resTotalKos" class="text-3xl font-black text-purple-600">-</p>
+                        <p class="text-[10px] text-purple-400 mt-1">Kos selepas 12 bulan</p>
+                    </div>
+                    <div class="card p-5 text-center border-b-4 border-green-500 bg-green-50">
+                        <p class="text-[10px] text-green-800 font-bold uppercase mb-1">Hasil Bersih Exit Plan</p>
+                        <p id="resUntung" class="text-3xl font-black text-green-600">-</p>
+                        <p id="resProfitPercent" class="text-[10px] text-green-500 mt-1"></p>
+                    </div>
+                </div>
+
+                <!-- Process Explanation -->
+                <div class="card p-6">
+                    <h3 class="font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM13 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM14.5 14.5a1 1 0 01-1 1h-1a1 1 0 010-2h1a1 1 0 011 1zM4.5 14.5a1 1 0 011-1h1a1 1 0 010 2h-1a1 1 0 01-1-1z"></path></svg>
+                        Logik Belian & Pusingan Gram
+                    </h3>
+                    <div id="processDescription" class="space-y-4 text-sm text-gray-600 leading-relaxed">
+                        <!-- Content generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Detailed Table -->
+                <div class="card overflow-hidden border border-gray-200">
+                    <div class="p-4 bg-gray-800 text-white flex justify-between items-center">
+                        <h3 class="font-bold text-sm tracking-wide">JADUAL GANDAAN GRAM EMAS</h3>
+                        <span class="text-[10px] bg-yellow-500 text-black px-3 py-1 rounded-full font-bold uppercase">Projeksi 3 Kitaran</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-500 font-bold uppercase text-[10px] border-b">
+                                    <th class="px-4 py-4">Pusingan Modal</th>
+                                    <th class="px-4 py-4 text-right">Emas Dibeli (Cth: 5g, 1g)</th>
+                                    <th class="px-4 py-4 text-right">Pinjaman Tunai</th>
+                                    <th class="px-4 py-4 text-right">Upah Simpan (Kos)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="divide-y text-gray-700">
+                                <!-- JS content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Exit Plan Section -->
+                <div class="card p-8 bg-gradient-to-br from-blue-700 to-blue-900 text-white shadow-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-black mb-6 flex items-center uppercase tracking-widest">
+                        🚀 Pelan Strategi Exit
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                        <div class="bg-white/10 p-5 rounded-xl border border-white/20 backdrop-blur-sm">
+                            <h4 class="font-bold text-yellow-300 mb-2 uppercase text-[10px] tracking-widest">Harga Jual Sasaran</h4>
+                            <p class="text-sm">Tunggu sehingga harga mencecah <span id="exitPrice" class="text-2xl font-black text-white">RM 0</span> per gram.</p>
+                        </div>
+                        <div class="bg-white/10 p-5 rounded-xl border border-white/20 backdrop-blur-sm">
+                            <h4 class="font-bold text-yellow-300 mb-2 uppercase text-[10px] tracking-widest">Tindakan Akhir</h4>
+                            <p class="text-sm">Jual kesemua <span id="exitGram" class="font-black text-white">0</span> gram emas, langsirkan hutang RM <span id="exitDebt" class="font-black text-red-400">0</span>.</p>
+                        </div>
+                    </div>
+                    <div class="mt-8 p-4 bg-white text-blue-900 rounded-lg text-center font-black uppercase text-sm tracking-widest shadow-inner">
+                        Hasil Untung Bersih: <span id="roiVal" class="text-green-600 text-lg">RM 0</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Welcome Placeholder -->
+            <div id="placeholder" class="card p-20 text-center border-dashed border-2 border-gray-300 flex flex-col items-center justify-center bg-white/50">
+                <div class="bg-yellow-100 p-6 rounded-full mb-4">
+                    <svg class="w-12 h-12 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 class="text-gray-600 font-black text-xl uppercase tracking-tighter">Sedia Untuk Simulasi?</h3>
+                <p class="text-gray-400 max-w-xs mx-auto text-sm mt-3 leading-relaxed">Isi modal emas anda (cth: 10g) di sebelah kiri dan lihat bagaimana emas itu bertambah menjadi berpuluh gram.</p>
+            </div>
+
+        </div>
+    </div>
+
+<!-- Footer Diletakkan Di Luar Glass-Card -->
+<footer class="mt-8 text-center text-gray-400 text-xs">
+            <p>DISCLAIMER:Anggaran sahaja untuk rujukan. Bukan nasihat kewangan dan hasil sebenar mungkin berbeza.<p>Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH
+</p>
+        </footer>
+    </div>
+
+
+    <script>
+        function kira() {
+            const gAwal = parseFloat(document.getElementById('gramAwal').value);
+            const hBeli = parseFloat(document.getElementById('hargaBeli').value);
+            const pMargin = parseFloat(document.getElementById('margin').value) / 100;
+            const uKadar = parseFloat(document.getElementById('upahKadar').value);
+            const pKenaikan = parseFloat(document.getElementById('kenaikan').value) / 100;
+
+            if (isNaN(gAwal) || isNaN(hBeli) || gAwal <= 0) {
+                alert("Sila masukkan nilai gram modal yang sah.");
+                return;
+            }
+
+            let totalHutang = 0;
+            let totalUpahSetahun = 0;
+            let totalGramTerkumpul = gAwal;
+            let currentGram = gAwal;
+            
+            const tableBody = document.getElementById('tableBody');
+            const processDesc = document.getElementById('processDescription');
+            tableBody.innerHTML = "";
+            processDesc.innerHTML = "";
+
+            // Simulasi 3 Kitaran dengan logik belian gram yang nyata (cth: 5g, 1g)
+            for (let i = 1; i <= 3; i++) {
+                let nilaiMarhun = currentGram * hBeli;
+                let loan = nilaiMarhun * pMargin;
+                let upah = (nilaiMarhun / 100) * uKadar * 12;
+                
+                // Cari berapa banyak gram boleh beli (logik belian gram)
+                let gramBolehBeliRaw = loan / hBeli;
+                
+                tableBody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition border-b">
+                        <td class="px-4 py-5">
+                            <span class="font-black text-gray-900 block uppercase text-xs tracking-wide text-yellow-600">KITARAN ${i}</span>
+                            <span class="text-[10px] text-gray-400 italic font-medium">Gadai gram emas sedia ada</span>
+                        </td>
+                        <td class="px-4 py-5 text-right">
+                            <span class="font-black text-blue-600 text-base">+ ${gramBolehBeliRaw.toFixed(2)} g</span>
+                            <span class="block text-[9px] text-gray-400 mt-1">Anggaran kepingan baru</span>
+                        </td>
+                        <td class="px-4 py-5 text-right font-bold text-gray-700">RM ${Math.round(loan).toLocaleString()}</td>
+                        <td class="px-4 py-5 text-right text-red-500 font-bold">RM ${Math.round(upah).toLocaleString()}</td>
+                    </tr>
+                `;
+
+                // Deskripsi Proses dengan contoh konkrit (5g, 1g dll)
+                let contohKepingan = "";
+                if (gramBolehBeliRaw >= 10) {
+                    contohKepingan = `(Cth: boleh beli sekeping 10g atau dua keping 5g)`;
+                } else if (gramBolehBeliRaw >= 5) {
+                    contohKepingan = `(Cth: boleh beli sekeping 5g dan baki dalam gram 1g)`;
+                } else {
+                    contohKepingan = `(Cth: beli kepingan 1g x ${Math.floor(gramBolehBeliRaw)} biji)`;
+                }
+
+                processDesc.innerHTML += `
+                    <div class="flex items-start bg-gray-50 p-3 rounded-lg border-l-4 border-yellow-500">
+                        <span class="font-black text-yellow-600 mr-3 text-xs mt-0.5">STEP ${i}</span>
+                        <p class="text-xs">
+                            Gadai emas anda, Ar-Rahnu bagi tunai <b>RM ${Math.round(loan).toLocaleString()}</b>. 
+                            Guna duit itu untuk beli lagi <b>${gramBolehBeliRaw.toFixed(2)} gram</b> emas. 
+                            <span class="text-blue-500 italic block mt-1">${contohKepingan}</span>
+                        </p>
+                    </div>
+                `;
+
+                totalHutang += loan;
+                totalUpahSetahun += upah;
+                totalGramTerkumpul += gramBolehBeliRaw;
+                currentGram = gramBolehBeliRaw; // Guna emas baru beli untuk gadai seterusnya
+            }
+
+            const hargaMasaDepan = hBeli * (1 + pKenaikan);
+            const nilaiAkhirEmas = totalGramTerkumpul * hargaMasaDepan;
+            const kosKeseluruhan = totalHutang + totalUpahSetahun;
+            const modalTunaiAwal = gAwal * hBeli;
+            const untungBersih = nilaiAkhirEmas - kosKeseluruhan - modalTunaiAwal;
+            const percentageROI = (untungBersih / modalTunaiAwal) * 100;
+
+            // Update UI Summary
+            document.getElementById('resTotalGram').innerText = totalGramTerkumpul.toFixed(2) + " g";
+            document.getElementById('resTotalGramKeping').innerText = `Asal: ${gAwal}g + Gandaan: ${(totalGramTerkumpul - gAwal).toFixed(2)}g`;
+            document.getElementById('resTotalKos').innerText = "RM " + Math.round(kosKeseluruhan).toLocaleString();
+            
+            const resUntung = document.getElementById('resUntung');
+            resUntung.innerText = "RM " + Math.round(untungBersih).toLocaleString();
+            resUntung.className = untungBersih > 0 ? "text-3xl font-black text-green-600" : "text-3xl font-black text-red-600";
+            document.getElementById('resProfitPercent').innerText = `ROI: ${percentageROI.toFixed(1)}% dari modal tunai asal`;
+
+            // Exit Plan Update
+            document.getElementById('exitPrice').innerText = "RM " + Math.round(hargaMasaDepan);
+            document.getElementById('exitGram').innerText = totalGramTerkumpul.toFixed(2);
+            document.getElementById('exitDebt').innerText = Math.round(totalHutang + totalUpahSetahun).toLocaleString();
+            document.getElementById('roiVal').innerText = "RM " + Math.round(untungBersih).toLocaleString();
+
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('placeholder').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
