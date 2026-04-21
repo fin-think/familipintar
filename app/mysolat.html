@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jom Solat - Belajar Rukun & Tertib</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: #e0f2fe;
+            touch-action: manipulation;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        .drop-zone {
+            min-height: 80px;
+            border: 3px dashed #cbd5e1;
+            transition: all 0.3s;
+        }
+
+        .drop-zone.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        .draggable-item {
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .draggable-item:active {
+            cursor: grabbing;
+        }
+
+        .level-card {
+            display: none;
+        }
+
+        .level-card.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-grad {
+            background-image: linear-gradient(to right, #1D976C 0%, #93F9B9  51%, #1D976C  100%);
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;            
+            box-shadow: 0 0 20px #eee;
+        }
+
+        .btn-grad:hover {
+            background-position: right center;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="game-container" class="max-w-2xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border-8 border-yellow-400">
+        
+        <!-- Header -->
+        <div class="bg-yellow-400 p-4 text-center">
+            <h1 class="text-2xl md:text-4xl text-blue-800 tracking-wider">JOM SOLAT!</h1>
+            <div id="progress-bar" class="w-full bg-yellow-200 h-4 rounded-full mt-2 overflow-hidden border-2 border-yellow-600">
+                <div id="progress-fill" class="bg-green-500 h-full transition-all duration-500" style="width: 20%"></div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="level-card active p-6 text-center">
+            <div class="text-6xl mb-4">🕌</div>
+            <h2 class="text-2xl mb-4 text-blue-900">Assalamualaikum Adik-adik!</h2>
+            <p class="mb-6 text-gray-600">Mari kita belajar cara solat dengan betul melalui 5 tahap cabaran hebat!</p>
+            <button onclick="startLevel(1)" class="btn-grad px-10 py-4 rounded-full text-xl font-bold uppercase tracking-widest shadow-lg">Mula Main</button>
+        </div>
+
+        <!-- Level 1: Tertib Wuduk -->
+        <div id="level-1" class="level-card p-6">
+            <h2 class="text-xl font-bold text-center text-blue-700 mb-2">Tahap 1: Susun Tertib Wuduk</h2>
+            <p class="text-center text-sm mb-4">Seret gambar ke kotak mengikut urutan yang betul.</p>
+            
+            <div id="wuduk-options" class="grid grid-cols-3 gap-2 mb-6">
+                <!-- Items will be injected here -->
+            </div>
+            
+            <div id="wuduk-targets" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <!-- Drop zones -->
+            </div>
+
+            <div class="mt-6 flex justify-center">
+                <button onclick="checkLevel1()" class="bg-blue-600 text-white px-8 py-2 rounded-full font-bold">Semak Jawapan</button>
+            </div>
+        </div>
+
+        <!-- Level 2: Kuiz Waktu Solat -->
+        <div id="level-2" class="level-card p-6">
+            <h2 class="text-xl font-bold text-center text-blue-700 mb-4">Tahap 2: Kuiz Waktu Solat</h2>
+            <div id="quiz-2-container">
+                <p id="q2-text" class="text-lg font-bold mb-4 bg-blue-50 p-4 rounded-xl text-center border-2 border-blue-200"></p>
+                <div id="q2-options" class="grid grid-cols-1 gap-3">
+                    <!-- Options -->
+                </div>
+            </div>
+            <div class="mt-4 text-center font-bold text-blue-800">
+                Soalan: <span id="q2-count">1</span>/10
+            </div>
+        </div>
+
+        <!-- Level 3: Tertib Pergerakan Solat -->
+        <div id="level-3" class="level-card p-6">
+            <h2 class="text-xl font-bold text-center text-blue-700 mb-2">Tahap 3: Susun Pergerakan Solat</h2>
+            <p class="text-center text-sm mb-4">Susun dari mula hingga akhir (Takbir ke Tahiyat Akhir).</p>
+            <div id="solat-items" class="flex flex-wrap justify-center gap-2 mb-4"></div>
+            <div id="solat-targets" class="space-y-2"></div>
+            <div class="mt-6 flex justify-center">
+                <button onclick="checkLevel3()" class="bg-blue-600 text-white px-8 py-2 rounded-full font-bold">Semak Urutan</button>
+            </div>
+        </div>
+
+        <!-- Level 4: Padan Pergerakan & Bacaan -->
+        <div id="level-4" class="level-card p-6">
+            <h2 class="text-xl font-bold text-center text-blue-700 mb-4">Tahap 4: Padankan Bacaan</h2>
+            <div class="flex flex-col gap-4">
+                <div id="match-items" class="grid grid-cols-1 gap-4">
+                    <!-- Matching pairs -->
+                </div>
+            </div>
+            <div class="mt-6 flex justify-center">
+                <button onclick="checkLevel4()" class="bg-blue-600 text-white px-8 py-2 rounded-full font-bold">Semak Padanan</button>
+            </div>
+        </div>
+
+        <!-- Level 5: Kuiz Rukun Solat -->
+        <div id="level-5" class="level-card p-6">
+            <h2 class="text-xl font-bold text-center text-blue-700 mb-4">Tahap 5: Kuiz Rukun Solat</h2>
+            <div id="quiz-5-container">
+                <p id="q5-text" class="text-lg font-bold mb-4 bg-purple-50 p-4 rounded-xl text-center border-2 border-purple-200"></p>
+                <div id="q5-options" class="grid grid-cols-1 gap-3">
+                    <!-- Options -->
+                </div>
+            </div>
+            <div class="mt-4 text-center font-bold text-purple-800">
+                Soalan: <span id="q5-count">1</span>/10
+            </div>
+        </div>
+
+        <!-- Win Screen -->
+        <div id="win-screen" class="level-card p-8 text-center bg-gradient-to-b from-yellow-50 to-white">
+            <div class="text-7xl mb-4">🏆</div>
+            <h2 class="text-3xl font-bold text-green-600 mb-2">TAHNIAH!</h2>
+            <p class="text-lg text-gray-700 mb-6">Adik telah berjaya menamatkan semua tahap dengan cemerlang!</p>
+            
+            <div class="border-4 border-dashed border-yellow-400 p-6 rounded-2xl bg-white shadow-inner mb-6">
+                <h3 class="text-xl text-blue-800 uppercase">Sijil Penghargaan</h3>
+                <p class="text-gray-500 my-2">Diberikan kepada:</p>
+                <p class="text-2xl font-bold text-pink-600 underline">Wira Solat Bijak</p>
+                <p class="mt-4 text-sm font-bold">Ganjaran: Pelukan & Hadiah Istimewa daripada Ma & Pa!</p>
+            </div>
+
+            <button onclick="location.reload()" class="bg-blue-500 text-white px-6 py-2 rounded-full">Main Semula</button>
+        </div>
+    </div>
+
+    <!-- UI Feedback Modal (Simple Custom Box) -->
+    <div id="message-box" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-3xl text-center max-w-xs w-full shadow-2xl">
+            <div id="msg-icon" class="text-4xl mb-2"></div>
+            <p id="msg-text" class="text-lg font-bold mb-4 text-gray-800"></p>
+            <button onclick="closeMsg()" class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold">OK!</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let currentLevel = 0;
+        let q2Index = 0;
+        let q5Index = 0;
+        let score2 = 0;
+        let score5 = 0;
+
+        // Level 1 Data
+        const wudukData = [
+            { id: 1, text: "Niat & Basuh Muka", order: 1 },
+            { id: 2, text: "Basuh Tangan hingga Siku", order: 2 },
+            { id: 3, text: "Sapu Sebahagian Kepala", order: 3 },
+            { id: 4, text: "Basuh Kaki hingga Buku Lali", order: 4 }
+        ];
+
+        // Level 2 Data
+        const quiz2Data = [
+            { q: "Berapakah rakaat solat Zohor?", a: ["2", "3", "4"], correct: 2 },
+            { q: "Solat apakah yang dilakukan pada waktu pagi (subuh)?", a: ["Subuh", "Isyak", "Asar"], correct: 0 },
+            { q: "Berapakah rakaat solat Maghrib?", a: ["2", "3", "4"], correct: 1 },
+            { q: "Solat Isyak mempunyai berapa rakaat?", a: ["2", "3", "4"], correct: 2 },
+            { q: "Waktu solat selepas Zohor ialah?", a: ["Maghrib", "Asar", "Subuh"], correct: 1 },
+            { q: "Solat Subuh ada berapa rakaat?", a: ["2", "4", "3"], correct: 0 },
+            { q: "Solat yang paling akhir dalam sehari semalam?", a: ["Maghrib", "Asar", "Isyak"], correct: 2 },
+            { q: "Antara Zohor dan Maghrib ada solat apa?", a: ["Asar", "Subuh", "Isyak"], correct: 0 },
+            { q: "Berapakah jumlah rakaat solat fardu sehari semalam?", a: ["15", "17", "20"], correct: 1 },
+            { q: "Sebelum solat, kita mestilah?", a: ["Makan", "Wuduk", "Tidur"], correct: 1 }
+        ];
+
+        // Level 3 Data
+        const solatTertib = [
+            { id: 't1', text: "Niat & Takbir" },
+            { id: 't2', text: "Berdiri Tegak" },
+            { id: 't3', text: "Rukuk" },
+            { id: 't4', text: "Iktidal" },
+            { id: 't5', text: "Sujud" },
+            { id: 't6', text: "Duduk Antara Dua Sujud" },
+            { id: 't7', text: "Tahiyat Akhir" },
+            { id: 't8', text: "Memberi Salam" }
+        ];
+
+        // Level 4 Data
+        const matchData = [
+            { p: "Angkat Takbir", b: "Allahu Akbar" },
+            { p: "Sujud", b: "Subhana Rabbiyal A'la" },
+            { p: "Rukuk", b: "Subhana Rabbiyal Azim" },
+            { p: "Memberi Salam", b: "Assalamu'alaikum..." }
+        ];
+
+        // Level 5 Data
+        const quiz5Data = [
+            { q: "Rukun solat yang pertama ialah?", a: ["Niat", "Rukuk", "Sujud"], correct: 0 },
+            { q: "Membaca Surah Al-Fatihah itu hukumnya?", a: ["Sunat", "Wajib/Rukun", "Harus"], correct: 1 },
+            { q: "Berapakah jumlah Rukun Solat kesemuanya?", a: ["10", "13", "5"], correct: 1 },
+            { q: "Tertib bermaksud?", a: ["Ikut urutan", "Lompat-lompat", "Suka hati"], correct: 0 },
+            { q: "Rukuk dilakukan dengan keadaan badan?", a: ["Bongkok 90 darjah", "Duduk", "Menonggeng"], correct: 0 },
+            { q: "Niat solat dilakukan di dalam?", a: ["Mulut", "Hati", "Telinga"], correct: 1 },
+            { q: "Membaca Selawat ke atas Nabi dilakukan pada?", a: ["Takbir", "Tahiyat Akhir", "Iktidal"], correct: 1 },
+            { q: "Memberi salam yang pertama adalah rukun?", a: ["Ya", "Tidak", "Sunat sahaja"], correct: 0 },
+            { q: "Berdiri tegak bagi yang mampu adalah rukun?", a: ["Ya", "Bukan", "Saja-saja"], correct: 0 },
+            { q: "Tamaninah bermaksud?", a: ["Berhenti seketika", "Lari laju", "Menyanyi"], correct: 0 }
+        ];
+
+        function showMsg(text, icon = "✨") {
+            document.getElementById('msg-text').innerText = text;
+            document.getElementById('msg-icon').innerText = icon;
+            document.getElementById('message-box').classList.remove('hidden');
+            document.getElementById('message-box').classList.add('flex');
+        }
+
+        function closeMsg() {
+            document.getElementById('message-box').classList.add('hidden');
+            document.getElementById('message-box').classList.remove('flex');
+        }
+
+        function startLevel(lvl) {
+            currentLevel = lvl;
+            document.querySelectorAll('.level-card').forEach(c => c.classList.remove('active'));
+            document.getElementById(`level-${lvl}`).classList.add('active');
+            document.getElementById('progress-fill').style.width = (lvl * 20) + "%";
+
+            if (lvl === 1) initLevel1();
+            if (lvl === 2) loadQuiz2();
+            if (lvl === 3) initLevel3();
+            if (lvl === 4) initLevel4();
+            if (lvl === 5) loadQuiz5();
+        }
+
+        // --- LEVEL 1 LOGIC ---
+        function initLevel1() {
+            const container = document.getElementById('wuduk-options');
+            const targetContainer = document.getElementById('wuduk-targets');
+            container.innerHTML = '';
+            targetContainer.innerHTML = '';
+
+            // Shuffle and show options
+            const shuffled = [...wudukData].sort(() => Math.random() - 0.5);
+            shuffled.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "draggable-item bg-blue-100 p-2 border-2 border-blue-400 rounded-lg text-xs text-center font-bold shadow-sm";
+                div.innerText = item.text;
+                div.draggable = true;
+                div.id = `wuduk-item-${item.id}`;
+                div.addEventListener('dragstart', e => e.dataTransfer.setData('text', item.id));
+                container.appendChild(div);
+            });
+
+            // Create drop zones
+            for(let i=1; i<=4; i++) {
+                const zone = document.createElement('div');
+                zone.className = "drop-zone rounded-xl bg-gray-50 flex flex-col items-center justify-center p-2 text-center text-gray-400 text-xs";
+                zone.innerHTML = `<span>Langkah ${i}</span>`;
+                zone.dataset.step = i;
+                zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+                zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('dragover');
+                    const itemId = e.dataTransfer.getData('text');
+                    const itemData = wudukData.find(d => d.id == itemId);
+                    zone.innerHTML = `<div class="bg-green-100 p-2 border-2 border-green-500 rounded-lg font-bold text-green-800" data-id="${itemId}">${itemData.text}</div>`;
+                });
+                targetContainer.appendChild(zone);
+            }
+        }
+
+        function checkLevel1() {
+            const zones = document.querySelectorAll('#wuduk-targets .drop-zone');
+            let correct = 0;
+            zones.forEach(z => {
+                const inner = z.querySelector('div');
+                if(inner && inner.dataset.id == z.dataset.step) correct++;
+            });
+
+            if(correct === 4) {
+                showMsg("Hebat! Wuduk adik sempurna.", "🌊");
+                setTimeout(() => startLevel(2), 1500);
+            } else {
+                showMsg("Masih salah, cuba lagi ya!", "❌");
+                initLevel1();
+            }
+        }
+
+        // --- LEVEL 2 LOGIC ---
+        function loadQuiz2() {
+            const data = quiz2Data[q2Index];
+            document.getElementById('q2-text').innerText = data.q;
+            document.getElementById('q2-count').innerText = q2Index + 1;
+            const btnContainer = document.getElementById('q2-options');
+            btnContainer.innerHTML = '';
+
+            data.a.forEach((ans, i) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white border-2 border-blue-400 p-3 rounded-xl hover:bg-blue-50 font-bold transition-all";
+                btn.innerText = ans;
+                btn.onclick = () => {
+                    if(i === data.correct) score2++;
+                    q2Index++;
+                    if(q2Index < 10) loadQuiz2();
+                    else {
+                        if(score2 >= 8) {
+                            showMsg(`Bagus! Skor: ${score2}/10. Jom ke tahap seterusnya!`, "⏰");
+                            setTimeout(() => startLevel(3), 1500);
+                        } else {
+                            showMsg(`Skor anda ${score2}/10. Perlu 8 betul untuk lulus. Cuba lagi!`, "🔄");
+                            q2Index = 0; score2 = 0; loadQuiz2();
+                        }
+                    }
+                };
+                btnContainer.appendChild(btn);
+            });
+        }
+
+        // --- LEVEL 3 LOGIC ---
+        function initLevel3() {
+            const itemsCont = document.getElementById('solat-items');
+            const targetCont = document.getElementById('solat-targets');
+            itemsCont.innerHTML = '';
+            targetCont.innerHTML = '';
+
+            const shuffled = [...solatTertib].sort(() => Math.random() - 0.5);
+            shuffled.forEach(item => {
+                const d = document.createElement('div');
+                d.className = "draggable-item bg-orange-100 px-3 py-1 border-2 border-orange-400 rounded-full text-xs font-bold cursor-pointer";
+                d.innerText = item.text;
+                d.draggable = true;
+                d.id = `sitem-${item.id}`;
+                d.addEventListener('dragstart', e => e.dataTransfer.setData('text', item.id));
+                itemsCont.appendChild(d);
+            });
+
+            solatTertib.forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.className = "drop-zone h-12 rounded-xl flex items-center justify-between px-4 text-sm font-bold bg-gray-50 border-2 border-gray-200";
+                row.innerHTML = `<span class="text-gray-300">${idx+1}</span>`;
+                row.dataset.correctId = item.id;
+                row.addEventListener('dragover', e => e.preventDefault());
+                row.addEventListener('drop', e => {
+                    e.preventDefault();
+                    const id = e.dataTransfer.getData('text');
+                    const text = document.getElementById(`sitem-${id}`).innerText;
+                    row.innerHTML = `<span class="text-blue-800">${idx+1}. ${text}</span>`;
+                    row.dataset.currentId = id;
+                });
+                targetCont.appendChild(row);
+            });
+        }
+
+        function checkLevel3() {
+            const zones = document.querySelectorAll('#solat-targets .drop-zone');
+            let ok = true;
+            zones.forEach(z => { if(z.dataset.currentId !== z.dataset.correctId) ok = false; });
+            if(ok) {
+                showMsg("MasyaAllah! Susunan solat yang tepat.", "✨");
+                setTimeout(() => startLevel(4), 1500);
+            } else {
+                showMsg("Ada yang tertukar tu. Cuba lagi!", "❌");
+                initLevel3();
+            }
+        }
+
+        // --- LEVEL 4 LOGIC ---
+        function initLevel4() {
+            const cont = document.getElementById('match-items');
+            cont.innerHTML = '';
+            
+            matchData.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = "flex flex-col border-2 border-pink-200 rounded-2xl p-4 bg-pink-50";
+                div.innerHTML = `
+                    <p class="font-bold text-pink-800 mb-2">Gaya: ${item.p}</p>
+                    <select id="match-${idx}" class="p-2 rounded-lg border-2 border-pink-400 font-bold text-sm">
+                        <option value="">-- Pilih Bacaan --</option>
+                        ${matchData.map(m => `<option value="${m.b}">${m.b}</option>`).sort(() => Math.random() - 0.5).join('')}
+                    </select>
+                `;
+                cont.appendChild(div);
+            });
+        }
+
+        function checkLevel4() {
+            let win = true;
+            matchData.forEach((item, idx) => {
+                const val = document.getElementById(`match-${idx}`).value;
+                if(val !== item.b) win = false;
+            });
+
+            if(win) {
+                showMsg("Hebat! Bacaan adik sangat baik.", "📖");
+                setTimeout(() => startLevel(5), 1500);
+            } else {
+                showMsg("Padanan bacaan ada yang salah. Sila semak semula.", "❌");
+            }
+        }
+
+        // --- LEVEL 5 LOGIC ---
+        function loadQuiz5() {
+            const data = quiz5Data[q5Index];
+            document.getElementById('q5-text').innerText = data.q;
+            document.getElementById('q5-count').innerText = q5Index + 1;
+            const btnContainer = document.getElementById('q5-options');
+            btnContainer.innerHTML = '';
+
+            data.a.forEach((ans, i) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white border-2 border-purple-400 p-3 rounded-xl hover:bg-purple-50 font-bold transition-all";
+                btn.innerText = ans;
+                btn.onclick = () => {
+                    if(i === data.correct) score5++;
+                    q5Index++;
+                    if(q5Index < 10) loadQuiz5();
+                    else {
+                        if(score5 === 10) { // All must be correct
+                            document.querySelectorAll('.level-card').forEach(c => c.classList.remove('active'));
+                            document.getElementById('win-screen').classList.add('active');
+                            document.getElementById('progress-fill').style.width = "100%";
+                        } else {
+                            showMsg(`Alamak, skor anda ${score5}/10. Kena 10/10 baru dapat ganjaran! Cuba lagi ya.`, "🔄");
+                            q5Index = 0; score5 = 0; loadQuiz5();
+                        }
+                    }
+                };
+                btnContainer.appendChild(btn);
+            });
+        }
+
+    </script>
+</body>
+</html>
