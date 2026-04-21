@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myPSIKO</title>
+    <!-- Tailwind CSS untuk Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Transisi untuk progress bar */
+        .progress-bar-transition {
+            transition: width 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-gray-800">
+
+    <div class="min-h-screen flex flex-col justify-between">
+        <!-- KANDUNGAN UTAMA -->
+        <main class="flex-grow flex items-center justify-center p-4">
+            
+            <!-- PAPARAN PENGENALAN (INTRO) -->
+            <div id="intro-view" class="max-w-2xl w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
+                <div class="bg-blue-600 p-8 text-white text-center">
+                    <i data-lucide="clipboard-list" class="w-16 h-16 mx-auto mb-4 opacity-90"></i>
+                    <h1 class="text-4xl font-extrabold mb-2 tracking-tight">myPSIKO</h1>
+                    <p class="text-blue-100">Penilaian Gaya Keibubapaan (Parenting Style)</p>
+                </div>
+                <div class="p-8">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Arahan Ujian:</h2>
+                    <ul class="space-y-3 text-gray-600 mb-8">
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5"></i>
+                            <span>Ujian ini mengandungi <strong id="total-questions">10</strong> soalan pelbagai pilihan.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5"></i>
+                            <span>Tiada jawapan betul atau salah. Jawab dengan jujur berdasarkan diri anda.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5"></i>
+                            <span>Skala: "Sangat Tidak Setuju" hingga "Sangat Setuju".</span>
+                        </li>
+                    </ul>
+                    
+                    <button 
+                        onclick="startQuiz()"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-all hover:shadow-lg flex items-center justify-center text-lg"
+                    >
+                        Mula Menjawab Sekarang
+                        <i data-lucide="chevron-right" class="w-6 h-6 ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PAPARAN KUIZ (QUIZ) -->
+            <div id="quiz-view" class="hidden max-w-3xl w-full flex-col items-center">
+                <!-- Header Utama myPSIKO -->
+                <div class="w-full flex justify-between items-center mb-6">
+                    <div class="font-bold text-2xl text-blue-600 tracking-tight">myPSIKO</div>
+                    <button 
+                        onclick="goHome()" 
+                        class="flex items-center text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200"
+                    >
+                        <i data-lucide="home" class="w-4 h-4 mr-2"></i>
+                        Paparan Utama
+                    </button>
+                </div>
+
+                <!-- Header & Progress -->
+                <div class="w-full mb-8">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 id="quiz-counter" class="text-lg font-semibold text-gray-700">Soalan 1 / 10</h2>
+                        <span id="quiz-answered" class="text-sm font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                            0 Dijawab
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="quiz-progress" class="bg-blue-600 h-2.5 rounded-full progress-bar-transition" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Question Card -->
+                <div class="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 mb-6">
+                    <h3 id="quiz-question-text" class="text-2xl md:text-3xl font-medium text-gray-800 leading-tight mb-8 text-center">
+                        "Memuatkan soalan..."
+                    </h3>
+                    <div id="quiz-options-container" class="space-y-3"></div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="w-full flex justify-between items-center">
+                    <button id="btn-prev" onclick="prevQuestion()" class="flex items-center px-6 py-3 rounded-xl font-medium transition-colors text-gray-400 bg-gray-100 cursor-not-allowed" disabled>
+                        <i data-lucide="chevron-left" class="w-5 h-5 mr-1"></i> Kembali
+                    </button>
+                    <div id="next-action-container"></div>
+                </div>
+            </div>
+
+            <!-- PAPARAN KEPUTUSAN (RESULT) -->
+            <div id="result-view" class="hidden max-w-2xl w-full bg-white rounded-3xl shadow-xl overflow-hidden flex-col">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-10 text-white text-center">
+                    <i data-lucide="user-circle" class="w-20 h-20 mx-auto mb-4 text-blue-100"></i>
+                    <h1 class="text-4xl font-extrabold mb-2 tracking-tight">myPSIKO</h1>
+                    <p class="text-blue-100">Laporan Penilaian Keibubapaan</p>
+                </div>
+                
+                <div class="p-8">
+                    <div class="bg-blue-50 rounded-2xl p-6 text-center border border-blue-100 mb-8">
+                        <p class="text-gray-600 font-medium mb-2">Skor Indeks Keibubapaan Positif</p>
+                        <div id="result-score" class="text-5xl font-extrabold text-blue-600 mb-2">0%</div>
+                        <p id="result-level" class="text-sm text-gray-500 font-bold uppercase tracking-wide">Biasa</p>
+                    </div>
+
+                    <div class="mb-8 space-y-4 text-gray-700 leading-relaxed">
+                        <h3 class="font-semibold text-lg border-b pb-2">Rumusan Ringkas:</h3>
+                        <p id="result-description">Analisis jawapan anda sedang dipaparkan.</p>
+                        <p class="text-xs text-gray-400 italic mt-4">
+                            * Nota: Keputusan ini adalah simulasi janaan automatik dan bukan penilaian klinikal profesional.
+                        </p>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button onclick="goHome()" class="flex-1 bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-semibold py-4 px-6 rounded-xl transition-colors flex items-center justify-center">
+                            <i data-lucide="home" class="w-5 h-5 mr-2"></i> Paparan Utama
+                        </button>
+                        <button onclick="startQuiz()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors flex items-center justify-center">
+                            <i data-lucide="refresh-cw" class="w-5 h-5 mr-2"></i> Cuba Lagi
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- FOOTER YANG DIKEMASKINI -->
+        <footer class="w-full py-8 bg-white border-t border-gray-100 mt-auto">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-600 text-sm md:text-base mb-2 font-medium">
+                    DISCLAIMER: Keputusan ini adalah anggaran berdasarkan input dan bukan hasil sebenar.<p>Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda?
+                </p>
+                <div class="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 text-xs md:text-sm">
+                    <a href="#" class="text-blue-600 hover:underline font-semibold flex items-center">
+                        <i data-lucide="message-square" class="w-4 h-4 mr-1"></i> Hubungi Web Developer
+                    </a>
+                    <span class="hidden md:inline text-gray-300">|</span>
+                    <p class="text-gray-400">
+                        &copy; 2024 <span class="font-bold text-gray-500">HCH</span>. Hak Cipta Terpelihara.
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- LOGIK JAVASCRIPT -->
+    <script>
+        // Inisialisasi ikon Lucide
+        lucide.createIcons();
+
+        const questions = [
+            { id: 1, text: "Saya sentiasa meluangkan masa berkualiti bersama anak-anak setiap hari walaupun sibuk.", trait: "Involvement" },
+            { id: 2, text: "Saya mendengarkan pendapat anak saya dengan teliti walaupun saya tidak bersetuju dengannya.", trait: "Communication" },
+            { id: 3, text: "Saya dapat mengawal emosi dengan baik apabila berhadapan dengan tingkah laku anak yang mencabar.", trait: "EmotionalControl" },
+            { id: 4, text: "Saya menetapkan peraturan yang jelas dan konsisten di dalam rumah.", trait: "Discipline" },
+            { id: 5, text: "Saya kerap memberi pujian dan galakan apabila anak saya menunjukkan usaha yang baik.", trait: "PositiveReinforcement" },
+            { id: 6, text: "Saya memastikan keperluan fizikal, emosi, dan mental anak dipenuhi dengan seimbang.", trait: "Care" },
+            { id: 7, text: "Saya membiarkan anak menyelesaikan masalah mereka sendiri untuk membina sikap berdikari.", trait: "Independence" },
+            { id: 8, text: "Saya terbuka untuk belajar ilmu dan teknik keibubapaan baharu dari pelbagai sumber.", trait: "Openness" },
+            { id: 9, text: "Saya sering berbincang dengan pasangan mengenai cara terbaik untuk mendidik anak-anak.", trait: "Teamwork" },
+            { id: 10, text: "Saya mengelak daripada membandingkan pencapaian anak saya dengan anak-anak orang lain.", trait: "Acceptance" }
+        ];
+
+        const options = [
+            { value: 1, label: "Sangat Tidak Setuju" },
+            { value: 2, label: "Tidak Setuju" },
+            { value: 3, label: "Kurang Pasti" },
+            { value: 4, label: "Setuju" },
+            { value: 5, label: "Sangat Setuju" }
+        ];
+
+        let currentIndex = 0;
+        let answers = {};
+        let isSubmitting = false;
+
+        document.getElementById('total-questions').innerText = questions.length;
+
+        function showView(viewId) {
+            document.getElementById('intro-view').classList.add('hidden');
+            document.getElementById('quiz-view').classList.add('hidden');
+            document.getElementById('result-view').classList.add('hidden');
+            
+            if(viewId === 'quiz-view') {
+                document.getElementById(viewId).classList.remove('hidden');
+                document.getElementById(viewId).classList.add('flex');
+            } else {
+                document.getElementById(viewId).classList.remove('hidden');
+            }
+        }
+
+        function goHome() {
+            currentIndex = 0;
+            answers = {};
+            showView('intro-view');
+        }
+
+        function startQuiz() {
+            currentIndex = 0;
+            answers = {};
+            showView('quiz-view');
+            renderQuiz();
+        }
+
+        function handleAnswer(value) {
+            answers[questions[currentIndex].id] = value;
+            renderQuiz();
+            
+            setTimeout(() => {
+                if (currentIndex < questions.length - 1) {
+                    currentIndex++;
+                    renderQuiz();
+                }
+            }, 300);
+        }
+
+        function nextQuestion() {
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                renderQuiz();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderQuiz();
+            }
+        }
+
+        function renderQuiz() {
+            const currentQ = questions[currentIndex];
+            const currentAnswer = answers[currentQ.id];
+            const answeredCount = Object.keys(answers).length;
+            const progress = (currentIndex / questions.length) * 100;
+            const isAllAnswered = answeredCount === questions.length;
+
+            document.getElementById('quiz-counter').innerText = `Soalan ${currentIndex + 1} / ${questions.length}`;
+            document.getElementById('quiz-answered').innerText = `${answeredCount} Dijawab`;
+            document.getElementById('quiz-progress').style.width = `${progress}%`;
+            document.getElementById('quiz-question-text').innerText = `"${currentQ.text}"`;
+
+            const optionsContainer = document.getElementById('quiz-options-container');
+            optionsContainer.innerHTML = '';
+            
+            options.forEach(opt => {
+                const isSelected = currentAnswer === opt.value;
+                const btnHTML = `
+                    <button
+                        onclick="handleAnswer(${opt.value})"
+                        class="w-full text-left px-6 py-4 rounded-xl border-2 transition-all duration-200 flex items-center justify-between
+                        ${isSelected ? 'border-blue-500 bg-blue-50 shadow-sm' : 'border-gray-200 hover:border-blue-300 hover:bg-slate-50'}"
+                    >
+                        <span class="font-medium text-lg ${isSelected ? 'text-blue-700' : 'text-gray-700'}">${opt.label}</span>
+                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-blue-500' : 'border-gray-300'}">
+                            ${isSelected ? '<div class="w-3 h-3 rounded-full bg-blue-500"></div>' : ''}
+                        </div>
+                    </button>`;
+                optionsContainer.insertAdjacentHTML('beforeend', btnHTML);
+            });
+
+            const btnPrev = document.getElementById('btn-prev');
+            btnPrev.disabled = currentIndex === 0;
+            btnPrev.className = currentIndex === 0 
+                ? "flex items-center px-6 py-3 rounded-xl font-medium text-gray-400 bg-gray-100 cursor-not-allowed"
+                : "flex items-center px-6 py-3 rounded-xl font-medium text-gray-700 bg-white shadow-sm border border-gray-200 hover:bg-gray-50";
+
+            const nextContainer = document.getElementById('next-action-container');
+            if (currentIndex === questions.length - 1) {
+                const submitDisabled = !isAllAnswered || isSubmitting;
+                nextContainer.innerHTML = `
+                    <button onclick="finishQuiz()" ${submitDisabled ? 'disabled' : ''} 
+                        class="flex items-center px-8 py-3 rounded-xl font-medium transition-all ${submitDisabled ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-md transform hover:scale-105'}">
+                        ${isSubmitting ? '<i data-lucide="refresh-cw" class="w-5 h-5 mr-2 animate-spin"></i> Memproses...' : 'Hantar Jawapan <i data-lucide="check-circle" class="w-5 h-5 ml-2"></i>'}
+                    </button>`;
+            } else {
+                nextContainer.innerHTML = `
+                    <button onclick="nextQuestion()" class="flex items-center px-6 py-3 rounded-xl font-medium bg-white shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50">
+                        Seterusnya <i data-lucide="chevron-right" class="w-5 h-5 ml-1"></i>
+                    </button>`;
+            }
+            lucide.createIcons();
+        }
+
+        function finishQuiz() {
+            isSubmitting = true;
+            renderQuiz();
+            setTimeout(() => {
+                isSubmitting = false;
+                calculateAndShowResult();
+            }, 1500);
+        }
+
+        function calculateAndShowResult() {
+            let score = 0;
+            Object.values(answers).forEach(val => score += val);
+            const percentage = Math.round((score / (questions.length * 5)) * 100);
+            
+            document.getElementById('result-score').innerText = `${percentage}%`;
+            
+            let levelText = percentage > 80 ? 'Sangat Tinggi' : (percentage > 60 ? 'Sederhana Tinggi' : 'Biasa');
+            let descText = percentage > 70 
+                ? "Anda menunjukkan tahap kepekaan dan penglibatan keibubapaan yang cemerlang. Anda cenderung membina persekitaran yang positif dan menyokong perkembangan anak-anak dengan sangat baik."
+                : "Anda menunjukkan tahap penglibatan keibubapaan yang sederhana. Anda berada di landasan yang betul, dan mungkin terdapat ruang untuk meneroka teknik komunikasi atau disiplin positif yang baharu.";
+
+            document.getElementById('result-level').innerText = levelText;
+            document.getElementById('result-description').innerText = descText;
+            showView('result-view');
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
