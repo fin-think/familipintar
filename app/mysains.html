@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mySAINS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .correct-bg { background-color: #d1fae5; border-color: #10b981; color: #065f46; }
+        .wrong-bg { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .neutral-bg { background-color: #f8fafc; border-color: #e2e8f0; color: #334155; opacity: 0.6; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 overflow-x-hidden">
+
+    <div id="app-container"></div>
+
+        <footer class="mt-8 text-center text-gray-400 text-xs">
+            <p>Ingin membangunkan kalkulator interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut.</p>
+        </footer>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                id: "t1", name: "Level 1",
+                questions: [
+                    { q: "Antara berikut, yang manakah benda hidup?", opts: ["Batu", "Kucing", "Kereta", "Pensel"], ans: 1, exp: "Kucing memerlukan makanan, bernafas, membesar dan membiak." },
+                    { q: "Kita menggunakan _________ untuk mendengar.", opts: ["Mata", "Hidung", "Telinga", "Lidah"], ans: 2, exp: "Telinga adalah organ deria pendengaran." },
+                    { q: "Bahagian tubuh burung yang membantunya terbang ialah:", opts: ["Sirip", "Sayap", "Kaki", "Ekor"], ans: 1, exp: "Sayap membolehkan burung terbang." },
+                    { q: "Pokok bunga mawar mempunyai batang yang ________.", opts: ["Berduri", "Licin", "Berbulu", "Lembut"], ans: 0, exp: "Duri pada batang mawar berfungsi sebagai perlindungan." },
+                    { q: "Magnet akan menarik objek yang diperbuat daripada:", opts: ["Kertas", "Kaca", "Besi", "Plastik"], ans: 2, exp: "Magnet hanya menarik bahan magnetik seperti besi." },
+                    { q: "Manakah antara berikut menyerap air?", opts: ["Span", "Sudu logam", "Cawan kaca", "Klip kertas"], ans: 0, exp: "Span mempunyai liang-liang halus yang menyerap air." },
+                    { q: "Tanah yang sesuai untuk menanam pokok padi ialah:", opts: ["Tanah pasir", "Tanah liat", "Tanah kebun", "Batu kerikil"], ans: 1, exp: "Tanah liat menakung air dengan baik." },
+                    { q: "Deria rasa dikesan oleh organ:", opts: ["Hidung", "Kulit", "Lidah", "Mata"], ans: 2, exp: "Lidah mengesan rasa manis, masin, masam dan pahit." },
+                    { q: "Haiwan manakah yang mempunyai cangkerang?", opts: ["Kucing", "Siput babi", "Katak", "Burung"], ans: 1, exp: "Cangkerang melindungi badan lembut siput babi." },
+                    { q: "Bunga manakah yang berbau wangi?", opts: ["Bunga mawar", "Rumput", "Paku pakis", "Lumut"], ans: 0, exp: "Bunga mawar mengeluarkan bau untuk menarik agen pendebungaan." }
+                ]
+            },
+            {
+                id: "t2", name: "Level 2",
+                questions: [
+                    { q: "Manusia membiak secara:", opts: ["Bertelur", "Melahirkan anak", "Spora", "Membelah diri"], ans: 1, exp: "Manusia membiak secara melahirkan anak." },
+                    { q: "Haiwan manakah yang bertelur banyak?", opts: ["Katak", "Lembu", "Kucing", "Paus"], ans: 0, exp: "Katak bertelur dalam kuantiti yang banyak di dalam air." },
+                    { q: "Biji benih memerlukan air, udara dan ________ untuk bercambah.", opts: ["Baja", "Tanah", "Suhu yang sesuai", "Cahaya matahari"], ans: 2, exp: "Keperluan asas percambahan ialah air, udara dan suhu sesuai." },
+                    { q: "Keadaan yang membolehkan kita melihat ialah:", opts: ["Gelap", "Terang", "Redup", "Malam"], ans: 1, exp: "Cahaya membolehkan kita melihat objek." },
+                    { q: "Bayang-bayang terbentuk apabila cahaya ________ oleh objek legap.", opts: ["Dibiaskan", "Dihalang", "Dipantulkan", "Diserap"], ans: 1, exp: "Objek legap tidak membenarkan cahaya melaluinya." },
+                    { q: "Komponen yang membekalkan tenaga elektrik:", opts: ["Suis", "Mentol", "Sel kering", "Wayar"], ans: 2, exp: "Sel kering menyimpan tenaga kimia untuk ditukarkan ke elektrik." },
+                    { q: "Mentol tidak menyala jika suis:", opts: ["Ditutup", "Dibuka", "Dipasang", "Ditekan"], ans: 1, exp: "Suis dibuka menyebabkan litar tidak lengkap." },
+                    { q: "Bahan yang membenarkan semua cahaya melaluinya:", opts: ["Lut sinar", "Legap", "Lut cahaya", "Cermin"], ans: 0, exp: "Contoh bahan lut sinar ialah kaca jernih." },
+                    { q: "Gula lebih cepat larut dalam air:", opts: ["Sejuk", "Ais", "Panas", "Biasa"], ans: 2, exp: "Suhu yang tinggi meningkatkan kadar keterlarutan." },
+                    { q: "Tumbesaran tumbuhan menunjukkan pertambahan:", opts: ["Saiz pasu", "Ketinggian", "Warna pasu", "Nama pokok"], ans: 1, exp: "Tumbuhan bertambah tinggi, bilangan daun dan lilitan batang." }
+                ]
+            },
+            {
+                id: "t3", name: "Level 3",
+                questions: [
+                    { q: "Gigi yang digunakan untuk memotong makanan:", opts: ["Taring", "Kacip", "Geraham", "Susu"], ans: 1, exp: "Gigi kacip berfungsi memotong makanan." },
+                    { q: "Pencernaan bermula di bahagian:", opts: ["Perut", "Usus", "Mulut", "Esofagus"], ans: 2, exp: "Makanan mula dihancurkan di mulut dengan bantuan air liur." },
+                    { q: "Haiwan yang makan tumbuhan sahaja:", opts: ["Karnivor", "Herbivor", "Omnivor", "Parasit"], ans: 1, exp: "Herbivor memakan tumbuhan sahaja." },
+                    { q: "Objek yang kurang tumpat daripada air akan:", opts: ["Tenggelam", "Terapung", "Melebur", "Larut"], ans: 1, exp: "Ketumpatan rendah menyebabkan objek terapung." },
+                    { q: "Kertas litmus biru bertukar merah bagi bahan:", opts: ["Asid", "Alkali", "Neutral", "Garam"], ans: 0, exp: "Asid menukarkan litmus biru ke merah." },
+                    { q: "Planet paling hampir dengan Matahari:", opts: ["Bumi", "Zuhrah", "Utarid", "Marikh"], ans: 2, exp: "Utarid adalah planet pertama dalam Sistem Suria." },
+                    { q: "Bumi berputar pada paksinya mengambil masa:", opts: ["1 Jam", "12 Jam", "24 Jam", "1 Tahun"], ans: 2, exp: "Putaran Bumi mengambil masa 24 jam atau satu hari." },
+                    { q: "Sistem takal membantu untuk:", opts: ["Menimbang", "Mengangkat beban", "Menyiram", "Berjalan"], ans: 1, exp: "Takal memudahkan kerja mengangkat beban berat." },
+                    { q: "Bahagian gigi yang paling keras:", opts: ["Dentin", "Saraf", "Enamel", "Gusi"], ans: 2, exp: "Enamel adalah lapisan luar yang melindungi gigi." },
+                    { q: "Haiwan omnivor memakan:", opts: ["Tumbuhan sahaja", "Haiwan sahaja", "Haiwan dan tumbuhan", "Daging sahaja"], ans: 2, exp: "Omnivor mempunyai diet yang pelbagai." }
+                ]
+            },
+            {
+                id: "t4", name: "Level 4",
+                questions: [
+                    { q: "Organ pernafasan bagi pepijat ialah:", opts: ["Peparu", "Insang", "Spirakel", "Kulit lembap"], ans: 2, exp: "Serangga bernafas melalui spirakel." },
+                    { q: "Dada bergerak ke bawah apabila kita:", opts: ["Tarik nafas", "Hembus nafas", "Tahan nafas", "Lari"], ans: 1, exp: "Dada mengempis semasa menghembus nafas." },
+                    { q: "Organ perkumuhan yang menyingkirkan urin:", opts: ["Kulit", "Peparu", "Ginjal", "Jantung"], ans: 2, exp: "Ginjal menapis darah dan menghasilkan urin." },
+                    { q: "Akar tumbuhan bergerak balas terhadap:", opts: ["Cahaya", "Air", "Sentuhan", "Bunyi"], ans: 1, exp: "Akar mencari sumber air dan mengikut graviti." },
+                    { q: "Hasil utama fotosintesis ialah:", opts: ["Oksigen & Kanji", "Nitrogen", "Baja", "Karbon dioksida"], ans: 0, exp: "Tumbuhan menghasilkan oksigen dan kanji (glukosa)." },
+                    { q: "Cahaya bergerak secara:", opts: ["Melengkung", "Lurus", "Beralun", "Bulatan"], ans: 1, exp: "Cahaya sentiasa bergerak lurus jika tiada halangan." },
+                    { q: "Bunyi dihasilkan melalui:", opts: ["Haba", "Getaran", "Lampu", "Kesejukan"], ans: 1, exp: "Getaran objek menghasilkan gelombang bunyi." },
+                    { q: "Bahan konduktor elektrik yang baik:", opts: ["Kayu", "Plastik", "Logam", "Kain"], ans: 2, exp: "Logam membenarkan arus elektrik mengalir melaluinya." },
+                    { q: "Contoh sumber tenaga boleh diperbaharui:", opts: ["Gas asli", "Arang batu", "Solar", "Petroleum"], ans: 2, exp: "Tenaga solar dari matahari tidak akan habis." },
+                    { q: "Unit S.I. bagi panjang ialah:", opts: ["Gram", "Meter", "Liter", "Saat"], ans: 1, exp: "Meter adalah unit standard bagi panjang." }
+                ]
+            },
+            {
+                id: "t5", name: "Level 5",
+                questions: [
+                    { q: "Sistem rangka yang melindungi jantung:", opts: ["Tengkorak", "Tulang rusuk", "Tulang belakang", "Sendi"], ans: 1, exp: "Tulang rusuk melindungi organ dalaman dada." },
+                    { q: "Aliran tenaga dalam siratan makanan bermula dari:", opts: ["Pengguna", "Pengurai", "Pengeluar", "Karnivor"], ans: 2, exp: "Pengeluar (tumbuhan) mendapat tenaga dari matahari." },
+                    { q: "Tenaga kimia tersimpan dalam:", opts: ["Lampu", "Bateri", "Kipas", "Bunyi"], ans: 1, exp: "Makanan dan bateri menyimpan tenaga kimia." },
+                    { q: "Dalam litar selari, jika satu mentol rosak:", opts: ["Semua padam", "Lain tetap menyala", "Litar meletup", "Suis rosak"], ans: 1, exp: "Litar selari mempunyai lebih dari satu laluan arus." },
+                    { q: "Haba menyebabkan cecair:", opts: ["Mengecut", "Mengembang", "Beku", "Sifar"], ans: 1, exp: "Bahan bertambah saiz apabila dipanaskan." },
+                    { q: "Proses air bertukar kepada wap air:", opts: ["Pembekuan", "Penyejatan", "Kondensasi", "Peleburan"], ans: 1, exp: "Penyejatan berlaku di permukaan cecair." },
+                    { q: "Bulan memantulkan cahaya daripada:", opts: ["Bumi", "Matahari", "Bintang", "Marikh"], ans: 1, exp: "Bulan tidak menghasilkan cahaya sendiri." },
+                    { q: "Fasa bulan di mana seluruh permukaannya terang:", opts: ["Anak bulan", "Bulan sabit", "Bulan purnama", "Bulan separa"], ans: 2, exp: "Purnama berlaku apabila Bumi di antara Matahari dan Bulan." },
+                    { q: "Kestabilan sesuatu objek dipengaruhi oleh:", opts: ["Warna", "Ketinggian & Luas tapak", "Harga", "Bau"], ans: 1, exp: "Tapak luas dan pusat graviti rendah meningkatkan kestabilan." },
+                    { q: "Mesin ringkas pada tangga ialah:", opts: ["Roda & gandar", "Satah condong", "Takal", "Gear"], ans: 1, exp: "Satah condong memudahkan pergerakan ke tempat tinggi." }
+                ]
+            },
+            {
+                id: "t6", name: "Level 6",
+                questions: [
+                    { q: "Pusat kawalan sistem saraf:", opts: ["Jantung", "Otak", "Hati", "Peparu"], ans: 1, exp: "Otak menyelaras semua tindakan badan." },
+                    { q: "Mikroorganisma yang digunakan dalam pembuatan roti:", opts: ["Bakteria", "Yis", "Virus", "Alga"], ans: 1, exp: "Yis membebaskan karbon dioksida untuk menaikkan doh." },
+                    { q: "Hubungan simbiosis burung gembala dan kerbau:", opts: ["Parasitisme", "Komensalisme", "Mutualisme", "Persaingan"], ans: 2, exp: "Kedua-duanya mendapat faedah." },
+                    { q: "Haiwan yang pupus:", opts: ["Harimau", "Gajah", "Dinosaurus", "Penyu"], ans: 2, exp: "Dinosaurus sudah tidak wujud lagi di bumi." },
+                    { q: "Daya geseran bertambah jika permukaan:", opts: ["Licin", "Kasar", "Berminyak", "Basah"], ans: 1, exp: "Permukaan kasar meningkatkan cengkaman." },
+                    { q: "Buruj Pari menunjuk ke arah:", opts: ["Utara", "Selatan", "Timur", "Barat"], ans: 1, exp: "Buruj Pari digunakan pelaut untuk arah Selatan." },
+                    { q: "Contoh mesin kompleks:", opts: ["Sudu", "Basikal", "Pembaris", "Skru"], ans: 1, exp: "Basikal terdiri daripada beberapa mesin ringkas." },
+                    { q: "Kaedah pengawetan susu:", opts: ["Pempasteuran", "Penyalaian", "Pemasinan", "Pelilingan"], ans: 0, exp: "Susu dipanaskan kemudian disejukkan dengan segera." },
+                    { q: "Planet paling besar dalam Sistem Suria:", opts: ["Zuhal", "Uranus", "Musytari", "Bumi"], ans: 2, exp: "Musytari mempunyai saiz paling besar." },
+                    { q: "Bahan buangan terbiodegradasi:", opts: ["Plastik", "Kaca", "Sisa makanan", "Logam"], ans: 2, exp: "Sisa makanan boleh diurai oleh mikroorganisma." }
+                ]
+            },
+            {
+                id: "tg1", name: "Level 1",
+                questions: [
+                    { q: "Unit asas benda hidup:", opts: ["Sel", "Tisu", "Organ", "Sistem"], ans: 0, exp: "Sel menjalankan semua fungsi asas kehidupan." },
+                    { q: "Kloroplas terdapat dalam sel:", opts: ["Haiwan", "Tumbuhan", "Bakteria", "Darah"], ans: 1, exp: "Kloroplas diperlukan untuk fotosintesis." },
+                    { q: "Kawal atur persekitaran dalaman badan:", opts: ["Homeostasis", "Respirasi", "Perkumuhan", "Pencernaan"], ans: 0, exp: "Contohnya mengawal suhu badan dan kandungan air." },
+                    { q: "Jirim wujud dalam keadaan:", opts: ["2", "3", "4", "5"], ans: 1, exp: "Pepejal, cecair dan gas." },
+                    { q: "Formula ketumpatan:", opts: ["Jisim x Isi padu", "Jisim / Isi padu", "Isi padu / Jisim", "Jarak / Masa"], ans: 1, exp: "Ketumpatan ialah jisim per unit isi padu." },
+                    { q: "Gas terbanyak di atmosfera:", opts: ["Oksigen", "Nitrogen", "Argon", "Karbon dioksida"], ans: 1, exp: "Nitrogen merangkumi 78% udara." },
+                    { q: "Cermin yang memberi medan penglihatan luas:", opts: ["Satah", "Cembung", "Cekung", "Lut sinar"], ans: 1, exp: "Cermin cembung digunakan di simpang jalan." },
+                    { q: "Unsur yang bersifat logam:", opts: ["Sulfur", "Karbon", "Kuprum", "Klorin"], ans: 2, exp: "Kuprum adalah konduktor haba dan elektrik." },
+                    { q: "Pemejalwapan ialah perubahan:", opts: ["Pepejal ke gas", "Cecair ke gas", "Gas ke cecair", "Pepejal ke cecair"], ans: 0, exp: "Tanpa melalui fasa cecair." },
+                    { q: "Gamet jantan manusia:", opts: ["Ovum", "Sperma", "Zigot", "Embrio"], ans: 1, exp: "Dihasilkan di dalam testis." }
+                ]
+            },
+            {
+                id: "tg2", name: "Level 2",
+                questions: [
+                    { q: "Biodiversiti bermaksud:", opts: ["Kajian sel", "Kepelbagaian hidupan", "Ekosistem darat", "Sains tanah"], ans: 1, exp: "Kekayaan spesies hidupan di bumi." },
+                    { q: "Vertebrata yang berdarah sejuk (Poikilotermal):", opts: ["Burung", "Mamalia", "Reptilia", "Manusia"], ans: 2, exp: "Suhu badan reptilia berubah ikut persekitaran." },
+                    { q: "Nutrien untuk membina sel baru:", opts: ["Karbohidrat", "Lemak", "Protein", "Vitamin"], ans: 2, exp: "Protein penting untuk pertumbuhan dan pembaikan tisu." },
+                    { q: "Kekurangan vitamin A menyebabkan:", opts: ["Skurvi", "Riket", "Rabun malam", "Anemia"], ans: 2, exp: "Vitamin A penting untuk kesihatan mata." },
+                    { q: "Pencernaan protein tamat di:", opts: ["Mulut", "Perut", "Usus kecil", "Usus besar"], ans: 2, exp: "Usus kecil menyerap nutrien ringkas." },
+                    { q: "Vektor demam malaria:", opts: ["Nyamuk Aedes", "Nyamuk Anopheles", "Lalat", "Tikus"], ans: 1, exp: "Anopheles membawa parasit Plasmodium." },
+                    { q: "pH asid:", opts: ["7", "Lebih 7", "Kurang 7", "14"], ans: 2, exp: "Skala pH asid adalah 0 hingga 6." },
+                    { q: "Tindak balas asid + alkali:", opts: ["Peneutralan", "Pembakaran", "Penapaian", "Pemejalwapan"], ans: 0, exp: "Menghasilkan garam dan air." },
+                    { q: "Alat sukat arus elektrik:", opts: ["Voltmeter", "Ammeter", "Termometer", "Barometer"], ans: 1, exp: "Disambung secara bersiri." },
+                    { q: "Planet Zuhal mempunyai:", opts: ["Air cair", "Gelang", "Dua matahari", "Tiada graviti"], ans: 1, exp: "Gelang Zuhal terdiri daripada ais dan debu." }
+                ]
+            },
+            {
+                id: "tg3", name: "Level 3",
+                questions: [
+                    { q: "Saraf tunjang mengawal tindakan:", opts: ["Terkawal", "Refleks", "Berfikir", "Mengingat"], ans: 1, exp: "Tindakan automatik untuk melindungi badan." },
+                    { q: "Kanta mata memfokuskan imej pada:", opts: ["Kornea", "Retina", "Iris", "Sklera"], ans: 1, exp: "Retina mempunyai fotoreseptor." },
+                    { q: "Tapak respirasi sel:", opts: ["Nukleus", "Vakuol", "Mitokondria", "Ribosom"], ans: 2, exp: "Menghasilkan tenaga (ATP)." },
+                    { q: "Salur darah yang membawa darah beroksigen:", opts: ["Arteri", "Vena", "Kapilari", "Injap"], ans: 0, exp: "Kecuali arteri pulmonari." },
+                    { q: "Penderma universal:", opts: ["A", "B", "AB", "O"], ans: 3, exp: "Darah O boleh didermakan kepada semua kumpulan." },
+                    { q: "Tindak balas endotermik:", opts: ["Bebas haba", "Serap haba", "Tiada haba", "Suhu naik"], ans: 1, exp: "Menyerap haba dari persekitaran." },
+                    { q: "Bahan radioaktif dalam perubatan:", opts: ["Uranium", "Kobalt-60", "Plumbum", "Besi"], ans: 1, exp: "Digunakan untuk membunuh sel kanser." },
+                    { q: "Unit rintangan:", opts: ["Volt", "Ampere", "Ohm", "Watt"], ans: 2, exp: "Simbolnya ialah Ω." },
+                    { q: "Matahari dikelaskan sebagai:", opts: ["Planet", "Bintang", "Satelit", "Asteroid"], ans: 1, exp: "Satu bintang saiz sederhana di pusat Sistem Suria." },
+                    { q: "Bahagian luar matahari:", opts: ["Teras", "Korona", "Zon radiasi", "Fotosfera"], ans: 1, exp: "Korona jelas dilihat semasa gerhana penuh." }
+                ]
+            },
+            {
+                id: "tg4", name: "Level 4",
+                questions: [
+                    { q: "Label warna pemadam api serbuk kering:", opts: ["Merah", "Biru", "Krim", "Hitam"], ans: 1, exp: "Biru untuk serbuk kering (ABC)." },
+                    { q: "Bantuan awal kegagalan jantung:", opts: ["Heimlich", "CPR", "Pembalutan", "Ubat"], ans: 1, exp: "Cardiopulmonary Resuscitation." },
+                    { q: "Kelenjar Master:", opts: ["Tiroid", "Pituitari", "Adrenal", "Pankreas"], ans: 1, exp: "Mengawal kelenjar endokrin lain." },
+                    { q: "Kromosom perempuan:", opts: ["44 + XY", "44 + XX", "22 + X", "44 + YY"], ans: 1, exp: "XX menentukan jantina perempuan." },
+                    { q: "Kekurangan kromosom ke-21:", opts: ["Sindrom Turner", "Sindrom Down", "Sindrom Klinefelter", "Buta warna"], ans: 1, exp: "Sebenarnya kelebihan (Trisomi 21)." },
+                    { q: "Logam + Bukan logam:", opts: ["Aloi", "Polimer", "Seramik", "Komposit"], ans: 2, exp: "Seramik tahan haba tinggi." },
+                    { q: "Sifat getah tervulkan:", opts: ["Lembut", "Keras & Kenyal", "Mudah lebur", "Rapuh"], ans: 1, exp: "Mempunyai rangkai silang sulfur." },
+                    { q: "Hukum Newton Pertama berkaitan:", opts: ["Pecutan", "Inersia", "Tindakan-reaksi", "Graviti"], ans: 1, exp: "Kecenderungan objek mengekalkan keadaan asal." },
+                    { q: "Contoh polimer asli:", opts: ["Polietena", "Nilon", "Sutera", "Perspeks"], ans: 2, exp: "Sutera dihasilkan oleh ulat sutera." },
+                    { q: "Diod membenarkan arus mengalir:", opts: ["Dua arah", "Satu arah", "Rawak", "Tidak mengalir"], ans: 1, exp: "Berfungsi sebagai rektifer." }
+                ]
+            },
+            {
+                id: "tg5", name: "Level 5",
+                questions: [
+                    { q: "Mikroorganisma yang mempunyai DNA/RNA sahaja:", opts: ["Bakteria", "Fungi", "Virus", "Alga"], ans: 2, exp: "Hanya membiak dalam sel hidup." },
+                    { q: "Faktor pertumbuhan mikroorganisma:", opts: ["Nutrien", "Kelembapan", "Suhu sesuai", "Semua di atas"], ans: 3, exp: "Memerlukan keadaan optimum." },
+                    { q: "Unit tenaga makanan:", opts: ["Joule", "Kalori", "Gram", "Celsius"], ans: 1, exp: "1 kalori = 4.2 Joule." },
+                    { q: "Penapaian glukosa menghasilkan:", opts: ["Asid", "Etanol", "Garam", "Oksigen"], ans: 1, exp: "Menggunakan yis dalam keadaan anaerob." },
+                    { q: "Lemak tak tepu berasal dari:", opts: ["Lembu", "Kambing", "Tumbuhan", "Mentega"], ans: 2, exp: "Biasanya cecair pada suhu bilik." },
+                    { q: "Ejen pencuci pakaian:", opts: ["Garam", "Deterjen", "Cuka", "Alkohol"], ans: 1, exp: "Berfungsi dalam air liat." },
+                    { q: "Mangkin meningkatkan:", opts: ["Kos", "Kadar tindak balas", "Suhu", "Tekanan"], ans: 1, exp: "Mangkin tidak berubah di akhir eksperimen." },
+                    { q: "Sektor utama Teknologi Hijau:", opts: ["Tenaga", "Pengangkutan", "Bangunan", "Semua benar"], ans: 3, exp: "Merangkumi pelbagai aspek kelestarian." },
+                    { q: "Bahan pencemar udara utama:", opts: ["Oksigen", "Karbon monoksida", "Air", "Argon"], ans: 1, exp: "Dihasilkan oleh pembakaran tidak lengkap." },
+                    { q: "Penderiaan jauh menggunakan:", opts: ["Mikroskop", "Satelit", "Kamera litar", "Radio"], ans: 1, exp: "Mengumpul maklumat dari jauh (angkasa)." }
+                ]
+            }
+        ];
+
+        let state = {
+            view: 'home',
+            currentLevel: null,
+            currentQuestionIndex: 0,
+            score: 0,
+            selectedOption: null,
+            isAnswered: false
+        };
+
+        const container = document.getElementById('app-container');
+
+        function setView(viewName) {
+            state.view = viewName;
+            render();
+        }
+
+        function startLevel(levelId) {
+            const level = quizData.find(l => l.id === levelId);
+            state.currentLevel = level;
+            state.currentQuestionIndex = 0;
+            state.score = 0;
+            state.selectedOption = null;
+            state.isAnswered = false;
+            setView('play');
+        }
+
+        function handleAnswer(index) {
+            if (state.isAnswered) return;
+            state.selectedOption = index;
+            state.isAnswered = true;
+            if (index === state.currentLevel.questions[state.currentQuestionIndex].ans) {
+                state.score++;
+            }
+            render();
+        }
+
+        function handleNext() {
+            if (state.currentQuestionIndex < state.currentLevel.questions.length - 1) {
+                state.currentQuestionIndex++;
+                state.selectedOption = null;
+                state.isAnswered = false;
+                render();
+            } else {
+                setView('result');
+            }
+        }
+
+        function render() {
+            container.innerHTML = '';
+            if (state.view === 'home') renderHome();
+            else if (state.view === 'play') renderPlay();
+            else if (state.view === 'result') renderResult();
+        }
+
+        function renderHome() {
+            const lowLevels = quizData.filter(l => l.id.startsWith('t') && !l.id.startsWith('tg'));
+            const highLevels = quizData.filter(l => l.id.startsWith('tg'));
+
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-screen p-6 fade-in">
+                    <div class="bg-white rounded-2xl shadow-xl p-8 max-w-5xl w-full text-center">
+                        <div class="flex justify-center mb-6">
+                            <div class="bg-blue-600 p-4 rounded-full shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                            </div>
+                        </div>
+                        <h1 class="text-4xl font-extrabold text-slate-800 mb-2">mySAINS</h1>
+                        <p class="text-slate-500 mb-8 text-lg">Pilih tahap untuk bermula. Merangkumi silibus lengkap KPM.</p>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
+                            <div class="bg-blue-50 rounded-xl p-6 border border-blue-100">
+                                <h2 class="text-xl font-bold text-blue-800 mb-4 border-b border-blue-200 pb-2">Sekolah Rendah</h2>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    ${lowLevels.map(l => `
+                                        <button onclick="startLevel('${l.id}')" class="bg-white hover:bg-blue-600 hover:text-white text-blue-700 font-bold py-3 px-2 border border-blue-200 rounded-lg shadow-sm transition-all duration-200 text-sm">
+                                            ${l.name}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="bg-emerald-50 rounded-xl p-6 border border-emerald-100">
+                                <h2 class="text-xl font-bold text-emerald-800 mb-4 border-b border-emerald-200 pb-2">Sekolah Menengah</h2>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    ${highLevels.map(l => `
+                                        <button onclick="startLevel('${l.id}')" class="bg-white hover:bg-emerald-600 hover:text-white text-emerald-700 font-bold py-3 px-2 border border-emerald-200 rounded-lg shadow-sm transition-all duration-200 text-sm">
+                                            ${l.name}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPlay() {
+            const q = state.currentLevel.questions[state.currentQuestionIndex];
+            const total = state.currentLevel.questions.length;
+            const progress = ((state.currentQuestionIndex) / total) * 100;
+
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-screen p-4 fade-in">
+                    <div class="w-full max-w-3xl">
+                        <div class="flex items-center justify-between bg-white rounded-xl shadow-sm p-4 mb-6">
+                            <button onclick="setView('home')" class="text-slate-500 hover:text-slate-800 font-medium flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                Menu
+                            </button>
+                            <div class="text-lg font-bold text-slate-700 bg-slate-100 py-1 px-4 rounded-full">${state.currentLevel.name}</div>
+                            <div class="text-md font-semibold text-blue-600">${state.currentQuestionIndex + 1} / ${total}</div>
+                        </div>
+
+                        <div class="w-full bg-slate-200 rounded-full h-2 mb-6">
+                            <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6 border border-slate-100">
+                            <h2 class="text-2xl sm:text-2xl font-bold text-slate-800 mb-8 leading-tight">${q.q}</h2>
+                            <div class="grid grid-cols-1 gap-4">
+                                ${q.opts.map((opt, idx) => {
+                                    let cls = "bg-slate-50 border-slate-200 text-slate-700 hover:border-blue-300";
+                                    let icon = "";
+                                    if (state.isAnswered) {
+                                        if (idx === q.ans) {
+                                            cls = "correct-bg border-2";
+                                            icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                                        } else if (idx === state.selectedOption) {
+                                            cls = "wrong-bg border-2";
+                                            icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+                                        } else {
+                                            cls = "neutral-bg border-2";
+                                        }
+                                    }
+                                    return `
+                                        <button onclick="handleAnswer(${idx})" ${state.isAnswered ? 'disabled' : ''} class="flex items-center justify-between text-left p-4 rounded-xl border-2 font-bold text-lg transition-all ${cls}">
+                                            <span>${opt}</span>
+                                            ${icon}
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        ${state.isAnswered ? `
+                            <div class="rounded-2xl p-6 mb-6 shadow-sm border-l-8 fade-in ${state.selectedOption === q.ans ? 'bg-emerald-50 border-emerald-500' : 'bg-red-50 border-red-500'}">
+                                <p class="text-slate-700 font-medium"><strong>Ulasan:</strong> ${q.exp}</p>
+                            </div>
+                            <div class="flex justify-end">
+                                <button onclick="handleNext()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center gap-2">
+                                    Seterusnya
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderResult() {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-screen p-6 fade-in text-center">
+                    <div class="bg-white rounded-3xl shadow-2xl p-10 max-w-md w-full">
+                        <h1 class="text-3xl font-black text-slate-800 mb-2">Keputusan</h1>
+                        <p class="text-xl text-slate-500 font-bold mb-6">${state.currentLevel.name}</p>
+                        <div class="text-7xl font-black mb-6 text-blue-600">
+                            ${state.score}<span class="text-2xl text-slate-300">/10</span>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <button onclick="startLevel('${state.currentLevel.id}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all">Cuba Lagi</button>
+                            <button onclick="setView('home')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-4 rounded-xl transition-all">Menu Utama</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.onload = render;
+    </script>
+</body>
+</html>
