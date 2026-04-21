@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myHEALTH</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,700;0,800;1,800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .8; }
+        }
+
+        .hide { display: none; }
+        
+        .danger-text-glow {
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 p-2 md:p-8 text-slate-800">
+
+    <div class="max-w-4xl mx-auto bg-white shadow-2xl rounded-3xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+        
+        <!-- Sidebar Info -->
+        <div class="md:w-1/3 bg-teal-700 p-6 md:p-8 text-white flex flex-col justify-between">
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <i data-lucide="heart-pulse" class="text-teal-300 w-8 h-8"></i>
+                    <h1 class="text-3xl font-black italic tracking-tighter">myHEALTH</h1>
+                </div>
+                <p class="text-teal-100 text-sm leading-relaxed mb-6">
+                    Sistem analisis kesihatan pintar untuk rakyat Malaysia. Dilaraskan mengikut Standard BMI Asia dan statistik penyakit KKM.
+                </p>
+            </div>
+            <div class="hidden md:block text-[10px] text-teal-300/60 uppercase font-bold tracking-widest">
+                Kesihatan Anda, Keutamaan Kami
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- Navigation Tabs -->
+            <div class="flex border-b">
+                <button id="tab-input" onclick="showTab('input')" class="flex-1 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition text-teal-600 border-b-2 border-teal-600 bg-teal-50/30">
+                    Kemasukan Data
+                </button>
+                <button id="tab-results" onclick="showTab('results')" class="flex-1 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition text-slate-400 opacity-50 cursor-not-allowed" disabled>
+                    Keputusan & Analisis
+                </button>
+            </div>
+
+            <div class="p-4 md:p-10 overflow-y-auto max-h-[85vh] md:max-h-[70vh]">
+                
+                <!-- INPUT FORM -->
+                <div id="view-input">
+                    <form id="health-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <section class="space-y-4">
+                                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">Profil Asas</h3>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-600 uppercase">Jantina</label>
+                                        <select id="gender" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-teal-500">
+                                            <option value="lelaki">Lelaki</option>
+                                            <option value="perempuan">Perempuan</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-600 uppercase">Umur</label>
+                                        <input type="number" id="age" required placeholder="Cth: 30" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-teal-500">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-600 uppercase">Berat (kg)</label>
+                                        <input type="number" step="0.1" id="weight" required placeholder="Cth: 75.5" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-teal-500">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-600 uppercase">Tinggi (cm)</label>
+                                        <input type="number" id="height" required placeholder="Cth: 170" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-teal-500">
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="space-y-4">
+                                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">Sejarah & Gaya Hidup</h3>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-600 uppercase">Sejarah Penyakit</label>
+                                    <select id="medicalHistory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-teal-500">
+                                        <option value="tiada">Tiada Sejarah Penyakit</option>
+                                        <option value="Diabetes">Diabetes (Kencing Manis)</option>
+                                        <option value="Kolesterol">Kolesterol Tinggi</option>
+                                        <option value="Darah Tinggi">Darah Tinggi (Hipertensi)</option>
+                                        <option value="Gout">Gout</option>
+                                        <option value="Asma">Asma / Pernafasan</option>
+                                        <option value="Jantung">Penyakit Jantung</option>
+                                        <option value="Buah Pinggang">Penyakit Buah Pinggang</option>
+                                        <option value="Gastrik">Gastrik / GERD</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-600 uppercase">Air Kosong (L)</label>
+                                        <input type="number" step="0.1" id="waterIntake" required placeholder="L/hari" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-teal-500">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-600 uppercase">Air Manis</label>
+                                        <input type="number" id="sugaryDrinks" required placeholder="Gelas/hari" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-teal-500">
+                                    </div>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-600 uppercase">Merokok?</label>
+                                    <div class="flex gap-4 p-2">
+                                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="smoking" value="tidak" checked class="w-4 h-4 accent-teal-600"> Tidak</label>
+                                        <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="smoking" value="ya" class="w-4 h-4 accent-teal-600"> Ya</label>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                        <button type="submit" class="w-full bg-teal-600 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-teal-700 transition flex items-center justify-center gap-2 uppercase tracking-widest">
+                            Jana Laporan Kesihatan <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- RESULTS VIEW -->
+                <div id="view-results" class="hide space-y-8">
+                    
+                    <!-- BMI Main Display -->
+                    <div id="bmi-box" class="p-8 rounded-3xl border-2 text-center transition-all">
+                        <p class="text-xs font-black text-slate-400 uppercase mb-2">Skor BMI Anda</p>
+                        <h4 id="res-bmi" class="font-black mb-1">0.0</h4>
+                        <p id="res-bmi-cat" class="text-xl font-black uppercase tracking-wide">STATUS</p>
+                        <div id="bmi-danger-badge" class="hide mt-4 items-center justify-center gap-2 text-red-700 font-bold bg-red-100 py-2 px-6 rounded-full inline-flex border border-red-200">
+                            <i data-lucide="alert-triangle" class="w-6 h-6"></i> RISIKO KESIHATAN TINGGI
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-teal-50 p-6 rounded-3xl border border-teal-100 text-center">
+                            <p class="text-[10px] font-black text-teal-600 uppercase mb-1">Keperluan Kalori</p>
+                            <h4 class="text-3xl font-black text-teal-700"><span id="res-tdee">0</span> <span class="text-sm">kcal</span></h4>
+                        </div>
+                        <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100 text-center">
+                            <p class="text-[10px] font-black text-blue-600 uppercase mb-1">Sasaran Air</p>
+                            <h4 class="text-3xl font-black text-blue-700"><span id="res-water">0</span> <span class="text-sm">L</span></h4>
+                        </div>
+                    </div>
+
+                    <!-- Alerts Analysis -->
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-4">
+                            <i data-lucide="stethoscope" class="w-4 h-4"></i> Analisis Risiko & Tindakan
+                        </h3>
+                        <div id="alerts-container" class="grid grid-cols-1 gap-6">
+                            <!-- JS injections here -->
+                        </div>
+                    </div>
+
+                    <!-- IMPORTANT DISCLAIMER -->
+                    <div class="bg-slate-50 border-2 border-slate-200 rounded-3xl p-6 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-2 opacity-10">
+                            <i data-lucide="info" class="w-20 h-20"></i>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="bg-slate-200 p-2 rounded-xl">
+                                <i data-lucide="shield-alert" class="w-6 h-6 text-slate-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black text-slate-700 uppercase mb-2">Penafian Penting (Disclaimer)</h4>
+                                <p class="text-xs text-slate-500 leading-relaxed font-medium">
+                                    Hasil pengiraan ini adalah berdasarkan formula matematik am (BMI Asia, Mifflin-St Jeor) dan bertujuan untuk <strong>tujuan pendidikan serta panduan gaya hidup sahaja</strong>. Ia bukan satu diagnosis perubatan yang tepat. Tahap kesihatan sebenar dipengaruhi oleh komposisi otot, kepadatan tulang, dan sejarah klinikal yang lebih mendalam. 
+                                </p>
+                                <p class="text-xs text-slate-500 leading-relaxed font-bold mt-2 italic">
+                                    Jangan membuat keputusan perubatan besar hanya berdasarkan pengiraan ini. Sila rujuk doktor pakar atau pegawai perubatan berdaftar di Klinik Kesihatan/Hospital berdekatan untuk pemeriksaan rasmi.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="showTab('input')" class="w-full py-5 border-2 border-slate-200 rounded-2xl text-slate-400 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i> Masukkan Data Baru
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-8 mb-4 text-center text-gray-400 text-xs px-4">
+        <p class="mb-1">DISCLAIMER: Keputusan ini adalah anggaran berdasarkan input dan bukan jaminan pulangan sebenar.</p>
+        <p>Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut &copy; HCH</p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        const form = document.getElementById('health-form');
+        const tabInput = document.getElementById('tab-input');
+        const tabResults = document.getElementById('tab-results');
+        const viewInput = document.getElementById('view-input');
+        const viewResults = document.getElementById('view-results');
+
+        function showTab(tab) {
+            if (tab === 'input') {
+                viewInput.classList.remove('hide');
+                viewResults.classList.add('hide');
+                tabInput.classList.add('text-teal-600', 'border-b-2', 'border-teal-600', 'bg-teal-50/30');
+                tabInput.classList.remove('text-slate-400');
+                tabResults.classList.add('text-slate-400');
+                tabResults.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600', 'bg-teal-50/30');
+            } else {
+                viewInput.classList.add('hide');
+                viewResults.classList.remove('hide');
+                tabResults.classList.add('text-teal-600', 'border-b-2', 'border-teal-600', 'bg-teal-50/30');
+                tabResults.classList.remove('text-slate-400');
+                tabInput.classList.add('text-slate-400');
+                tabInput.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600', 'bg-teal-50/30');
+            }
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const gender = document.getElementById('gender').value;
+            const age = parseInt(document.getElementById('age').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const medicalHistory = document.getElementById('medicalHistory').value;
+            const waterIntake = parseFloat(document.getElementById('waterIntake').value);
+            const sugaryDrinks = parseInt(document.getElementById('sugaryDrinks').value);
+            const smoking = document.querySelector('input[name="smoking"]:checked').value;
+
+            const bmi = weight / ((height / 100) ** 2);
+            let bmiCat = '';
+            let bmiColClass = '';
+            let isBmiDanger = false;
+
+            if (bmi < 18.5) { bmiCat = 'Kurang Berat'; bmiColClass = 'text-blue-500'; } 
+            else if (bmi < 23.0) { bmiCat = 'Normal (Ideal Asia)'; bmiColClass = 'text-green-600'; } 
+            else if (bmi < 27.5) { bmiCat = 'Pra-Obesiti (Overweight)'; bmiColClass = 'text-yellow-600'; } 
+            else { bmiCat = 'Obesiti (Bahaya)'; bmiColClass = 'text-red-600'; isBmiDanger = true; }
+
+            const bmr = (gender === 'lelaki') ? (10 * weight) + (6.25 * height) - (5 * age) + 5 : (10 * weight) + (6.25 * height) - (5 * age) - 161;
+            const tdee = Math.round(bmr * 1.2); 
+            const waterTarget = (weight * 0.033) + 0.5;
+
+            const bmiElement = document.getElementById('res-bmi');
+            bmiElement.innerText = bmi.toFixed(1);
+            bmiElement.className = `font-black mb-1 ${isBmiDanger ? 'text-7xl text-red-600 animate-pulse-slow' : 'text-6xl ' + bmiColClass}`;
+            
+            document.getElementById('res-bmi-cat').innerText = bmiCat;
+            document.getElementById('res-bmi-cat').className = `text-2xl font-black uppercase ${bmiColClass}`;
+            document.getElementById('res-tdee').innerText = tdee;
+            document.getElementById('res-water').innerText = waterTarget.toFixed(1);
+
+            const bmiBox = document.getElementById('bmi-box');
+            if (isBmiDanger) {
+                bmiBox.className = 'p-10 rounded-3xl border-4 text-center transition-all bg-red-50 border-red-600 scale-105 shadow-2xl shadow-red-200';
+                document.getElementById('bmi-danger-badge').classList.remove('hide');
+                document.getElementById('bmi-danger-badge').classList.add('flex');
+            } else {
+                bmiBox.className = 'p-8 rounded-3xl border-2 text-center transition-all bg-slate-50 border-slate-100';
+                document.getElementById('bmi-danger-badge').classList.add('hide');
+            }
+
+            const alertsContainer = document.getElementById('alerts-container');
+            alertsContainer.innerHTML = '';
+            const alerts = [];
+
+            // Pangkalan data anggaran kos rawatan tahunan di Malaysia
+            const costEstimates = {
+                'Diabetes': 'RM 2,000 - RM 4,500',
+                'Kolesterol': 'RM 1,000 - RM 2,000',
+                'Darah Tinggi': 'RM 1,000 - RM 2,500',
+                'Gout': 'RM 500 - RM 1,500',
+                'Asma': 'RM 1,000 - RM 3,000',
+                'Jantung': 'RM 10,000 - RM 35,000+',
+                'Buah Pinggang': 'RM 30,000 - RM 45,000 (termasuk kos dialisis)',
+                'Gastrik': 'RM 500 - RM 1,200'
+            };
+
+            if (smoking === 'ya') {
+                alerts.push({ type: 'danger', icon: 'ban', title: 'KRITIKAL: MEROKOK', msg: 'Risiko penyakit jantung & strok sangat tinggi. Segera dapatkan khidmat berhenti merokok.' });
+                alerts.push({ type: 'financial', icon: 'banknote', title: 'IMPAK KEWANGAN: MEROKOK', msg: 'Anggaran kos membakar wang: <strong class="text-emerald-400">RM 6,205 setahun</strong> (purata 1 kotak/hari).<br><span class="text-sm font-normal text-slate-300 mt-1 block">Wang ini lebih bernilai jika disalurkan untuk pelaburan masa depan keluarga anda.</span>' });
+            }
+            if (sugaryDrinks > 1) {
+                alerts.push({ type: 'warning', icon: 'wine', title: 'RISIKO DIABETES', msg: `Pengambilan ${sugaryDrinks} gelas air manis sehari meningkatkan risiko kencing manis secara mendadak.` });
+            }
+            if (medicalHistory !== 'tiada') {
+                alerts.push({ type: 'danger', icon: 'alert-circle', title: `STATUS: ${medicalHistory.toUpperCase()}`, msg: `Pesakit ${medicalHistory} wajib mengikuti nasihat diet pakar dan rutin ubat KKM.` });
+                alerts.push({ type: 'financial', icon: 'calculator', title: `ANGGARAN KOS RAWATAN: ${medicalHistory.toUpperCase()}`, msg: `Anggaran kos penjagaan: <strong class="text-emerald-400">${costEstimates[medicalHistory]} setahun</strong>.<br><span class="text-sm font-normal text-slate-300 mt-1 block">Ini termasuk kos ubat-ubatan, rawatan susulan pakar, dan ujian makmal berkala di fasiliti swasta/separa-swasta.</span>` });
+            }
+
+            if (alerts.length > 0) {
+                alerts.forEach(alert => {
+                    const div = document.createElement('div');
+                    const isDanger = alert.type === 'danger';
+                    const isFinancial = alert.type === 'financial';
+                    
+                    let alertClasses = 'bg-amber-100 border-amber-300 text-amber-900';
+                    let iconClasses = 'w-8 h-8';
+                    let titleClasses = 'text-sm text-amber-800';
+                    let msgClasses = 'text-lg font-medium leading-snug';
+
+                    if (isDanger) {
+                        alertClasses = 'bg-red-700 border-red-800 text-white shadow-2xl scale-105 ring-8 ring-red-100 mb-2';
+                        iconClasses = 'w-10 h-10';
+                        titleClasses = 'text-xl text-red-50 danger-text-glow';
+                        msgClasses = 'text-2xl font-bold leading-tight';
+                    } else if (isFinancial) {
+                        alertClasses = 'bg-slate-800 border-slate-900 text-white shadow-xl ring-2 ring-emerald-500/50 mt-2';
+                        iconClasses = 'w-10 h-10 text-emerald-400';
+                        titleClasses = 'text-lg text-emerald-400';
+                        msgClasses = 'text-xl font-medium leading-tight';
+                    }
+
+                    div.className = `flex gap-5 p-6 rounded-3xl border transition-all ${alertClasses}`;
+                    div.innerHTML = `
+                        <div class="shrink-0 pt-1"><i data-lucide="${alert.icon}" class="${iconClasses}"></i></div>
+                        <div>
+                            <h5 class="font-black uppercase tracking-widest mb-2 ${titleClasses}">${alert.title}</h5>
+                            <p class="${msgClasses}">${alert.msg}</p>
+                        </div>
+                    `;
+                    alertsContainer.appendChild(div);
+                });
+            } else {
+                alertsContainer.innerHTML = `<div class="bg-green-100 border-2 border-green-500 p-10 rounded-3xl text-center text-green-800"><i data-lucide="check-circle" class="mx-auto mb-4 w-16 h-16 text-green-600"></i><p class="text-3xl font-black mb-2 uppercase">GAYA HIDUP SIHAT</p><p class="text-xl font-medium">Teruskan momentum ini!</p></div>`;
+            }
+
+            tabResults.disabled = false;
+            tabResults.classList.remove('opacity-50', 'cursor-not-allowed');
+            showTab('results');
+            lucide.createIcons();
+            // Scroll to top of results
+            viewResults.scrollTop = 0;
+        });
+    </script>
+</body>
+</html>
