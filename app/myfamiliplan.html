@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myFAMILIPLAN</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+
+    <script>
+        function familyApp() {
+            return {
+                targetYear: new Date().getFullYear(),
+                currentYear: new Date().getFullYear(),
+                me: { y: '1985', m: '5', d: '15' },
+                spouse: { y: '1987', m: '8', d: '20' },
+                children: [],
+
+                init() {
+                    this.$nextTick(() => {
+                        lucide.createIcons();
+                    });
+                    
+                    this.$watch('children', () => {
+                        this.$nextTick(() => lucide.createIcons());
+                    });
+                },
+
+                setToday(person) {
+                    const now = new Date();
+                    const y = now.getFullYear().toString();
+                    const m = (now.getMonth() + 1).toString();
+                    const d = now.getDate().toString();
+                    
+                    if (person === 'me') {
+                        this.me = { y, m, d };
+                    } else if (person === 'spouse') {
+                        this.spouse = { y, m, d };
+                    }
+                },
+
+                getAge(birthYear) {
+                    if (!birthYear || birthYear.toString().length < 4) return 0;
+                    return parseInt(this.targetYear) - parseInt(birthYear);
+                },
+
+                getAgeAtYear(birthYear, year) {
+                    if (!birthYear || !year || birthYear.toString().length < 4) return 0;
+                    return parseInt(year) - parseInt(birthYear);
+                },
+
+                getGrandchildAge(child) {
+                    if (!child.y || !child.grandchildAge || child.y.toString().length < 4) return -1;
+                    const grandchildBirthYear = parseInt(child.y) + parseInt(child.grandchildAge);
+                    return parseInt(this.targetYear) - grandchildBirthYear;
+                },
+
+                getTotalWeddingCost() {
+                    return this.children.reduce((sum, child) => sum + (parseInt(child.weddingCost) || 0), 0);
+                },
+
+                formatMoney(amount) {
+                    return new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR', minimumFractionDigits: 0 }).format(amount);
+                },
+
+                calculateMonthlySaving(cost, marriageYear) {
+                    const yearsToWait = marriageYear - this.currentYear;
+                    const monthsToWait = yearsToWait * 12;
+                    if (monthsToWait <= 0) return 0;
+                    return cost / monthsToWait;
+                },
+
+                addChild() {
+                    this.children.push({
+                        id: Date.now(),
+                        y: '2015',
+                        m: '1',
+                        d: '1',
+                        showPlanning: false,
+                        marriageAge: 25,
+                        grandchildAge: 28,
+                        weddingCost: 20000
+                    });
+                },
+
+                removeChild(id) {
+                    this.children = this.children.filter(c => c.id !== id);
+                }
+            };
+        }
+    </script>
+    
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans pb-20">
+
+    <div x-data="familyApp()" x-cloak>
+        
+        <!-- Header -->
+        <header class="bg-green-700 text-white p-4 sticky top-0 z-50 shadow-md">
+            <div class="max-w-md mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="bg-white text-green-700 px-2 py-1 rounded-md font-black text-xl shadow-inner">my</div>
+                    <h1 class="text-2xl font-black tracking-tighter">FAMILIPLAN</h1>
+                </div>
+                <div class="flex flex-col items-end">
+                    <span class="text-[10px] font-bold text-green-200 uppercase tracking-widest leading-none">Planner</span>
+                    <span class="text-[10px] font-bold text-white uppercase leading-none">HTML v2.7</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Slider Simulasi -->
+        <div class="bg-white border-b p-4 sticky top-[64px] z-40 shadow-sm">
+            <div class="max-w-md mx-auto">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-black text-gray-400 uppercase flex items-center gap-1.5">
+                        <i data-lucide="clock" class="w-4 h-4 text-green-600"></i> Simulasi Umur Tahun:
+                    </span>
+                    <div class="bg-green-50 px-4 py-1 rounded-full border border-green-100">
+                        <span class="text-green-700 font-black text-xl" x-text="targetYear"></span>
+                    </div>
+                </div>
+                <input 
+                    type="range" min="2024" max="2085" 
+                    x-model="targetYear"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                >
+                <div class="flex justify-between text-[10px] text-gray-400 mt-2 font-black">
+                    <span>SEKARANG</span><span>2040</span><span>2060</span><span>2080</span>
+                </div>
+            </div>
+        </div>
+
+        <main class="max-w-md mx-auto p-4">
+            
+            <!-- Analisis Peribadi & Keluarga -->
+            <section class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 mb-6">
+                
+                <div class="space-y-6 mb-8">
+                    <div class="date-group">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-gray-600 text-[11px] font-black uppercase tracking-wider">Tarikh Lahir Saya</label>
+                            <button @click="setToday('me')" class="text-[10px] font-bold text-red-600 uppercase">Today</button>
+                        </div>
+                        <div class="flex gap-2 items-end">
+                            <div class="flex-1 text-center">
+                                <div class="text-[10px] text-gray-400 uppercase mb-0.5">yyyy</div>
+                                <input type="number" x-model="me.y" class="w-full border-b-2 border-gray-200 focus:border-green-600 outline-none text-center text-xl font-mono p-1 bg-transparent">
+                            </div>
+                            <span class="text-gray-300 mb-2 font-bold">-</span>
+                            <div class="w-16 text-center">
+                                <div class="text-[10px] text-gray-400 uppercase mb-0.5">mm</div>
+                                <input type="number" x-model="me.m" class="w-full border-b-2 border-gray-200 focus:border-green-600 outline-none text-center text-xl font-mono p-1 bg-transparent">
+                            </div>
+                            <span class="text-gray-300 mb-2 font-bold">-</span>
+                            <div class="w-16 text-center">
+                                <div class="text-[10px] text-gray-400 uppercase mb-0.5">dd</div>
+                                <input type="number" x-model="me.d" class="w-full border-b-2 border-gray-200 focus:border-green-600 outline-none text-center text-xl font-mono p-1 bg-transparent">
+                            </div>
+                            <div class="text-red-600 mb-2 ml-2 opacity-50"><i data-lucide="calendar" class="w-5 h-5"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="date-group">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-gray-600 text-[11px] font-black uppercase tracking-wider">Tarikh Lahir Pasangan</label>
+                            <button @click="setToday('spouse')" class="text-[10px] font-bold text-red-600 uppercase">Today</button>
+                        </div>
+                        <div class="flex gap-2 items-end">
+                            <div class="flex-1">
+                                <input type="number" x-model="spouse.y" class="w-full border-b-2 border-gray-200 focus:border-pink-500 outline-none text-center text-xl font-mono p-1 bg-transparent">
+                            </div>
+                            <span class="text-gray-300 mb-2 font-bold">-</span>
+                            <div class="w-16">
+                                <input type="number" x-model="spouse.m" class="w-full border-b-2 border-gray-200 focus:border-pink-500 outline-none text-center text-xl font-mono p-1 bg-transparent">
+                            </div>
+                            <span class="text-gray-300 mb-2 font-bold">-</span>
+                            <div class="w-16">
+                                <input type="number" x-model="spouse.d" class="w-full border-b-2 border-gray-200 focus:border-pink-500 outline-none text-center text-xl font-mono p-1 bg-transparent">
+                            </div>
+                            <div class="text-pink-500 mb-2 ml-2 opacity-50"><i data-lucide="calendar" class="w-5 h-5"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-5 border-t border-gray-100">
+                    <div class="flex items-center gap-2 mb-4 text-xs font-black text-gray-400 uppercase">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-green-600"></i> Analisis Ringkas <span x-text="targetYear"></span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-2xl border border-blue-200 shadow-sm">
+                            <div class="text-[10px] font-bold text-blue-600 uppercase mb-1">Saya</div>
+                            <div class="text-2xl font-black text-blue-900"><span x-text="getAge(me.y)"></span> <span class="text-xs font-bold">Thn</span></div>
+                        </div>
+                        <div class="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-2xl border border-pink-200 shadow-sm">
+                            <div class="text-[10px] font-bold text-pink-600 uppercase mb-1">Pasangan</div>
+                            <div class="text-2xl font-black text-pink-900"><span x-text="getAge(spouse.y)"></span> <span class="text-xs font-bold">Thn</span></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <template x-for="(child, index) in children" :key="child.id">
+                            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex justify-between items-center shadow-sm">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-green-100 text-green-700 rounded-lg flex items-center justify-center font-black text-xs" x-text="'A' + (index+1)"></div>
+                                    <div>
+                                        <div class="text-[10px] font-bold text-gray-500 uppercase" x-text="'Anak #' + (index+1)"></div>
+                                        <div class="font-black text-gray-800"><span x-text="getAge(child.y)"></span> <span class="text-[10px] font-normal">Tahun</span></div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[10px] font-bold text-pink-500 uppercase">Cucu</div>
+                                    <template x-if="getGrandchildAge(child) >= 0">
+                                        <div class="font-black text-pink-700"><span x-text="getGrandchildAge(child)"></span> <span class="text-[10px] font-normal">Thn</span></div>
+                                    </template>
+                                    <template x-if="getGrandchildAge(child) < 0">
+                                        <div class="text-[10px] font-bold text-gray-300 italic">Belum Lahir</div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profil Anak Section -->
+            <div class="flex items-center justify-between mb-4 mt-8 px-2">
+                <h2 class="font-black text-gray-800 uppercase tracking-tighter flex items-center gap-2 text-lg">
+                    <i data-lucide="baby" class="w-5 h-5 text-green-600"></i> Profil Cahaya Mata
+                </h2>
+                <button @click="addChild()" class="bg-green-600 text-white px-5 py-2.5 rounded-full flex items-center gap-2 text-xs font-black shadow-lg hover:bg-green-700 active:scale-95 transition-all">
+                    <i data-lucide="plus" class="w-4 h-4"></i> TAMBAH
+                </button>
+            </div>
+
+            <template x-for="(child, index) in children" :key="child.id">
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+                    <div class="bg-gray-50 p-4 flex justify-between items-center border-b">
+                        <span class="font-black text-gray-700 uppercase text-xs" x-text="'ANAK #' + (index + 1)"></span>
+                        <button @click="removeChild(child.id)" class="text-red-300 hover:text-red-500 transition-colors">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="mb-6">
+                            <label class="text-gray-600 text-[11px] font-black uppercase tracking-wider block mb-2">Tarikh Lahir</label>
+                            <div class="flex gap-2 items-end">
+                                <div class="flex-1">
+                                    <input type="number" x-model="child.y" class="w-full border-b-2 border-gray-200 focus:border-green-600 outline-none text-center text-xl font-mono p-1 bg-transparent">
+                                </div>
+                                <span class="text-gray-300 mb-2 font-bold">-</span>
+                                <div class="w-16">
+                                    <input type="number" x-model="child.m" class="w-full border-b-2 border-gray-200 focus:border-green-600 outline-none text-center text-xl font-mono p-1 bg-transparent">
+                                </div>
+                                <span class="text-gray-300 mb-2 font-bold">-</span>
+                                <div class="w-16">
+                                    <input type="number" x-model="child.d" class="w-full border-b-2 border-gray-200 focus:border-green-600 outline-none text-center text-xl font-mono p-1 bg-transparent">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 mb-6">
+                            <label class="text-[10px] font-black text-yellow-700 uppercase block mb-1 tracking-wider">Bajet Perkahwinan (RM)</label>
+                            <div class="flex items-center gap-2">
+                                <span class="font-black text-yellow-900 text-lg">RM</span>
+                                <input type="number" x-model="child.weddingCost" class="w-full font-black text-yellow-900 text-xl outline-none bg-transparent" placeholder="20000">
+                            </div>
+                        </div>
+
+                        <button 
+                            @click="child.showPlanning = !child.showPlanning"
+                            :class="child.showPlanning ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-indigo-600 border-dashed border-indigo-200 hover:bg-indigo-50'"
+                            class="w-full py-3 rounded-2xl text-[11px] font-black flex items-center justify-center gap-2 transition-all border-2"
+                        >
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            <span x-text="child.showPlanning ? 'TUTUP RANCANG' : 'RANCANG MASA DEPAN'"></span>
+                        </button>
+
+                        <div x-show="child.showPlanning" x-transition class="mt-4 p-5 bg-indigo-50 rounded-2xl border border-indigo-100 space-y-5">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white p-3 rounded-xl shadow-sm border border-indigo-100">
+                                    <label class="text-[9px] font-black text-gray-400 uppercase block mb-1">Anggar Umur Kahwin</label>
+                                    <input type="number" x-model="child.marriageAge" class="w-full font-black text-indigo-900 text-lg outline-none bg-transparent">
+                                </div>
+                                <div class="bg-white p-3 rounded-xl shadow-sm border border-indigo-100">
+                                    <label class="text-[9px] font-black text-gray-400 uppercase block mb-1">Anggar Umur Dpt Cucu</label>
+                                    <input type="number" x-model="child.grandchildAge" class="w-full font-black text-indigo-900 text-lg outline-none bg-transparent">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- ANALISIS PERSARAAN & KEWANGAN (HIJAU) -->
+            <section class="mt-12 bg-gradient-to-br from-green-800 to-green-950 text-white p-8 rounded-[40px] shadow-2xl relative overflow-hidden border-t-4 border-green-400">
+                <div class="absolute -top-10 -right-10 opacity-10">
+                    <i data-lucide="briefcase" style="width: 180px; height: 180px;"></i>
+                </div>
+                <div class="relative z-10">
+                    <h3 class="text-xl font-black mb-6 flex items-center gap-3">
+                        <i data-lucide="briefcase" class="text-green-300 w-6 h-6"></i> Analisis Persaraan & Kewangan
+                    </h3>
+                    
+                    <div class="space-y-6">
+                        <!-- Ringkasan Pencen -->
+                        <div class="flex justify-between items-end bg-white/10 p-5 rounded-3xl border border-white/10 backdrop-blur-sm">
+                            <div>
+                                <div class="text-[10px] font-black text-green-300 uppercase mb-1 tracking-wider">Tahun Pencen (Umur 60)</div>
+                                <div class="text-4xl font-black text-white" x-text="parseInt(me.y) + 60"></div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[10px] font-black text-green-300 uppercase mb-1 tracking-wider">Umur Pasangan</div>
+                                <div class="text-2xl font-black text-white" x-text="getAgeAtYear(spouse.y, parseInt(me.y) + 60) + ' Thn'"></div>
+                            </div>
+                        </div>
+
+                        <!-- Analisis Perkahwinan Anak -->
+                        <div class="space-y-4">
+                            <div class="text-[11px] font-black text-green-400 uppercase tracking-widest ml-1">Jadual Dana Perkahwinan Anak:</div>
+                            
+                            <template x-for="(child, i) in children" :key="child.id">
+                                <div class="bg-black/30 p-5 rounded-3xl border border-white/10">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <span class="font-black text-green-300 uppercase text-[10px]" x-text="'ANAK #' + (i+1)"></span>
+                                        <span class="bg-green-600 text-white px-2 py-0.5 rounded text-[9px] font-bold" x-text="'Tahun ' + (parseInt(child.y) + parseInt(child.marriageAge || 0))"></span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <div class="text-[9px] text-green-400 uppercase font-bold">Anggaran Kos</div>
+                                            <div class="font-black text-lg text-white" x-text="formatMoney(child.weddingCost)"></div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-[9px] text-yellow-400 uppercase font-bold">Simpanan Bulanan</div>
+                                            <div class="font-black text-lg text-yellow-400">
+                                                <span x-text="calculateMonthlySaving(child.weddingCost, parseInt(child.y) + parseInt(child.marriageAge || 0)) > 0 ? formatMoney(calculateMonthlySaving(child.weddingCost, parseInt(child.y) + parseInt(child.marriageAge || 0))) : 'Selesai'"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-3 pt-3 border-t border-white/5 text-[10px] text-green-100/60">
+                                        Baki masa: <span class="font-bold text-green-100" x-text="(parseInt(child.y) + parseInt(child.marriageAge || 0)) - currentYear"></span> Tahun lagi.
+                                        Umur anda masa itu: <span class="font-bold text-green-100" x-text="getAgeAtYear(me.y, parseInt(child.y) + parseInt(child.marriageAge || 0))"></span> Thn.
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="children.length === 0">
+                                <div class="bg-black/20 p-4 rounded-2xl text-center text-xs italic text-green-200/50">
+                                    Tambah profil anak untuk mulakan perancangan kewangan.
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Ringkasan Keseluruhan -->
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/10 text-[10px] text-green-100 leading-tight">
+                            <div class="flex justify-between mb-2">
+                                <span>Total Bajet Perkahwinan:</span>
+                                <span class="font-black text-white" x-text="formatMoney(getTotalWeddingCost())"></span>
+                            </div>
+                            <div class="text-xs italic opacity-60">
+                                💡 Merancang lebih awal membantu anda mengurangkan beban hutang di masa hadapan. Angka simpanan di atas adalah jika anda bermula pada bulan ini.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="text-center mt-8 text-[10px] font-bold text-gray-400 uppercase tracking-widest p-6 bg-white border-t">
+            DISCLAIMER: Pengiraan ini hanyalah anggaran berdasarkan input anda. <p class="mt-2 tracking-normal capitalize font-normal italic">Ingin membina perancang kewangan khusus untuk organisasi anda? © HCH 2026</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
