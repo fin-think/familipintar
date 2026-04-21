@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jom Belajar Al-Fatihah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f0fdf4;
+        }
+        .arabic {
+            font-family: 'Amiri', serif;
+            direction: rtl;
+        }
+        .btn-green {
+            background-color: #22c55e;
+            color: white;
+            transition: all 0.3s;
+        }
+        .btn-green:hover {
+            background-color: #16a34a;
+            transform: scale(1.05);
+        }
+        .card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .drop-zone {
+            min-height: 50px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div id="app" class="max-w-3xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-green-600 mb-2">Jom Belajar Surah Al-Fatihah! 🌟</h1>
+            <p class="text-gray-600">Mari mengenal kalam Allah dengan mudah dan ceria.</p>
+        </header>
+
+        <!-- Navigation Buttons -->
+        <div class="flex flex-wrap justify-center gap-4 mb-8">
+            <button onclick="showSection('home')" class="btn-green px-6 py-2 rounded-full font-bold">Laman Utama</button>
+            <button onclick="startUjian1()" class="btn-green px-6 py-2 rounded-full font-bold">Ujian 1: Isi Tempat Kosong</button>
+            <button onclick="startUjian2()" class="btn-green px-6 py-2 rounded-full font-bold">Ujian 2: Susun Ayat</button>
+            <button onclick="startUjian3()" class="btn-green px-6 py-2 rounded-full font-bold">Ujian 3: Padan Ayat</button>
+        </div>
+
+        <!-- Section: Home (Full Surah) -->
+        <section id="home" class="card p-6">
+            <h2 class="text-2xl font-bold text-center text-green-700 mb-6">Bacaan & Terjemahan</h2>
+            <div id="surah-list" class="space-y-6">
+                <!-- Content injected by JS -->
+            </div>
+        </section>
+
+        <!-- Section: Ujian 1 -->
+        <section id="ujian1" class="card p-6 hidden">
+            <h2 class="text-2xl font-bold text-center text-blue-600 mb-4">Ujian 1: Isi Tempat Kosong</h2>
+            <p class="text-center mb-6 text-gray-500">Klik pada perkataan Arab yang betul!</p>
+            <div id="u1-content" class="space-y-8 mb-8"></div>
+            <div id="u1-options" class="flex flex-wrap justify-center gap-3 border-t pt-6"></div>
+        </section>
+
+        <!-- Section: Ujian 2 -->
+        <section id="ujian2" class="card p-6 hidden">
+            <h2 class="text-2xl font-bold text-center text-orange-600 mb-4">Ujian 2: Susun Terjemahan</h2>
+            <p class="text-center mb-6 text-gray-500 text-sm">Seret kotak terjemahan ke dalam petak ikut turutan ayat 1-7.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div id="u2-slots" class="space-y-3"></div>
+                <div id="u2-options" class="flex flex-wrap gap-2 content-start"></div>
+            </div>
+            <button onclick="checkUjian2()" class="mt-8 w-full bg-orange-500 text-white py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-transform">Semak Jawapan</button>
+        </section>
+
+        <!-- Section: Ujian 3 -->
+        <section id="ujian3" class="card p-6 hidden">
+            <h2 class="text-2xl font-bold text-center text-purple-600 mb-4">Ujian 3: Padankan Ayat</h2>
+            <p class="text-center mb-6 text-gray-500">Pilih ayat Arab, kemudian cari terjemahannya.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="u3-content">
+                <div id="u3-arabic" class="space-y-3"></div>
+                <div id="u3-malay" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- Feedback Modal -->
+        <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+            <div class="bg-white p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl">
+                <div id="modal-icon" class="text-6xl mb-4"></div>
+                <h3 id="modal-title" class="text-2xl font-bold mb-2"></h3>
+                <p id="modal-msg" class="text-gray-600 mb-6"></p>
+                <button id="modal-btn" onclick="closeModal()" class="btn-green px-8 py-2 rounded-full font-bold w-full shadow-lg">Teruskan</button>
+            </div>
+        </div>
+    </div>
+
+        <footer class="mt-8 text-center text-gray-400 text-xs">
+            <p>Ingin membangunkan ujian interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut.</p>
+        </footer>
+    </div>
+
+    <script>
+        const surahData = [
+            { id: 1, arab: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", malay: "Dengan nama Allah, Yang Maha Pemurah, lagi Maha Mengasihani.", missing: "اللَّهِ", options: ["اللَّهِ", "الْعَالَمِينَ", "نَسْتَعِينُ"] },
+            { id: 2, arab: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ", malay: "Segala puji tertentu bagi Allah, Tuhan pemelihara sekalian alam.", missing: "الْعَالَمِينَ", options: ["الرَّحِيمِ", "الْعَالَمِينَ", "مَالِكِ"] },
+            { id: 3, arab: "الرَّحْمَٰنِ الرَّحِيمِ", malay: "Yang Maha Pemurah, lagi Maha Mengasihani.", missing: "الرَّحِيمِ", options: ["نَسْتَعِينُ", "الدِّينِ", "الرَّحِيمِ"] },
+            { id: 4, arab: "مَالِكِ يَوْمِ الدِّينِ", malay: "Yang Menguasai pemerintahan hari Pembalasan.", missing: "الدِّينِ", options: ["الدِّينِ", "الصِّرَاطَ", "أَنْعَمْتَ"] },
+            { id: 5, arab: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ", malay: "Engkaulah sahaja yang kami sembah, dan kepada Engkaulah sahaja kami memohon pertolongan.", missing: "نَسْتَعِينُ", options: ["الْمُسْتَقِيمَ", "نَسْتَعِينُ", "الْمَغْضُوبِ"] },
+            { id: 6, arab: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ", malay: "Tunjukilah kami jalan yang lurus.", missing: "الْمُسْتَقِيمَ", options: ["الْمُسْتَقِيمَ", "الضَّالِّينَ", "عَلَيْهِمْ"] },
+            { id: 7, arab: "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ", malay: "Iaitu jalan orang-orang yang Engkau telah kurniakan nikmat kepada mereka, bukan (jalan) orang-orang yang dimurkai ke atas mereka, dan bukan pula (jalan) orang-orang yang sesat.", missing: "الضَّالِّينَ", options: ["أَنْعَمْتَ", "الْمَغْضُوبِ", "الضَّالِّينَ"] }
+        ];
+
+        let nextAction = null;
+
+        function showSection(id) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        // Initialize Home
+        function initHome() {
+            const container = document.getElementById('surah-list');
+            container.innerHTML = surahData.map(item => `
+                <div class="border-b pb-4 last:border-0">
+                    <div class="flex items-center gap-4 mb-2">
+                        <span class="bg-green-100 text-green-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">${item.id}</span>
+                        <p class="arabic text-3xl text-right w-full leading-relaxed">${item.arab}</p>
+                    </div>
+                    <p class="text-gray-600 text-xs italic ml-12 leading-relaxed">${item.malay}</p>
+                </div>
+            `).join('');
+        }
+
+        // Ujian 1 Logic
+        let currentU1Index = 0;
+        function startUjian1() {
+            currentU1Index = 0;
+            showSection('ujian1');
+            renderUjian1();
+        }
+
+        function renderUjian1() {
+            const item = surahData[currentU1Index];
+            const content = document.getElementById('u1-content');
+            const options = document.getElementById('u1-options');
+            
+            content.innerHTML = `
+                <div class="text-center">
+                    <span class="text-xs font-bold text-blue-500 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full">Ayat ${item.id}</span>
+                    <p class="arabic text-4xl mt-6 leading-loose">
+                        ${item.arab.replace(item.missing, '<span class="border-b-4 border-blue-400 px-6 py-1 inline-block bg-blue-50 rounded animate-pulse">...</span>')}
+                    </p>
+                </div>
+            `;
+
+            const shuffledOptions = [...item.options].sort(() => Math.random() - 0.5);
+            options.innerHTML = shuffledOptions.map(opt => `
+                <button onclick="checkU1('${opt}')" class="bg-white border-2 border-blue-200 hover:border-blue-500 px-6 py-3 rounded-2xl font-bold text-xl transition-all shadow-sm hover:shadow-md active:scale-95">
+                    ${opt}
+                </button>
+            `).join('');
+        }
+
+        function checkU1(choice) {
+            if (choice === surahData[currentU1Index].missing) {
+                if (currentU1Index < surahData.length - 1) {
+                    currentU1Index++;
+                    renderUjian1();
+                } else {
+                    nextAction = startUjian2;
+                    showModal("Tahniah! 🎉", "Ujian 1 selesai! Mari teruskan ke Ujian 2.", "✅");
+                }
+            } else {
+                nextAction = null;
+                showModal("Cuba Lagi", "Jawapan kurang tepat, periksa balik bacaan ya!", "❌");
+            }
+        }
+
+        // Ujian 2 Logic
+        function startUjian2() {
+            showSection('ujian2');
+            const slots = document.getElementById('u2-slots');
+            const options = document.getElementById('u2-options');
+            
+            slots.innerHTML = surahData.map(i => `
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-orange-500 w-6">${i.id}.</span>
+                    <div id="slot-${i.id}" class="drop-zone w-full p-2 text-xs text-gray-700 text-center" ondragover="allowDrop(event)" ondrop="drop(event, ${i.id})">
+                        ...
+                    </div>
+                </div>
+            `).join('');
+
+            const shuffledMalay = surahData.map(i => ({id: i.id, text: i.malay})).sort(() => Math.random() - 0.5);
+            options.innerHTML = shuffledMalay.map(m => `
+                <div id="opt-${m.id}" draggable="true" ondragstart="drag(event, ${m.id})" class="bg-orange-50 border border-orange-200 p-2 rounded-xl cursor-move text-xs shadow-sm hover:shadow-md active:opacity-50">
+                    ${m.text}
+                </div>
+            `).join('');
+        }
+
+        function drag(ev, id) { ev.dataTransfer.setData("text", id); }
+        function allowDrop(ev) { ev.preventDefault(); }
+        function drop(ev, slotId) {
+            ev.preventDefault();
+            const id = ev.dataTransfer.getData("text");
+            const draggedEl = document.getElementById('opt-' + id);
+            const slot = document.getElementById('slot-' + slotId);
+            
+            if(slot.children.length > 0) {
+                document.getElementById('u2-options').appendChild(slot.firstChild);
+            }
+            slot.innerHTML = '';
+            slot.appendChild(draggedEl);
+            slot.dataset.correctId = id;
+        }
+
+        function checkUjian2() {
+            let correctCount = 0;
+            for(let i=1; i<=7; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                if (slot && slot.dataset.correctId == i) correctCount++;
+            }
+            if(correctCount === 7) {
+                nextAction = startUjian3;
+                showModal("Hebat! 🔥", "Susunan anda sangat sempurna! Mari ke Ujian 3.", "⭐");
+            } else {
+                nextAction = null;
+                showModal("Sikit Lagi", `Ada ${7-correctCount} kotak di tempat yang salah. Cuba lagi!`, "🧐");
+            }
+        }
+
+        // Ujian 3 Logic - Full Verses Match
+        let selectedArab = null;
+        let selectedMalay = null;
+        let pairsFound = 0;
+
+        function startUjian3() {
+            showSection('ujian3');
+            pairsFound = 0;
+            const arabicContainer = document.getElementById('u3-arabic');
+            const malayContainer = document.getElementById('u3-malay');
+            
+            const shuffledA = [...surahData].sort(() => Math.random() - 0.5);
+            const shuffledM = [...surahData].sort(() => Math.random() - 0.5);
+
+            arabicContainer.innerHTML = shuffledA.map(w => `
+                <button onclick="handleU3Select('a', ${w.id}, this)" class="u3-btn w-full bg-white border-2 border-purple-100 p-3 rounded-xl text-xl leading-relaxed font-bold arabic text-right hover:border-purple-300 transition-colors shadow-sm">
+                    ${w.arab}
+                </button>
+            `).join('');
+
+            malayContainer.innerHTML = shuffledM.map(w => `
+                <button onclick="handleU3Select('m', ${w.id}, this)" class="u3-btn w-full bg-white border-2 border-purple-100 p-3 rounded-xl text-xs font-semibold text-left hover:border-purple-300 transition-colors shadow-sm">
+                    ${w.malay}
+                </button>
+            `).join('');
+        }
+
+        function handleU3Select(type, id, el) {
+            // Reset previous highlight in the same category
+            const parent = el.parentElement;
+            parent.querySelectorAll('.u3-btn').forEach(b => {
+                if(!b.disabled) b.classList.replace('border-purple-600', 'border-purple-100');
+            });
+            
+            el.classList.replace('border-purple-100', 'border-purple-600');
+
+            if (type === 'a') {
+                selectedArab = { id, el };
+            } else {
+                selectedMalay = { id, el };
+            }
+
+            if (selectedArab && selectedMalay) {
+                if (selectedArab.id === selectedMalay.id) {
+                    // Correct Match
+                    selectedArab.el.classList.remove('border-purple-600');
+                    selectedMalay.el.classList.remove('border-purple-600');
+                    selectedArab.el.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                    selectedMalay.el.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                    selectedArab.el.disabled = true;
+                    selectedMalay.el.disabled = true;
+                    pairsFound++;
+                    
+                    if(pairsFound === 7) {
+                        nextAction = () => showSection('home');
+                        showModal("MasyaAllah! 🌈", "Adik hebat! Adik telah berjaya menyelesaikan semua ujian Surah Al-Fatihah.", "🏆");
+                    }
+                } else {
+                    // Wrong Match
+                    const aEl = selectedArab.el;
+                    const mEl = selectedMalay.el;
+                    aEl.classList.replace('border-purple-600', 'border-red-500');
+                    mEl.classList.replace('border-purple-600', 'border-red-500');
+                    setTimeout(() => {
+                        if(!aEl.disabled) aEl.classList.replace('border-red-500', 'border-purple-100');
+                        if(!mEl.disabled) mEl.classList.replace('border-red-500', 'border-purple-100');
+                    }, 500);
+                }
+                
+                selectedArab = null;
+                selectedMalay = null;
+            }
+        }
+
+        // Modal helpers
+        function showModal(title, msg, icon) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-msg').innerText = msg;
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal').classList.replace('hidden', 'flex');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.replace('flex', 'hidden');
+            if (nextAction) {
+                nextAction();
+                nextAction = null;
+            }
+        }
+
+        window.onload = initHome;
+    </script>
+</body>
+</html>
