@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myINTEGRITY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f0fdf4;
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Container Utama -->
+    <div id="app" class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-t-8 border-emerald-500">
+        <!-- Header -->
+        <div class="bg-emerald-600 p-8 text-white text-center">
+            <h1 class="text-4xl font-bold tracking-tight">my<span class="text-yellow-300">INTEGRITY</span></h1>
+            <p class="text-emerald-100 text-sm mt-2 font-medium">Membentuk Karakter Anak Jujur & Amanah</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-100 h-3">
+            <div id="progress" class="bg-yellow-400 h-3 transition-all duration-500" style="width: 0%"></div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="game-container" class="p-8">
+            <!-- Intro Screen -->
+            <div id="intro-screen" class="text-center">
+                <div class="mb-6 text-7xl">💎</div>
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Selamat Datang ke d'INTEGRITY</h2>
+                <p class="text-gray-600 mb-8 leading-relaxed">
+                    Ujian ini mempunyai 10 situasi mencabar. Adakah anda akan memilih jalan yang jujur atau jalan yang mudah? Mari kita lihat!
+                </p>
+                <button onclick="startGame()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-12 rounded-2xl shadow-lg transition-all text-lg">
+                    Mula Sekarang
+                </button>
+            </div>
+
+            <!-- Question Screen -->
+            <div id="question-screen" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <span id="category-tag" class="text-xs font-bold uppercase px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg">Kategori</span>
+                    <span id="question-count" class="text-sm font-bold text-gray-400 font-mono">1/10</span>
+                </div>
+                <h3 id="question-text" class="text-xl font-bold text-gray-800 mb-8 leading-tight">
+                    Memuatkan soalan...
+                </h3>
+                <div id="options-container" class="space-y-4">
+                    <!-- Options injected by JS -->
+                </div>
+            </div>
+
+            <!-- Feedback Screen -->
+            <div id="feedback-screen" class="hidden text-center py-4">
+                <div id="feedback-icon" class="text-7xl mb-6">✨</div>
+                <h3 id="feedback-title" class="text-2xl font-bold mb-3">Hebat!</h3>
+                <p id="feedback-text" class="text-gray-600 mb-10 text-lg italic px-4"></p>
+                <button onclick="nextQuestion()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-10 rounded-xl shadow-md w-full sm:w-auto">
+                    Teruskan
+                </button>
+            </div>
+
+            <!-- Result Screen -->
+            <div id="result-screen" class="hidden text-center">
+                <h2 class="text-3xl font-bold mb-2 text-emerald-800">Keputusan Ujian</h2>
+                <p class="text-gray-500 mb-8 font-medium">Tahap Integriti Anda</p>
+                
+                <div id="score-circle" class="w-40 h-40 rounded-full border-[10px] border-emerald-500 flex flex-col items-center justify-center mx-auto mb-8 shadow-inner">
+                    <span class="text-4xl font-black text-emerald-600">0</span>
+                    <span class="text-gray-400 text-sm font-bold uppercase tracking-widest">Markah</span>
+                </div>
+
+                <h3 id="result-status" class="text-2xl font-bold mb-4">Menganalisis...</h3>
+                <p id="result-desc" class="text-gray-600 mb-10 leading-relaxed"></p>
+                
+                <button onclick="location.reload()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-12 rounded-2xl transition-all shadow-lg">
+                    Main Semula
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer di Luar Kotak Utama -->
+    <footer class="mt-8 max-w-2xl text-center text-gray-400 text-xs px-4">
+        <p>Ingin membangunkan ujian interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut.</p>
+    </footer>
+
+    <script>
+        const questions = [
+            {
+                category: "Sekolah",
+                text: "Mak cik kantin tersalah bagi baki duit lebih RM2 kepada anda. Apa tindakan anda?",
+                options: [
+                    { text: "Simpan duit itu sebab mak cik kantin yang salah kira.", score: 0, feedback: "Duit itu bukan milik anda. Memulangkan baki yang lebih adalah tanda kejujuran sejati." },
+                    { text: "Pulangkan semula duit itu kepada mak cik kantin.", score: 1, feedback: "Syabas! Anda seorang yang amanah dalam urusan kewangan." }
+                ]
+            },
+            {
+                category: "Rumah",
+                text: "Ibu pesan jangan main 'game' lebih satu jam. Ibu keluar ke kedai. Jam sudah menunjukkan satu jam tetapi anda sedang seronok bermain. Anda...",
+                options: [
+                    { text: "Terus tutup 'game' dan lakukan aktiviti lain.", score: 1, feedback: "Hebat! Anda mematuhi janji walaupun tiada sesiapa yang memantau." },
+                    { text: "Teruskan main lagi 30 minit sebab Ibu belum balik.", score: 0, feedback: "Integriti bermaksud melakukan perkara yang betul walaupun Ibu tiada di rumah." }
+                ]
+            },
+            {
+                category: "Sekolah",
+                text: "Dalam kerja kumpulan, kawan anda melakukan hampir semua kerja. Guru bertanya siapa yang paling banyak membantu. Anda...",
+                options: [
+                    { text: "Cakap semua buat sama banyak supaya anda nampak rajin.", score: 0, feedback: "Mengambil kredit atas usaha orang lain adalah tidak adil dan tidak jujur." },
+                    { text: "Beritahu guru bahawa kawan itu yang paling banyak buat kerja.", score: 1, feedback: "Bagus! Menghargai usaha orang lain menunjukkan anda seorang yang adil." }
+                ]
+            },
+            {
+                category: "Rumah",
+                text: "Anda terjumpa biskut kegemaran kakak di dapur. Anda teringin sangat nak makan tapi itu biskut terakhir kakak. Anda...",
+                options: [
+                    { text: "Minta izin kakak dahulu sebelum makan.", score: 1, feedback: "Menghormati hak milik orang lain adalah asas integriti diri." },
+                    { text: "Makan senyap-senyap dan buang plastik ke luar tingkap.", score: 0, feedback: "Mencuri dan menyembunyikan bukti adalah tindakan yang tidak bermoral." }
+                ]
+            },
+            {
+                category: "Permainan",
+                text: "Semasa bermain sorok-sorok, anda nampak kawan anda bersembunyi di tempat yang dilarang. Adakah anda akan guna maklumat itu untuk menang?",
+                options: [
+                    { text: "Gunakan maklumat itu supaya saya cepat menang.", score: 0, feedback: "Kemenangan tanpa mengikut peraturan bukanlah satu kemenangan yang membanggakan." },
+                    { text: "Tegur kawan itu supaya bersembunyi di tempat yang dibenarkan.", score: 1, feedback: "Integriti dalam permainan dipanggil semangat kesukanan (sportsmanship)." }
+                ]
+            },
+            {
+                category: "Sekolah",
+                text: "Anda nampak kawan meniru semasa ujian ejaan. Guru tidak nampak. Anda...",
+                options: [
+                    { text: "Beritahu guru atau nasihatkan kawan selepas ujian.", score: 1, feedback: "Berani menegur kesalahan adalah sebahagian daripada integriti." },
+                    { text: "Diamkan sahaja supaya kawan tidak marah anda.", score: 0, feedback: "Bersubahat dalam penipuan akan merosakkan karakter anda dan kawan anda." }
+                ]
+            },
+            {
+                category: "Rumah",
+                text: "Ayah beri RM10 untuk beli roti dan pesan baki duit itu untuk anda simpan sebagai upah. Roti harga RM4, tapi anda cakap pada Ayah harga roti RM6.",
+                options: [
+                    { text: "Beritahu harga sebenar dan pulangkan baki yang betul.", score: 1, feedback: "Kejujuran kepada keluarga adalah kunci kepercayaan dalam rumah." },
+                    { text: "Cakap harga RM6 supaya dapat simpan lebih banyak duit.", score: 0, feedback: "Menipu keluarga untuk kepentingan diri sendiri akan menghancurkan kepercayaan." }
+                ]
+            },
+            {
+                category: "Sekolah",
+                text: "Anda terlanggar kawan di koridor hingga buku-bukunya jatuh berselerak. Tiada orang lain di situ. Anda...",
+                options: [
+                    { text: "Terus lari supaya tidak perlu minta maaf.", score: 0, feedback: "Bertanggungjawab atas kesilapan sendiri adalah ciri pemimpin berintegriti." },
+                    { text: "Berhenti, minta maaf dan bantu kutip buku tersebut.", score: 1, feedback: "Bertanggungjawab atas tindakan anda menunjukkan kematangan diri." }
+                ]
+            },
+            {
+                category: "Gajet",
+                text: "Anda sedang menggunakan tablet sekolah. Anda secara tidak sengaja tertekan laman web yang dilarang. Anda...",
+                options: [
+                    { text: "Cepat-cepat tutup tab tersebut dan beritahu guru.", score: 1, feedback: "Mengaku kesilapan teknikal adalah lebih baik daripada menyembunyikannya." },
+                    { text: "Terus tengok laman web itu selagi guru tidak nampak.", score: 0, feedback: "Menggunakan kemudahan awam dengan cara yang salah melanggar amanah." }
+                ]
+            },
+            {
+                category: "Sekolah",
+                text: "Anda dilantik sebagai ketua kelas. Kawan baik anda bising dalam kelas. Adakah anda akan tulis namanya di papan hitam?",
+                options: [
+                    { text: "Tulis namanya kerana dia memang bising.", score: 1, feedback: "Menjalankan tugas dengan adil tanpa pilih kasih adalah integriti yang hebat!" },
+                    { text: "Jangan tulis sebab dia kawan baik anda.", score: 0, feedback: "Pilih kasih dalam menjalankan tugas adalah satu bentuk ketidakadilan." }
+                ]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let totalScore = 0;
+
+        function startGame() {
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('question-screen').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestionIndex];
+            document.getElementById('category-tag').innerText = q.category;
+            document.getElementById('question-count').innerText = `${currentQuestionIndex + 1}/${questions.length}`;
+            document.getElementById('question-text').innerText = q.text;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-5 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-emerald-400 hover:bg-emerald-50 font-semibold text-gray-700 transition-all";
+                btn.innerText = opt.text;
+                btn.onclick = () => selectOption(opt);
+                optionsContainer.appendChild(btn);
+            });
+
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function selectOption(opt) {
+            totalScore += opt.score;
+            
+            document.getElementById('question-screen').classList.add('hidden');
+            document.getElementById('feedback-screen').classList.remove('hidden');
+            
+            document.getElementById('feedback-icon').innerText = opt.score > 0 ? "🌟" : "💡";
+            document.getElementById('feedback-title').innerText = opt.score > 0 ? "Syabas!" : "Renungkan...";
+            document.getElementById('feedback-text').innerText = opt.feedback;
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                document.getElementById('feedback-screen').classList.add('hidden');
+                document.getElementById('question-screen').classList.remove('hidden');
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('feedback-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('progress').style.width = '100%';
+            
+            const scoreDisplay = document.querySelector('#score-circle span:first-child');
+            scoreDisplay.innerText = totalScore;
+            
+            const status = document.getElementById('result-status');
+            const desc = document.getElementById('result-desc');
+            
+            if (totalScore === 10) {
+                status.innerText = "IKON INTEGRITI! 🥇";
+                desc.innerText = "Luar biasa! Anda adalah contoh teladan yang hebat. Teruskan memegang prinsip kejujuran ini sepanjang hayat anda.";
+            } else if (totalScore >= 8) {
+                status.innerText = "WIRA JUJUR! 🥈";
+                desc.innerText = "Sangat bagus! Anda faham erti integriti. Sikit lagi nak jadi sempurna, teruskan usaha untuk sentiasa amanah!";
+            } else if (totalScore >= 5) {
+                status.innerText = "PELAJAR AMANAH! 🥉";
+                desc.innerText = "Anda mempunyai asas yang baik. Ingat, integriti adalah pilihan harian. Jom cuba buat pilihan yang lebih tepat lepas ni!";
+            } else {
+                status.innerText = "USAHA LAGI! 🌱";
+                desc.innerText = "Jangan sedih. Integriti boleh dipelajari. Ambil masa untuk fikirkan kenapa kejujuran itu penting bagi diri dan orang lain.";
+            }
+        }
+    </script>
+</body>
+</html>
