@@ -1,20 +1,25 @@
-<script>
-  localStorage.setItem("paid_user", "true");
-</script>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Loading...</title>
+</head>
+<body>
 
 <script>
+  // FORCE unlock (test dulu)
+  localStorage.setItem("paid_user", "true");
+
   const isPaid = localStorage.getItem("paid_user");
 
   if (!isPaid) {
     window.location.href = "https://familipintar.com";
+  } else {
+    document.write(`
+      <iframe src="https://fin-think.github.io/dCHECKLIST/" 
+      width="100%" height="100%" style="border:none;"></iframe>
+    `);
   }
 </script>
 
-<div id="app"></div>
-
-<script>
-  const url = "https://fin-think.github.io/dCHECKLIST/";
-
-  document.getElementById("app").innerHTML =
-    `<iframe src="${url}" width="100%" height="100%" style="border:none;"></iframe>`;
-</script>
+</body>
+</html>
