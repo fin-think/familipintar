@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myPERSONALITI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); }
+        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .career-card { transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.1); }
+        .career-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.1); }
+        .progress-fill { transition: width 1.5s cubic-bezier(0.65, 0, 0.35, 1); }
+        .group-tag { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; font-weight: 800; }
+    </style>
+</head>
+<body class="bg-[#f0f4f8] min-h-screen text-slate-900">
+
+    <div id="app" class="max-w-2xl mx-auto p-4 md:p-10">
+        <!-- Header Utama -->
+        <header class="text-center mb-10">
+            <div class="inline-block px-4 py-1 bg-indigo-600 text-white rounded-full text-xs font-bold uppercase tracking-widest mb-3 shadow-lg shadow-indigo-200">
+                16 Personalities Suite
+            </div>
+            <h1 class="text-5xl font-black text-slate-900 tracking-tighter">my<span class="text-indigo-600">PERSONALITI</span></h1>
+            <p class="text-slate-500 mt-3 text-lg">Analisis Kerjaya & Keibubapaan Berasaskan Arketip</p>
+        </header>
+
+        <!-- Langkah 1: Profiling -->
+        <div id="step-profile" class="glass p-8 rounded-[2.5rem] shadow-2xl border border-white fade-in">
+            <div class="flex items-center mb-8">
+                <div class="p-4 bg-indigo-600 text-white rounded-2xl mr-4 shadow-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800">Mula Profiling</h2>
+                    <p class="text-sm text-slate-500 italic">Sesuaikan analisis dengan realiti hidup anda</p>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Name input removed per request -->
+                <div>
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Kerjaya / Profession Semasa</label>
+                    <input type="text" id="input-career" placeholder="cth: Pengurus Projek" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition font-semibold">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Bilangan Anak</label>
+                    <input type="number" id="input-children" min="0" value="1" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition font-semibold">
+                </div>
+                <button onclick="startQuiz()" class="w-full bg-slate-900 text-white font-black py-5 rounded-3xl hover:bg-indigo-600 transition-all duration-300 shadow-2xl hover:shadow-indigo-200 transform hover:-translate-y-1">LIHAT PERSONALITI ANDA <span class="ml-2">→</span></button>
+            </div>
+        </div>
+
+        <!-- Langkah 2: Quiz -->
+        <div id="step-quiz" class="hidden glass p-8 rounded-[2.5rem] shadow-2xl border border-white fade-in">
+            <div class="flex justify-between items-center mb-8">
+                <div class="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-4 py-2 rounded-full" id="quiz-progress">
+                    SOALAN 1 / 15
+                </div>
+                <div class="w-1/3 bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-indigo-600 h-full progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="mb-10 min-h-[120px]">
+                <p id="question-text" class="text-2xl font-bold leading-tight text-slate-800"></p>
+            </div>
+
+            <div class="space-y-4" id="options-container">
+                <!-- Buttons injected here -->
+            </div>
+        </div>
+
+        <!-- Langkah 3: Detailed Result -->
+        <div id="step-result" class="hidden fade-in">
+            <!-- Personality Group Card -->
+            <div class="glass p-8 rounded-[3rem] shadow-2xl border border-white mb-8 text-center relative overflow-hidden">
+                <div id="group-bg-accent" class="absolute top-0 left-0 w-full h-2 bg-indigo-500"></div>
+                
+                <h2 class="text-sm font-black text-indigo-600 uppercase tracking-[0.3em] mb-4" id="res-group-title">ANALYSIS GROUP</h2>
+                <h3 class="text-4xl font-black text-slate-900 mb-4" id="res-type-name">The Architect</h3>
+                
+                <div class="bg-slate-50 p-6 rounded-[2rem] mb-6 border border-slate-100">
+                    <p id="res-group-desc" class="text-slate-600 leading-relaxed"></p>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-2 mb-8" id="sub-types-container">
+                    <!-- Subtypes (INTJ, etc) -->
+                </div>
+
+                <div class="border-t border-slate-100 pt-6 text-center">
+                    <p class="text-xs font-bold text-slate-400 uppercase mb-4">Profil Keibubapaan:</p>
+                    <p id="res-parenting-summary" class="text-slate-800 font-semibold italic text-lg leading-snug px-4"></p>
+                </div>
+            </div>
+
+            <!-- Career Suite Analysis -->
+            <div class="bg-slate-950 text-white p-8 rounded-[3rem] shadow-2xl mb-12 relative">
+                <div class="flex items-center justify-between mb-8">
+                    <h3 class="text-xl font-black uppercase tracking-tighter text-indigo-400">Career Suite Premium</h3>
+                    <div class="p-2 bg-white/10 rounded-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <!-- Match Score Bar -->
+                    <div class="bg-white/5 p-6 rounded-[2rem] border border-white/10">
+                        <div class="flex justify-between items-end mb-4">
+                            <div>
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Kesesuaian Kerjaya Semasa</span>
+                                <p class="text-lg font-bold" id="res-current-career-match"></p>
+                            </div>
+                            <span id="match-score-text" class="text-4xl font-black text-indigo-400">0%</span>
+                        </div>
+                        <div class="w-full bg-white/10 h-3 rounded-full overflow-hidden">
+                            <div id="match-score-bar" class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-full progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Recommended Paths -->
+                    <div>
+                        <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 ml-2">Laluan Kerjaya Strategik:</h4>
+                        <div id="career-paths-container" class="grid grid-cols-1 gap-3">
+                            <!-- Injected paths -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="w-full py-5 bg-white text-slate-900 font-black rounded-3xl hover:bg-slate-50 transition mb-24 shadow-xl border-2 border-slate-200">UJIAN SEMULA</button>
+        </div>
+    </div>
+
+<footer class="mt-8 text-center text-black-400 text-xs">
+            <p>DISCLAIMER: Keputusan ini adalah anggaran berdasarkan input dan bukan jaminan sebenar.<p>Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH
+</p>
+        </footer>
+    </div>
+
+
+    <script>
+        let userData = { career: "", children: 0 };
+        let currentQuestion = 0;
+        let score = 0;
+
+        const personalityGroups = {
+            analysts: {
+                title: "Analysts",
+                desc: "Jenis personaliti yang Intuitif (N) dan Berfikir (T). Dikenali dengan rasionaliti, kesaksamaan, dan kecemerlangan intelek dalam menyelesaikan masalah kompleks.",
+                types: [
+                    { id: "INTJ", name: "Architect", color: "bg-purple-500" },
+                    { id: "INTP", name: "Logician", color: "bg-purple-500" },
+                    { id: "ENTJ", name: "Commander", color: "bg-purple-500" },
+                    { id: "ENTP", name: "Debater", color: "bg-purple-500" }
+                ],
+                careers: ["Strategic Planner", "Software Architect", "Investment Banker", "Systems Analyst"],
+                accent: "bg-purple-600"
+            },
+            diplomats: {
+                title: "Diplomats",
+                desc: "Jenis personaliti yang Intuitif (N) dan Merasa (F). Dikenali dengan empati yang tinggi, kemahiran diplomatik, serta idealisme yang mendalam dalam hubungan manusia.",
+                types: [
+                    { id: "INFJ", name: "Advocate", color: "bg-green-500" },
+                    { id: "INFP", name: "Mediator", color: "bg-green-500" },
+                    { id: "ENFJ", name: "Protagonist", color: "bg-green-500" },
+                    { id: "ENFP", name: "Campaigner", color: "bg-green-500" }
+                ],
+                careers: ["Counselor", "Human Resources Director", "Non-Profit Leader", "Creative Writer"],
+                accent: "bg-green-600"
+            },
+            sentinels: {
+                title: "Sentinels",
+                desc: "Jenis personaliti yang Memerhati (S) dan Menghakimi (J). Fokus kepada praktikaliti, ketertiban, keselamatan, dan kestabilan organisasi serta keluarga.",
+                types: [
+                    { id: "ISTJ", name: "Logistician", color: "bg-blue-500" },
+                    { id: "ISFJ", name: "Defender", color: "bg-blue-500" },
+                    { id: "ESTJ", name: "Executive", color: "bg-blue-500" },
+                    { id: "ESFJ", name: "Consul", color: "bg-blue-500" }
+                ],
+                careers: ["Operations Manager", "Auditor", "Administrator", "School Principal"],
+                accent: "bg-blue-600"
+            },
+            explorers: {
+                title: "Explorers",
+                desc: "Jenis personaliti yang Memerhati (S) dan Prospektif (P). Dikenali dengan sifat spontan, daya cipta yang praktikal, dan fleksibiliti dalam menghadapi perubahan.",
+                types: [
+                    { id: "ISTP", name: "Virtuoso", color: "bg-yellow-500" },
+                    { id: "ISFP", name: "Adventurer", color: "bg-yellow-500" },
+                    { id: "ESTP", name: "Entrepreneur", color: "bg-yellow-500" },
+                    { id: "ESFP", name: "Entertainer", color: "bg-yellow-500" }
+                ],
+                careers: ["Field Engineer", "Event Producer", "Sales Director", "Crisis Manager"],
+                accent: "bg-yellow-600"
+            }
+        };
+
+        const questions = [
+            { q: "Sejauh mana kemahiran logik sebagai [KERJAYA] membantu anda menyusun rutin harian [ANAK] orang anak?", options: ["Sangat Membantu", "Sederhana", "Jarang Digunakan", "Tidak Relevan"] },
+            { q: "Adakah anda mengutamakan 'kecekapan' berbanding 'emosi' semasa menguruskan konflik anak-anak?", options: ["Sentiasa Kecekapan", "Bergantung Keadaan", "Lebih kepada Emosi", "Emosi sepenuhnya"] },
+            { q: "Bagaimana anda bertindak balas jika jadual kerja [KERJAYA] anda diganggu oleh kecemasan keluarga?", options: ["Analisis & Susun Semula", "Ikut Prosedur Tetap", "Rasa Tertekan Emosi", "Ikut Aliran Saja"] },
+            { q: "Adakah anda mahu [ANAK] orang anak anda mempunyai kerjaya yang stabil (Sentinels) atau mencabar (Analysts)?", options: ["Mencabar/Intelek", "Stabil/Teratur", "Bebas/Kreatif", "Mana-mana Saja"] },
+            { q: "Berapa kerap anda merancang masa depan pendidikan anak-anak secara terperinci?", options: ["Sangat Terperinci", "Secara Umum", "Bila Perlu Saja", "Belum Berfikir"] },
+            { q: "Dalam perbualan dengan [ANAK] orang anak, adakah anda lebih banyak memberi fakta atau sokongan moral?", options: ["Banyak Fakta", "Seimbang", "Banyak Moral", "Hanya Mendengar"] },
+            { q: "Sejauh mana anda mementingkan peraturan dan tradisi dalam rumah tangga?", options: ["Sangat Penting", "Penting", "Kurang Penting", "Fleksibel Sepenuhnya"] },
+            { q: "Apabila stres di pejabat sebagai [KERJAYA], bagaimana anda meluahkannya di rumah?", options: ["Berfikir Sendirian", "Bercerita Fakta", "Meluah Emosi", "Abaikan & Bermain"] },
+            { q: "Adakah anda melihat diri anda sebagai 'Mentor' atau 'Rakan' kepada anak-anak anda?", options: ["Mentor Tegas", "Mentor Mesra", "Rakan Empati", "Rakan Spontan"] },
+            { q: "Bagaimana anda menguruskan bajet keluarga untuk [ANAK] orang anak?", options: ["Sistem Spreadsheet", "Anggaran Kasar", "Ikut Keperluan Semasa", "Tiada Perancangan"] },
+            { q: "Adakah anda merasa 'bersalah' jika tidak dapat mencapai standard keibubapaan yang anda tetapkan?", options: ["Sangat Rasa Bersalah", "Kadang-kadang", "Sudah Biasa", "Tiada Standard Tetap"] },
+            { q: "Jika anda diberi projek besar sebagai [KERJAYA], adakah anda sanggup korbankan masa cuti keluarga?", options: ["Ya, demi Masa Depan", "Hanya Jika Perlu", "Sukar Diterima", "Pasti Tidak"] },
+            { q: "Adakah persekitaran kerja anda sekarang terlalu 'rigid' untuk gaya hidup anda?", options: ["Sangat Rigid", "Sederhana", "Agak Fleksibel", "Sangat Bebas"] },
+            { q: "Apakah nilai utama yang anda ingin terapkan pada [ANAK] orang anak anda?", options: ["Kecerdasan Intelek", "Disiplin & Amanah", "Kasih Sayang", "Keberanian Mencuba"] },
+            { q: "Adakah anda puas dengan identiti anda sebagai [KERJAYA] pada saat ini?", options: ["Sangat Puas", "Puas", "Biasa Saja", "Mahu Berubah"] }
+        ];
+
+        function startQuiz() {
+            const careerEl = document.getElementById('input-career');
+            const childrenEl = document.getElementById('input-children');
+
+            if (!careerEl || !childrenEl) {
+                console.error("Salah satu elemen input tidak dijumpai.");
+                return;
+            }
+
+            userData.career = careerEl.value;
+            userData.children = childrenEl.value;
+
+            if (!userData.career) {
+                alert("Sila isi kerjaya anda!");
+                return;
+            }
+
+            document.getElementById('step-profile').classList.add('hidden');
+            document.getElementById('step-quiz').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            let text = q.q.replace("[KERJAYA]", `<span class="text-indigo-600 font-extrabold underline decoration-indigo-200">${userData.career}</span>`);
+            text = text.replace("[ANAK]", `<span class="text-indigo-600 font-extrabold">${userData.children}</span>`);
+            
+            document.getElementById('question-text').innerHTML = text;
+            document.getElementById('quiz-progress').innerText = `SOALAN ${currentQuestion + 1} / 15`;
+            document.getElementById('progress-bar').style.width = `${((currentQuestion + 1) / 15) * 100}%`;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-5 rounded-2xl border-2 border-slate-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200 font-bold text-slate-700 bg-white shadow-sm hover:shadow-md active:scale-[0.98]";
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(idx);
+                container.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(index) {
+            score += (4 - index);
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('step-quiz').classList.add('hidden');
+            document.getElementById('step-result').classList.remove('hidden');
+            
+            let group;
+            let matchPercentage = 0;
+            let pSummary = "";
+
+            if (score >= 50) {
+                group = personalityGroups.analysts;
+                matchPercentage = 92;
+                pSummary = `Anda mendidik ${userData.children} orang anak dengan strategi yang tajam. Anda melihat keibubapaan sebagai projek intelek untuk membina masa depan mereka.`;
+            } else if (score >= 38) {
+                group = personalityGroups.sentinels;
+                matchPercentage = 85;
+                pSummary = `Keselamatan dan tradisi adalah kunci anda. Anda memastikan ${userData.children} orang anak anda membesar dalam persekitaran yang teratur and stabil.`;
+            } else if (score >= 26) {
+                group = personalityGroups.diplomats;
+                matchPercentage = 78;
+                pSummary = `Keharmonian emosi adalah keutamaan. Anda membimbing ${userData.children} orang anak anda dengan nilai kasih sayang dan persefahaman yang mendalam.`;
+            } else {
+                group = personalityGroups.explorers;
+                matchPercentage = 64;
+                pSummary = `Hidup adalah pengembaraan. Anda mengajar ${userData.children} orang anak anda untuk menjadi fleksibel dan berani menghadapi dunia nyata yang dinamik.`;
+            }
+
+            document.getElementById('group-bg-accent').className = `absolute top-0 left-0 w-full h-2 ${group.accent}`;
+            document.getElementById('res-group-title').innerText = `${group.title} GROUP`;
+            document.getElementById('res-group-desc').innerText = group.desc;
+            document.getElementById('res-type-name').innerText = `The ${group.types[0].name}`;
+            document.getElementById('res-parenting-summary').innerText = pSummary;
+            document.getElementById('res-current-career-match').innerText = `${userData.career} Evaluation`;
+            
+            const subContainer = document.getElementById('sub-types-container');
+            subContainer.innerHTML = "";
+            group.types.forEach(t => {
+                const span = document.createElement('span');
+                span.className = `group-tag ${t.color} text-white shadow-sm`;
+                span.innerText = `${t.id} - ${t.name}`;
+                subContainer.appendChild(span);
+            });
+
+            setTimeout(() => {
+                document.getElementById('match-score-bar').style.width = matchPercentage + "%";
+                document.getElementById('match-score-text').innerText = matchPercentage + "%";
+            }, 300);
+
+            const pathContainer = document.getElementById('career-paths-container');
+            pathContainer.innerHTML = "";
+            group.careers.forEach(c => {
+                const div = document.createElement('div');
+                div.className = "bg-white/5 p-4 rounded-2xl border border-white/10 career-card flex justify-between items-center";
+                div.innerHTML = `
+                    <span class="text-sm font-bold text-slate-100">${c}</span>
+                    <span class="text-[10px] font-black text-indigo-400 border border-indigo-400/30 px-2 py-1 rounded-lg uppercase">Ideal Match</span>
+                `;
+                pathContainer.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
