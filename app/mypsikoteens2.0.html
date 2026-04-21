@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myPSIKOteens 2.0 - Ujian Kesedaran Gen Z</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        .btn-choice {
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+        }
+        .btn-choice:hover {
+            border-color: #667eea;
+            background-color: #f7fafc;
+            transform: translateY(-2px);
+        }
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="app" class="max-w-2xl w-full glass-card p-6 md:p-10">
+        <!-- Start Screen -->
+        <div id="start-screen" class="text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-indigo-700 mb-4">myPSIKOteens 2.0 🚀</h1>
+            <p class="text-gray-600 mb-8 text-lg">Adakah anda mengawal media sosial, atau media sosial mengawal hidup anda? Jom check tahap "Gen Z" toksik dalam diri anda.</p>
+            <div class="bg-indigo-50 p-4 rounded-lg mb-8 text-sm text-left text-indigo-800 border-l-4 border-indigo-400">
+                <p class="font-bold mb-1">Kenapa ujian ini penting?</p>
+                <ul class="list-disc ml-5 space-y-1">
+                    <li>Kesan FOMO (Fear of Missing Out) pada mental.</li>
+                    <li>Bahaya budaya YOLO yang melampau.</li>
+                    <li>Kesan jangka panjang obsesi terhadap influencer.</li>
+                </ul>
+            </div>
+            <button onclick="startQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-10 rounded-full text-xl shadow-lg transition transform hover:scale-105">
+                Mula Ujian
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-sm font-semibold text-indigo-600" id="question-number">Soalan 1/15</span>
+                <span class="text-sm text-gray-400" id="progress-text">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
+            </div>
+
+            <h2 id="question-text" class="text-xl md:text-2xl font-semibold text-gray-800 mb-8 leading-tight">
+                Memuatkan soalan...
+            </h2>
+
+            <div id="choices-container" class="space-y-4">
+                <!-- Choices will be injected here -->
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden text-center">
+            <h2 class="text-3xl font-bold text-indigo-700 mb-4">Keputusan Anda</h2>
+            <div id="result-category" class="text-2xl font-bold mb-4">Tahap Kesedaran</div>
+            
+            <div class="p-6 rounded-xl mb-8 text-left bg-white border border-indigo-100 shadow-sm" id="result-description">
+                <!-- Description will be injected here -->
+            </div>
+
+            <div class="space-y-4">
+                <button onclick="location.reload()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition shadow-md">
+                    Ulang Ujian
+                </button>
+                <p class="text-xs text-gray-400 italic">"Masa depan anda dibentuk oleh apa yang anda lakukan hari ini, bukan esok."</p>
+            </div>
+        </div>
+
+        <!-- Footnote inside the card for better integration -->
+        <div class="mt-10 pt-6 border-t border-gray-100 text-center">
+            <p class="text-xs text-gray-500 leading-relaxed">
+                DISCLAIMER: Keputusan ini adalah anggaran berdasarkan input dan bukan jaminan pulangan sebenar.<br>
+                <span class="text-indigo-500 font-medium">Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH</span><br>
+                <span class="font-bold mt-1 inline-block text-gray-300"></span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "Anda melihat kawan-kawan 'flex' barang branded di IG Story, apa perasaan anda?",
+                options: [
+                    { text: "Rasa gelisah dan nak beli juga supaya tak nampak 'lekeh'.", score: 3 },
+                    { text: "Rasa sikit terkesan tapi cuba abaikan.", score: 2 },
+                    { text: "Tak kisah, itu duit mereka, saya ada matlamat sendiri.", score: 1 }
+                ]
+            },
+            {
+                q: "Istilah YOLO (You Only Live Once) bagi anda bermaksud:",
+                options: [
+                    { text: "Bebas buat apa saja termasuk benda bahaya/sia-sia demi keseronokan sekarang.", score: 3 },
+                    { text: "Sesekali berhibur tapi masih fikir batas.", score: 2 },
+                    { text: "Menghargai hidup dengan buat perkara bermanfaat untuk masa depan.", score: 1 }
+                ]
+            },
+            {
+                q: "Berapa kerap anda menyemak 'likes' selepas memuat naik gambar/video?",
+                options: [
+                    { text: "Setiap 5 minit. Kalau sikit, saya akan delete post tu.", score: 3 },
+                    { text: "Beberapa kali sejam.", score: 2 },
+                    { text: "Sekali sekala saja, tak ambil serius sangat.", score: 1 }
+                ]
+            },
+            {
+                q: "Adakah anda sanggup berhutang atau menyusahkan ibu bapa demi 'trend' (cth: iPhone terbaru, konsert, baju viral)?",
+                options: [
+                    { text: "Ya, yang penting saya tak nampak 'ketinggalan' (FOMO).", score: 3 },
+                    { text: "Mungkin kalau sangat teringin.", score: 2 },
+                    { text: "Tidak. Saya lebih rela guna apa yang ada.", score: 1 }
+                ]
+            },
+            {
+                q: "Apa pandangan anda tentang 'Influencer' yang mempamerkan gaya hidup mewah?",
+                options: [
+                    { text: "Mereka adalah 'idola' saya dan saya mahu jadi tepat seperti mereka.", score: 3 },
+                    { text: "Sekadar hiburan kosong.", score: 2 },
+                    { text: "Faham bahawa itu hanyalah 'marketing' dan realiti mereka mungkin berbeza.", score: 1 }
+                ]
+            },
+            {
+                q: "Anda nampak 'challenge' viral yang berbahaya tapi ramai orang buat. Reaksi anda?",
+                options: [
+                    { text: "Join buat sebab nak dapatkan 'clout' (perhatian).", score: 3 },
+                    { text: "Tengok saja tanpa buat.", score: 2 },
+                    { text: "Lapor (report) atau nasihatkan orang lain jangan buat.", score: 1 }
+                ]
+            },
+            {
+                q: "Adakah anda rasa 'Main Character Syndrome' (berasa dunia berputar di sekeliling anda) menguasai diri?",
+                options: [
+                    { text: "Ya, saya rasa semua orang kena perhatikan kehebatan saya.", score: 3 },
+                    { text: "Kadang-kadang rasa pentingkan diri.", score: 2 },
+                    { text: "Tidak, saya faham nilai kerjasama dan merendah diri.", score: 1 }
+                ]
+            },
+            {
+                q: "Masa depan bagi anda adalah:",
+                options: [
+                    { text: "Entahlah, yang penting enjoy sekarang.", score: 3 },
+                    { text: "Ada plan sikit-sikit tapi banyak main lagi.", score: 2 },
+                    { text: "Pelaburan masa sekarang untuk kesenangan hari tua.", score: 1 }
+                ]
+            },
+            {
+                q: "Adakah anda sering 'doomscrolling' (tengok content negatif/gosip berjam-jam) sampai kerja sekolah terabai?",
+                options: [
+                    { text: "Ya, setiap hari.", score: 3 },
+                    { text: "Kadang-kadang kalau bosan.", score: 2 },
+                    { text: "Tidak, saya ada had masa penggunaan media sosial.", score: 1 }
+                ]
+            },
+            {
+                q: "Jika seorang influencer kegemaran anda promote produk yang meragukan, adakah anda akan beli?",
+                options: [
+                    { text: "Beli terus sebab saya percaya mereka 100%.", score: 3 },
+                    { text: "Tengok review orang lain dulu.", score: 2 },
+                    { text: "Buat kajian sendiri tentang kualiti produk.", score: 1 }
+                ]
+            },
+            {
+                q: "Adakah anda rasa 'sunyi' atau 'depresi' jika tidak menggunakan telefon pintar dalam masa sehari?",
+                options: [
+                    { text: "Sangat depresi, rasa macam dunia nak kiamat.", score: 3 },
+                    { text: "Rasa bosan yang amat sangat.", score: 2 },
+                    { text: "Rasa tenang dan boleh buat benda lain.", score: 1 }
+                ]
+            },
+            {
+                q: "Apa matlamat utama anda di media sosial?",
+                options: [
+                    { text: "Jadi terkenal dan dapat 'free gifts'.", score: 3 },
+                    { text: "Cari kawan dan hiburan.", score: 2 },
+                    { text: "Cari ilmu dan networking yang berguna.", score: 1 }
+                ]
+            },
+            {
+                q: "Anda melihat kawan anda buat benda salah (cth: vape/vandalism) demi nampak 'cool'. Tindakan anda?",
+                options: [
+                    { text: "Ikut sekali sebab tak nak kena pulau.", score: 3 },
+                    { text: "Diamkan diri saja.", score: 2 },
+                    { text: "Tegur atau jauhkan diri dari pengaruh tersebut.", score: 1 }
+                ]
+            },
+            {
+                q: "Adakah anda percaya 'validasi' (pujian) orang asing di internet lebih penting dari teguran ibu bapa?",
+                options: [
+                    { text: "Ya, sebab mereka lebih faham trend sekarang.", score: 3 },
+                    { text: "Keliru mana yang betul.", score: 2 },
+                    { text: "Tidak, keluarga lebih mengenali saya.", score: 1 }
+                ]
+            },
+            {
+                q: "Jika anda diberi RM1,000 sekarang, apa yang anda buat?",
+                options: [
+                    { text: "Beli barang yang tengah trending supaya boleh post kat TikTok.", score: 3 },
+                    { text: "Guna separuh untuk beli barang, separuh simpan.", score: 2 },
+                    { text: "Simpan atau laburkan untuk keperluan belajar.", score: 1 }
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let totalScore = 0;
+
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionText = document.getElementById('question-text');
+        const choicesContainer = document.getElementById('choices-container');
+        const questionNumber = document.getElementById('question-number');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            questionText.innerText = q.q;
+            questionNumber.innerText = `Soalan ${currentQuestion + 1}/${questions.length}`;
+            
+            const progress = Math.round((currentQuestion / questions.length) * 100);
+            progressBar.style.width = `${progress}%`;
+            progressText.innerText = `${progress}%`;
+
+            choicesContainer.innerHTML = '';
+            q.options.forEach(option => {
+                const button = document.createElement('button');
+                button.innerText = option.text;
+                button.className = "w-full text-left p-4 rounded-xl btn-choice text-gray-700 font-medium bg-white hover:bg-indigo-50 shadow-sm";
+                button.onclick = () => selectOption(option.score);
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        function selectOption(score) {
+            totalScore += score;
+            currentQuestion++;
+
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            
+            const resultCategory = document.getElementById('result-category');
+            const resultDescription = document.getElementById('result-description');
+            
+            if (totalScore <= 22) {
+                resultCategory.innerText = "🌟 Teenz Bijak (Kesedaran Tinggi)";
+                resultCategory.className = "text-2xl font-bold mb-4 text-green-600";
+                resultDescription.innerHTML = `
+                    <p class='mb-2'><strong>Hebat!</strong> Anda mempunyai jati diri yang kuat. Anda tidak mudah goyah dengan trend kosong atau desakan rakan sebaya (peer pressure).</p>
+                    <p>Anda faham bahawa media sosial hanyalah alat, bukan tuan kepada hidup anda. Teruskan fokus pada matlamat masa depan anda!</p>
+                `;
+            } else if (totalScore <= 35) {
+                resultCategory.innerText = "⚠️ Teenz Keliru (Berisiko)";
+                resultCategory.className = "text-2xl font-bold mb-4 text-yellow-600";
+                resultDescription.innerHTML = `
+                    <p class='mb-2'><strong>Hati-hati!</strong> Anda mula terpengaruh dengan budaya FOMO dan YOLO yang negatif. Kadangkala anda rasa 'kurang' jika tidak mengikut trend.</p>
+                    <p>Sedarilah bahawa apa yang dipaparkan di skrin bukanlah realiti sebenar. Jangan korbankan masa depan atau nilai diri demi 'likes' yang sementara.</p>
+                `;
+            } else {
+                resultCategory.innerText = "🚨 Teenz Toksik (Bahaya)";
+                resultCategory.className = "text-2xl font-bold mb-4 text-red-600";
+                resultDescription.innerHTML = `
+                    <p class='mb-2'><strong>Amaran!</strong> Hidup anda sangat dipengaruhi oleh persepsi orang asing dan trend yang tidak mendatangkan faedah.</p>
+                    <p>Jika anda tidak berubah sekarang, anda mungkin akan menyesal di masa depan kerana menghabiskan masa, wang, dan emosi pada perkara sia-sia. Cuba 'digital detox' dan cari hobi yang lebih realistik.</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
