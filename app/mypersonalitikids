@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myPERSONALITIkids</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        /* Animasi ringkas */
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        .slide-up { animation: slideUp 0.6s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 font-sans text-gray-800 selection:bg-teal-200">
+
+    <!-- HEADER -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <!-- BAHAGIAN NAMA -->
+            <div id="logo-container" class="flex items-center gap-2 font-bold text-xl text-teal-600 cursor-pointer" onclick="resetQuiz()">
+                <!-- Ikon dan Nama akan dijana oleh JavaScript di sini -->
+            </div>
+
+            <!-- Progress Bar (Desktop) -->
+            <div id="progress-container-desktop" class="hidden md:flex items-center gap-4 text-sm font-medium text-gray-500 opacity-0 transition-opacity duration-300">
+                <span id="progress-text">0% Selesai</span>
+                <div class="w-32 h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="progress-bar-fill" class="h-full bg-teal-500 transition-all duration-500 ease-out" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Progress Bar (Mobile) -->
+        <div id="progress-container-mobile" class="h-1 bg-gray-200 w-full md:hidden hidden">
+             <div id="progress-bar-fill-mobile" class="h-full bg-teal-500 transition-all duration-500 ease-out" style="width: 0%"></div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 py-8 md:py-12 relative overflow-x-hidden">
+        
+        <!-- ========================================== -->
+        <!-- SKRIN 1: HALAMAN UTAMA -->
+        <!-- ========================================== -->
+        <div id="screen-home" class="flex flex-col items-center text-center slide-up">
+            <div class="w-24 h-24 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mb-6">
+                <i data-lucide="sparkles" class="w-12 h-12"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 tracking-tight">
+                Ketahui siapa diri <br/><span class="text-teal-600">awak sebenarnya.</span>
+            </h1>
+            <p class="text-lg text-gray-600 mb-10 max-w-xl leading-relaxed">
+                Jawab soalan dengan jujur (walaupun awak tidak menyukai jawapannya) untuk mendapatkan hasil yang paling tepat mengenai profil personaliti, kekuatan, dan potensi awak.
+            </p>
+            <button onclick="startQuiz()" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 px-10 rounded-full text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 transform hover:-translate-y-1">
+                Ambil Ujian Sekarang <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+            <p class="mt-6 text-sm text-gray-400">
+                Hanya mengambil masa 2 minit • Percuma
+            </p>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SKRIN 2: KUIZ -->
+        <!-- ========================================== -->
+        <div id="screen-quiz" class="hidden space-y-12 pb-24 fade-in">
+            <div id="quiz-questions-container" class="space-y-12">
+                <!-- Soalan akan dijana di sini oleh JavaScript -->
+            </div>
+
+            <div class="flex flex-col items-center mt-12 pt-8 border-t border-gray-200">
+                <!-- Butang Submit (Awalnya disembunyikan) -->
+                <button id="btn-submit-quiz" onclick="calculateResult()" class="hidden bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 px-12 rounded-full text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 flex items-center gap-2 animate-bounce">
+                    Lihat Keputusan Saya <i data-lucide="sparkles" class="w-5 h-5"></i>
+                </button>
+                
+                <!-- Status belum siap -->
+                <div id="quiz-status-incomplete" class="text-center block">
+                    <p class="text-gray-500 mb-4 font-medium">Sila jawab semua soalan untuk melihat keputusan.</p>
+                    <div id="remaining-questions-badge" class="inline-block bg-gray-200 text-gray-500 font-bold py-3 px-8 rounded-full opacity-60 cursor-not-allowed">
+                        20 soalan lagi
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SKRIN 3: KEPUTUSAN -->
+        <!-- ========================================== -->
+        <div id="screen-results" class="hidden slide-up">
+            <!-- Kandungan Keputusan akan dijana oleh JavaScript -->
+        </div>
+
+    </main>
+
+<footer class="mt-8 text-center text-black-400 text-xs">
+            <p>DISCLAIMER: Keputusan ini adalah anggaran berdasarkan input dan bukan jaminan sebenar.<p>Ingin membangunkan kalkulator interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut. © HCH
+</p>
+        </footer>
+    </div>
+
+
+
+    <!-- ========================================================================= -->
+    <!-- SCRIPT & LOGIK APLIKASI -->
+    <!-- ========================================================================= -->
+    <script>
+        // ==========================================================
+        // 1. TETAPAN NAMA APLIKASI
+        // ==========================================================
+        const APP_CONFIG = {
+            appName: "myPERSONALITIkids", // Tukar nama aplikasi anda
+            defaultIcon: "brain" // Ikon lalai (Rujukan ikon: lucide.dev)
+        };
+
+        // Memaparkan Ikon/Nama pada Header
+        const logoContainer = document.getElementById('logo-container');
+        logoContainer.innerHTML = `<i data-lucide="${APP_CONFIG.defaultIcon}" class="w-6 h-6"></i> <span>${APP_CONFIG.appName}</span>`;
+        document.title = `Ujian Personaliti | ${APP_CONFIG.appName}`;
+
+        // ==========================================================
+        // 2. DATA SOALAN & PERSONALITI
+        // ==========================================================
+        const questions = [
+            { id: 1, text: "Saya berani dan suka tegur kawan-kawan baru yang saya baru kenal.", dimension: "E", direction: 1 },
+            { id: 2, text: "Saya lebih suka main atau baca buku seorang diri di rumah berbanding pergi ke tempat yang ramai orang.", dimension: "E", direction: -1 },
+            { id: 3, text: "Saya lebih suka belajar benda yang saya boleh lihat, pegang dan buat, daripada asyik berangan-angan.", dimension: "S", direction: 1 },
+            { id: 4, text: "Saya selalu berkhayal dan suka bayangkan perkara-perkara ajaib atau benda yang belum wujud.", dimension: "S", direction: -1 },
+            { id: 5, text: "Bila nak buat keputusan, saya akan fikir betul-betul apa yang masuk akal, bukan sekadar ikut perasaan.", dimension: "T", direction: 1 },
+            { id: 6, text: "Saya sangat berhati-hati bila bercakap sebab saya tak nak kawan atau keluarga terasa hati.", dimension: "T", direction: -1 },
+            { id: 7, text: "Saya suka buat jadual atau senarai tugas harian, dan saya akan cuba ikut perancangan tu.", dimension: "J", direction: 1 },
+            { id: 8, text: "Saya lebih suka buat sesuatu secara spontan (mengejut) atau ikut 'mood' saya pada hari itu.", dimension: "J", direction: -1 },
+            { id: 9, text: "Saya rasa sangat seronok dan bertenaga bila dapat bermain atau bercampur dengan orang yang ramai.", dimension: "E", direction: 1 },
+            { id: 10, text: "Saya lebih selesa ada 1 atau 2 kawan rapat sahaja berbanding berkawan dengan satu kelas.", dimension: "E", direction: -1 },
+            { id: 11, text: "Saya selalu tanya soalan-soalan pelik seperti 'kenapa bintang bersinar?' atau 'dari mana datangnya pelangi?'.", dimension: "S", direction: -1 },
+            { id: 12, text: "Bila buat kerja sekolah atau tugasan, saya suka kalau ibu bapa atau cikgu tunjuk satu-persatu langkahnya.", dimension: "S", direction: 1 },
+            { id: 13, text: "Bagi saya, bercakap jujur itu lebih penting walaupun kadang-kadang ia mungkin buat kawan marah.", dimension: "T", direction: 1 },
+            { id: 14, text: "Saya selalu ikut kata hati dan lebih risaukan nasib orang lain sebelum buat apa-apa keputusan.", dimension: "T", direction: -1 },
+            { id: 15, text: "Saya rasa lega dan tenang sangat bila kerja sekolah (homework) disiapkan awal sebelum tarikh akhir.", dimension: "J", direction: 1 },
+            { id: 16, text: "Saya selalu bertukar fikiran pada saat-saat akhir bila nak buat sesuatu rancangan.", dimension: "J", direction: -1 },
+            { id: 17, text: "Saya mudah tegur kesilapan orang lain secara terus-terang tanpa berasa serba salah.", dimension: "T", direction: 1 },
+            { id: 18, text: "Bilik saya kadang-kadang bersepah, dan saya tak kisah sangat kalau barang mainan atau buku tak tersusun kemas.", dimension: "J", direction: -1 },
+            { id: 19, text: "Saya sangat suka melukis, mereka cipta sesuatu yang baru, atau buat cerita fantasi saya sendiri.", dimension: "S", direction: -1 },
+            { id: 20, text: "Kalau keadaan senyap sunyi, saya selalunya orang pertama yang akan mula bercakap atau buat lawak.", dimension: "E", direction: 1 }
+        ];
+
+        const personalityTypes = {
+            INTJ: { name: "Arkitek", desc: "Pemikir strategik yang imaginatif, sentiasa mempunyai rancangan untuk segalanya.", icon: "brain", colorClass: "text-purple-600", bgClass: "bg-purple-100", careers: [{name: "Saintis Data", match: 98}, {name: "Arkitek Sistem IT", match: 94}, {name: "Perancang Strategi Korporat", match: 88}] },
+            INTP: { name: "Pakar Logik", desc: "Pencipta yang inovatif dengan kehausan yang tidak berbelah bahagi untuk pengetahuan.", icon: "brain", colorClass: "text-purple-600", bgClass: "bg-purple-100", careers: [{name: "Pengaturcara Komputer", match: 97}, {name: "Ahli Penyelidik Makmal", match: 92}, {name: "Penganalisis Sistem", match: 86}] },
+            ENTJ: { name: "Komander", desc: "Pemimpin yang berani, imaginatif dan bersemangat, sentiasa mencari jalan atau menciptanya.", icon: "brain", colorClass: "text-purple-600", bgClass: "bg-purple-100", careers: [{name: "Pengarah Eksekutif (CEO)", match: 98}, {name: "Peguam Korporat", match: 93}, {name: "Perunding Pengurusan", match: 89}] },
+            ENTP: { name: "Pendebat", desc: "Pemikir yang bijak dan ingin tahu yang tidak dapat menahan cabaran intelek.", icon: "brain", colorClass: "text-purple-600", bgClass: "bg-purple-100", careers: [{name: "Usahawan Startup", match: 96}, {name: "Pengarah Kreatif", match: 91}, {name: "Penganalisis Pasaran", match: 85}] },
+            
+            INFJ: { name: "Peguambela", desc: "Pendiam dan mistik, namun sangat memberi inspirasi dan idealis tanpa jemu.", icon: "sparkles", colorClass: "text-green-600", bgClass: "bg-green-100", careers: [{name: "Pakar Psikologi", match: 97}, {name: "Penulis / Pengarang", match: 92}, {name: "Pengurus Sumber Manusia", match: 88}] },
+            INFP: { name: "Pengantara", desc: "Puitis, baik hati dan altruistik, sentiasa bersemangat untuk membantu tujuan yang baik.", icon: "sparkles", colorClass: "text-green-600", bgClass: "bg-green-100", careers: [{name: "Pereka Grafik", match: 96}, {name: "Kaunselor", match: 93}, {name: "Animator", match: 87}] },
+            ENFJ: { name: "Protagonis", desc: "Pemimpin yang berkarisma dan memberi inspirasi, mampu memukau pendengar mereka.", icon: "sparkles", colorClass: "text-green-600", bgClass: "bg-green-100", careers: [{name: "Pakar Perhubungan Awam", match: 98}, {name: "Guru / Pensyarah", match: 94}, {name: "Jurulatih Korporat", match: 89}] },
+            ENFP: { name: "Jurukempen", desc: "Semangat bebas yang bersemangat, kreatif dan suka bergaul, yang sentiasa mencari alasan untuk tersenyum.", icon: "sparkles", colorClass: "text-green-600", bgClass: "bg-green-100", careers: [{name: "Pengurus Pemasaran", match: 96}, {name: "Pengacara / Wartawan", match: 92}, {name: "Pengarah Seni", match: 88}] },
+            
+            ISTJ: { name: "Pakar Logistik", desc: "Individu yang praktikal dan mementingkan fakta, yang kebolehpercayaannya tidak boleh diragui.", icon: "target", colorClass: "text-blue-600", bgClass: "bg-blue-100", careers: [{name: "Akauntan", match: 98}, {name: "Pengurus Rantaian Bekalan", match: 94}, {name: "Juruaudit", match: 90}] },
+            ISFJ: { name: "Pembela", desc: "Pelindung yang sangat berdedikasi dan hangat, sentiasa bersedia untuk mempertahankan orang tersayang.", icon: "target", colorClass: "text-blue-600", bgClass: "bg-blue-100", careers: [{name: "Jururawat", match: 97}, {name: "Pekerja Sosial", match: 93}, {name: "Pengurus Pentadbiran", match: 89}] },
+            ESTJ: { name: "Eksekutif", desc: "Pengurus yang cemerlang, tiada tandingan dalam menguruskan perkara atau orang.", icon: "target", colorClass: "text-blue-600", bgClass: "bg-blue-100", careers: [{name: "Pengurus Cawangan", match: 96}, {name: "Ketua Pegawai Operasi (COO)", match: 92}, {name: "Pegawai Penguatkuasa", match: 88}] },
+            ESFJ: { name: "Konsul", desc: "Orang yang sangat prihatin, sosial dan popular, sentiasa bersemangat untuk membantu.", icon: "target", colorClass: "text-blue-600", bgClass: "bg-blue-100", careers: [{name: "Pengurus Acara", match: 97}, {name: "Pengurus Khidmat Pelanggan", match: 94}, {name: "Ejen Hartanah", match: 89}] },
+            
+            ISTP: { name: "Virtuoso", desc: "Pengeksperimen yang berani dan praktikal, pakar dalam semua jenis alatan.", icon: "users", colorClass: "text-yellow-600", bgClass: "bg-yellow-100", careers: [{name: "Jurutera Mekanikal", match: 98}, {name: "Jurutera Perisian", match: 93}, {name: "Detektif / Penyiasat", match: 88}] },
+            ISFP: { name: "Pengembara", desc: "Seniman yang fleksibel dan menawan, sentiasa bersedia untuk meneroka dan mengalami sesuatu yang baharu.", icon: "users", colorClass: "text-yellow-600", bgClass: "bg-yellow-100", careers: [{name: "Pereka Fesyen", match: 97}, {name: "Chef Eksekutif", match: 92}, {name: "Jurugambar Profesional", match: 87}] },
+            ESTP: { name: "Usahawan", desc: "Orang yang bijak, bertenaga dan sangat tanggap, yang benar-benar menikmati kehidupan di pinggir.", icon: "users", colorClass: "text-yellow-600", bgClass: "bg-yellow-100", careers: [{name: "Pedagang Saham", match: 96}, {name: "Pengurus Sukan", match: 91}, {name: "Usahawan Komersial", match: 88}] },
+            ESFP: { name: "Penghibur", desc: "Orang yang spontan, bertenaga dan bersemangat - kehidupan tidak pernah membosankan di sekeliling mereka.", icon: "users", colorClass: "text-yellow-600", bgClass: "bg-yellow-100", careers: [{name: "Pelakon / Penghibur", match: 98}, {name: "Pemandu Pelancong", match: 94}, {name: "Perancang Perkahwinan", match: 89}] }
+        };
+
+        const letterExplanations = {
+            E: { title: "Ekstrovert (E)", desc: "Mendapat tenaga daripada interaksi sosial dan dunia luar." },
+            I: { title: "Introvert (I)", desc: "Mendapat tenaga daripada masa bersendirian dan pemikiran dalaman." },
+            S: { title: "Pemerhati (S)", desc: "Berpijak di bumi nyata, fokus kepada fakta dan pengalaman praktikal." },
+            N: { title: "Intuitif (N)", desc: "Fokus kepada idea abstrak, makna tersirat dan kemungkinan masa depan." },
+            T: { title: "Pemikir (T)", desc: "Mengutamakan logik, objektif dan kecekapan dalam membuat keputusan." },
+            F: { title: "Perasa (F)", desc: "Mengutamakan empati, keharmonian dan nilai peribadi dalam keputusan." },
+            J: { title: "Penilai (J)", desc: "Sukakan struktur, jadual yang terancang dan ketertiban." },
+            P: { title: "Pencari (P)", desc: "Seorang yang fleksibel, spontan dan suka membiarkan pilihan terbuka." }
+        };
+
+        // Skala Jawapan (Likert)
+        const likertOptions = [
+            { value: 3, size: 'w-14 h-14 md:w-16 md:h-16', colorClass: 'border-emerald-500 hover:bg-emerald-500 hover:text-white', activeClass: 'bg-emerald-500 text-white border-emerald-500' },
+            { value: 2, size: 'w-12 h-12 md:w-14 md:h-14', colorClass: 'border-emerald-400 hover:bg-emerald-400 hover:text-white', activeClass: 'bg-emerald-400 text-white border-emerald-400' },
+            { value: 1, size: 'w-10 h-10 md:w-12 md:h-12', colorClass: 'border-emerald-300 hover:bg-emerald-300 hover:text-white', activeClass: 'bg-emerald-300 text-white border-emerald-300' },
+            { value: 0, size: 'w-8 h-8 md:w-10 md:h-10',  colorClass: 'border-gray-300 hover:bg-gray-400 hover:border-gray-400 hover:text-white', activeClass: 'bg-gray-400 text-white border-gray-400' },
+            { value: -1, size: 'w-10 h-10 md:w-12 md:h-12', colorClass: 'border-indigo-300 hover:bg-indigo-300 hover:text-white', activeClass: 'bg-indigo-300 text-white border-indigo-300' },
+            { value: -2, size: 'w-12 h-12 md:w-14 md:h-14', colorClass: 'border-indigo-400 hover:bg-indigo-400 hover:text-white', activeClass: 'bg-indigo-400 text-white border-indigo-400' },
+            { value: -3, size: 'w-14 h-14 md:w-16 md:h-16', colorClass: 'border-indigo-500 hover:bg-indigo-500 hover:text-white', activeClass: 'bg-indigo-500 text-white border-indigo-500' },
+        ];
+
+        // ==========================================================
+        // 3. STATE PENGURUSAN APP
+        // ==========================================================
+        let answers = {};
+        let finalScores = { E: 0, S: 0, T: 0, J: 0 };
+        let resultTypeStr = null;
+
+        // Render Ikon dari CDN
+        lucide.createIcons();
+
+        // ==========================================================
+        // 4. FUNGSI-FUNGSI UTAMA
+        // ==========================================================
+
+        // Memulakan Kuiz (Menyembunyikan Halaman Utama)
+        function startQuiz() {
+            document.getElementById('screen-home').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('hidden');
+            
+            document.getElementById('progress-container-desktop').classList.remove('opacity-0');
+            document.getElementById('progress-container-mobile').classList.remove('hidden');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderQuizQuestions();
+        }
+
+        // Generate HTML untuk senarai soalan
+        function renderQuizQuestions() {
+            const container = document.getElementById('quiz-questions-container');
+            container.innerHTML = '';
+
+            questions.forEach(q => {
+                let optionsHtml = '';
+                
+                likertOptions.forEach(opt => {
+                    optionsHtml += `
+                        <button 
+                            onclick="handleAnswer(${q.id}, ${opt.value})" 
+                            id="btn-${q.id}-${opt.value}"
+                            class="likert-btn likert-btn-${q.id} rounded-full border-[3px] transition-all duration-200 flex items-center justify-center bg-transparent text-transparent ${opt.size} ${opt.colorClass}"
+                            data-active-class="${opt.activeClass}"
+                            data-color-class="${opt.colorClass} bg-transparent text-transparent"
+                            aria-label="Pilih tahap ${opt.value}">
+                            <i data-lucide="check-circle-2" class="w-5 h-5 md:w-6 md:h-6 opacity-0 icon-check"></i>
+                        </button>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="bg-white p-6 md:p-10 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                        <h3 class="text-xl md:text-2xl font-semibold text-gray-800 mb-8 max-w-2xl leading-snug">
+                            ${q.text}
+                        </h3>
+                        <div class="flex flex-col items-center mt-6 w-full">
+                            <div class="flex justify-between items-center w-full max-w-2xl px-2 md:px-8 mb-2">
+                                <span class="text-emerald-600 font-semibold text-xs md:text-sm uppercase tracking-wider">Setuju</span>
+                                <span class="text-indigo-600 font-semibold text-xs md:text-sm uppercase tracking-wider">Tidak Setuju</span>
+                            </div>
+                            <div class="flex justify-between items-center w-full max-w-2xl px-2 md:px-8 gap-1 md:gap-3">
+                                ${optionsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons(); // render ikon di dalam soalan
+        }
+
+        // Mengendali pilihan pengguna
+        function handleAnswer(questionId, value) {
+            answers[questionId] = value;
+
+            // Reset semua butang untuk soalan ini
+            const buttons = document.querySelectorAll(`.likert-btn-${questionId}`);
+            buttons.forEach(btn => {
+                // Buang class aktif
+                const activeClasses = btn.getAttribute('data-active-class').split(' ');
+                btn.classList.remove(...activeClasses);
+                
+                // Tambah class default
+                const defaultClasses = btn.getAttribute('data-color-class').split(' ');
+                btn.classList.add(...defaultClasses);
+                
+                // Sembunyikan ikon tick
+                btn.querySelector('.icon-check').classList.add('opacity-0');
+            });
+
+            // Aktifkan butang yang ditekan
+            const selectedBtn = document.getElementById(`btn-${questionId}-${value}`);
+            const defaultClasses = selectedBtn.getAttribute('data-color-class').split(' ');
+            selectedBtn.classList.remove(...defaultClasses);
+            
+            const activeClasses = selectedBtn.getAttribute('data-active-class').split(' ');
+            selectedBtn.classList.add(...activeClasses);
+            selectedBtn.querySelector('.icon-check').classList.remove('opacity-0');
+
+            updateProgress();
+        }
+
+        // Kemas kini Progress Bar dan semak jika semua siap
+        function updateProgress() {
+            const answeredCount = Object.keys(answers).length;
+            const percentage = (answeredCount / questions.length) * 100;
+            
+            document.getElementById('progress-bar-fill').style.width = `${percentage}%`;
+            document.getElementById('progress-bar-fill-mobile').style.width = `${percentage}%`;
+            document.getElementById('progress-text').innerText = `${Math.round(percentage)}% Selesai`;
+
+            if (answeredCount === questions.length) {
+                document.getElementById('btn-submit-quiz').classList.remove('hidden');
+                document.getElementById('quiz-status-incomplete').classList.add('hidden');
+            } else {
+                document.getElementById('btn-submit-quiz').classList.add('hidden');
+                document.getElementById('quiz-status-incomplete').classList.remove('hidden');
+                document.getElementById('remaining-questions-badge').innerText = `${questions.length - answeredCount} soalan lagi`;
+            }
+        }
+
+        // Kira Markah Akhir
+        function calculateResult() {
+            finalScores = { E: 0, S: 0, T: 0, J: 0 };
+
+            questions.forEach(q => {
+                const answerValue = answers[q.id];
+                if (answerValue !== undefined) {
+                    finalScores[q.dimension] += (answerValue * q.direction);
+                }
+            });
+
+            const typeArr = [
+                finalScores.E > 0 ? 'E' : finalScores.E < 0 ? 'I' : 'E',
+                finalScores.S > 0 ? 'S' : finalScores.S < 0 ? 'N' : 'S',
+                finalScores.T > 0 ? 'T' : finalScores.T < 0 ? 'F' : 'T',
+                finalScores.J > 0 ? 'J' : finalScores.J < 0 ? 'P' : 'J'
+            ];
+            
+            resultTypeStr = typeArr.join('');
+
+            // Pindah skrin
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('progress-container-desktop').classList.add('opacity-0');
+            document.getElementById('progress-container-mobile').classList.add('hidden');
+            
+            renderResultPage();
+            
+            document.getElementById('screen-results').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Fungsi kira peratusan untuk bar dimensi
+        function getPercentage(dimension) {
+            const dimensionQuestions = questions.filter(q => q.dimension === dimension).length;
+            const maxPossibleScore = dimensionQuestions * 3;
+            const score = finalScores[dimension];
+            const percentage = ((score + maxPossibleScore) / (maxPossibleScore * 2)) * 100;
+            return Math.round(percentage);
+        }
+
+        // Menjana HTML untuk bar dimensi
+        function buildDimensionBar(labelLeft, labelRight, value, colorClass) {
+            return `
+                <div>
+                    <div class="flex justify-between text-sm font-semibold text-gray-700 mb-2">
+                        <span>${labelLeft}</span>
+                        <span>${labelRight}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden flex">
+                        <div class="h-full ${colorClass}" style="width: ${value}%"></div>
+                        <div class="h-full bg-gray-300" style="width: ${100 - value}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Paparkan Halaman Keputusan
+        function renderResultPage() {
+            const profile = personalityTypes[resultTypeStr];
+            const container = document.getElementById('screen-results');
+            
+            // 1. Kad Pengenalan Diri
+            let html = `
+                <div class="text-center mb-10">
+                    <h2 class="text-xl font-medium text-gray-500 uppercase tracking-widest mb-2">Jenis Personaliti Anda Ialah</h2>
+                    <div class="text-6xl md:text-7xl font-extrabold text-gray-900 mb-4 tracking-tighter">
+                        ${resultTypeStr}
+                    </div>
+                    <div class="inline-flex items-center justify-center p-6 rounded-full mb-6 ${profile.bgClass}">
+                        <i data-lucide="${profile.icon}" class="w-16 h-16 ${profile.colorClass}"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">"${profile.name}"</h3>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">${profile.desc}</p>
+                </div>
+            `;
+
+            // 2. Bar Peratusan Dimensi
+            html += `
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-10">
+                    <h4 class="text-xl font-bold mb-6 border-b pb-4">Pecahan Dimensi Anda</h4>
+                    <div class="space-y-6">
+                        ${buildDimensionBar('Ekstrovert (E)', 'Introvert (I)', getPercentage('E'), 'bg-emerald-500')}
+                        ${buildDimensionBar('Pemerhati (S)', 'Intuitif (N)', getPercentage('S'), 'bg-blue-500')}
+                        ${buildDimensionBar('Pemikir (T)', 'Perasa (F)', getPercentage('T'), 'bg-purple-500')}
+                        ${buildDimensionBar('Penilai (J)', 'Pencari (P)', getPercentage('J'), 'bg-yellow-500')}
+                    </div>
+                    <p class="text-sm text-gray-400 mt-6 italic text-center">*Peratusan ini dikira berdasarkan jawapan tepat anda sebentar tadi.</p>
+                </div>
+            `;
+
+            // 3. Penjelasan Huruf Kod
+            html += `
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-10">
+                    <h4 class="text-xl font-bold mb-6 border-b pb-4">Maksud Kod "${resultTypeStr}" Anda</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            `;
+            
+            resultTypeStr.split('').forEach(letter => {
+                html += `
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex gap-4 items-start hover:shadow-md transition-shadow">
+                            <div class="w-14 h-14 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center font-black text-2xl shrink-0">
+                                ${letter}
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-gray-800">${letterExplanations[letter].title}</h5>
+                                <p class="text-sm text-gray-600 mt-1 leading-relaxed">${letterExplanations[letter].desc}</p>
+                            </div>
+                        </div>
+                `;
+            });
+
+            html += `</div></div>`;
+
+            // 4. Kesesuaian Pekerjaan / Kerjaya
+            html += `
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-10">
+                    <div class="flex items-center gap-3 mb-6 border-b pb-4">
+                        <i data-lucide="briefcase" class="w-6 h-6 text-teal-600"></i>
+                        <h4 class="text-xl font-bold">Kesesuaian Pekerjaan (Kerjaya Ideal)</h4>
+                    </div>
+                    <p class="text-gray-600 mb-6">Berdasarkan profil <strong>${profile.name}</strong> anda, berikut adalah bidang kerjaya yang paling serasi dengan gaya kerja, kekuatan, dan nilai peribadi anda:</p>
+                    <div class="space-y-5">
+            `;
+
+            profile.careers.forEach(career => {
+                html += `
+                    <div class="group">
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="font-semibold text-gray-800 group-hover:text-teal-600 transition-colors">${career.name}</span>
+                            <span class="text-sm font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded-md">${career.match}% Padan</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-teal-400 to-teal-500 rounded-full transition-all duration-1000 ease-out" style="width: ${career.match}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                    <p class="text-sm text-gray-400 mt-6 italic text-center">*Skor ini adalah rujukan panduan sahaja. Minat dan pengalaman peribadi juga memainkan peranan penting.</p>
+                </div>
+            `;
+
+            // 5. Butang Reset
+            html += `
+                <div class="flex justify-center">
+                    <button onclick="resetQuiz()" class="bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-bold py-3 px-8 rounded-full transition-all flex items-center gap-2">
+                        <i data-lucide="rotate-ccw" class="w-5 h-5"></i> Ambil Ujian Semula
+                    </button>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Reset semua
+        function resetQuiz() {
+            answers = {};
+            finalScores = { E: 0, S: 0, T: 0, J: 0 };
+            resultTypeStr = null;
+            
+            updateProgress();
+            
+            document.getElementById('screen-results').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('progress-container-desktop').classList.add('opacity-0');
+            document.getElementById('progress-container-mobile').classList.add('hidden');
+            
+            document.getElementById('screen-home').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
