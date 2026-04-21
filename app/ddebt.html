@@ -3,477 +3,605 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>myLOVE</title>
+    <title>myDEBT - Analisis DSR & Strategi Bebas Hutang</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary-love: #ff4d6d;
-            --secondary-love: #ff85a1;
-            --bg-gradient: linear-gradient(135deg, #fff1f2 0%, #ffd1dc 100%);
-            --glass-bg: rgba(255, 255, 255, 0.9);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        body {
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            overflow-x: hidden;
-        }
-
-        /* Latar Belakang Animasi Hati */
-        .heart-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        @keyframes floating {
-            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-            50% { opacity: 0.6; }
-            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-        }
-
-        .heart-shape {
-            position: absolute;
-            bottom: -10%;
-            color: var(--primary-love);
-            animation: floating 12s linear infinite;
-        }
-
-        /* Container Utama */
-        .card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            border: 2px solid white;
-            border-radius: 30px;
-            padding: 40px;
-            max-width: 800px;
-            width: 100%;
-            box-shadow: 0 20px 50px rgba(255, 77, 109, 0.15);
-            position: relative;
-            margin: 20px 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .heart-main {
-            font-size: 60px;
-            color: var(--primary-love);
-            animation: beat 1.2s infinite;
-            display: inline-block;
-        }
-
-        @keyframes beat {
-            0% { transform: scale(1); }
-            15% { transform: scale(1.25); }
-            30% { transform: scale(1); }
-            45% { transform: scale(1.15); }
-            60% { transform: scale(1); }
-        }
-
-        h1 {
-            color: #c9184a;
-            font-family: 'Georgia', serif;
-            margin-top: 15px;
-            font-size: 2rem;
-        }
-
-        .subtitle {
-            color: #a4133c;
-            font-style: italic;
-            margin-top: 8px;
-            font-size: 1rem;
-        }
-
-        /* Grid Soalan */
-        .questions-container {
-            max-height: 55vh;
-            overflow-y: auto;
-            padding-right: 15px;
-            margin-bottom: 20px;
-        }
-
-        .questions-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        .questions-container::-webkit-scrollbar-thumb {
-            background: var(--secondary-love);
-            border-radius: 10px;
-        }
-
-        .question-box {
-            margin-bottom: 25px;
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 20px;
-            border-left: 6px solid var(--primary-love);
-            transition: all 0.3s ease;
-        }
-
-        .question-box:hover {
-            background: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-
-        .question-text {
-            font-size: 1.15rem;
-            color: #590d22;
-            font-weight: 600;
-            margin-bottom: 15px;
-            line-height: 1.4;
-        }
-
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .option-label {
-            display: flex;
-            align-items: center;
-            padding: 12px 18px;
-            background: white;
-            border: 1px solid #ffccd5;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #800f2f;
-            font-size: 0.95rem;
-        }
-
-        .option-label:hover {
-            border-color: var(--primary-love);
-            background: #fff0f3;
-            transform: translateX(5px);
-        }
-
-        input[type="radio"] {
-            margin-right: 12px;
-            accent-color: var(--primary-love);
-            width: 18px;
-            height: 18px;
-        }
-
-        .btn-submit {
-            background: linear-gradient(45deg, #ff4d6d, #ff758f);
-            color: white;
-            border: none;
-            padding: 20px;
-            border-radius: 50px;
-            width: 100%;
-            font-size: 1.3rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(255, 77, 109, 0.3);
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(255, 77, 109, 0.4);
-            filter: brightness(1.1);
-        }
-
-        /* Keputusan */
-        #result-area {
-            display: none;
-            text-align: center;
-            animation: slideUp 0.8s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .result-display {
-            padding: 35px;
-            background: white;
-            border-radius: 25px;
-            border: 3px double var(--primary-love);
-            margin: 20px 0;
-        }
-
-        .score-badge {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--primary-love);
-            margin-bottom: 10px;
-        }
-
-        .result-title {
-            font-size: 1.6rem;
-            color: #c9184a;
-            margin-bottom: 15px;
-        }
-
-        .result-text {
-            line-height: 1.7;
-            color: #590d22;
-            font-size: 1.1rem;
-        }
-
-        .btn-redo {
-            background: none;
-            color: var(--primary-love);
-            border: 2px solid var(--primary-love);
-            padding: 12px 30px;
-            border-radius: 50px;
-            cursor: pointer;
-            margin: 20px 0;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-redo:hover {
-            background: var(--primary-love);
-            color: white;
-        }
-
-        /* Footer */
-        footer {
-            margin-top: auto;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 77, 109, 0.2);
-            text-align: center;
-            color: #a4133c;
-            font-size: 0.85rem;
-        }
-
-        .footer-heart {
-            color: var(--primary-love);
-            display: inline-block;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        @media (max-width: 600px) {
-            .card { padding: 25px; }
-            h1 { font-size: 1.5rem; }
-            .question-text { font-size: 1rem; }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .tab-active { background-color: #4f46e5; color: white; border-color: #4f46e5; }
+        .tab-inactive { background-color: white; color: #4b5563; border-color: #e5e7eb; }
+        .tab-inactive:hover { background-color: #f3f4f6; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .smooth-transition { transition: all 0.3s ease-in-out; }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 min-h-screen pb-12 text-slate-800 antialiased">
 
-<div class="heart-bg" id="heart-bg"></div>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-20">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-3xl font-extrabold text-slate-800 tracking-tight">my<span class="text-indigo-600">DEBT</span></span>
+            </div>
+            <div class="hidden sm:block text-xs font-bold text-slate-400 uppercase tracking-widest">
+                Kesihatan Kredit & Penasihat Strategi
+            </div>
+        </div>
+    </nav>
 
-<div class="card">
-    <div id="quiz-ui">
-        <header>
-            <div class="heart-main">❤</div>
-            <h1>myLOVE : Bicara Hati Suami Isteri</h1>
-            <p class="subtitle">10 Langkah Menuju Kebahagiaan Abadi</p>
-        </header>
-
-        <form id="loveQuiz">
-            <div class="questions-container">
-                <div class="question-box">
-                    <p class="question-text">1. Adakah anda masih rasa berdebar (tanda cinta) atau tenang apabila melihat pasangan pulang ke rumah?</p>
-                    <div class="options">
-                        <label class="option-label"><input type="radio" name="q1" value="3" required> Ya, ia adalah saat yang paling saya tunggu.</label>
-                        <label class="option-label"><input type="radio" name="q1" value="2"> Kadang-kadang, bergantung pada keadaan hari tersebut.</label>
-                        <label class="option-label"><input type="radio" name="q1" value="1"> Saya rasa biasa sahaja, tiada apa yang istimewa.</label>
+    <div class="max-w-5xl mx-auto px-4 mt-6 sm:mt-8 space-y-6 sm:space-y-8">
+        
+        <!-- SECTION 1: DATA ENTRY -->
+        <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200 overflow-hidden">
+            <div class="p-5 sm:p-8 border-b border-slate-100 bg-slate-50/50">
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-2">Maklumat Kewangan Anda</h2>
+                <p class="text-slate-500 text-sm">Lengkapkan pendapatan dan senarai hutang anda untuk mendapatkan analisis DSR dan strategi pelunasan.</p>
+            </div>
+            
+            <div class="p-5 sm:p-8 space-y-8">
+                <!-- Income -->
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">1</span>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-800">Pendapatan Bersih Bulanan</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Gaji Hakiki</label>
+                            <div class="relative mt-2">
+                                <span class="absolute left-4 top-3.5 text-slate-400 font-semibold text-base">RM</span>
+                                <input type="number" id="gaji" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none font-semibold text-base sm:text-lg transition" value="4000">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Pendapatan Sampingan</label>
+                            <div class="relative mt-2">
+                                <span class="absolute left-4 top-3.5 text-slate-400 font-semibold text-base">RM</span>
+                                <input type="number" id="sampingan" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none font-semibold text-base sm:text-lg transition" value="500">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="question-box">
-                    <p class="question-text">2. Sejauh mana anda merasa pasangan adalah "Safe Space" untuk anda menangis atau meluah?</p>
-                    <div class="options">
-                        <label class="option-label"><input type="radio" name="q2" value="3"> Dia adalah satu-satunya tempat saya mengadu.</label>
-                        <label class="option-label"><input type="radio" name="q2" value="2"> Saya boleh meluah, tapi saya tapis sesetengah perkara.</label>
-                        <label class="option-label"><input type="radio" name="q2" value="1"> Saya lebih suka meluah pada kawan atau simpan sendiri.</label>
+                <hr class="border-slate-100">
+
+                <!-- Debts -->
+                <div>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-sm">2</span>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800">Senarai Komitmen (Hutang)</h3>
+                        </div>
+                        <button onclick="addDebt()" class="text-sm bg-indigo-50 text-indigo-600 font-bold px-5 py-2.5 rounded-xl hover:bg-indigo-100 transition w-full sm:w-auto text-center border border-indigo-100">
+                            + Tambah Hutang Baru
+                        </button>
+                    </div>
+                    
+                    <div id="debt-list" class="space-y-4">
+                        <!-- Debt Items will be rendered here -->
                     </div>
                 </div>
 
-                <div class="question-box">
-                    <p class="question-text">3. Adakah anda kerap memuji kebaikan atau penampilan pasangan anda secara jujur?</p>
-                    <div class="options">
-                        <label class="option-label"><input type="radio" name="q3" value="3"> Ya, saya suka buat dia rasa dihargai setiap hari.</label>
-                        <label class="option-label"><input type="radio" name="q3" value="2"> Jarang sekali, tapi saya hargai dia dalam hati.</label>
-                        <label class="option-label"><input type="radio" name="q3" value="1"> Kami jarang memuji, biasanya lebih kepada teguran.</label>
+                <hr class="border-slate-100">
+
+                <!-- Extra Budget -->
+                <div class="bg-indigo-50/70 p-5 sm:p-6 rounded-2xl border border-indigo-100">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="text-base font-bold text-indigo-900">Bajet Tambahan (Duit Lebih)</h3>
+                            <p class="text-indigo-700/80 text-sm mt-1 max-w-md">Duit lebihan yang anda sanggup bayar setiap bulan selepas menolak semua komitmen di atas.</p>
+                        </div>
+                        <div class="relative w-full sm:w-48">
+                            <span class="absolute left-4 top-3.5 text-indigo-400 font-semibold text-base">RM</span>
+                            <input type="number" id="extra-budget" value="300" class="w-full pl-12 pr-4 py-3 bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-indigo-900 text-lg">
+                        </div>
                     </div>
                 </div>
 
-                <div class="question-box">
-                    <p class="question-text">4. Apabila pasangan bercakap, adakah anda memberi perhatian penuh (meletakkan telefon/gangguan)?</p>
-                    <div class="options">
-                        <label class="option-label"><input type="radio" name="q4" value="3"> Ya, saya mahu dia tahu saya mendengar dengan hati.</label>
-                        <label class="option-label"><input type="radio" name="q4" value="2"> Kadang-kadang, kalau saya tidak terlalu sibuk.</label>
-                        <label class="option-label"><input type="radio" name="q4" value="1"> Saya selalu dengar sambil buat kerja lain.</label>
-                    </div>
-                </div>
+                <button onclick="analyzeData()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition shadow-xl shadow-slate-200 text-lg active:scale-[0.98]">
+                    Analisis DSR & Jana Strategi
+                </button>
+            </div>
+        </div>
 
-                <div class="question-box">
-                    <p class="question-text">5. Adakah anda masih mencari peluang untuk "Dating" atau keluar berdua-duaan tanpa anak/hal lain?</p>
-                    <div class="options">
-                        <label class="option-label"><input type="radio" name="q5" value="3"> Ya, kami sentiasa cari masa untuk 'me-time' berdua.</label>
-                        <label class="option-label"><input type="radio" name="q5" value="2"> Ada niat, tapi sangat susah nak laksanakan.</label>
-                        <label class="option-label"><input type="radio" name="q5" value="1"> Rasanya sudah lama kami tidak berdua-duaan.</label>
+        <!-- SECTION 2 & 3: RESULTS (Hidden Initially) -->
+        <div id="results-container" class="hidden space-y-6 sm:space-y-8 smooth-transition">
+            
+            <!-- DSR Health Card -->
+            <div id="dsr-card" class="rounded-2xl sm:rounded-3xl border border-slate-200 p-6 sm:p-10 text-center transition-colors duration-500 bg-white shadow-lg">
+                <p class="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Skor DSR Semasa Anda</p>
+                <div id="dsr-value" class="text-5xl sm:text-6xl md:text-7xl font-black mb-3 tracking-tighter">0%</div>
+                <div id="dsr-status" class="inline-block px-6 py-2 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-widest mb-4">STATUS</div>
+                <p id="dsr-desc" class="text-slate-600 text-sm md:text-base max-w-2xl mx-auto leading-relaxed"></p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-slate-200/60">
+                    <div class="bg-white/50 p-3 rounded-xl">
+                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Jumlah Pendapatan</span>
+                        <span id="dsr-income" class="text-base sm:text-lg font-bold text-slate-800">RM 0</span>
                     </div>
-                </div>
-
-                <div class="question-box">
-                    <p class="question-text">6. Jika pasangan anda dalam kesedihan, adakah anda tahu cara terbaik untuk memujuknya?</p>
-                    <div class="options">
-                        <label class="option-label"><input type="radio" name="q6" value="3"> Ya, saya faham sangat bahasa kasihnya.</label>
-                        <label class="option-label"><input type="radio" name="q6" value="2"> Saya cuba memujuk, tapi kadang-kadang tidak kena cara.</label>
-                        <label class="option-label"><input type="radio" name="q6" value="1"> Saya biasanya biarkan dia tenang sendiri.</label>
+                    <div class="bg-white/50 p-3 rounded-xl">
+                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Jumlah Komitmen</span>
+                        <span id="dsr-commitment" class="text-base sm:text-lg font-bold text-rose-600">RM 0</span>
                     </div>
-                </div>
-
-                <div class="question-box">
-                    <p class="question-text">7. Adakah anda rasa pasangan meletakkan kepentingan anda melebihi hobi atau kawan-kawannya?</p>
-                    <div class="options">
-                        <label class="option-label"><input type="radio" name="q7" value="3"> Sangat pasti, saya adalah keutamaannya.</label>
-                        <label class="option-label"><input type="radio" name="q7" value="2"> Dia cuba bahagi masa, tapi ada kalanya saya rasa terpinggir.</label>
-                        <label class="option-label"><input type="radio" name="q7" value="1"> Saya rasa hobi/kawannya lebih penting dari saya.</label>
-                    </div>
-                </div>
-
-                <div class="question-box">
-                    <p class="question-text">8. Seberapa kerap anda dan pasangan ketawa besar bersama tentang perkara-perkara remeh?</p>
-                    <div class="options">
-                        <label class="option-label"><input type="radio" name="q8" value="3"> Sangat kerap, kami suka bergurau senda.</label>
-                        <label class="option-label"><input type="radio" name="q8" value="2"> Sekali-sekala bila suasana ceria.</label>
-                        <label class="option-label"><input type="radio" name="q8" value="1"> Jarang sangat, perbualan kami lebih kepada urusan rumah.</label>
-                    </div>
-                </div>
-
-                <div class="question-box">
-                    <p class="question-text">9. Adakah anda berasa bersyukur dan bertuah memiliki dia sebagai teman hidup anda?</p>
-                    <div class="options">
-                        <label class="option-label"><input type="radio" name="q9" value="3"> Setiap hari saya bersyukur dia ada di sisi saya.</label>
-                        <label class="option-label"><input type="radio" name="q9" value="2"> Ada ketikanya saya rasa syukur, ada kalanya saya ragu.</label>
-                        <label class="option-label"><input type="radio" name="q9" value="1"> Saya sering terfikir bagaimana jika saya dengan orang lain.</label>
-                    </div>
-                </div>
-
-                <div class="question-box">
-                    <p class="question-text">10. Jika dunia berakhir esok, adakah anda gembira kerana telah menghabiskan hidup bersamanya?</p>
-                    <div class="options">
-                        <label class="option-label"><input type="radio" name="q10" value="3"> Ya, dialah pilihan terbaik dalam hidup saya.</label>
-                        <label class="option-label"><input type="radio" name="q10" value="2"> Ya, saya rasa ia satu perjalanan yang cukup baik.</label>
-                        <label class="option-label"><input type="radio" name="q10" value="1"> Saya rasa ada banyak perkara yang saya kesalkan.</label>
+                    <div class="bg-white/50 p-3 rounded-xl">
+                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Jumlah Baki Hutang</span>
+                        <span id="dsr-total-balance" class="text-base sm:text-lg font-bold text-slate-800">RM 0</span>
                     </div>
                 </div>
             </div>
 
-            <button type="button" class="btn-submit" onclick="showLoveResult()">Ungkapkan Rahsia Cinta 💖</button>
-        </form>
-    </div>
+            <!-- Strategy Selection -->
+            <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200 overflow-hidden">
+                <div class="p-5 sm:p-8 border-b border-slate-100 text-center bg-slate-50/50">
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-800 mb-2">Pilih Strategi Penyelesaian</h2>
+                    <p class="text-slate-500 text-sm">Pilih kaedah yang paling sesuai dengan corak perbelanjaan dan kewangan anda.</p>
+                </div>
+                
+                <!-- Tabs -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 bg-slate-100/50">
+                    <button onclick="setStrategy('snowball')" id="tab-snowball" class="tab-active border px-4 py-4 rounded-xl text-left transition flex flex-col items-start shadow-sm">
+                        <span class="text-base sm:text-lg font-bold mb-1">Debt Snowball</span>
+                        <span class="text-xs font-medium opacity-90 leading-relaxed">Selesai baki terkecil dulu. Fokus pada motivasi dan kesan psikologi yang pantas.</span>
+                    </button>
+                    <button onclick="setStrategy('avalanche')" id="tab-avalanche" class="tab-inactive border px-4 py-4 rounded-xl text-left transition flex flex-col items-start">
+                        <span class="text-base sm:text-lg font-bold mb-1">Debt Avalanche</span>
+                        <span class="text-xs font-medium opacity-90 text-slate-500 leading-relaxed">Selesai bunga tertinggi dulu. Fokus pada penjimatan faedah maksimum (Matematik).</span>
+                    </button>
+                    <button onclick="setStrategy('consolidation')" id="tab-consolidation" class="tab-inactive border px-4 py-4 rounded-xl text-left transition flex flex-col items-start">
+                        <span class="text-base sm:text-lg font-bold mb-1">Penyatuan Hutang</span>
+                        <span class="text-xs font-medium opacity-90 text-slate-500 leading-relaxed">Gabung semua komitmen menjadi 1 pinjaman untuk kurangkan bayaran bulanan.</span>
+                    </button>
+                </div>
 
-    <!-- Area Keputusan -->
-    <div id="result-area">
-        <header>
-            <div class="heart-main">💖</div>
-            <h1>Keputusan Hati</h1>
-        </header>
-        <div class="result-display">
-            <div class="score-badge" id="score-text">0</div>
-            <h2 id="result-type" class="result-title">Menganalisis...</h2>
-            <p id="result-msg" class="result-text"></p>
+                <!-- Strategy Contents -->
+                <div class="p-5 sm:p-8">
+                    
+                    <!-- Payoff View (Snowball / Avalanche) -->
+                    <div id="view-payoff" class="space-y-6 sm:space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+                            <div class="md:col-span-1 bg-indigo-600 text-white p-6 sm:p-8 rounded-2xl shadow-lg flex flex-col justify-center">
+                                <h3 class="text-indigo-200 text-xs sm:text-sm font-bold uppercase tracking-widest mb-6 border-b border-indigo-500/50 pb-4">Ringkasan Pelunasan</h3>
+                                <div class="space-y-6">
+                                    <div>
+                                        <p class="text-indigo-200 text-xs font-medium">Tarikh Bebas Hutang</p>
+                                        <p id="res-date" class="text-2xl sm:text-3xl font-bold text-white leading-tight mt-1">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-indigo-200 text-xs font-medium">Tempoh Diambil</p>
+                                        <p id="res-months" class="text-xl sm:text-2xl font-semibold mt-1">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-indigo-200 text-xs font-medium">Anggaran Faedah Terlibat</p>
+                                        <p id="res-interest" class="text-xl font-semibold mt-1 text-indigo-100">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                    Urutan Pembayaran Prioriti
+                                </h3>
+                                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                                    <table class="w-full text-left text-sm whitespace-nowrap">
+                                        <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-5 py-4 font-bold">#</th>
+                                                <th class="px-5 py-4 font-bold">Nama Hutang</th>
+                                                <th class="px-5 py-4 font-bold text-right">Baki Awal</th>
+                                                <th class="px-5 py-4 font-bold text-right">Kadar</th>
+                                                <th class="px-5 py-4 font-bold text-right">Bulan Selesai</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="payment-order-body" class="divide-y divide-slate-100 bg-white">
+                                            <!-- Injected by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-5 p-4 sm:p-5 bg-amber-50 border border-amber-100 rounded-xl flex gap-3 items-start">
+                                    <div class="text-amber-500 mt-0.5">⚠️</div>
+                                    <p class="text-xs sm:text-sm text-amber-800 font-medium leading-relaxed">
+                                        <strong>Penting:</strong> Teruskan membayar ansuran minimum bulanan untuk SEMUA hutang. Gunakan <em>Bajet Tambahan</em> (dan lebihan bayaran dari hutang yang dah selesai) sepenuhnya ke atas hutang Prioriti #1.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consolidation View -->
+                    <div id="view-consolidation" class="hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-stretch">
+                            <div class="space-y-6 bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-200 flex flex-col justify-center">
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-800 mb-2">
+                                        Parameter Pinjaman Baru
+                                    </h3>
+                                    <p class="text-sm text-slate-500 leading-relaxed">Masukkan anggaran kadar dan tempoh untuk pinjaman penyatuan (cth: Personal Loan / Refinance Rumah).</p>
+                                </div>
+
+                                <div class="space-y-5">
+                                    <div>
+                                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Jumlah Baki Kasar Digabungkan</label>
+                                        <div class="relative mt-2">
+                                            <span class="absolute left-4 top-3.5 text-slate-400 font-semibold text-base">RM</span>
+                                            <input type="number" id="consol-baki" readonly class="w-full pl-12 pr-4 py-3.5 bg-slate-200 border-0 rounded-xl font-bold text-slate-600 outline-none cursor-not-allowed">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Kadar Baru</label>
+                                            <div class="relative mt-2">
+                                                <input type="number" id="consol-rate" step="0.1" value="4.5" oninput="calculateConsolidation()" class="w-full px-4 py-3.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-semibold text-slate-800">
+                                                <span class="absolute right-4 top-3.5 text-slate-400 font-semibold text-base">%</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Tempoh</label>
+                                            <div class="relative mt-2">
+                                                <input type="number" id="consol-year" value="7" oninput="calculateConsolidation()" class="w-full px-4 py-3.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-semibold text-slate-800">
+                                                <span class="absolute right-4 top-3.5 text-slate-400 font-semibold text-xs mt-1">Tahun</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-slate-400 italic">*Pengiraan asas berdasarkan kadar tetap (Flat Rate) untuk Pinjaman Peribadi.</p>
+                                </div>
+                            </div>
+
+                            <div class="text-center p-6 sm:p-10 bg-slate-900 rounded-2xl text-white shadow-xl flex flex-col justify-center">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Komitmen Bulanan Lama</p>
+                                <div id="old-commitment-display" class="text-2xl sm:text-3xl font-bold text-slate-500 line-through mb-8">RM 0</div>
+                                
+                                <p class="text-xs sm:text-sm font-bold text-indigo-300 uppercase tracking-widest mb-2">Anggaran Komitmen Baru</p>
+                                <div id="new-monthly" class="text-4xl sm:text-5xl font-black text-white mb-8">RM 0.00</div>
+                                
+                                <div class="h-px bg-slate-700 w-full mb-8"></div>
+                                
+                                <p class="text-sm font-medium text-slate-300 mb-3">Pelepasan Aliran Tunai (Cashflow):</p>
+                                <div id="saving-amount" class="text-3xl sm:text-4xl font-bold text-emerald-400">+ RM 0.00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
-        <button class="btn-redo" onclick="location.reload()">Mula Semula</button>
+
+        <p class="text-center text-slate-400 text-xs mt-10 mb-8 max-w-2xl mx-auto leading-relaxed">
+            Penafian: Kalkulator ini dibangunkan untuk tujuan simulasi pendidikan sahaja. Pengiraan anggaran mungkin berbeza mengikut terma sebenar pihak bank. Sila rujuk Agensi Kaunseling dan Pengurusan Kredit (AKPK) atau penasihat kewangan untuk bimbingan profesional. © 2026 d'DEBT
+        </p>
     </div>
 
-    <!-- Footer Kemas -->
-    <footer>
-        <p><span class="footer-heart">❤</span> Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH</p>
-        <p style="margin-top: 5px; opacity: 0.7; font-size: 0.75rem;">DISCLAIMER: Keputusan ini adalah anggaran berdasarkan input dan bukan keputusan sebenar.</p>
-    </footer>
-</div>
+    <script>
+        // State
+        let debts = [
+            { id: 1, name: 'Kad Kredit', balance: 5000, interest: 15, minPayment: 250 },
+            { id: 2, name: 'Pinjaman Peribadi', balance: 15000, interest: 6.5, minPayment: 350 },
+            { id: 3, name: 'Kereta', balance: 45000, interest: 3.2, minPayment: 550 }
+        ];
+        
+        let currentStrategy = 'snowball';
+        let currentTotalIncome = 0;
+        let currentTotalCommitment = 0;
+        let currentTotalBalance = 0;
 
-<script>
-    function initHearts() {
-        const container = document.getElementById('heart-bg');
-        for(let i = 0; i < 20; i++) {
-            const heart = document.createElement('div');
-            heart.className = 'heart-shape';
-            heart.innerHTML = '❤';
-            heart.style.left = Math.random() * 100 + 'vw';
-            heart.style.animationDuration = (Math.random() * 6 + 6) + 's';
-            heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
-            heart.style.opacity = Math.random() * 0.5 + 0.2;
-            container.appendChild(heart);
+        // Init UI
+        window.onload = () => {
+            renderDebts();
+        };
+
+        // --- DEBT LIST MANAGEMENT ---
+        function renderDebts() {
+            const list = document.getElementById('debt-list');
+            list.innerHTML = '';
+            debts.forEach((debt, index) => {
+                const div = document.createElement('div');
+                div.className = "p-4 sm:p-5 border border-slate-200 bg-white rounded-xl sm:rounded-2xl relative hover:border-indigo-300 transition-colors group shadow-sm";
+                div.innerHTML = `
+                    <button onclick="removeDebt(${debt.id})" title="Buang Hutang" class="absolute -top-3 -right-3 bg-white border border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-600 w-8 h-8 rounded-full text-sm flex items-center justify-center shadow-md transition sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 z-10">✕</button>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="col-span-1 sm:col-span-2 md:col-span-1">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Nama Hutang</label>
+                            <input type="text" onchange="updateDebt(${debt.id}, 'name', this.value)" value="${debt.name}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base font-semibold text-slate-800 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Baki (RM)</label>
+                            <input type="number" onchange="updateDebt(${debt.id}, 'balance', this.value)" value="${debt.balance}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base text-slate-800 transition">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 sm:col-span-2 md:col-span-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Faedah (%)</label>
+                                <input type="number" step="0.1" onchange="updateDebt(${debt.id}, 'interest', this.value)" value="${debt.interest}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base text-slate-800 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Min. (RM)</label>
+                                <input type="number" onchange="updateDebt(${debt.id}, 'minPayment', this.value)" value="${debt.minPayment}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base text-slate-800 transition border-rose-100 focus:border-rose-300 focus:ring-rose-100">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
         }
-    }
-    initHearts();
 
-    function showLoveResult() {
-        const form = document.getElementById('loveQuiz');
-        const formData = new FormData(form);
-        let score = 0;
-        let count = 0;
-
-        for (let value of formData.values()) {
-            score += parseInt(value);
-            count++;
+        function addDebt() {
+            const id = Date.now();
+            debts.push({ id, name: 'Hutang Baru', balance: 1000, interest: 5, minPayment: 100 });
+            renderDebts();
         }
 
-        if (count < 10) {
-            const btn = document.querySelector('.btn-submit');
-            btn.innerText = "Sila Jawab Semua 10 Soalan... ❤️";
-            btn.style.background = "#d90429";
+        function removeDebt(id) {
+            debts = debts.filter(d => d.id !== id);
+            renderDebts();
+        }
+
+        function updateDebt(id, field, value) {
+            const debt = debts.find(d => d.id === id);
+            if (debt) {
+                debt[field] = field === 'name' ? value : (parseFloat(value) || 0);
+            }
+        }
+
+        // --- MAIN ANALYSIS ACTION ---
+        function analyzeData() {
+            const gaji = parseFloat(document.getElementById('gaji').value) || 0;
+            const sampingan = parseFloat(document.getElementById('sampingan').value) || 0;
+            currentTotalIncome = gaji + sampingan;
+
+            if (currentTotalIncome <= 0) {
+                alert("Sila masukkan jumlah pendapatan yang sah.");
+                return;
+            }
+
+            if (debts.length === 0) {
+                alert("Sila masukkan sekurang-kurangnya 1 maklumat hutang.");
+                return;
+            }
+
+            currentTotalCommitment = debts.reduce((sum, d) => sum + d.minPayment, 0);
+            currentTotalBalance = debts.reduce((sum, d) => sum + d.balance, 0);
+
+            // 1. Update DSR UI
+            updateDSRUI();
+
+            // 2. Setup Consolidation Initial Values
+            document.getElementById('consol-baki').value = currentTotalBalance;
+            document.getElementById('old-commitment-display').innerText = `RM ${currentTotalCommitment.toLocaleString()}`;
+
+            // 3. Show Results Container
+            document.getElementById('results-container').classList.remove('hidden');
+            
+            // 4. Run Strategy calculation based on current tab
+            runCurrentStrategy();
+
+            // Scroll smoothly to results (adjusting for sticky nav)
             setTimeout(() => {
-                btn.innerText = "Ungkapkan Rahsia Cinta ✨";
-                btn.style.background = "linear-gradient(45deg, #ff4d6d, #ff758f)";
-            }, 2500);
-            return;
+                const element = document.getElementById('results-container');
+                const y = element.getBoundingClientRect().top + window.scrollY - 100;
+                window.scrollTo({top: y, behavior: 'smooth'});
+            }, 100);
         }
 
-        document.getElementById('quiz-ui').style.display = 'none';
-        const resArea = document.getElementById('result-area');
-        resArea.style.display = 'block';
+        // --- DSR LOGIC ---
+        function updateDSRUI() {
+            const dsr = (currentTotalCommitment / currentTotalIncome) * 100;
+            
+            const card = document.getElementById('dsr-card');
+            const dsrVal = document.getElementById('dsr-value');
+            const dsrStatus = document.getElementById('dsr-status');
+            const dsrDesc = document.getElementById('dsr-desc');
+            
+            dsrVal.innerText = dsr.toFixed(1) + "%";
+            document.getElementById('dsr-income').innerText = "RM " + currentTotalIncome.toLocaleString();
+            document.getElementById('dsr-commitment').innerText = "RM " + currentTotalCommitment.toLocaleString();
+            document.getElementById('dsr-total-balance').innerText = "RM " + currentTotalBalance.toLocaleString();
 
-        const scoreText = document.getElementById('score-text');
-        const resType = document.getElementById('result-type');
-        const resMsg = document.getElementById('result-msg');
-
-        scoreText.innerText = score + "/30";
-
-        if (score >= 26) {
-            resType.innerText = "Cinta Syurga (Platinum)";
-            resMsg.innerText = "Luar biasa! Hubungan anda adalah contoh cinta yang sejati dan sangat matang. Anda berdua berjaya membina kepercayaan dan kasih sayang yang kukuh. Teruskan berkongsi kebahagiaan ini, anda berdua adalah 'Soulmate' sejati.";
-        } else if (score >= 20) {
-            resType.innerText = "Cinta Bersemi (Emas)";
-            resMsg.innerText = "Hubungan anda sangat sihat dan stabil. Ada sedikit ruang untuk menambah 'sparks' atau kejutan romantis untuk memastikan api cinta sentiasa membara. Luangkan lebih masa berkualiti untuk mendengar perkara-perkara kecil.";
-        } else if (score >= 14) {
-            resType.innerText = "Cinta Perlu Belai (Perak)";
-            resMsg.innerText = "Anda masih sayangkan satu sama lain, namun rutin harian mungkin mula menenggelamkan rasa romantik. Jangan biarkan ia menjadi tawar. Mulakan dengan ucapan terima kasih dan pelukan lebih kerap. Komunikasi adalah kunci utama.";
-        } else {
-            resType.innerText = "Harapan Yang Perlu Disiram";
-            resMsg.innerText = "Hubungan anda mungkin sedang melalui fasa yang sangat mencabar. Mungkin banyak perkara yang dipendam. Ambillah masa untuk duduk berdua, tanpa gangguan, dan berbincang dari hati ke hati tentang apa yang anda berdua perlukan.";
+            // Reset classes
+            card.className = "rounded-2xl sm:rounded-3xl border p-6 sm:p-10 text-center transition-colors duration-500 shadow-lg ";
+            
+            if (dsr <= 35) {
+                card.classList.add("border-emerald-200", "bg-emerald-50/50");
+                dsrVal.className = "text-5xl sm:text-6xl md:text-7xl font-black mb-3 tracking-tighter text-emerald-600";
+                dsrStatus.className = "inline-block px-6 py-2 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-widest mb-4 bg-emerald-100 text-emerald-700 border border-emerald-200";
+                dsrStatus.innerText = "Sangat Sihat";
+                dsrDesc.innerText = "Kewangan anda sangat kukuh. Anda mempunyai fleksibiliti yang tinggi dalam aliran tunai bulanan dan mudah untuk membuat pinjaman jika perlu.";
+            } else if (dsr <= 55) {
+                card.classList.add("border-amber-200", "bg-amber-50/50");
+                dsrVal.className = "text-5xl sm:text-6xl md:text-7xl font-black mb-3 tracking-tighter text-amber-500";
+                dsrStatus.className = "inline-block px-6 py-2 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-widest mb-4 bg-amber-100 text-amber-700 border border-amber-200";
+                dsrStatus.innerText = "Sederhana";
+                dsrDesc.innerText = "Tahap hutang terkawal. Anda masih layak untuk membuat pinjaman perumahan atau kenderaan, tetapi pastikan simpanan kecemasan mencukupi.";
+            } else if (dsr <= 70) {
+                card.classList.add("border-orange-200", "bg-orange-50/50");
+                dsrVal.className = "text-5xl sm:text-6xl md:text-7xl font-black mb-3 tracking-tighter text-orange-500";
+                dsrStatus.className = "inline-block px-6 py-2 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-widest mb-4 bg-orange-100 text-orange-700 border border-orange-200";
+                dsrStatus.innerText = "Amaran";
+                dsrDesc.innerText = "Berjaga-jaga! Sebahagian besar gaji anda habis untuk membayar hutang. Sukar untuk bank meluluskan sebarang permohonan pinjaman baru.";
+            } else {
+                card.classList.add("border-rose-200", "bg-rose-50/50");
+                dsrVal.className = "text-5xl sm:text-6xl md:text-7xl font-black mb-3 tracking-tighter text-rose-600";
+                dsrStatus.className = "inline-block px-6 py-2 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-widest mb-4 bg-rose-100 text-rose-700 border border-rose-200";
+                dsrStatus.innerText = "Kritikal / Bahaya";
+                dsrDesc.innerText = "Sangat bahaya! Anda berisiko tinggi mengalami defisit aliran tunai bulanan. Anda disarankan untuk mempertimbangkan Penyatuan Hutang atau merujuk pihak AKPK.";
+            }
         }
-    }
-</script>
 
+        // --- STRATEGY TABS LOGIC ---
+        function setStrategy(type) {
+            currentStrategy = type;
+            
+            // UI Tabs
+            const tabs = ['snowball', 'avalanche', 'consolidation'];
+            tabs.forEach(t => {
+                const el = document.getElementById('tab-' + t);
+                if (t === type) {
+                    el.className = "tab-active border px-5 py-4 rounded-xl text-left transition flex flex-col items-start shadow-md scale-[1.01] transform z-10";
+                } else {
+                    el.className = "tab-inactive border px-5 py-4 rounded-xl text-left transition flex flex-col items-start hover:bg-white hover:border-slate-300";
+                }
+            });
+
+            // UI Views
+            if (type === 'consolidation') {
+                document.getElementById('view-payoff').classList.add('hidden');
+                document.getElementById('view-consolidation').classList.remove('hidden');
+                calculateConsolidation();
+            } else {
+                document.getElementById('view-consolidation').classList.add('hidden');
+                document.getElementById('view-payoff').classList.remove('hidden');
+                runCurrentStrategy();
+            }
+        }
+
+        function runCurrentStrategy() {
+            if (currentStrategy === 'consolidation') {
+                calculateConsolidation();
+                return;
+            }
+            calculatePayoff(currentStrategy);
+        }
+
+        // --- PAYOFF SIMULATOR (Snowball / Avalanche) ---
+        function calculatePayoff(strategyType) {
+            const extra = parseFloat(document.getElementById('extra-budget').value) || 0;
+            
+            // Clone and sort
+            let sortedDebts = JSON.parse(JSON.stringify(debts));
+            
+            if (strategyType === 'snowball') {
+                sortedDebts.sort((a, b) => a.balance - b.balance);
+            } else if (strategyType === 'avalanche') {
+                sortedDebts.sort((a, b) => b.interest - a.interest);
+            }
+
+            let totalInterestPaid = 0;
+            let currentMonth = 0;
+            const MAX_MONTHS = 1200; // 100 years fail-safe
+
+            // Setup tracking
+            let simDebts = sortedDebts.map(d => ({
+                ...d, 
+                currentBalance: d.balance, 
+                monthsToFinish: 0
+            }));
+
+            // Main Simulation Loop
+            while (simDebts.some(d => d.currentBalance > 0) && currentMonth < MAX_MONTHS) {
+                currentMonth++;
+                let monthlyExtraAvailable = extra;
+
+                // 1. Pay minimums and accumulate interest for ALL active debts
+                for (let d of simDebts) {
+                    if (d.currentBalance <= 0) continue;
+                    
+                    // Monthly interest
+                    let monthlyRate = (d.interest / 100) / 12;
+                    let interestCharged = d.currentBalance * monthlyRate;
+                    totalInterestPaid += interestCharged;
+                    d.currentBalance += interestCharged;
+
+                    // Pay minimum
+                    let pay = Math.min(d.currentBalance, d.minPayment);
+                    d.currentBalance -= pay;
+                    
+                    if (d.currentBalance <= 0.01) { // Floating point precision
+                        d.currentBalance = 0;
+                        if (d.monthsToFinish === 0) d.monthsToFinish = currentMonth;
+                    }
+                }
+
+                // Calculate total freed up minimum payments from settled debts
+                let freedUpMinPayments = simDebts
+                    .filter(d => d.currentBalance === 0)
+                    .reduce((sum, d) => sum + d.minPayment, 0);
+                
+                monthlyExtraAvailable += freedUpMinPayments;
+
+                // 2. Attack the target debt with extra + freed money
+                for (let d of simDebts) {
+                    if (d.currentBalance > 0) {
+                        let extraPay = Math.min(d.currentBalance, monthlyExtraAvailable);
+                        d.currentBalance -= extraPay;
+                        monthlyExtraAvailable -= extraPay;
+                        
+                        if (d.currentBalance <= 0.01) {
+                            d.currentBalance = 0;
+                            if (d.monthsToFinish === 0) d.monthsToFinish = currentMonth;
+                        }
+                        
+                        if (monthlyExtraAvailable <= 0) break; // Used up all extra
+                    }
+                }
+            }
+
+            renderPayoffResults(currentMonth, totalInterestPaid, simDebts);
+        }
+
+        function renderPayoffResults(months, interest, processedDebts) {
+            if (months >= 1200) {
+                document.getElementById('res-months').innerText = "Lebih 100 Tahun";
+                document.getElementById('res-date').innerText = "Bayaran Minima Tidak Cukup";
+            } else {
+                const targetDate = new Date();
+                targetDate.setMonth(targetDate.getMonth() + months);
+                const monthNames = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
+                
+                const years = Math.floor(months / 12);
+                const remainingMonths = months % 12;
+                let durationText = years > 0 ? `${years} tahun ` : '';
+                durationText += remainingMonths > 0 ? `${remainingMonths} bulan` : '';
+
+                document.getElementById('res-date').innerText = `${monthNames[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
+                document.getElementById('res-months').innerText = durationText || "Selesai bulan pertama!";
+            }
+
+            document.getElementById('res-interest').innerText = `RM ${interest.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            const tbody = document.getElementById('payment-order-body');
+            tbody.innerHTML = '';
+            
+            processedDebts.forEach((d, index) => {
+                const isTarget = index === 0;
+                tbody.innerHTML += `
+                    <tr class="${isTarget ? 'bg-indigo-50/60' : 'hover:bg-slate-50'} transition border-b border-slate-100 last:border-0">
+                        <td class="px-5 py-4 font-bold text-slate-400">${index + 1}</td>
+                        <td class="px-5 py-4 font-semibold text-slate-800">
+                            ${d.name}
+                            ${isTarget ? '<span class="block sm:inline-block mt-1 sm:mt-0 sm:ml-2 text-[10px] sm:text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider w-max">Target Utama</span>' : ''}
+                        </td>
+                        <td class="px-5 py-4 text-right text-slate-600 font-medium">RM ${d.balance.toLocaleString()}</td>
+                        <td class="px-5 py-4 text-right text-slate-600">${d.interest}%</td>
+                        <td class="px-5 py-4 text-right font-bold text-indigo-600">Bulan ke-${d.monthsToFinish}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- CONSOLIDATION LOGIC ---
+        function calculateConsolidation() {
+            const baki = currentTotalBalance;
+            const rate = parseFloat(document.getElementById('consol-rate').value) || 0;
+            const years = parseFloat(document.getElementById('consol-year').value) || 0;
+
+            if (baki <= 0 || years <= 0) return;
+
+            // Flat rate calculation: (Principal + Interest) / Total Months
+            const totalInterest = baki * (rate / 100) * years;
+            const totalLoan = baki + totalInterest;
+            const newMonthly = totalLoan / (years * 12);
+
+            const savings = currentTotalCommitment - newMonthly;
+
+            document.getElementById('new-monthly').innerText = "RM " + newMonthly.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            const savEl = document.getElementById('saving-amount');
+            if (savings > 0) {
+                savEl.innerText = "+ RM " + savings.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                savEl.className = "text-3xl sm:text-4xl font-bold text-emerald-400 mt-1";
+            } else {
+                savEl.innerText = "- RM " + Math.abs(savings).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                savEl.className = "text-3xl sm:text-4xl font-bold text-rose-400 mt-1";
+            }
+        }
+    </script>
 </body>
 </html>
