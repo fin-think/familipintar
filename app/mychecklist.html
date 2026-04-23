@@ -28,40 +28,52 @@
         }
         .urgent-bg { animation: pulse-red 2s infinite; }
         
-        /* Bonus badge animation */
         .bonus-badge {
             background: linear-gradient(45deg, #f59e0b, #fbbf24);
             box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+        }
+
+        .solution-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        
+        .asset-solution-card {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            border-left: 4px solid #f59e0b;
+        }
+
+        .legacy-solution-card {
+            background: linear-gradient(135deg, #451a03 0%, #290c00 100%);
+            border-left: 4px solid #f97316;
         }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen py-6 px-4 flex flex-col items-center">
 
     <div class="w-full max-w-md md:max-w-xl">
-        <!-- Legend Kategori Umur -->
         <div class="mb-4 text-center">
             <span class="text-[12px] font-black uppercase tracking-widest text-slate-500">Pilih Kategori Umur</span>
         </div>
         
-        <!-- Selector Umur -->
         <div class="mb-8 flex bg-white p-2 rounded-2xl shadow-md border border-slate-200">
             <button onclick="setAgeGroup('20-30')" id="btn-20-30" class="flex-1 py-4 rounded-xl font-extrabold text-sm transition-all age-btn bg-blue-600 text-white shadow-lg">20-30</button>
             <button onclick="setAgeGroup('30-40')" id="btn-30-40" class="flex-1 py-4 rounded-xl font-extrabold text-sm transition-all age-btn text-slate-400">30-40</button>
             <button onclick="setAgeGroup('40-50')" id="btn-40-50" class="flex-1 py-4 rounded-xl font-extrabold text-sm transition-all age-btn text-slate-400">40-50</button>
         </div>
 
+        <!-- Main Card -->
         <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden">
-            <!-- Header -->
+            <!-- Header Section -->
             <div class="bg-slate-900 p-8 text-white relative">
                 <div class="flex justify-between items-start mb-1">
-                    <h1 class="text-2xl font-black tracking-tighter italic text-blue-400">myCHECKLIST</h1>
+                    <h1 class="text-2xl font-black tracking-tighter italic text-blue-400">FINANCE HEALTH</h1>
                     <div id="bonusIndicator" class="hidden bonus-badge text-[9px] font-black px-2 py-1 rounded-full text-slate-900 animate-bounce uppercase">Legacy Bonus Active</div>
                 </div>
                 <p id="ageGroupLabel" class="text-white text-[11px] font-black uppercase tracking-[0.3em] mb-8 opacity-80"></p>
                 
                 <div class="flex items-center justify-between gap-4">
                     <div class="flex-shrink-0">
-                        <span class="text-[11px] font-black uppercase tracking-widest opacity-40 block mb-1">Finance Health</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest opacity-40 block mb-1">Health Score</span>
                         <span id="percentageText" class="text-5xl font-black tabular-nums tracking-tighter">0%</span>
                     </div>
                     <div class="flex-grow">
@@ -73,28 +85,90 @@
                 </div>
             </div>
 
-            <!-- Content Area -->
+            <!-- Checklist Section -->
             <div id="checklistContent" class="p-6 space-y-10">
-                <!-- Sections Injected Here -->
+                <!-- Checklist items injected via JS -->
             </div>
 
-            <!-- Real-time Results Summary -->
-            <div id="summaryArea" class="px-6 pb-10">
+            <!-- Summary & Solutions Area -->
+            <div id="summaryArea" class="px-6 pb-10 space-y-6 border-t border-slate-50 pt-8">
+                
+                <!-- 1. Strategi Pendapatan -->
+                <div id="incomeSolutionBox" class="solution-card rounded-[2rem] p-6 text-white hidden shadow-2xl">
+                    <div class="flex items-center mb-4">
+                        <div class="p-2 bg-blue-500 rounded-lg mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                        <h4 class="font-black text-mobile-sm uppercase tracking-tight text-blue-400">Strategi Pendapatan</h4>
+                    </div>
+                    <p class="text-[13px] font-bold leading-relaxed mb-4 text-slate-300">
+                        Gaji anda belum mencapai target minimum fasa umur ini. Untuk mengelakkan krisis masa hadapan:
+                    </p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start text-[12px]">
+                            <span class="text-blue-400 mr-2">➜</span>
+                            <span>Cari <strong>Side Hustle</strong> atau tingkatkan kemahiran (Upskilling) untuk nilai pasaran lebih tinggi.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 2. Portfolio Aset -->
+                <div id="assetSolutionBox" class="asset-solution-card rounded-[2rem] p-6 text-white hidden shadow-xl border border-slate-700">
+                    <div class="flex items-center mb-4">
+                        <div class="p-2 bg-amber-500 rounded-lg mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        </div>
+                        <h4 class="font-black text-mobile-sm uppercase tracking-tight text-amber-400">Amaran Portfolio Aset</h4>
+                    </div>
+                    <p class="text-[13px] font-bold leading-relaxed mb-4 text-slate-300 italic">
+                        "Anda belum mempunyai sebarang pelaburan aset fizikal atau tunai."
+                    </p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start text-[12px]">
+                            <span class="text-amber-400 mr-2">●</span>
+                            <span>Aset seperti <strong>ASB, Emas atau Hartanah</strong> adalah benteng inflasi. Mula dengan simpanan kecil yang konsisten.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 3. Legacy (Tanggungjawab Pusaka) -->
+                <div id="legacySolutionBox" class="legacy-solution-card rounded-[2rem] p-6 text-white hidden shadow-xl">
+                    <div class="flex items-center mb-4">
+                        <div class="p-2 bg-orange-600 rounded-lg mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        </div>
+                        <h4 class="font-black text-mobile-sm uppercase tracking-tight text-orange-400">Tanggungjawab Legacy</h4>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-[13px] font-bold leading-relaxed text-slate-200 italic mb-2">
+                            "Kematian tidak menunggu kita, ia boleh datang bila-bila masa sahaja."
+                        </p>
+                        <p class="text-[11px] text-slate-400 leading-snug border-l-2 border-orange-500/50 pl-3">
+                            "Diwajibkan atas kamu, apabila seseorang di antara kamu kedatangan (tanda-tanda) maut, jika ia meninggalkan harta yang banyak, berwasiat untuk ibu bapak dan karib kerabatnya secara makruf..." <br><strong>(Surah Al-Baqarah: 180)</strong>
+                        </p>
+                    </div>
+                    <ul class="space-y-3">
+                        <li class="flex items-start text-[12px]">
+                            <span class="text-orange-400 mr-2">✦</span>
+                            <span>Jangan biarkan harta anda menjadi punca perbalahan keluarga. <strong>Sediakan Wasiat</strong> sekarang sebagai tanda kasih sayang kepada waris.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- General Warnings -->
                 <div id="warningBox" class="urgent-bg border-2 border-red-200 rounded-[2rem] p-6 hidden">
                     <div class="flex items-start">
                         <div class="p-2 bg-red-100 rounded-lg text-red-600 mr-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                         </div>
                         <div>
-                            <h4 class="text-red-700 font-black text-mobile-sm uppercase tracking-tight">Tindakan Segera (A.S.A.P)</h4>
-                            <p class="text-red-600 text-mobile-xs mt-1 font-bold leading-relaxed">
-                                Sila penuhi kriteria teras (Skor 100%) untuk status selamat:
-                            </p>
+                            <h4 class="text-red-700 font-black text-mobile-sm uppercase tracking-tight">Perlu Perhatian Segera</h4>
                             <div id="missingItems" class="mt-4 flex flex-wrap gap-2"></div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Full Success Message -->
                 <div id="successBox" class="bg-emerald-50 border-2 border-emerald-200 rounded-[2rem] p-6 hidden">
                     <div class="flex items-center text-emerald-700">
                         <div class="p-2 bg-emerald-100 rounded-lg mr-4">
@@ -108,15 +182,22 @@
                 </div>
             </div>
 
-            <!-- Footer -->
-            <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-                <p class="text-[11px] text-slate-400 font-black uppercase" id="currentDate"></p>
-                <p class="text-[11px] text-slate-900 font-black uppercase italic tracking-tighter">DISCLAIMER: Anggaran sahaja untuk rujukan dan panduan. Bukan nasihat kewangan dan hasil sebenar mungkin berbeza.</p>
+            <!-- Footer Section -->
+            <div class="p-6 bg-slate-50 border-t border-slate-100">
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-[11px] text-slate-400 font-black uppercase" id="currentDate"></p>
+                    <p class="text-[11px] text-slate-900 font-black uppercase italic tracking-tighter">Official Standards</p>
+                </div>
+                <!-- Disclaimer -->
+                <div class="p-4 bg-slate-200/50 rounded-2xl">
+                    <p class="text-[9px] text-slate-500 font-bold uppercase leading-tight tracking-wider">
+                        <span class="text-slate-700">PENAFIAN:</span> Maklumat yang disediakan dalam aplikasi ini adalah untuk tujuan rujukan dan perancangan peribadi sahaja. Ia tidak membentuk nasihat kewangan rasmi, undang-undang atau pelaburan. Sila rujuk perunding bertauliah untuk keputusan kewangan profesional.
+                    </p>
+                    <p class="text-slate-500 text-xs leading--tight tracking-wider">  
+                        Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH
+                    </p>
+                </div>
             </div>
-        </div>
-        
-        <div class="mt-8 mb-10 text-center">
-            <p class="text-slate-400 text-[11px] font-bold uppercase tracking-[0.2em] px-4 leading-relaxed">Ingin membangunkan kalkulator interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut.</p>
         </div>
     </div>
 
@@ -125,25 +206,25 @@
             "20-30": {
                 label: "FASA PEMBINAAN: 20-30 TAHUN",
                 sections: [
-                    { isBonus: false, title: "Income & Savings", items: ["Gaji Minimum (Basic RM2.5k+)", "Tunai Kecemasan (3 bln Gaji)", "Simpanan KWSP RM26k (Umur 30)"] },
-                    { isBonus: false, title: "Protection & Assets", items: ["ASB/ Tabung Haji (Min RM10k)", "Emas Fizikal/ Digital (Min 10g)", "Insurans Perubatan (Medical Card)"] },
-                    { isBonus: true, title: "Legacy (Bonus Points)", items: ["Penyediaan Wasiat", "Hibah Takaful Asas", "Harta Sepencarian"] }
+                    { isBonus: false, isIncome: true, isAsset: false, title: "Income & Savings", items: ["Gaji Minimum (Basic RM2.5k+)", "Tunai Kecemasan (3 bln Gaji)", "Simpanan KWSP RM26k (Umur 30)"] },
+                    { isBonus: false, isIncome: false, isAsset: true, title: "Protection & Assets", items: ["ASB/ Tabung Haji (Min RM10k)", "Emas Fizikal/ Digital (Min 10g)", "Insurans Perubatan (Medical Card)"] },
+                    { isBonus: true, isIncome: false, isAsset: false, title: "Legacy (Bonus Points)", items: ["Penyediaan Wasiat", "Hibah Takaful", "Harta Sepencarian"] }
                 ]
             },
             "30-40": {
                 label: "FASA PENGUKUHAN: 30-40 TAHUN",
                 sections: [
-                    { isBonus: false, title: "Income & Savings", items: ["Gaji Minimum (Basic RM5k+)", "Tunai Kecemasan (6 bln Gaji)", "Simpanan KWSP RM74k (Umur 40)"] },
-                    { isBonus: false, title: "Protection & Assets", items: ["ASB/ Unit Trust (Min RM50k)", "Hartanah Kediaman (Rumah 1)", "Emas Fizikal (Min 50g)"] },
-                    { isBonus: true, title: "Legacy (Bonus Points)", items: ["Wasiat (Draft Terkini)", "Hibah Harta", "Harta Sepencarian"] }
+                    { isBonus: false, isIncome: true, isAsset: false, title: "Income & Savings", items: ["Gaji Minimum (Basic RM5k+)", "Tunai Kecemasan (6 bln Gaji)", "Simpanan KWSP RM74k (Umur 40)"] },
+                    { isBonus: false, isIncome: false, isAsset: true, title: "Protection & Assets", items: ["ASB/ Tabung Haji (Min RM30K)", "Emas Fizikal/ Digital (Min 50g)", "Insurans Perubatan (Medical Card)", "Unit Trust (Min RM50k)", "Hartanah Kediaman"] },
+                    { isBonus: true, isIncome: false, isAsset: false, title: "Legacy (Bonus Points)", items: ["Wasiat (Draft Terkini)", "Hibah Takaful", "Hibah Harta", "Harta Sepencarian"] }
                 ]
             },
             "40-50": {
                 label: "FASA MATANG: 40-50 TAHUN",
                 sections: [
-                    { isBonus: false, title: "Income & Savings", items: ["Gaji Minimum (Basic RM8k+)", "Passive Income", "Tunai Kecemasan (12 bln Gaji)", "Simpanan KWSP RM150k (Umur 50)"] },
-                    { isBonus: false, title: "Protection & Assets", items: ["ASB (Min RM150k)", "Emas Fizikal/ Digital (Min 100g)", "Unit Trust (MinRM150k)"] },
-                    { isBonus: true, title: "Legacy (Bonus Points)", items: ["Amanah (Cash Trust)", "Wasiat (Draft Terkini)", "Hibah Harta", "Harta Sepencarian"] }
+                    { isBonus: false, isIncome: true, isAsset: false, title: "Income & Savings", items: ["Gaji Minimum (Basic RM8k+)", "Passive Income", "Tunai Kecemasan (12 bln Gaji)", "Simpanan KWSP RM150k (Umur 50)"] },
+                    { isBonus: false, isIncome: false, isAsset: true, title: "Protection & Assets", items: ["ASB/ Tabung Haji (Min RM50k)", "Emas Fizikal/ Digital (Min 100g)", "Insuran Perubatan + Life", "Unit Trust (Min RM150k)", "Hartanah Kediaman"] },
+                    { isBonus: true, isIncome: false, isAsset: false, title: "Legacy (Bonus Points)", items: ["Wasiat (Draft Terkini)", "Hibah Takaful", "Hibah Harta", "Harta Sepencarian", "Tunai Amanah (Cash Trust)"] }
                 ]
             }
         };
@@ -177,19 +258,25 @@
                         ${section.title}
                     </h3>
                     <div class="space-y-4">
-                        ${section.items.map((item, iIdx) => `
-                            <div class="group relative">
-                                <input type="checkbox" id="cb-${sIdx}-${iIdx}" 
-                                       data-bonus="${section.isBonus}" 
-                                       class="checkbox-custom hidden" onchange="updateStatus()">
-                                <label for="cb-${sIdx}-${iIdx}" class="flex items-center p-6 rounded-3xl border-2 border-slate-100 bg-white hover:border-blue-200 transition-all cursor-pointer shadow-sm active:bg-slate-50">
-                                    <span class="text-content text-mobile-sm font-extrabold text-slate-700 flex-1 uppercase tracking-tight">${item}</span>
-                                    <div class="check-box w-7 h-7 rounded-xl border-2 border-slate-200 flex items-center justify-center transition-all bg-slate-50">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="check-icon hidden w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                    </div>
-                                </label>
-                            </div>
-                        `).join('')}
+                        ${section.items.map((item, iIdx) => {
+                            const isIncomeMin = section.isIncome && iIdx === 0;
+                            const isAssetItem = section.isAsset && !item.includes("Medical Card") && !item.includes("Insurans");
+                            return `
+                                <div class="group relative">
+                                    <input type="checkbox" id="cb-${sIdx}-${iIdx}" 
+                                           data-bonus="${section.isBonus}" 
+                                           data-income-min="${isIncomeMin}"
+                                           data-is-asset="${isAssetItem}"
+                                           class="checkbox-custom hidden" onchange="updateStatus()">
+                                    <label for="cb-${sIdx}-${iIdx}" class="flex items-center p-6 rounded-3xl border-2 border-slate-100 bg-white hover:border-blue-200 transition-all cursor-pointer shadow-sm active:bg-slate-50">
+                                        <span class="text-content text-mobile-sm font-extrabold text-slate-700 flex-1 uppercase tracking-tight">${item}</span>
+                                        <div class="check-box w-7 h-7 rounded-xl border-2 border-slate-200 flex items-center justify-center transition-all bg-slate-50">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="check-icon hidden w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                        </div>
+                                    </label>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 `;
                 container.appendChild(sectionEl);
@@ -199,25 +286,40 @@
         function updateStatus() {
             const coreCheckboxes = document.querySelectorAll('.checkbox-custom[data-bonus="false"]');
             const bonusCheckboxes = document.querySelectorAll('.checkbox-custom[data-bonus="true"]');
+            const incomeMinCheckbox = document.querySelector('.checkbox-custom[data-income-min="true"]');
+            const assetCheckboxes = document.querySelectorAll('.checkbox-custom[data-is-asset="true"]');
             
             const coreChecked = document.querySelectorAll('.checkbox-custom[data-bonus="false"]:checked');
             const bonusChecked = document.querySelectorAll('.checkbox-custom[data-bonus="true"]:checked');
+            const assetsChecked = document.querySelectorAll('.checkbox-custom[data-is-asset="true"]:checked');
             
-            // Calculate Core Score (Max 100%)
             const corePercentage = Math.round((coreChecked.length / coreCheckboxes.length) * 100);
-            
-            // Calculate Bonus (Each bonus item adds a fixed amount, e.g., 5% per item)
             const bonusScore = bonusChecked.length * 5;
             const totalScore = corePercentage + bonusScore;
             
             document.getElementById('percentageText').innerText = totalScore + "%";
             document.getElementById('progressBar').style.width = Math.min(totalScore, 100) + "%";
             
-            // Update UI Indicators
             const bonusIndicator = document.getElementById('bonusIndicator');
             if (bonusChecked.length > 0) bonusIndicator.classList.remove('hidden');
             else bonusIndicator.classList.add('hidden');
 
+            // 1. Income Logic
+            const incomeSolutionBox = document.getElementById('incomeSolutionBox');
+            if (incomeMinCheckbox && !incomeMinCheckbox.checked) incomeSolutionBox.classList.remove('hidden');
+            else incomeSolutionBox.classList.add('hidden');
+
+            // 2. Asset Logic
+            const assetSolutionBox = document.getElementById('assetSolutionBox');
+            if (assetCheckboxes.length > 0 && assetsChecked.length === 0) assetSolutionBox.classList.remove('hidden');
+            else assetSolutionBox.classList.add('hidden');
+
+            // 3. Legacy Logic
+            const legacySolutionBox = document.getElementById('legacySolutionBox');
+            if (bonusCheckboxes.length > 0 && bonusChecked.length === 0) legacySolutionBox.classList.remove('hidden');
+            else legacySolutionBox.classList.add('hidden');
+
+            // Badge Update
             const badge = document.getElementById('statusBadge');
             if (corePercentage < 50) {
                 badge.innerText = "Kritikal";
@@ -237,7 +339,6 @@
             if (corePercentage < 100) {
                 warningBox.classList.remove('hidden');
                 successBox.classList.add('hidden');
-                
                 missingItems.innerHTML = '';
                 coreCheckboxes.forEach(cb => {
                     if (!cb.checked) {
