@@ -84,72 +84,258 @@
 </head>
 <body class="text-slate-800 antialiased overflow-x-hidden">
 
-    <!-- SKRIN LOG MASUK -->
-    <div id="loginOverlay" class="fixed inset-0 z-[100] login-gradient flex flex-col items-center justify-start p-6 pt-10 text-center overflow-y-auto bg-gradient-to-br from-sky-50 to-white">
+    <!-- SKRIN LOG MASUK (FRONT PAGE BARU) -->
+    <div id="loginOverlay" class="fixed inset-0 z-[100] bg-slate-50 flex flex-col overflow-y-auto w-full">
         
-        <!-- 1. LOGO ATAS -->
-        <div class="mb-4 transform transition-all duration-700">
-            <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="w-32 md:w-40 h-auto object-contain mx-auto block">
-        </div>
+        <!-- Header Ringkas -->
+        <header class="w-full bg-white px-6 py-4 shadow-sm relative z-50">
+            <div class="flex justify-between items-center">
+                <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="h-10 w-auto object-contain">
+                
+                <!-- Menu Butang Baru (Desktop / Tablet) -->
+                <div class="hidden md:flex items-center gap-3">
+                    <a href="https://fin-think.github.io/landingpage1/" target="_blank" class="bg-yellow-50 border border-yellow-300 hover:bg-slate-100 text-slate-700 text-sm font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-sky-500"></i> Tools of Life
+                    </a>
+                    <a href="https://fin-think.github.io/landingpage1/" target="_blank" class="bg-yellow-100 border border-yellow-500 hover:bg-slate-100 text-slate-700 text-sm font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-gamepad text-sky-500"></i> Ujian Hidup
+                    </a>
+                    <a href="https://daebook89.github.io/daebook/" target="_blank" class="bg-yellow-300 hover:bg-yellow-400 text-slate-900 text-sm font-bold py-2 px-4 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-book text-slate-800"></i> Koleksi eBook
+                    </a>
+                    <a href="https://producthch.github.io/learnmandarin1.0/" target="_blank" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 text-sm font-bold py-2 px-4 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-language text-slate-800"></i> Belajar Mandarin
+                    </a>
+                    <a href="https://producthch.github.io/smartsolo/" target="_blank" class="bg-yellow-700 hover:bg-yellow-600 text-white text-sm font-bold py-2 px-4 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-brain text-white"></i> SmartSolo
+                    </a>
+                </div>
 
-        <!-- 2. WELCOME NOTE -->
-        <div class="max-w-6xl mx-auto mb-10">
-            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
-                Selamat Datang ke <span class="text-yellow-500">Famili</span> <span class="text-sky-500">Pintar</span>
-            </h1>
-            <p class="text-slate-600 text-base md:text-lg leading-relaxed">
-                Selamat datang ke perjalanan keluarga anda.<br><br>Setiap keluarga mempunyai fasa dan cabaran tersendiri. Namun tanpa panduan yang jelas, kita mudah tersasar — dalam kewangan, hubungan, dan cara membentuk masa depan anak.<br>Persoalannya…<br>Adakah anda benar-benar tahu keadaan sebenar keluarga anda sekarang?<br>Di sinilah langkah pertama bermula.<br>Melalui ujian dan alat interaktif yang ringkas, anda boleh melihat gambaran sebenar — bukan sekadar andaian.<br>Ambil sedikit masa hari ini…<br>dan mulakan dengan satu langkah kecil ke arah masa depan yang lebih terarah.
-            </p>
-        </div>
-
-        <!-- 3. CTA BUTTONS -->
-        <div class="mb-12 flex flex-col sm:flex-row gap-4">
-            <a href="https://fin-think.github.io/landingpage1/" target="_blank" 
-               class="px-10 py-4 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-2xl shadow-lg shadow-sky-200 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center">
-                <i class="fa-solid fa-rocket mr-2"></i> Dapatkan Kod Akses
-            </a>
-            <button onclick="window.scrollTo({top: 500, behavior: 'smooth'})" 
-                class="hidden">
-                Pelajari Lebih Lanjut
-            </button>
-        </div>
-
-        <!-- 4. DIVIDER -->
-        <div class="w-full max-w-sm flex items-center mb-6">
-            <div class="flex-grow border-t border-slate-200"></div>
-            <span class="px-4 text-slate-400 text-xs font-bold uppercase tracking-widest">Sudah Ada Kod?</span>
-            <div class="flex-grow border-t border-slate-200"></div>
-        </div>
-
-        <!-- 5. AKSES INPUT (SISTEM KEAHLIAN BARU) -->
-        <div class="w-full max-w-sm space-y-4 bg-white p-8 rounded-3xl shadow-xl border border-slate-100 mx-auto">
-            <h3 class="font-bold text-slate-700 text-center text-sm mb-2">Akses Keahlian</h3>
-            
-            <div class="relative">
-                <i class="fa-solid fa-phone absolute left-4 top-4 text-slate-400"></i>
-                <input type="tel" id="phoneInput" 
-                    class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none font-bold text-slate-700 placeholder:font-medium placeholder:text-slate-400 transition-all" 
-                    placeholder="No. Telefon (Cth: 0123456789)">
+                <!-- Butang Hamburger (Mobile) -->
+                <button onclick="toggleMobileMenu()" id="hamburgerBtn" class="md:hidden text-slate-600 text-2xl focus:outline-none">
+                    <i class="fa-solid fa-bars transition-all duration-300"></i>
+                </button>
             </div>
 
-            <div class="relative">
-                <i class="fa-solid fa-key absolute left-4 top-4 text-slate-400"></i>
-                <input type="password" id="passwordInput" 
-                    class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none font-bold tracking-widest uppercase text-slate-700 placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 transition-all" 
-                    placeholder="KOD AKSES">
+            <!-- Menu Butang Baru (Mobile Dropdown) -->
+            <div id="mobileMenu" class="hidden md:hidden flex-col gap-3 mt-4 pt-4 border-t border-slate-100 pb-2">
+                <a href="https://fin-think.github.io/landingpage1/" target="_blank" class="w-full bg-yellow-50 border border-yellow-300 hover:bg-slate-100 text-slate-700 text-sm font-bold py-3 px-4 rounded-xl transition-all flex items-center gap-3">
+                    <i class="fa-solid fa-calculator text-sky-500 text-lg w-6 text-center"></i> Tools of Life
+                </a>
+                <a href="https://fin-think.github.io/landingpage1/" target="_blank" class="w-full bg-yellow-100 border border-yellow-500 hover:bg-slate-100 text-slate-700 text-sm font-bold py-3 px-4 rounded-xl transition-all flex items-center gap-3">
+                    <i class="fa-solid fa-gamepad text-sky-500 text-lg w-6 text-center"></i> Ujian Hidup
+                </a>
+                <a href="https://daebook89.github.io/daebook/" target="_blank" class="w-full bg-yellow-300 hover:bg-yellow-400 text-slate-900 text-sm font-bold py-3 px-4 rounded-xl transition-all shadow-sm flex items-center gap-3">
+                    <i class="fa-solid fa-book text-slate-800 text-lg w-6 text-center"></i> Koleksi eBook
+                </a>
+                <a href="https://producthch.github.io/learnmandarin1.0/" target="_blank" class="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 text-sm font-bold py-3 px-4 rounded-xl transition-all shadow-sm flex items-center gap-3">
+                    <i class="fa-solid fa-language text-slate-800 text-lg w-6 text-center"></i> Belajar Mandarin
+                </a>
+                <a href="https://producthch.github.io/smartsolo/" target="_blank" class="w-full bg-yellow-700 hover:bg-yellow-600 text-white text-sm font-bold py-3 px-4 rounded-xl transition-all shadow-sm flex items-center gap-3">
+                    <i class="fa-solid fa-brain text-white text-lg w-6 text-center"></i> SmartSolo
+                </a>
             </div>
+        </header>
+
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 w-full flex-grow">
             
-            <p id="loginError" class="text-red-500 text-xs hidden font-semibold italic text-left">Sila semak semula No. Telefon atau Kod anda.</p>
-            
-            <button onclick="checkLogin()" id="loginBtn"
-                class="w-full py-4 mt-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-md transition-all transform active:scale-95 flex items-center justify-center group">
-                <span id="btnText">Log Masuk Sekarang</span> <i class="fa-solid fa-arrow-right-long ml-2 group-hover:translate-x-1 transition-transform"></i>
+            <!-- HERO SECTION -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+                <!-- Teks Hero -->
+                <div class="order-2 lg:order-1 text-center lg:text-left">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight tracking-tight">
+                        Selamat Datang ke <br>
+                        <span class="text-yellow-500">Famili</span> <span class="text-sky-500">Pintar</span>
+                    </h1>
+                    <div class="text-slate-600 text-base md:text-lg leading-relaxed space-y-4 mb-8">
+                        <p>Selamat datang ke perjalanan keluarga anda.</p>
+                        <p>Setiap keluarga mempunyai fasa dan cabaran tersendiri. Namun tanpa panduan yang jelas, kita mudah tersasar — dalam kewangan, hubungan, dan cara membentuk masa depan anak.</p>
+                        
+                        <div class="bg-blue-50/80 border-l-4 border-sky-500 p-4 my-6 text-left rounded-r-lg inline-block w-full">
+                            <p class="text-sky-700 font-semibold italic text-sm mb-1">Persoalannya...</p>
+                            <p class="text-sky-900 font-bold">Adakah anda benar-benar tahu keadaan sebenar keluarga anda sekarang?</p>
+                        </div>
+                        
+                        <p>Di sinilah langkah pertama bermula.<br>Melalui ujian dan alat interaktif yang ringkas,</p>
+                    </div>
+                    
+                    <button onclick="window.scrollTo({top: document.getElementById('loginFormSection').offsetTop, behavior: 'smooth'})" class="hidden"></button>
+                </div>
+
+                <!-- Gambar Hero -->
+                <div class="relative order-1 lg:order-2 px-4 lg:px-0">
+                    <img src="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.png" alt="Keluarga" class="rounded-3xl shadow-2xl object-cover h-[350px] md:h-[450px] w-full">
+                    
+                    <!-- Quote Box Atas Gambar -->
+                    <div class="absolute -bottom-6 lg:-bottom-8 left-1/2 transform -translate-x-1/2 w-[90%] bg-[#0B2149] text-white p-5 md:p-6 rounded-2xl shadow-xl flex items-center gap-4">
+                        <i class="fa-solid fa-quote-left text-3xl text-sky-400 opacity-60"></i>
+                        <p class="font-medium text-sm md:text-base leading-snug">Setiap langkah kecil hari ini, membentuk keluarga yang lebih baik untuk masa depan.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIVIDER SUDAH ADA KOD -->
+            <div class="w-full flex items-center justify-center mt-16 mb-6 opacity-70">
+                <div class="w-24 border-t-2 border-slate-200"></div>
+                <span class="px-4 text-slate-400 text-xs font-extrabold uppercase tracking-widest">SUDAH ADA KOD?</span>
+                <div class="w-24 border-t-2 border-slate-200"></div>
+            </div>
+
+            <div class="text-center font-bold text-slate-800 mb-4 text-lg">Akses Keahlian</div>
+
+            <!-- LOGIN FORM (KEKALKAN ID DAN FUNGSI ASAL) -->
+            <div id="loginFormSection" class="w-full max-w-6xl mx-auto px-4 bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100 mb-6 relative z-10">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                    <!-- Kiri: Phone -->
+                    <div class="relative">
+                        <i class="fa-solid fa-phone absolute left-4 top-4 text-slate-400"></i>
+                        <input type="tel" id="phoneInput" 
+                            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none font-bold text-slate-700 placeholder:font-medium placeholder:text-slate-400 transition-all" 
+                            placeholder="No. Telefon (Cth: 0123456789)">
+                    </div>
+
+                    <!-- Kanan: Password -->
+                    <div class="relative">
+                        <i class="fa-solid fa-key absolute left-4 top-4 text-slate-400"></i>
+                        <input type="password" id="passwordInput" 
+                            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none font-bold tracking-widest uppercase text-slate-700 placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 transition-all" 
+                            placeholder="KOD AKSES">
+                    </div>
+                </div>
+                
+                <p id="loginError" class="text-red-500 text-xs hidden font-semibold italic text-left mb-4">Sila semak semula No. Telefon atau Kod anda.</p>
+                
+                <!-- Bawah: Button + Link -->
+                <div class="flex flex-col sm:flex-row items-center gap-4 mt-4 pt-4 border-t border-slate-100">
+                    <button onclick="checkLogin()" id="loginBtn"
+                        class="flex-1 w-full py-4 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-md transition-all transform active:scale-95 flex items-center justify-center group">
+                        <span id="btnText">Log Masuk Sekarang</span> <i class="fa-solid fa-arrow-right-long ml-2 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+
+                    <div class="text-sm text-slate-500 whitespace-nowrap text-center sm:text-left">
+                        Belum ada kod akses? <a href="https://fin-think.github.io/landingpage1/" target="_blank" class="text-sky-500 font-bold hover:underline">Daftar sekarang</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION VALUE -->
+            <div class="mb-6 bg-white rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-100">
+                <h2 class="text-2xl md:text-3xl font-bold text-center text-slate-800 mb-10">Apa yang anda akan dapat dalam Jurnal <span class="text-yellow-500">Famili</span> <span class="text-sky-500">Pintar</span></h2>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                    <!-- Value 1 -->
+                    <div class="text-center flex flex-col items-center pt-6 sm:pt-0 px-2">
+                        <div class="w-16 h-16 rounded-full bg-blue-500 text-white flex items-center justify-center text-2xl mb-5 shadow-md">
+                            <i class="fa-solid fa-chart-simple"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">20+ Kalkulator & Ujian</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">Alat interaktif untuk penilaian dan perancangan anda.</p>
+                    </div>
+                    <!-- Value 2 -->
+                    <div class="text-center flex flex-col items-center pt-6 sm:pt-0 px-2">
+                        <div class="w-16 h-16 rounded-full bg-emerald-400 text-white flex items-center justify-center text-2xl mb-5 shadow-md">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">30+ E-book Panduan</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">Ilmu praktikal dalam bentuk e-book yang mudah difahami.</p>
+                    </div>
+                    <!-- Value 3 -->
+                    <div class="text-center flex flex-col items-center pt-6 sm:pt-0 px-2">
+                        <div class="w-16 h-16 rounded-full bg-amber-400 text-white flex items-center justify-center text-2xl mb-5 shadow-md">
+                            <i class="fa-solid fa-bullseye"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">Sistem Langkah Demi Langkah</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">Panduan tersusun dari asas hingga ke tahap pengurusan keluarga yang lebih baik.</p>
+                    </div>
+                    <!-- Value 4 -->
+                    <div class="text-center flex flex-col items-center pt-6 sm:pt-0 px-2">
+                        <div class="w-16 h-16 rounded-full bg-purple-500 text-white flex items-center justify-center text-2xl mb-5 shadow-md">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">Untuk Semua Peringkat</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">Sesuai untuk yang belum berkeluarga, baru berkahwin atau sudah berkeluarga.</p>
+                    </div>
+                </div>
+            </div>
+
+<!-- SECTION FINANCIAL HEALTH CHECK -->
+<div class="mb-10 bg-white rounded-[2rem] p-8 md:p-10 shadow-sm border border-slate-100 text-center">
+
+    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-4">
+        Financial Health Check
+    </h2>
+
+    <p class="text-slate-500 text-sm mb-6 max-w-xl mx-auto">
+        Jawab 5 soalan ringkas untuk mengetahui tahap kewangan keluarga anda.
+    </p>
+
+    <!-- Progress -->
+    <div class="w-full bg-slate-200 rounded-full h-2 mb-6">
+        <div id="progressBar" class="bg-sky-500 h-2 rounded-full" style="width: 20%"></div>
+    </div>
+
+    <!-- Soalan -->
+    <div id="quizBox">
+        <p id="questionText" class="font-semibold text-slate-700 mb-6"></p>
+
+        <div class="flex justify-center gap-4">
+            <button onclick="answerQuiz(1)" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold shadow">
+                Ya
+            </button>
+            <button onclick="answerQuiz(0)" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-bold shadow">
+                Tidak
             </button>
         </div>
+    </div>
 
-        <!-- FOOTER HALUS -->
-        <div class="mt-16 opacity-40">
-            <p class="text-[10px] font-bold tracking-[0.4em] text-slate-500 uppercase">HCH x DAEBOOK &copy; 2026</p>
+    <!-- Result -->
+    <div id="quizResult" class="hidden mt-8">
+        <h3 class="text-xl font-bold mb-3">Keputusan Anda:</h3>
+        <p id="resultText" class="font-semibold text-slate-700 mb-4"></p>
+
+        <button 
+    onclick="document.getElementById('loginFormSection').scrollIntoView({ behavior: 'smooth' })"
+    class="bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 rounded-xl font-bold shadow">
+    Log Masuk Sekarang
+</button>
+    </div>
+
+</div>
+
+            <!-- CTA BANNER SECTION -->
+            <div class="bg-blue-600 rounded-[2rem] p-8 md:p-10 text-white shadow-xl flex flex-col lg:flex-row items-center justify-between gap-8 mb-6 relative overflow-hidden">
+                <!-- Background decoration -->
+                <div class="absolute -right-10 -bottom-10 opacity-10">
+                    <i class="fa-solid fa-hand-holding-heart text-[15rem]"></i>
+                </div>
+                
+                <div class="flex items-center gap-6 relative z-10 text-center lg:text-left">
+                    <div class="hidden md:flex shrink-0 w-16 h-16 bg-white/20 rounded-full items-center justify-center">
+                        <i class="fa-solid fa-hand-holding-heart text-3xl text-yellow-300"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl md:text-2xl font-bold mb-2">Mulakan dengan langkah pertama —</h3>
+                        <p class="text-blue-100 font-medium">dan lihat sendiri perubahan yang boleh anda capai.</p>
+                    </div>
+                </div>
+                
+                <a href="https://fin-think.github.io/landingpage1/" target="_blank" class="relative z-10 shrink-0 w-full lg:w-auto bg-yellow-100 hover:bg-yellow-200 text-slate-900 font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-3">
+                    Dapatkan butiran lanjut <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+           <div class="mb-6 bg-white rounded-[2rem] p-6 md:p-4 shadow-sm border border-slate-100">
+    <p class="text-sm md:text-base text-slate-600 text-center leading-relaxed w-full">
+        Jika anda belum bersedia menerokai perjalanan diri dan keluarga dalam Famili Pintar, anda boleh mengira nilai hidup, mencuba ujian dan permainan bersama si cilik, menikmati eBook, belajar bahasa baru atau mengesyorkan pelayaran solo kepada saudara dan teman melalui menu di atas.
+    </p>
+</div>
+            
+            <!-- FOOTER HALUS -->
+            <div class="text-center pb-8 opacity-40">
+                <p class="text-[10px] font-bold tracking-[0.4em] text-slate-500 uppercase">HCH x DAEBOOK &copy; 2026</p>
+            </div>
+
         </div>
     </div>
 
@@ -185,7 +371,7 @@
         </div>
     </div>
 
-    <!-- Kandungan Utama -->
+    <!-- Kandungan Utama (TIDAK DIUBAH) -->
     <div id="mainContent" class="opacity-0 transition-opacity duration-1000">
         <nav class="bg-white-400 text-blue shadow-lg sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -599,6 +785,7 @@
             ]
         };
 
+
         function renderTimeline(data, containerId) {
             const container = document.getElementById(containerId);
             if (!container || !data) return;
@@ -755,5 +942,76 @@
             }
         });
     </script>
+
+<script>
+const questions = [
+    "Adakah anda mempunyai simpanan kecemasan sekurang-kurangnya 3 bulan?",
+    "Adakah anda mempunyai perlindungan takaful/insurans yang mencukupi?",
+    "Adakah anda membuat simpanan bulanan secara konsisten?",
+    "Adakah anda mempunyai perancangan pelaburan?",
+    "Adakah anda mempunyai pelan pewarisan (hibah/wasiat)?"
+];
+
+let currentQ = 0;
+let score = 0;
+
+const questionText = document.getElementById("questionText");
+const progressBar = document.getElementById("progressBar");
+
+function loadQuestion() {
+    questionText.innerText = questions[currentQ];
+    progressBar.style.width = ((currentQ + 1) / questions.length) * 100 + "%";
+}
+
+function answerQuiz(val) {
+    score += val;
+    currentQ++;
+
+    if (currentQ < questions.length) {
+        loadQuestion();
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    document.getElementById("quizBox").classList.add("hidden");
+    document.getElementById("quizResult").classList.remove("hidden");
+
+    let resultText = "";
+
+    if (score <= 2) {
+        resultText = "Tahap kewangan anda: KRITIKAL. Anda perlu mula merancang dengan segera. Log in untuk merancang sekarang.";
+    } else if (score <= 4) {
+        resultText = "Tahap kewangan anda: SEDERHANA. Masih ada ruang untuk penambahbaikan. Log in untuk penambahbaikan aspek-aspek lain.";
+    } else {
+        resultText = "Tahap kewangan anda: STABIL. Anda berada di landasan yang baik. Log in untuk mengetahui aspek keluarga, anak-anak & legasi anda.";
+    }
+
+    document.getElementById("resultText").innerText = resultText;
+}
+
+// Load first question
+document.addEventListener("DOMContentLoaded", loadQuestion);
+
+// Fungsi buka/tutup Mobile Menu Front Page
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    const icon = document.querySelector('#hamburgerBtn i');
+    
+    if (menu.classList.contains('hidden')) {
+        menu.classList.remove('hidden');
+        menu.classList.add('flex');
+        icon.classList.remove('fa-bars');
+        icon.classList.add('fa-xmark');
+    } else {
+        menu.classList.add('hidden');
+        menu.classList.remove('flex');
+        icon.classList.remove('fa-xmark');
+        icon.classList.add('fa-bars');
+    }
+}
+</script>
+
 </body>
 </html>
