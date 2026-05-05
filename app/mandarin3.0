@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="zh" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学习中文 (Belajar Bahasa Mandarin)</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Poppins', sans-serif; }
+    .chinese { font-family: 'Noto Sans SC', sans-serif; }
+    .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+    .fade-in { animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { 
+      from { opacity: 0; transform: translateY(10px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
+    body { box-sizing: border-box; }
+  </style>
+</head>
+<body class="h-full">
+  <div id="app" class="h-full w-full overflow-auto bg-gradient-to-br from-rose-50 via-amber-50 to-emerald-50">
+    
+     <!-- Pandangan Utama (Main Page) -->
+    <div id="home-view" class="fade-in p-6 max-w-4xl mx-auto">
+      <header class="text-center py-8">
+        <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-rose-700 mb-2 chinese">🀄 学习中文 (xué xí zhōng wén)</h1>
+        <p class="text-gray-600 font-medium">Sila pilih satu topik untuk mula belajar! <br> <span class="text-sm">请选择一个主题开始学习！(qǐng xuǎn zé yí gè zhǔ tí kāi shǐ xué xí!)</span></p>
+      </header>
+
+      <!-- Grid Topik -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="topic-grid"></div>
+
+      <!-- Bahagian Upgrade (Hanya di Main Page) -->
+      <div class="mt-12 mb-12 p-8 bg-white/60 backdrop-blur-sm border-2 border-dashed border-amber-300 rounded-3xl text-center shadow-sm">
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-amber-100 rounded-full mb-4">
+          <i data-lucide="crown" class="text-amber-600"></i>
+        </div>
+        <h3 class="text-xl font-bold text-amber-900 mb-2">Ingin Belajar Lebih Banyak?</h3>
+        <p class="text-gray-600 mb-8 max-w-md mx-auto">Jom belajar tahap 4.0 di langkah seterusnya.</p>
+        
+      </div>
+    </div>
+
+    <!-- Pandangan Pelajaran -->
+    <div id="lesson-view" class="fade-in p-4 max-w-4xl mx-auto hidden">
+      <button onclick="goHome()" class="flex items-center gap-2 text-rose-600 font-semibold mb-4 hover:text-rose-800 transition"> 
+        <i data-lucide="arrow-left" style="width:20px;height:20px;"></i> 返回 fǎn huí (Kembali) 
+      </button>
+      <div id="lesson-header" class="mb-6">
+        <h2 id="lesson-title" class="text-2xl font-bold text-gray-800 chinese"></h2>
+        <p id="lesson-subtitle" class="text-rose-600 font-medium italic"></p>
+      </div>
+      <div id="lesson-content"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const topics = [
+      { id: 'restaurant', emoji: '🍜', title: 'Perbualan di Restoran', cn: '在餐厅', py: 'zài cān tīng', desc: 'Order + komplen + request', color: 'bg-red-100 border-red-300' },
+      { id: 'hobbies', emoji: '🎨', title: 'Aktiviti Harian & Hobi', cn: '日常活动与爱好', py: 'rì cháng huó dòng yǔ ài hào', desc: 'Aktiviti harian & kegemaran', color: 'bg-blue-100 border-blue-300' },
+      { id: 'weather', emoji: '🌦️', title: 'Cuaca & Musim', cn: '天气与季节', py: 'tiān qì yǔ jì jié', desc: 'Banjir & hujan panas Malaysia', color: 'bg-purple-100 border-purple-300' },
+      { id: 'emotions', emoji: '😊', title: 'Perasaan & Emosi', cn: '感觉与情绪', py: 'gǎn jué yǔ qíng xù', desc: 'Ekspresi perasaan anda', color: 'bg-green-100 border-green-300' },
+      { id: 'chat', emoji: '📱', title: 'Telefon & Chat', cn: '电话与聊天', py: 'diàn huà yǔ liáo tiān', desc: 'WhatsApp style conversation', color: 'bg-yellow-100 border-yellow-300' },
+      { id: 'festivals', emoji: '🏮', title: 'Event & Perayaan', cn: '活动与节日', py: 'huó dòng yǔ jié rì', desc: 'Raya, CNY, Deepavali', color: 'bg-pink-100 border-pink-300' }
+    ];
+
+    const data = {
+      restaurant: {
+        vocab: [
+          ['菜单', 'cài dān', 'Menu'], ['点菜', 'diǎn cài', 'Pesan makanan'], ['服务员', 'fú wù yuán', 'Pelayan'], ['买单', 'mǎi dān', 'Bayar bil'],
+          ['好吃', 'hǎo chī', 'Sedap'], ['太咸', 'tài xián', 'Terlalu masin'], ['太辣', 'tài là', 'Terlalu pedas'], ['头发', 'tóu fa', 'Rambut'],
+          ['打包', 'dǎ bāo', 'Bungkus'], ['餐巾纸', 'cān jīn zhǐ', 'Tisu'], ['水', 'shuǐ', 'Air'], ['杯子', 'bēi zi', 'Cawan'],
+          ['盘子', 'pán zi', 'Pinggan'], ['筷子', 'kuài zi', 'Chopstick'], ['勺子', 'sháo zi', 'Sudu'], ['冰', 'bīng', 'Ais'],
+          ['推荐', 'tuī jiàn', 'Cadangan'], ['洗手间', 'xǐ shǒu jiān', 'Tandas'], ['慢', 'màn', 'Lambat'], ['换', 'huàn', 'Tukar']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'服务员，我们要点菜。', py:'fú wù yuán, wǒ men yào diǎn cài.', ms:'Pelayan, kami mahu pesan makanan.'},
+            {speaker:'B', cn:'好的，这是菜单。', py:'hǎo de, zhè shì cài dān.', ms:'Baiklah, ini menunya.'},
+            {speaker:'A', cn:'你有什么推荐吗？', py:'nǐ yǒu shén me tuī jiàn ma?', ms:'Anda ada apa-apa cadangan?'},
+            {speaker:'B', cn:'我们的鸡饭最好吃。', py:'wǒ men de jī fàn zuì hǎo chī.', ms:'Nasi ayam kami paling sedap.'}
+          ],
+          [
+            {speaker:'A', cn:'服务员，这盘菜里有头发！', py:'fú wù yuán, zhè pán cài lǐ yǒu tóu fa!', ms:'Pelayan, dalam pinggan lauk ini ada rambut!'},
+            {speaker:'B', cn:'对不起！我马上给你换一盘。', py:'duì bu qǐ! wǒ mǎ shàng gěi nǐ huàn yì pán.', ms:'Minta maaf! Saya tukar sepinggan baru sekarang.'},
+            {speaker:'A', cn:'请快一点，我很饿。', py:'qǐng kuài yì diǎn, wǒ hěn è.', ms:'Tolong cepat sikit, saya sangat lapar.'}
+          ],
+          [
+            {speaker:'A', cn:'这个菜太辣了，我吃不下。', py:'zhè ge cài tài là le, wǒ chī bu xià.', ms:'Lauk ini terlalu pedas, saya tak boleh makan.'},
+            {speaker:'B', cn:'真抱歉，需要给你一杯冰水吗？', py:'zhēn bào qiàn, xū yào gěi nǐ yì bēi bīng shuǐ ma?', ms:'Maaf sangat, perlukah saya beri anda segelas air ais?'},
+            {speaker:'A', cn:'好的，谢谢。', py:'hǎo de, xiè xie.', ms:'Baiklah, terima kasih.'}
+          ],
+          [
+            {speaker:'A', cn:'请问洗手间在哪里？', py:'qǐng wèn xǐ shǒu jiān zài nǎ lǐ?', ms:'Tumpang tanya, tandas di mana?'},
+            {speaker:'B', cn:'在后边，左转就到了。', py:'zài hòu bian, zuǒ zhuǎn jiù dào le.', ms:'Di belakang, pusing kiri dah sampai.'},
+            {speaker:'A', cn:'知道了，谢谢你。', py:'zhī dào le, xiè xie nǐ.', ms:'Faham, terima kasih.'}
+          ],
+          [
+            {speaker:'A', cn:'我们要买单，一共多少钱？', py:'wǒ men yào mǎi dān, yí gòng duō shǎo qián?', ms:'Kami mahu bayar, semuanya berapa harga?'},
+            {speaker:'B', cn:'一共五十块。', py:'yí gòng wǔ shí kuài.', ms:'Semuanya 50 ringgit (yuan).'},
+            {speaker:'A', cn:'剩下的我们可以打包吗？', py:'shèng xià de wǒ men kě yǐ dǎ bāo ma?', ms:'Baki makanan ini boleh kami bungkus?'}
+          ]
+        ]
+      },
+      hobbies: {
+        vocab: [
+          ['跑步', 'pǎo bù', 'Berlari'], ['游泳', 'yóu yǒng', 'Berenang'], ['看书', 'kàn shū', 'Baca buku'], ['听音乐', 'tīng yīn yuè', 'Dengar muzik'],
+          ['踢足球', 'tī zú qiú', 'Main bola'], ['打羽毛球', 'dǎ yǔ máo qiú', 'Main badminton'], ['上网', 'shàng wǎng', 'Internet'], ['玩游戏', 'wán yóu xì', 'Main game'],
+          ['唱歌', 'chàng gē', 'Menyanyi'], ['跳舞', 'tiào wǔ', 'Menari'], ['画画', 'huà huà', 'Melukis'], ['睡觉', 'shuì jiào', 'Tidur'],
+          ['工作', 'gōng zuò', 'Bekerja'], ['起床', 'qǐ chuáng', 'Bangun tidur'], ['洗澡', 'xǐ zǎo', 'Mandi'], ['吃饭', 'chī fàn', 'Makan'],
+          ['做饭', 'zuò fàn', 'Memasak'], ['旅游', 'lǚ yóu', 'Melancong'], ['运动', 'yùn dòng', 'Bersenam'], ['休息', 'xiū xi', 'Berehat']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'你的爱好是什么？', py:'nǐ de ài hào shì shén me?', ms:'Apa hobi kamu?'},
+            {speaker:'B', cn:'我喜欢打羽毛球。', py:'wǒ xǐ huan dǎ yǔ máo qiú.', ms:'Saya suka main badminton.'},
+            {speaker:'A', cn:'我也喜欢，我们明天一起打吧？', py:'wǒ yě xǐ huan, wǒ men míng tiān yì qǐ dǎ ba?', ms:'Saya pun suka, jom kita main sama-sama esok?'}
+          ],
+          [
+            {speaker:'A', cn:'你每天几点起床？', py:'nǐ měi tiān jǐ diǎn qǐ chuáng?', ms:'Kamu bangun pukul berapa setiap hari?'},
+            {speaker:'B', cn:'我早上六点起床。', py:'wǒ zǎo shang liù diǎn qǐ chuáng.', ms:'Saya bangun pukul 6 pagi.'},
+            {speaker:'A', cn:'哇，真早！', py:'wa, zhēn zǎo!', ms:'Wah, awalnya!'}
+          ],
+          [
+            {speaker:'A', cn:'你平时喜欢看书还是玩游戏？', py:'nǐ píng shí xǐ huan kàn shū hái shì wán yóu xì?', ms:'Biasanya kamu suka baca buku atau main game?'},
+            {speaker:'B', cn:'我更喜欢玩游戏。', py:'wǒ gèng xǐ huan wán yóu xì.', ms:'Saya lebih suka main game.'},
+            {speaker:'A', cn:'难怪你的技术这么好。', py:'nán guài nǐ de jì shù zhè me hǎo.', ms:'Patutlah skill kamu bagus sangat.'}
+          ],
+          [
+            {speaker:'A', cn:'周末你通常做什么？', py:'zhōu mò nǐ tōng cháng zuò shén me?', ms:'Hujung minggu biasanya kamu buat apa?'},
+            {speaker:'B', cn:'我通常在家休息或者做饭。', py:'wǒ tōng cháng zài jiā xiū xi huò zhě zuò fàn.', ms:'Biasanya saya rehat di rumah atau memasak.'},
+            {speaker:'A', cn:'听起来很舒服。', py:'tīng qǐ lái hěn shū fu.', ms:'Dengar macam selesa.'}
+          ],
+          [
+            {speaker:'A', cn:'你喜欢旅游吗？', py:'nǐ xǐ huan lǚ yóu ma?', ms:'Kamu suka melancong?'},
+            {speaker:'B', cn:'喜欢，我想去中国。', py:'xǐ huan, wǒ xiǎng qù zhōng guó.', ms:'Suka, saya nak pergi China.'},
+            {speaker:'A', cn:'我也希望以后可以去。', py:'wǒ yě xī wàng yǐ hòu kě yǐ qù.', ms:'Saya pun harap nanti boleh pergi.'}
+          ]
+        ]
+      },
+      weather: {
+        vocab: [
+          ['下雨', 'xià yǔ', 'Hujan'], ['太阳', 'tài yáng', 'Matahari'], ['热', 'rè', 'Panas'], ['冷', 'lěng', 'Sejuk'],
+          ['水灾', 'shuǐ zāi', 'Banjir'], ['雨伞', 'yǔ sǎn', 'Payung'], ['刮风', 'guā fēng', 'Berangin'], ['阴天', 'yīn tiān', 'Mendung'],
+          ['彩虹', 'cǎi hóng', 'Pelangi'], ['旱季', 'hàn jì', 'Kemarau'], ['雨季', 'yǔ jì', 'Musim hujan'], ['闪电', 'shǎn diàn', 'Kilat'],
+          ['雷声', 'léi shēng', 'Guruh'], ['多云', 'duō yún', 'Berawan'], ['湿', 'shī', 'Basah'], ['干', 'gān', 'Kering'],
+          ['天气预报', 'tiān qì yù bào', 'Ramalan cuaca'], ['由于', 'yóu yú', 'Disebabkan'], ['小心', 'xiǎo xīn', 'Hati-hati'], ['出汗', 'chū hàn', 'Berpeluh']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'今天天气怎么样？', py:'jīn tiān tiān qì zěn me yàng?', ms:'Bagaimana cuaca hari ini?'},
+            {speaker:'B', cn:'今天是太阳雨。', py:'jīn tiān shì tài yáng yǔ.', ms:'Hari ini hujan panas.'},
+            {speaker:'A', cn:'马来西亚经常这样。', py:'mǎ lái xī yà jīng cháng zhè yàng.', ms:'Malaysia memang selalu macam ini.'}
+          ],
+          [
+            {speaker:'A', cn:'雨下得很大，路都被淹了。', py:'yǔ xià de hěn dà, lù dōu bèi yān le.', ms:'Hujan sangat lebat, jalan semua sudah tenggelam.'},
+            {speaker:'B', cn:'又是水灾吗？太糟糕了。', py:'yòu shì shuǐ zāi ma? tài zāo gāo le.', ms:'Banjir lagi ke? Buruknya keadaan.'},
+            {speaker:'A', cn:'大家一定要小心开车。', py:'dà jiā yí dìng yào xiǎo xīn kāi chē.', ms:'Semua orang mesti berhati-hati memandu.'}
+          ],
+          [
+            {speaker:'A', cn:'天气太热了，我一直在出汗。', py:'tiān qì tài rè le, wǒ yì zhí zài chū hàn.', ms:'Cuaca terlalu panas, saya asyik berpeluh.'},
+            {speaker:'B', cn:'去喝点凉水吧。', py:'qù hē diǎn liáng shuǐ ba.', ms:'Pergilah minum air sejuk.'},
+            {speaker:'A', cn:'好主意。', py:'hǎo zhǔ yì.', ms:'Idea yang bagus.'}
+          ],
+          [
+            {speaker:'A', cn:'等一下会下雨吗？', py:'děng yí xià huì xià yǔ ma?', ms:'Kejap lagi akan hujan ke?'},
+            {speaker:'B', cn:'天气预报说下午有雷雨。', py:'tiān qì yù bào shuō xià wǔ yǒu léi yǔ.', ms:'Ramalan cuaca kata petang ini ada ribut petir.'},
+            {speaker:'A', cn:'那我记得带雨伞。', py:'nà wǒ jì de dài yǔ sǎn.', ms:'Kalau macam tu saya ingat bawa payung.'}
+          ],
+          [
+            {speaker:'A', cn:'看！那边有彩虹。', py:'kàn! nà biān yǒu cǎi hóng.', ms:'Lihat! Di sana ada pelangi.'},
+            {speaker:'B', cn:'真漂亮，雨终于停了。', py:'zhēn piào liang, yǔ zhōng yú tíng le.', ms:'Cantik sungguh, hujan akhirnya dah berhenti.'},
+            {speaker:'A', cn:'空气也变得很清新。', py:'kōng qì yě biàn de hěn qīng xīn.', ms:'Udara pun jadi segar.'}
+          ]
+        ]
+      },
+      emotions: {
+        vocab: [
+          ['开心', 'kāi xīn', 'Gembira'], ['伤心', 'shāng xīn', 'Sedih'], ['生气', 'shēng qì', 'Marah'], ['害怕', 'hài pà', 'Takut'],
+          ['惊讶', 'jīng yà', 'Terkejut'], ['累', 'lèi', 'Penat'], ['饿', 'è', 'Lapar'], ['渴', 'kě', 'Haus'],
+          ['担心', 'dān xīn', 'Risau'], ['紧张', 'jǐn zhāng', 'Gementar'], ['害羞', 'hài xiū', 'Malu'], ['自信', 'zì xìn', 'Yakin'],
+          ['无聊', 'wú liáo', 'Bosan'], ['烦', 'fán', 'Rimas'], ['满意', 'mǎn yì', 'Puas hati'], ['失望', 'shī wàng', 'Kecewa'],
+          ['哭', 'kū', 'Menangis'], ['笑', 'xiào', 'Ketawa'], ['爱', 'ài', 'Sayang'], ['恨', 'hèn', 'Benci']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'你为什么这么开心？', py:'nǐ wèi shén me zhè me kāi xīn?', ms:'Kenapa kamu gembira sangat?'},
+            {speaker:'B', cn:'因为明天是假期！', py:'yīn wèi míng tiān shì jià qī!', ms:'Sebab esok cuti!'},
+            {speaker:'A', cn:'太好了，我也很开心。', py:'tài hǎo le, wǒ yě hěn kāi xīn.', ms:'Bagusnya, saya pun gembira.'}
+          ],
+          [
+            {speaker:'A', cn:'你怎么了？看起来很累。', py:'nǐ zěn me le? kàn qǐ lái hěn lèi.', ms:'Kamu kenapa? Nampak penat.'},
+            {speaker:'B', cn:'我昨天工作到很晚。', py:'wǒ zuó tiān gōng zuò dào hěn wǎn.', ms:'Saya kerja sampai lewat malam semalam.'},
+            {speaker:'A', cn:'快去休息吧。', py:'kuài qù xiū xi ba.', ms:'Pergilah berehat segera.'}
+          ],
+          [
+            {speaker:'A', cn:'他为什么在哭？', py:'tā wèi shén me zài kū?', ms:'Kenapa dia sedang menangis?'},
+            {speaker:'B', cn:'因为他弄丢了手机，很伤心。', py:'yīn wèi tā nòng diū le shǒu jī, hěn shāng xīn.', ms:'Sebab dia hilangkan telefon, sangat sedih.'},
+            {speaker:'A', cn:'真可怜，我们要安慰他。', py:'zhēn kě lián, wǒ men yào ān wèi tā.', ms:'Kesiannya, kita kena pujuk dia.'}
+          ],
+          [
+            {speaker:'A', cn:'明天要考试，我很紧张。', py:'míng tiān yào kǎo shì, wǒ hěn jǐn zhāng.', ms:'Esok ada peperiksaan, saya sangat gementar.'},
+            {speaker:'B', cn:'别担心，你已经准备好了。', py:'bié dān xīn, nǐ yǐ jīng zhǔn bèi hǎo le.', ms:'Jangan risau, kamu dah bersedia.'},
+            {speaker:'A', cn:'谢谢你的鼓励。', py:'xiè xie nǐ de gǔ lì.', ms:'Terima kasih atas galakan kamu.'}
+          ],
+          [
+            {speaker:'A', cn:'老板今天好像很生气。', py:'lǎo bǎn jīn tiān hǎo xiàng hěn shēng qì.', ms:'Bos hari ini nampak macam sangat marah.'},
+            {speaker:'B', cn:'是的，所以我们要小心一点。', py:'shì de, suǒ yǐ wǒ men yào xiǎo xīn yì diǎn.', ms:'Ya, jadi kita kena berhati-hati sedikit.'},
+            {speaker:'A', cn:'明白了。', py:'míng bai le.', ms:'Faham.'}
+          ]
+        ]
+      },
+      chat: {
+        vocab: [
+          ['发信息', 'fā xìn xī', 'Hantar mesej'], ['视频', 'shì pín', 'Video'], ['表情包', 'biǎo qíng bāo', 'Sticker'], ['在线', 'zài xiàn', 'Online'],
+          ['回复', 'huí fù', 'Balas'], ['群聊', 'qún liáo', 'Group chat'], ['删除', 'shān chú', 'Padam'], ['语音', 'yǔ yīn', 'Voice note'],
+          ['网络', 'wǎng luò', 'Line'], ['下载', 'xià zài', 'Download'], ['图片', 'tú piàn', 'Gambar'], ['朋友圈', 'péng yǒu quān', 'Timeline'],
+          ['拉黑', 'lā hēi', 'Block'], ['点赞', 'diǎn zàn', 'Like'], ['私信', 'sī xìn', 'PM'], ['输入', 'shū rù', 'Menaip'],
+          ['分享', 'fēn xiǎng', 'Share'], ['定位', 'dì wèi', 'Location'], ['红包', 'hóng bāo', 'Angpow'], ['充电', 'chōng diàn', 'Caj']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'在吗？', py:'zài ma?', ms:'Ada tak? (Online?)'},
+            {speaker:'B', cn:'在，什么事？', py:'zài, shén me shì?', ms:'Ada, apa hal?'},
+            {speaker:'A', cn:'发个定位给我。', py:'fā gè dì wèi gěi wǒ.', ms:'Hantar location pada saya.'},
+            {speaker:'B', cn:'好的，稍等。', py:'hǎo de, shāo děng.', ms:'Baik, tunggu jap.'}
+          ],
+          [
+            {speaker:'A', cn:'你看到我发的信息了吗？', py:'nǐ kàn dào wǒ fā de xìn xī le ma?', ms:'Dah tengok mesej saya hantar?'},
+            {speaker:'B', cn:'对不起，我刚看到。', py:'duì bu qǐ, wǒ gāng kàn dào.', ms:'Maaf, saya baru tengok.'},
+            {speaker:'A', cn:'记得回我哦。', py:'jì de huí wǒ ó.', ms:'Ingat balas tau.'}
+          ],
+          [
+            {speaker:'A', cn:'网络很慢，图片发不出去。', py:'wǎng luò hěn màn, tú piàn fā bú chū qù.', ms:'Line lambat, gambar tak boleh hantar.'},
+            {speaker:'B', cn:'我也一样，可能是天气的原因。', py:'wǒ yě yí yàng, kě néng shì tiān qì de yuán yīn.', ms:'Saya pun sama, mungkin sebab cuaca.'},
+            {speaker:'A', cn:'等下我再试试。', py:'děng xià wǒ zài shì shì.', ms:'Nanti saya cuba lagi.'}
+          ],
+          [
+            {speaker:'A', cn:'我们要不要开个群聊？', py:'wǒ men yào bu yào kāi gè qún liáo?', ms:'Kita nak buka group chat tak?'},
+            {speaker:'B', cn:'好啊，把大家都拉进来。', py:'hǎo a, bǎ dà jiā dōu lā jìn lái.', ms:'Boleh, masukkan semua orang.'},
+            {speaker:'A', cn:'已经建好了。', py:'yǐ jīng jiàn hǎo le.', ms:'Dah siap buat.'}
+          ],
+          [
+            {speaker:'A', cn:'你刚才发的语音我听不到。', py:'nǐ gāng cái fā de yǔ yīn wǒ tīng bú dào.', ms:'Voice note yang awak hantar tadi saya tak dengar.'},
+            {speaker:'B', cn:'那我打字给你吧。', py:'nà wǒ dǎ zì gěi nǐ ba.', ms:'Kalau macam tu saya taip pada awaklah.'},
+            {speaker:'A', cn:'好的。', py:'hǎo de.', ms:'Baiklah.'}
+          ]
+        ]
+      },
+      festivals: {
+        vocab: [
+          ['开斋节', 'kāi zhāi jié', 'Hari Raya Puasa'], ['新年', 'xīn nián', 'Tahun Baru'], ['屠妖节', 'tú yāo jié', 'Deepavali'], ['中秋节', 'zhōng qiū jié', 'Pesta Tanglung'],
+          ['烟花', 'yān huā', 'Bunga api'], ['灯笼', 'dénom lóng', 'Tanglung'], ['月饼', 'yuè bǐng', 'Kuih bulan'], ['亲戚', 'qīn qi', 'Saudara mara'],
+          ['热闹', 'rè nao', 'Meriah'], ['庆祝', 'qìng zhù', 'Raikan'], ['假期', 'jià qī', 'Cuti'], ['家乡', 'jiā xiāng', 'Kampung'],
+          ['传统', 'chuán tǒng', 'Tradisi'], ['红包', 'hóng bāo', 'Angpow'], ['聚餐', 'jù cān', 'Makan besar'], ['大扫除', 'dà sǎo chú', 'Gotong-royong'],
+          ['新衣服', 'xīn yī fu', 'Baju baru'], ['礼物', 'lǐ wù', 'Hadiah'], ['游行', 'yóu xíng', 'Perarakan'], ['国庆日', 'guó qìng rì', 'Hari Kebangsaan']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'开斋节快乐！', py:'kāi zhāi jié kuài lè!', ms:'Selamat Hari Raya!'},
+            {speaker:'B', cn:'同乐！你回老家了吗？', py:'tóng lè! nǐ huí lǎo jiā le ma?', ms:'Sama-sama! Kamu balik kampung tak?'},
+            {speaker:'A', cn:'回了，家乡很热闹。', py:'huí le, jiā xiāng hěn rè nao.', ms:'Dah balik, kampung sangat meriah.'}
+          ],
+          [
+            {speaker:'A', cn:'华人新年快到了。', py:'huá rén xīn nián kuài dào le.', ms:'Tahun Baru Cina dah nak dekat.'},
+            {speaker:'B', cn:'是啊，我们要去买年货。', py:'shì a, wǒ men yào qù mǎi nián huò.', ms:'Ya, kita kena pergi beli barang persiapan raya.'},
+            {speaker:'A', cn:'别忘了买红色的衣服。', py:'bié wàng le mǎi hóng sè de yī fu.', ms:'Jangan lupa beli baju warna merah.'}
+          ],
+          [
+            {speaker:'A', cn:'屠妖节你们做什么？', py:'tú yāo jié nǐ men zuò shén me?', ms:'Deepavali kalian buat apa?'},
+            {speaker:'B', cn:'我们去亲戚家聚餐。', py:'wǒ men qù qīn qi jiā jù cān.', ms:'Kami pergi rumah saudara untuk makan besar.'},
+            {speaker:'A', cn:'祝你们节日快乐。', py:'zhù nǐ men jié rì kuài lè.', ms:'Semoga kalian selamat menyambut perayaan.'}
+          ],
+          [
+            {speaker:'A', cn:'中秋节我们要吃月饼。', py:'zhōng qiū jié wǒ men yào chī yuè bǐng.', ms:'Pesta Tanglung kita kena makan kuih bulan.'},
+            {speaker:'B', cn:'还要玩灯笼呢！', py:'hái yào wán dēng lóng ne!', ms:'Dan kena main tanglung juga!'},
+            {speaker:'A', cn:'真怀念小时候。', py:'zhēn huái niàn xiǎo shí hou.', ms:'Rindunya zaman kanak-kanak.'}
+          ],
+          [
+            {speaker:'A', cn:'明天是国庆日，有游行。', py:'míng tiān shì guó qìng rì, yǒu yóu xíng.', ms:'Esok Hari Kebangsaan, ada perarakan.'},
+            {speaker:'B', cn:'我们要去吉隆坡看吗？', py:'wǒ men yào qù jí lóng pō kàn ma?', ms:'Kita nak ke Kuala Lumpur tengok tak?'},
+            {speaker:'A', cn:'好啊，一定很精彩。', py:'hǎo a, yí dìng hěn jīng cǎi.', ms:'Boleh, mesti sangat menarik.'}
+          ]
+        ]
+      }
+    };
+
+    const grid = document.getElementById('topic-grid');
+    topics.forEach(t => {
+      grid.innerHTML += `
+        <div class="card-hover cursor-pointer border-2 bg-white rounded-xl p-5 ${t.color} flex flex-col items-center justify-center text-center" onclick="openLesson('${t.id}')">
+          <div class="text-4xl mb-2">${t.emoji}</div>
+          <h3 class="font-bold text-gray-800 text-lg chinese">${t.cn}</h3>
+          <p class="text-xs text-rose-500 font-bold mb-1 italic">${t.py}</p>
+          <div class="text-sm font-semibold text-gray-700 mb-1">${t.title}</div>
+          <p class="text-[10px] text-gray-400 leading-tight">${t.desc}</p>
+        </div>`;
+    });
+
+    function goHome() {
+      document.getElementById('home-view').classList.remove('hidden');
+      document.getElementById('lesson-view').classList.add('hidden');
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    function openLesson(id) {
+      const topic = topics.find(t => t.id === id);
+      const d = data[id];
+      if (!d) return;
+
+      document.getElementById('home-view').classList.add('hidden');
+      document.getElementById('lesson-view').classList.remove('hidden');
+      document.getElementById('lesson-title').innerHTML = `${topic.emoji} ${topic.cn} <span class="text-lg font-normal text-gray-500">(${topic.py})</span>`;
+      document.getElementById('lesson-subtitle').textContent = topic.title;
+
+      let html = `<h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="book-open" class="text-rose-500"></i> 词汇 cí huì (Kosa Kata)</h3>`;
+      html += '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">';
+      d.vocab.forEach((v) => {
+        html += `<div class="bg-white rounded-xl p-4 border shadow-sm text-center fade-in cursor-pointer hover:shadow-md hover:border-rose-300 transition group" onclick="speakWord('${v[0]}')">
+          <div class="chinese text-2xl font-bold text-rose-700 mb-1">${v[0]}</div>
+          <div class="text-[10px] text-blue-500 font-semibold mb-1 flex items-center justify-center gap-1">
+             <i data-lucide="volume-2" class="w-3 h-3"></i> Dengar
+          </div>
+          <div class="text-xs text-gray-400 italic mb-1">${v[1]}</div>
+          <div class="text-sm font-semibold text-gray-700">${v[2]}</div>
+        </div>`;
+      });
+      html += '</div>';
+
+      html += `<h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="message-circle" class="text-rose-500"></i> 场景对话 chǎng jǐng duì huà (Perbualan Situasi)</h3>
+        <div class="space-y-6">`;
+      d.conversation.forEach((set, idx) => {
+        html += `<div class="bg-white rounded-xl border shadow-sm p-5">
+          <h4 class="text-sm font-bold text-rose-600 mb-4 bg-rose-50 px-3 py-1 rounded-lg inline-block">Set ${idx + 1}</h4>
+          <div class="space-y-4">`;
+        set.forEach(c => {
+          const isA = c.speaker === 'A';
+          html += `<div class="flex ${isA ? '' : 'justify-end'}">
+            <div class="${isA ? 'bg-rose-50 border-rose-200' : 'bg-blue-50 border-blue-200'} border rounded-xl p-3 max-w-[90%] cursor-pointer hover:shadow-sm transition" onclick="speakWord('${c.cn}')">
+              <div class="flex items-center gap-2 mb-1">
+                 <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${isA ? 'bg-rose-200 text-rose-800' : 'bg-blue-200 text-blue-800'}">${c.speaker}</span>
+                 <div class="chinese text-base font-bold text-gray-800">${c.cn}</div>
+              </div>
+              <div class="text-[11px] text-gray-400 italic mb-1 pl-7">${c.py}</div>
+              <div class="text-xs font-medium text-gray-600 border-t ${isA ? 'border-rose-100' : 'border-blue-100'} pt-1.5 pl-7">${c.ms}</div>
+            </div>
+          </div>`;
+        });
+        html += `</div></div>`;
+      });
+      html += '</div>';
+
+      html += `<div class="mt-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="target" class="text-rose-500"></i> 快速测验 kuài sù cè yàn (Kuiz Pantas)</h3>
+        <div id="quiz-area"></div>
+      </div>`;
+
+      document.getElementById('lesson-content').innerHTML = html;
+      startQuiz(id);
+      lucide.createIcons();
+    }
+
+    function speakWord(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function startQuiz(id) {
+      const vocab = data[id].vocab;
+      const area = document.getElementById('quiz-area');
+      let qi = 0, score = 0;
+      const questions = [...vocab].sort(() => Math.random() - 0.5).slice(0, 10);
+
+      function showQ() {
+        if (qi >= questions.length) {
+          area.innerHTML = `<div class="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-8 text-center fade-in">
+            <div class="text-5xl mb-4">🎉</div>
+            <p class="font-bold text-2xl text-emerald-800 mb-4">Skor Anda: ${score} / ${questions.length}</p>
+            <button onclick="startQuiz('${id}')" class="px-6 py-3 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition shadow-md">
+              Cuba Lagi (zài shì yí cì)
+            </button>
+          </div>`;
+          return;
+        }
+        
+        const q = questions[qi];
+        const wrong = vocab.filter(v => v[0] !== q[0]).sort(() => Math.random() - 0.5).slice(0, 3);
+        const opts = [...wrong.map(w => w[2]), q[2]].sort(() => Math.random() - 0.5);
+        
+        area.innerHTML = `<div class="bg-white border-2 border-gray-100 rounded-xl p-6 fade-in shadow-sm">
+          <div class="flex justify-between items-center mb-4">
+            <p class="text-sm font-semibold text-rose-500 bg-rose-50 px-3 py-1 rounded-full">Soalan ${qi+1} / ${questions.length}</p>
+            <button onclick="speakWord('${q[0]}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded-full transition">
+              <i data-lucide="volume-2" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <p class="chinese text-4xl font-bold text-gray-800 text-center mb-2">${q[0]}</p>
+          <p class="text-base text-center italic text-gray-500 mb-6">${q[1]}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="opts"></div>
+        </div>`;
+        
+        lucide.createIcons();
+        const optsEl = document.getElementById('opts');
+        opts.forEach(o => {
+          const btn = document.createElement('button');
+          btn.className = 'p-4 border-2 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition text-lg';
+          btn.textContent = o;
+          btn.onclick = () => {
+            if (o === q[2]) { score++; btn.classList.add('bg-emerald-100','border-emerald-500','text-emerald-800'); }
+            else { btn.classList.add('bg-red-100','border-red-500','text-red-800'); }
+            optsEl.querySelectorAll('button').forEach(b => { 
+              b.disabled = true; 
+              if(b.textContent === q[2]) b.classList.add('bg-emerald-100','border-emerald-500','text-emerald-800');
+            });
+            setTimeout(() => { qi++; showQ(); }, 1200);
+          };
+          optsEl.appendChild(btn);
+        });
+      }
+      showQ();
+    }
+
+    const defaultConfig = { app_title: '学习中文 xué xí zhōng wén', background_color: '#fff7ed', primary_action_color: '#be123c' };
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (config) => {
+          const t = document.getElementById('main-title');
+          if (t) t.textContent = '🀄 ' + (config.app_title || defaultConfig.app_title);
+          document.getElementById('app').style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color}, #f0fdf4)`;
+        }
+      });
+    }
+    lucide.createIcons();
+  </script>
+</body>
+</html>
