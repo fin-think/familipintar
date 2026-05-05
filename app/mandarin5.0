@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="zh" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学习中文 (Belajar Bahasa Mandarin)</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Poppins', sans-serif; }
+    .chinese { font-family: 'Noto Sans SC', sans-serif; }
+    .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+    .fade-in { animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { 
+      from { opacity: 0; transform: translateY(10px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
+    body { box-sizing: border-box; }
+  </style>
+</head>
+<body class="h-full">
+  <div id="app" class="h-full w-full overflow-auto bg-gradient-to-br from-rose-50 via-amber-50 to-emerald-50">
+    
+     <!-- Pandangan Utama (Main Page) -->
+    <div id="home-view" class="fade-in p-6 max-w-4xl mx-auto">
+      <header class="text-center py-8">
+        <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-rose-700 mb-2 chinese">🀄 学习中文 (xué xí zhōng wén)</h1>
+        <p class="text-gray-600 font-medium">Sila pilih satu topik untuk mula belajar! <br> <span class="text-sm">请选择一个主题开始学习！(qǐng xuǎn zé yí gè zhǔ tí kāi shǐ xué xí!)</span></p>
+      </header>
+
+      <!-- Grid Topik -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="topic-grid"></div>
+
+      <!-- Bahagian Upgrade (Hanya di Main Page) -->
+      <div class="mt-12 mb-12 p-8 bg-white/60 backdrop-blur-sm border-2 border-dashed border-amber-300 rounded-3xl text-center shadow-sm">
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-amber-100 rounded-full mb-4">
+          <i data-lucide="crown" class="text-amber-600"></i>
+        </div>
+        <h3 class="text-xl font-bold text-amber-900 mb-2">Ingin Belajar Lebih Banyak?</h3>
+        <p class="text-gray-600 mb-8 max-w-md mx-auto">Jom belajar tahap 3.0 di langkah seterusnya.</p>
+        
+      </div>
+    </div>
+
+    <!-- Pandangan Pelajaran -->
+    <div id="lesson-view" class="fade-in p-4 max-w-4xl mx-auto hidden">
+      <button onclick="goHome()" class="flex items-center gap-2 text-rose-600 font-semibold mb-4 hover:text-rose-800 transition"> 
+        <i data-lucide="arrow-left" style="width:20px;height:20px;"></i> 返回 fǎn huí (Kembali) 
+      </button>
+      <div id="lesson-header" class="mb-4">
+        <h2 id="lesson-title" class="text-2xl font-bold text-gray-800 chinese"></h2>
+        <p id="lesson-subtitle" class="text-gray-500 font-medium"></p>
+      </div>
+      <div id="lesson-content"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const topics = [
+      { 
+        id: 'numbers', 
+        emoji: '💬', 
+        title: 'Perbualan Mendalam', 
+        cn: '深度对话', 
+        py: 'shēn dù duì huà', 
+        desc: 'Pendapat & debat ringan',
+        color: 'bg-red-100 border-red-300' 
+      },
+      { 
+        id: 'body', 
+        emoji: '😎', 
+        title: 'Slang & Bahasa Santai', 
+        cn: '流行用语', 
+        py: 'liú xíng yòng yǔ', 
+        desc: 'Versi real life',
+        color: 'bg-blue-100 border-blue-300' 
+      },
+      { 
+        id: 'pronouns', 
+        emoji: '🍵', 
+        title: 'Budaya Cina & Etika', 
+        cn: '文化与礼仪', 
+        py: 'wén huà yǔ lǐ yí', 
+        desc: 'Cara cakap sopan',
+        color: 'bg-purple-100 border-purple-300' 
+      },
+      { 
+        id: 'family', 
+        emoji: '📖', 
+        title: 'Cerita & Naratif', 
+        cn: '故事与叙事', 
+        py: 'gù shì yǔ xù shì', 
+        desc: 'Storytelling',
+        color: 'bg-green-100 border-green-300' 
+      },
+      { 
+        id: 'house', 
+        emoji: '🎬', 
+        title: 'Media & Hiburan', 
+        cn: '媒体与娱乐', 
+        py: 'méi tǐ yǔ yú lè', 
+        desc: 'Movie, drama, lagu',
+        color: 'bg-yellow-100 border-yellow-300' 
+      },
+      { 
+        id: 'greetings', 
+        emoji: '🤝', 
+        title: 'Situasi Kompleks', 
+        cn: '复杂情境', 
+        py: 'fù zá qíng jìng', 
+        desc: 'Negosiasi, konflik, persuasi',
+        color: 'bg-pink-100 border-pink-300' 
+      }
+    ];
+
+    const data = {
+      numbers: { // Perbualan Mendalam
+        vocab: [
+          ['认为','rèn wéi','Fikir/Rasa'],['同意','tóng yì','Setuju'],['反对','fǎn duì','Bantah/Tak Setuju'],['观点','guān diǎn','Pendapat'],['讨论','tǎo lùn','Bincang'],
+          ['优点','yōu diǎn','Kelebihan'],['缺点','quē diǎn','Kekurangan'],['影响','yǐng xiǎng','Kesan/Pengaruh'],['相信','xiāng xìn','Percaya'],['也许','yě xǔ','Mungkin'],
+          ['肯定','kěn dìng','Pasti'],['复杂','fù zá','Kompleks'],['简单','jiǎn dān','Mudah'],['原因','yuán yīn','Sebab'],['结果','jié guǒ','Akibat/Hasil'],
+          ['改变','gǎi biàn','Ubah/Berubah'],['接受','jiē shòu','Terima'],['拒绝','jù jué','Tolak'],['建议','jiàn yì','Cadangan'],['事实','shì shí','Fakta']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'你对这件事有什么看法？', py:'nǐ duì zhè jiàn shì yǒu shén me kàn fǎ?', ms:'Apa pendapat awak tentang hal ini?'},
+            {speaker:'B', cn:'我认为这是一个好机会。', py:'wǒ rèn wéi zhè shì yí gè hǎo jī huì.', ms:'Saya rasa ini adalah satu peluang yang baik.'},
+            {speaker:'A', cn:'可是风险很高。', py:'kě shì fēng xiǎn hěn gāo.', ms:'Tetapi risikonya sangat tinggi.'},
+            {speaker:'B', cn:'我同意，但值得尝试。', py:'wǒ tóng yì, dàn zhí de cháng shì.', ms:'Saya setuju, tapi berbaloi untuk dicuba.'}
+          ],
+          [
+            {speaker:'A', cn:'我觉得在家工作更好。', py:'wǒ jué de zài jiā gōng zuò gèng hǎo.', ms:'Saya rasa bekerja dari rumah lebih baik.'},
+            {speaker:'B', cn:'我反对，在办公室比较专心。', py:'wǒ fǎn duì, zài bàn gōng shì bǐ jiào zhuān xīn.', ms:'Saya tak setuju, di pejabat lebih fokus.'},
+            {speaker:'A', cn:'这只是你的个人观点。', py:'zhè zhǐ shì nǐ de gè rén guān diǎn.', ms:'Itu hanya pendapat peribadi awak.'},
+            {speaker:'B', cn:'那我们来讨论一下优缺点。', py:'nà wǒ men lái tǎo lùn yí xià yōu quē diǎn.', ms:'Kalau begitu mari kita bincangkan kelebihan dan kekurangannya.'}
+          ],
+          [
+            {speaker:'A', cn:'你相信他说的话吗？', py:'nǐ xiāng xìn tā shuō de huà ma?', ms:'Awak percaya apa yang dia cakap?'},
+            {speaker:'B', cn:'也许有一部分是事实。', py:'yě xǔ yǒu yí bù fèn shì shì shí.', ms:'Mungkin sebahagian daripadanya adalah fakta.'},
+            {speaker:'A', cn:'这肯定会影响我们的计划。', py:'zhè kěn dìng huì yǐng xiǎng wǒ men de jì huà.', ms:'Ini pasti akan beri kesan kepada rancangan kita.'},
+            {speaker:'B', cn:'我们需要接受改变。', py:'wǒ men xū yào jiē shòu gǎi biàn.', ms:'Kita perlu terima perubahan.'}
+          ],
+          [
+            {speaker:'A', cn:'我不明白原因是什么。', py:'wǒ bù míng bái yuán yīn shì shén me.', ms:'Saya tak faham apa sebabnya.'},
+            {speaker:'B', cn:'问题其实很简单。', py:'wèn tí qí shí hěn jiǎn dān.', ms:'Masalahnya sebenarnya sangat mudah.'},
+            {speaker:'A', cn:'我觉得很复杂。', py:'wǒ jué de hěn fù zá.', ms:'Saya rasa ia sangat kompleks.'},
+            {speaker:'B', cn:'你不要想得太复杂。', py:'nǐ bú yào xiǎng de tài fù zá.', ms:'Awak jangan fikir terlalu kompleks.'}
+          ],
+          [
+            {speaker:'A', cn:'你能接受我的建议吗？', py:'nǐ néng jiē shòu wǒ de jiàn yì ma?', ms:'Boleh awak terima cadangan saya?'},
+            {speaker:'B', cn:'对不起，我必须拒绝。', py:'duì bu qǐ, wǒ bì xū jù jué.', ms:'Maaf, saya terpaksa tolak.'},
+            {speaker:'A', cn:'为什么？', py:'wèi shén me?', ms:'Kenapa?'},
+            {speaker:'B', cn:'因为结果可能不太好。', py:'yīn wèi jié guǒ kě néng bú tài hǎo.', ms:'Kerana hasilnya mungkin kurang baik.'}
+          ]
+        ]
+      },
+      body: { // Slang & Bahasa Santai
+        vocab: [
+          ['酷','kù','Cool/Gempak'],['搞笑','gǎo xiào','Kelakar'],['算了','suàn le','Biarlah/Lupakan'],['厉害','lì hài','Power/Hebat'],['兄弟','xiōng dì','Bro'],
+          ['闺蜜','guī mì','BFF/Bestie'],['吐槽','tǔ cáo','Kutuk/Complain'],['绝了','jué le','Mantap/Gila babi'],['吃货','chī huò','Kaki Makan'],['加油','jiā yóu','Fighting/Chaiyo'],
+          ['废话','fèi huà','Nonsense/Sembang'],['靠谱','kào pǔ','Boleh Diharap'],['坑','kēng','Scam/Menyusahkan'],['溜','liū','Gerak Dulu/Hebat'],['佛系','fó xì','Chill/Tak Kisah'],
+          ['种草','zhòng cǎo','Terpengaruh Nak Beli'],['躺平','tǎng píng','Malas Nak Layan/Give up'],['无语','wú yǔ','Speechless'],['翻车','fān chē','Gagal/Kantoi'],['哇塞','wa sài','Wah/Wow']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'兄弟，你看这辆车！', py:'xiōng dì, nǐ kàn zhè liàng chē!', ms:'Bro, tengok kereta ni!'},
+            {speaker:'B', cn:'哇塞！太酷了吧！', py:'wa sài! tài kù le ba!', ms:'Wah! Gempak gila!'},
+            {speaker:'A', cn:'超厉害的，绝了！', py:'chāo lì hài de, jué le!', ms:'Sangat hebat, mantap betul!'},
+            {speaker:'B', cn:'别看了，买不起，溜了。', py:'bié kàn le, mǎi bù qǐ, liū le.', ms:'Jangan tengok lagi, tak mampu beli, jom gerak.'}
+          ],
+          [
+            {speaker:'A', cn:'这家餐厅太坑了！', py:'zhè jiā cān tīng tài kēng le!', ms:'Restoran ni scam/teruk betul!'},
+            {speaker:'B', cn:'怎么了？你要吐槽什么？', py:'zěn me le? nǐ yào tǔ cáo shén me?', ms:'Kenapa? Apa awak nak complain?'},
+            {speaker:'A', cn:'又贵又不好吃，无语。', py:'yòu guì yòu bù hǎo chī, wú yǔ.', ms:'Dahlah mahal, tak sedap pula, speechless.'},
+            {speaker:'B', cn:'算了算了，下次不来了。', py:'suàn le suàn le, xià cì bù lái le.', ms:'Biarlah, lain kali kita tak datang dah.'}
+          ],
+          [
+            {speaker:'A', cn:'作为吃货，我被种草了！', py:'zuò wéi chī huò, wǒ bèi zhòng cǎo le!', ms:'Sebagai kaki makan, saya dah teracun/terpengaruh nak beli!'},
+            {speaker:'B', cn:'那家网红店吗？不靠谱。', py:'nà jiā wǎng hóng diàn ma? bú kào pǔ.', ms:'Kedai viral tu ke? Tak boleh harap tu.'},
+            {speaker:'A', cn:'可是网上评价很好啊。', py:'kě shì wǎng shàng píng jià hěn hǎo a.', ms:'Tapi review kat internet sangat bagus.'},
+            {speaker:'B', cn:'那是废话，他们花钱的。', py:'nà shì fèi huà, tā men huā qián de.', ms:'Tu sembang je, diorang bayar (review) punya.'}
+          ],
+          [
+            {speaker:'A', cn:'我最近很佛系，想躺平。', py:'wǒ zuì jìn hěn fó xì, xiǎng tǎng píng.', ms:'Saya kebelakangan ni chill je, nak give up/malas fikir.'},
+            {speaker:'B', cn:'别这样，加油啊！', py:'bié zhè yàng, jiā yóu a!', ms:'Jangan macam tu, fighting!'},
+            {speaker:'A', cn:'太累了，今天又翻车了。', py:'tài lèi le, jīn tiān yòu fān chē le.', ms:'Sangat penat, hari ni gagal/kantoi lagi.'},
+            {speaker:'B', cn:'找你闺蜜聊聊吧。', py:'zhǎo nǐ guī mì liáo liao ba.', ms:'Cari bestie awak borak-borak sikit.'}
+          ],
+          [
+            {speaker:'A', cn:'他这个人很靠谱。', py:'tā zhè ge rén hěn kào pǔ.', ms:'Dia ni orang yang boleh diharap.'},
+            {speaker:'B', cn:'确实，而且他很搞笑。', py:'què shí, ér qiě tā hěn gǎo xiào.', ms:'Betul, lagipun dia sangat kelakar.'},
+            {speaker:'A', cn:'交给他没问题的。', py:'jiāo gěi tā méi wèn tí de.', ms:'Serah kat dia takde masalah.'},
+            {speaker:'B', cn:'嗯，这兄弟能处！', py:'èn, zhè xiōng dì néng chǔ!', ms:'Em, bro ni boleh ngam/kawan!'}
+          ]
+        ]
+      },
+      pronouns: { // Budaya Cina & Etika
+        vocab: [
+          ['请客','qǐng kè','Belanja'],['面子','miàn zi','Air Muka/Maruah'],['礼貌','lǐ mào','Sopan Santun'],['尊敬','zūn jìng','Hormat'],['麻烦','má fan','Susahkan'],
+          ['拜访','bài fǎng','Melawat'],['敬酒','jìng jiǔ','Toast/Angkat Gelas'],['长辈','zhǎng bèi','Orang Tua'],['晚辈','wǎn bèi','Orang Muda'],['红包','hóng bāo','Angpau'],
+          ['谦虚','qiān xū','Rendah Diri'],['客气','kè qi','Sopan/Formal'],['传统','chuán tǒng','Tradisi'],['习惯','xí guàn','Tabiat/Adat'],['节日','jié rì','Perayaan'],
+          ['礼物','lǐ wù','Hadiah'],['规矩','guī ju','Peraturan/Adab'],['称呼','chēng hu','Panggilan/Gelar'],['感谢','gǎn xiè','Berterima Kasih'],['祝福','zhù fú','Restu/Ucapan Baik']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'今天我请客，大家别客气。', py:'jīn tiān wǒ qǐng kè, dà jiā bié kè qi.', ms:'Hari ni saya belanja, semua jangan malu-malu.'},
+            {speaker:'B', cn:'这怎么好意思，太麻烦你了。', py:'zhè zěn me hǎo yì si, tài má fan nǐ le.', ms:'Mana boleh macam ni, sangat menyusahkan awak.'},
+            {speaker:'A', cn:'不麻烦，这是我的心意。', py:'bù má fan, zhè shì wǒ de xīn yì.', ms:'Tak susah, ini tanda ikhlas saya.'},
+            {speaker:'B', cn:'那我们就不客气了，感谢。', py:'nà wǒ men jiù bú kè qi le, gǎn xiè.', ms:'Kalau begitu kami tak malu-malulah, terima kasih.'}
+          ],
+          [
+            {speaker:'A', cn:'中国人很看重面子。', py:'zhōng guó rén hěn kàn zhòng miàn zi.', ms:'Orang Cina sangat mementingkan air muka (maruah).'},
+            {speaker:'B', cn:'对，所以说话要有礼貌。', py:'duì, suǒ yǐ shuō huà yào yǒu lǐ mào.', ms:'Ya, jadi bercakap mesti ada kesopanan.'},
+            {speaker:'A', cn:'这是他们的一种规矩。', py:'zhè shì tā men de yì zhǒng guī ju.', ms:'Ini adalah salah satu adab/peraturan mereka.'},
+            {speaker:'B', cn:'我们应该尊敬长辈。', py:'wǒ men yīng gāi zūn jìng zhǎng bèi.', ms:'Kita patut hormat orang yang lebih tua.'}
+          ],
+          [
+            {speaker:'A', cn:'春节时晚辈会收到红包。', py:'chūn jié shí wǎn bèi huì shōu dào hóng bāo.', ms:'Masa Tahun Baru Cina orang muda akan dapat angpau.'},
+            {speaker:'B', cn:'这传统真好。', py:'zhè chuán tǒng zhēn hǎo.', ms:'Tradisi ni sangat bagus.'},
+            {speaker:'A', cn:'晚辈也要给长辈拜年祝福。', py:'wǎn bèi yě yào gěi zhǎng bèi bài nián zhù fú.', ms:'Orang muda juga kena melawat & beri ucapan baik pada orang tua.'},
+            {speaker:'B', cn:'也是表达尊敬的方式。', py:'yě shì biǎo dá zūn jìng de fāng shì.', ms:'Ia juga cara menzahirkan rasa hormat.'}
+          ],
+          [
+            {speaker:'A', cn:'去拜访别人要带礼物吗？', py:'qù bài fǎng bié rén yào dài lǐ wù ma?', ms:'Pergi melawat orang lain kena bawa hadiah tak?'},
+            {speaker:'B', cn:'当然，这是基本礼貌。', py:'dāng rán, zhè shì jī běn lǐ mào.', ms:'Semestinya, ini adalah adab asas.'},
+            {speaker:'A', cn:'买水果可以吗？', py:'mǎi shuǐ guǒ kě yǐ ma?', ms:'Beli buah-buahan boleh?'},
+            {speaker:'B', cn:'可以，大家习惯带水果。', py:'kě yǐ, dà jiā xí guàn dài shuǐ guǒ.', ms:'Boleh, memang kebiasaan orang bawa buah.'}
+          ],
+          [
+            {speaker:'A', cn:'来，大家一起敬酒！', py:'lái, dà jiā yì qǐ jìng jiǔ!', ms:'Mari, semua sama-sama angkat gelas (toast)!'},
+            {speaker:'B', cn:'祝你工作顺利！', py:'zhù nǐ gōng zuò shùn lì!', ms:'Semoga kerja awak berjalan lancar!'},
+            {speaker:'A', cn:'过奖了，我要保持谦虚。', py:'guò jiǎng le, wǒ yào bǎo chí qiān xū.', ms:'Pujian berlebihan ni, saya kena kekal rendah diri.'},
+            {speaker:'B', cn:'不用谦虚，你值得。', py:'bú yòng qiān xū, nǐ zhí de.', ms:'Tak perlu merendah diri, awak berhak menerimanya.'}
+          ]
+        ]
+      },
+      family: { // Cerita & Naratif
+        vocab: [
+          ['从前','cóng qián','Pada Zaman Dahulu'],['后来','hòu lái','Kemudian/Selepas itu'],['突然','tū rán','Tiba-tiba'],['终于','zhōng yú','Akhirnya'],['发现','fā xiàn','Sedar/Menjumpai'],
+          ['发生','fā shēng','Berlaku/Terjadi'],['故事','gù shì','Cerita'],['经验','jīng yàn','Pengalaman'],['秘密','mì mì','Rahsia'],['结局','jié jú','Pengakhiran'],
+          ['以前','yǐ qián','Sebelum ini/Dulu'],['曾经','céng jīng','Pernah'],['开始','kāi shǐ','Mula'],['经过','jīng guò','Proses/Lalu'],['然后','rán hòu','Kemudian'],
+          ['接着','jiē zhe','Seterusnya'],['没想到','méi xiǎng dào','Tak Sangka'],['幸运','xìng yùn','Bernasib Baik'],['遗憾','yí hàn','Kesal/Terkilan'],['难忘','nán wàng','Sukar Dilupakan']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'这是一个很久以前的故事。', py:'zhè shì yí gè hěn jiǔ yǐ qián de gù shì.', ms:'Ini adalah cerita lama dahulu.'},
+            {speaker:'B', cn:'从前发生了什么事？', py:'cóng qián fā shēng le shén me shì?', ms:'Pada zaman dahulu apa yang berlaku?'},
+            {speaker:'A', cn:'有一个人发现了秘密。', py:'yǒu yí gè rén fā xiàn le mì mì.', ms:'Ada seorang ni telah menjumpai sebuah rahsia.'},
+            {speaker:'B', cn:'后来呢？结局怎么样？', py:'hòu lái ne? jié jú zěn me yàng?', ms:'Lepas tu? Macam mana pengakhirannya?'}
+          ],
+          [
+            {speaker:'A', cn:'昨天我遇到了一件奇怪的事。', py:'zuó tiān wǒ yù dào le yí jiàn qí guài de shì.', ms:'Semalam saya terjumpa satu perkara pelik.'},
+            {speaker:'B', cn:'发生什么事了？', py:'fā shēng shén me shì le?', ms:'Apa yang dah jadi?'},
+            {speaker:'A', cn:'突然停电，然后听见叫声。', py:'tū rán tíng diàn, rán hòu tīng jiàn jiào shēng.', ms:'Tiba-tiba blackout, kemudian dengar suara jeritan.'},
+            {speaker:'B', cn:'真没想到，太可怕了。', py:'zhēn méi xiǎng dào, tài kě pà le.', ms:'Betul-betul tak sangka, menakutkan betul.'}
+          ],
+          [
+            {speaker:'A', cn:'那是一段难忘的经验。', py:'nà shì yí duàn nán wàng de jīng yàn.', ms:'Itu adalah satu pengalaman yang sukar dilupakan.'},
+            {speaker:'B', cn:'你曾经在那里住过吗？', py:'nǐ céng jīng zài nà lǐ zhù guò ma?', ms:'Awak pernah tinggal kat sana ke?'},
+            {speaker:'A', cn:'是的，一开始很不习惯。', py:'shì de, yì kāi shǐ hěn bù xí guàn.', ms:'Ya, pada mulanya sangat tak biasa.'},
+            {speaker:'B', cn:'终于你还是适应了。', py:'zhōng yú nǐ hái shì shì yìng le.', ms:'Akhirnya awak dapat biasakan diri juga.'}
+          ],
+          [
+            {speaker:'A', cn:'你知道整个事情的经过吗？', py:'nǐ zhī dào zhěng gè shì qing de jīng guò ma?', ms:'Awak tahu ke proses keseluruhan kejadian tu?'},
+            {speaker:'B', cn:'我只知道结局很遗憾。', py:'wǒ zhǐ zhī dào jié jú hěn yí hàn.', ms:'Saya cuma tahu pengakhirannya sangat menyedihkan/terkilan.'},
+            {speaker:'A', cn:'幸好他很幸运，没事了。', py:'xìng hǎo tā hěn xìng yùn, méi shì le.', ms:'Nasib baik dia bernasib baik, dah takde apa-apa.'},
+            {speaker:'B', cn:'接着我们要怎么做？', py:'jiē zhe wǒ men yào zěn me zuò?', ms:'Seterusnya apa yang kita kena buat?'}
+          ],
+          [
+            {speaker:'A', cn:'我可以告诉你一个秘密吗？', py:'wǒ kě yǐ gào su nǐ yí gè mì mì ma?', ms:'Boleh saya beritahu awak satu rahsia?'},
+            {speaker:'B', cn:'当然，我不会说出去。', py:'dāng rán, wǒ bú huì shuō chū qù.', ms:'Boleh, saya takkan beritahu orang luar.'},
+            {speaker:'A', cn:'我发现他其实是我的哥哥。', py:'wǒ fā xiàn tā qí shí shì wǒ de gē ge.', ms:'Saya sedar/dapat tahu dia rupanya abang saya.'},
+            {speaker:'B', cn:'这故事太神奇了。', py:'zhè gù shì tài shén qí le.', ms:'Cerita ni sangat menakjubkan.'}
+          ]
+        ]
+      },
+      house: { // Media & Hiburan
+        vocab: [
+          ['电影','diàn yǐng','Filem/Wayang'],['音乐','yīn yuè','Muzik'],['明星','míng xīng','Artis/Bintang'],['演唱会','yǎn chàng huì','Konsert'],['剧集','jù jí','Drama Bersiri'],
+          ['粉丝','fěn sī','Peminat/Fans'],['推荐','tuī jiàn','Kesyorkan/Recommend'],['导演','dǎo yǎn','Pengarah'],['精彩','jīng cǎi','Hebat/Menarik'],['流行','liú xíng','Popular/Trending'],
+          ['偶像','ǒu xiàng','Idola'],['舞台','wǔ tái','Pentas'],['歌词','gē cí','Lirik Lagu'],['喜剧','xǐ jù','Komedi'],['悲剧','bēi jù','Tragedi/Sedih'],
+          ['动作片','dòng zuò piàn','Filem Aksi'],['恐怖片','kǒng bù piàn','Filem Seram'],['期待','qī dài','Menantikan'],['感动','gǎn dòng','Tersentuh/Terharu'],['追剧','zhuī jù','Layan Drama(Binge)']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'你周末打算看电影吗？', py:'nǐ zhōu mò dǎ suàn kàn diàn yǐng ma?', ms:'Awak rancang nak tengok wayang ke hujung minggu ni?'},
+            {speaker:'B', cn:'想看动作片，有什么推荐吗？', py:'xiǎng kàn dòng zuò piàn, yǒu shén me tuī jiàn ma?', ms:'Rasa nak tengok filem aksi, ada apa-apa cadangan?'},
+            {speaker:'A', cn:'那部新电影很精彩，导演很棒。', py:'nà bù xīn diàn yǐng hěn jīng cǎi, dǎo yǎn hěn bàng.', ms:'Filem baru tu sangat menarik, pengarah dia hebat.'},
+            {speaker:'B', cn:'好，我很期待。', py:'hǎo, wǒ hěn qī dài.', ms:'Baik, saya sangat menantikannya.'}
+          ],
+          [
+            {speaker:'A', cn:'你喜欢什么类型的音乐？', py:'nǐ xǐ huan shén me lèi xíng de yīn yuè?', ms:'Awak suka jenis muzik yang macam mana?'},
+            {speaker:'B', cn:'我喜欢流行音乐。', py:'wǒ xǐ huan liú xíng yīn yuè.', ms:'Saya suka muzik popular (Pop).'},
+            {speaker:'A', cn:'这首歌的歌词很感人。', py:'zhè shǒu gē de gē cí hěn gǎn rén.', ms:'Lirik lagu ini sangat menyentuh hati.'},
+            {speaker:'B', cn:'是的，让我非常感动。', py:'shì de, ràng wǒ fēi cháng gǎn dòng.', ms:'Ya, buat saya sangat terharu.'}
+          ],
+          [
+            {speaker:'A', cn:'我买到偶像演唱会的门票了！', py:'wǒ mǎi dào ǒu xiàng yǎn chàng huì de mén piào le!', ms:'Saya dah dapat beli tiket konsert idola (saya)!'},
+            {speaker:'B', cn:'哇，作为粉丝你一定很高兴。', py:'wa, zuò wéi fěn sī nǐ yí dìng hěn gāo xìng.', ms:'Wah, sebagai peminat mesti awak sangat gembira.'},
+            {speaker:'A', cn:'他在舞台上的表现绝了。', py:'tā zài wǔ tái shàng de biǎo xiàn jué le.', ms:'Persembahan dia di pentas sangat mantap.'},
+            {speaker:'B', cn:'那你要好好享受。', py:'nà nǐ yào hǎo hao xiǎng shòu.', ms:'Kalau macam tu awak kena nikmatinya sepuas hati.'}
+          ],
+          [
+            {speaker:'A', cn:'我最近在追剧，每天熬夜。', py:'wǒ zuì jìn zài zhuī jù, měi tiān áo yè.', ms:'Saya kebelakangan ni asyik layan drama, tiap hari sengkang mata.'},
+            {speaker:'B', cn:'是那部有名的古装剧集吗？', py:'shì nà bù yǒu míng de gǔ zhuāng jù jí ma?', ms:'Drama bersiri purba yang terkenal tu ke?'},
+            {speaker:'A', cn:'对，里面的明星演技很好。', py:'duì, lǐ miàn de míng xīng yǎn jì hěn hǎo.', ms:'Ya, lakonan artis dalam tu sangat bagus.'},
+            {speaker:'B', cn:'小心身体，不要太累。', py:'xiǎo xīn shēn tǐ, bú yào tài lèi.', ms:'Jaga kesihatan, jangan terlalu letih.'}
+          ],
+          [
+            {speaker:'A', cn:'你不看恐怖片吗？', py:'nǐ bú kàn kǒng bù piàn ma?', ms:'Awak tak tengok filem seram ke?'},
+            {speaker:'B', cn:'不看，我喜欢看喜剧。', py:'bú kàn, wǒ xǐ huan kàn xǐ jù.', ms:'Tak, saya suka tengok komedi.'},
+            {speaker:'A', cn:'喜剧让人放松。', py:'xǐ jù ràng rén fàng sōng.', ms:'Komedi buat orang rasa relaks.'},
+            {speaker:'B', cn:'对，生活不能全是悲剧。', py:'duì, shēng huó bù néng quán shì bēi jù.', ms:'Betul, hidup tak boleh dipenuhi tragedi.'}
+          ]
+        ]
+      },
+      greetings: { // Situasi Kompleks
+        vocab: [
+          ['解决','jiě jué','Selesaikan'],['合作','hé zuò','Kerjasama'],['抱怨','bào yuàn','Mengadu/Complain'],['抱歉','bào qiàn','Minta Maaf'],['保证','bǎo zhèng','Janji/Jamin'],
+          ['考虑','kǎo lǜ','Pertimbangkan'],['误会','wù huì','Salah Faham'],['要求','yào qiú','Permintaan/Tuntutan'],['妥协','tuǒ xié','Tolak Ansur'],['责任','zé rèn','Tanggungjawab'],
+          ['谈判','tán pàn','Rundingan/Negotiate'],['利益','lì yì','Faedah/Keuntungan'],['条件','tiáo jiàn','Syarat'],['冲突','chōng tū','Konflik'],['压力','yā lì','Tekanan/Stress'],
+          ['赔偿','péi cháng','Pampasan'],['取消','qǔ xiāo','Batal'],['确认','què rèn','Sahkan'],['态度','tài du','Sikap'],['信任','xìn rèn','Kepercayaan']
+        ],
+        conversation: [
+          [
+            {speaker:'A', cn:'我们必须马上解决这个冲突。', py:'wǒ men bì xū mǎ shàng jiě jué zhè ge chōng tū.', ms:'Kita perlu selesaikan konflik ini segera.'},
+            {speaker:'B', cn:'这只是一个误会。', py:'zhè zhǐ shì yí gè wù huì.', ms:'Ini cuma satu salah faham.'},
+            {speaker:'A', cn:'但是客户一直在抱怨态度问题。', py:'dàn shì kè hù yì zhí zài bào yuàn tài du wèn tí.', ms:'Tapi pelanggan asyik mengadu masalah sikap.'},
+            {speaker:'B', cn:'非常抱歉，我会承担责任。', py:'fēi cháng bào qiàn, wǒ huì chéng dān zé rèn.', ms:'Sangat minta maaf, saya akan pikul tanggungjawab.'}
+          ],
+          [
+            {speaker:'A', cn:'关于这次合作，我们的条件是... ', py:'guān yú zhè cì hé zuò, wǒ men de tiáo jiàn shì... ', ms:'Mengenai kerjasama kali ini, syarat kami adalah...'},
+            {speaker:'B', cn:'这要求太高了，我们需要考虑。', py:'zhè yào qiú tài gāo le, wǒ men xū yào kǎo lǜ.', ms:'Permintaan/Tuntutan ini terlalu tinggi, kami perlu pertimbangkan.'},
+            {speaker:'A', cn:'为了双方利益，我们可以妥协。', py:'wèi le shuāng fāng lì yì, wǒ men kě yǐ tuǒ xié.', ms:'Demi keuntungan kedua-dua pihak, kita boleh bertolak ansur.'},
+            {speaker:'B', cn:'好的，我们在谈判桌上再确认。', py:'hǎo de, wǒ men zài tán pàn zhuō shàng zài què rèn.', ms:'Baik, kita sahkan semula di meja rundingan.'}
+          ],
+          [
+            {speaker:'A', cn:'如果航班取消，有赔偿吗？', py:'rú guǒ háng bān qǔ xiāo, yǒu péi cháng ma?', ms:'Kalau penerbangan dibatalkan, ada pampasan tak?'},
+            {speaker:'B', cn:'我向您保证，会全额退款。', py:'wǒ xiàng nín bǎo zhèng, huì quán é tuì kuǎn.', ms:'Saya beri jaminan pada anda, kami akan pulangkan bayaran penuh.'},
+            {speaker:'A', cn:'希望能快点解决，我压力很大。', py:'xī wàng néng kuài diǎn jiě jué, wǒ yā lì hěn dà.', ms:'Harap boleh cepat selesaikan, saya sangat tertekan.'},
+            {speaker:'B', cn:'请信任我们，感谢您的耐心。', py:'qǐng xìn rèn wǒ men, gǎn xiè nín de nài xīn.', ms:'Sila percayakan kami, terima kasih atas kesabaran anda.'}
+          ],
+          [
+            {speaker:'A', cn:'你不觉得你的要求过分吗？', py:'nǐ bù jué de nǐ de yào qiú guò fèn ma?', ms:'Awak tak rasa ke permintaan awak melampau?'},
+            {speaker:'B', cn:'我不觉得，这是我的底线。', py:'wǒ bù jué de, zhè shì wǒ de dǐ xiàn.', ms:'Saya tak rasa macam tu, ini adalah batas kesabaran saya.'},
+            {speaker:'A', cn:'那我们很难合作。', py:'nà wǒ men hěn nán hé zuò.', ms:'Kalau macam tu kita sukar nak bekerjasama.'},
+            {speaker:'B', cn:'如果不能确认条件，就取消吧。', py:'rú guǒ bù néng què rèn tiáo jiàn, jiù qǔ xiāo ba.', ms:'Kalau tak boleh sahkan syarat, batalkan sahajalah.'}
+          ],
+          [
+            {speaker:'A', cn:'我很抱歉让你有压力。', py:'wǒ hěn bào qiàn ràng nǐ yǒu yā lì.', ms:'Saya minta maaf buat awak tertekan.'},
+            {speaker:'B', cn:'没关系，主要是我失去了信任。', py:'méi guān xi, zhǔ yào shì wǒ shī qù le xìn rèn.', ms:'Tak apa, yang pentingnya saya dah hilang kepercayaan.'},
+            {speaker:'A', cn:'我会保证下次不会发生。', py:'wǒ huì bǎo zhèng xià cì bú huì fā shēng.', ms:'Saya jamin ia tidak akan berlaku lagi lain kali.'},
+            {speaker:'B', cn:'希望你的态度能改变。', py:'xī wàng nǐ de tài du néng gǎi biàn.', ms:'Saya harap sikap awak boleh berubah.'}
+          ]
+        ]
+      }
+    };
+
+    const grid = document.getElementById('topic-grid');
+    topics.forEach(t => {
+      grid.innerHTML += `
+        <div class="card-hover cursor-pointer border-2 bg-white rounded-xl p-5 ${t.color} flex flex-col items-center justify-center text-center shadow-sm" onclick="openLesson('${t.id}')">
+          <div class="text-4xl mb-3">${t.emoji}</div>
+          <div class="chinese text-xl font-bold text-gray-800 leading-tight mb-1">${t.cn}</div>
+          <div class="text-xs text-blue-500 font-semibold italic mb-2">${t.py}</div>
+          <h3 class="font-bold text-gray-700 text-sm mb-1">${t.title}</h3>
+          <p class="text-[10px] text-gray-500">${t.desc}</p>
+        </div>`;
+    });
+
+    function goHome() {
+      document.getElementById('home-view').classList.remove('hidden');
+      document.getElementById('lesson-view').classList.add('hidden');
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    function openLesson(id) {
+      const topic = topics.find(t => t.id === id);
+      const d = data[id];
+      document.getElementById('home-view').classList.add('hidden');
+      document.getElementById('lesson-view').classList.remove('hidden');
+      
+      document.getElementById('lesson-title').innerHTML = `${topic.emoji} ${topic.cn} <span class="text-lg font-normal text-gray-500 ml-2">(${topic.py})</span>`;
+      document.getElementById('lesson-subtitle').textContent = topic.title;
+
+      let html = `<h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="book-open" class="text-rose-500"></i> 词汇 cí huì (Kosa Kata)</h3>`;
+      html += '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">';
+      d.vocab.forEach((v) => {
+        html += `<div class="bg-white rounded-xl p-4 border shadow-sm text-center fade-in cursor-pointer hover:shadow-md hover:border-rose-300 transition group" onclick="speakWord('${v[0]}')">
+          <div class="chinese text-2xl font-bold text-rose-700 mb-1">${v[0]}</div>
+          <div class="text-[10px] text-blue-500 font-semibold mb-1 flex items-center justify-center gap-1">
+             <i data-lucide="volume-2" class="w-3 h-3"></i> Dengar
+          </div>
+          <div class="text-xs text-gray-400 italic mb-1">${v[1]}</div>
+          <div class="text-sm font-semibold text-gray-700">${v[2]}</div>
+        </div>`;
+      });
+      html += '</div>';
+
+      html += `<h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="message-circle" class="text-rose-500"></i> 场景对话 chǎng jǐng duì huà (Perbualan)</h3>
+        <div class="space-y-6">`;
+      d.conversation.forEach((set, idx) => {
+        html += `<div class="bg-white rounded-xl border shadow-sm p-5">
+          <h4 class="text-sm font-bold text-rose-600 mb-4 bg-rose-50 px-3 py-1 rounded-lg inline-block">Set ${idx + 1}</h4>
+          <div class="space-y-4">`;
+        set.forEach(c => {
+          const isA = c.speaker === 'A';
+          html += `<div class="flex ${isA ? '' : 'justify-end'}">
+            <div class="${isA ? 'bg-rose-50 border-rose-200' : 'bg-blue-50 border-blue-200'} border rounded-xl p-3 max-w-[90%] cursor-pointer hover:shadow-sm transition" onclick="speakWord('${c.cn}')">
+              <div class="flex items-center gap-2 mb-1">
+                 <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${isA ? 'bg-rose-200 text-rose-800' : 'bg-blue-200 text-blue-800'}">${c.speaker}</span>
+                 <div class="chinese text-base font-bold text-gray-800">${c.cn}</div>
+              </div>
+              <div class="text-[11px] text-gray-400 italic mb-1 pl-7">${c.py}</div>
+              <div class="text-xs font-medium text-gray-600 border-t ${isA ? 'border-rose-100' : 'border-blue-100'} pt-1.5 pl-7">${c.ms}</div>
+            </div>
+          </div>`;
+        });
+        html += `</div></div>`;
+      });
+      html += '</div>';
+
+      html += `<div class="mt-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="target" class="text-rose-500"></i> 快速测验 kuài sù cè yàn (Kuiz)</h3>
+        <div id="quiz-area"></div>
+      </div>`;
+
+      document.getElementById('lesson-content').innerHTML = html;
+      startQuiz(id);
+      lucide.createIcons();
+    }
+
+    function speakWord(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function startQuiz(id) {
+      const vocab = data[id].vocab;
+      const area = document.getElementById('quiz-area');
+      let qi = 0, score = 0;
+      const questions = vocab.sort(() => Math.random() - 0.5).slice(0, 10);
+
+      function showQ() {
+        if (qi >= questions.length) {
+          area.innerHTML = `<div class="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-8 text-center fade-in">
+            <div class="text-5xl mb-4">🎉</div>
+            <p class="font-bold text-2xl text-emerald-800 mb-4">Skor Anda: ${score} / ${questions.length}</p>
+            <button onclick="startQuiz('${id}')" class="px-6 py-3 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition shadow-md">
+              Cuba Lagi (zài shì yí cì)
+            </button>
+          </div>`;
+          return;
+        }
+        
+        const q = questions[qi];
+        const wrong = vocab.filter(v => v[0] !== q[0]).sort(() => Math.random() - 0.5).slice(0, 3);
+        const opts = [...wrong.map(w => w[2]), q[2]].sort(() => Math.random() - 0.5);
+        
+        area.innerHTML = `<div class="bg-white border-2 border-gray-100 rounded-xl p-6 fade-in shadow-sm">
+          <div class="flex justify-between items-center mb-4">
+            <p class="text-sm font-semibold text-rose-500 bg-rose-50 px-3 py-1 rounded-full">Soalan ${qi+1} / ${questions.length}</p>
+            <button onclick="speakWord('${q[0]}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded-full transition">
+              <i data-lucide="volume-2" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <p class="chinese text-4xl font-bold text-gray-800 text-center mb-2">${q[0]}</p>
+          <p class="text-base text-center italic text-gray-500 mb-6">${q[1]}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="opts"></div>
+        </div>`;
+        
+        lucide.createIcons();
+        const optsEl = document.getElementById('opts');
+        opts.forEach(o => {
+          const btn = document.createElement('button');
+          btn.className = 'p-4 border-2 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition text-lg';
+          btn.textContent = o;
+          btn.onclick = () => {
+            if (o === q[2]) { score++; btn.classList.add('bg-emerald-100','border-emerald-500','text-emerald-800'); }
+            else { btn.classList.add('bg-red-100','border-red-500','text-red-800'); }
+            optsEl.querySelectorAll('button').forEach(b => { 
+              b.disabled = true; 
+              if(b.textContent === q[2]) b.classList.add('bg-emerald-100','border-emerald-500','text-emerald-800');
+            });
+            setTimeout(() => { qi++; showQ(); }, 1200);
+          };
+          optsEl.appendChild(btn);
+        });
+      }
+      showQ();
+    }
+
+    const defaultConfig = { app_title: '学习中文 xué xí zhōng wén', background_color: '#fff7ed', primary_action_color: '#be123c' };
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (config) => {
+          const t = document.getElementById('main-title');
+          if (t) t.textContent = '🀄 ' + (config.app_title || defaultConfig.app_title);
+          document.getElementById('app').style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color}, #f0fdf4)`;
+        }
+      });
+    }
+    lucide.createIcons();
+  </script>
+</body>
+</html>
