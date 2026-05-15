@@ -249,6 +249,13 @@
     class="bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 rounded-xl font-bold shadow">
     Log Masuk Sekarang
 </button>
+
+<button 
+onclick="buyAccess('full')"
+class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 px-6 py-3 rounded-xl font-bold shadow mt-4">
+Dapatkan Full Access
+</button>
+
     </div>
 
 </div>
@@ -307,22 +314,6 @@
     </div>
 
     <!-- Modal Unlock Spesifik Modul -->
-    <div id="unlockModal" class="fixed inset-0 bg-slate-900/80 z-[110] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl modal-enter">
-            <div class="w-16 h-16 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
-                <i class="fa-solid fa-key"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-2">Buka Modul</h3>
-            <p class="text-sm text-slate-500 mb-6 leading-relaxed">Sila masukkan kod akses yang anda terima selepas pembelian.</p>
-            <input type="tel" id="unlockPhoneInput" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-sky-500 focus:outline-none text-center font-bold mb-3" placeholder="No Telefon">
-            <input type="password" id="unlockCodeInput" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-sky-500 focus:outline-none text-center font-bold tracking-widest uppercase" placeholder="KOD MODUL">
-            <p id="unlockError" class="text-red-500 text-xs mt-2 hidden">Kod tidak sah.</p>
-            <div class="flex space-x-3 mt-6">
-                <button onclick="closeUnlockModal()" class="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-sm">Batal</button>
-                <button onclick="verifyUnlockCode()" id="unlockBtn" class="flex-1 py-3 bg-sky-600 text-white font-bold rounded-xl text-sm flex items-center justify-center">Sahkan</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Kandungan Utama (TIDAK DIUBAH) -->
     <div id="mainContent" class="opacity-0 transition-opacity duration-1000">
@@ -342,15 +333,14 @@
                         <a href="#mapa-legacy" onclick="hideProfile()" class="hover:text-sky-200 transition">Legasi</a>
                         <a href="#anakku" onclick="hideProfile()" class="hover:text-sky-200 transition">Zuriat</a>
                         <a href="#akuan" onclick="hideProfile()" class="hover:text-sky-200 transition">Akuanku</a>
-                        <button onclick="showProfile()" class="hover:text-sky-200 transition flex items-center">
-                            <i class="fa-solid fa-id-card mr-1"></i> Profail
-                        </button>
+                        <button onclick="mainLogin()" class="hover:text-sky-200 transition flex items-center">
+    <i class="fa-solid fa-right-to-bracket mr-1"></i> Login Akses
+</button>
                         <button onclick="logout()" class="bg-sky-400 px-3 py-1 rounded text-xs hover:bg-red-600 transition text-white">Log Keluar</button>
                     </div>
-                    <div class="md:hidden flex items-center">
-                        <button onclick="showProfile()" class="text-2xl mr-4"><i class="fa-solid fa-id-card"></i></button>
-                        <button onclick="logout()" class="text-xl"><i class="fa-solid fa-right-from-bracket"></i></button>
-                    </div>
+                    <div class="md:hidden flex items-center"> 
+                    <button onclick="mainLogin()" class="text-2xl mr-4"> <i class="fa-solid fa-right-to-bracket"></i> </button> 
+                    <button onclick="logout()" class="text-xl"> <i class="fa-solid fa-right-from-bracket"></i> </button> </div>
                 </div>
             </div>
         </nav>
@@ -478,7 +468,7 @@ Langkah seterusnya ialah membuat pengakuan — kerana di sinilah bermulanya peru
     </div>
 
    <script>
-        let ACCESS_CODES = { main: '', parenting: '', legacy: '', kids: '', akuan: '', admin: '' };
+        
 
         const firebaseConfig = {
             apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -495,86 +485,14 @@ Langkah seterusnya ialah membuat pengakuan — kerana di sinilah bermulanya peru
         const db = firebase.database(); // INIT DATABASE SEBAGAI DB
 
         // Fetch data real-time
-        db.ref('access_code').once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                if (typeof data === 'string') {
-                    ACCESS_CODES.main = data;
-                } else if (typeof data === 'object') {
-                    ACCESS_CODES = { ...ACCESS_CODES, ...data };
-                }
-            } else {
-                console.warn("Amaran: Path 'access_code' kosong atau tidak dijumpai di database.");
-            }
-        }, (error) => {
-            console.error("Ralat Firebase:", error.message);
-        });
 
-        const ONPAY_LINKS = { finance: 'https://toyyibpay.com/Famili-Pintar-1', parenting: 'https://toyyibpay.com/Famili-Pintar-2', legacy: 'https://toyyibpay.com/Famili-Pintar-3', kids: 'https://toyyibpay.com/Famili-Pintar-4', akuan: 'https://toyyibpay.com/Famili-Pintar-5' };
+
+        
         let activeUnlockTarget = '';
         let currentSectionId = '';
 
         // FUNGSI LOGIN & SEMAKAN DATABASE (SISTEM BARU)
-            function checkLogin() {
-            const phoneRaw = document.getElementById('phoneInput').value.trim();
-            const phone = phoneRaw.replace(/[^0-9]/g, ''); // Pastikan hanya nombor
-            const code = document.getElementById('passwordInput').value.trim().toUpperCase();
-            
-            if (phone.length < 9 || !code) {
-                const errEl = document.getElementById('loginError');
-                errEl.innerText = "Sila masukkan No. Telefon yang sah dan Kod Akses.";
-                errEl.classList.remove('hidden');
-                return;
-            }
 
-            document.getElementById('btnText').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyemak...';
-            document.getElementById('loginError').classList.add('hidden');
-
-            let unlockedModule = null;
-            
-            // Kenal pasti kod
-            if (ACCESS_CODES.admin && code === ACCESS_CODES.admin.toUpperCase()) unlockedModule = 'all';
-            else if (ACCESS_CODES.main && code === ACCESS_CODES.main.toUpperCase()) unlockedModule = 'main';
-            else if (ACCESS_CODES.parenting && code === ACCESS_CODES.parenting.toUpperCase()) unlockedModule = 'parenting';
-            else if (ACCESS_CODES.legacy && code === ACCESS_CODES.legacy.toUpperCase()) unlockedModule = 'legacy';
-            else if (ACCESS_CODES.kids && code === ACCESS_CODES.kids.toUpperCase()) unlockedModule = 'kids';
-            else if (ACCESS_CODES.akuan && code === ACCESS_CODES.akuan.toUpperCase()) unlockedModule = 'akuan';
-
-            if (unlockedModule) {
-                // Tarik profil dari Firebase
-                const userRef = db.ref('users/' + phone);
-                userRef.once('value').then((snapshot) => {
-                    let userData = snapshot.val() || { main: false, parenting: false, legacy: false, kids: false, akuan: false };
-
-                    if (unlockedModule === 'all') {
-                        userData = { main: true, parenting: true, legacy: true, kids: true, akuan: true };
-                    } else {
-                        userData[unlockedModule] = true;
-                        userData.main = true; // Wajib buka asas
-                    }
-
-                    // Simpan data & mulakan sesi
-                    userRef.set(userData).then(() => {
-                        sessionStorage.setItem('isLoggedIn', 'true');
-                        sessionStorage.setItem('userPhone', phone);
-                        Object.keys(userData).forEach(k => {
-                            sessionStorage.setItem(`access_${k}`, userData[k]);
-                        });
-                        showApp();
-                    });
-                }).catch(err => {
-                    const errEl = document.getElementById('loginError');
-                    errEl.innerText = "Ralat pangkalan data. Sila hubungi Admin.";
-                    errEl.classList.remove('hidden');
-                    document.getElementById('btnText').innerText = 'Log Masuk Sekarang';
-                });
-            } else {
-                const errEl = document.getElementById('loginError');
-                errEl.innerText = "Kod akses tidak sah. Sila cuba lagi.";
-                errEl.classList.remove('hidden');
-                document.getElementById('btnText').innerText = 'Log Masuk Sekarang';
-            }
-        }
 
         function showApp() {
             document.getElementById('loginOverlay').classList.add('hidden');
@@ -638,39 +556,66 @@ Langkah seterusnya ialah membuat pengakuan — kerana di sinilah bermulanya peru
             });
         }
 
-        function openUnlockModal(target) {
-            activeUnlockTarget = target;
-            document.getElementById('unlockCodeInput').value = '';
-            document.getElementById('unlockError').classList.add('hidden');
-            document.getElementById('unlockModal').classList.remove('hidden');
-        }
-        function closeUnlockModal() { document.getElementById('unlockModal').classList.add('hidden'); }
+    
         
         // FUNGSI UNLOCK KEKAL (SISTEM BARU)
-        function verifyUnlockCode() {
-            const code = document.getElementById('unlockCodeInput').value.trim().toUpperCase();
-            const phoneRaw = document.getElementById('unlockPhoneInput').value.trim(); const phone = phoneRaw.replace(/[^0-9]/g, '');
-            const btn = document.getElementById('unlockBtn');
 
-            if ((ACCESS_CODES[activeUnlockTarget] && code === ACCESS_CODES[activeUnlockTarget].toUpperCase()) || 
-                (ACCESS_CODES.admin && code === ACCESS_CODES.admin.toUpperCase())) {
-                
-                if(btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                
-                // Simpan Unlock Status dalam Profil Firebase Pengguna
-                db.ref(`users/${phone}/${activeUnlockTarget}`).set(true).then(() => {
-                    sessionStorage.setItem(`access_${activeUnlockTarget}`, 'true');
-                    sessionStorage.setItem('userPhone', phone);
-                    const userDisplay = document.getElementById('userDisplay'); if (userDisplay) userDisplay.innerText = `ID: ${phone}`;
-                    closeUnlockModal();
-                    applyAccessControl();
-                    if(btn) btn.innerText = 'Sahkan';
-                });
-            } else {
-                document.getElementById('unlockError').classList.remove('hidden');
-            }
-        }
         function logout() { sessionStorage.clear(); window.location.reload(); }
+
+async function mainLogin() {
+
+    const phone =
+    prompt('Masukkan nombor telefon');
+
+    if (!phone) return;
+
+    try {
+
+        const snapshot =
+        await db.ref('users/' + phone).once('value');
+
+        const user =
+        snapshot.val();
+
+        if (!user) {
+
+            alert('Akses belum wujud');
+            return;
+
+        }
+
+        sessionStorage.setItem(
+            'userPhone',
+            phone
+        );
+
+        if (user.access) {
+
+            Object.keys(user.access)
+            .forEach(key => {
+
+                sessionStorage.setItem(
+                    `access_${key}`,
+                    user.access[key]
+                );
+
+            });
+
+        }
+
+        showApp();
+
+    }
+
+    catch(err) {
+
+        console.log(err);
+
+        alert('Ralat login');
+
+    }
+
+}
 
 function enterFree() { document.getElementById('loginOverlay').classList.add('hidden'); document.getElementById('mainContent').classList.remove('opacity-0'); sessionStorage.setItem('isLoggedIn', 'true'); renderAll(); applyAccessControl(); }
 
