@@ -569,6 +569,21 @@ async function mainLogin() {
 
     if (!phone) return;
 
+    // ADMIN BYPASS
+    if (phone === 'admin123') {
+
+        sessionStorage.setItem('access_main', true);
+        sessionStorage.setItem('access_parenting', true);
+        sessionStorage.setItem('access_legacy', true);
+        sessionStorage.setItem('access_kids', true);
+        sessionStorage.setItem('access_akuan', true);
+
+        showApp();
+
+        return;
+
+    }
+
     try {
 
         const snapshot =
@@ -616,6 +631,7 @@ async function mainLogin() {
     }
 
 }
+
 
 function enterFree() { document.getElementById('loginOverlay').classList.add('hidden'); document.getElementById('mainContent').classList.remove('opacity-0'); sessionStorage.setItem('isLoggedIn', 'true'); renderAll(); applyAccessControl(); }
 
