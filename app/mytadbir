@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myTADBIR - Perancangan Harta Islam & Strategi Hutang</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Import Map -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+        }
+      }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* d'DEBT utilities */
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .smooth-transition { transition: all 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useMemo } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { 
+          Landmark, ShieldCheck, HeartHandshake, BookOpen, 
+          TrendingUp, Calculator, PieChart, Wallet, User, 
+          AlertTriangle, Heart, Lightbulb, Clock, FileText, ArrowRight, Printer, MessageCircle, Users, Activity, CheckCircle2, CreditCard
+        } from 'lucide-react';
+
+        // --- Komponen Bantuan (UI) ---
+        const Card = ({ children, className = '' }) => (
+          <div className={`bg-white rounded-xl shadow-sm border border-slate-200 p-6 ${className}`}>
+            {children}
+          </div>
+        );
+
+        const Input = ({ label, value, onChange, type = 'number', prefix = '', suffix = '', min = 0, max, disabled=false, step="1", className="" }) => (
+          <div className={`flex flex-col mb-4 ${className}`}>
+            <label className="text-sm font-semibold text-slate-700 mb-1">{label}</label>
+            <div className="relative flex items-center">
+              {prefix && <span className="absolute left-3 text-slate-500 font-semibold">{prefix}</span>}
+              <input
+                type={type}
+                value={value}
+                onChange={onChange}
+                min={min}
+                max={max}
+                step={step}
+                disabled={disabled}
+                className={`w-full border border-slate-300 rounded-lg py-2 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all ${prefix ? 'pl-9' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'} ${disabled ? 'bg-slate-100 text-slate-500' : 'bg-white'}`}
+              />
+              {suffix && <span className="absolute right-3 text-slate-500 font-semibold">{suffix}</span>}
+            </div>
+          </div>
+        );
+
+        const SectionHeader = ({ title, icon: Icon, description }) => (
+          <div className="mb-6 border-b border-sky-100 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-sky-100 text-sky-700 rounded-lg">
+                <Icon size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+                <p className="text-sm text-slate-500">{description}</p>
+              </div>
+            </div>
+          </div>
+        );
+
+        // Komponen Pie Chart Ringkas
+        const SimplePieChart = ({ data, colors }) => {
+          let cumulativePercent = 0;
+          const getCoordinatesForPercent = (percent) => {
+            const x = Math.cos(2 * Math.PI * percent);
+            const y = Math.sin(2 * Math.PI * percent);
+            return [x, y];
+          };
+          
+          if (!data || data.length === 0 || data.every(d => d.percent <= 0)) {
+            return <div className="w-full h-full rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-500">Tiada Data</div>;
+          }
+
+          return (
+            <svg viewBox="-1 -1 2 2" className="w-full h-full drop-shadow-md" style={{ transform: 'rotate(-90deg)' }}>
+              {data.map((slice, i) => {
+                if (slice.percent <= 0) return null;
+                if (slice.percent >= 99.9) return <circle cx="0" cy="0" r="1" fill={colors[i % colors.length]} key={i} />;
+                const [startX, startY] = getCoordinatesForPercent(cumulativePercent / 100);
+                cumulativePercent += slice.percent;
+                const [endX, endY] = getCoordinatesForPercent(cumulativePercent / 100);
+                const largeArcFlag = slice.percent > 50 ? 1 : 0;
+                const pathData = [
+                  `M ${startX} ${startY}`,
+                  `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
+                  `L 0 0`,
+                ].join(' ');
+                return <path d={pathData} fill={colors[i % colors.length]} key={i} />
+              })}
+            </svg>
+          )
+        };
+
+        // --- Komponen Utama ---
+        function App() {
+          const [activeTab, setActiveTab] = useState(1);
+          const [showReport, setShowReport] = useState(false);
+
+          // === STATE PENGURUSAN DATA (PROFIL & PENDAPATAN) ===
+          const [userGender, setUserGender] = useState('lelaki');
+          const [age, setAge] = useState(30);
+          const [gajiHakiki, setGajiHakiki] = useState(4000);
+          const [pendapatanSampingan, setPendapatanSampingan] = useState(500);
+          const [currentExpenses, setCurrentExpenses] = useState(3000);
+          const [kwspPotongan, setKwspPotongan] = useState(11);
+          const [socsoPotongan, setSocsoPotongan] = useState(50);
+
+          const [dapurExpenses, setDapurExpenses] = useState(800);
+          const [utilitiExpenses, setUtilitiExpenses] = useState(300);
+          const [transportExpenses, setTransportExpenses] = useState(400);
+          const [entertainmentExpenses, setEntertainmentExpenses] = useState(300);
+          const [insuranceExpenses, setInsuranceExpenses] = useState(250);
+          const [childrenData, setChildrenData] = useState([{ id: 1, age: 1, gender: 'lelaki' }]);
+          
+          // === STATE ASET SEMASA ===
+          const [asb, setAsb] = useState(10000);
+          const [th, setTh] = useState(10000);
+          const [unitTrust, setUnitTrust] = useState(5000);
+          const [tunai, setTunai] = useState(20000);
+          const [kwsp, setKwsp] = useState(80000);
+          const [emas, setEmas] = useState(5000);
+          const [rumahValue, setRumahValue] = useState(350000);
+          const [keretaValue, setKeretaValue] = useState(60000);
+          
+          // === STATE LIABILITI (d'DEBT) ===
+          const [debtsList, setDebtsList] = useState([
+            { id: 1, name: 'Kad Kredit', balance: 5000, interest: 15, minPayment: 250 },
+            { id: 2, name: 'Pinjaman Peribadi', balance: 15000, interest: 6.5, minPayment: 350 },
+            { id: 3, name: 'Kereta', balance: 45000, interest: 3.2, minPayment: 550 }
+          ]);
+          const [extraBudget, setExtraBudget] = useState(300);
+          const [debtStrategy, setDebtStrategy] = useState('snowball');
+          const [consolRate, setConsolRate] = useState(4.5);
+          const [consolYear, setConsolYear] = useState(7);
+
+          // === STATE UNJURAN MASA DEPAN ===
+          const [retireAge, setRetireAge] = useState(60);
+          const [lifeExpectancy, setLifeExpectancy] = useState(80);
+          const [inflationRate, setInflationRate] = useState(3);
+          const [assetReturnRate, setAssetReturnRate] = useState(5);
+          const [uniAge, setUniAge] = useState(18);
+          const [currentEduCost, setCurrentEduCost] = useState(50000);
+
+          // === STATE SENARIO MATI & PELINDUNG ===
+          const [funeralCost, setFuneralCost] = useState(2000);
+          const [sepencarianPercent, setSepencarianPercent] = useState(50); 
+          const [wasiatPercent, setWasiatPercent] = useState(0); 
+          const [hasSpouse, setHasSpouse] = useState(true);
+          const [parentsAlive, setParentsAlive] = useState(2); 
+          const [currentTakaful, setCurrentTakaful] = useState(100000);
+
+          // === DERIVED VARIABLES (PENGIRAAN AUTOMATIK KESELURUHAN) ===
+          const numSons = childrenData.filter(c => c.gender === 'lelaki').length;
+          const numDaughters = childrenData.filter(c => c.gender === 'perempuan').length;
+          const spouseGender = userGender === 'lelaki' ? 'isteri' : 'suami';
+          
+          const annualIncome = (gajiHakiki + pendapatanSampingan) * 12;
+
+          // --- ANALISIS DSR & HUTANG (d'DEBT Core Logic) ---
+          const debtAnalysisResult = useMemo(() => {
+              const totalIncome = gajiHakiki + pendapatanSampingan;
+              const totalCommitment = debtsList.reduce((sum, d) => sum + d.minPayment, 0);
+              const totalBalance = debtsList.reduce((sum, d) => sum + d.balance, 0);
+              const dsr = totalIncome > 0 ? (totalCommitment / totalIncome) * 100 : 0;
+
+              let sortedDebts = [...debtsList];
+              if (debtStrategy === 'snowball') sortedDebts.sort((a, b) => a.balance - b.balance);
+              else if (debtStrategy === 'avalanche') sortedDebts.sort((a, b) => b.interest - a.interest);
+
+              let totalInterestPaid = 0;
+              let currentMonth = 0;
+              const MAX_MONTHS = 1200;
+              let simDebts = sortedDebts.map(d => ({ ...d, currentBalance: d.balance, monthsToFinish: 0 }));
+              
+              let balanceAtRetirement = 0;
+              const retirementMonth = Math.max(0, (retireAge - age) * 12);
+
+              if (debtStrategy !== 'consolidation') {
+                  while (simDebts.some(d => d.currentBalance > 0) && currentMonth < MAX_MONTHS) {
+                      // Rekod hutang tersisa pada bulan persaraan
+                      if (currentMonth === retirementMonth) {
+                          balanceAtRetirement = simDebts.reduce((sum, d) => sum + Math.max(0, d.currentBalance), 0);
+                      }
+                      
+                      currentMonth++;
+                      let monthlyExtraAvailable = extraBudget;
+
+                      for (let d of simDebts) {
+                          if (d.currentBalance <= 0) continue;
+                          let monthlyRate = (d.interest / 100) / 12;
+                          let interestCharged = d.currentBalance * monthlyRate;
+                          totalInterestPaid += interestCharged;
+                          d.currentBalance += interestCharged;
+
+                          let pay = Math.min(d.currentBalance, d.minPayment);
+                          d.currentBalance -= pay;
+
+                          if (d.currentBalance <= 0.01) {
+                              d.currentBalance = 0;
+                              if (d.monthsToFinish === 0) d.monthsToFinish = currentMonth;
+                          }
+                      }
+
+                      let freedUpMinPayments = simDebts.filter(d => d.currentBalance === 0).reduce((sum, d) => sum + d.minPayment, 0);
+                      monthlyExtraAvailable += freedUpMinPayments;
+
+                      for (let d of simDebts) {
+                          if (d.currentBalance > 0) {
+                              let extraPay = Math.min(d.currentBalance, monthlyExtraAvailable);
+                              d.currentBalance -= extraPay;
+                              monthlyExtraAvailable -= extraPay;
+                              
+                              if (d.currentBalance <= 0.01) {
+                                  d.currentBalance = 0;
+                                  if (d.monthsToFinish === 0) d.monthsToFinish = currentMonth;
+                              }
+                              if (monthlyExtraAvailable <= 0) break;
+                          }
+                      }
+                  }
+                  
+                  // Semakan akhir unjuran persaraan
+                  if (currentMonth <= retirementMonth && balanceAtRetirement === 0 && simDebts.every(d => d.currentBalance === 0)) {
+                      balanceAtRetirement = 0; 
+                  } else if (currentMonth > retirementMonth && balanceAtRetirement === 0) {
+                      balanceAtRetirement = simDebts.reduce((sum, d) => sum + d.currentBalance, 0);
+                  }
+              } else {
+                  // Consolidation logic (Flat Rate Assumption)
+                  const totalInterestConsol = totalBalance * (consolRate / 100) * consolYear;
+                  const totalLoanConsol = totalBalance + totalInterestConsol;
+                  const newMonthlyConsol = consolYear > 0 ? totalLoanConsol / (consolYear * 12) : 0;
+                  const savingsConsol = totalCommitment - newMonthlyConsol;
+                  
+                  if (retirementMonth >= consolYear * 12) {
+                      balanceAtRetirement = 0;
+                  } else {
+                      const remainingMonths = (consolYear * 12) - retirementMonth;
+                      balanceAtRetirement = (remainingMonths / (consolYear * 12)) * totalBalance; 
+                  }
+
+                  return {
+                      totalIncome, totalCommitment, totalBalance, dsr,
+                      payoffMonths: consolYear * 12,
+                      payoffInterest: totalInterestConsol,
+                      payoffDetails: [],
+                      consolNewMonthly: newMonthlyConsol,
+                      consolSavings: savingsConsol,
+                      balanceAtRetirement
+                  };
+              }
+
+              return {
+                  totalIncome, totalCommitment, totalBalance, dsr,
+                  payoffMonths: currentMonth,
+                  payoffInterest: totalInterestPaid,
+                  payoffDetails: simDebts,
+                  consolNewMonthly: 0,
+                  consolSavings: 0,
+                  balanceAtRetirement
+              };
+          }, [debtsList, gajiHakiki, pendapatanSampingan, extraBudget, debtStrategy, consolRate, consolYear, retireAge, age]);
+
+const totalIncomeMonthly = gajiHakiki + pendapatanSampingan;
+
+const kwspAmount = gajiHakiki * (kwspPotongan / 100);
+
+const netIncomeMonthly =
+  totalIncomeMonthly -
+  kwspAmount -
+  socsoPotongan;
+
+const currentMonthlyExpenses =
+  dapurExpenses +
+  utilitiExpenses +
+  transportExpenses +
+  entertainmentExpenses +
+  insuranceExpenses;
+
+const totalMonthlyCommitments =
+  debtAnalysisResult.totalCommitment +
+  currentMonthlyExpenses;
+
+const monthlyBalance =
+  netIncomeMonthly - totalMonthlyCommitments;
+
+const financialScore =
+  monthlyBalance >= 2000 ? 90 :
+  monthlyBalance >= 1000 ? 75 :
+  monthlyBalance >= 300 ? 60 :
+  monthlyBalance >= 0 ? 45 : 25;
+
+const financialStatus =
+  financialScore >= 80 ? 'Sangat Sihat' :
+  financialScore >= 60 ? 'Sederhana' :
+  financialScore >= 40 ? 'Berisiko' :
+  'Kritikal';
+
+          const totalDebts = debtAnalysisResult.totalBalance;
+          const unjuranTotalDebts = debtAnalysisResult.balanceAtRetirement;
+
+          const totalLiquidAssets = asb + th + unitTrust + tunai + kwsp + emas;
+          const totalPhysicalAssets = rumahValue + keretaValue;
+          const currentNetWorth = (totalLiquidAssets + totalPhysicalAssets) - totalDebts;
+
+          const yearsToRetire = Math.max(0, retireAge - age);
+          const yearsInRetirement = Math.max(0, lifeExpectancy - retireAge);
+          
+          const futureMonthlyExpenses = currentExpenses * Math.pow(1 + (inflationRate / 100), yearsToRetire);
+          const retirementCorpusNeeded = futureMonthlyExpenses * 12 * yearsInRetirement;
+          
+          const futureEduCostTotal = childrenData.reduce((total, child) => {
+            const yearsToUni = Math.max(0, uniAge - child.age);
+            return total + (currentEduCost * Math.pow(1 + (inflationRate / 100), yearsToUni));
+          }, 0);
+
+          const futureLiquidAssets = totalLiquidAssets * Math.pow(1 + (assetReturnRate / 100), yearsToRetire);
+
+          const bakiUntukBersara = Math.max(0, futureLiquidAssets - unjuranTotalDebts - futureEduCostTotal);
+          const yearlyRetirementExpense = futureMonthlyExpenses * 12;
+          const yearsItWillLast = yearlyRetirementExpense > 0 ? (bakiUntukBersara / yearlyRetirementExpense) : 0;
+          const exhaustAge = retireAge + yearsItWillLast;
+
+          const totalFutureNeeds = unjuranTotalDebts + futureEduCostTotal + retirementCorpusNeeded;
+          const retirementShortfall = Math.max(0, totalFutureNeeds - futureLiquidAssets);
+          const extraSavingsNeeded = yearsToRetire > 0 ? (retirementShortfall / (yearsToRetire * 12)) : 0;
+          const sustainableMonthlyExpense = yearsInRetirement > 0 ? (bakiUntukBersara / (yearsInRetirement * 12)) : 0;
+
+          // --- PENGIRAAN FARAID & PENYUCIAN HARTA ---
+          const totalZakatable = asb + th + unitTrust + tunai + emas; 
+          const zakatPayable = totalZakatable * 0.025;
+
+          const grossEstate = totalLiquidAssets + totalPhysicalAssets;
+          const estateAfterFuneral = grossEstate - funeralCost;
+          const sepencarianAmount = hasSpouse ? (totalPhysicalAssets * (sepencarianPercent / 100)) : 0;
+          const estateAfterSepencarian = estateAfterFuneral - sepencarianAmount;
+          const estateAfterDebts = estateAfterSepencarian - totalDebts - zakatPayable; 
+          const actualNetEstate = Math.max(0, estateAfterDebts);
+          const wasiatAmount = actualNetEstate * (Math.min(wasiatPercent, 33.33) / 100);
+          const faraidPool = actualNetEstate - wasiatAmount;
+
+          const calculateFaraid = () => {
+            let distribution = [];
+            let pool = faraidPool;
+            if (pool <= 0) return [];
+
+            let spouseShare = 0; let motherShare = 0; let fatherShare = 0; let daughtersShare = 0;
+            
+            if (hasSpouse) {
+              if (spouseGender === 'isteri') {
+                spouseShare = (numSons > 0 || numDaughters > 0) ? 1/8 : 1/4;
+                distribution.push({ name: 'Isteri', amount: pool * spouseShare, percent: spouseShare * 100, isSpouse: true });
+              } else {
+                spouseShare = (numSons > 0 || numDaughters > 0) ? 1/4 : 1/2;
+                distribution.push({ name: 'Suami', amount: pool * spouseShare, percent: spouseShare * 100, isSpouse: true });
+              }
+            }
+
+            if (parentsAlive > 0) {
+              let parentShareCalc = (numSons > 0 || numDaughters > 0) ? 1/6 : 1/3;
+              if (parentsAlive === 2 || parentsAlive === 1) {
+                  motherShare = parentShareCalc;
+                  const parentName = parentsAlive === 1 ? 'Ibu/Bapa' : 'Ibu';
+                  distribution.push({ name: parentName, amount: pool * motherShare, percent: motherShare * 100 });
+              }
+              if (parentsAlive === 2) {
+                  fatherShare = (numSons > 0 || numDaughters > 0) ? 1/6 : 0;
+                  distribution.push({ name: 'Bapa', amount: pool * fatherShare, percent: fatherShare * 100 });
+              }
+            }
+
+            if (numSons === 0 && numDaughters > 0) {
+              daughtersShare = numDaughters === 1 ? 1/2 : 2/3;
+              distribution.push({ name: `Anak Perempuan (${numDaughters} orang)`, amount: pool * daughtersShare, percent: daughtersShare * 100 });
+            }
+
+            let allocatedFraction = spouseShare + motherShare + fatherShare + daughtersShare;
+            
+            if (allocatedFraction > 1) {
+              distribution = distribution.map(d => {
+                let newFraction = (d.percent / 100) / allocatedFraction;
+                return { ...d, amount: pool * newFraction, percent: newFraction * 100 };
+              });
+              allocatedFraction = 1;
+            }
+
+            let remainingFraction = 1 - allocatedFraction;
+            let remainingAmount = pool * remainingFraction;
+
+            if (remainingFraction > 0.0001) {
+              if (numSons > 0) {
+                const totalParts = (numSons * 2) + numDaughters;
+                const valuePerPart = remainingAmount / totalParts;
+                distribution.push({ name: `Anak Lelaki (${numSons} orang)`, amount: valuePerPart * 2 * numSons, percent: (valuePerPart * 2 * numSons / pool) * 100 });
+                if (numDaughters > 0) {
+                  distribution.push({ name: `Anak Perempuan (${numDaughters} orang)`, amount: valuePerPart * numDaughters, percent: (valuePerPart * numDaughters / pool) * 100 });
+                }
+              } else if (parentsAlive === 2) {
+                let fatherIndex = distribution.findIndex(d => d.name === 'Bapa');
+                if(fatherIndex !== -1) {
+                    distribution[fatherIndex].amount += remainingAmount;
+                    distribution[fatherIndex].percent += (remainingFraction * 100);
+                    distribution[fatherIndex].name = 'Bapa (Fardu + Asabah)';
+                } else {
+                    distribution.push({ name: 'Bapa (Asabah)', amount: remainingAmount, percent: remainingFraction * 100 });
+                }
+              } else {
+                distribution.push({ name: 'Baitulmal / Waris Lain (Adik Beradik)', amount: remainingAmount, percent: remainingFraction * 100 });
+              }
+            }
+
+            return distribution;
+          };
+
+          const faraidDistribution = calculateFaraid();
+
+          const spouseFaraidObj = faraidDistribution.find(d => d.isSpouse);
+          const spouseFaraidAmount = spouseFaraidObj ? spouseFaraidObj.amount : 0;
+          
+          const totalSpouseSurvivalFund = sepencarianAmount + spouseFaraidAmount + currentTakaful;
+          const familySurvivalNeeds = currentExpenses * 12 * 10;
+          const incomeProtectionGap = Math.max(0, familySurvivalNeeds - totalSpouseSurvivalFund);
+
+          // --- SUSUNAN TAB BAHARU ---
+          const tabs = [
+            { id: 1, title: 'Profil', icon: User, desc: 'Diri & Keluarga' },
+            { id: 2, title: 'Aset', icon: Landmark, desc: 'Harta Semasa' },
+            { id: 3, title: 'Liabiliti', icon: CreditCard, desc: 'DSR & Input Hutang' },
+            { id: 4, title: 'Unjuran', icon: TrendingUp, desc: 'Persaraan & Masa Depan' },
+            { id: 5, title: 'Senario Mati', icon: Calculator, desc: 'Wasiat, Faraid & Takaful' },
+            { id: 6, title: 'Dashboard', icon: Activity, desc: 'Analisis Keseluruhan' },
+          ];
+
+          const formatRM = (val) => new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR', maximumFractionDigits: 0 }).format(val);
+          const faraidColors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#f97316', '#64748b'];
+
+          // Pembolehubah Carta Bar Harta Bersih
+          const jumlahKeseluruhanAsetHutang = (totalLiquidAssets + totalPhysicalAssets) + totalDebts;
+          const asetWidth = jumlahKeseluruhanAsetHutang === 0 ? 50 : ((totalLiquidAssets + totalPhysicalAssets) / jumlahKeseluruhanAsetHutang) * 100;
+          const hutangWidth = jumlahKeseluruhanAsetHutang === 0 ? 50 : (totalDebts / jumlahKeseluruhanAsetHutang) * 100;
+
+          // Pembolehubah d'DEBT (DSR Health Card)
+          let dsrColor = "sky";
+          let dsrStatusText = "Sangat Sihat";
+          let dsrDesc = "Kewangan anda sangat kukuh. Anda mempunyai fleksibiliti yang tinggi dalam aliran tunai bulanan dan mudah untuk membuat pinjaman jika perlu.";
+          
+          if (debtAnalysisResult.dsr > 35 && debtAnalysisResult.dsr <= 55) { dsrColor = "amber"; dsrStatusText = "Sederhana"; dsrDesc = "Tahap hutang terkawal. Anda masih layak untuk membuat pinjaman, tetapi pastikan simpanan kecemasan mencukupi."; }
+          else if (debtAnalysisResult.dsr > 55 && debtAnalysisResult.dsr <= 70) { dsrColor = "orange"; dsrStatusText = "Amaran"; dsrDesc = "Berjaga-jaga! Sebahagian besar gaji anda habis untuk membayar hutang. Sukar untuk bank meluluskan sebarang permohonan pinjaman baru."; }
+          else if (debtAnalysisResult.dsr > 70) { dsrColor = "rose"; dsrStatusText = "Kritikal / Bahaya"; dsrDesc = "Sangat bahaya! Anda berisiko tinggi mengalami defisit aliran tunai bulanan. Pertimbangkan Penyatuan Hutang atau AKPK."; }
+
+          // Tailwind Dynamic Classes Map untuk DSR
+          const dsrStyles = {
+            sky: { bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-600', badgeBg: 'bg-sky-100', badgeText: 'text-sky-700' },
+            amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-500', badgeBg: 'bg-amber-100', badgeText: 'text-amber-700' },
+            orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-500', badgeBg: 'bg-orange-100', badgeText: 'text-orange-700' },
+            rose: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-600', badgeBg: 'bg-rose-100', badgeText: 'text-rose-700' }
+          };
+
+          const s = dsrStyles[dsrColor] || dsrStyles.sky;
+
+          // Helpers d'DEBT
+          const updateDebt = (id, field, value) => {
+              setDebtsList(debtsList.map(d => {
+                  if (d.id === id) {
+                      return { ...d, [field]: field === 'name' ? value : (parseFloat(value) || 0) };
+                  }
+                  return d;
+              }));
+          };
+          const addDebt = () => {
+              const id = Date.now();
+              setDebtsList([...debtsList, { id, name: 'Hutang Baru', balance: 1000, interest: 5, minPayment: 100 }]);
+          };
+          const removeDebt = (id) => setDebtsList(debtsList.filter(d => d.id !== id));
+
+          const getDurationText = (months) => {
+              if (months >= 1200) return "Lebih 100 Tahun (Bayaran Minima Tidak Cukup)";
+              const y = Math.floor(months / 12);
+              const m = months % 12;
+              let txt = y > 0 ? `${y} tahun ` : '';
+              txt += m > 0 ? `${m} bulan` : '';
+              return txt || "Selesai bulan pertama!";
+          };
+          const getTargetDateText = (months) => {
+              if (months >= 1200) return "-";
+              const targetDate = new Date();
+              targetDate.setMonth(targetDate.getMonth() + months);
+              const monthNames = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
+              return `${monthNames[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
+          };
+
+          // Fungsi navigasi
+          const handleNextTab = () => {
+            if (activeTab < 6) {
+              setActiveTab(activeTab + 1);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+
+          const handlePrevTab = () => {
+            if (activeTab > 1) {
+              setActiveTab(activeTab - 1);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+
+          if (showReport) {
+            return (
+              <div className="min-h-screen bg-white text-slate-800 p-8 md:p-12 font-sans max-w-4xl mx-auto">
+                <div className="print:hidden flex flex-col md:flex-row justify-between items-center gap-4 mb-8 bg-slate-100 p-4 rounded-xl">
+                  <button onClick={() => setShowReport(false)} className="px-6 py-2 bg-slate-300 hover:bg-slate-400 text-slate-800 rounded-lg font-bold transition-colors w-full md:w-auto">
+                    Kembali Ke Aplikasi
+                  </button>
+                  <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                    <button onClick={() => window.print()} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold flex justify-center items-center gap-2 transition-colors">
+                      <Printer size={18} /> Simpan / Cetak PDF
+                    </button>
+                    <a href="https://wa.me/60129443846?text=Salam,%20saya%20ingin%20berbincang%20berkenaan%20laporan%20myTADBIR%20saya." target="_blank" rel="noopener noreferrer" className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold flex justify-center items-center gap-2 transition-colors">
+                      <MessageCircle size={18} /> WhatsApp Perunding
+                    </a>
+                  </div>
+                </div>
+
+                <div className="border-b-2 border-sky-800 pb-6 mb-8 text-center">
+                  <h1 className="text-3xl font-black text-sky-800 flex items-center justify-center gap-3 mb-2">
+                    <Landmark size={32} className="text-amber-500" /> myTADBIR
+                  </h1>
+                  <p className="text-lg text-slate-600 font-semibold">Laporan Ringkasan Perancangan Kewangan & Harta Islam</p>
+                </div>
+
+                <div className="space-y-8">
+                  <section>
+                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">1. Profil & Kedudukan Kewangan</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div><span className="text-slate-500 block text-xs">Umur / Jantina:</span> <span className="font-semibold text-base">{age} Tahun ({userGender})</span></div>
+                      <div><span className="text-slate-500 block text-xs">Tanggungan Anak:</span> <span className="font-semibold text-base">{childrenData.length} Orang</span></div>
+                      <div><span className="text-slate-500 block text-xs">Pendapatan Tahunan:</span> <span className="font-semibold text-base">{formatRM(annualIncome)}</span></div>
+                      <div><span className="text-slate-500 block text-xs">Perbelanjaan Bulanan:</span> <span className="font-semibold text-base">{formatRM(currentExpenses)}</span></div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">2. Kesihatan Kredit (DSR) & Strategi Hutang</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg">
+                        <p className="text-slate-500 mb-1">Kadar Khidmat Hutang (DSR)</p>
+                        <p className="font-bold text-2xl mb-1">{debtAnalysisResult.dsr.toFixed(1)}%</p>
+                        <p className={`font-semibold ${s.text}`}>Status: {dsrStatusText}</p>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg">
+                        <p className="text-slate-500 mb-1">Strategi Pelunasan Dipilih</p>
+                        <p className="font-bold text-lg mb-1 capitalize">{debtStrategy === 'consolidation' ? 'Penyatuan Hutang' : `Debt ${debtStrategy}`}</p>
+                        {debtStrategy !== 'consolidation' ? (
+                          <p className="font-semibold text-slate-700">Anggaran Bebas Hutang: {getTargetDateText(debtAnalysisResult.payoffMonths)}</p>
+                        ) : (
+                          <p className="font-semibold text-sky-600">Lebihan Cashflow: +{formatRM(Math.max(0, debtAnalysisResult.consolSavings))}</p>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">3. Ringkasan Harta Bersih (Net Worth)</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-center md:text-left">
+                        <p className="text-slate-500 mb-1">Jumlah Keseluruhan Aset</p>
+                        <p className="font-bold text-xl text-sky-600">{formatRM(totalLiquidAssets + totalPhysicalAssets)}</p>
+                      </div>
+                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-center md:text-left">
+                        <p className="text-slate-500 mb-1">Jumlah Hutang & Liabiliti</p>
+                        <p className="font-bold text-xl text-red-600">{formatRM(totalDebts)}</p>
+                      </div>
+                      <div className="bg-sky-50 p-4 rounded-lg border border-sky-200 text-center md:text-left">
+                        <p className="text-sky-800 font-semibold mb-1">Nilai Harta Bersih</p>
+                        <p className="font-black text-2xl text-sky-700">{formatRM(currentNetWorth)}</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">4. Unjuran Persaraan & Penyucian Harta</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                      <div className="bg-white border border-slate-200 rounded-lg p-4">
+                        <h3 className="font-bold text-slate-700 mb-3 border-b pb-2">Status Dana Persaraan</h3>
+                        <ul className="space-y-3">
+                          <li className="flex justify-between"><span className="text-slate-500">Umur Sasaran Bersara:</span> <span className="font-semibold">{retireAge} Tahun</span></li>
+                          <li className="flex justify-between"><span className="text-slate-500">Ketahanan Dana:</span> <span className="font-semibold">{yearsItWillLast.toFixed(1)} Tahun</span></li>
+                          <li className="flex justify-between"><span className="text-slate-500">Defisit Dana (Kekurangan):</span> <span className={`font-bold ${retirementShortfall > 0 ? 'text-red-600' : 'text-sky-600'}`}>{retirementShortfall > 0 ? formatRM(retirementShortfall) : 'Tiada'}</span></li>
+                        </ul>
+                      </div>
+                      <div className="bg-white border border-slate-200 rounded-lg p-4">
+                        <h3 className="font-bold text-slate-700 mb-3 border-b pb-2">Tanggungjawab Zakat Semasa</h3>
+                        <ul className="space-y-3">
+                          <li className="flex justify-between"><span className="text-slate-500">Harta Tunai Layak Zakat:</span> <span className="font-semibold">{formatRM(totalZakatable)}</span></li>
+                          <li className="flex justify-between"><span className="text-slate-500">Zakat Wajib Ditunaikan (2.5%):</span> <span className="font-bold text-sky-600">{formatRM(zakatPayable)}</span></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">5. Analisis Pusaka, Faraid & Pelindungan Waris</h2>
+                    
+                    <div className="bg-amber-50 p-5 rounded-lg border border-amber-200 text-sm mb-5">
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-2">
+                        <span className="text-amber-900 font-bold text-base">Jurang Penggantian Pendapatan Waris (10 Tahun):</span>
+                        <span className={`font-black text-xl ${incomeProtectionGap > 0 ? 'text-red-600' : 'text-sky-600'}`}>
+                          {incomeProtectionGap > 0 ? formatRM(incomeProtectionGap) + " (Defisit)" : "Mencukupi"}
+                        </span>
+                      </div>
+                      <p className="text-slate-600 text-xs mt-1">*(Dikira berdasarkan keperluan belanja keluarga untuk 10 tahun, ditolak dengan Tuntutan Harta Sepencarian, Faraid Pasangan & Pampasan Takaful Sedia Ada)*</p>
+                    </div>
+                    
+                    <div className="text-sm">
+                      <p className="font-bold text-slate-800 mb-3">Tindakan Mitigasi & Pengurusan Harta Islam Yang Disyorkan:</p>
+                      <ul className="list-disc pl-5 space-y-2 text-slate-700">
+                        {incomeProtectionGap > 0 && <li>Sediakan dana pantas melalui pampasan <strong className="text-slate-900">Hibah Takaful</strong> bernilai minimum <strong>RM{formatRM(incomeProtectionGap)}</strong> untuk waris anda segera.</li>}
+                        {totalLiquidAssets > 0 && <li>Wujudkan <strong className="text-slate-900">Amanah Tunai (Cash Trust)</strong> bagi mengelakkan akaun bank dibekukan, dan memudahkan waris mengeluarkan tunai pantas.</li>}
+                        {hasSpouse && <li>Daftarkan <strong className="text-slate-900">Deklarasi Harta Sepencarian</strong> secara rasmi untuk menjamin pemilikan ({sepencarianPercent}%) aset fizikal oleh isteri/suami anda.</li>}
+                        <li>Sediakan <strong>Wasiat Pentadbir</strong> untuk memastikan proses penyelesaian hutang tertunggak (RM{formatRM(totalDebts)}) berjalan lancar.</li>
+                      </ul>
+                    </div>
+                  </section>
+                </div>
+
+                <div className="mt-12 pt-8 border-t border-slate-200 text-center">
+                  <p className="text-sm font-semibold text-slate-800 mb-2">Hubungi Perunding Kewangan Anda</p>
+                  <p className="text-xs text-slate-500 mb-6 print:mb-2 max-w-2xl mx-auto">Laporan ini dijana oleh myTADBIR dan merupakan anggaran asas kedudukan perancangan harta anda. Sila berhubung dengan perunding yang sah untuk rundingan yang lebih komprehensif.</p>
+                  
+                  <a href="https://wa.me/60129443846?text=Salam,%20saya%20ingin%20berbincang%20berkenaan%20laporan%20myTADBIR%20saya." target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-green-500 hover:bg-green-600 transition-colors text-white font-bold rounded-full shadow-lg text-base decoration-transparent print:hidden">
+                    <MessageCircle size={22} /> WhatsApp Sekarang
+                  </a>
+                  
+                  <div className="hidden print:block text-slate-800 font-bold text-lg mt-4 p-4 border-2 border-slate-800 rounded-lg inline-block">
+                    No. Telefon Perunding: 012-9443846
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="min-h-screen bg-slate-50 font-sans pb-12">
+              <header className="bg-gradient-to-r from-indigo-950 via-slate-900 to-blue-950 text-white p-6 md:p-10 shadow-md sticky top-0 z-50">
+                <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                  <div>
+                    <h1 className="text-3xl font-bold flex items-center gap-3">
+                      <Landmark size={32} className="text-cyan-300" />
+                      <h2 class="text-3xl font-extrabold tracking-tight">
+  <span class="text-sky">my</span>
+  <span class="text-white-300">TADBIR</span>
+  <span class="text-yellow-400 ml-2">Famili</span>
+  <span class="text-sky-400">Pintar</span>
+</h2>
+                    </h1>
+                    <p className="text-blue-100 mt-2 text-lg">Perancangan Persaraan Dunia Akhirat Anda</p>
+                  </div>
+                </div>
+              </header>
+
+              <main className="max-w-6xl mx-auto mt-8 px-4">
+                <div className="flex overflow-x-auto gap-3 mb-8 pb-4 snap-x hide-scrollbar">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex-none w-[160px] md:flex-1 md:w-auto flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-medium transition-all snap-center ${
+                        activeTab === tab.id 
+                          ? 'bg-sky-600 text-white shadow-lg scale-105 transform border-sky-500' 
+                          : 'bg-white text-slate-600 hover:bg-sky-50 border border-slate-200'
+                      }`}
+                    >
+                      <tab.icon size={28} className={activeTab === tab.id ? 'text-amber-300' : 'text-sky-600'} />
+                      <div className="text-center">
+                        <div className="font-bold text-sm md:text-base leading-tight">{tab.title}</div>
+                        <div className="text-xs opacity-80 mt-1 hidden md:block">{tab.desc}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-6">
+                  
+                  {/* --- TAHAP 1: PROFIL --- */}
+                  {activeTab === 1 && (
+                    <div className="space-y-6 animate-fadeIn">
+                      <Card>
+                        <SectionHeader title="Profil Diri & Keluarga" icon={User} description="Maklumat asas untuk unjuran kewangan dan faraid." />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-4">
+                            <h3 className="font-semibold text-slate-700 border-b pb-2">Maklumat Anda</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-sm font-semibold text-slate-700 block mb-2">Jantina</label>
+                                <select 
+                                  className="w-full border border-slate-300 rounded-lg py-2 px-3 focus:ring-sky-500 bg-white"
+                                  value={userGender}
+                                  onChange={(e) => setUserGender(e.target.value)}
+                                >
+                                  <option value="lelaki">Lelaki</option>
+                                  <option value="perempuan">Perempuan</option>
+                                </select>
+                              </div>
+                              <Input label="Umur Semasa" value={age} onChange={e => setAge(Number(e.target.value))} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <Input label="Gaji Hakiki (Bln)" value={gajiHakiki} onChange={e => setGajiHakiki(Number(e.target.value))} prefix="RM" />
+                                <Input label="Sampingan (Bln)" value={pendapatanSampingan} onChange={e => setPendapatanSampingan(Number(e.target.value))} prefix="RM" />
+                            </div>
+                                                      
+<div className="mt-6 border-t pt-4">
+  <h3 className="font-semibold text-slate-700 mb-4">
+    Kedudukan Kewangan Bulanan
+  </h3>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <Input
+      label="Potongan KWSP (%)"
+      value={kwspPotongan}
+      onChange={e => setKwspPotongan(Number(e.target.value))}
+    />
+
+    <Input
+      label="SOCSO / PCB"
+      value={socsoPotongan}
+      onChange={e => setSocsoPotongan(Number(e.target.value))}
+      prefix="RM"
+    />
+
+    <Input
+      label="Belanja Dapur"
+      value={dapurExpenses}
+      onChange={e => setDapurExpenses(Number(e.target.value))}
+      prefix="RM"
+    />
+
+    <Input
+      label="Utiliti"
+      value={utilitiExpenses}
+      onChange={e => setUtilitiExpenses(Number(e.target.value))}
+      prefix="RM"
+    />
+
+    <Input
+      label="Transport"
+      value={transportExpenses}
+      onChange={e => setTransportExpenses(Number(e.target.value))}
+      prefix="RM"
+    />
+
+    <Input
+      label="Entertainment"
+      value={entertainmentExpenses}
+      onChange={e => setEntertainmentExpenses(Number(e.target.value))}
+      prefix="RM"
+    />
+
+    <Input
+      label="Insurance/Takaful"
+      value={insuranceExpenses}
+      onChange={e => setInsuranceExpenses(Number(e.target.value))}
+      prefix="RM"
+    />
+
+  </div>
+</div>
+
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center border-b pb-2">
+                              <h3 className="font-semibold text-slate-700">Senarai Anak ({childrenData.length})</h3>
+                            </div>
+                            {childrenData.map((child, index) => (
+                              <div key={child.id} className="flex items-end gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                <div className="flex-1">
+                                  <Input label={`Umur Anak ${index + 1}`} value={child.age} onChange={e => {
+                                    const newAge = Number(e.target.value);
+                                    setChildrenData(childrenData.map(c => c.id === child.id ? { ...c, age: newAge } : c));
+                                  }} />
+                                </div>
+                                <div className="flex-1">
+                                  <label className="text-sm font-semibold text-slate-700 block mb-1">Jantina</label>
+                                  <select 
+                                    className="w-full border border-slate-300 rounded-lg py-2 px-3 focus:ring-sky-500 mb-4 bg-white"
+                                    value={child.gender}
+                                    onChange={(e) => setChildrenData(childrenData.map(c => c.id === child.id ? { ...c, gender: e.target.value } : c))}
+                                  >
+                                    <option value="lelaki">Lelaki</option>
+                                    <option value="perempuan">Perempuan</option>
+                                  </select>
+                                </div>
+                                <button onClick={() => setChildrenData(childrenData.filter(c => c.id !== child.id))} className="mb-4 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg border border-red-200 font-bold">X</button>
+                              </div>
+                            ))}
+                            <button onClick={() => setChildrenData([...childrenData, { id: Date.now(), age: 1, gender: 'lelaki' }])} className="w-full py-2 border-2 border-dashed border-sky-300 text-sky-600 rounded-lg hover:bg-sky-50 font-medium text-sm transition-colors">
+                              + Tambah Anak
+                            </button>
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+                  )}
+
+                  {/* --- TAHAP 2: HARTA SEMASA (ASET SAHAJA) --- */}
+                  {activeTab === 2 && (
+                    <div className="space-y-6 animate-fadeIn">
+                      <Card>
+                        <SectionHeader title="Aset Semasa" icon={Landmark} description="Senaraikan semua jenis simpanan dan harta fizikal." />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h4 className="font-semibold text-slate-700 mb-4 border-b pb-2">Aset Tunai / Pelaburan</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <Input label="Amanah Saham (ASB)" value={asb} onChange={e => setAsb(Number(e.target.value))} prefix="RM" />
+                                  <Input label="Tabung Haji (TH)" value={th} onChange={e => setTh(Number(e.target.value))} prefix="RM" />
+                                  <Input label="Unit Trust / Saham" value={unitTrust} onChange={e => setUnitTrust(Number(e.target.value))} prefix="RM" />
+                                  <Input label="Tunai di Bank" value={tunai} onChange={e => setTunai(Number(e.target.value))} prefix="RM" />
+                                  <Input label="KWSP" value={kwsp} onChange={e => setKwsp(Number(e.target.value))} prefix="RM" />
+                                  <Input label="Emas Semasa" value={emas} onChange={e => setEmas(Number(e.target.value))} prefix="RM" />
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="font-semibold text-slate-700 mb-4 border-b pb-2">Harta Fizikal (Anggaran Jualan)</h4>
+                                <div className="grid grid-cols-1 gap-4">
+                                  <Input label="Nilai Rumah / Hartanah" value={rumahValue} onChange={e => setRumahValue(Number(e.target.value))} prefix="RM" />
+                                  <Input label="Nilai Kereta / Kenderaan" value={keretaValue} onChange={e => setKeretaValue(Number(e.target.value))} prefix="RM" />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mt-6 pt-4 border-t border-sky-100 flex justify-end">
+                            <div className="bg-sky-50 px-6 py-3 rounded-xl border border-sky-200">
+                                <span className="text-sky-700 font-semibold mr-4">Jumlah Aset:</span>
+                                <span className="text-2xl font-bold text-sky-600">{formatRM(totalLiquidAssets + totalPhysicalAssets)}</span>
+                            </div>
+                        </div>
+                      </Card>
+                    </div>
+                  )}
+
+                  {/* --- TAHAP 3: LIABILITI (INPUT SAHAJA) --- */}
+                  {activeTab === 3 && (
+                    <div className="space-y-6 animate-fadeIn">
+                        <Card className="p-0 overflow-hidden border-slate-200">
+                            <div className="p-5 sm:p-8 border-b border-slate-100 bg-indigo-50/30 flex items-center gap-3">
+                                <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg">
+                                    <CreditCard size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Senarai Komitmen (Liabiliti)</h2>
+                                    <p className="text-slate-500 text-sm">Analisis DSR & Strategi Bebas Hutang dikuasakan oleh <strong>d'DEBT</strong>.</p>
+                                </div>
+                            </div>
+                            
+                            <div className="p-5 sm:p-8 space-y-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+                                    <h3 className="text-base font-bold text-slate-800">Urus Senarai Hutang</h3>
+                                    <button onClick={addDebt} className="text-sm bg-indigo-50 text-indigo-600 font-bold px-5 py-2.5 rounded-xl hover:bg-indigo-100 transition border border-indigo-100">
+                                        + Tambah Hutang Baru
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    {debtsList.map((debt, index) => (
+                                        <div key={debt.id} className="p-4 sm:p-5 border border-slate-200 bg-white rounded-xl sm:rounded-2xl relative hover:border-indigo-300 transition-colors group shadow-sm">
+                                            <button onClick={() => removeDebt(debt.id)} title="Buang Hutang" className="absolute -top-3 -right-3 bg-white border border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-600 w-8 h-8 rounded-full text-sm flex items-center justify-center shadow-md transition sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 z-10">✕</button>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                                <div className="col-span-1 sm:col-span-2 md:col-span-1">
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Nama Hutang</label>
+                                                    <input type="text" value={debt.name} onChange={(e) => updateDebt(debt.id, 'name', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base font-semibold text-slate-800 transition" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Baki (RM)</label>
+                                                    <input type="number" value={debt.balance} onChange={(e) => updateDebt(debt.id, 'balance', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base text-slate-800 transition" />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3 sm:col-span-2 md:col-span-2">
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Faedah (%)</label>
+                                                        <input type="number" step="0.1" value={debt.interest} onChange={(e) => updateDebt(debt.id, 'interest', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base text-slate-800 transition" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Min. (RM)</label>
+                                                        <input type="number" value={debt.minPayment} onChange={(e) => updateDebt(debt.id, 'minPayment', e.target.value)} className="w-full bg-slate-50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-rose-500 focus:ring-2 focus:ring-rose-200 text-base text-slate-800 transition" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </Card>
+
+                       
+                    </div>
+                  )}
+
+                  {/* --- TAHAP 4: UNJURAN MASA DEPAN (INPUT) --- */}
+                  {activeTab === 4 && (
+                    <div className="space-y-6 animate-fadeIn">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card>
+                          <SectionHeader title="Matlamat Persaraan" icon={Wallet} description="Tetapan sasaran kewangan masa depan anda." />
+                          <div className="grid grid-cols-2 gap-4">
+                            <Input label="Umur Sasaran Bersara" value={retireAge} onChange={e => setRetireAge(Number(e.target.value))} />
+                            <Input label="Jangka Hayat" value={lifeExpectancy} onChange={e => setLifeExpectancy(Number(e.target.value))} />
+                            <Input label="Kadar Inflasi (%)" value={inflationRate} onChange={e => setInflationRate(Number(e.target.value))} />
+                            <Input label="Kadar Pulangan Aset (%)" value={assetReturnRate} onChange={e => setAssetReturnRate(Number(e.target.value))} />
+                          </div>
+                        </Card>
+
+                        <Card>
+                          <SectionHeader title="Dana Pendidikan Anak" icon={BookOpen} description="Anggaran kos pendidikan masa depan anak." />
+                          <div className="grid grid-cols-2 gap-4">
+                            <Input label="Umur Masuk Universiti" value={uniAge} onChange={e => setUniAge(Number(e.target.value))} />
+                            <Input label="Kos Semasa (Per Anak)" value={currentEduCost} onChange={e => setCurrentEduCost(Number(e.target.value))} prefix="RM" />
+                          </div>
+                        </Card>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* --- TAHAP 5: SENARIO MATI & PELINDUNG (GABUNGAN INPUT) --- */}
+                  {activeTab === 5 && (
+                    <div className="space-y-6 animate-fadeIn">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                        <Card>
+                          <SectionHeader title="Hutang & Pengurusan Jenazah" icon={Calculator} description="Tolak kos liabiliti sebelum pengagihan pusaka." />
+                          <div className="space-y-4">
+                            <Input label="Kos Pengurusan Jenazah" value={funeralCost} onChange={e => setFuneralCost(Number(e.target.value))} prefix="RM" />
+                            <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+                              <p className="text-sm font-semibold text-red-800 mb-1">Hutang Tertunggak (Berdasarkan Tab Liabiliti)</p>
+                              <p className="text-xl font-bold text-red-600">{formatRM(totalDebts)}</p>
+                              <p className="text-xs text-red-500 mt-1">Kos hutang yang wajib dibayar waris menggunakan aset anda.</p>
+                            </div>
+                          </div>
+                        </Card>
+
+                        <Card>
+                          <SectionHeader title="Realiti Untuk Pasangan Anda" icon={Heart} description="Tuntutan sepencarian & persediaan hibah takaful." />
+                          <div className="space-y-4">
+                            <div>
+                              <label className="text-sm font-semibold text-slate-700 mb-1 block">Tuntutan Harta Sepencarian (%)</label>
+                              <input 
+                                type="range" min="0" max="50" step="1" 
+                                value={sepencarianPercent} 
+                                onChange={e => setSepencarianPercent(Number(e.target.value))}
+                                className="w-full accent-blue-600"
+                                disabled={!hasSpouse}
+                              />
+                              <div className="flex justify-between text-xs text-slate-500 mt-1">
+                                <span>0%</span><span>{sepencarianPercent}% (Max 50%)</span>
+                              </div>
+                            </div>
+                            <Input label="Hibah / Takaful Semasa Anda" value={currentTakaful} onChange={e => setCurrentTakaful(Number(e.target.value))} prefix="RM" />
+                          </div>
+                        </Card>
+
+                        <Card>
+                          <SectionHeader title="Konfigurasi Wasiat & Wakaf" icon={BookOpen} description="Peruntukkan bahagian harta untuk bukan waris/kebajikan." />
+                          <div>
+                            <label className="text-sm font-semibold text-slate-700 mb-1 block">Wasiat / Wakaf / Sedekah (%)</label>
+                            <input 
+                              type="range" min="0" max="33.33" step="1"
+                              value={wasiatPercent} 
+                              onChange={e => setWasiatPercent(Number(e.target.value))}
+                              className="w-full accent-sky-600"
+                            />
+                            <div className="flex justify-between text-xs text-slate-500 mt-1">
+                              <span>0%</span><span>{wasiatPercent}% (Max 1/3)</span>
+                            </div>
+                          </div>
+                        </Card>
+
+                        <Card>
+                          <SectionHeader title="Status Waris Faraid" icon={Users} description="Kemas kini status waris utama bagi pengiraan Faraid." />
+                          <div className="flex flex-col gap-4">
+                            <label className="flex items-center gap-3 cursor-pointer p-3 bg-slate-50 rounded-lg border border-slate-200">
+                              <input type="checkbox" checked={hasSpouse} onChange={(e) => setHasSpouse(e.target.checked)} className="accent-sky-600 w-5 h-5" />
+                              <span className="font-semibold text-slate-700">Pasangan Masih Hidup</span>
+                            </label>
+                            <div className="flex flex-col gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                              <label className="font-semibold text-slate-700">Status Ibu / Bapa:</label>
+                              <select value={parentsAlive} onChange={(e) => setParentsAlive(Number(e.target.value))} className="bg-white border border-slate-300 rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-sky-500">
+                                <option value={0}>Keduanya Tiada</option><option value={1}>Seorang Hidup</option><option value={2}>Keduanya Hidup</option>
+                              </select>
+                            </div>
+                          </div>
+                        </Card>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* --- TAHAP 6: DASHBOARD (SEMUA HASIL/OUTPUT) --- */}
+                  {activeTab === 6 && (
+                    <div className="space-y-6 animate-fadeIn">
+                      <div className="bg-slate-800 text-white p-6 rounded-xl shadow-md text-center mb-6 border border-slate-700">
+                        <h2 className="text-2xl font-bold mb-2 flex justify-center items-center gap-2"><Activity className="text-sky-400" /> Dashboard Analisis Keseluruhan myTADBIR</h2>
+                        <p className="text-slate-300 text-sm">Di bawah merupakan hasil analisis kewangan, perlindungan dan faraid komprehensif anda.</p>
+                      </div>
+
+ <Card className="bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800 text-white border-none shadow-2xl">
+  <h3 className="text-lg font-bold mb-6">
+    Kedudukan Kewangan Bulanan
+  </h3>
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-5 rounded-xl">
+      <p className="text-sm text-slate-300">
+        Pendapatan Bersih
+      </p>
+      <p className="text-3xl font-black text-sky-400">
+        {formatRM(netIncomeMonthly)}
+      </p>
+    </div>
+
+    <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-5 rounded-xl">
+      <p className="text-sm text-slate-300">
+        Baki Bulanan
+      </p>
+      <p className={`text-3xl font-black ${
+        monthlyBalance >= 0
+          ? 'text-sky-400'
+          : 'text-red-400'
+      }`}>
+        {formatRM(monthlyBalance)}
+      </p>
+    </div>
+
+    <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-5 rounded-xl">
+      <p className="text-sm text-slate-300">
+        Financial Score
+      </p>
+      <p className={`text-4xl font-black ${
+  financialScore >= 80
+    ? 'text-sky-400'
+    : financialScore >= 60
+    ? 'text-yellow-400'
+    : 'text-red-400'
+}`}>
+  {financialScore}/100
+  </p>
+      <p className="text-sm mt-2">
+        {financialStatus}
+      </p>
+    </div>
+
+  </div>
+
+  <div className="mt-6 bg-white/5 p-5 rounded-xl">
+    <h4 className="font-bold mb-3">
+      Pelan Tindakan
+    </h4>
+
+<div className="space-y-3 text-sm">
+
+  <div className="bg-slate-800/40 border border-white/10 p-4 rounded-xl">
+  <p className="font-bold text-white mb-1">
+    Ringkasan Kedudukan Kewangan
+  </p>
+  <p className="text-slate-300">
+    Pelan tindakan di bawah dijana berdasarkan analisis aliran tunai, komitmen hutang dan baki bulanan semasa anda.
+  </p>
+</div>
+
+  {monthlyBalance < 0 && (
+    <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
+      <p className="font-bold text-red-300 mb-1">
+        🚨 Cashflow Kritikal
+      </p>
+      <p className="text-slate-300">
+        Perbelanjaan bulanan melebihi pendapatan bersih.
+        Fokus kurangkan lifestyle & hutang jangka pendek segera.
+      </p>
+    </div>
+  )}
+
+  {debtAnalysisResult.dsr > 60 && (
+    <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl">
+      <p className="font-bold text-orange-300 mb-1">
+        ⚠️ DSR Tinggi
+      </p>
+      <p className="text-slate-300">
+        Komitmen hutang terlalu besar.
+        Disarankan debt restructuring atau consolidation.
+      </p>
+    </div>
+  )}
+
+  {monthlyBalance > 1000 && (
+    <div className="bg-sky-500/10 border border-sky-500/20 p-4 rounded-xl">
+      <p className="font-bold text-sky-300 mb-1">
+        ✅ Cashflow Positif
+      </p>
+      <p className="text-slate-300">
+        Anda mempunyai lebihan tunai yang sihat.
+        Fokus bina emergency fund & pelaburan jangka panjang.
+      </p>
+    </div>
+  )}
+
+  {financialScore < 50 && (
+    <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl">
+      <p className="font-bold text-rose-300 mb-1">
+        🧨 Risiko Kewangan Tinggi
+      </p>
+      <p className="text-slate-300">
+        Jika berlaku kecemasan, kedudukan kewangan boleh terjejas teruk.
+        Utamakan tunai kecemasan minimum 6 bulan.
+      </p>
+    </div>
+  )}
+
+  {financialScore >= 80 && (
+    <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl">
+      <p className="font-bold text-cyan-300 mb-1">
+        🚀 Financial Position Kukuh
+      </p>
+      <p className="text-slate-300">
+        Kedudukan kewangan anda berada pada tahap stabil.
+        Sesuai untuk fokus kepada wealth building & asset growth.
+      </p>
+    </div>
+  )}
+
+  {financialScore >= 50 &&
+    financialScore < 80 &&
+    monthlyBalance >= 0 &&
+    debtAnalysisResult.dsr <= 60 && (
+      <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl">
+        <p className="font-bold text-yellow-300 mb-1">
+          ⚡ Kedudukan Sederhana Stabil
+        </p>
+        <p className="text-slate-300">
+          Kedudukan kewangan masih terkawal tetapi memerlukan disiplin simpanan dan pengurangan komitmen jangka panjang.
+        </p>
+      </div>
+  )}
+
+</div>
+  </div>
+</Card>
+
+                      {/* Baris 1: Harta Bersih & Zakat */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <Card className="flex flex-col relative overflow-hidden bg-white shadow-sm border border-slate-200">
+                          <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center gap-2"><Landmark className="text-sky-600" /> Harta Bersih Semasa (Net Worth)</h3>
+                          <div className="flex-1 flex flex-col justify-center mt-2">
+                            <p className="text-4xl font-extrabold text-sky-700 mb-4">{formatRM(currentNetWorth)}</p>
+                            <div className="mt-2">
+                              <div className="flex justify-between text-xs mb-2">
+                                <span className="text-sky-600 font-bold">Aset: {formatRM(totalLiquidAssets + totalPhysicalAssets)}</span>
+                                <span className="text-red-500 font-bold">Hutang: {formatRM(totalDebts)}</span>
+                              </div>
+                              <div className="w-full bg-slate-200 rounded-full h-4 flex overflow-hidden">
+                                <div className="bg-sky-500 h-full transition-all duration-1000" style={{ width: `${asetWidth}%` }}></div>
+                                <div className="bg-red-500 h-full transition-all duration-1000" style={{ width: `${hutangWidth}%` }}></div>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+
+                        <Card className="flex flex-col bg-amber-50 border-amber-200 shadow-sm">
+                          <h3 className="text-lg font-bold text-amber-900 mb-4 border-b border-amber-200 pb-2 flex items-center gap-2"><HeartHandshake className="text-amber-600" /> Penyucian Harta (Zakat)</h3>
+                          <div className="flex-1 flex flex-col justify-center text-center">
+                            <p className="text-amber-800 font-medium mb-1">Jumlah Harta Simpanan Layak Zakat</p>
+                            <p className="text-xl font-bold text-slate-800 mb-4">{formatRM(totalZakatable)}</p>
+                            <p className="text-amber-800 font-medium mb-1">Zakat Wajib Ditunaikan (2.5%)</p>
+                            <p className="text-4xl font-extrabold text-emerald-600">{formatRM(zakatPayable)}</p>
+                          </div>
+                        </Card>
+                      </div>
+
+                      {/* --- Baris 2: Kesihatan Kredit & Strategi Hutang --- */}
+
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch mb-6">
+
+  {/* CARD DSR */}
+  <Card className={`lg:col-span-1 border ${s.border} ${s.bg} flex flex-col justify-center text-center shadow-sm relative overflow-hidden`}>
+    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+      Skor DSR Anda
+    </p>
+
+    <div className={`text-6xl font-black mb-3 tracking-tighter ${s.text}`}>
+      {debtAnalysisResult.dsr.toFixed(1)}%
+    </div>
+
+    <div className={`inline-block px-5 py-1.5 mx-auto rounded-full text-xs font-extrabold uppercase tracking-widest mb-4 ${s.badgeBg} ${s.badgeText} border`}>
+      {dsrStatusText}
+    </div>
+
+    <p className="text-slate-600 text-sm leading-relaxed">
+      {dsrDesc}
+    </p>
+
+  </Card>
+
+  {/* CARD TETAPAN STRATEGI */}
+  <Card className="lg:col-span-2 h-full">
+
+    <h2 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">
+      Tetapan Strategi Bebas Hutang
+    </h2>
+
+    <p className="text-slate-500 text-sm mb-6">
+      Pilih strategi terbaik untuk langsaikan hutang dengan lebih cepat.
+    </p>
+
+    <div className="space-y-3">
+
+      <button
+        onClick={() => setDebtStrategy('snowball')}
+        className={`w-full px-4 py-4 rounded-xl text-left transition ${
+          debtStrategy === 'snowball'
+            ? 'bg-indigo-600 text-white shadow-md'
+            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+        }`}
+      >
+        <div className="font-bold">
+          Debt Snowball
+        </div>
+
+        <div className={`text-xs mt-1 ${
+          debtStrategy === 'snowball'
+            ? 'text-indigo-100'
+            : 'text-slate-500'
+        }`}>
+          Selesai baki terkecil dahulu.
+        </div>
+      </button>
+
+      <button
+        onClick={() => setDebtStrategy('avalanche')}
+        className={`w-full px-4 py-4 rounded-xl text-left transition ${
+          debtStrategy === 'avalanche'
+            ? 'bg-indigo-600 text-white shadow-md'
+            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+        }`}
+      >
+        <div className="font-bold">
+          Debt Avalanche
+        </div>
+
+        <div className={`text-xs mt-1 ${
+          debtStrategy === 'avalanche'
+            ? 'text-indigo-100'
+            : 'text-slate-500'
+        }`}>
+          Fokus hutang interest tertinggi dahulu.
+        </div>
+      </button>
+
+      <button
+        onClick={() => setDebtStrategy('consolidation')}
+        className={`w-full px-4 py-4 rounded-xl text-left transition ${
+          debtStrategy === 'consolidation'
+            ? 'bg-indigo-600 text-white shadow-md'
+            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+        }`}
+      >
+        <div className="font-bold">
+          Penyatuan Hutang
+        </div>
+
+        <div className={`text-xs mt-1 ${
+          debtStrategy === 'consolidation'
+            ? 'text-indigo-100'
+            : 'text-slate-500'
+        }`}>
+          Gabungkan semua hutang kepada satu bayaran.
+        </div>
+      </button>
+
+    </div>
+
+    {/* INPUT EXTRA / CONSOL */}
+    <div className="mt-6">
+
+      {debtStrategy === 'consolidation' ? (
+
+        <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+
+          <h3 className="text-sm font-bold text-slate-700 mb-4">
+            Parameter Penyatuan Hutang
+          </h3>
+
+          <div className="grid grid-cols-2 gap-4">
+
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase">
+                Kadar Baru (%)
+              </label>
+
+              <input
+                type="number"
+                step="0.1"
+                value={consolRate}
+                onChange={(e) => setConsolRate(Number(e.target.value))}
+                className="w-full mt-2 px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase">
+                Tempoh (Tahun)
+              </label>
+
+              <input
+                type="number"
+                value={consolYear}
+                onChange={(e) => setConsolYear(Number(e.target.value))}
+                className="w-full mt-2 px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
+            </div>
+
+          </div>
+
+        </div>
+
+      ) : (
+
+        <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
+
+          <h3 className="text-sm font-bold text-indigo-900 mb-2">
+            Bajet Tambahan Bulanan
+          </h3>
+
+          <p className="text-xs text-indigo-700 mb-4">
+            Lebihan bayaran untuk cepat selesaikan hutang.
+          </p>
+
+          <div className="relative">
+
+            <span className="absolute left-4 top-3 text-indigo-400 font-semibold">
+              RM
+            </span>
+
+            <input
+              type="number"
+              value={extraBudget}
+              onChange={(e) => setExtraBudget(Number(e.target.value))}
+              className="w-full pl-12 pr-4 py-3 bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-indigo-900"
+            />
+
+          </div>
+
+        </div>
+
+      )}
+
+    </div>
+
+  </Card>
+
+</div>
+
+{/* RINGKASAN STRATEGI */}
+<Card className="border-indigo-200 bg-white shadow-sm">
+
+  <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center gap-2">
+
+    <CreditCard className="text-indigo-600" />
+
+    Ringkasan Strategi Pelunasan:
+
+    <span className="text-indigo-600 uppercase tracking-wide ml-1">
+      {debtStrategy === 'consolidation'
+        ? 'Penyatuan Hutang'
+        : `Debt ${debtStrategy}`}
+    </span>
+
+  </h3>
+
+  <div className="flex-1">
+
+    {(debtStrategy === 'snowball' || debtStrategy === 'avalanche') ? (
+
+      <div className="space-y-4">
+
+        <div className="grid grid-cols-3 gap-4 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+
+          <div className="text-center border-r border-indigo-200">
+            <p className="text-xs font-bold text-slate-500">
+              Tarikh Bebas Hutang
+            </p>
+
+            <p className="text-lg sm:text-xl font-bold text-indigo-700 mt-1">
+              {getTargetDateText(debtAnalysisResult.payoffMonths)}
+            </p>
+          </div>
+
+          <div className="text-center border-r border-indigo-200">
+            <p className="text-xs font-bold text-slate-500">
+              Tempoh
+            </p>
+
+            <p className="text-lg font-semibold text-slate-800 mt-1">
+              {getDurationText(debtAnalysisResult.payoffMonths)}
+            </p>
+          </div>
+
+          <div className="text-center">
+            <p className="text-xs font-bold text-slate-500">
+              Anggaran Faedah
+            </p>
+
+            <p className="text-lg font-semibold text-rose-600 mt-1">
+              {formatRM(debtAnalysisResult.payoffInterest)}
+            </p>
+          </div>
+
+        </div>
+
+        <div className="overflow-x-auto rounded-lg border border-slate-200">
+
+          <table className="w-full text-left text-xs whitespace-nowrap">
+
+            <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+
+              <tr>
+                <th className="px-4 py-3 font-bold">
+                  Prioriti Pembayaran
+                </th>
+
+                <th className="px-4 py-3 font-bold text-right">
+                  Baki
+                </th>
+
+                <th className="px-4 py-3 font-bold text-right">
+                  Bulan Selesai
+                </th>
+              </tr>
+
+            </thead>
+
+            <tbody className="divide-y divide-slate-100">
+
+              {debtAnalysisResult.payoffDetails.map((d, index) => (
+
+                <tr key={d.id} className={index === 0 ? 'bg-indigo-50/40' : ''}>
+
+                  <td className="px-4 py-3 font-semibold text-slate-800">
+
+                    {index + 1}. {d.name}
+
+                    {index === 0 && (
+                      <span className="ml-2 text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-bold">
+                        TARGET Utama
+                      </span>
+                    )}
+
+                  </td>
+
+                  <td className="px-4 py-3 text-right font-medium">
+                    {formatRM(d.balance)}
+                  </td>
+
+                  <td className="px-4 py-3 text-right font-bold text-indigo-600">
+                    Blk ke-{d.monthsToFinish}
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    ) : (
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full items-center">
+
+        <div className="space-y-4">
+
+          <div className="flex justify-between border-b pb-2">
+            <span className="text-sm font-semibold text-slate-600">
+              Baki Hutang Digabung:
+            </span>
+
+            <span className="font-bold">
+              {formatRM(debtAnalysisResult.totalBalance)}
+            </span>
+          </div>
+
+          <div className="flex justify-between border-b pb-2">
+            <span className="text-sm font-semibold text-slate-600">
+              Kadar / Tempoh Baru:
+            </span>
+
+            <span className="font-bold">
+              {consolRate}% untuk {consolYear} Tahun
+            </span>
+          </div>
+
+          <div className="flex justify-between border-b pb-2 text-rose-500">
+            <span className="text-sm font-semibold">
+              Komitmen Bulanan Lama:
+            </span>
+
+            <span className="font-bold line-through">
+              {formatRM(debtAnalysisResult.totalCommitment)}
+            </span>
+          </div>
+
+        </div>
+
+        <div className="bg-slate-800 text-white p-6 rounded-xl text-center shadow-md">
+
+          <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-1">
+            Anggaran Komitmen Baru
+          </p>
+
+          <p className="text-3xl font-black mb-4">
+            {formatRM(debtAnalysisResult.consolNewMonthly)}
+          </p>
+
+          <p className="text-sm font-medium text-slate-300 mb-1">
+            Pelepasan Aliran Tunai Bulanan:
+          </p>
+
+          <p className={`text-2xl font-bold ${
+            debtAnalysisResult.consolSavings > 0
+              ? 'text-sky-400'
+              : 'text-rose-400'
+          }`}>
+            {debtAnalysisResult.consolSavings > 0 ? '+' : '-'} 
+            {formatRM(Math.abs(debtAnalysisResult.consolSavings))}
+          </p>
+
+        </div>
+
+      </div>
+
+    )}
+
+  </div>
+
+</Card>
+
+
+                      {/* Baris 3: Unjuran Persaraan & Pelan Tindakan */}
+                      <Card className="border-blue-200 bg-blue-50/30">
+                        <h3 className="text-lg font-bold text-blue-900 mb-4 border-b border-blue-200 pb-2 flex items-center gap-2"><TrendingUp className="text-blue-600" /> Ketahanan Dana Masa Depan & Persaraan</h3>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                          <div className="lg:col-span-1 bg-white p-6 rounded-xl border border-blue-100 shadow-sm text-center h-full flex flex-col justify-center">
+                            <p className="text-slate-600 mb-2 text-sm">Dengan sasaran perbelanjaan <strong>{formatRM(futureMonthlyExpenses)}/bulan</strong>, dana persaraan anda mampu bertahan selama:</p>
+                            <p className={`font-extrabold text-5xl mb-2 ${exhaustAge >= lifeExpectancy ? 'text-sky-600' : 'text-red-500'}`}>
+                              {yearsItWillLast.toFixed(1)} Tahun
+                            </p>
+                            <p className="text-sm text-slate-500">Akan habis pada umur: <strong className={exhaustAge >= lifeExpectancy ? 'text-sky-600' : 'text-red-500'}>{Math.floor(exhaustAge)}</strong></p>
+                          </div>
+
+                          <div className="lg:col-span-2">
+                            {exhaustAge < lifeExpectancy ? (
+                              <div className="space-y-4">
+                                <div className="text-sm text-red-700 bg-red-50 p-3 rounded-lg border border-red-100 flex gap-2">
+                                  <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+                                  <span><strong>Defisit {Math.max(0, lifeExpectancy - exhaustAge).toFixed(1)} Tahun!</strong> Dana anda kekurangan <strong className="text-red-600">RM{formatRM(retirementShortfall)}</strong> untuk capai umur {lifeExpectancy} tahun. Berikut adalah pelan tindakan anda:</span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="p-4 bg-white border-l-4 border-sky-500 rounded-lg shadow-sm">
+                                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Opsyen A: Simpan Tambahan</p>
+                                    <p className="text-2xl font-bold text-sky-600">+{formatRM(extraSavingsNeeded)}<span className="text-sm">/bln</span></p>
+                                  </div>
+                                  <div className="p-4 bg-white border-l-4 border-amber-500 rounded-lg shadow-sm">
+                                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Opsyen B: Downsize Bajet</p>
+                                    <p className="text-2xl font-bold text-amber-600">{formatRM(sustainableMonthlyExpense)}<span className="text-sm">/bln</span></p>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-sky-700 bg-sky-50 p-6 rounded-xl border border-sky-100 flex gap-3 items-center h-full">
+                                <ShieldCheck size={32} className="shrink-0" />
+                                <span><strong>Tahniah!</strong> Baki dana anda dijangka mencukupi untuk membiayai persaraan anda (RM{formatRM(futureMonthlyExpenses)}/bulan) sehingga melepasi umur jangka hayat {lifeExpectancy} tahun.</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+
+                      {/* Baris 4: Aliran Harta Pusaka & Faraid */}
+                      <Card>
+                        <h3 className="text-lg font-bold text-slate-800 mb-6 border-b pb-2 flex items-center gap-2"><PieChart className="text-sky-600" /> Pengurusan Harta & Faraid Waris</h3>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                          <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                            <h4 className="font-semibold text-slate-700 mb-3 border-b pb-2">Aliran Harta Pusaka Bersih</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between"><span className="text-slate-600">Harta Kasar:</span> <span>{formatRM(grossEstate)}</span></div>
+                              <div className="flex justify-between text-red-600"><span>- Kos Jenazah:</span> <span>-{formatRM(funeralCost)}</span></div>
+                              <div className="flex justify-between text-blue-600"><span>- Harta Sepencarian:</span> <span>-{formatRM(sepencarianAmount)}</span></div>
+                              <div className="flex justify-between text-red-600"><span>- Hutang & Zakat:</span> <span>-{formatRM(totalDebts + zakatPayable)}</span></div>
+                              <div className="border-t pt-2 flex justify-between font-semibold"><span className="text-slate-700">Harta Bersih (Net Estate):</span> <span>{formatRM(actualNetEstate)}</span></div>
+                              <div className="flex justify-between text-sky-600"><span>- Wasiat / Wakaf:</span> <span>-{formatRM(wasiatAmount)}</span></div>
+                              <div className="border-t pt-2 flex justify-between font-bold text-lg"><span className="text-sky-800">BAKI UNTUK FARAID:</span> <span className="text-sky-600">{formatRM(faraidPool)}</span></div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col md:flex-row items-center gap-6 bg-white p-4 rounded-xl border border-slate-100">
+                            {actualNetEstate <= 0 ? (
+                              <div className="w-full text-center p-6 bg-red-50 rounded-xl border border-red-200">
+                                <AlertTriangle size={32} className="mx-auto text-red-500 mb-2" />
+                                <h3 className="font-bold text-red-800">Harta Pusaka Defisit!</h3>
+                                <p className="text-red-600 text-sm mt-1">Tiada sebarang harta yang tinggal untuk diagihkan secara Faraid.</p>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="w-40 h-40 shrink-0">
+                                  <SimplePieChart data={faraidDistribution} colors={faraidColors} />
+                                </div>
+                                <div className="flex-1 w-full space-y-3">
+                                  {faraidDistribution.map((item, index) => (
+                                    <div key={index} className="flex justify-between items-center text-sm border-b border-slate-50 pb-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: faraidColors[index % faraidColors.length] }}></span>
+                                        <span className="text-slate-700 font-medium leading-tight">{item.name}</span>
+                                      </div>
+                                      <div className="text-right">
+                                        <span className="text-xs text-slate-400 block">{item.percent.toFixed(1)}%</span>
+                                        <span className="font-bold text-sky-700">{formatRM(item.amount)}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+
+                      {/* Baris 5: Analisis Jurang Pendapatan & Solusi Pelindungan */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                        <Card className="flex flex-col bg-slate-800 text-white border-none">
+                          <h3 className="font-bold text-amber-400 mb-4 text-lg border-b border-slate-700 pb-2 flex items-center gap-2"><ShieldCheck size={20} /> Analisis Jurang Pendapatan Waris</h3>
+                          <div className="space-y-4 flex-1 flex flex-col justify-center">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-slate-300">Dana Survival (Sepencarian + Faraid + Takaful):</span>
+                              <span className="font-semibold text-white">{formatRM(totalSpouseSurvivalFund)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm border-b border-slate-700 pb-4">
+                              <span className="text-slate-300">Keperluan Keluarga 10 Tahun (RM{formatRM(currentExpenses)}/bln):</span>
+                              <span className="font-semibold text-white">{formatRM(familySurvivalNeeds)}</span>
+                            </div>
+                            <div className="pt-2 text-center bg-slate-700/50 p-4 rounded-xl">
+                              <span className="text-slate-300 text-sm block mb-1">Status Dana Waris (Jurang):</span>
+                              <span className={`font-black text-3xl ${incomeProtectionGap > 0 ? 'text-red-400' : 'text-sky-400'}`}>
+                                {incomeProtectionGap > 0 ? `Defisit ${formatRM(incomeProtectionGap)}` : 'Mencukupi'}
+                              </span>
+                            </div>
+                          </div>
+                        </Card>
+
+                        <Card className="flex flex-col border-sky-200 shadow-sm bg-white">
+                          <h3 className="font-bold text-slate-800 mb-4 text-lg border-b pb-2 flex items-center gap-2"><FileText className="text-sky-600" /> Checklist Solusi Pelindungan Segera</h3>
+                          <div className="space-y-3 flex-1 overflow-y-auto">
+                            {incomeProtectionGap > 0 && (
+                              <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
+                                <ShieldCheck size={20} className="text-red-500 shrink-0 mt-0.5" />
+                                <p className="text-sm text-slate-700"><strong className="text-red-700">Hibah Takaful:</strong> Sediakan minimum polisi <strong>RM{formatRM(incomeProtectionGap)}</strong> dengan segera sebagai penggantian pendapatan (Income Replacement).</p>
+                              </div>
+                            )}
+                            {totalLiquidAssets > 0 && (
+                              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                <Wallet size={20} className="text-blue-500 shrink-0 mt-0.5" />
+                                <p className="text-sm text-slate-700"><strong className="text-blue-700">Amanah Tunai:</strong> Cipta 'Cash Trust' dari <strong>RM{formatRM(totalLiquidAssets)}</strong> aset cair anda untuk elak akaun beku dan beri akses tunai pantas 7 hari.</p>
+                              </div>
+                            )}
+                            {hasSpouse && (
+                              <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                                <Heart size={20} className="text-amber-500 shrink-0 mt-0.5" />
+                                <p className="text-sm text-slate-700"><strong className="text-amber-700">Harta Sepencarian:</strong> Daftarkan deklarasi aset (cth: Rumah RM{formatRM(rumahValue)}) untuk jamin 50%-100% hak milik mutlak pasangan anda.</p>
+                              </div>
+                            )}
+                            <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                              <BookOpen size={20} className="text-slate-500 shrink-0 mt-0.5" />
+                              <p className="text-sm text-slate-700"><strong className="text-slate-800">Wasiat Pentadbir:</strong> Lantik pentadbir profesional untuk pastikan hutang tertunggak (<strong>RM{formatRM(totalDebts)}</strong>) dilunaskan lancar tanpa bebankan waris.</p>
+                            </div>
+                          </div>
+                        </Card>
+                      </div>
+
+                    </div>
+                  )}
+                </div>
+
+                {/* --- BUTANG NAVIGASI HALAMAN BAWAH --- */}
+                <div className="mt-8 flex justify-between items-center border-t border-slate-200 pt-6">
+                  {activeTab > 1 ? (
+                    <button
+                      onClick={handlePrevTab}
+                      className="px-6 py-3 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-800 border border-slate-300 font-bold rounded-xl transition-colors shadow-sm"
+                    >
+                      Kembali
+                    </button>
+                  ) : (
+                    <div></div> /* Empty div untuk spacing bila butang kembali tiada */
+                  )}
+
+                  {activeTab < 6 ? (
+                    <button
+                      onClick={handleNextTab}
+                      className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm ml-auto"
+                    >
+                      Seterusnya <ArrowRight size={20} />
+                    </button>
+                  ) : (
+                    <div className="flex flex-col md:flex-row gap-3 ml-auto w-full md:w-auto mt-4 md:mt-0">
+                      <button
+                        onClick={() => {
+                          setShowReport(true);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm w-full md:w-auto"
+                      >
+                        <Printer size={20} /> Jana Laporan PDF
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActiveTab(1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-colors shadow-sm w-full md:w-auto text-center"
+                      >
+                        Mula Semula
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+              </main>
+              
+              <footer className="max-w-6xl mx-auto mt-12 text-center text-slate-500 text-sm">
+                <p>myTADBIR: Membantu anda merancang legasi kewangan dan kelangsungan hidup waris mengikut prinsip Islam.</p>
+              </footer>
+            </div>
+          );
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
