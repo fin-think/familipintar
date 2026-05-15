@@ -92,9 +92,9 @@
             <div class="flex justify-between items-center">
                 <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="h-10 w-auto object-contain">
                 
-                <!-- Menu Butang Baru (Desktop / Tablet) -->
+                <!-- Menu butang Baru (Desktop / Tablet) -->
                 <div class="hidden md:flex items-center gap-3">
-                    <a href="https://producthch.github.io/toolsoflif/" target="_blank" class="bg-yellow-200 border border-yellow-600 hover:bg-slate-100 text-slate-700 text-sm font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-2">
+                    <a href="https://producthch.github.io/toolsoflife/" target="_blank" class="bg-yellow-200 border border-yellow-600 hover:bg-slate-100 text-slate-700 text-sm font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-2">
                         <i class="fa-solid fa-calculator text-sky-700"></i> Tools of Life
                     </a>
                     <a href="https://daebook89.github.io/daebook/" target="_blank" class="bg-yellow-300 border border-yellow-600 hover:bg-yellow-400 text-slate-900 text-sm font-bold py-2 px-4 rounded-xl transition-all shadow-sm flex items-center gap-2">
@@ -116,7 +116,7 @@
 
             <!-- Menu Butang Baru (Mobile Dropdown) -->
             <div id="mobileMenu" class="hidden md:hidden flex-col gap-3 mt-4 pt-4 border-t border-slate-100 pb-2">
-                <a href="https://producthch.github.io/toolsoflif/" target="_blank" class="w-full bg-yellow-50 border border-yellow-600 hover:bg-slate-100 text-slate-700 text-sm font-bold py-3 px-4 rounded-xl transition-all flex items-center gap-3">
+                <a href="https://producthch.github.io/toolsoflife/" target="_blank" class="w-full bg-yellow-50 border border-yellow-600 hover:bg-slate-100 text-slate-700 text-sm font-bold py-3 px-4 rounded-xl transition-all flex items-center gap-3">
                     <i class="fa-solid fa-calculator text-sky-700 text-lg w-6 text-center"></i> Tools of Life
                 </a>
                 <a href="https://daebook89.github.io/daebook/" target="_blank" class="w-full bg-yellow-300 border border-yellow-600 hover:bg-yellow-400 text-slate-900 text-sm font-bold py-3 px-4 rounded-xl transition-all shadow-sm flex items-center gap-3">
@@ -130,7 +130,7 @@
                 </a>
             </div>
         </header>
-        
+
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 w-full flex-grow">
             
             <!-- HERO SECTION -->
@@ -153,7 +153,7 @@
                         <p>Di sinilah langkah pertama bermula.<br>Melalui ujian dan alat interaktif yang ringkas,</p>
                     </div>
                     
-                    <button onclick="window.scrollTo({top: document.getElementById('loginFormSection').offsetTop, behavior: 'smooth'})" class="hidden"></button>
+                    <button onclick="document.getElementById('mapa-intro').scrollIntoView({ behavior: 'smooth' })" class="hidden"></button>
                 </div>
 
                 <!-- Gambar Hero -->
@@ -168,51 +168,7 @@
                 </div>
             </div>
 
-            <!-- DIVIDER SUDAH ADA KOD -->
-            <div class="w-full flex items-center justify-center mt-16 mb-6 opacity-70">
-                <div class="w-24 border-t-2 border-slate-200"></div>
-                <span class="px-4 text-slate-400 text-xs font-extrabold uppercase tracking-widest">SUDAH ADA KOD?</span>
-                <div class="w-24 border-t-2 border-slate-200"></div>
-            </div>
-
-            <div class="text-center font-bold text-slate-800 mb-4 text-lg">Akses Keahlian</div>
-
-            <!-- LOGIN FORM (KEKALKAN ID DAN FUNGSI ASAL) -->
-            <div id="loginFormSection" class="w-full max-w-6xl mx-auto px-4 bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100 mb-6 relative z-10">
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-                    <!-- Kiri: Phone -->
-                    <div class="relative">
-                        <i class="fa-solid fa-phone absolute left-4 top-4 text-slate-400"></i>
-                        <input type="tel" id="phoneInput" 
-                            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none font-bold text-slate-700 placeholder:font-medium placeholder:text-slate-400 transition-all" 
-                            placeholder="No. Telefon (Cth: 0123456789)">
-                    </div>
-
-                    <!-- Kanan: Password -->
-                    <div class="relative">
-                        <i class="fa-solid fa-key absolute left-4 top-4 text-slate-400"></i>
-                        <input type="password" id="passwordInput" 
-                            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none font-bold tracking-widest uppercase text-slate-700 placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400 transition-all" 
-                            placeholder="KOD AKSES">
-                    </div>
-                </div>
-                
-                <p id="loginError" class="text-red-500 text-xs hidden font-semibold italic text-left mb-4">Sila semak semula No. Telefon atau Kod anda.</p>
-                
-                <!-- Bawah: Button + Link -->
-                <div class="flex flex-col sm:flex-row items-center gap-4 mt-4 pt-4 border-t border-slate-100">
-                    <button onclick="checkLogin()" id="loginBtn"
-                        class="flex-1 w-full py-4 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-md transition-all transform active:scale-95 flex items-center justify-center group">
-                        <span id="btnText">Log Masuk Sekarang</span> <i class="fa-solid fa-arrow-right-long ml-2 group-hover:translate-x-1 transition-transform"></i>
-                    </button>
-
-                    <div class="text-sm text-slate-500 whitespace-nowrap text-center sm:text-left">
-                        Belum ada kod akses? <a href="https://fin-think.github.io/landingpage1/" target="_blank" class="text-sky-500 font-bold hover:underline">Daftar sekarang</a>
-                    </div>
-                </div>
-            </div>
-
+                     
             <!-- SECTION VALUE -->
             <div class="mb-6 bg-white rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-100">
                 <h2 class="text-2xl md:text-3xl font-bold text-center text-slate-800 mb-10">Apa yang anda akan dapat dalam Jurnal <span class="text-yellow-500">Famili</span> <span class="text-sky-500">Pintar</span></h2>
@@ -224,7 +180,7 @@
                             <i class="fa-solid fa-chart-simple"></i>
                         </div>
                         <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">20+ Kalkulator & Ujian</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed">Alat interaktif untuk penilaian dan perancangan anda.</p>
+                        <p class="text-sm text-slate-500 leading-relaxed">Alat interaktif untuk penilaian dan perancangan anda.</p>
                     </div>
                     <!-- Value 2 -->
                     <div class="text-center flex flex-col items-center pt-6 sm:pt-0 px-2">
@@ -232,7 +188,7 @@
                             <i class="fa-solid fa-book-open"></i>
                         </div>
                         <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">30+ E-book Panduan</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed">Ilmu praktikal dalam bentuk e-book yang mudah difahami.</p>
+                        <p class="text-sm text-slate-500 leading-relaxed">Ilmu praktikal dalam bentuk e-book yang mudah difahami.</p>
                     </div>
                     <!-- Value 3 -->
                     <div class="text-center flex flex-col items-center pt-6 sm:pt-0 px-2">
@@ -240,7 +196,7 @@
                             <i class="fa-solid fa-bullseye"></i>
                         </div>
                         <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">Sistem Langkah Demi Langkah</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed">Panduan tersusun dari asas hingga ke tahap pengurusan keluarga yang lebih baik.</p>
+                        <p class="text-sm text-slate-500 leading-relaxed">Panduan tersusun dari asas hingga ke tahap pengurusan keluarga yang lebih baik.</p>
                     </div>
                     <!-- Value 4 -->
                     <div class="text-center flex flex-col items-center pt-6 sm:pt-0 px-2">
@@ -248,7 +204,7 @@
                             <i class="fa-solid fa-users"></i>
                         </div>
                         <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">Untuk Semua Peringkat</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed">Sesuai untuk yang belum berkeluarga, baru berkahwin atau sudah berkeluarga.</p>
+                        <p class="text-sm text-slate-500 leading-relaxed">Sesuai untuk yang belum berkeluarga, baru berkahwin atau sudah berkeluarga.</p>
                     </div>
                 </div>
             </div>
@@ -260,7 +216,7 @@
         Financial Health Check
     </h2>
 
-    <p class="text-slate-500 text-sm mb-6 max-w-xl mx-auto">
+    <p class="text-slate-500 text-md mb-6 max-w-xl mx-auto">
         Jawab 5 soalan ringkas untuk mengetahui tahap kewangan keluarga anda.
     </p>
 
@@ -289,7 +245,7 @@
         <p id="resultText" class="font-semibold text-slate-700 mb-4"></p>
 
         <button 
-    onclick="document.getElementById('loginFormSection').scrollIntoView({ behavior: 'smooth' })"
+    onclick="enterFree()"
     class="bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 rounded-xl font-bold shadow">
     Log Masuk Sekarang
 </button>
@@ -314,10 +270,12 @@
                     </div>
                 </div>
                 
-                <a href="https://fin-think.github.io/landingpage1/" target="_blank" class="relative z-10 shrink-0 w-full lg:w-auto bg-yellow-100 hover:bg-yellow-200 text-slate-900 font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-3">
-                    Dapatkan butiran lanjut <i class="fa-solid fa-arrow-right"></i>
-                </a>
+               <div class="flex flex-col items-center gap-4"> <button onclick="enterFree()" class="relative z-10 shrink-0 w-full lg:w-auto bg-yellow-100 hover:bg-yellow-200 text-slate-900 font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-3"> <i class="fa-solid fa-right-to-bracket"></i> Log Masuk </button>
+
+                <a href="https://fin-think.github.io/landingpage1/" target="_blank" style="pointer-events:auto;" class="relative z-10 text-white/80 hover:text-white text-sm font-semibold transition-all"> Dapatkan butiran lanjut <i class="fa-solid fa-arrow-right ml-1"></i> </a> </div>
+
             </div>
+
 
            <div class="mb-6 bg-white rounded-[2rem] p-6 md:p-4 shadow-sm border border-slate-100">
     <p class="text-sm md:text-base text-slate-600 text-center leading-relaxed w-full">
@@ -356,6 +314,7 @@
             </div>
             <h3 class="text-xl font-bold mb-2">Buka Modul</h3>
             <p class="text-sm text-slate-500 mb-6 leading-relaxed">Sila masukkan kod akses yang anda terima selepas pembelian.</p>
+            <input type="tel" id="unlockPhoneInput" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-sky-500 focus:outline-none text-center font-bold mb-3" placeholder="No Telefon">
             <input type="password" id="unlockCodeInput" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-sky-500 focus:outline-none text-center font-bold tracking-widest uppercase" placeholder="KOD MODUL">
             <p id="unlockError" class="text-red-500 text-xs mt-2 hidden">Kod tidak sah.</p>
             <div class="flex space-x-3 mt-6">
@@ -382,6 +341,7 @@
                         <a href="#mapa-parenting" onclick="hideProfile()" class="hover:text-sky-200 transition">Keharmonian</a>
                         <a href="#mapa-legacy" onclick="hideProfile()" class="hover:text-sky-200 transition">Legasi</a>
                         <a href="#anakku" onclick="hideProfile()" class="hover:text-sky-200 transition">Zuriat</a>
+                        <a href="#akuan" onclick="hideProfile()" class="hover:text-sky-200 transition">Akuanku</a>
                         <button onclick="showProfile()" class="hover:text-sky-200 transition flex items-center">
                             <i class="fa-solid fa-id-card mr-1"></i> Profail
                         </button>
@@ -443,33 +403,54 @@
 </section>
 
             <div id="timelineContent">
+                <section id="mapa-intro" class="mb-24 relative scroll-mt-24"> 
+                    <div class="text-center mb-12 px-4"> 
+                        <h2 class="text-2xl font-bold text-blue-500 mb-2"> <i class="fa-solid fa-compass mr-2"></i> Langkah 1: Kenali Diri Anda Dahulu </h2> <p class="text-slate-500 max-w-2xl mx-auto mt-4"> Sebelum merancang masa depan keluarga, anda perlu tahu keadaan sebenar hidup, kewangan dan kesihatan anda sekarang. </p> 
+                        </div> 
+                    <div class="relative timeline-container" id="intro-timeline"></div> 
+                </section>
+
                 <section id="mapa-finance" class="mb-24 relative scroll-mt-24">
                     <div class="text-center mb-12 px-4">
-                        <h2 class="text-3xl font-bold text-sky-600 mb-2"><i class="fa-solid fa-sack-dollar mr-2"></i>Adakah kewangan keluarga anda sebenarnya selamat? Semak dan kira untuk tahu tahap sebenar — dan apa perlu buat sekarang</h2>
+                        <h2 class="text-2xl font-bold text-sky-600 mb-2"><i class="fa-solid fa-sack-dollar mr-2"></i>Adakah kewangan keluarga anda sebenarnya selamat? Semak dan kira untuk tahu tahap sebenar — dan apa perlu buat sekarang</h2>
                     </div>
                     <div class="relative timeline-container" id="finance-timeline"></div>
                 </section>
 
                 <section id="mapa-parenting" class="mb-24 relative scroll-mt-24">
                     <div class="text-center mb-12 px-4">
-                        <h2 class="text-3xl font-bold text-pink-600 mb-2"><i class="fa-solid fa-heart-pulse mr-2"></i>Ramai keluarga tak gagal… mereka cuma tak ada sistem. Mulakan dengan 1 ujian ringkas untuk faham keadaan sebenar keluarga anda - pasangan anda?</h2>
+                        <h2 class="text-2xl font-bold text-pink-600 mb-2"><i class="fa-solid fa-heart-pulse mr-2"></i>Ramai keluarga tak gagal… mereka cuma tak ada sistem. Mulakan dengan 1 ujian ringkas untuk faham keadaan sebenar keluarga anda - pasangan anda?</h2>
                     </div>
                     <div class="relative timeline-container" id="parenting-timeline"></div>
                 </section>
 
                 <section id="mapa-legacy" class="mb-24 relative scroll-mt-24">
                     <div class="text-center mb-12 px-4">
-                        <h2 class="text-3xl font-bold text-indigo-700 mb-2"><i class="fa-solid fa-seedling mr-2"></i>90% keluarga tak sedar mereka ada masalah ini…check sekarang..</h2>
+                        <h2 class="text-2xl font-bold text-indigo-700 mb-2"><i class="fa-solid fa-seedling mr-2"></i>90% keluarga tak sedar mereka ada masalah ini…check sekarang..</h2>
                     </div>
                     <div class="relative timeline-container" id="legacy-timeline"></div>
                 </section>
 
                 <section id="anakku" class="mb-24 relative scroll-mt-24">
                     <div class="text-center mb-12 px-4">
-                        <h2 class="text-3xl font-bold text-orange-500 mb-2"><i class="fa-solid fa-child-reaching mr-2"></i>Betul ke anda mengenali anak anda? Try test sekali...</h2>
+                        <h2 class="text-2xl font-bold text-orange-500 mb-2"><i class="fa-solid fa-child-reaching mr-2"></i>Betul ke anda mengenali anak anda? Try test sekali...</h2>
                     </div>
                     <div class="relative timeline-container" id="anakku-timeline"></div>
                 </section>
+
+<section id="akuan" class="mb-24 relative scroll-mt-24">
+    <div class="text-center mb-12 px-4">
+        <h2 class="text-2xl font-bold text-emerald-500 mb-2">
+            <i class="fa-solid fa-file-signature mr-2"></i>
+            Kini anda mula melihat keadaan sebenar yang mungkin selama ini terlepas pandang.
+
+Langkah seterusnya ialah membuat pengakuan — kerana di sinilah bermulanya perubahan sebenar.
+        </h2>
+    </div>
+
+    <div class="relative timeline-container" id="akuan-timeline"></div>
+</section>
+
             </div>
         </main>
 
@@ -497,7 +478,7 @@
     </div>
 
    <script>
-        let ACCESS_CODES = { main: '', parenting: '', legacy: '', kids: '', admin: '' };
+        let ACCESS_CODES = { main: '', parenting: '', legacy: '', kids: '', akuan: '', admin: '' };
 
         const firebaseConfig = {
             apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -529,12 +510,12 @@
             console.error("Ralat Firebase:", error.message);
         });
 
-        const ONPAY_LINKS = { parenting: 'https://toyyibpay.com/Famili-Pintar-2', legacy: 'https://toyyibpay.com/Famili-Pintar-3', kids: 'https://toyyibpay.com/Famili-Pintar-4' };
+        const ONPAY_LINKS = { finance: 'https://toyyibpay.com/Famili-Pintar-1', parenting: 'https://toyyibpay.com/Famili-Pintar-2', legacy: 'https://toyyibpay.com/Famili-Pintar-3', kids: 'https://toyyibpay.com/Famili-Pintar-4', akuan: 'https://toyyibpay.com/Famili-Pintar-5' };
         let activeUnlockTarget = '';
         let currentSectionId = '';
 
         // FUNGSI LOGIN & SEMAKAN DATABASE (SISTEM BARU)
-        function checkLogin() {
+            function checkLogin() {
             const phoneRaw = document.getElementById('phoneInput').value.trim();
             const phone = phoneRaw.replace(/[^0-9]/g, ''); // Pastikan hanya nombor
             const code = document.getElementById('passwordInput').value.trim().toUpperCase();
@@ -553,22 +534,23 @@
             
             // Kenal pasti kod
             if (ACCESS_CODES.admin && code === ACCESS_CODES.admin.toUpperCase()) unlockedModule = 'all';
-            else if (ACCESS_CODES.main && code === ACCESS_CODES.main.toUpperCase()) unlockedModule = 'finance';
+            else if (ACCESS_CODES.main && code === ACCESS_CODES.main.toUpperCase()) unlockedModule = 'main';
             else if (ACCESS_CODES.parenting && code === ACCESS_CODES.parenting.toUpperCase()) unlockedModule = 'parenting';
             else if (ACCESS_CODES.legacy && code === ACCESS_CODES.legacy.toUpperCase()) unlockedModule = 'legacy';
             else if (ACCESS_CODES.kids && code === ACCESS_CODES.kids.toUpperCase()) unlockedModule = 'kids';
+            else if (ACCESS_CODES.akuan && code === ACCESS_CODES.akuan.toUpperCase()) unlockedModule = 'akuan';
 
             if (unlockedModule) {
                 // Tarik profil dari Firebase
                 const userRef = db.ref('users/' + phone);
                 userRef.once('value').then((snapshot) => {
-                    let userData = snapshot.val() || { finance: false, parenting: false, legacy: false, kids: false };
+                    let userData = snapshot.val() || { main: false, parenting: false, legacy: false, kids: false, akuan: false };
 
                     if (unlockedModule === 'all') {
-                        userData = { finance: true, parenting: true, legacy: true, kids: true };
+                        userData = { main: true, parenting: true, legacy: true, kids: true, akuan: true };
                     } else {
                         userData[unlockedModule] = true;
-                        userData.finance = true; // Wajib buka asas
+                        userData.main = true; // Wajib buka asas
                     }
 
                     // Simpan data & mulakan sesi
@@ -612,30 +594,38 @@
 
         function applyAccessControl() {
             const modules = [
-                { id: 'mapa-finance', key: 'finance' },
+                { id: 'mapa-intro', key: null }, 
+                { id: 'mapa-finance', key: 'main' },
                 { id: 'mapa-parenting', key: 'parenting' },
                 { id: 'mapa-legacy', key: 'legacy' },
-                { id: 'anakku', key: 'kids' }
+                { id: 'anakku', key: 'kids' },
+                { id: 'akuan', key: 'akuan' }
             ];
             modules.forEach(mod => {
                 const el = document.getElementById(mod.id);
                 if (!el) return;
-                const hasAccess = sessionStorage.getItem(`access_${mod.key}`) === 'true';
+                const hasAccess = mod.key === null || sessionStorage.getItem(`access_${mod.key}`) === 'true';
                 const timeline = el.querySelector('.timeline-container');
                 const existingOverlay = document.getElementById(`lock-${mod.id}`);
+                // FREE SECTION 
+                if (mod.key === null) { 
+                timeline.style.filter = 'none'; 
+                if (existingOverlay) 
+                existingOverlay.remove(); 
+                return; 
+                }
                 if (!hasAccess) {
                     timeline.style.filter = 'blur(12px)';
                     if (!existingOverlay) {
                         const overlay = document.createElement('div');
                         overlay.id = `lock-${mod.id}`;
-                        overlay.className = "absolute inset-0 z-30 flex items-center justify-center lock-container px-4";
+                        overlay.className = "absolute inset-0 z-30 flex items-center justify-center lock-container px-4 pt-40";
                         overlay.innerHTML = `
                             <div class="bg-white/95 p-8 rounded-2xl shadow-xl text-center border border-slate-200 lock-box max-w-[400px]">
                                 <i class="fa-solid fa-lock text-slate-300 text-3xl mb-3"></i>
                                 <h4 class="font-bold text-sm mb-4 text-slate-800">Jom teroka lagi, journey anda baru bermula</h4>
                                 <div class="space-y-2">
-                                    <button onclick="openUnlockModal('${mod.key}')" class="w-full py-2 bg-slate-800 text-white rounded-lg text-xs font-bold">Masukkan Kod</button>
-                                    <a href="${ONPAY_LINKS[mod.key] || '#'}" target="_blank" class="block w-full py-2 bg-sky-400 text-white rounded-lg text-xs font-bold">Dapatkan Akses</a>
+                                    <button onclick="buyAccess('${mod.key}')" class="w-full py-2 bg-sky-400 text-white rounded-lg text-xs font-bold"> Dapatkan Akses </button>
                                 </div>
                             </div>
                         `;
@@ -659,7 +649,7 @@
         // FUNGSI UNLOCK KEKAL (SISTEM BARU)
         function verifyUnlockCode() {
             const code = document.getElementById('unlockCodeInput').value.trim().toUpperCase();
-            const phone = sessionStorage.getItem('userPhone');
+            const phoneRaw = document.getElementById('unlockPhoneInput').value.trim(); const phone = phoneRaw.replace(/[^0-9]/g, '');
             const btn = document.getElementById('unlockBtn');
 
             if ((ACCESS_CODES[activeUnlockTarget] && code === ACCESS_CODES[activeUnlockTarget].toUpperCase()) || 
@@ -670,6 +660,8 @@
                 // Simpan Unlock Status dalam Profil Firebase Pengguna
                 db.ref(`users/${phone}/${activeUnlockTarget}`).set(true).then(() => {
                     sessionStorage.setItem(`access_${activeUnlockTarget}`, 'true');
+                    sessionStorage.setItem('userPhone', phone);
+                    const userDisplay = document.getElementById('userDisplay'); if (userDisplay) userDisplay.innerText = `ID: ${phone}`;
                     closeUnlockModal();
                     applyAccessControl();
                     if(btn) btn.innerText = 'Sahkan';
@@ -679,6 +671,8 @@
             }
         }
         function logout() { sessionStorage.clear(); window.location.reload(); }
+
+function enterFree() { document.getElementById('loginOverlay').classList.add('hidden'); document.getElementById('mainContent').classList.remove('opacity-0'); sessionStorage.setItem('isLoggedIn', 'true'); renderAll(); applyAccessControl(); }
 
         const ebooks = {
             "survivalkit": { title: "Survival Kit Ibu Ayah", coverImage: "https://i.postimg.cc/0NQ1P663/(DB0525_D013)_Survival_Kit_Ibu_Ayah.png", gdriveLink: "https://drive.google.com/file/d/1taARvfss3qf1fKXSEvTkb_3rNpcSfC7k/view?usp=sharing" },
@@ -728,14 +722,21 @@
         };
 
         const timelineData = {
+            intro: [ { fasa: "Pengenalan Diri", icon: "fa-compass", color: "blue", 
+                tools: [ 
+                    { id: "dchecklist", title: "myCHECKLIST", icon: "fa-list-check", desc: "Semak status hala tuju kerjaya dan kestabilan semasa anda.", reqs: ["temuduga", "kerjaya", "dibuang"], githubLink: "/app/mychecklist.html", nextStep: "dhealth", nextMsg: "Kesihatan yang baik membantu keluarga yang lebih stabil." }, 
+                    { id: "dhealth", title: "myHEALTH", icon: "fa-heart-pulse", desc: "Semak tahap kesihatan diri anda demi masa depan.", reqs: ["resipi", "kurus","ramadhan"], githubLink: "/app/myhealth.html", nextStep: "dmandarin1", nextMsg: "Tahniah! selesai kesihatan, tambah kemahiran bahasa pula." },
+                    { id: "dmandarin1", title: "myMANDARIN2.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin1.0.html", isEndLevel: true, finishMsg: "Tahniah! Anda telah tahu kedudukan anda sekarang + kuasai Mandarin. Sila dapatkan kod akses untuk modul Kewangan seterusnya." }
+                    ] } 
+                ],
+
+
             finance: [{ 
                 fasa: "Langkah pertama: Stabilkan asas keluarga", icon: "fa-sack-dollar", color: "sky", 
                 tools: [
-                    { id: "dchecklist", title: "myCHECKLIST", icon: "fa-list-check", desc: "Semak status hala tuju kerjaya dan kestabilan semasa anda.", reqs: ["temuduga", "kerjaya", "dibuang"], githubLink: "/app/mychecklist.html", nextStep: "ddebt", nextMsg: "Lengkapkan semakan status kewangan dengan kiraan nisbah hutang anda." },
                     { id: "ddebt", title: "myDEBT", icon: "fa-credit-card", desc: "Kira nisbah hutang kepada pendapatan (DSR) dan rancang strategi.", reqs: ["simpanan", "kewangan"], githubLink: "/app/mydebt.html", nextStep: "myfp", nextMsg: "Sekarang, rancang pula masa depan dan persaraan anda selepas hutang terurus." },
                     { id: "myfp", title: "myFINPLAN", icon: "fa-umbrella-beach", desc: "Ukur tahap kewangan masa depan anda untuk bersara dengan selesa kelak.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "/app/myfinplan.html", nextStep: "darrahnu", nextMsg: "Pelbagaikan instrumen kewangan anda dengan simpanan emas." },
-                    { id: "darrahnu", title: "myEMAS", icon: "fa-coins", desc: "Mengenali teknik fungsi emas sebagai instrumen alternatif kewangan.", reqs: ["emas", "tipsemas"], githubLink: "/app/myemas.html", nextStep: "dhealth", nextMsg: "Kewangan mantap perlu tubuh badan yang sihat. Jom semak kesihatan!" },
-                    { id: "dhealth", title: "myHEALTH", icon: "fa-stethoscope", desc: "Ukur tahap kesihatan demi masa depan.", reqs: ["resipi", "kurus","ramadhan" ], githubLink: "/app/myhealth.html", nextStep: "dmandarin2", finishMsg: "Tahniah! Anda telah melengkapkan modul Kewangan. Jom tenangkan diri sambil belajar Mandarin sebelum modul Keharmonian seterusnya." },
+                    { id: "darrahnu", title: "myEMAS", icon: "fa-coins", desc: "Mengenali teknik fungsi emas sebagai instrumen alternatif kewangan.", reqs: ["emas", "tipsemas"], githubLink: "/app/myemas.html", nextStep: "dmandarin2", nextMsg: "Kewangan mantap, jom sambung belajar Mandarin" },
                     { id: "dmandarin2", title: "myMANDARIN2.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin2.0.html", isEndLevel: true, finishMsg: "Tahniah! Anda telah melengkapkan modul Kewangan + kuasai Mandarin. Sila dapatkan kod akses untuk modul Keharmonian seterusnya." }
                 ]
             }],
@@ -772,16 +773,46 @@
                     { id: "gameeng", title: "English Game", icon: "fa-spell-check", desc: "Uji kefahaman Inggeris interaktif anak.", reqs: ["eng"], githubLink: "/app/myenglish.html", nextStep: "gamebmsains", nextMsg: "Jom terokai dunia sains pula!" },
                     { id: "gamebmsains", title: "Sains Game", icon: "fa-flask", desc: "Pelajari dunia sains.", reqs: ["sains", "siri25#1", "siri25#2"], githubLink: "/app/mysains.html", nextStep: "gamekafa", nextMsg: "Cabar pengetahuan silibus KAFA mereka sekarang." },
                     { id: "gamekafa", title: "KAFA Game", icon: "fa-star-and-crescent", desc: "Ujian asas ringkas UPKK KAFA.", reqs: ["siri25#3"], githubLink: "/app/mykafa.html", nextStep: "dmandarin5", nextMsg: "Jom sambung belajar Mandarin sebelum kenali potensi dan personaliti anak untuk perancangan masa depan mereka." },
-                    { id: "dmandarin5", title: "myMANDARIN5.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin5.0.html", isEndLevel: true, finishMsg: "Tahniah! Dah habis modul Mandarin, jom kenali potensi dan personaliti anak untuk perancangan masa depan mereka." }
+                    { id: "dmandarin5", title: "myMANDARIN5.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin5.0/", isEndLevel: true, finishMsg: "Tahniah! Dah habis modul Mandarin, jom kenali potensi dan personaliti anak untuk perancangan masa depan mereka." }
                 ]},
                 { fasa: "Psikologi Tumbesaran", icon: "fa-masks-theater", color: "purple", tools: [
                     { id: "dpersonalitids", title: "myPERSONALITIkids", icon: "fa-puzzle-piece", desc: "Kenali potensi & personaliti anak.", reqs: ["tvet", "asrama", "ai"], githubLink: "/app/mypersonalitikids.html", nextStep: "dpsikoteens", nextMsg: "Mari fahami tahap emosi dan sosial mereka pula." },
                     { id: "dpsikoteens", title: "myPSIKOteens", icon: "fa-headphones", desc: "Ujian menilai aspek spiritual dan disiplin diri remaja.", reqs: ["adab", "genz"], githubLink: "/app/mypsikoteens.html", nextStep: "dpsikoteens2", nextMsg: "Langkah seterusnya: Menilai dan menangani kesan sosial media terhadap mereka." },
                     { id: "dpsikoteens2", title: "myPSIKOteens2.0", icon: "fa-vr-cardboard", desc: "Menilai dan menangani kesan sosial media pada anak remaja.", reqs: ["adab", "genz", "yolo", "tipsgenz"], githubLink: "/app/mypsikoteens2.0.html", nextStep: "dpsikoteens3", nextMsg: "Langkah terakhir, kita nilai sesuatu hal yang orang jarang bincang." },
                     { id: "dpsikoteens3", title: "myPSIKOteens3.0", icon: "fa-vr-cardboard", desc: "Menilai dan mengenalpasti kecenderungan kendiri anak remaja.", reqs: ["krisis", "qawwam"], githubLink: "/app/mypsikoteens3.0.html", isEndLevel: true, finishMsg: "Syabas! Anda telah melengkapkan seluruh Jurnal Famili Pintar. Semoga input ini membantu membina keluarga yang bahagia dan berjaya." }
-                ]}
-            ]
-        };
+                ] } ], // <- tutup kids array
+              akuan: [
+    {
+        fasa: "Akuan",
+        icon: "fa-file-signature",
+        color: "emerald",
+        tools: [
+            {
+                id: "akuan1",
+                title: "myTADBIR",
+                icon: "fa-file-circle-check",
+                desc: "Kalkulator pertama.",
+                reqs: [""],
+                githubLink: "/app/myakuan1.html",
+                nextStep: "akuan2",
+                nextMsg: "Teruskan ke langkah kedua."
+            },
+
+            {
+                id: "akuan2",
+                title: "myAKUAN",
+                icon: "fa-file-lines",
+                desc: "Kalkulator kedua.",
+                reqs: [""],
+                githubLink: "/app/myakuan2.html",
+                isEndLevel: true,
+                finishMsg: "Tahniah selesai modul Akuan."
+            }
+        ]
+    }
+]   // <- habis akuan
+
+};
 
 
         function renderTimeline(data, containerId) {
@@ -810,10 +841,12 @@
         }
 
         function renderAll() {
+            renderTimeline(timelineData.intro, 'intro-timeline');
             renderTimeline(timelineData.finance, 'finance-timeline');
             renderTimeline(timelineData.parenting, 'parenting-timeline');
             renderTimeline(timelineData.legacy, 'legacy-timeline');
             renderTimeline(timelineData.kids, 'anakku-timeline');
+            renderTimeline(timelineData.akuan, 'akuan-timeline');
         }
 
         function openModal(toolId, color, sectionId) {
@@ -891,10 +924,9 @@
             Object.keys(timelineData).forEach(cat => {
                 timelineData[cat].forEach(s => {
                     const found = s.tools.find(t => t.id === nextToolId);
-                    if (found) {
-                        nextTool = found;
-                        nextColor = (cat === 'finance') ? 'sky' : (cat === 'parenting') ? 'pink' : (cat === 'legacy') ? 'indigo' : 'orange';
-                        nextSecId = (cat === 'kids') ? 'anakku' : 'mapa-' + cat;
+                    if (found) { 
+                    nextTool = found; nextColor = (cat === 'intro') ? 'blue' : (cat === 'finance') ? 'sky' : (cat === 'parenting') ? 'pink' : (cat === 'legacy') ? 'indigo' : (cat === 'kids') ? 'orange' : (cat === 'akuan') ? 'emerald' : 'orange'; 
+                    nextSecId = (cat === 'kids') ? 'anakku' : (cat === 'akuan') ? 'akuan' : 'mapa-' + cat;
                     }
                 });
             });
@@ -1009,6 +1041,82 @@ function toggleMobileMenu() {
         icon.classList.add('fa-bars');
     }
 }
+
+async function buyAccess(packageType) {
+
+    const name =
+        prompt('Masukkan nama');
+
+    if (!name) return;
+
+    const email =
+        prompt('Masukkan email');
+
+    if (!email) return;
+
+    const phone =
+        prompt('Masukkan nombor telefon');
+
+    if (!phone) return;
+
+    try {
+
+        const response =
+            await fetch(
+
+            'https://us-central1-familipintar.cloudfunctions.net/createToyyibBill',
+
+            {
+
+                method: 'POST',
+
+                headers: {
+
+                    'Content-Type':
+                        'application/json'
+
+                },
+
+                body: JSON.stringify({
+
+                    name,
+                    email,
+                    phone,
+                    packageType
+
+                })
+
+            }
+
+        );
+
+        const result =
+            await response.json();
+
+        console.log(result);
+
+        // OPEN TOYYIBPAY
+        const billCode =
+            result.data[0].BillCode;
+
+        window.location.href =
+            `https://toyyibpay.com/${billCode}`;
+
+    }
+
+    catch (err) {
+
+        alert(
+            'Ralat pembayaran'
+        );
+
+        console.log(err);
+
+    }
+
+}
+
+
 </script>
 
 </body>
