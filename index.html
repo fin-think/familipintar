@@ -629,21 +629,7 @@ async function mainLogin() {
 
     if (!phone) return;
 
-    // ADMIN BYPASS
-    if (phone === 'admin123') {
-
-        sessionStorage.setItem('access_main', true);
-        sessionStorage.setItem('access_parenting', true);
-        sessionStorage.setItem('access_legacy', true);
-        sessionStorage.setItem('access_kids', true);
-        sessionStorage.setItem('access_akuan', true);
-
-        showApp();
-
-        return;
-
-    }
-
+   
     try {
 
         const snapshot =
@@ -651,6 +637,30 @@ async function mainLogin() {
 
         const user =
         snapshot.val();
+
+
+const adminSnapshot =
+await db.ref('admins/' + phone)
+.once('value');
+
+const isAdmin =
+adminSnapshot.val();
+
+if (isAdmin) {
+
+    sessionStorage.setItem('access_main', true);
+    sessionStorage.setItem('access_parenting', true);
+    sessionStorage.setItem('access_legacy', true);
+    sessionStorage.setItem('access_kids', true);
+    sessionStorage.setItem('access_akuan', true);
+
+    document.getElementById( 'loginOverlay' ).classList.add('hidden'); document.getElementById( 'mainContent' ).classList.remove('opacity-0'); renderAll(); applyAccessControl();
+
+    return;
+
+}
+
+
 
         if (!user) {
 
@@ -678,7 +688,7 @@ async function mainLogin() {
 
         }
 
-        showApp();
+        document.getElementById( 'loginOverlay' ).classList.add('hidden'); document.getElementById( 'mainContent' ).classList.remove('opacity-0'); renderAll(); applyAccessControl();
 
     }
 
