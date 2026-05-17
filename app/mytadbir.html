@@ -132,7 +132,7 @@
           const [age, setAge] = useState(30);
           const [gajiHakiki, setGajiHakiki] = useState(4000);
           const [pendapatanSampingan, setPendapatanSampingan] = useState(500);
-          const [currentExpenses, setCurrentExpenses] = useState(3000);
+          
           const [kwspPotongan, setKwspPotongan] = useState(11);
           const [socsoPotongan, setSocsoPotongan] = useState(50);
 
@@ -172,12 +172,19 @@
           const [uniAge, setUniAge] = useState(18);
           const [currentEduCost, setCurrentEduCost] = useState(50000);
 
+const [sspnFund, setSspnFund] = useState(5000);
+const [asbAnakFund, setAsbAnakFund] = useState(5000);
+const [educationInflation, setEducationInflation] = useState(6);
+const [universityType, setUniversityType] = useState('local');
+
+
           // === STATE SENARIO MATI & PELINDUNG ===
           const [funeralCost, setFuneralCost] = useState(2000);
           const [sepencarianPercent, setSepencarianPercent] = useState(50); 
           const [wasiatPercent, setWasiatPercent] = useState(0); 
           const [hasSpouse, setHasSpouse] = useState(true);
-          const [parentsAlive, setParentsAlive] = useState(2); 
+          const [hasMother, setHasMother] = useState(false);
+          const [hasFather, setHasFather] = useState(false); 
           const [currentTakaful, setCurrentTakaful] = useState(100000);
 
           // === DERIVED VARIABLES (PENGIRAAN AUTOMATIK KESELURUHAN) ===
@@ -212,6 +219,19 @@
                       if (currentMonth === retirementMonth) {
                           balanceAtRetirement = simDebts.reduce((sum, d) => sum + Math.max(0, d.currentBalance), 0);
                       }
+
+                       if (
+  balanceAtRetirement === 0 &&
+  currentMonth >= retirementMonth
+) {
+
+  balanceAtRetirement =
+    simDebts.reduce(
+      (sum, d) =>
+        sum + Math.max(0, d.currentBalance),
+      0
+    );
+}
                       
                       currentMonth++;
                       let monthlyExtraAvailable = extraBudget;
@@ -315,11 +335,65 @@ const totalMonthlyCommitments =
 const monthlyBalance =
   netIncomeMonthly - totalMonthlyCommitments;
 
-const financialScore =
-  monthlyBalance >= 2000 ? 90 :
-  monthlyBalance >= 1000 ? 75 :
-  monthlyBalance >= 300 ? 60 :
-  monthlyBalance >= 0 ? 45 : 25;
+const retirementShortfall =
+  Math.max(
+    0,
+    totalFutureNeeds -
+    futureAssetsAfterEducation
+  );
+
+let financialScore = 0;
+
+// CASHFLOW
+if (monthlyBalance >= 3000)
+  financialScore += 25;
+else if (monthlyBalance >= 1500)
+  financialScore += 20;
+else if (monthlyBalance >= 500)
+  financialScore += 10;
+else if (monthlyBalance >= 0)
+  financialScore += 5;
+else
+  financialScore -= 20;
+
+// DSR
+if (debtAnalysisResult.totalCommitment <= 0)
+  financialScore += 25;
+else if (debtAnalysisResult.dsr <= 35)
+  financialScore += 20;
+else if (debtAnalysisResult.dsr <= 55)
+  financialScore += 10;
+else if (debtAnalysisResult.dsr <= 70)
+  financialScore -= 10;
+else
+  financialScore -= 25;
+
+// EMERGENCY FUND
+const emergencyMonths =
+  currentMonthlyExpenses > 0
+    ? tunai / currentMonthlyExpenses
+    : 0;
+
+if (emergencyMonths >= 6)
+  financialScore += 20;
+else if (emergencyMonths >= 3)
+  financialScore += 10;
+else
+  financialScore -= 10;
+
+// RETIREMENT
+if (retirementShortfall <= 0)
+  financialScore += 20;
+else if (retirementShortfall <= 200000)
+  financialScore += 10;
+else
+  financialScore -= 15;
+
+// HARD CAP
+financialScore = Math.max(
+  0,
+  Math.min(100, financialScore)
+);
 
 const financialStatus =
   financialScore >= 80 ? 'Sangat Sihat' :
@@ -337,23 +411,97 @@ const financialStatus =
           const yearsToRetire = Math.max(0, retireAge - age);
           const yearsInRetirement = Math.max(0, lifeExpectancy - retireAge);
           
-          const futureMonthlyExpenses = currentExpenses * Math.pow(1 + (inflationRate / 100), yearsToRetire);
-          const retirementCorpusNeeded = futureMonthlyExpenses * 12 * yearsInRetirement;
+          const futureMonthlyExpenses = currentMonthlyExpenses * Math.pow(1 + (inflationRate / 100), yearsToRetire);
+          const retirementCorpusNeeded =
+  yearlyRetirementExpense *
+  (
+    (1 - Math.pow(
+      1 + (inflationRate - assetReturnRate) / 100,
+      -yearsInRetirement
+    )) /
+    ((assetReturnRate - inflationRate) / 100)
+  );
           
-          const futureEduCostTotal = childrenData.reduce((total, child) => {
-            const yearsToUni = Math.max(0, uniAge - child.age);
-            return total + (currentEduCost * Math.pow(1 + (inflationRate / 100), yearsToUni));
-          }, 0);
+ 
+const totalEducationFundNow =
+  sspnFund +
+  asbAnakFund;
+
+const futureEduCostTotal =
+  childrenData.reduce((total, child) => {
+
+    const yearsToUni =
+      Math.max(0, uniAge - child.age);
+
+    // multiplier university
+    const adjustedCost =
+      universityType === 'overseas'
+        ? currentEduCost * 5
+        : currentEduCost;
+
+    const futureCost =
+      adjustedCost *
+      Math.pow(
+        1 + (educationInflation / 100),
+        yearsToUni
+      );
+
+    return total + futureCost;
+
+  }, 0);
+
+const earliestChildYears =
+  Math.min(
+    ...childrenData.map(
+      child => Math.max(0, uniAge - child.age)
+    )
+  );
+
+const futureEducationFund =
+  totalEducationFundNow *
+  Math.pow(
+    1 + (assetReturnRate / 100),
+    earliestChildYears
+  );
+
+const educationShortfall =
+  Math.max(
+    0,
+    futureEduCostTotal - futureEducationFund
+  );
+
+const educationCatchupMonthly =
+  yearsToRetire > 0
+    ? educationShortfall /
+(
+  Math.max(1, earliestChildYears) * 12
+)
+    : 0;
 
           const futureLiquidAssets = totalLiquidAssets * Math.pow(1 + (assetReturnRate / 100), yearsToRetire);
 
-          const bakiUntukBersara = Math.max(0, futureLiquidAssets - unjuranTotalDebts - futureEduCostTotal);
+// Tolak dana pendidikan anak dahulu
+const futureAssetsAfterEducation =
+  Math.max(
+    0,
+    futureLiquidAssets - futureEduCostTotal
+  );
+
+          const bakiUntukBersara = Math.max(
+  0,
+  futureAssetsAfterEducation -
+  unjuranTotalDebts
+);
           const yearlyRetirementExpense = futureMonthlyExpenses * 12;
-          const yearsItWillLast = yearlyRetirementExpense > 0 ? (bakiUntukBersara / yearlyRetirementExpense) : 0;
+          const yearsItWillLast =
+  yearlyRetirementExpense > 0
+    ? futureAssetsAfterEducation /
+      yearlyRetirementExpense
+    : 0;
           const exhaustAge = retireAge + yearsItWillLast;
 
           const totalFutureNeeds = unjuranTotalDebts + futureEduCostTotal + retirementCorpusNeeded;
-          const retirementShortfall = Math.max(0, totalFutureNeeds - futureLiquidAssets);
+          
           const extraSavingsNeeded = yearsToRetire > 0 ? (retirementShortfall / (yearsToRetire * 12)) : 0;
           const sustainableMonthlyExpense = yearsInRetirement > 0 ? (bakiUntukBersara / (yearsInRetirement * 12)) : 0;
 
@@ -387,18 +535,41 @@ const financialStatus =
               }
             }
 
-            if (parentsAlive > 0) {
-              let parentShareCalc = (numSons > 0 || numDaughters > 0) ? 1/6 : 1/3;
-              if (parentsAlive === 2 || parentsAlive === 1) {
-                  motherShare = parentShareCalc;
-                  const parentName = parentsAlive === 1 ? 'Ibu/Bapa' : 'Ibu';
-                  distribution.push({ name: parentName, amount: pool * motherShare, percent: motherShare * 100 });
-              }
-              if (parentsAlive === 2) {
-                  fatherShare = (numSons > 0 || numDaughters > 0) ? 1/6 : 0;
-                  distribution.push({ name: 'Bapa', amount: pool * fatherShare, percent: fatherShare * 100 });
-              }
-            }
+            // ======================
+// IBU
+// ======================
+
+if (hasMother) {
+
+  motherShare =
+    (numSons > 0 || numDaughters > 0)
+      ? 1/6
+      : 1/3;
+
+  distribution.push({
+    name: 'Ibu',
+    amount: pool * motherShare,
+    percent: motherShare * 100
+  });
+}
+
+// ======================
+// BAPA
+// ======================
+
+if (hasFather) {
+
+  fatherShare =
+    (numSons > 0 || numDaughters > 0)
+      ? 1/6
+      : 0;
+
+  distribution.push({
+    name: 'Bapa',
+    amount: pool * fatherShare,
+    percent: fatherShare * 100
+  });
+}
 
             if (numSons === 0 && numDaughters > 0) {
               daughtersShare = numDaughters === 1 ? 1/2 : 2/3;
@@ -426,7 +597,7 @@ const financialStatus =
                 if (numDaughters > 0) {
                   distribution.push({ name: `Anak Perempuan (${numDaughters} orang)`, amount: valuePerPart * numDaughters, percent: (valuePerPart * numDaughters / pool) * 100 });
                 }
-              } else if (parentsAlive === 2) {
+              } else if (hasFather) {
                 let fatherIndex = distribution.findIndex(d => d.name === 'Bapa');
                 if(fatherIndex !== -1) {
                     distribution[fatherIndex].amount += remainingAmount;
@@ -449,7 +620,13 @@ const financialStatus =
           const spouseFaraidAmount = spouseFaraidObj ? spouseFaraidObj.amount : 0;
           
           const totalSpouseSurvivalFund = sepencarianAmount + spouseFaraidAmount + currentTakaful;
-          const familySurvivalNeeds = currentExpenses * 12 * 10;
+          const familySurvivalNeeds =
+  futureMonthlyExpenses *
+  12 *
+  Math.min(
+    10,
+    Math.max(5, childrenData.length * 2)
+  );
           const incomeProtectionGap = Math.max(0, familySurvivalNeeds - totalSpouseSurvivalFund);
 
           // --- SUSUNAN TAB BAHARU ---
@@ -472,8 +649,53 @@ const financialStatus =
 
           // Pembolehubah d'DEBT (DSR Health Card)
           let dsrColor = "sky";
-          let dsrStatusText = "Sangat Sihat";
-          let dsrDesc = "Kewangan anda sangat kukuh. Anda mempunyai fleksibiliti yang tinggi dalam aliran tunai bulanan dan mudah untuk membuat pinjaman jika perlu.";
+let dsrStatusText = "Sangat Sihat";
+let dsrDesc = "";
+
+if (debtAnalysisResult.totalCommitment <= 0) {
+
+  dsrColor = "sky";
+  dsrStatusText = "Tiada Komitmen Hutang";
+  dsrDesc =
+    "Anda tidak mempunyai komitmen hutang bulanan.";
+
+}
+
+else if (debtAnalysisResult.dsr <= 35) {
+
+  dsrColor = "sky";
+  dsrStatusText = "Sangat Sihat";
+  dsrDesc =
+    "Tahap hutang sangat terkawal.";
+
+}
+
+else if (debtAnalysisResult.dsr <= 55) {
+
+  dsrColor = "amber";
+  dsrStatusText = "Sederhana";
+  dsrDesc =
+    "Tahap hutang masih terkawal.";
+
+}
+
+else if (debtAnalysisResult.dsr <= 70) {
+
+  dsrColor = "orange";
+  dsrStatusText = "Amaran";
+  dsrDesc =
+    "Komitmen hutang agak tinggi.";
+
+}
+
+else {
+
+  dsrColor = "rose";
+  dsrStatusText = "Kritikal";
+  dsrDesc =
+    "Komitmen hutang terlalu tinggi.";
+
+}
           
           if (debtAnalysisResult.dsr > 35 && debtAnalysisResult.dsr <= 55) { dsrColor = "amber"; dsrStatusText = "Sederhana"; dsrDesc = "Tahap hutang terkawal. Anda masih layak untuk membuat pinjaman, tetapi pastikan simpanan kecemasan mencukupi."; }
           else if (debtAnalysisResult.dsr > 55 && debtAnalysisResult.dsr <= 70) { dsrColor = "orange"; dsrStatusText = "Amaran"; dsrDesc = "Berjaga-jaga! Sebahagian besar gaji anda habis untuk membayar hutang. Sukar untuk bank meluluskan sebarang permohonan pinjaman baru."; }
@@ -566,7 +788,7 @@ const financialStatus =
                       <div><span className="text-slate-500 block text-xs">Umur / Jantina:</span> <span className="font-semibold text-base">{age} Tahun ({userGender})</span></div>
                       <div><span className="text-slate-500 block text-xs">Tanggungan Anak:</span> <span className="font-semibold text-base">{childrenData.length} Orang</span></div>
                       <div><span className="text-slate-500 block text-xs">Pendapatan Tahunan:</span> <span className="font-semibold text-base">{formatRM(annualIncome)}</span></div>
-                      <div><span className="text-slate-500 block text-xs">Perbelanjaan Bulanan:</span> <span className="font-semibold text-base">{formatRM(currentExpenses)}</span></div>
+                      <div><span className="text-slate-500 block text-xs">Perbelanjaan Bulanan:</span> <span className="font-semibold text-base">{formatRM(currentMonthlyExpenses)}</span></div>
                     </div>
                   </section>
 
@@ -648,7 +870,25 @@ const financialStatus =
                         {incomeProtectionGap > 0 && <li>Sediakan dana pantas melalui pampasan <strong className="text-slate-900">Hibah Takaful</strong> bernilai minimum <strong>RM{formatRM(incomeProtectionGap)}</strong> untuk waris anda segera.</li>}
                         {totalLiquidAssets > 0 && <li>Wujudkan <strong className="text-slate-900">Amanah Tunai (Cash Trust)</strong> bagi mengelakkan akaun bank dibekukan, dan memudahkan waris mengeluarkan tunai pantas.</li>}
                         {hasSpouse && <li>Daftarkan <strong className="text-slate-900">Deklarasi Harta Sepencarian</strong> secara rasmi untuk menjamin pemilikan ({sepencarianPercent}%) aset fizikal oleh isteri/suami anda.</li>}
-                        <li>Sediakan <strong>Wasiat Pentadbir</strong> untuk memastikan proses penyelesaian hutang tertunggak (RM{formatRM(totalDebts)}) berjalan lancar.</li>
+                        {totalDebts > 0 ? (
+
+<li>
+  Sediakan <strong>Wasiat Pentadbir</strong>
+  untuk memastikan proses penyelesaian
+  hutang tertunggak
+  ({formatRM(totalDebts)})
+  berjalan lancar tanpa membebankan waris.
+</li>
+
+) : (
+
+<li>
+  Sediakan <strong>Wasiat Pentadbir</strong>
+  bagi memudahkan pengurusan pusaka,
+  hibah dan agihan harta kepada waris.
+</li>
+
+)}
                       </ul>
                     </div>
                   </section>
@@ -690,12 +930,12 @@ const financialStatus =
               </header>
 
               <main className="max-w-6xl mx-auto mt-8 px-4">
-                <div className="flex overflow-x-auto gap-3 mb-8 pb-4 snap-x hide-scrollbar">
+                <div className="flex overflow-x-auto whitespace-nowrap gap-3 mb-8 pb-4 snap-x snap-mandatory hide-scrollbar">
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex-none w-[160px] md:flex-1 md:w-auto flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-medium transition-all snap-center ${
+                      className={`shrink-0 min-w-[140px] md:flex-1 md:min-w-0 flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-medium transition-all snap-center ${
                         activeTab === tab.id 
                           ? 'bg-sky-600 text-white shadow-lg scale-105 transform border-sky-500' 
                           : 'bg-white text-slate-600 hover:bg-sky-50 border border-slate-200'
@@ -945,6 +1185,40 @@ const financialStatus =
                             <Input label="Umur Masuk Universiti" value={uniAge} onChange={e => setUniAge(Number(e.target.value))} />
                             <Input label="Kos Semasa (Per Anak)" value={currentEduCost} onChange={e => setCurrentEduCost(Number(e.target.value))} prefix="RM" />
                           </div>
+                        <Input
+  label="Dana SSPN"
+  value={sspnFund}
+  onChange={e => setSspnFund(Number(e.target.value))}
+  prefix="RM"
+/>
+
+<Input
+  label="Dana ASB Anak"
+  value={asbAnakFund}
+  onChange={e => setAsbAnakFund(Number(e.target.value))}
+  prefix="RM"
+/>
+
+<Input
+  label="Inflasi Pendidikan (%)"
+  value={educationInflation}
+  onChange={e => setEducationInflation(Number(e.target.value))}
+/>
+
+<div>
+  <label className="text-sm font-semibold text-slate-700 block mb-1">
+    Jenis Universiti
+  </label>
+
+  <select
+    value={universityType}
+    onChange={(e) => setUniversityType(e.target.value)}
+    className="w-full border border-slate-300 rounded-lg py-2 px-3 bg-white"
+  >
+    <option value="local">Local University</option>
+    <option value="overseas">Overseas University</option>
+  </select>
+</div>
                         </Card>
                       </div>
                     </div>
@@ -1009,12 +1283,29 @@ const financialStatus =
                               <input type="checkbox" checked={hasSpouse} onChange={(e) => setHasSpouse(e.target.checked)} className="accent-sky-600 w-5 h-5" />
                               <span className="font-semibold text-slate-700">Pasangan Masih Hidup</span>
                             </label>
-                            <div className="flex flex-col gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                              <label className="font-semibold text-slate-700">Status Ibu / Bapa:</label>
-                              <select value={parentsAlive} onChange={(e) => setParentsAlive(Number(e.target.value))} className="bg-white border border-slate-300 rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-sky-500">
-                                <option value={0}>Keduanya Tiada</option><option value={1}>Seorang Hidup</option><option value={2}>Keduanya Hidup</option>
-                              </select>
-                            </div>
+                            <div className="space-y-3">
+
+  <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+    <input
+      type="checkbox"
+      checked={hasMother}
+      onChange={e => setHasMother(e.target.checked)}
+      className="w-4 h-4"
+    />
+    Ibu Masih Hidup
+  </label>
+
+  <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+    <input
+      type="checkbox"
+      checked={hasFather}
+      onChange={e => setHasFather(e.target.checked)}
+      className="w-4 h-4"
+    />
+    Bapa Masih Hidup
+  </label>
+
+</div>
                           </div>
                         </Card>
                       </div>
@@ -1078,98 +1369,7 @@ const financialStatus =
 
   </div>
 
-  <div className="mt-6 bg-white/5 p-5 rounded-xl">
-    <h4 className="font-bold mb-3">
-      Pelan Tindakan
-    </h4>
 
-<div className="space-y-3 text-sm">
-
-  <div className="bg-slate-800/40 border border-white/10 p-4 rounded-xl">
-  <p className="font-bold text-white mb-1">
-    Ringkasan Kedudukan Kewangan
-  </p>
-  <p className="text-slate-300">
-    Pelan tindakan di bawah dijana berdasarkan analisis aliran tunai, komitmen hutang dan baki bulanan semasa anda.
-  </p>
-</div>
-
-  {monthlyBalance < 0 && (
-    <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
-      <p className="font-bold text-red-300 mb-1">
-        🚨 Cashflow Kritikal
-      </p>
-      <p className="text-slate-300">
-        Perbelanjaan bulanan melebihi pendapatan bersih.
-        Fokus kurangkan lifestyle & hutang jangka pendek segera.
-      </p>
-    </div>
-  )}
-
-  {debtAnalysisResult.dsr > 60 && (
-    <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl">
-      <p className="font-bold text-orange-300 mb-1">
-        ⚠️ DSR Tinggi
-      </p>
-      <p className="text-slate-300">
-        Komitmen hutang terlalu besar.
-        Disarankan debt restructuring atau consolidation.
-      </p>
-    </div>
-  )}
-
-  {monthlyBalance > 1000 && (
-    <div className="bg-sky-500/10 border border-sky-500/20 p-4 rounded-xl">
-      <p className="font-bold text-sky-300 mb-1">
-        ✅ Cashflow Positif
-      </p>
-      <p className="text-slate-300">
-        Anda mempunyai lebihan tunai yang sihat.
-        Fokus bina emergency fund & pelaburan jangka panjang.
-      </p>
-    </div>
-  )}
-
-  {financialScore < 50 && (
-    <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl">
-      <p className="font-bold text-rose-300 mb-1">
-        🧨 Risiko Kewangan Tinggi
-      </p>
-      <p className="text-slate-300">
-        Jika berlaku kecemasan, kedudukan kewangan boleh terjejas teruk.
-        Utamakan tunai kecemasan minimum 6 bulan.
-      </p>
-    </div>
-  )}
-
-  {financialScore >= 80 && (
-    <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl">
-      <p className="font-bold text-cyan-300 mb-1">
-        🚀 Financial Position Kukuh
-      </p>
-      <p className="text-slate-300">
-        Kedudukan kewangan anda berada pada tahap stabil.
-        Sesuai untuk fokus kepada wealth building & asset growth.
-      </p>
-    </div>
-  )}
-
-  {financialScore >= 50 &&
-    financialScore < 80 &&
-    monthlyBalance >= 0 &&
-    debtAnalysisResult.dsr <= 60 && (
-      <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl">
-        <p className="font-bold text-yellow-300 mb-1">
-          ⚡ Kedudukan Sederhana Stabil
-        </p>
-        <p className="text-slate-300">
-          Kedudukan kewangan masih terkawal tetapi memerlukan disiplin simpanan dan pengurangan komitmen jangka panjang.
-        </p>
-      </div>
-  )}
-
-</div>
-  </div>
 </Card>
 
                       {/* Baris 1: Harta Bersih & Zakat */}
@@ -1573,6 +1773,60 @@ const financialStatus =
 
 </Card>
 
+<Card className="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-800 text-white border-none shadow-xl">
+  <h3 className="text-lg font-bold mb-5 flex items-center gap-2">
+    🎓 Rumusan Dana Pendidikan Anak
+  </h3>
+
+<div className="grid grid-cols-2 gap-4">
+
+  <div className="bg-white/5 p-4 rounded-xl">
+    <p className="text-sm text-slate-400">
+      Dana Pendidikan Semasa
+    </p>
+
+    <p className="text-2xl font-black text-sky-400">
+      {formatRM(totalEducationFundNow)}
+    </p>
+  </div>
+
+  <div className="bg-white/5 p-4 rounded-xl">
+    <p className="text-sm text-slate-400">
+      Jenis Universiti
+    </p>
+
+    <p className="text-xl font-bold text-white">
+      {universityType === 'local'
+        ? 'Local'
+        : 'Overseas'}
+    </p>
+  </div>
+
+</div>
+
+
+  <div className="space-y-6 mt-5">
+
+    <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+      <div className="flex justify-between items-center mb-2">
+        <p className="text-slate-300">
+          Jumlah Kos Pendidikan Masa Hadapan
+        </p>
+
+        <p className="text-2xl font-black text-sky-400">
+          {formatRM(futureEduCostTotal)}
+        </p>
+      </div>
+
+      <p className="text-sm text-slate-400">
+        Berdasarkan inflasi pendidikan & umur universiti anak.
+      </p>
+    </div>
+
+
+
+  </div>
+</Card>
 
                       {/* Baris 3: Unjuran Persaraan & Pelan Tindakan */}
                       <Card className="border-blue-200 bg-blue-50/30">
@@ -1675,7 +1929,7 @@ const financialStatus =
                               <span className="font-semibold text-white">{formatRM(totalSpouseSurvivalFund)}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm border-b border-slate-700 pb-4">
-                              <span className="text-slate-300">Keperluan Keluarga 10 Tahun (RM{formatRM(currentExpenses)}/bln):</span>
+                              <span className="text-slate-300">Keperluan Keluarga 10 Tahun (RM{formatRM(currentMonthlyExpenses)}/bln):</span>
                               <span className="font-semibold text-white">{formatRM(familySurvivalNeeds)}</span>
                             </div>
                             <div className="pt-2 text-center bg-slate-700/50 p-4 rounded-xl">
@@ -1693,24 +1947,24 @@ const financialStatus =
                             {incomeProtectionGap > 0 && (
                               <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
                                 <ShieldCheck size={20} className="text-red-500 shrink-0 mt-0.5" />
-                                <p className="text-sm text-slate-700"><strong className="text-red-700">Hibah Takaful:</strong> Sediakan minimum polisi <strong>RM{formatRM(incomeProtectionGap)}</strong> dengan segera sebagai penggantian pendapatan (Income Replacement).</p>
+                                <p className="text-sm text-slate-700"><strong className="text-red-700">Hibah Takaful:</strong> Sediakan minimum polisi <strong>{formatRM(incomeProtectionGap)}</strong> dengan segera sebagai penggantian pendapatan (Income Replacement).</p>
                               </div>
                             )}
                             {totalLiquidAssets > 0 && (
                               <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
                                 <Wallet size={20} className="text-blue-500 shrink-0 mt-0.5" />
-                                <p className="text-sm text-slate-700"><strong className="text-blue-700">Amanah Tunai:</strong> Cipta 'Cash Trust' dari <strong>RM{formatRM(totalLiquidAssets)}</strong> aset cair anda untuk elak akaun beku dan beri akses tunai pantas 7 hari.</p>
+                                <p className="text-sm text-slate-700"><strong className="text-blue-700">Amanah Tunai:</strong> Cipta 'Cash Trust' dari <strong>{formatRM(totalLiquidAssets)}</strong> aset cair anda untuk elak akaun beku dan beri akses tunai pantas 7 hari.</p>
                               </div>
                             )}
                             {hasSpouse && (
                               <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
                                 <Heart size={20} className="text-amber-500 shrink-0 mt-0.5" />
-                                <p className="text-sm text-slate-700"><strong className="text-amber-700">Harta Sepencarian:</strong> Daftarkan deklarasi aset (cth: Rumah RM{formatRM(rumahValue)}) untuk jamin 50%-100% hak milik mutlak pasangan anda.</p>
+                                <p className="text-sm text-slate-700"><strong className="text-amber-700">Harta Sepencarian:</strong> Daftarkan deklarasi aset <strong>(cth: Rumah {formatRM(rumahValue)})</strong> untuk jamin 50%-100% hak milik mutlak pasangan anda.</p>
                               </div>
                             )}
                             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
                               <BookOpen size={20} className="text-slate-500 shrink-0 mt-0.5" />
-                              <p className="text-sm text-slate-700"><strong className="text-slate-800">Wasiat Pentadbir:</strong> Lantik pentadbir profesional untuk pastikan hutang tertunggak (<strong>RM{formatRM(totalDebts)}</strong>) dilunaskan lancar tanpa bebankan waris.</p>
+                              <p className="text-sm text-slate-700"><strong className="text-slate-800">Wasiat Pentadbir:</strong> Lantik pentadbir profesional untuk pastikan hutang tertunggak (<strong>{formatRM(totalDebts)}</strong>) dilunaskan lancar tanpa bebankan waris.</p>
                             </div>
                           </div>
                         </Card>
@@ -1719,6 +1973,250 @@ const financialStatus =
                     </div>
                   )}
                 </div>
+
+<Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-none shadow-2xl mt-8">
+
+  <h3 className="text-xl font-black mb-6 flex items-center gap-2">
+    🧠 Rumusan AI & Pelan Tindakan
+  </h3>
+
+  <div className="space-y-6">
+
+    {/* ========================= */}
+    {/* PELAN TINDAKAN */}
+    {/* ========================= */}
+
+  <div className="mt-6 bg-white/5 p-5 rounded-xl">
+    <h4 className="font-bold mb-3">
+      Pelan Tindakan
+    </h4>
+
+<div className="space-y-3 text-sm">
+
+  {/* CASHFLOW */}
+
+  {monthlyBalance < 0 && (
+    <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
+      <p className="font-bold text-red-300 mb-1">
+        🚨 Cashflow Negatif
+      </p>
+
+      <p className="text-slate-300">
+        Perbelanjaan melebihi pendapatan bersih bulanan.
+        Fokus kurangkan lifestyle leakage dan hutang jangka pendek.
+      </p>
+    </div>
+  )}
+
+  {/* DSR */}
+
+  {debtAnalysisResult.totalCommitment <= 0 ? (
+
+    <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
+      <p className="font-bold text-emerald-300 mb-1">
+        ✅ Bebas Hutang
+      </p>
+
+      <p className="text-slate-300">
+        Anda tidak mempunyai komitmen hutang aktif.
+        Fokus kepada wealth accumulation & asset growth.
+      </p>
+    </div>
+
+  ) : debtAnalysisResult.dsr > 70 ? (
+
+    <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl">
+      <p className="font-bold text-rose-300 mb-1">
+        ⚠️ DSR Kritikal
+      </p>
+
+      <p className="text-slate-300">
+        Nisbah hutang terlalu tinggi dan boleh menjejaskan kestabilan kewangan keluarga.
+        Pertimbangkan debt restructuring/consolidation segera.
+      </p>
+    </div>
+
+  ) : debtAnalysisResult.dsr > 55 ? (
+
+    <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl">
+      <p className="font-bold text-orange-300 mb-1">
+        ⚠️ DSR Tinggi
+      </p>
+
+      <p className="text-slate-300">
+        Komitmen hutang masih berat.
+        Kurangkan hutang tidak produktif sebelum fokus pelaburan agresif.
+      </p>
+    </div>
+
+  ) : (
+
+    <div className="bg-sky-500/10 border border-sky-500/20 p-4 rounded-xl">
+      <p className="font-bold text-sky-300 mb-1">
+        ✅ DSR Terkawal
+      </p>
+
+      <p className="text-slate-300">
+        Kedudukan hutang masih dalam julat sihat dan terkawal.
+      </p>
+    </div>
+
+  )}
+
+  {/* RETIREMENT */}
+
+  {retirementShortfall > 0 ? (
+
+    <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl">
+      <p className="font-bold text-amber-300 mb-1">
+        🏖️ Persaraan Belum Kukuh
+      </p>
+
+      <p className="text-slate-300">
+        Simpanan persaraan dijangka tidak mencukupi.
+        Tingkatkan simpanan pelaburan jangka panjang secara konsisten.
+      </p>
+    </div>
+
+  ) : (
+
+    <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
+      <p className="font-bold text-emerald-300 mb-1">
+        ✅ Persaraan Stabil
+      </p>
+
+      <p className="text-slate-300">
+        Unjuran menunjukkan simpanan persaraan berada pada tahap memuaskan.
+      </p>
+    </div>
+
+  )}
+
+  {/* EDUCATION */}
+
+  {educationShortfall > 0 && (
+
+    <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl">
+      <p className="font-bold text-indigo-300 mb-1">
+        🎓 Dana Pendidikan Tidak Mencukupi
+      </p>
+
+      <p className="text-slate-300">
+        Dijangka shortfall sebanyak
+        {' '}
+        <strong>
+          {formatRM(educationShortfall)}
+        </strong>
+        .
+        Pertimbangkan SSPN, ASB Anak atau pelaburan khusus pendidikan.
+      </p>
+    </div>
+
+  )}
+
+  {/* TAKAFUL */}
+
+  {incomeProtectionGap > 0 && (
+
+    <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl">
+      <p className="font-bold text-cyan-300 mb-1">
+        🛡️ Protection Gap Tinggi
+      </p>
+
+      <p className="text-slate-300">
+        Perlindungan kewangan keluarga masih belum mencukupi.
+        Pertimbangkan Hibah Takaful untuk kesinambungan hidup waris.
+      </p>
+    </div>
+
+  )}
+
+  {/* EMERGENCY FUND */}
+
+  {emergencyMonths < 3 && (
+
+    <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl">
+      <p className="font-bold text-yellow-300 mb-1">
+        💰 Dana Kecemasan Rendah
+      </p>
+
+      <p className="text-slate-300">
+        Simpanan tunai kecemasan kurang daripada 3 bulan perbelanjaan.
+      </p>
+    </div>
+
+  )}
+
+</div>
+  </div>
+
+    {/* ========================= */}
+    {/* RUMUSAN PENDIDIKAN */}
+    {/* ========================= */}
+
+    <div className={`border p-6 rounded-2xl ${
+      futureEducationFund >= futureEduCostTotal
+        ? 'bg-emerald-500/10 border-emerald-500/20'
+        : 'bg-red-500/10 border-red-500/20'
+    }`}>
+
+      <h4 className="font-bold text-lg mb-4">
+        🎓 Rumusan Dana Pendidikan Anak
+      </h4>
+
+      {futureEducationFund >= futureEduCostTotal ? (
+        <>
+
+          <p className="font-bold text-emerald-300 mb-2">
+            ✅ Dana Pendidikan Dijangka Mencukupi
+          </p>
+
+          <p className="text-slate-300">
+            Dana pendidikan anak dijangka masih mampu ditanggung tanpa menjejaskan persaraan.
+          </p>
+
+        </>
+      ) : (
+        <>
+
+          <p className="font-bold text-red-300 mb-3 text-lg">
+            ⚠️ Dana Pendidikan Berisiko Tidak Mencukupi
+          </p>
+
+          <p className="text-slate-300 mb-5 leading-relaxed">
+            Dana pendidikan dan persaraan dijangka bertembung jika tiada tindakan tambahan dibuat.
+          </p>
+
+          <div className="space-y-2 text-sm text-slate-300">
+
+            <div className="bg-white/5 p-3 rounded-lg">
+              📌 Tingkatkan simpanan pendidikan bulanan.
+            </div>
+
+            <div className="bg-white/5 p-3 rounded-lg">
+              📌 Gunakan SSPN / ASB Anak / dana pelaburan khusus.
+            </div>
+
+            <div className="bg-white/5 p-3 rounded-lg">
+              📌 Kurangkan hutang sebelum umur persaraan.
+            </div>
+
+            <div className="bg-white/5 p-3 rounded-lg">
+              📌 Tingkatkan aset yang memberi cashflow pasif jangka panjang.
+            </div>
+
+
+          </div>
+
+        </>
+      )}
+
+    </div>
+
+  </div>
+
+</Card>
+
 
                 {/* --- BUTANG NAVIGASI HALAMAN BAWAH --- */}
                 <div className="mt-8 flex justify-between items-center border-t border-slate-200 pt-6">
