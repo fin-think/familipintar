@@ -281,7 +281,7 @@ Dapatkan Full Access
 
            <div class="mb-6 bg-white rounded-[2rem] p-6 md:p-4 shadow-sm border border-slate-100">
     <p class="text-sm md:text-base text-slate-600 text-center leading-relaxed w-full">
-        Jika anda belum bersedia menerokai perjalanan diri dan keluarga dalam Famili Pintar, anda boleh mengira nilai hidup, mencuba ujian dan permainan bersama si cilik, menikmati eBook, belajar bahasa baru atau mengesyorkan pelayaran solo kepada saudara dan teman melalui menu di atas.
+        Jika anda belum bersedia menerokai perjalanan diri dan keluarga dalam Famili Pintar, anda boleh menikmati eBook, belajar bahasa baru atau mengesyorkan pelayaran solo kepada saudara dan teman melalui menu di atas.
     </p>
 </div>
             
@@ -386,18 +386,27 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
                         <a href="#mapa-parenting" onclick="hideProfile()" class="hover:text-sky-200 transition">Keharmonian</a>
                         <a href="#mapa-legacy" onclick="hideProfile()" class="hover:text-sky-200 transition">Legasi</a>
                         <a href="#anakku" onclick="hideProfile()" class="hover:text-sky-200 transition">Zuriat</a>
-                        <a href="#akuan" onclick="hideProfile()" class="hover:text-sky-200 transition">Akuanku</a>
-                        <button onclick="mainLogin()" class="hover:text-sky-200 transition flex items-center">
+                        <a href="#akuan" onclick="hideProfile()" class="hover:text-sky-200 transition">myTADBIR</a>
+                    <button onclick="openAccessModal()" class="hover:text-sky-200 transition flex items-center">
     <i class="fa-solid fa-right-to-bracket mr-1"></i> Login Akses
 </button>
+
+
                         <button onclick="logout()" class="bg-sky-400 px-3 py-1 rounded text-xs hover:bg-red-600 transition text-white">Log Keluar</button>
                     </div>
-                    <div class="md:hidden flex items-center"> 
-                    <button onclick="mainLogin()" class="text-2xl mr-4"> <i class="fa-solid fa-right-to-bracket"></i> </button> 
-                    <button onclick="logout()" class="text-xl"> <i class="fa-solid fa-right-from-bracket"></i> </button> </div>
+                   <div class="md:hidden ml-auto flex items-center gap-4"> 
+                    <button onclick="openAccessModal()" class="text-2xl"> 
+                        <i class="fa-solid fa-right-to-bracket"></i> </button> 
+                        <button onclick="toggleMobileMenu()" class="text-2xl"> 
+                            <i class="fa-solid fa-bars"></i> </button> 
+                            </div>
+
+                  
                 </div>
             </div>
         </nav>
+
+<!-- MOBILE MENU --> <div id="journalmobileMenu" class="fixed top-0 left-0 w-full h-full bg-slate-900/95 z-[9999] hidden p-8 text-white"> <div class="flex justify-between items-center mb-10"> <h2 class="text-2xl font-extrabold"> Famili Pintar </h2> <button onclick="toggleMobileMenu()" class="text-3xl"> <i class="fa-solid fa-xmark"></i> </button> </div> <div class="flex flex-col gap-5 text-lg font-semibold"> <a href="#mapa-finance" onclick="toggleMobileMenu(); hideProfile()"> Kewangan </a> <a href="#mapa-parenting" onclick="toggleMobileMenu(); hideProfile()"> Keharmonian </a> <a href="#mapa-legacy" onclick="toggleMobileMenu(); hideProfile()"> Legasi </a> <a href="#anakku" onclick="toggleMobileMenu(); hideProfile()"> Zuriat </a> <a href="#akuan" onclick="toggleMobileMenu(); hideProfile()"> myTADBIR </a> <button onclick="logout()" class="text-left text-red-300 font-bold mt-4"> Log Keluar </button> </div> </div>
 
         <header id="heroSection" class="bg-gradient-to-b from-sky-400 to-sky-600 text-white py-16 text-center px-4">
             <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Anda tidak perlu ada semua jawapan sekarang.</h1>
@@ -587,6 +596,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                 }
                 if (!hasAccess) {
                     timeline.style.filter = 'blur(12px)';
+                    timeline.style.pointerEvents = 'none';
                     if (!existingOverlay) {
                         const overlay = document.createElement('div');
                         overlay.id = `lock-${mod.id}`;
@@ -604,6 +614,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                     }
                 } else {
                     timeline.style.filter = 'none';
+                    timeline.style.pointerEvents = 'auto';
                     if (existingOverlay) existingOverlay.remove();
                 }
             });
@@ -649,6 +660,11 @@ if (isAdmin) {
 
     document.getElementById( 'loginOverlay' ).classList.add('hidden'); document.getElementById( 'mainContent' ).classList.remove('opacity-0'); renderAll(); applyAccessControl();
 
+
+closeAccessModal();
+
+
+
     return;
 
 }
@@ -682,7 +698,7 @@ if (isAdmin) {
         }
 
         document.getElementById( 'loginOverlay' ).classList.add('hidden'); document.getElementById( 'mainContent' ).classList.remove('opacity-0'); renderAll(); applyAccessControl();
-
+closeAccessModal();
     }
 
     catch(err) {
@@ -784,7 +800,13 @@ function continueEnter() {
             "siri25#1": { title: "Siri 25 Soalan 1", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1OOCd0r3NYH24jz2YRL0TEiHNe_da3V1s/view?usp=sharing" },
             "siri25#2": { title: "Siri 25 Soalan 2", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1AU6l-Z-Fdsomjwm_SHz1bMLB-o9hsVV1/view?usp=sharing" },
             "siri25#3": { title: "Siri 25 Soalan 3", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1jpahNSGQyiHk2IdxXdTWWUSEuhp-nPFq/view?usp=sharing" },
-            "tata": { title: "Minggu Bersama Tata", coverImage: "https://i.postimg.cc/gkGKy2V1/Screenshot_2025_02_03_150820.png", gdriveLink: "https://drive.google.com/file/d/1mcp5p6-pLh1EmRdoLw3vLKz4Acl0DGcY/view?usp=sharing" }
+            "tata": { title: "Minggu Bersama Tata", coverImage: "https://i.postimg.cc/gkGKy2V1/Screenshot_2025_02_03_150820.png", gdriveLink: "https://drive.google.com/file/d/1mcp5p6-pLh1EmRdoLw3vLKz4Acl0DGcY/view?usp=sharing" },
+            "dompet": { title: "Dompet Famili", coverImage: "", gdriveLink: "" },
+            "dproperty": { title: "d'PROPERTY", coverImage: "", gdriveLink: "" },
+            "holiday": { title: "Holiday Planner", coverImage: "", gdriveLink: "" },
+            "tahu": { title: "Aku Sebagai Manusia", coverImage: "", gdriveLink: "" },
+            "solat": { title: "Solatku", coverImage: "", gdriveLink: "" },
+            "tabiat": { title: "myTRANSFORMATION", coverImage: "", gdriveLink: "" }
         };
 
         const timelineData = {
@@ -849,7 +871,7 @@ function continueEnter() {
                 ] } ], // <- tutup kids array
               akuan: [
     {
-        fasa: "Akuan",
+        fasa: "Masa untuk tadbir urusan dunia akhirat dengan sempurna",
         icon: "fa-file-signature",
         color: "emerald",
         tools: [
@@ -1172,8 +1194,95 @@ async function buyAccess(packageType) {
 
 }
 
+function openAccessModal() {
+
+    document.getElementById(
+        'accessModal'
+    ).classList.remove('hidden');
+
+    document.getElementById(
+        'accessModal'
+    ).classList.add('flex');
+
+}
+
+function closeAccessModal() {
+
+    document.getElementById(
+        'accessModal'
+    ).classList.remove('flex');
+
+    document.getElementById(
+        'accessModal'
+    ).classList.add('hidden');
+
+}
+
+function toggleMobileMenu() { const menu = document.getElementById( 'journalmobileMenu' ); if ( menu.classList.contains( 'hidden' ) ) { menu.classList.remove( 'hidden' ); menu.classList.add( 'flex' ); menu.classList.add( 'flex-col' ); } else { menu.classList.add( 'hidden' ); menu.classList.remove( 'flex' ); menu.classList.remove( 'flex-col' ); } }
 
 </script>
+
+
+<!-- LOGIN ACCESS MODAL -->
+
+<div id="accessModal"
+class="fixed inset-0 bg-black/60 z-[9999] hidden items-center justify-center p-6">
+
+<div class="bg-white rounded-3xl max-w-md w-full p-8 text-center shadow-2xl animate-fade-in">
+
+<h2 class="text-2xl font-extrabold text-slate-800 mb-3">
+Akses Famili Pintar
+</h2>
+
+<p class="text-slate-500 text-sm mb-8">
+Pilih cara anda ingin meneruskan akses.
+</p>
+
+<div class="bg-sky-50 rounded-2xl p-5 mb-4 border border-sky-100">
+
+<h3 class="font-bold text-slate-800 mb-2">
+Saya Dah Ada Akses
+</h3>
+
+<p class="text-sm text-slate-500 mb-4">
+Log masuk menggunakan nombor telefon untuk membuka semula modul yang telah dibeli.
+</p>
+
+<button onclick="mainLogin()"
+class="w-full bg-sky-500 hover:bg-sky-600 text-white py-3 rounded-xl font-bold transition">
+Log Masuk
+</button>
+
+</div>
+
+<div class="bg-yellow-50 rounded-2xl p-5 border border-yellow-100">
+
+<h3 class="font-bold text-slate-800 mb-2">
+Nak Full Akses?
+</h3>
+
+<p class="text-sm text-slate-500 mb-4">
+Buka semua level Famili Pintar dalam satu akses lengkap.
+</p>
+
+<button onclick="buyAccess('full')"
+class="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 py-3 rounded-xl font-bold transition">
+Dapatkan Full Akses
+</button>
+
+</div>
+
+<button onclick="closeAccessModal()"
+class="mt-6 text-sm text-slate-400 hover:text-slate-600">
+Tutup
+</button>
+
+</div>
+
+</div>
+
+
+
 
 </body>
 </html>
