@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Pembayaran Berjaya</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+</head>
+
+<body class="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+
+<div id="status"
+class="bg-white rounded-3xl shadow-xl p-10 text-center max-w-md w-full">
+
+<p class="text-slate-500">
+Sedang aktifkan akses...
+</p>
+
+</div>
+
+<script>
+
+const firebaseConfig = {
+            apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+            authDomain: "familipintar.firebaseapp.com",
+            databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "familipintar",
+            storageBucket: "familipintar.firebasestorage.app",
+            messagingSenderId: "277029764059",
+            appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe",
+            measurementId: "G-S3RP7E4460"
+        };
+
+firebase.initializeApp(firebaseConfig);
+
+const db =
+firebase.database();
+
+async function saveAccess() {
+
+    const phone =
+    localStorage.getItem(
+        'lastPhone'
+    );
+
+    const packageType =
+    localStorage.getItem(
+        'lastPackage'
+    );
+
+    if (!phone || !packageType) {
+
+        document.getElementById(
+            'status'
+        ).innerHTML = `
+        
+        <h1 class="text-2xl font-bold text-red-500 mb-4">
+        Akses gagal dijumpai
+        </h1>
+
+        `;
+
+        return;
+
+    }
+
+    let accessData = {};
+
+    // FULL PACKAGE
+    if (packageType === 'full') {
+
+        accessData = {
+
+            main: true,
+            parenting: true,
+            legacy: true,
+            kids: true,
+            akuan: true
+
+        };
+
+    }
+
+    // SINGLE PACKAGE
+    else {
+
+        accessData[packageType] = true;
+
+    }
+
+    // SAVE FIREBASE
+    await db.ref(
+        'users/' + phone + '/access'
+    ).update(accessData);
+
+    // AUTO LOGIN
+    Object.keys(accessData)
+    .forEach(key => {
+
+        sessionStorage.setItem(
+            `access_${key}`,
+            true
+        );
+
+    });
+
+    sessionStorage.setItem(
+        'userPhone',
+        phone
+    );
+
+    document.getElementById(
+        'status'
+    ).innerHTML = `
+    
+    <h1 class="text-3xl font-bold text-green-600 mb-4">
+    Pembayaran Berjaya 🎉
+    </h1>
+
+    <p class="text-slate-600 mb-6">
+    Akses anda telah diaktifkan.
+    </p>
+
+    <a href="/"
+    class="inline-block bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 rounded-xl font-bold">
+    Masuk Famili Pintar
+    </a>
+
+    `;
+
+}
+
+window.onload =
+saveAccess;
+
+</script>
+
+</body>
+</html>
+
