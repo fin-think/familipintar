@@ -1177,6 +1177,9 @@ async function buyAccess(packageType) {
         const billCode =
             result.data[0].BillCode;
 
+localStorage.setItem( 'lastPhone', phone ); 
+localStorage.setItem( 'lastPackage', packageType );
+
         window.location.href =
             `https://toyyibpay.com/${billCode}`;
 
