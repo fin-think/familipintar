@@ -126,7 +126,7 @@
         function App() {
           const [activeTab, setActiveTab] = useState(1);
           const [showReport, setShowReport] = useState(false);
-
+          
  // === HELPER NUMBER SAFE ===
   const toNumber = (v) => {
     const n = parseFloat(v);
@@ -1239,8 +1239,8 @@ else {
     onChange={(e) => setUniversityType(e.target.value)}
     className="w-full border border-slate-300 rounded-lg py-2 px-3 bg-white"
   >
-    <option value="local">Local University</option>
-    <option value="overseas">Overseas University</option>
+    <option value="local">Universiti Tempatan</option>
+    <option value="overseas">Universiti Luar Negara</option>
   </select>
 </div>
                         </Card>
@@ -1342,7 +1342,8 @@ else {
                       <div className="bg-slate-800 text-white p-6 rounded-xl shadow-md text-center mb-6 border border-slate-700">
                         <h2 className="text-2xl font-bold mb-2 flex justify-center items-center gap-2"><Activity className="text-sky-400" /> Dashboard Analisis Keseluruhan myTADBIR</h2>
                         <p className="text-slate-300 text-sm">Di bawah merupakan hasil analisis kewangan, perlindungan dan faraid komprehensif anda.</p>
-                      </div>
+                      </div> 
+
 
  <Card className="bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800 text-white border-none shadow-2xl">
   <h3 className="text-lg font-bold mb-6">
@@ -1393,7 +1394,78 @@ else {
 
   </div>
 
+</Card>
+<Card className="mt-6">
+  <h3 className="text-lg font-bold mb-4">
+    📊 Analisis Cashflow Bulanan
+  </h3>
 
+  <div className="space-y-4">
+
+    {/* Income */}
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span>Pendapatan Bersih</span>
+        <span>{formatRM(netIncomeMonthly)}</span>
+      </div>
+
+      <div className="w-full bg-slate-200 rounded-full h-4">
+        <div
+          className="bg-emerald-500 h-4 rounded-full"
+          style={{
+            width: '100%'
+          }}
+        />
+      </div>
+    </div>
+
+    {/* Expenses */}
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span>Komitmen + Belanja</span>
+        <span>{formatRM(totalMonthlyCommitments)}</span>
+      </div>
+
+      <div className="w-full bg-slate-200 rounded-full h-4">
+        <div
+          className="bg-rose-500 h-4 rounded-full"
+          style={{
+            width: `${Math.min(
+              100,
+              (totalMonthlyCommitments /
+                Math.max(netIncomeMonthly,1)) * 100
+            )}%`
+          }}
+        />
+      </div>
+    </div>
+
+    {/* Balance */}
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span>Baki Bulanan</span>
+        <span>{formatRM(monthlyBalance)}</span>
+      </div>
+
+      <div className="w-full bg-slate-200 rounded-full h-4">
+        <div
+          className={`h-4 rounded-full ${
+            monthlyBalance >= 0
+              ? 'bg-sky-500'
+              : 'bg-red-500'
+          }`}
+          style={{
+            width: `${Math.min(
+              100,
+              Math.abs(monthlyBalance) /
+              Math.max(netIncomeMonthly,1) * 100
+            )}%`
+          }}
+        />
+      </div>
+    </div>
+
+  </div>
 </Card>
 
                       {/* Baris 1: Harta Bersih & Zakat */}
@@ -1449,6 +1521,8 @@ else {
     </p>
 
   </Card>
+
+
 
   {/* CARD TETAPAN STRATEGI */}
   <Card className="lg:col-span-2 h-full">
@@ -1821,8 +1895,8 @@ else {
 
     <p className="text-xl font-bold text-white">
       {universityType === 'local'
-        ? 'Local'
-        : 'Overseas'}
+        ? 'Tempatan'
+        : 'Luar Negara'}
     </p>
   </div>
 
@@ -1846,11 +1920,59 @@ else {
         Berdasarkan inflasi pendidikan & umur universiti anak.
       </p>
     </div>
+  </div>
+</Card>
 
+<Card className="mt-6">
+  <h3 className="text-lg font-bold mb-4">
+    🎓 Unjuran Dana Pendidikan
+  </h3>
 
+  <div className="space-y-5">
+
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span>Nilai Masa Hadapan Dana Pendidikan</span>
+        <span>
+          {formatRM(futureEducationFund)}
+        </span>
+      </div>
+
+      <div className="w-full bg-slate-200 rounded-full h-5">
+        <div
+          className="bg-sky-500 h-5 rounded-full"
+          style={{
+            width: `${Math.min(
+              100,
+              (futureEducationFund /
+                Math.max(futureEduCostTotal,1)) * 100
+            )}%`
+          }}
+        />
+      </div>
+    </div>
+
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span>Kos Pendidikan Masa Depan</span>
+        <span>
+          {formatRM(futureEduCostTotal)}
+        </span>
+      </div>
+
+      <div className="w-full bg-slate-200 rounded-full h-5">
+        <div
+          className="bg-indigo-500 h-5 rounded-full"
+          style={{
+            width: '100%'
+          }}
+        />
+      </div>
+    </div>
 
   </div>
 </Card>
+
 
                       {/* Baris 3: Unjuran Persaraan & Pelan Tindakan */}
                       <Card className="border-blue-200 bg-blue-50/30">
@@ -1893,6 +2015,65 @@ else {
                         </div>
                       </Card>
 
+<Card className="mt-6">
+  <h3 className="text-lg font-bold mb-4">
+    📈 Simulasi Ketahanan Dana Persaraan
+  </h3>
+
+  <div className="space-y-5">
+
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span>Jangka Hayat Dana</span>
+        <span>
+          {yearsItWillLast.toFixed(1)} Tahun
+        </span>
+      </div>
+
+      <div className="w-full bg-slate-200 rounded-full h-6">
+        <div
+          className={`h-6 rounded-full ${
+            exhaustAge >= lifeExpectancy
+              ? 'bg-sky-500'
+              : 'bg-red-500'
+          }`}
+          style={{
+            width: `${Math.min(
+              100,
+              (yearsItWillLast /
+                yearsInRetirement) * 100
+            )}%`
+          }}
+        />
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-4 text-center">
+
+      <div className="bg-slate-100 p-4 rounded-xl">
+        <p className="text-sm text-slate-500">
+          Dana Bertahan Hingga
+        </p>
+
+        <p className="text-2xl font-bold">
+          {Math.floor(exhaustAge)} Tahun
+        </p>
+      </div>
+
+      <div className="bg-slate-100 p-4 rounded-xl">
+        <p className="text-sm text-slate-500">
+          Sasaran Hayat
+        </p>
+
+        <p className="text-2xl font-bold">
+          {lifeExpectancy} Tahun
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</Card>
                       {/* Baris 4: Aliran Harta Pusaka & Faraid */}
                       <Card>
                         <h3 className="text-lg font-bold text-slate-800 mb-6 border-b pb-2 flex items-center gap-2"><PieChart className="text-sky-600" /> Pengurusan Harta & Faraid Waris</h3>
@@ -2149,6 +2330,8 @@ else {
                     </div>
                   )}
                 </div>
+
+
 
                 {/* --- BUTANG NAVIGASI HALAMAN BAWAH --- */}
                 <div className="mt-8 flex justify-between items-center border-t border-slate-200 pt-6">
