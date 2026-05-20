@@ -105,8 +105,8 @@
                     </a>
                 </div>
 
-                <!-- Butang Hamburger (Mobile) -->
-                <button onclick="toggleMobileMenu()" id="hamburgerBtn" class="md:hidden text-slate-600 text-2xl focus:outline-none">
+                <!-- Butang Hamburger (Mobile Halaman Depan) -->
+                <button onclick="toggleFrontPageMobileMenu()" id="hamburgerBtn" class="md:hidden text-slate-600 text-2xl focus:outline-none">
                     <i class="fa-solid fa-bars transition-all duration-300"></i>
                 </button>
             </div>
@@ -397,7 +397,7 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
                    <div class="md:hidden ml-auto flex items-center gap-4"> 
                     <button onclick="openAccessModal()" class="text-2xl"> 
                         <i class="fa-solid fa-right-to-bracket"></i> </button> 
-                        <button onclick="toggleMobileMenu()" class="text-2xl"> 
+                        <button onclick="toggleJournalMobileMenu()" class="text-2xl"> 
                             <i class="fa-solid fa-bars"></i> </button> 
                             </div>
 
@@ -406,7 +406,7 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
             </div>
         </nav>
 
-<!-- MOBILE MENU --> <div id="journalmobileMenu" class="fixed top-0 left-0 w-full h-full bg-slate-900/95 z-[9999] hidden p-8 text-white"> <div class="flex justify-between items-center mb-10"> <h2 class="text-2xl font-extrabold"> Famili Pintar </h2> <button onclick="toggleMobileMenu()" class="text-3xl"> <i class="fa-solid fa-xmark"></i> </button> </div> <div class="flex flex-col gap-5 text-lg font-semibold"> <a href="#mapa-finance" onclick="toggleMobileMenu(); hideProfile()"> Kewangan </a> <a href="#mapa-parenting" onclick="toggleMobileMenu(); hideProfile()"> Keharmonian </a> <a href="#mapa-legacy" onclick="toggleMobileMenu(); hideProfile()"> Legasi </a> <a href="#anakku" onclick="toggleMobileMenu(); hideProfile()"> Zuriat </a> <a href="#akuan" onclick="toggleMobileMenu(); hideProfile()"> myTADBIR </a> <button onclick="logout()" class="text-left text-red-300 font-bold mt-4"> Log Keluar </button> </div> </div>
+<!-- MOBILE MENU UTAMA --> <div id="journalmobileMenu" class="fixed top-0 left-0 w-full h-full bg-slate-900/95 z-[9999] hidden p-8 text-white"> <div class="flex justify-between items-center mb-10"> <h2 class="text-2xl font-extrabold"> Famili Pintar </h2> <button onclick="toggleJournalMobileMenu()" class="text-3xl"> <i class="fa-solid fa-xmark"></i> </button> </div> <div class="flex flex-col gap-5 text-lg font-semibold"> <a href="#mapa-finance" onclick="toggleJournalMobileMenu(); hideProfile()"> Kewangan </a> <a href="#mapa-parenting" onclick="toggleJournalMobileMenu(); hideProfile()"> Keharmonian </a> <a href="#mapa-legacy" onclick="toggleJournalMobileMenu(); hideProfile()"> Legasi </a> <a href="#anakku" onclick="toggleJournalMobileMenu(); hideProfile()"> Zuriat </a> <a href="#akuan" onclick="toggleJournalMobileMenu(); hideProfile()"> myTADBIR </a> <button onclick="logout()" class="text-left text-red-300 font-bold mt-4"> Log Keluar </button> </div> </div>
 
         <header id="heroSection" class="bg-gradient-to-b from-sky-400 to-sky-600 text-white py-16 text-center px-4">
             <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Anda tidak perlu ada semua jawapan sekarang.</h1>
@@ -1102,8 +1102,8 @@ function showResult() {
 // Load first question
 document.addEventListener("DOMContentLoaded", loadQuestion);
 
-// Fungsi buka/tutup Mobile Menu Front Page
-function toggleMobileMenu() {
+// Fungsi buka/tutup Mobile Menu Halaman Depan (Telah Dibaiki)
+function toggleFrontPageMobileMenu() {
     const menu = document.getElementById('mobileMenu');
     const icon = document.querySelector('#hamburgerBtn i');
     
@@ -1221,7 +1221,19 @@ function closeAccessModal() {
 
 }
 
-function toggleMobileMenu() { const menu = document.getElementById( 'journalmobileMenu' ); if ( menu.classList.contains( 'hidden' ) ) { menu.classList.remove( 'hidden' ); menu.classList.add( 'flex' ); menu.classList.add( 'flex-col' ); } else { menu.classList.add( 'hidden' ); menu.classList.remove( 'flex' ); menu.classList.remove( 'flex-col' ); } }
+// Fungsi buka/tutup Mobile Menu Jurnal Utama (Telah Dibaiki)
+function toggleJournalMobileMenu() { 
+    const menu = document.getElementById( 'journalmobileMenu' ); 
+    if ( menu.classList.contains( 'hidden' ) ) { 
+        menu.classList.remove( 'hidden' ); 
+        menu.classList.add( 'flex' ); 
+        menu.classList.add( 'flex-col' ); 
+    } else { 
+        menu.classList.add( 'hidden' ); 
+        menu.classList.remove( 'flex' ); 
+        menu.classList.remove( 'flex-col' ); 
+    } 
+}
 
 </script>
 
