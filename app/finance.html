@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Survival Kewangan Keluarga - 20 Nasihat Utama</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0B132B',
+                            navy: '#1C2541',
+                            blue: '#3A506B',
+                            gold: '#D4AF37',
+                            goldLight: '#FDF1CB',
+                            teal: '#5BC0BE'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #1C2541 0%, #0B132B 100%);
+        }
+        .gold-glow {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+        }
+        .gold-glow-hover:hover {
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            transform: translateY(-2px);
+        }
+        .slide-transition {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0B132B; }
+        ::-webkit-scrollbar-thumb { background: #3A506B; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
+    </style>
+</head>
+<body class="text-slate-50 min-h-screen flex flex-col justify-between antialiased selection:bg-brand-gold selection:text-brand-dark">
+
+    <header class="border-b border-slate-700/80 bg-brand-dark/95 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-r from-brand-gold to-yellow-500 p-2 md:p-2.5 rounded-lg text-brand-dark font-black shadow-lg">
+                    <i class="fa-solid fa-shield-halved text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-base md:text-xl font-extrabold tracking-wider text-white">SURVIVAL <span class="text-brand-gold">FINANCE</span></h1>
+                    <p class="text-[11px] md:text-sm text-slate-200 font-medium tracking-wide">Pelindung Masa Depan Keluarga</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button onclick="openGlossary()" class="text-slate-100 hover:text-brand-gold text-sm md:text-base font-bold transition flex items-center gap-1.5 bg-slate-800/80 px-3 py-2 rounded-full border border-slate-600 shadow-sm active:scale-95">
+                    <i class="fa-solid fa-book-open"></i> <span class="hidden md:inline">Glosari</span>
+                </button>
+                <div id="top-score-badge" class="hidden bg-slate-800 border border-brand-gold/50 px-3 py-1.5 rounded-full text-sm text-brand-gold font-bold shadow-md">
+                    Skor: <span id="current-badge-score">0</span>%
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4 md:p-8 max-w-5xl mx-auto w-full">
+        
+        <section id="landing-screen" class="w-full text-center py-10 md:py-16 px-5 md:px-8 bg-slate-900/60 rounded-3xl border border-slate-700/80 backdrop-blur-md gold-glow transition-all duration-500 shadow-2xl">
+            <div class="max-w-3xl mx-auto space-y-8 md:space-y-10">
+                <span class="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs md:text-sm font-bold tracking-wider uppercase bg-brand-gold/15 text-brand-goldLight border border-brand-gold/30 shadow-inner">
+                    <i class="fa-solid fa-triangle-exclamation animate-pulse"></i> Khas Untuk Ketua Keluarga & Pasangan
+                </span>
+                
+                <h2 class="text-4xl md:text-6xl font-serif font-extrabold leading-tight text-white drop-shadow-md">
+                    Adakah Kewangan Keluarga Anda <br class="hidden md:block"> <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-goldLight via-brand-gold to-yellow-500">Kalis Badai?</span>
+                </h2>
+                
+                <p class="text-base md:text-xl text-slate-100 max-w-2xl mx-auto leading-relaxed md:leading-loose font-medium">
+                    Seringkali kita sibuk mengumpul harta, tetapi terlupa membina dinding keselamatan untuk saat kecemasan atau bencana mengejut. Fahami 20 prinsip penting demi kelangsungan hidup insan tersayang.
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto pt-4 text-left">
+                    <div class="p-5 bg-slate-800/60 rounded-xl border border-slate-700">
+                        <i class="fa-solid fa-vault text-brand-gold text-2xl mb-3"></i>
+                        <h4 class="text-sm md:text-base font-bold text-white">Dana Survival 24 Bulan</h4>
+                        <p class="text-xs md:text-sm text-slate-300 mt-1.5 leading-relaxed">Mengapa simpanan biasa tidak mencukupi?</p>
+                    </div>
+                    <div class="p-5 bg-slate-800/60 rounded-xl border border-slate-700">
+                        <i class="fa-solid fa-file-invoice-dollar text-brand-gold text-2xl mb-3"></i>
+                        <h4 class="text-sm md:text-base font-bold text-white">Death File Peribadi</h4>
+                        <p class="text-xs md:text-sm text-slate-300 mt-1.5 leading-relaxed">Dokumen kritikal yang wajib ada sekarang.</p>
+                    </div>
+                    <div class="p-5 bg-slate-800/60 rounded-xl border border-slate-700">
+                        <i class="fa-solid fa-hands-holding-child text-brand-gold text-2xl mb-3"></i>
+                        <h4 class="text-sm md:text-base font-bold text-white">Ketahanan Kewangan</h4>
+                        <p class="text-xs md:text-sm text-slate-300 mt-1.5 leading-relaxed">Ukur kekuatan persediaan anda.</p>
+                    </div>
+                </div>
+
+                <div class="pt-8">
+                    <button onclick="startTrivia()" class="gold-glow-hover relative inline-flex items-center justify-center p-1 mb-2 overflow-hidden text-lg font-bold rounded-full group bg-gradient-to-br from-brand-gold to-yellow-600 group-hover:from-brand-gold group-hover:to-yellow-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-yellow-800 transition-all duration-300 active:scale-95">
+                        <span class="relative px-8 md:px-12 py-4 md:py-5 transition-all ease-in duration-75 bg-brand-dark rounded-full group-hover:bg-opacity-0 text-white flex items-center gap-3">
+                            <span class="text-brand-goldLight group-hover:text-brand-dark font-extrabold tracking-wide uppercase text-base md:text-lg">Tahukah Anda?</span>
+                            <i class="fa-solid fa-circle-arrow-right text-brand-gold group-hover:text-brand-dark text-2xl animate-bounce"></i>
+                        </span>
+                    </button>
+                    <p class="text-sm text-slate-300 mt-4 font-medium tracking-wide">Ujian interaktif 20 langkah • Anggaran masa: 5 minit</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="trivia-screen" class="hidden w-full max-w-3xl mx-auto bg-slate-900/80 rounded-3xl border border-slate-700 backdrop-blur-xl shadow-2xl p-5 md:p-10 transition-all duration-500">
+            
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-xs md:text-sm font-bold text-slate-300 tracking-wider bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                    PROGRES: <span id="progress-text" class="text-brand-goldLight font-extrabold text-sm md:text-base">1 / 20</span>
+                </span>
+                <span id="bookmark-btn" onclick="toggleBookmark()" class="cursor-pointer text-slate-200 hover:text-brand-goldLight transition duration-200 text-xl flex items-center gap-2 active:scale-90 bg-slate-800/50 p-2 rounded-lg">
+                    <i class="fa-regular fa-bookmark"></i> <span class="text-sm font-bold hidden sm:inline">Simpan</span>
+                </span>
+            </div>
+
+            <div class="w-full bg-slate-800 rounded-full h-3 mb-8 overflow-hidden shadow-inner border border-slate-700">
+                <div id="progress-bar" class="bg-gradient-to-r from-brand-gold to-yellow-400 h-3 rounded-full transition-all duration-500 relative" style="width: 5%">
+                    <div class="absolute inset-0 bg-white/20 w-full h-full animate-pulse rounded-full"></div>
+                </div>
+            </div>
+
+            <div class="space-y-6 md:space-y-8 slide-transition" id="card-content-area">
+                
+                <div class="flex items-center gap-4 md:gap-5">
+                    <div id="tip-icon-box" class="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-2xl bg-brand-gold/10 border-2 border-brand-gold/40 flex items-center justify-center text-brand-goldLight text-3xl md:text-4xl shadow-inner shadow-brand-gold/20">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] md:text-xs font-black tracking-widest text-brand-teal uppercase bg-brand-teal/10 px-3 py-1.5 rounded-md border border-brand-teal/20">PRINSIP SURVIVAL</span>
+                        <h3 id="tip-title" class="text-xl md:text-3xl font-bold text-white mt-2 leading-snug md:leading-tight"></h3>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/80 border border-slate-600 rounded-2xl p-5 md:p-8 space-y-4 md:space-y-5 shadow-lg">
+                    <h4 class="text-sm md:text-base font-extrabold text-brand-goldLight tracking-wide uppercase flex items-center gap-2 border-b border-slate-700 pb-3">
+                        <i class="fa-solid fa-circle-question text-brand-gold"></i> Tahukah Anda?
+                    </h4>
+                    <div id="tip-desc" class="text-slate-100 leading-relaxed text-base md:text-lg space-y-4">
+                        <!-- Content injected via JS -->
+                    </div>
+                </div>
+
+                <div id="assessment-box" class="bg-brand-navy/90 rounded-2xl p-5 md:p-8 border-2 border-brand-blue/30 space-y-5 shadow-xl">
+                    <h4 class="text-sm md:text-base font-black text-white tracking-wide flex items-start md:items-center gap-2.5">
+                        <i class="fa-solid fa-compass text-brand-teal text-lg mt-0.5 md:mt-0"></i> Penilaian Status Semasa:
+                    </h4>
+                    <p id="assessment-question" class="text-sm md:text-base text-brand-goldLight italic font-medium leading-relaxed bg-brand-gold/5 p-3 rounded-lg border border-brand-gold/10"></p>
+                    
+                    <div class="grid grid-cols-1 gap-3.5 md:gap-4 mt-4" id="options-container">
+                        <!-- Options injected via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-8 pt-6 border-t border-slate-700">
+                <button id="prev-btn" onclick="prevTip()" class="px-5 md:px-6 py-3 md:py-3.5 text-sm md:text-base font-bold text-slate-200 hover:text-white hover:bg-slate-700 rounded-xl border-2 border-slate-600 transition duration-200 flex items-center gap-2 active:scale-95 disabled:opacity-30 disabled:active:scale-100">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali
+                </button>
+                
+                <button id="next-btn" onclick="nextTip()" class="px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-black text-brand-dark bg-brand-gold hover:bg-yellow-400 rounded-xl transition duration-200 flex items-center gap-2 shadow-lg shadow-brand-gold/20 active:scale-95 disabled:opacity-50 border-2 border-brand-gold">
+                    Seterusnya <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <section id="results-screen" class="hidden w-full max-w-4xl mx-auto space-y-6 md:space-y-8 transition-all duration-500">
+            
+            <div class="bg-slate-900/80 border border-brand-gold/30 rounded-3xl p-6 md:p-10 backdrop-blur-xl gold-glow grid grid-cols-1 md:grid-cols-12 gap-8 items-center shadow-2xl">
+                <div class="md:col-span-5 flex flex-col items-center justify-center text-center space-y-5 border-b md:border-b-0 md:border-r border-slate-700 pb-8 md:pb-0 md:pr-8">
+                    <span class="text-sm font-black text-brand-goldLight tracking-widest uppercase bg-brand-gold/10 px-4 py-1.5 rounded-lg border border-brand-gold/20">SKOR KETAHANAN</span>
+                    
+                    <div class="relative flex items-center justify-center scale-110 md:scale-125 my-4">
+                        <svg class="w-32 h-32 md:w-40 md:h-40 transform -rotate-90">
+                            <circle cx="50%" cy="50%" r="45%" class="stroke-slate-800" stroke-width="10" fill="transparent"/>
+                            <circle cx="50%" cy="50%" r="45%" id="result-progress-circle" class="stroke-brand-gold" stroke-width="10" fill="transparent" stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round"/>
+                        </svg>
+                        <div class="absolute text-center flex flex-col items-center justify-center w-full h-full">
+                            <span id="final-score-text" class="text-4xl md:text-5xl font-black text-white">0%</span>
+                        </div>
+                    </div>
+
+                    <div id="badge-level" class="px-5 py-2.5 rounded-xl text-sm font-black uppercase text-brand-dark bg-brand-gold inline-block mt-4 shadow-lg w-full text-center tracking-wide">
+                        PEJUANG KEWANGAN
+                    </div>
+                </div>
+
+                <div class="md:col-span-7 space-y-5">
+                    <h3 class="text-2xl md:text-4xl font-serif font-extrabold text-white leading-tight">Analisis Profil Keluarga Anda</h3>
+                    <p id="result-description" class="text-base md:text-lg text-slate-200 leading-relaxed font-medium">
+                        Analisis profil kewangan keluarga anda sedang dikira...
+                    </p>
+                    
+                    <div class="grid grid-cols-2 gap-4 pt-4">
+                        <div class="bg-slate-800 p-4 md:p-5 rounded-2xl border border-slate-600 shadow-inner">
+                            <span class="text-xs text-slate-300 uppercase font-bold tracking-wider">Tahap (Resilience)</span>
+                            <p id="resilience-level-text" class="text-sm md:text-base font-black text-white mt-1.5 leading-snug">-</p>
+                        </div>
+                        <div class="bg-slate-800 p-4 md:p-5 rounded-2xl border border-slate-600 shadow-inner">
+                            <span class="text-xs text-slate-300 uppercase font-bold tracking-wider">Status Tindakan</span>
+                            <p id="action-status-text" class="text-sm md:text-base font-black text-brand-teal mt-1.5 leading-snug">-</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 pt-6">
+                        <button onclick="copyLaporan()" class="w-full sm:w-auto px-6 py-3.5 text-sm md:text-base font-bold bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition duration-200 flex items-center justify-center gap-2 border border-slate-500 active:scale-95 shadow-md">
+                            <i class="fa-solid fa-copy text-lg"></i> Salin Laporan
+                        </button>
+                        <button onclick="resetTrivia()" class="w-full sm:w-auto px-6 py-3.5 text-sm md:text-base font-black text-brand-dark bg-brand-gold hover:bg-yellow-400 rounded-xl transition duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-md">
+                            <i class="fa-solid fa-rotate-right text-lg"></i> Ujian Semula
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-700 rounded-3xl p-6 md:p-8 space-y-6 shadow-xl backdrop-blur-md">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 border-b border-slate-700 pb-6">
+                    <div>
+                        <h4 class="text-xl md:text-2xl font-bold text-white font-serif">Kandungan Utama & Fokus Nasihat</h4>
+                        <p class="text-sm text-slate-300 mt-2">Semak semula jawapan anda, saring mengikut ketetapan atau cari kata kunci.</p>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full lg:w-auto">
+                        <div class="relative w-full sm:w-56">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="search-tips" onkeyup="filterTips()" placeholder="Cari rujukan..." class="pl-10 pr-4 py-3 text-sm bg-slate-800 border-2 border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-brand-gold w-full transition">
+                        </div>
+                        
+                        <select id="filter-status" onchange="filterTips()" class="px-4 py-3 text-sm bg-slate-800 border-2 border-slate-600 rounded-xl text-white focus:outline-none focus:border-brand-gold w-full sm:w-48 appearance-none font-medium">
+                            <option value="all">Semua Nasihat</option>
+                            <option value="bookmarked">Ditandai (Bookmark)</option>
+                            <option value="ideal">Status: Ideal (Hijau)</option>
+                            <option value="warning">Status: Perlu Tindakan</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="all-tips-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5 max-h-[600px] overflow-y-auto pr-2 pb-4">
+                    <!-- Dynamic Tip cards injected here -->
+                </div>
+            </div>
+
+            <div class="p-5 bg-brand-gold/10 border border-brand-gold/30 rounded-2xl text-sm md:text-base text-slate-200 leading-relaxed flex items-start gap-4">
+                <i class="fa-solid fa-circle-info text-brand-gold text-xl md:text-2xl mt-0.5"></i>
+                <p>
+                    <strong class="text-brand-goldLight">Penafian:</strong> Penilaian ketahanan kewangan ini berasaskan input peribadi anda bagi tujuan pendedahan dan pendidikan am. Ia <span class="underline decoration-brand-gold decoration-2 underline-offset-4">bukan gantian</span> kepada nasihat perancangan kewangan bertauliah (Financial Planner). Sila rujuk pakar berdaftar untuk pelan peribadi yang rasmi.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="glossary-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-brand-dark/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0 scale-95">
+        <div class="bg-slate-900 border-2 border-slate-700 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl transform transition-all">
+            <div class="px-6 py-5 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-book-open text-brand-gold"></i> Glosari Istilah
+                </h3>
+                <button onclick="closeGlossary()" class="text-slate-400 hover:text-white bg-slate-700 hover:bg-rose-600 rounded-full w-8 h-8 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-6 md:p-8 space-y-6 max-h-[65vh] overflow-y-auto bg-slate-900/50">
+                <div class="space-y-2">
+                    <span class="text-sm font-black text-brand-goldLight tracking-wide bg-brand-gold/10 px-3 py-1 rounded border border-brand-gold/20 inline-block">DSR (Debt Service Ratio)</span>
+                    <p class="text-base text-slate-100 leading-relaxed">Kadar bayaran balik hutang berbanding pendapatan bersih bulanan anda. Had selamat keluarga ialah di bawah 35%.</p>
+                </div>
+                <hr class="border-slate-700/50">
+                <div class="space-y-2">
+                    <span class="text-sm font-black text-brand-goldLight tracking-wide bg-brand-gold/10 px-3 py-1 rounded border border-brand-gold/20 inline-block">Hibah Takaful</span>
+                    <p class="text-base text-slate-100 leading-relaxed">Pemberian hak milik manfaat takaful secara percuma tanpa melalui pembahagian faraid, membolehkan pencairannya berlaku dengan sangat pantas.</p>
+                </div>
+                <hr class="border-slate-700/50">
+                <div class="space-y-2">
+                    <span class="text-sm font-black text-brand-goldLight tracking-wide bg-brand-gold/10 px-3 py-1 rounded border border-brand-gold/20 inline-block">Faraid</span>
+                    <p class="text-base text-slate-100 leading-relaxed">Pembahagian harta pusaka mengikut undang-undang syariah Islam kepada waris yang sah setelah ditolak hutang dan wasiat si mati.</p>
+                </div>
+                <hr class="border-slate-700/50">
+                <div class="space-y-2">
+                    <span class="text-sm font-black text-brand-goldLight tracking-wide bg-brand-gold/10 px-3 py-1 rounded border border-brand-gold/20 inline-block">Net Worth (Nilai Bersih)</span>
+                    <p class="text-base text-slate-100 leading-relaxed">Nilai keseluruhan aset yang anda miliki (tunai, hartanah, pelaburan) setelah ditolak jumlah keseluruhan liabiliti / hutang anda.</p>
+                </div>
+                <hr class="border-slate-700/50">
+                <div class="space-y-2">
+                    <span class="text-sm font-black text-brand-goldLight tracking-wide bg-brand-gold/10 px-3 py-1 rounded border border-brand-gold/20 inline-block">Cashflow (Aliran Tunai)</span>
+                    <p class="text-base text-slate-100 leading-relaxed">Baki bersih wang tunai masuk ditolak wang tunai keluar setiap bulan. Cashflow positif penting untuk meneruskan kelangsungan harian.</p>
+                </div>
+                <hr class="border-slate-700/50">
+                <div class="space-y-2">
+                    <span class="text-sm font-black text-brand-goldLight tracking-wide bg-brand-gold/10 px-3 py-1 rounded border border-brand-gold/20 inline-block">Compounding Interest</span>
+                    <p class="text-base text-slate-100 leading-relaxed">Kesan gandaan faedah atau dividen di mana keuntungan pelaburan dijana semula untuk menghasilkan keuntungan tambahan dari semasa ke semasa.</p>
+                </div>
+            </div>
+            <div class="px-6 py-5 bg-slate-800 border-t border-slate-700">
+                <button onclick="closeGlossary()" class="w-full py-3.5 bg-brand-gold text-brand-dark font-black text-base md:text-lg rounded-xl hover:bg-yellow-400 transition shadow-lg active:scale-95">
+                    Faham & Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-notif" class="fixed bottom-6 right-0 left-0 md:left-auto md:right-6 z-50 mx-4 md:mx-0 bg-slate-800 border-2 border-brand-teal/40 text-slate-100 px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-4 transform translate-y-24 opacity-0 transition-all duration-300">
+        <div class="bg-brand-teal/20 p-2 rounded-xl text-brand-teal text-xl">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+            <p id="toast-title" class="font-bold text-white text-base">Berjaya</p>
+            <p id="toast-msg" class="text-slate-200 mt-1 text-sm font-medium">Satu tindakan berjaya direkodkan.</p>
+        </div>
+    </div>
+
+    <footer class="text-center py-6 border-t border-slate-800 text-sm text-slate-400 bg-brand-dark px-4 font-medium">
+        <p>© 2026 Survival Finance. Dibina untuk kesedaran kewangan keluarga di Malaysia.</p>
+    </footer>
+
+    <script>
+        // Data Structure Updated With Bright Text Colors & Optimized Sizes
+        const rawTipsData = [
+            {
+                id: 1,
+                title: "Utamakan “Family Survival Fund”, bukan sekadar simpanan biasa",
+                icon: "fa-solid fa-sack-dollar",
+                desc: `Pastikan keluarga mampu hidup sekurang-kurangnya:
+                       <ul class="list-disc list-inside mt-3 space-y-2 text-slate-100 pl-2 font-medium">
+                           <li><span class="text-brand-goldLight font-bold bg-slate-800 px-2 py-1 rounded">12–24 bulan</span> jika pencari nafkah meninggal dunia / hilang kerja.</li>
+                       </ul>
+                       <p class="mt-4 text-slate-200 text-sm md:text-base bg-slate-800/50 p-3 rounded-lg border border-slate-700">Dana ini berbeza daripada emergency fund biasa, dana persaraan, atau dana pendidikan anak.</p>`,
+                question: "Berapa bulan dana kelangsungan (survival fund) sedia ada keluarga anda?",
+                options: [
+                    { text: "Kurang dari 3 bulan perbelanjaan", points: 0 },
+                    { text: "3 hingga 12 bulan perbelanjaan", points: 1 },
+                    { text: "Melebihi 12 hingga 24 bulan perbelanjaan (Lengkap)", points: 3 }
+                ]
+            },
+            {
+                id: 2,
+                title: "Asingkan Akaun Mengikut Objektif",
+                icon: "fa-solid fa-layer-group",
+                desc: `Minimum asingkan kewangan keluarga kepada simpanan berbeza:
+                       <ul class="list-decimal list-inside mt-3 space-y-2 text-slate-100 pl-2 font-medium">
+                           <li class="pl-2">Akaun Operasi Harian</li>
+                           <li class="pl-2">Dana Kecemasan</li>
+                           <li class="pl-2">Dana Pendidikan Anak</li>
+                           <li class="pl-2">Dana Persaraan</li>
+                           <li class="pl-2 text-brand-goldLight font-bold">Dana Legacy / Hibah</li>
+                       </ul>
+                       <p class="mt-4 text-slate-200 text-sm md:text-base font-semibold border-l-4 border-rose-500 pl-3">Ramai keluarga gagal bertahan sebab semua aliran duit bercampur dalam satu akaun.</p>`,
+                question: "Bagaimanakah sistem simpanan akaun anda ketika ini?",
+                options: [
+                    { text: "Semua bercampur dalam satu akaun utama", points: 0 },
+                    { text: "Sebahagian diasingkan tetapi belum tersusun", points: 1 },
+                    { text: "Asingkan dengan ketat mengikut kelima-lima objektif", points: 3 }
+                ]
+            },
+            {
+                id: 3,
+                title: "Lindungi Income Terlebih Dahulu Sebelum Fokus Pelaburan",
+                icon: "fa-solid fa-umbrella",
+                desc: `Jika pencari nafkah utama tiba-tiba tiada, adakah keluarga masih boleh survive dari segi kewangan bulanan?
+                       <p class="mt-4 text-slate-100 font-bold mb-2">Fokus utama mestilah merangkumi:</p>
+                       <ul class="list-disc list-inside space-y-2 text-slate-100 pl-2 font-medium">
+                           <li><span class="text-brand-goldLight font-bold">Hibah Takaful</span></li>
+                           <li>Medical card yang kukuh</li>
+                           <li>Pelan penggantian pendapatan (Income replacement)</li>
+                       </ul>
+                       <p class="mt-4 text-brand-dark font-black text-sm md:text-base bg-brand-gold p-3 rounded-lg text-center uppercase tracking-wider">Prinsip: Lindungi dulu (Protection), barulah melabur (Investment).</p>`,
+                question: "Adakah pencari nafkah utama mempunyai pelan perlindungan pendapatan?",
+                options: [
+                    { text: "Tiada sebarang insurans/takaful pendapatan", points: 0 },
+                    { text: "Ada medical card biasa, tetapi tiada pelan penggantian pendapatan", points: 1 },
+                    { text: "Lengkap dengan Hibah Takaful, Medical Card & Income Replacement", points: 3 }
+                ]
+            },
+            {
+                id: 4,
+                title: "DSR Keluarga Ideal Bawah 35%",
+                icon: "fa-solid fa-chart-pie",
+                desc: `Jika kadar Debt Service Ratio (DSR) terlalu tinggi:
+                       <ul class="list-disc list-inside mt-3 space-y-2 text-slate-100 pl-2 font-medium">
+                           <li class="text-rose-400">Stress kewangan keluarga meningkat mendadak</li>
+                           <li class="text-rose-400">Risiko gagal membuat simpanan bertambah tinggi</li>
+                           <li class="text-rose-400">Perancangan persaraan terganggu akibat beban liabiliti</li>
+                       </ul>
+                       <p class="mt-4 text-slate-200 text-sm md:text-base bg-slate-800/80 p-3 rounded-lg border-l-4 border-yellow-500">Elakkan sekeras-kerasnya hutang gaya hidup (lifestyle debt) dan pinjaman berpanjangan untuk komitmen nilai susut.</p>`,
+                question: "Berapakah anggaran nisbah jumlah ansuran hutang berbanding pendapatan bersih anda?",
+                options: [
+                    { text: "Lebih daripada 50% pendapatan bersih (Kritikal)", points: 0 },
+                    { text: "Antara 35% hingga 50% pendapatan bersih (Sederhana)", points: 1 },
+                    { text: "Di bawah 35% pendapatan bersih (Ideal)", points: 3 }
+                ]
+            },
+            {
+                id: 5,
+                title: "Dana Pendidikan Anak Jangan Ganggu Persaraan",
+                icon: "fa-solid fa-graduation-cap",
+                desc: `Kesilapan paling kerap dilakukan oleh ibu bapa di Malaysia:
+                       <p class="text-slate-100 mt-2 font-bold bg-rose-500/20 p-3 rounded-lg border border-rose-500/30">Mengorbankan dana persaraan hari tua sendiri demi menampung kos universiti anak-anak.</p>
+                       <p class="mt-4 text-slate-200 text-sm mb-2 font-bold uppercase tracking-wider">Prinsip Profesional:</p>
+                       <p class="border-l-4 border-brand-teal bg-brand-teal/10 p-3 rounded-r-lg text-slate-100 text-sm md:text-base font-semibold italic">"Anak masih boleh memohon pinjaman pendidikan seperti PTPTN atau biasiswa. Ibu bapa tidak boleh membuat pinjaman bank untuk bersara."</p>`,
+                question: "Adakah persediaan dana pendidikan anak mengancam persaraan anda?",
+                options: [
+                    { text: "Saya menggunakan wang simpanan persaraan untuk masa depan anak", points: 0 },
+                    { text: "Sedang merancang untuk mengimbangi kedua-duanya", points: 1 },
+                    { text: "Dana persaraan diasingkan ketat, dana pendidikan anak diuruskan berasingan", points: 3 }
+                ]
+            },
+            {
+                id: 6,
+                title: "Pastikan Emergency Fund Minimum 6 Bulan",
+                icon: "fa-solid fa-kit-medical",
+                desc: `Sekiranya perniagaan atau industri kerja anda tidak stabil, dibayar secara komisen, atau anda melakukan perniagaan sendiri:
+                       <p class="mt-3 text-slate-100 font-medium">Target simpanan kecemasan perlulah ditingkatkan kepada:</p>
+                       <p class="text-brand-dark bg-brand-goldLight p-3 rounded-xl font-black text-lg md:text-xl mt-2 flex items-center gap-3 justify-center shadow-lg"><i class="fa-solid fa-shield-cat text-2xl"></i> 12 BULAN PERBELANJAAN</p>`,
+                question: "Adakah dana kecemasan asas (emergency fund) keluarga anda mencukupi?",
+                options: [
+                    { text: "Kurang daripada 3 bulan perbelanjaan bulanan", points: 0 },
+                    { text: "Antara 3 hingga 6 bulan perbelanjaan bulanan", points: 1 },
+                    { text: "Cukup 6 hingga 12 bulan perbelanjaan bulanan (Kukuh)", points: 3 }
+                ]
+            },
+            {
+                id: 7,
+                title: "Wujudkan “Death File”",
+                icon: "fa-solid fa-box-archive",
+                desc: `Wujudkan satu fail fizikal atau digital rahsia yang menyimpan data-data berikut:
+                       <div class="grid grid-cols-2 gap-3 mt-4 text-sm md:text-base font-bold text-slate-100 bg-slate-800 p-4 rounded-xl border-2 border-slate-600 shadow-inner">
+                           <div class="flex items-center gap-2"><i class="fa-solid fa-file-contract text-brand-gold"></i> Polisi Takaful</div>
+                           <div class="flex items-center gap-2"><i class="fa-solid fa-building-columns text-brand-gold"></i> Akaun Bank</div>
+                           <div class="flex items-center gap-2"><i class="fa-solid fa-receipt text-brand-gold"></i> Senarai Hutang</div>
+                           <div class="flex items-center gap-2"><i class="fa-solid fa-house text-brand-gold"></i> Geran Harta</div>
+                           <div class="flex items-center gap-2"><i class="fa-solid fa-key text-brand-gold"></i> Password Aktif</div>
+                           <div class="flex items-center gap-2"><i class="fa-solid fa-scroll text-brand-gold"></i> Wasiat / Penama</div>
+                       </div>
+                       <p class="mt-4 text-slate-200 font-medium text-sm md:text-base border-l-4 border-brand-gold pl-3">Ini memastikan pasangan tidak panik atau terpinga-pinga jika berlaku kematian atau kelumpuhan mengejut.</p>`,
+                question: "Adakah anda sudah menyediakan 'Death File' peribadi keluarga?",
+                options: [
+                    { text: "Tiada langsung dan pasangan tidak tahu apa-apa", points: 0 },
+                    { text: "Sedang mengumpul maklumat secara tidak formal", points: 1 },
+                    { text: "Sudah lengkap, tersusun dan disimpan di lokasi yang diketahui pasangan", points: 3 }
+                ]
+            },
+            {
+                id: 8,
+                title: "Hibah Lebih Penting Daripada Harta Banyak",
+                icon: "fa-solid fa-hand-holding-heart",
+                desc: `Ramai keluarga memiliki aset bernilai tinggi (hartanah, saham syarikat), tetapi waris menghadapi krisis ketiadaan tunai segera.
+                       <p class="mt-3 text-slate-100 font-medium">Manfaat hibah tunai bertindak sebagai:</p>
+                       <p class="text-brand-dark font-bold text-base md:text-lg bg-brand-teal p-4 rounded-xl border border-teal-400 mt-2 shadow-lg leading-relaxed">
+                           Aliran tunai serta-merta untuk kelangsungan hidup sementara menunggu urusan harta pusaka / faraid diselesaikan mahkamah.
+                       </p>`,
+                question: "Adakah anda sudah mengatur Hibah tunai kalis beku untuk pasangan/anak?",
+                options: [
+                    { text: "Tiada langsung hibah tunai", points: 0 },
+                    { text: "Ada nilai kecil daripada insurans majikan sahaja", points: 1 },
+                    { text: "Sudah set Hibah tunai peribadi dengan nilai sara hidup bersesuaian", points: 3 }
+                ]
+            },
+            {
+                id: 9,
+                title: "Jangan Overcommit Rumah Pertama",
+                icon: "fa-solid fa-house-chimney",
+                desc: `Membeli rumah yang terlalu mahal pada fasa awal perkahwinan akan merosakkan perancangan kewangan:
+                       <ul class="list-disc list-inside mt-3 space-y-2 text-slate-100 pl-2 font-medium">
+                           <li>Meresap hampir keseluruhan aliran tunai bulanan</li>
+                           <li>Melambatkan pembinaan aset-aset produktif lain</li>
+                           <li>Mengheret tempoh persaraan menjadi terlalu lewat</li>
+                       </ul>
+                       <div class="mt-4 bg-brand-gold/20 border-2 border-brand-gold p-3 rounded-lg text-center">
+                           <p class="text-brand-goldLight font-black text-sm md:text-base tracking-wide uppercase">Rumah Ideal:</p>
+                           <p class="text-white font-bold text-lg">Ansuran Bulanan < 25% Pendapatan Bersih</p>
+                       </div>`,
+                question: "Adakah ansuran bulanan rumah anda dalam lingkungan ideal?",
+                options: [
+                    { text: "Ansuran melebihi 35% daripada pendapatan bersih keluarga", points: 0 },
+                    { text: "Ansuran antara 25% hingga 35% daripada pendapatan bersih", points: 1 },
+                    { text: "Ansuran di bawah 25% (atau masih menyewa / tiada beban hutang besar)", points: 3 }
+                ]
+            },
+            {
+                id: 10,
+                title: "Fokus Tingkatkan “Cashflow”, bukan sekadar “Net Worth”",
+                icon: "fa-solid fa-chart-line",
+                desc: `Ramai nampak kaya di mata masyarakat kerana memiliki aset yang bernilai tinggi, namun hakikatnya mempunyai aliran tunai bulanan yang negatif atau 'sesak'.
+                       <p class="mt-4 text-brand-goldLight font-black text-sm uppercase tracking-wider mb-2">Harus Diingat:</p>
+                       <p class="text-white font-bold text-base md:text-lg bg-slate-800 p-4 rounded-xl border border-slate-600 shadow-inner italic leading-relaxed">
+                           "Keluarga anda survive setiap bulan menggunakan aliran tunai bersih (cashflow), bukannya sekadar nilai atas kertas yang tidak boleh dibelanjakan di kedai runcit."
+                       </p>`,
+                question: "Apakah situasi purata aliran tunai (cashflow) bersih bulanan keluarga anda?",
+                options: [
+                    { text: "Negatif atau 'kais pagi makan pagi' (Habis semuanya)", points: 0 },
+                    { text: "Positif tetapi sangat kecil (Kurang daripada 10% gaji)", points: 1 },
+                    { text: "Konsisten positif melebihi 20% daripada pendapatan bulanan", points: 3 }
+                ]
+            },
+            {
+                id: 11,
+                title: "Mulakan Simpanan Anak Seawal Mungkin",
+                icon: "fa-solid fa-baby-carriage",
+                desc: `Kuasa faedah kompaun (compounding interest) adalah senjata kewangan paling berkuasa apabila diberikan faktor MASA yang panjang.
+                       <p class="mt-4 text-brand-gold font-bold text-sm uppercase tracking-wider mb-2">Fakta Menarik:</p>
+                       <p class="text-slate-100 text-base font-medium bg-slate-800 p-4 rounded-lg border-l-4 border-brand-gold leading-relaxed">
+                           Simpanan bernilai kecil yang dimulakan seawal <span class="font-bold text-brand-goldLight">usia anak 1 tahun</span> mempunyai potensi berkembang jauh lebih kuat berbanding simpanan bernilai besar tetapi hanya dimulakan apabila <span class="font-bold text-rose-400">anak berusia 15 tahun</span>.
+                       </p>`,
+                question: "Adakah anda sudah membuka dan menyumbang secara berkala ke tabung simpanan anak?",
+                options: [
+                    { text: "Belum mula menyimpan langsung", points: 0 },
+                    { text: "Ada simpanan tidak menentu (sekali-sekala)", points: 1 },
+                    { text: "Sudah ada akaun khas (SSPN/TH) dengan simpanan tetap bulanan", points: 3 }
+                ]
+            },
+            {
+                id: 12,
+                title: "Elakkan Bergantung Pada EPF Sahaja",
+                icon: "fa-solid fa-landmark",
+                desc: `Simpanan KWSP / EPF adalah platform persaraan yang sangat baik, namun ia mungkin tidak memadai untuk mendepani ancaman:
+                       <ul class="list-disc list-inside mt-3 space-y-2 text-slate-100 pl-2 font-medium">
+                           <li>Kadar inflasi sara hidup dan perubatan yang memuncak</li>
+                           <li>Risiko jangka hayat yang lebih panjang (longevity risk)</li>
+                       </ul>
+                       <p class="mt-4 text-brand-goldLight font-bold text-base md:text-lg bg-slate-800/80 p-3 rounded-lg text-center border border-brand-gold/30">
+                           Keluarga anda memerlukan pelaburan tambahan di luar sistem persaraan berpusat demi aliran pendapatan pasif.
+                       </p>`,
+                question: "Bagaimanakah persediaan pelaburan anda di luar caruman wajib KWSP?",
+                options: [
+                    { text: "Hanya bergantung kepada simpanan KWSP sahaja", points: 0 },
+                    { text: "Mempunyai simpanan ASB / Unit Amanah biasa yang tidak agresif", points: 1 },
+                    { text: "Mempunyai portfolio pelaburan luar aktif (Emas, Saham, Hartanah)", points: 3 }
+                ]
+            },
+            {
+                id: 13,
+                title: "Pastikan Pasangan Faham Kewangan Keluarga",
+                icon: "fa-solid fa-people-arrows",
+                desc: `Ramai pasangan suami runsing bersendirian atau isteri tidak mahu ambil tahu tentang kedudukan kewangan.
+                       <p class="mt-3 text-slate-100 font-medium">Keadaan ini amat merbahaya sekiranya berlaku krisis luar jangka seperti:</p>
+                       <div class="flex gap-3 mt-3 text-sm font-bold">
+                           <span class="bg-rose-500/20 text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/30">Kematian</span>
+                           <span class="bg-rose-500/20 text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/30">Lumpuh</span>
+                           <span class="bg-rose-500/20 text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/30">Hilang Kerja</span>
+                       </div>
+                       <p class="mt-4 text-brand-teal font-black text-sm md:text-base uppercase tracking-wide border-l-4 border-brand-teal pl-3">Komunikasi terbuka berkenaan hutang, akaun dan komitmen bulanan amat kritikal.</p>`,
+                question: "Adakah pasangan anda mengetahui keadaan kewangan, liabiliti dan aset anda sepenuhnya?",
+                options: [
+                    { text: "Saling merahsiakan dan tidak pernah berbincang mendalam", points: 0 },
+                    { text: "Tahu secara kasar tetapi tiada perbincangan strategik", points: 1 },
+                    { text: "Tahu sepenuhnya secara terperinci dan telus", points: 3 }
+                ]
+            },
+            {
+                id: 14,
+                title: "Rancang Persaraan Berdasarkan “Expenses”, bukan umur",
+                icon: "fa-solid fa-hourglass-end",
+                desc: `Persaraan yang stabil dan merdeka sebenarnya ditakrifkan apabila:
+                       <p class="text-brand-dark font-black text-base md:text-lg bg-brand-goldLight p-4 rounded-xl shadow-lg mt-3 text-center leading-relaxed">
+                           Aset pelaburan anda mampu menghasilkan dividen/sewaan bulanan yang MENCUKUPI untuk membiayai gaya hidup anda.
+                       </p>
+                       <p class="mt-4 text-slate-200 font-medium text-sm md:text-base border-l-4 border-slate-500 pl-3">
+                           Ia tidak sewajarnya berpaut kepada sekadar mencecah usia 55 atau 60 tahun semata-mata.
+                       </p>`,
+                question: "Adakah anda sudah mengira jumlah perbelanjaan bersara yang diperlukan keluarga kelak?",
+                options: [
+                    { text: "Belum pernah membuat kira-kira perbelanjaan bersara", points: 0 },
+                    { text: "Tahu jumlah sasaran modal besar tetapi tiada pecahan perbelanjaan", points: 1 },
+                    { text: "Sudah ada kiraan perbelanjaan bulanan persaraan mengambil kira inflasi", points: 3 }
+                ]
+            },
+            {
+                id: 15,
+                title: "Kurangkan Lifestyle Inflation",
+                icon: "fa-solid fa-arrow-trend-up",
+                desc: `Apabila pendapatan atau gaji bulanan meningkat, tidak semestinya perbelanjaan atau gaya hidup juga perlu meningkat seiring.
+                       <p class="mt-3 text-slate-100 font-bold mb-2">Jika terperangkap dalam inflasi gaya hidup (Lifestyle Inflation):</p>
+                       <ul class="list-disc list-inside space-y-2 text-rose-300 pl-2 font-medium bg-rose-500/10 p-4 rounded-xl border border-rose-500/20">
+                           <li>Simpanan bersih anda akan kekal berada di takuk lama.</li>
+                           <li>Garis masa persaraan anda akan sentiasa tertangguh.</li>
+                       </ul>`,
+                question: "Bagaimana anda mengurus peningkatan pendapatan dari semasa ke semasa?",
+                options: [
+                    { text: "Belanja sentiasa bertambah selari (atau lebih) daripada kenaikan gaji", points: 0 },
+                    { text: "Ada peningkatan belanja tetapi masih mengekalkan peratus simpanan lama", points: 1 },
+                    { text: "Kekal gaya hidup lama dan menyalurkan keseluruhan kenaikan ke pelaburan", points: 3 }
+                ]
+            },
+            {
+                id: 16,
+                title: "Wujudkan Passive Income Sebelum Umur 50",
+                icon: "fa-solid fa-money-bill-trend-up",
+                desc: `Sasaran terbaik untuk mengekalkan keharmonian kewangan masa tua:
+                       <p class="text-white font-black text-base md:text-lg bg-brand-teal/80 p-4 rounded-xl shadow-lg mt-3 text-center border-2 border-teal-400">
+                           Sekurang-kurangnya 20% – 30% perbelanjaan bulanan ditanggung oleh ALIRAN PENDAPATAN PASIF.
+                       </p>
+                       <p class="mt-4 text-slate-200 font-medium text-sm md:text-base">Contoh Instrumen: Dividen ASB/EPF, sewaan hartanah, dividen saham syarikat kukuh, dana sukuk, atau sistem perniagaan automatik.</p>`,
+                question: "Sejauh manakah kedudukan aset jana pendapatan pasif (passive income) anda ketika ini?",
+                options: [
+                    { text: "Tiada pendapatan pasif langsung selain gaji aktif", points: 0 },
+                    { text: "Mula membina dan meliputi kurang daripada 10% perbelanjaan", points: 1 },
+                    { text: "Sudah meliputi lebih daripada 20% kos perbelanjaan bulanan semasa", points: 3 }
+                ]
+            },
+            {
+                id: 17,
+                title: "Elakkan Anak Menjadi “Retirement Plan”",
+                icon: "fa-solid fa-person-breastfeeding",
+                desc: `Perancangan kewangan kekeluargaan yang sihat menekankan agar ibu bapa tidak meletakkan kebergantungan kewangan mutlak kepada anak-anak kelak.
+                       <p class="mt-3 text-slate-100 font-medium">Ini sangat kritikal bagi memutuskan:</p>
+                       <p class="text-brand-goldLight font-black text-base md:text-lg bg-slate-800 p-4 rounded-xl border-l-4 border-brand-gold mt-2">
+                           Kitaran <span class="text-brand-gold underline decoration-2 underline-offset-4">Sandwich Generation</span> (Generasi Tersepit) yang membebankan ekonomi keluarga baharu anak-anak kelak.
+                       </p>`,
+                question: "Adakah anda bersedia dari aspek dana supaya tidak bergantung kepada wang anak-anak ketika tua?",
+                options: [
+                    { text: "Saya menjangkakan anak-anak akan membiayai saya sepenuhnya kelak", points: 0 },
+                    { text: "Sedang merancang dana persaraan sendiri tetapi masih rasa sangsi", points: 1 },
+                    { text: "Sangat fokus membina kelangsungan persaraan demi keselesaan anak-anak", points: 3 }
+                ]
+            },
+            {
+                id: 18,
+                title: "Semak Semula Pelan Kewangan Setiap Tahun",
+                icon: "fa-solid fa-calendar-check",
+                desc: `Corak kehidupan keluarga sentiasa dinamik dan berubah-ubah berdasarkan:
+                       <ul class="list-disc list-inside mt-3 space-y-2 text-slate-100 pl-2 font-medium">
+                           <li>Pertambahan bilangan anak / Tanggungan</li>
+                           <li>Perubahan tangga gaji atau komitmen hutang baru</li>
+                           <li>Ancaman kadar inflasi tahunan semasa</li>
+                       </ul>
+                       <p class="mt-4 text-brand-dark font-black text-sm md:text-base bg-brand-goldLight p-3 rounded-lg text-center uppercase tracking-wide">
+                           Pelan kewangan anda mestilah bersifat 'Living Document' yang dikemas kini!
+                       </p>`,
+                question: "Seberapa kerapkah anda menyemak semula bajet dan pelan kewangan keluarga?",
+                options: [
+                    { text: "Tidak pernah menyemak semula secara tersusun", points: 0 },
+                    { text: "Sekali-sekala apabila ada krisis besar melanda", points: 1 },
+                    { text: "Konsisten menyemak dan mengubah suai sekurang-kurangnya sekali setahun", points: 3 }
+                ]
+            },
+            {
+                id: 19,
+                title: "Sediakan Wasiat & Struktur Pentadbiran Harta",
+                icon: "fa-solid fa-file-signature",
+                desc: `Tanpa sebarang perancangan perundangan atau wasiat pusaka:
+                       <ul class="list-disc list-inside mt-3 space-y-2 text-slate-100 pl-2 font-medium bg-slate-800 p-4 rounded-xl border border-slate-600">
+                           <li class="text-rose-400">Akaun simpanan bank anda berisiko tinggi untuk DIBEKUKAN.</li>
+                           <li class="text-rose-400">Waris boleh terjebak dalam krisis perbalahan tuntutan.</li>
+                           <li class="text-rose-400">Proses pengurusan faraid memakan masa bertahun-tahun.</li>
+                       </ul>
+                       <p class="mt-4 text-slate-200 font-medium text-sm md:text-base border-l-4 border-brand-teal pl-3">Penyediaan minimum seperti pelantikan wasi, hibah dan penamaan waris perlu dilakukan semasa masih sihat.</p>`,
+                question: "Apakah status persediaan pengurusan legasi dan pusaka keluarga anda?",
+                options: [
+                    { text: "Tiada wasiat, penamaan atau pembahagian yang diuruskan", points: 0 },
+                    { text: "Hanya melengkapkan penamaan di dalam akaun KWSP / Tabung Haji sahaja", points: 1 },
+                    { text: "Sudah melantik wasi / melengkapkan dokumen wasiat dan amanah rasmi", points: 3 }
+                ]
+            },
+            {
+                id: 20,
+                title: "Fokus “Financial Resilience”, bukan nampak kaya",
+                icon: "fa-solid fa-shield-heart",
+                desc: `Matlamat utama kewangan sebenar ialah membina KETAHANAN (resilience) keluarga agar terus stabil ketika menghadapi badai:
+                       <div class="flex flex-wrap gap-2 mt-3 font-bold text-xs md:text-sm text-slate-100">
+                           <span class="bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-600">Kematian</span>
+                           <span class="bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-600">Sakit Kritikal</span>
+                           <span class="bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-600">Hilang Kerja</span>
+                           <span class="bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-600">Kemelesetan Ekonomi</span>
+                       </div>
+                       <p class="mt-4 text-brand-dark font-black text-base md:text-lg bg-gradient-to-r from-brand-gold to-yellow-500 p-4 rounded-xl shadow-lg leading-relaxed text-center">
+                           Kekayaan sebenar ialah kemampuan keluarga terus hidup bermaruah tanpa terpaksa meminta-minta belas kasihan orang lain.
+                       </p>`,
+                question: "Apakah fokus falsafah kewangan keluarga anda sekarang?",
+                options: [
+                    { text: "Lebih cenderung berbelanja untuk pengiktirafan sosial (Biar nampak kaya)", points: 0 },
+                    { text: "Mengimbangi antara keperluan simpanan teguh dan keinginan gaya sosial", points: 1 },
+                    { text: "Fokus penuh membina ketahanan, perlindungan mutlak, dan kebebasan diri", points: 3 }
+                ]
+            }
+        ];
+
+        let currentTipIndex = 0;
+        let answersState = {}; 
+        let bookmarks = JSON.parse(localStorage.getItem('survival_finance_bookmarks')) || [];
+        
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, audioCtx.currentTime); 
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.1);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08, 0.08); 
+                    osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16, 0.16); 
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.35);
+                }
+            } catch (e) {}
+        }
+
+        function showToast(title, message) {
+            const toast = document.getElementById('toast-notif');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-msg').innerText = message;
+            
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
+        window.onload = function() {
+            updateBookmarkIcon();
+        };
+
+        function startTrivia() {
+            playSound('success');
+            const landing = document.getElementById('landing-screen');
+            landing.style.transform = 'scale(0.95)';
+            landing.style.opacity = '0';
+            
+            setTimeout(() => {
+                landing.classList.add('hidden');
+                landing.style.transform = '';
+                landing.style.opacity = '';
+                
+                const trivia = document.getElementById('trivia-screen');
+                trivia.classList.remove('hidden');
+                // Trigger reflow
+                void trivia.offsetWidth;
+                trivia.classList.add('scale-100', 'opacity-100');
+                renderTipCard();
+            }, 300);
+        }
+
+        function renderTipCard() {
+            const tip = rawTipsData[currentTipIndex];
+            
+            const percent = ((currentTipIndex + 1) / rawTipsData.length) * 100;
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-text').innerText = `${currentTipIndex + 1} / ${rawTipsData.length}`;
+
+            document.getElementById('tip-icon-box').innerHTML = `<i class="${tip.icon}"></i>`;
+            document.getElementById('tip-title').innerText = `${tip.id}. ${tip.title}`;
+            document.getElementById('tip-desc').innerHTML = tip.desc;
+            document.getElementById('assessment-question').innerText = tip.question;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            const savedAnswerIndex = answersState[tip.id];
+
+            tip.options.forEach((opt, idx) => {
+                const isSelected = savedAnswerIndex === idx;
+                
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-200 flex items-start gap-4 text-sm md:text-base font-bold shadow-sm active:scale-[0.98] ${
+                    isSelected 
+                    ? 'bg-brand-gold/15 border-brand-gold text-white ring-4 ring-brand-gold/20' 
+                    : 'bg-slate-800/80 border-slate-600 hover:bg-slate-700 hover:border-slate-500 text-slate-100'
+                }`;
+                btn.onclick = () => selectOption(tip.id, idx);
+
+                const checkIcon = isSelected 
+                    ? '<i class="fa-solid fa-circle-check text-brand-gold mt-1 text-xl md:text-2xl"></i>' 
+                    : '<i class="fa-regular fa-circle text-slate-400 mt-1 text-xl md:text-2xl"></i>';
+
+                const statusColor = opt.points === 3 ? 'text-brand-teal' : opt.points === 1 ? 'text-yellow-400' : 'text-rose-400';
+                const statusText = opt.points === 3 ? 'Ideal' : opt.points === 1 ? 'Sederhana' : 'Lemah';
+
+                btn.innerHTML = `
+                    <div class="flex-shrink-0">${checkIcon}</div>
+                    <div class="flex-grow leading-snug">${opt.text}</div>
+                    <span class="text-[10px] md:text-xs font-black uppercase tracking-wider ${statusColor} bg-slate-900/50 px-2 py-1 rounded border border-slate-700 ml-2 flex-shrink-0">${statusText}</span>
+                `;
+                container.appendChild(btn);
+            });
+
+            updateBookmarkIcon();
+            
+            document.getElementById('prev-btn').disabled = (currentTipIndex === 0);
+            
+            const nextBtn = document.getElementById('next-btn');
+            if (currentTipIndex === rawTipsData.length - 1) {
+                nextBtn.innerHTML = `Lihat Keputusan <i class="fa-solid fa-square-poll-vertical"></i>`;
+                nextBtn.classList.remove('bg-brand-gold', 'text-brand-dark', 'border-brand-gold');
+                nextBtn.classList.add('bg-brand-teal', 'text-brand-dark', 'border-brand-teal', 'hover:bg-teal-400');
+            } else {
+                nextBtn.innerHTML = `Seterusnya <i class="fa-solid fa-arrow-right"></i>`;
+                nextBtn.classList.remove('bg-brand-teal', 'text-brand-dark', 'border-brand-teal', 'hover:bg-teal-400');
+                nextBtn.classList.add('bg-brand-gold', 'text-brand-dark', 'border-brand-gold', 'hover:bg-yellow-400');
+            }
+        }
+
+        function selectOption(tipId, optionIndex) {
+            playSound('click');
+            answersState[tipId] = optionIndex;
+            updateRealtimeBadgeScore();
+            renderTipCard();
+        }
+
+        function updateRealtimeBadgeScore() {
+            let totalPossible = rawTipsData.length * 3;
+            let currentSum = 0;
+            let answeredCount = 0;
+
+            rawTipsData.forEach(tip => {
+                if (answersState[tip.id] !== undefined) {
+                    currentSum += tip.options[answersState[tip.id]].points;
+                    answeredCount++;
+                }
+            });
+
+            if (answeredCount > 0) {
+                const scorePercent = Math.round((currentSum / totalPossible) * 100);
+                const badge = document.getElementById('top-score-badge');
+                badge.classList.remove('hidden');
+                document.getElementById('current-badge-score').innerText = scorePercent;
+            }
+        }
+
+        function nextTip() {
+            if (answersState[rawTipsData[currentTipIndex].id] === undefined) {
+                answersState[rawTipsData[currentTipIndex].id] = 0;
+                showToast("Ditetapkan Automatik", "Tiada jawapan. Sistem merekodkan maklum balas minimum.");
+            }
+
+            if (currentTipIndex < rawTipsData.length - 1) {
+                currentTipIndex++;
+                playSound('click');
+                renderTipCard();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                showResults();
+            }
+        }
+
+        function prevTip() {
+            if (currentTipIndex > 0) {
+                currentTipIndex--;
+                playSound('click');
+                renderTipCard();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function toggleBookmark() {
+            const currentTipId = rawTipsData[currentTipIndex].id;
+            const index = bookmarks.indexOf(currentTipId);
+            if (index > -1) {
+                bookmarks.splice(index, 1);
+                showToast("Disisihkan", "Nasihat dibuang daripada senarai rujukan.");
+            } else {
+                bookmarks.push(currentTipId);
+                showToast("Tersimpan!", "Nasihat berjaya ditandakan untuk rujukan.");
+            }
+            localStorage.setItem('survival_finance_bookmarks', JSON.stringify(bookmarks));
+            updateBookmarkIcon();
+        }
+
+        function updateBookmarkIcon() {
+            const iconContainer = document.getElementById('bookmark-btn');
+            if (!iconContainer) return;
+            
+            const currentTipId = rawTipsData[currentTipIndex].id;
+            const isBookmarked = bookmarks.includes(currentTipId);
+            
+            if (isBookmarked) {
+                iconContainer.innerHTML = `<i class="fa-solid fa-bookmark text-brand-goldLight text-2xl animate-bounce"></i> <span class="text-sm font-bold text-brand-goldLight hidden sm:inline">Tersimpan</span>`;
+            } else {
+                iconContainer.innerHTML = `<i class="fa-regular fa-bookmark text-2xl"></i> <span class="text-sm font-bold text-slate-200 hidden sm:inline">Simpan</span>`;
+            }
+        }
+
+        function showResults() {
+            playSound('success');
+            const trivia = document.getElementById('trivia-screen');
+            trivia.style.transform = 'scale(0.95)';
+            trivia.style.opacity = '0';
+            
+            setTimeout(() => {
+                trivia.classList.add('hidden');
+                trivia.style.transform = '';
+                trivia.style.opacity = '';
+                
+                const results = document.getElementById('results-screen');
+                results.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                let totalPossible = rawTipsData.length * 3;
+                let totalScore = 0;
+                
+                rawTipsData.forEach(tip => {
+                    const ansIdx = answersState[tip.id] !== undefined ? answersState[tip.id] : 0;
+                    totalScore += tip.options[ansIdx].points;
+                });
+
+                const finalPercent = Math.round((totalScore / totalPossible) * 100);
+                
+                // SVG Circle calculation
+                const circle = document.getElementById('result-progress-circle');
+                const circumference = 283; // 2 * pi * 45 (approx 282.7)
+                const offset = circumference - (finalPercent / 100) * circumference;
+                circle.style.strokeDashoffset = offset;
+
+                document.getElementById('final-score-text').innerText = `${finalPercent}%`;
+
+                let level = "", desc = "", actionStatus = "", badgeClass = "";
+
+                if (finalPercent >= 80) {
+                    level = "Legenda Kewangan (Kalis Badai)";
+                    actionStatus = "Kekalkan Prestasi";
+                    badgeClass = "bg-brand-teal text-brand-dark px-5 py-2.5 rounded-xl text-sm font-black uppercase shadow-lg shadow-teal-500/20";
+                    desc = "Keluarga anda mempunyai tahap persediaan kewangan yang sangat tinggi dan tersusun rapi. Sebilangan besar instrumen perlindungan, dana survival bulanan, dan perancangan legasi pusaka sudah lengkap didirikan. Teruskan disiplin mulia ini dan bantu rakan terdekat anda membina ketahanan yang sama.";
+                } else if (finalPercent >= 50) {
+                    level = "Pejuang Kewangan (Berisiko)";
+                    actionStatus = "Perlukan Tindakan Segera";
+                    badgeClass = "bg-brand-gold text-brand-dark px-5 py-2.5 rounded-xl text-sm font-black uppercase shadow-lg shadow-yellow-500/20";
+                    desc = "Keluarga anda berada dalam fasa keselamatan yang sederhana. Anda mempunyai kesedaran asas dan beberapa perancangan tersusun. Walau bagaimanapun, masih terdapat beberapa 'lubang bocor' kritikal seperti ketiadaan Death File, nisbah hutang tinggi, atau dana survival yang belum mencukupi. Tutup segera lompang ini.";
+                } else {
+                    level = "Zon Bahaya Kewangan (Kritikal)";
+                    actionStatus = "Tindakan Kecemasan";
+                    badgeClass = "bg-rose-600 text-white px-5 py-2.5 rounded-xl text-sm font-black uppercase shadow-lg shadow-rose-500/20";
+                    desc = "Amaran! Kewangan keluarga anda berada dalam zon sangat terdedah kepada kehancuran sekiranya berlaku krisis mengejut (kematian, sakit kritikal, hilang kerja). Ketiadaan dana survival dan perlindungan pendapatan bermaksud keluarga anda mungkin terpaksa menanggung bebanan hutang yang serius. Ambil tindakan drastik hari ini.";
+                }
+
+                const levelBadge = document.getElementById('badge-level');
+                levelBadge.innerText = level;
+                levelBadge.className = badgeClass;
+                
+                document.getElementById('result-description').innerText = desc;
+                document.getElementById('resilience-level-text').innerText = level;
+                document.getElementById('action-status-text').innerText = actionStatus;
+
+                renderAllTipsExplorer();
+            }, 300);
+        }
+
+        function renderAllTipsExplorer() {
+            const grid = document.getElementById('all-tips-grid');
+            grid.innerHTML = '';
+
+            rawTipsData.forEach(tip => {
+                const ansIdx = answersState[tip.id] !== undefined ? answersState[tip.id] : 0;
+                const chosenOpt = tip.options[ansIdx];
+                const isBookmarked = bookmarks.includes(tip.id);
+
+                let statusColor = "border-rose-500/50 bg-rose-950/40";
+                let badgeText = "Kritikal / Lemah";
+                let badgeStyle = "text-rose-100 bg-rose-600";
+                
+                if (chosenOpt.points === 3) {
+                    statusColor = "border-teal-500/50 bg-teal-950/40";
+                    badgeText = "Ideal / Baik";
+                    badgeStyle = "text-teal-900 bg-teal-400";
+                } else if (chosenOpt.points === 1) {
+                    statusColor = "border-yellow-500/50 bg-yellow-900/30";
+                    badgeText = "Sederhana";
+                    badgeStyle = "text-yellow-900 bg-yellow-400";
+                }
+
+                const card = document.createElement('div');
+                card.className = `p-5 md:p-6 rounded-2xl border-2 ${statusColor} space-y-4 transition duration-200 hover:-translate-y-1 shadow-lg flex flex-col justify-between`;
+                card.setAttribute('data-tip-id', tip.id);
+                card.setAttribute('data-points', chosenOpt.points);
+                card.setAttribute('data-bookmarked', isBookmarked);
+                card.setAttribute('data-search-text', (tip.title + ' ' + tip.desc).toLowerCase());
+
+                card.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-start gap-3">
+                            <span class="text-xs md:text-sm font-black text-slate-300 uppercase tracking-wider bg-slate-900/50 px-2 py-1 rounded">NASIHAT ${tip.id}</span>
+                            <div class="flex items-center gap-2">
+                                ${isBookmarked ? '<span class="text-brand-goldLight text-sm md:text-base"><i class="fa-solid fa-bookmark"></i></span>' : ''}
+                                <span class="px-3 py-1 text-xs md:text-sm font-bold rounded-lg shadow-sm ${badgeStyle}">${badgeText}</span>
+                            </div>
+                        </div>
+                        <h5 class="text-base md:text-lg font-extrabold text-white leading-snug">${tip.title}</h5>
+                        <p class="text-sm md:text-base text-slate-200 line-clamp-3 font-medium leading-relaxed">${tip.desc.replace(/<[^>]*>/g, '')}</p>
+                    </div>
+                    
+                    <div class="pt-4 border-t border-slate-600/50 mt-4">
+                        <span class="text-xs text-slate-400 block uppercase font-bold tracking-wide">Pilihan Anda:</span>
+                        <p class="text-sm md:text-base font-bold text-slate-100 mt-1.5 leading-snug">${chosenOpt.text} (${chosenOpt.points} Mata)</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterTips() {
+            const query = document.getElementById('search-tips').value.toLowerCase();
+            const filterValue = document.getElementById('filter-status').value;
+            const cards = document.getElementById('all-tips-grid').children;
+
+            for (let card of cards) {
+                const searchText = card.getAttribute('data-search-text');
+                const points = parseInt(card.getAttribute('data-points'));
+                const isBookmarked = card.getAttribute('data-bookmarked') === 'true';
+
+                let matchesSearch = searchText.includes(query);
+                let matchesFilter = true;
+
+                if (filterValue === 'bookmarked') matchesFilter = isBookmarked;
+                else if (filterValue === 'ideal') matchesFilter = points === 3;
+                else if (filterValue === 'warning') matchesFilter = points < 3;
+
+                if (matchesSearch && matchesFilter) card.classList.remove('hidden');
+                else card.classList.add('hidden');
+            }
+        }
+
+        function resetTrivia() {
+            playSound('click');
+            currentTipIndex = 0;
+            answersState = {};
+            document.getElementById('top-score-badge').classList.add('hidden');
+            
+            const results = document.getElementById('results-screen');
+            results.style.transform = 'scale(0.95)';
+            results.style.opacity = '0';
+            
+            setTimeout(() => {
+                results.classList.add('hidden');
+                results.style.transform = '';
+                results.style.opacity = '';
+                
+                const landing = document.getElementById('landing-screen');
+                landing.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 300);
+        }
+
+        function copyLaporan() {
+            let scoreSum = 0;
+            rawTipsData.forEach(tip => {
+                const ansIdx = answersState[tip.id] !== undefined ? answersState[tip.id] : 0;
+                scoreSum += tip.options[ansIdx].points;
+            });
+            const percent = Math.round((scoreSum / 60) * 100);
+            
+            let statusBanner = "KRITIKAL / ZON BAHAYA";
+            if (percent >= 80) statusBanner = "KALIS BADAI (Cemerlang)";
+            else if (percent >= 50) statusBanner = "STABIL TETAPI BERISIKO";
+
+            let copyText = `🛡️ LAPORAN KETAHANAN KEWANGAN KELUARGA\n`;
+            copyText += `Skor Keseluruhan: ${percent}%\n`;
+            copyText += `Status Profil: ${statusBanner}\n\n`;
+            copyText += `--- RINGKASAN STATUS PRINSIP ---\n`;
+            
+            rawTipsData.forEach(tip => {
+                const ansIdx = answersState[tip.id] !== undefined ? answersState[tip.id] : 0;
+                const status = tip.options[ansIdx].points === 3 ? "🟢 Kukuh" : tip.options[ansIdx].points === 1 ? "🟡 Sederhana" : "🔴 Lemah";
+                copyText += `${tip.id}. ${tip.title}\n   Status: ${status}\n\n`;
+            });
+            
+            copyText += `Dijana oleh Nasihat Survival Kewangan.\nUkur persediaan kewangan anda hari ini!`;
+
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = copyText;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            showToast("Laporan Disalin!", "Teks laporan ringkas sedia untuk di-paste (tampal) di WhatsApp atau Nota.");
+        }
+
+        function openGlossary() {
+            playSound('click');
+            const modal = document.getElementById('glossary-modal');
+            modal.classList.remove('hidden');
+            // Trigger reflow
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0', 'scale-95');
+            modal.classList.add('opacity-100', 'scale-100');
+        }
+
+        function closeGlossary() {
+            playSound('click');
+            const modal = document.getElementById('glossary-modal');
+            modal.classList.remove('opacity-100', 'scale-100');
+            modal.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
