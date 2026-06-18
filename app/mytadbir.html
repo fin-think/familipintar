@@ -32,7 +32,7 @@
     
     <div id="root"></div>
 
-    <script type="text/babel" data-type="module">
+    <script type="text/babel" 
        const { useState, useMemo } = React;
         
         
@@ -928,14 +928,16 @@ else {
               <header className="bg-gradient-to-r from-indigo-950 via-slate-900 to-blue-950 text-white p-6 md:p-10 shadow-md sticky top-0 z-50">
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
                   <div>
-                    <h1 className="text-3xl font-bold flex items-center gap-3">
-                      <Landmark size={32} className="text-cyan-300" />
-                      <h2 class="text-3xl font-extrabold tracking-tight">
-  <span class="text-sky">my</span>
-  <span class="text-white-300">TADBIR</span>
-  <span class="text-yellow-400 ml-2">Famili</span>
-  <span class="text-sky-400">Pintar</span>
-</h2>
+                    <div className="flex items-center gap-3">
+  <Landmark size={32} className="text-cyan-300" />
+
+  <div className="text-3xl font-extrabold tracking-tight">
+    <span className="text-sky-300">my</span>
+    <span className="text-white">TADBIR</span>
+    <span className="text-yellow-400 ml-2">Famili</span>
+    <span className="text-sky-400">Pintar</span>
+  </div>
+</div>
                     </h1>
                     <p className="text-blue-100 mt-2 text-lg">Perancangan Persaraan Dunia Akhirat Anda</p>
                   </div>
