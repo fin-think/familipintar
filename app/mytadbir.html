@@ -31,11 +31,25 @@
 <body class="bg-slate-50">
     
     <div id="root"></div>
-
+<script src="https://unpkg.com/lucide@latest"></script>
     <script type="text/babel" 
        const { useState, useMemo } = React;
         
-        
+        const {
+  User,
+  Landmark,
+  Wallet,
+  BookOpen,
+  CreditCard,
+  Activity,
+  Printer,
+  MessageCircle,
+  Heart,
+  Users,
+  TrendingUp,
+  Calculator,
+  ShieldCheck
+} = lucide;
 
         // --- Komponen Bantuan (UI) ---
         const Card = ({ children, className = '' }) => (
