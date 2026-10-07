@@ -82,6 +82,154 @@
 </head>
 <body class="text-slate-800 antialiased overflow-x-hidden">
 
+<!-- HALAMAN PENGENALAN myJurnal (dipaparkan sebelum log masuk) -->
+<div id="introPage" class="bg-slate-50 flex flex-col w-full min-h-screen">
+
+    <header class="w-full bg-white px-6 py-4 shadow-sm flex justify-between items-center">
+        <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="h-10 w-auto object-contain">
+        <a href="index.html" class="text-sm font-bold text-slate-600 hover:text-sky-600 transition flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Halaman Utama
+        </a>
+    </header>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 w-full flex-grow">
+
+            <!-- SECTION VALUE -->
+            <div class="mb-6 bg-white rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-100">
+                <h2 class="text-2xl md:text-3xl font-bold text-center text-slate-800 mb-10">Apa yang anda akan dapat dalam Jurnal <span class="text-yellow-500">Famili</span> <span class="text-sky-500">Pintar</span></h2>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                    <!-- Value 1 -->
+                    <div class="text-center flex flex-col items-center pt-6 sm:pt-0 px-2">
+                        <div class="w-16 h-16 rounded-full bg-blue-500 text-white flex items-center justify-center text-2xl mb-5 shadow-md">
+                            <i class="fa-solid fa-chart-simple"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">20+ Kalkulator & Ujian</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Alat interaktif untuk penilaian dan perancangan anda.</p>
+                    </div>
+                    <!-- Value 2 -->
+                    <div class="text-center flex flex-col items-center pt-6 sm:pt-0 px-2">
+                        <div class="w-16 h-16 rounded-full bg-emerald-400 text-white flex items-center justify-center text-2xl mb-5 shadow-md">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">30+ E-book Panduan</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Ilmu praktikal dalam bentuk e-book yang mudah difahami.</p>
+                    </div>
+                    <!-- Value 3 -->
+                    <div class="text-center flex flex-col items-center pt-6 sm:pt-0 px-2">
+                        <div class="w-16 h-16 rounded-full bg-amber-400 text-white flex items-center justify-center text-2xl mb-5 shadow-md">
+                            <i class="fa-solid fa-bullseye"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">Sistem Langkah Demi Langkah</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Panduan tersusun dari asas hingga ke tahap pengurusan keluarga yang lebih baik.</p>
+                    </div>
+                    <!-- Value 4 -->
+                    <div class="text-center flex flex-col items-center pt-6 sm:pt-0 px-2">
+                        <div class="w-16 h-16 rounded-full bg-purple-500 text-white flex items-center justify-center text-2xl mb-5 shadow-md">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm md:text-base">Untuk Semua Peringkat</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Sesuai untuk yang belum berkeluarga, baru berkahwin atau sudah berkeluarga.</p>
+                    </div>
+                </div>
+            </div>
+
+<!-- SECTION FINANCIAL HEALTH CHECK -->
+<div class="mb-10 bg-white rounded-[2rem] p-8 md:p-10 shadow-sm border border-slate-100 text-center">
+
+    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-4">
+        Financial Health Check
+    </h2>
+
+    <p class="text-slate-500 text-md mb-6 max-w-xl mx-auto">
+        Soalan mudah. Jawapan yang selama ini anda takut tanya.
+    </p>
+
+    <!-- Progress -->
+    <div class="w-full bg-slate-200 rounded-full h-2 mb-6">
+        <div id="progressBar" class="bg-sky-500 h-2 rounded-full" style="width: 20%"></div>
+    </div>
+
+    <!-- Soalan -->
+    <div id="quizBox">
+        <p id="questionText" class="font-semibold text-slate-700 mb-6"></p>
+
+        <div class="flex justify-center gap-4">
+            <button onclick="answerQuiz(1)" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold shadow">
+                Ya
+            </button>
+            <button onclick="answerQuiz(0)" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-bold shadow">
+                Tidak
+            </button>
+        </div>
+    </div>
+
+    <!-- Result -->
+    <div id="quizResult" class="hidden mt-8">
+        <h3 class="text-xl font-bold mb-3">Keputusan Anda:</h3>
+        <p id="resultText" class="font-semibold text-slate-700 mb-4"></p>
+
+        <button onclick="enterFree()" class="bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 rounded-xl font-bold shadow">
+            Log Masuk Sekarang
+        </button>
+
+        <br>
+
+        <button 
+            onclick="buyAccess('full')"
+            class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 px-6 py-3 rounded-xl font-bold shadow mt-4">
+            Dapatkan Full Access
+        </button>
+
+    </div>
+
+</div>
+
+           
+
+            <!-- CTA BANNER SECTION -->
+            <div class="bg-blue-600 rounded-[2rem] p-8 md:p-10 text-white shadow-xl flex flex-col lg:flex-row items-center justify-between gap-8 mb-6 relative overflow-hidden">
+                <!-- Background decoration -->
+                <div class="absolute -right-10 -bottom-10 opacity-10">
+                    <i class="fa-solid fa-hand-holding-heart text-[15rem]"></i>
+                </div>
+                
+                <div class="flex items-center gap-6 relative z-10 text-center lg:text-left">
+                    <div class="hidden md:flex shrink-0 w-16 h-16 bg-white/20 rounded-full items-center justify-center">
+                        <i class="fa-solid fa-hand-holding-heart text-3xl text-yellow-300"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl md:text-2xl font-bold mb-2">Satu langkah. Buat sekarang. —</h3>
+                        <p class="text-blue-100 font-medium">Keluarga anda layak dapat lebih.</p>
+                    </div>
+                </div>
+                
+               <div class="flex flex-col items-center gap-4">
+                    <button onclick="enterFree()" class="relative z-10 shrink-0 w-full lg:w-auto bg-yellow-100 hover:bg-yellow-200 text-slate-900 font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-right-to-bracket"></i> Log Masuk
+                    </button>
+
+                    <a href="https://fin-think.github.io/landingpage1/" target="_blank" style="pointer-events:auto;" class="relative z-10 text-white/80 hover:text-white text-sm font-semibold transition-all">
+                        Dapatkan butiran lanjut <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- FOOTER HALUS -->
+            <div class="text-center pb-8 pt-6 opacity-40">
+                <p class="text-[10px] font-bold tracking-[0.4em] text-slate-500 uppercase">HCH x DAEBOOK &copy; 2026</p>
+            </div>
+
+    </div>
+</div>
+<script>
+    // Sesi sudah log masuk -> elak kelipan halaman pengenalan
+    if (sessionStorage.getItem('isLoggedIn') === 'true') {
+        document.getElementById('introPage').style.display = 'none';
+    }
+</script>
+
 <!-- MODAL ARAHAN AKSES -->
 <div id="accessInfoModal"
 class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-center p-4">
@@ -154,7 +302,7 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
     </div>
 
     <!-- Kandungan Utama -->
-    <div id="mainContent" class="opacity-0 transition-opacity duration-1000">
+    <div id="mainContent" style="display:none" class="opacity-0 transition-opacity duration-1000">
         <nav class="bg-white-400 text-blue shadow-lg sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
@@ -333,8 +481,18 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         let activeUnlockTarget = '';
         let currentSectionId = '';
 
+        // Sembunyi halaman pengenalan, papar jurnal (dengan fade-in)
+        function bukaJurnal() {
+            const intro = document.getElementById('introPage');
+            if (intro) intro.style.display = 'none';
+            const mc = document.getElementById('mainContent');
+            mc.style.display = '';
+            setTimeout(() => mc.classList.remove('opacity-0'), 20);
+            window.scrollTo(0, 0);
+        }
+
         function showApp() {
-            document.getElementById('mainContent').classList.remove('opacity-0');
+            bukaJurnal();
             document.body.classList.remove('overflow-hidden');
             
             // Paparkan No Telefon di Navbar
@@ -396,7 +554,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
             });
         }
 
-        function logout() { sessionStorage.clear(); window.location.reload(); }
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
 async function mainLogin() {
 
@@ -430,7 +588,7 @@ if (isAdmin) {
     sessionStorage.setItem('access_kids', true);
     sessionStorage.setItem('access_akuan', true);
 
-    document.getElementById('mainContent').classList.remove('opacity-0');
+    bukaJurnal();
     renderAll();
     applyAccessControl();
 
@@ -468,7 +626,7 @@ if (isAdmin) {
 
         }
 
-        document.getElementById('mainContent').classList.remove('opacity-0');
+        bukaJurnal();
         renderAll();
         applyAccessControl();
         closeAccessModal();
@@ -494,10 +652,11 @@ function enterFree() {
 
 }
 
-// Tutup dialog tanpa meneruskan -> kembali ke halaman depan
 function closeAccessInfo() {
 
-    window.location.href = 'index.html';
+    document.getElementById(
+        'accessInfoModal'
+    ).classList.add('hidden');
 
 }
 
@@ -507,9 +666,7 @@ function continueEnter() {
         'accessInfoModal'
     ).classList.add('hidden');
 
-    document.getElementById(
-        'mainContent'
-    ).classList.remove('opacity-0');
+    bukaJurnal();
 
     sessionStorage.setItem(
         'isLoggedIn',
@@ -812,13 +969,11 @@ function continueEnter() {
         function hideProfile() { document.getElementById('profileSection').classList.add('hidden'); document.getElementById('timelineContent').classList.remove('hidden'); document.getElementById('heroSection').classList.remove('hidden'); }
         function contactWhatsApp(t) { window.open(`https://wa.me/60129443846?text=Bantuan%20${t}`, '_blank'); }
 
-        // Bila halaman dibuka: kalau sesi sudah log masuk terus papar jurnal,
-        // kalau belum papar dialog "Maklumat Akses" dahulu (flow sama seperti butang Log Masuk dulu).
+        // Sesi sudah log masuk -> terus papar jurnal.
+        // Kalau belum -> halaman pengenalan (value, kuiz, Log Masuk) kekal dipaparkan.
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('isLoggedIn') === 'true') {
                 showApp();
-            } else {
-                enterFree();
             }
         });
     </script>
@@ -941,6 +1096,58 @@ function toggleJournalMobileMenu() {
 
 </script>
 
+
+<script>
+const questions = [
+    "Kalau esok anda tak boleh kerja — adakah keluarga anda selamat selama 3 bulan?",
+    "Kalau sesuatu berlaku pada anda hari ini — adakah keluarga anda terjaga?",
+    "Setiap bulan, adakah anda simpan dulu — atau simpan apa yang berbaki?",
+    "Wang anda sedang duduk diam — atau sedang membesar untuk masa depan?",
+    "Kalau anda tiada esok — adakah orang yang anda sayang tahu apa yang anda tinggalkan?"
+];
+
+let currentQ = 0;
+let score = 0;
+
+const questionText = document.getElementById("questionText");
+const progressBar = document.getElementById("progressBar");
+
+function loadQuestion() {
+    questionText.innerText = questions[currentQ];
+    progressBar.style.width = ((currentQ + 1) / questions.length) * 100 + "%";
+}
+
+function answerQuiz(val) {
+    score += val;
+    currentQ++;
+
+    if (currentQ < questions.length) {
+        loadQuestion();
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    document.getElementById("quizBox").classList.add("hidden");
+    document.getElementById("quizResult").classList.remove("hidden");
+
+    let resultText = "";
+
+    if (score <= 2) {
+        resultText = "Tahap kewangan anda: KRITIKAL. Anda perlu mula merancang dengan segera. Log in untuk merancang sekarang.";
+    } else if (score <= 4) {
+        resultText = "Tahap kewangan anda: SEDERHANA. Masih ada ruang untuk penambahbaikan. Log in untuk penambahbaikan aspek-aspek lain.";
+    } else {
+        resultText = "Tahap kewangan anda: STABIL. Anda berada di landasan yang baik. Log in untuk mengetahui aspek keluarga, anak-anak & legasi anda.";
+    }
+
+    document.getElementById("resultText").innerText = resultText;
+}
+
+// Load first question
+document.addEventListener("DOMContentLoaded", loadQuestion);
+</script>
 
 <!-- LOGIN ACCESS MODAL -->
 
