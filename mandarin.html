@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belajar Mandarin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+        }
+        .hanzi-text {
+            font-family: "Kaiti", "KaiTi", "STKaiti", "BiauKai", serif; /* Font kaligrafi Cina jika ada */
+        }
+        /* Animasi untuk toast notification */
+        .toast-enter {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+        .toast-leave {
+            transform: translateY(-20px) scale(0.9);
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- Header Section -->
+    <header class="pt-12 pb-8 text-center px-4">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-slate-800 drop-shadow-sm mb-3">
+            Belajar Mandarin
+        </h1>
+        <p class="text-slate-500 max-w-lg mx-auto font-medium">
+            Kuasai bahasa Mandarin bermula dari asas hingga fasih. Selesaikan Tahap 1 dan gunakan kod akses untuk membuka tahap seterusnya, 1 kod untuk akses semua Tahap (tekan ikon kunci).
+        </p>
+    </header>
+
+    <!-- Main Container for Cards -->
+    <main class="max-w-6xl mx-auto px-6">
+        <!-- Grid layout untuk 5 kotak -->
+        <div id="cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
+            <!-- Kad akan di-render di sini menggunakan JavaScript -->
+        </div>
+    </main>
+
+    <!-- Modal / Popup untuk Access Code -->
+    <div id="unlock-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 transform scale-95 transition-transform duration-300" id="modal-content">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                    🔒
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800">Tahap Terkunci</h2>
+                <p class="text-slate-500 text-sm mt-2">Sila masukkan kod akses untuk membuka Tahap 2 hingga Tahap 5.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <input type="password" id="access-code-input" placeholder="Masukkan Kod Akses..." 
+                        class="w-full px-5 py-4 border-2 border-slate-200 rounded-xl text-center text-lg font-semibold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all">
+                </div>
+                
+                <button onclick="verifyCode()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95">
+                    Buka Kunci Sekarang
+                </button>
+                <!-- 🔥 TOYYIBPAY LINK -->
+<a href="https://toyyibpay.com/mandarin101" target="_blank"
+   class="w-full block text-center bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all">
+    Bayar & Dapatkan Akses
+</a>
+                <button onclick="closeModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-3 rounded-xl transition-all">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification (Pengganti Alert) -->
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[60] bg-red-500 text-white px-6 py-3 rounded-full shadow-lg font-semibold flex items-center gap-2 transition-all duration-300 toast-leave">
+        <span id="toast-icon">❌</span>
+        <span id="toast-message">Kod salah! Sila cuba lagi.</span>
+    </div>
+
+    <script>
+        // --- 1. DATA & KONFIGURASI ---
+        const ACCESS_CODE = "zhongwen"; // Kod rahsia
+        const STORAGE_KEY = "unlocked";
+
+        // Senarai tahap pembelajaran dengan warna dan data berbeza
+        const levels = [
+            { 
+  id: 1, 
+  title: "Tahap 1", 
+  hanzi: "基础内容", 
+  pinyin: "jī chǔ nèi róng", 
+  meaning: "Kandungan asas",
+  desc: "1. 数字 shù zì (Nombor)\n2. 身体部位 shēn tǐ bù wèi (Bahagian Badan)\n3. 代词 dài cí (Kata Ganti Nama)\n4. 家庭 jiā tíng (Keluarga)\n5. 家居物品 jiā jū wù pǐn (Barangan Rumah)\n6. 日常问候 rì cháng wèn hòu (Ucapan Harian)", 
+  colorClass: "bg-blue-50 border-blue-200", 
+  textClass: "text-blue-600", 
+  url: "/mandarin/app/1.0.html" 
+},
+
+{ 
+  id: 2, 
+  title: "Tahap 2", 
+  hanzi: "日常生活", 
+  pinyin: "rì cháng shēng huó",
+   meaning: "Kandungan asas",
+  desc: "1. 食物与饮料 shí wù yǔ yǐn liào (Makanan & Minuman)\n2. 时间与日程 shí jiān yǔ rì chéng (Masa & Jadual)\n3. 公共场所 gōng gòng chǎng suǒ (Tempat Awam)\n4. 方向与位置 fāng xiàng yǔ wèi zhì (Arah & Lokasi)\n5. 购物 gòu wù (Shopping)\n6. 交通 jiāo tōng (Pengangkutan)", 
+  colorClass: "bg-emerald-50 border-emerald-200", 
+  textClass: "text-emerald-600", 
+  url: "/mandarin/app/2.0.html" 
+},
+
+{ 
+  id: 3, 
+  title: "Tahap 3", 
+  hanzi: "日常交流", 
+  pinyin: "rì cháng jiāo liú", 
+  meaning: "Kandungan asas",
+  desc: "1. 在餐厅 zài cān tīng (Perbualan Restoran)\n2. 日常活动与爱好 rì cháng huó dòng yǔ ài hào (Aktiviti & Hobi)\n3. 天气与季节 tiān qì yǔ jì jié (Cuaca & Musim)\n4. 感觉与情绪 gǎn jué yǔ qíng xù (Perasaan & Emosi)\n5. 电话与聊天 diàn huà yǔ liáo tiān (Telefon & Chat)\n6. 活动与节日 huó dòng yǔ jié rì (Perayaan Malaysia)", 
+  colorClass: "bg-amber-50 border-amber-200", 
+  textClass: "text-amber-600", 
+  url: "/mandarin/app/3.0.html" 
+},
+
+{ 
+  id: 4, 
+  title: "Tahap 4", 
+  hanzi: "工作与生活", 
+  pinyin: "gōng zuò yǔ shēng huó",
+  meaning: "Kandungan asas",
+  desc: "1. 工作面试 gōng zuò miàn shì (Temuduga)\n2. 工作场所 gōng zuò chǎng suǒ (Tempat Kerja)\n3. 商业与买卖 shāng yè yǔ mǎi mài (Bisnes)\n4. 问题与投诉 wèn tí yǔ tóu sù (Aduan)\n5. 健康与医院 jiàn kāng yǔ yī yuàn (Kesihatan)\n6. 旅行与酒店 lǚ xíng yǔ jiǔ diàn (Travel & Hotel)", 
+  colorClass: "bg-purple-50 border-purple-200", 
+  textClass: "text-purple-600", 
+  url: "/mandarin/app/4.0.html" 
+},
+
+{ 
+  id: 5, 
+  title: "Tahap 5", 
+  hanzi: "高级交流", 
+  pinyin: "gāo jí jiāo liú", 
+  meaning: "Kandungan asas",
+  desc: "1. 深入对话 shēn rù duì huà (Perbualan Mendalam)\n2. 俚语与口语 lǐ yǔ yǔ kǒu yǔ (Slang & Santai)\n3. 文化与礼仪 wén huà yǔ lǐ yí (Budaya & Etika)\n4. 故事与叙述 gù shì yǔ xù shù (Storytelling)\n5. 媒体与娱乐 méi tǐ yǔ yú lè (Media & Hiburan)\n6. 复杂情况 fù zá qíng kuàng (Situasi Kompleks)", 
+  colorClass: "bg-rose-50 border-rose-200", 
+  textClass: "text-rose-600", 
+  url: "/mandarin/app/5.0.html" 
+}
+        ];
+
+        // Semak status unlock dalam localStorage semasa load
+        let isUnlocked = localStorage.getItem(STORAGE_KEY) === "true";
+
+        // --- 2. FUNGSI RENDER UI ---
+        function renderCards() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = ''; // Kosongkan container
+
+            levels.forEach(level => {
+                const isLocked = level.id !== 1 && !isUnlocked;
+                
+                // Bina struktur kad
+                const card = document.createElement('div');
+                card.className = `relative group rounded-3xl p-6 border-2 transition-all duration-300 ${level.colorClass} hover:-translate-y-2 hover:shadow-xl cursor-pointer ${isLocked ? 'opacity-80' : ''}`;
+                
+                // Tambah event listener untuk klik kad
+                card.onclick = () => handleCardClick(level.id, level.url);
+
+                // Kandungan Dalam Kad
+                let innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="inline-block px-4 py-1.5 rounded-full text-sm font-bold bg-white/70 ${level.textClass} shadow-sm backdrop-blur-sm">
+                            ${level.title}
+                        </span>
+                        ${isLocked ? `<span class="text-2xl drop-shadow-md">🔒</span>` : `<span class="text-2xl opacity-0 group-hover:opacity-100 transition-opacity">👉</span>`}
+                    </div>
+                    
+                    <div class="text-center my-6">
+    
+    <p class="text-lg text-slate-800">
+  ${level?.meaning || ""}
+</p>
+</div>
+                    
+                    <p class="text-slate-600 text-left text-sm font-medium leading-relaxed whitespace-pre-line">
+    ${level.desc}
+</p>
+                `;
+
+                // Overlay gelap jika kad dikunci (pilihan tambahan supaya jelas terkunci)
+                if (isLocked) {
+                    innerHTML += `
+                        <div class="absolute inset-0 bg-slate-900/5 rounded-3xl group-hover:bg-slate-900/10 transition-colors"></div>
+                    `;
+                }
+
+                card.innerHTML = innerHTML;
+                container.appendChild(card);
+            });
+        }
+
+        // --- 3. FUNGSI INTERAKSI LOGIK ---
+        function handleCardClick(levelId, url) {
+            if (levelId === 1 || isUnlocked) {
+                // Berjaya - Arahkan ke URL
+                // Disebabkan persekitaran preview, ia akan cuba alih tab.
+                window.location.href = url; 
+            } else {
+                // Terkunci - Papar modal mintak kod
+                openModal();
+            }
+        }
+
+        // --- 4. FUNGSI MODAL ---
+        const modal = document.getElementById('unlock-modal');
+        const modalContent = document.getElementById('modal-content');
+        const inputField = document.getElementById('access-code-input');
+
+        function openModal() {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+            inputField.value = ''; // Kosongkan input
+            setTimeout(() => inputField.focus(), 100);
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+        }
+
+        // --- 5. FUNGSI VERIFIKASI KOD & TOAST ---
+        function verifyCode() {
+            const userInput = inputField.value.trim();
+            
+            if (userInput === ACCESS_CODE) {
+                // Berjaya unlock
+                localStorage.setItem(STORAGE_KEY, "true");
+                isUnlocked = true;
+                closeModal();
+                renderCards(); // Re-render untuk hilangkan mangga (lock)
+                showToast("Berjaya! Semua tahap telah dibuka.", "success");
+            } else {
+                // Gagal - Tunjuk ralat
+                showToast("Kod salah! Sila cuba lagi.", "error");
+                
+                // Tambah animasi gegaran pada modal jika salah
+                modalContent.classList.add('animate-pulse');
+                setTimeout(() => modalContent.classList.remove('animate-pulse'), 500);
+            }
+        }
+
+        // Sokongan enter pada keyboard untuk input
+        inputField.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                verifyCode();
+            }
+        });
+
+        // Pengganti alert() - Toast Notification Modern
+        let toastTimeout;
+        function showToast(message, type = "error") {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMessage.textContent = message;
+            
+            if (type === "success") {
+                toast.classList.remove('bg-red-500');
+                toast.classList.add('bg-emerald-500');
+                toastIcon.textContent = "✅";
+            } else {
+                toast.classList.remove('bg-emerald-500');
+                toast.classList.add('bg-red-500');
+                toastIcon.textContent = "❌";
+            }
+
+            // Tunjuk Toast
+            toast.classList.remove('toast-leave');
+            toast.classList.add('toast-enter');
+
+            // Sembunyikan selepas 3 saat
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-leave');
+            }, 3000);
+        }
+
+        // --- 6. INITIALIZATION ---
+        // Jalankan render semasa page mula-mula load
+        window.onload = renderCards;
+
+    </script>
+</body>
+</html>
