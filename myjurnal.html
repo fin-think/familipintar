@@ -805,7 +805,13 @@ window.renderTimeline = (data, containerId) => {
             document.getElementById('toolModal').classList.remove('hidden');
         }
 
-        function showCongratsModal(msg, color, currentToolId) {
+       window.closeModal = () => { document.getElementById('toolModal').classList.add('hidden'); };
+    window.showProfile = () => { document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('timelineContent').classList.add('hidden'); document.getElementById('heroSection').classList.add('hidden'); };
+    window.hideProfile = () => { document.getElementById('profileSection').classList.add('hidden'); document.getElementById('timelineContent').classList.remove('hidden'); document.getElementById('heroSection').classList.remove('hidden'); };
+</script>
+
+    // --- FUNGSI WORKFLOW (Telah dipindahkan ke dalam modul) ---
+    window.showCongratsModal = (msg, color, currentToolId) => {
             const iconBox = document.getElementById('workflowIcon');
             iconBox.className = `w-20 h-20 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 confetti-icon`;
             iconBox.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
@@ -826,10 +832,10 @@ window.renderTimeline = (data, containerId) => {
             document.getElementById('workflowModal').classList.remove('hidden');
         }
 
-        function showNextStepModal(nextToolId, msg, currentToolId, currentColor) {
-            let nextTool = null;
-            let nextColor = 'teal';
-            let nextSecId = '';
+       window.showNextStepModal = (nextToolId, msg, currentToolId, currentColor) => {
+        let nextTool = null;
+        let nextColor = 'teal';
+        let nextSecId = '';
 
             Object.keys(timelineData).forEach(cat => {
                 timelineData[cat].forEach(s => {
@@ -868,22 +874,12 @@ window.renderTimeline = (data, containerId) => {
             document.getElementById('workflowModal').classList.remove('hidden');
         }
 
-        function triggerNext(tid, col, sid) { closeWorkflowModal(); openModal(tid, col, sid); }
-        function backToTool(toolId, color) { closeWorkflowModal(); openModal(toolId, color, currentSectionId); }
-        function closeWorkflowModal() { document.getElementById('workflowModal').classList.add('hidden'); }
-        function closeModal() { document.getElementById('toolModal').classList.add('hidden'); }
-        function showProfile() { document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('timelineContent').classList.add('hidden'); document.getElementById('heroSection').classList.add('hidden'); }
-        function hideProfile() { document.getElementById('profileSection').classList.add('hidden'); document.getElementById('timelineContent').classList.remove('hidden'); document.getElementById('heroSection').classList.remove('hidden'); }
-        function contactWhatsApp(t) { window.open(`https://wa.me/60129443846?text=Bantuan%20${t}`, '_blank'); }
+       window.triggerNext = (tid, col, sid) => { window.closeWorkflowModal(); window.openModal(tid, col, sid); };
+    window.backToTool = (toolId, color) => { window.closeWorkflowModal(); window.openModal(toolId, color, window.currentSectionId); };
+    window.closeWorkflowModal = () => { document.getElementById('workflowModal').classList.add('hidden'); };
+    window.contactWhatsApp = (t) => { window.open(`https://wa.me/60129443846?text=Bantuan%20${t}`, '_blank'); };
 
-        // Sesi sudah log masuk -> terus papar jurnal.
-        // Kalau belum -> halaman pengenalan (value, kuiz, Log Masuk) kekal dipaparkan.
-        document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                showApp();
-            }
-        });
-    </script>
+</script> <!-- PENAMAT SKRIP MODUL FIREBASE -->
 
 
 
