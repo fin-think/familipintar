@@ -168,9 +168,9 @@
         <h3 class="text-xl font-bold mb-3">Keputusan Anda:</h3>
         <p id="resultText" class="font-semibold text-slate-700 mb-4"></p>
 
-        <button onclick="window.location.href='../index.html'" class="bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 rounded-xl font-bold shadow">
-            Log Masuk / Daftar Sekarang
-        </button>
+        <button onclick="window.masukJurnal()" class="bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 rounded-xl font-bold shadow">
+    Teruskan ke Jurnal
+</button>
     </div>
 </div>
            
@@ -193,8 +193,8 @@
                 </div>
                 
                <div class="flex flex-col items-center gap-4">
-                    <button onclick="window.location.href='../index.html'" class="relative z-10 shrink-0 w-full lg:w-auto bg-yellow-100 hover:bg-yellow-200 text-slate-900 font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-3">
-    <i class="fa-solid fa-right-to-bracket"></i> Log Masuk / Daftar
+                    <button onclick="window.masukJurnal()" class="relative z-10 shrink-0 w-full lg:w-auto bg-yellow-100 hover:bg-yellow-200 text-slate-900 font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-3">
+    <i class="fa-solid fa-arrow-right"></i> Masuk ke Jurnal
 </button>
 
                     <a href="https://fin-think.github.io/landingpage1/" target="_blank" style="pointer-events:auto;" class="relative z-10 text-white/80 hover:text-white text-sm font-semibold transition-all">
@@ -489,11 +489,20 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
             }
         } catch (error) {
             console.error("Ralat muat data:", error);
-        } finally {
-            // TERJAMIN: Pasti akan buka Jurnal walaupun data database baru diwujudkan
-            window.showApp(); 
-        }
+        } 
+        // KITA BUANG window.showApp() DI SINI SUPAYA INTRO TAK HILANG AUTOMATIK
     }
+
+    // TAMBAH FUNGSI BARU INI UNTUK BUTANG MASUK
+    window.masukJurnal = () => {
+        if (penggunaSemasa) {
+            // Jika dah login (sistem cam ID), terus buka Jurnal
+            window.showApp();
+        } else {
+            // Jika belum login, hantar ke muka depan untuk login
+            window.location.href = '../index.html';
+        }
+    };
 
     window.logout = async () => {
         try {
