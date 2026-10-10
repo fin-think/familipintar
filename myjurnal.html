@@ -805,10 +805,10 @@ window.renderTimeline = (data, containerId) => {
             document.getElementById('toolModal').classList.remove('hidden');
         }
 
-       window.closeModal = () => { document.getElementById('toolModal').classList.add('hidden'); };
+    window.closeModal = () => { document.getElementById('toolModal').classList.add('hidden'); };
     window.showProfile = () => { document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('timelineContent').classList.add('hidden'); document.getElementById('heroSection').classList.add('hidden'); };
     window.hideProfile = () => { document.getElementById('profileSection').classList.add('hidden'); document.getElementById('timelineContent').classList.remove('hidden'); document.getElementById('heroSection').classList.remove('hidden'); };
-</script>
+
 
     // --- FUNGSI WORKFLOW (Telah dipindahkan ke dalam modul) ---
     window.showCongratsModal = (msg, color, currentToolId) => {
