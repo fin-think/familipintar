@@ -730,7 +730,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
 };
 
 
-       window.renderTimeline = (data, containerId) => {
+window.renderTimeline = (data, containerId) => {
         const container = document.getElementById(containerId);
         if (!container || !data) return;
         container.innerHTML = data.map(stage => `
