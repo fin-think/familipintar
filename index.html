@@ -181,38 +181,40 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     <!-- FRONT PAGE -->
     <div id="frontPage" class="bg-slate-50 flex flex-col w-full min-h-screen">
 
-        <!-- Header Ringkas -->
-        <header class="w-full bg-white px-6 py-4 shadow-sm relative z-50">
-            <div class="max-w-6xl mx-auto flex items-center">
-                <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="h-10 w-auto object-contain">
+       <!-- Header Ringkas -->
+<header class="w-full bg-white px-6 py-4 shadow-sm relative z-50">
+    <!-- FIX: Tambah "justify-between" supaya logo di kiri, menu di kanan -->
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+        
+        <!-- Logo Kiri -->
+        <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="h-10 w-auto object-contain">
+        
+        <!-- Ruang Menu Kanan (Header) -->
+        <div id="ruangAuthHeader" class="flex items-center gap-3">
+            
+            <!-- Mod Belum Log Masuk -->
+            <div id="menuBelumLogMasuk">
+                <button onclick="bukaModalAuth()" class="bg-sky-500 hover:bg-sky-600 text-white px-5 py-2.5 rounded-full font-bold text-sm transition-all shadow-md">
+                    Log Masuk / Daftar Percuma
+                </button>
             </div>
 
-            <!-- Ruang Menu Kanan (Header) -->
-<div id="ruangAuthHeader" class="flex items-center gap-3">
-    
-    <!-- Mod Belum Log Masuk -->
-    <div id="menuBelumLogMasuk">
-        <button onclick="bukaModalAuth()" style="background:#3498db; color:white; padding:8px 15px; border-radius:20px; font-weight:bold;">
-            Log Masuk / Daftar Percuma
-        </button>
-    </div>
+            <!-- Mod Sudah Log Masuk -->
+            <div id="menuSudahLogMasuk" class="hidden items-center gap-3">
+                <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-bold text-sm border border-yellow-300 shadow-sm flex items-center gap-1">
+                    💰 Kredit: <span id="bakiKreditHeader" class="text-yellow-800 text-base">0</span>
+                </div>
+                <button onclick="window.location.href='topup.html'" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
+                    + Top Up
+                </button>
+                <button onclick="logKeluar()" class="text-slate-500 hover:text-slate-800 text-sm font-bold underline transition-all ml-2">
+                    Log Keluar
+                </button>
+            </div>
 
-    <!-- Mod Sudah Log Masuk -->
-    <div id="menuSudahLogMasuk" class="hidden flex items-center gap-3">
-        <div style="background:#f1c40f; color:#8e44ad; padding:5px 12px; border-radius:15px; font-weight:bold; font-size:14px; border: 1px solid #d4ac0d;">
-            💰 Kredit: <span id="bakiKreditHeader">0</span>
         </div>
-        <button onclick="window.location.href='topup.html'" style="background:#2ecc71; color:white; padding:5px 12px; border-radius:5px; font-weight:bold; font-size:14px;">
-            + Top Up
-        </button>
-        <button onclick="logKeluar()" style="color:#7f8c8d; font-size:13px; text-decoration:underline;">
-            Log Keluar
-        </button>
     </div>
-
-</div>
-            
-        </header>
+</header>
 
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 w-full flex-grow">
 
@@ -262,16 +264,16 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                 </div>
             </div>
 
-            <!-- NOTA -->
-            <div style="background: #ebf5fb; border: 1px solid #d6eaf8; border-radius: 15px; padding: 30px; text-align: center; max-width: 800px; margin: 30px auto;">
-    <h3 style="color: #2874a6; font-size: 22px; font-weight: 800; margin-bottom: 10px;">
+            <!-- NOTA SATU AKAUN (Dilebarkan dan Dikemaskan dengan Tailwind) -->
+<div class="w-full bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-100 rounded-3xl p-8 md:p-12 text-center mb-16 shadow-sm mx-auto mt-6">
+    <h3 class="text-2xl md:text-3xl font-extrabold text-sky-900 mb-4">
         Satu Akaun Untuk Semua Aplikasi Keluarga Anda
     </h3>
-    <p style="color: #2e86c1; font-size: 16px; margin-bottom: 20px; line-height: 1.6;">
-        Famili Pintar kini adalah ekosistem bersepadu! Daftar secara percuma hari ini untuk mengakses kesemua pintu di bawah. Sebagai hadiah selamat datang, anda akan menerima <strong style="color: #154360; background: #fcf3cf; padding: 2px 6px; border-radius: 5px;">20 Kredit Dompet</strong> secara percuma untuk meneroka fungsi kalkulator dan sistem premium kami!
+    <p class="text-sky-800 text-base md:text-lg mb-8 max-w-4xl mx-auto leading-relaxed">
+        Famili Pintar kini adalah ekosistem bersepadu! Daftar secara percuma hari ini untuk mengakses kesemua pintu di bawah. Sebagai hadiah selamat datang, anda akan menerima <strong class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded border border-yellow-300 whitespace-nowrap">20 Kredit Dompet</strong> secara percuma untuk meneroka fungsi kalkulator dan sistem premium kami!
     </p>
-    <button onclick="bukaModalAuth()" style="background: #2874a6; color: white; border: none; padding: 12px 25px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-        Daftar Akaun Percuma Sekarang ➔
+    <button onclick="bukaModalAuth()" class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white py-3.5 px-8 rounded-full text-lg font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer">
+        Daftar Akaun Percuma Sekarang <i class="fa-solid fa-arrow-right"></i>
     </button>
 </div>
 
@@ -366,7 +368,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     </div>
 
 <!-- Modal Penghalang Akses -->
-<div id="modalPenghalang" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+<div id="modalPenghalang" class="hidden fixed inset-0 bg-black/60 items-center justify-center z-[9999]">
     <div style="background: white; padding: 40px; border-radius: 20px; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="font-size: 50px; margin-bottom: 15px;">🚪</div>
         <h2 style="font-size: 22px; font-weight: 800; color: #2c3e50; margin-bottom: 10px;">Daftar Percuma Untuk Meneroka!</h2>
@@ -381,7 +383,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         </button>
     </div>
 </div>
-
+    
 <!-- SCRIPT FIREBASE & LOGIK SISTEM -->
 <script type="module">
     // Import modul Firebase
@@ -429,7 +431,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         }
     });
 
-    // ==========================================
+// ==========================================
     // 4A: FUNGSI TAPIS PINTU & POP-UP
     // ==========================================
     window.semakAksesPintu = (namaAplikasi, urlSasaran) => {
@@ -439,12 +441,18 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         } else {
             // Jika belum log masuk, sekat dan suruh daftar
             document.getElementById('namaPintuSekat').innerText = namaAplikasi;
-            document.getElementById('modalPenghalang').classList.remove('hidden');
+            
+            // Tunjuk modal
+            const modal = document.getElementById('modalPenghalang');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex'); // Paksa ia jadi flex bila dibuka
         }
     };
 
     window.tutupModalPenghalang = () => {
-        document.getElementById('modalPenghalang').classList.add('hidden');
+        const modal = document.getElementById('modalPenghalang');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex'); // Buang flex supaya betul-betul hilang
     };
 
     window.bukaModalAuth = () => {
