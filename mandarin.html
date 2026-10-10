@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belajar Mandarin</title>
+    <title>Belajar Mandarin | Famili Pintar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -11,10 +11,6 @@
             font-family: 'Poppins', sans-serif;
             background-color: #f8fafc;
         }
-        .hanzi-text {
-            font-family: "Kaiti", "KaiTi", "STKaiti", "BiauKai", serif; /* Font kaligrafi Cina jika ada */
-        }
-        /* Animasi untuk toast notification */
         .toast-enter {
             transform: translateY(0) scale(1);
             opacity: 1;
@@ -29,48 +25,55 @@
 <body class="min-h-screen pb-12">
 
     <!-- Header Section -->
-    <header class="pt-12 pb-8 text-center px-4">
-        <h1 class="text-4xl md:text-5xl font-extrabold text-slate-800 drop-shadow-sm mb-3">
+    <header class="pt-12 pb-8 text-center px-4 relative">
+        <!-- Butang Kembali & Paparan Wallet -->
+        <div class="absolute top-4 left-4 right-4 flex justify-between items-center max-w-6xl mx-auto">
+            <button onclick="window.location.href='index.html'" class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-full font-bold text-sm shadow-sm hover:bg-slate-50 transition-all">
+                ⬅ Kembali
+            </button>
+            <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-bold text-sm border border-yellow-300 shadow-sm flex items-center gap-1">
+                💰 Kredit Anda: <span id="displayKredit" class="text-yellow-800 text-base">0</span>
+            </div>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-extrabold text-slate-800 drop-shadow-sm mb-3 mt-8">
             Belajar Mandarin
         </h1>
         <p class="text-slate-500 max-w-lg mx-auto font-medium">
-            Kuasai bahasa Mandarin bermula dari asas hingga fasih. Selesaikan Tahap 1 dan gunakan kod akses untuk membuka tahap seterusnya, 1 kod untuk akses semua Tahap (tekan ikon kunci).
+            Kuasai bahasa Mandarin bermula dari asas. Tahap 1 adalah percuma. Gunakan 5 Kredit Wallet anda untuk membuka setiap tahap seterusnya.
         </p>
     </header>
 
     <!-- Main Container for Cards -->
     <main class="max-w-6xl mx-auto px-6">
-        <!-- Grid layout untuk 5 kotak -->
         <div id="cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
-            <!-- Kad akan di-render di sini menggunakan JavaScript -->
+            <!-- Kad di-render di sini -->
         </div>
     </main>
 
-    <!-- Modal / Popup untuk Access Code -->
+    <!-- Modal Unlock Guna Kredit -->
     <div id="unlock-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 px-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 transform scale-95 transition-transform duration-300" id="modal-content">
             <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-                    🔒
+                <div class="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                    💎
                 </div>
-                <h2 class="text-2xl font-bold text-slate-800">Tahap Terkunci</h2>
-                <p class="text-slate-500 text-sm mt-2">Sila masukkan kod akses untuk membuka Tahap 2 hingga Tahap 5.</p>
+                <h2 class="text-2xl font-bold text-slate-800" id="modal-tajuk">Buka Tahap</h2>
+                <p class="text-slate-500 text-sm mt-2">Anda memerlukan <strong class="text-blue-600">5 Kredit</strong> untuk membuka akses kekal ke modul ini.</p>
             </div>
 
             <div class="space-y-4">
-                <div>
-                    <input type="password" id="access-code-input" placeholder="Masukkan Kod Akses..." 
-                        class="w-full px-5 py-4 border-2 border-slate-200 rounded-xl text-center text-lg font-semibold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center mb-4">
+                    <p class="text-sm text-slate-500 font-semibold mb-1">Baki Kredit Semasa Anda:</p>
+                    <p class="text-2xl font-bold text-slate-800"><span id="modal-baki">0</span> 💰</p>
                 </div>
                 
-                <button onclick="verifyCode()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95">
-                    Buka Kunci Sekarang
+                <button onclick="prosesTolakKredit()" id="btn-unlock" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95">
+                    Buka Kunci (Tolak 5 Kredit)
                 </button>
-                <!-- 🔥 TOYYIBPAY LINK -->
-<a href="https://toyyibpay.com/mandarin101" target="_blank"
-   class="w-full block text-center bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all">
-    Bayar & Dapatkan Akses
-</a>
+                <button onclick="window.location.href='topup.html'" id="btn-topup" class="hidden w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all">
+                    Kredit Tak Cukup - Top Up Sekarang
+                </button>
                 <button onclick="closeModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-3 rounded-xl transition-all">
                     Batal
                 </button>
@@ -78,17 +81,40 @@
         </div>
     </div>
 
-    <!-- Toast Notification (Pengganti Alert) -->
+    <!-- Toast Notification -->
     <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[60] bg-red-500 text-white px-6 py-3 rounded-full shadow-lg font-semibold flex items-center gap-2 transition-all duration-300 toast-leave">
         <span id="toast-icon">❌</span>
-        <span id="toast-message">Kod salah! Sila cuba lagi.</span>
+        <span id="toast-message">Mesej ralat.</span>
     </div>
 
-    <script>
-        // --- 1. DATA & KONFIGURASI ---
-        const ACCESS_CODE = "zhongwen"; // Kod rahsia
-        const STORAGE_KEY = "unlocked";
+    <!-- FIREBASE SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // Konfigurasi Firebase Universal Famili Pintar
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+            authDomain: "familipintar.firebaseapp.com",
+            databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "familipintar",
+            storageBucket: "familipintar.firebasestorage.app",
+            messagingSenderId: "277029764059",
+            appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe",
+            measurementId: "G-S3RP7E4460"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // State Pengguna
+        let penggunaSemasa = null;
+        let bakiKredit = 0;
+        let tahapTerbuka = [1]; // Tahap 1 sentiasa percuma
+        let targetTahapId = null; 
+        let targetTahapUrl = null;
         // Senarai tahap pembelajaran dengan warna dan data berbeza
         const levels = [
             { 
@@ -152,25 +178,42 @@
 }
         ];
 
-        // Semak status unlock dalam localStorage semasa load
-        let isUnlocked = localStorage.getItem(STORAGE_KEY) === "true";
+      // --- PENGURUSAN SESI LOG MASUK ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                penggunaSemasa = user;
+                await muatDataPengguna();
+            } else {
+                // Jika cuba masuk direct tanpa log masuk, tendang ke index
+                window.location.href = "index.html";
+            }
+        });
 
-        // --- 2. FUNGSI RENDER UI ---
+        async function muatDataPengguna() {
+            const snap = await getDoc(doc(db, "mynasab_users", penggunaSemasa.uid));
+            if(snap.exists()){
+                const data = snap.data();
+                bakiKredit = data.credit_balance || 0;
+                // Baca array tahap yang dah pernah dibeli. Jika belum wujud, letak [1]
+                tahapTerbuka = data.mandarin_unlocked || [1]; 
+                
+                document.getElementById('displayKredit').innerText = bakiKredit;
+                renderCards();
+            }
+        }
+
+        // --- RENDER UI KAD ---
         function renderCards() {
             const container = document.getElementById('cards-container');
-            container.innerHTML = ''; // Kosongkan container
+            container.innerHTML = ''; 
 
             levels.forEach(level => {
-                const isLocked = level.id !== 1 && !isUnlocked;
+                const isLocked = !tahapTerbuka.includes(level.id);
                 
-                // Bina struktur kad
                 const card = document.createElement('div');
                 card.className = `relative group rounded-3xl p-6 border-2 transition-all duration-300 ${level.colorClass} hover:-translate-y-2 hover:shadow-xl cursor-pointer ${isLocked ? 'opacity-80' : ''}`;
-                
-                // Tambah event listener untuk klik kad
-                card.onclick = () => handleCardClick(level.id, level.url);
+                card.onclick = () => window.handleCardClick(level.id, level.title, level.url);
 
-                // Kandungan Dalam Kad
                 let innerHTML = `
                     <div class="flex justify-between items-start mb-4">
                         <span class="inline-block px-4 py-1.5 rounded-full text-sm font-bold bg-white/70 ${level.textClass} shadow-sm backdrop-blur-sm">
@@ -178,125 +221,105 @@
                         </span>
                         ${isLocked ? `<span class="text-2xl drop-shadow-md">🔒</span>` : `<span class="text-2xl opacity-0 group-hover:opacity-100 transition-opacity">👉</span>`}
                     </div>
-                    
                     <div class="text-center my-6">
-    
-    <p class="text-lg text-slate-800">
-  ${level?.meaning || ""}
-</p>
-</div>
-                    
-                    <p class="text-slate-600 text-left text-sm font-medium leading-relaxed whitespace-pre-line">
-    ${level.desc}
-</p>
+                        <p class="text-lg text-slate-800 font-bold">${level.meaning}</p>
+                    </div>
+                    <p class="text-slate-600 text-left text-sm font-medium leading-relaxed whitespace-pre-line">${level.desc}</p>
                 `;
 
-                // Overlay gelap jika kad dikunci (pilihan tambahan supaya jelas terkunci)
                 if (isLocked) {
-                    innerHTML += `
-                        <div class="absolute inset-0 bg-slate-900/5 rounded-3xl group-hover:bg-slate-900/10 transition-colors"></div>
-                    `;
+                    innerHTML += `<div class="absolute inset-0 bg-slate-900/5 rounded-3xl group-hover:bg-slate-900/10 transition-colors"></div>`;
                 }
-
                 card.innerHTML = innerHTML;
                 container.appendChild(card);
             });
         }
 
-        // --- 3. FUNGSI INTERAKSI LOGIK ---
-        function handleCardClick(levelId, url) {
-            if (levelId === 1 || isUnlocked) {
-                // Berjaya - Arahkan ke URL
-                // Disebabkan persekitaran preview, ia akan cuba alih tab.
+        // --- KLIK KAD & TOLAK KREDIT ---
+        window.handleCardClick = (levelId, levelTitle, url) => {
+            if (tahapTerbuka.includes(levelId)) {
+                // Dah pernah buka (atau Tahap 1 percuma)
                 window.location.href = url; 
             } else {
-                // Terkunci - Papar modal mintak kod
+                // Kena bayar 5 kredit
+                targetTahapId = levelId;
+                targetTahapUrl = url;
+                document.getElementById('modal-tajuk').innerText = `Buka ${levelTitle}`;
+                document.getElementById('modal-baki').innerText = bakiKredit;
+                
+                // Semak jika baki cukup
+                if (bakiKredit >= 5) {
+                    document.getElementById('btn-unlock').classList.remove('hidden');
+                    document.getElementById('btn-topup').classList.add('hidden');
+                } else {
+                    document.getElementById('btn-unlock').classList.add('hidden');
+                    document.getElementById('btn-topup').classList.remove('hidden');
+                }
                 openModal();
             }
-        }
+        };
 
-        // --- 4. FUNGSI MODAL ---
+        window.prosesTolakKredit = async () => {
+            if (bakiKredit < 5) return; // double check
+
+            try {
+                // Tolak 5 kredit dan tambah tahap ke dalam array
+                await updateDoc(doc(db, "mynasab_users", penggunaSemasa.uid), {
+                    credit_balance: increment(-5),
+                    mandarin_unlocked: arrayUnion(targetTahapId)
+                });
+                
+                showToast("Berjaya! Tahap telah dibuka.", "success");
+                closeModal();
+                await muatDataPengguna(); // Muat semula UI dan baki
+                
+                // Boleh letak delay sikit sebelum redirect ke URL modul
+                setTimeout(() => {
+                    window.location.href = targetTahapUrl;
+                }, 1500);
+
+            } catch (error) {
+                showToast("Ralat sistem: " + error.message, "error");
+            }
+        };
+
+        // --- FUNGSI MODAL & TOAST ---
         const modal = document.getElementById('unlock-modal');
         const modalContent = document.getElementById('modal-content');
-        const inputField = document.getElementById('access-code-input');
 
-        function openModal() {
+        window.openModal = () => {
             modal.classList.remove('opacity-0', 'pointer-events-none');
             modalContent.classList.remove('scale-95');
             modalContent.classList.add('scale-100');
-            inputField.value = ''; // Kosongkan input
-            setTimeout(() => inputField.focus(), 100);
-        }
+        };
 
-        function closeModal() {
+        window.closeModal = () => {
             modal.classList.add('opacity-0', 'pointer-events-none');
             modalContent.classList.remove('scale-100');
             modalContent.classList.add('scale-95');
-        }
+        };
 
-        // --- 5. FUNGSI VERIFIKASI KOD & TOAST ---
-        function verifyCode() {
-            const userInput = inputField.value.trim();
-            
-            if (userInput === ACCESS_CODE) {
-                // Berjaya unlock
-                localStorage.setItem(STORAGE_KEY, "true");
-                isUnlocked = true;
-                closeModal();
-                renderCards(); // Re-render untuk hilangkan mangga (lock)
-                showToast("Berjaya! Semua tahap telah dibuka.", "success");
-            } else {
-                // Gagal - Tunjuk ralat
-                showToast("Kod salah! Sila cuba lagi.", "error");
-                
-                // Tambah animasi gegaran pada modal jika salah
-                modalContent.classList.add('animate-pulse');
-                setTimeout(() => modalContent.classList.remove('animate-pulse'), 500);
-            }
-        }
-
-        // Sokongan enter pada keyboard untuk input
-        inputField.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                verifyCode();
-            }
-        });
-
-        // Pengganti alert() - Toast Notification Modern
         let toastTimeout;
         function showToast(message, type = "error") {
             const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toast-message');
-            const toastIcon = document.getElementById('toast-icon');
-
-            toastMessage.textContent = message;
+            document.getElementById('toast-message').textContent = message;
             
             if (type === "success") {
-                toast.classList.remove('bg-red-500');
-                toast.classList.add('bg-emerald-500');
-                toastIcon.textContent = "✅";
+                toast.classList.replace('bg-red-500', 'bg-emerald-500');
+                document.getElementById('toast-icon').textContent = "✅";
             } else {
-                toast.classList.remove('bg-emerald-500');
-                toast.classList.add('bg-red-500');
-                toastIcon.textContent = "❌";
+                toast.classList.replace('bg-emerald-500', 'bg-red-500');
+                document.getElementById('toast-icon').textContent = "❌";
             }
 
-            // Tunjuk Toast
             toast.classList.remove('toast-leave');
             toast.classList.add('toast-enter');
 
-            // Sembunyikan selepas 3 saat
             clearTimeout(toastTimeout);
             toastTimeout = setTimeout(() => {
-                toast.classList.remove('toast-enter');
-                toast.classList.add('toast-leave');
+                toast.classList.replace('toast-enter', 'toast-leave');
             }, 3000);
         }
-
-        // --- 6. INITIALIZATION ---
-        // Jalankan render semasa page mula-mula load
-        window.onload = renderCards;
-
     </script>
 </body>
 </html>
