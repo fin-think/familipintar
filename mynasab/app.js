@@ -36,24 +36,37 @@ const infoLahir = (a) => {
 };
 
 // --- JEMPUTAN: baca ?jemput=KOD dari pautan ---
-const kodJemput = new URLSearchParams(location.search).get('jemput');
+let kodJemput = new URLSearchParams(location.search).get('jemput');
+
+// Simpan dalam Session Storage supaya tak hilang bila kena tendang ke muka depan
+if (kodJemput) {
+    sessionStorage.setItem('simpanJemput', kodJemput);
+} else {
+    kodJemput = sessionStorage.getItem('simpanJemput'); // Ambil semula dari ingatan jika ada
+}
+
 let jemputan = null;
 if (kodJemput) {
     getDoc(doc(db, "mynasab_invites", kodJemput)).then(s => {
-        if (!s.exists()) { alert("Pautan jemputan tidak sah atau telah tamat."); return; }
+        if (!s.exists()) { 
+            alert("Pautan jemputan tidak sah atau telah tamat."); 
+            sessionStorage.removeItem('simpanJemput');
+            return; 
+        }
         jemputan = s.data();
         const b = document.getElementById('bannerJemput');
-        b.innerText = `${jemputan.nama_pengundang} menjemput anda sebagai adik-beradik ${jemputan.nama_sasaran}. Anda akan ditempatkan di bawah ibu bapa yang sama. Dengan mendaftar, nama dan maklumat salasilah anda boleh dilihat oleh keluarga yang dipautkan.`;
-        b.classList.remove('hidden');
+        if(b) {
+            b.innerText = `Anda dijemput menyertai keluarga ${jemputan.nama_pengundang}. Mendaftar atau log masuk akan memautkan akaun anda secara automatik.`;
+            b.classList.remove('hidden');
+        }
     });
 }
 
-// --- 1. PENGURUSAN SESI (app.js myNasab) ---
+// --- 1. PENGURUSAN SESI ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         penggunaSemasa = user;
-        
-        // Terus papar dashboard jika log masuk berjaya
+
         const dashboardUtama = document.getElementById('dashboardUtama');
         if (dashboardUtama) dashboardUtama.classList.remove('hidden');
 
@@ -64,13 +77,50 @@ onAuthStateChanged(auth, async (user) => {
             const dataPengguna = snapPengguna.data();
             document.getElementById('creditBalance').innerText = dataPengguna.credit_balance;
             document.getElementById('treeNameDisplay').innerText = dataPengguna.name;
+            
+            // --- LOGIK PAUTAN AUTOMATIK (JEMPUTAN) ---
+            if (kodJemput && jemputan) {
+                const linkRef = doc(db, "mynasab_links", user.uid);
+                const linkSnap = await getDoc(linkRef);
+                
+                // Jika belum dipautkan, pautkan sekarang!
+                if (!linkSnap.exists()) {
+                    await setDoc(linkRef, {
+                        uid: user.uid,
+                        owner_uid: jemputan.owner_uid,
+                        sasaran_id: jemputan.sasaran_id,
+                        kod: kodJemput,
+                        status: 'menunggu',
+                        nama: dataPengguna.name,
+                        created_at: new Date()
+                    });
+                    
+                    // Kemas kini nod Induk untuk tandakan sebagai adik-beradik
+                    await setDoc(doc(db, "mynasab_nodes", "root_" + user.uid), {
+                        owner_uid: user.uid,
+                        name: dataPengguna.name,
+                        relationship: "Diri Sendiri (Induk)",
+                        is_root: true,
+                        sibling_of: jemputan.sasaran_id,
+                        link_owner: jemputan.owner_uid,
+                        created_at: new Date()
+                    }, { merge: true }); // guna merge supaya tak padam data sedia ada
+
+                    alert(`Berjaya! Pautan keluarga anda menunggu kelulusan ${jemputan.nama_pengundang}.`);
+                }
+                
+                // Padam kod jemputan dari ingatan dan bersihkan URL URL
+                sessionStorage.removeItem('simpanJemput');
+                window.history.replaceState({}, document.title, location.pathname); 
+            }
+            // ----------------------------------------
+
             window.muatTurunSalasilah();
             window.muatMenunggu();
         }
     } else {
         penggunaSemasa = null;
-        // Tendang keluar ke muka depan portal (naik satu folder)
-        window.location.href = "../index.html"; 
+        window.location.href = "../index.html";
     }
 });
 
@@ -136,10 +186,17 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
     }
 };
 
+// --- FUNGSI LOG KELUAR ---
 window.logKeluar = async () => {
     try {
         await signOut(auth);
-        location.href = "https://familipintar.com";
+        
+        // Buang data jemputan sementara jika ada (langkah berjaga-jaga)
+        sessionStorage.removeItem('simpanJemput');
+        
+        // Selepas berjaya log keluar, terus hantar balik ke muka depan Famili Pintar
+        window.location.href = "../index.html"; 
+        
     } catch (error) {
         alert("Gagal log keluar: " + error.message);
     }
