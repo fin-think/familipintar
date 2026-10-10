@@ -181,10 +181,9 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     <!-- FRONT PAGE -->
     <div id="frontPage" class="bg-slate-50 flex flex-col w-full min-h-screen">
 
-       <!-- Header Ringkas -->
-<header class="w-full bg-white px-6 py-4 shadow-sm relative z-50">
-    <!-- FIX: Tambah "justify-between" supaya logo di kiri, menu di kanan -->
-    <div class="max-w-6xl mx-auto flex items-center justify-between">
+     <!-- Header Ringkas (Lebar Penuh Layar) -->
+<header class="w-full bg-white px-6 md:px-10 py-4 shadow-sm relative z-50">
+    <div class="w-full flex items-center justify-between">
         
         <!-- Logo Kiri -->
         <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="h-10 w-auto object-contain">
@@ -193,7 +192,10 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         <div id="ruangAuthHeader" class="flex items-center gap-3">
             
             <!-- Mod Belum Log Masuk -->
-            <div id="menuBelumLogMasuk">
+            <div id="menuBelumLogMasuk" class="flex items-center gap-2">
+                <button onclick="bukaModalAuth()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
+                    + Top Up
+                </button>
                 <button onclick="bukaModalAuth()" class="bg-sky-500 hover:bg-sky-600 text-white px-5 py-2.5 rounded-full font-bold text-sm transition-all shadow-md">
                     Log Masuk / Daftar Percuma
                 </button>
@@ -383,6 +385,28 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         </button>
     </div>
 </div>
+
+<!-- Modal Log Masuk / Daftar -->
+<div id="authModal" class="hidden fixed inset-0 bg-black/60 items-center justify-center z-[9999]">
+    <div style="background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h2 style="font-size: 20px; font-weight: 800; color: #2c3e50; margin-bottom: 20px; text-align: center;">Log Masuk / Daftar</h2>
+        
+        <input type="text" id="authNama" placeholder="Nama Penuh (Untuk daftar baru)" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px;">
+        <input type="email" id="authEmel" placeholder="Alamat Emel" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px;">
+        <input type="password" id="authKatalaluan" placeholder="Kata Laluan" style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px;">
+        
+        <button onclick="prosesDaftar()" style="width: 100%; background: #3498db; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
+            Daftar Baru (Percuma 20 Kredit)
+        </button>
+        <button onclick="prosesLogMasuk()" style="width: 100%; background: #f39c12; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 15px;">
+            Log Masuk Sedia Ada
+        </button>
+        <button onclick="tutupModalAuth()" style="width: 100%; background: transparent; color: #7f8c8d; border: none; text-decoration: underline; cursor: pointer;">
+            Batal
+        </button>
+    </div>
+</div>
+
     
 <!-- SCRIPT FIREBASE & LOGIK SISTEM -->
 <script type="module">
@@ -455,10 +479,46 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         modal.classList.remove('flex'); // Buang flex supaya betul-betul hilang
     };
 
+    // (Gantikan fungsi bukaModalAuth yang lama dengan ini)
     window.bukaModalAuth = () => {
-        window.tutupModalPenghalang();
-        // NOTA UNTUK BOS: Panggil fungsi buka form Modal Log Masuk/Daftar bos di sini.
-        alert("Borang Pendaftaran/Log Masuk akan dipaparkan di sini."); 
+        if(typeof window.tutupModalPenghalang === 'function') window.tutupModalPenghalang();
+        const modal = document.getElementById('authModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    };
+
+    window.tutupModalAuth = () => {
+        const modal = document.getElementById('authModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    };
+
+    window.prosesDaftar = () => {
+        const nama = document.getElementById('authNama').value;
+        const emel = document.getElementById('authEmel').value;
+        const pass = document.getElementById('authKatalaluan').value;
+        if(nama && emel && pass) {
+            window.daftarPengguna(emel, pass, nama);
+            window.tutupModalAuth();
+        } else {
+            alert("Sila isi semua maklumat untuk mendaftar.");
+        }
+    };
+
+    window.prosesLogMasuk = async () => {
+        const emel = document.getElementById('authEmel').value;
+        const pass = document.getElementById('authKatalaluan').value;
+        if(emel && pass) {
+            try {
+                await signInWithEmailAndPassword(auth, emel, pass);
+                alert("Log masuk berjaya!");
+                window.tutupModalAuth();
+            } catch (error) {
+                alert("Gagal log masuk: " + error.message);
+            }
+        } else {
+            alert("Sila isi emel dan kata laluan.");
+        }
     };
 
     // ==========================================
