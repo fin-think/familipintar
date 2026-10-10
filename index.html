@@ -285,8 +285,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                     <!-- myJurnal (utama) -->
-                    <a href="myjurnal.html" class="group relative overflow-hidden lg:col-span-2 rounded-3xl bg-gradient-to-br from-sky-500 to-blue-600 text-white p-8 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all flex flex-col justify-center">
-                        <i class="fa-solid fa-book-open-reader absolute -right-6 -bottom-8 text-[10rem] opacity-10"></i>
+                    <a onclick="semakAksesPintu('myJurnal', 'myjurnal.html')" class="cursor-pointer group relative overflow-hidden lg:col-span-2 rounded-3xl bg-gradient-to-br from-sky-500 to-blue-600 text-white p-8 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all flex flex-col justify-center">
                         <span class="self-start bg-white/20 text-[11px] font-extrabold tracking-widest px-3 py-1 rounded-full mb-4">MULA DARI SINI</span>
                         <div class="flex items-start gap-5 relative z-10">
                             <div class="shrink-0 w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-2xl">
@@ -304,7 +303,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                     </a>
 
                     <!-- myNasab -->
-                    <a href="https://mynasab.familipintar.com/" class="group bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
+                    <a onclick="semakAksesPintu('myNasab', 'https://mynasab.familipintar.com/')" class="cursor-pointer group bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
                         <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl mb-5">
                             <i class="fa-solid fa-sitemap"></i>
                         </div>
@@ -330,7 +329,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                     </a>
 
                     <!-- Belajar Mandarin -->
-                    <a href="mandarin.html" target="_blank" rel="noopener" class="group bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
+                   <a onclick="semakAksesPintu('Belajar Mandarin', 'mandarin.html')" class="cursor-pointer group bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
                         <div class="w-14 h-14 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-2xl mb-5">
                             <i class="fa-solid fa-language"></i>
                         </div>
@@ -382,6 +381,33 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         </button>
     </div>
 </div>
+
+let penggunaSemasa = null; 
+
+        window.semakAksesPintu = (namaAplikasi, urlSasaran) => {
+            if (penggunaSemasa) {
+                // Jika dah log masuk, benarkan masuk
+                window.location.href = urlSasaran;
+            } else {
+                // Jika belum log masuk, tunjuk modal
+                document.getElementById('namaPintuSekat').innerText = namaAplikasi;
+                document.getElementById('modalPenghalang').classList.remove('hidden');
+                document.getElementById('modalPenghalang').style.display = 'flex';
+            }
+        };
+
+        window.tutupModalPenghalang = () => {
+            document.getElementById('modalPenghalang').classList.add('hidden');
+            document.getElementById('modalPenghalang').style.display = 'none';
+        };
+
+        // Fungsi dummy sementara untuk buka modal Auth (bos kena link kan dengan modal register/login bos)
+        window.bukaModalAuth = () => {
+            window.tutupModalPenghalang();
+            alert("Buka borang Log Masuk / Daftar di sini!"); 
+            // document.getElementById('authModal').style.display = 'flex';
+        };
+    </script>
     
 </body>
 </html>
