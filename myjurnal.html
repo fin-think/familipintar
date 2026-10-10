@@ -18,8 +18,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-database-compat.js"></script>
+ 
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
@@ -311,17 +310,21 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
                         <span class="font-bold text-xl tracking-wide">JurnalFamiliPintar</span>
                     </div>
                     <div class="flex items-center space-x-6 hidden md:flex font-semibold">
-                        <!-- ID PENGGUNA (SISTEM BARU) -->
-                        <span id="userDisplay" class="bg-sky-100 text-sky-700 px-3 py-1 rounded-full text-xs font-bold hidden sm:block"></span>
+                       <!-- PAPARAN NAMA & WALLET -->
+                        <div class="bg-yellow-100 text-yellow-700 px-4 py-1.5 rounded-full font-bold text-sm border border-yellow-300 shadow-sm flex items-center gap-2">
+                            <span id="userDisplay" class="text-sky-700">Pengguna</span> | 💰 Kredit: <span id="displayKredit" class="text-yellow-800 text-base">0</span>
+                        </div>
                         
-                        <a href="#mapa-finance" onclick="hideProfile()" class="hover:text-sky-200 transition">Kewangan</a>
-                        <a href="#mapa-parenting" onclick="hideProfile()" class="hover:text-sky-200 transition">Keharmonian</a>
-                        <a href="#mapa-legacy" onclick="hideProfile()" class="hover:text-sky-200 transition">Legasi</a>
-                        <a href="#anakku" onclick="hideProfile()" class="hover:text-sky-200 transition">Zuriat</a>
-                        <a href="#akuan" onclick="hideProfile()" class="hover:text-sky-200 transition">myTADBIR</a>
-                    <button onclick="openAccessModal()" class="hover:text-sky-200 transition flex items-center">
-    <i class="fa-solid fa-right-to-bracket mr-1"></i> Login Akses
-</button>
+                        <a href="#mapa-finance" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Kewangan</a>
+                        <a href="#mapa-parenting" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Keharmonian</a>
+                        <a href="#mapa-legacy" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Legasi</a>
+                        <a href="#anakku" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Zuriat</a>
+                        <a href="#akuan" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">myTADBIR</a>
+
+                        <button onclick="window.location.href='../index.html'" class="bg-sky-500 hover:bg-sky-600 px-4 py-1.5 rounded-full font-bold transition text-white text-sm shadow-sm">
+                            <i class="fa-solid fa-arrow-left mr-1"></i> Kembali
+                        </button>
+                    </div>
 
 
                         <button onclick="logout()" class="bg-sky-400 px-3 py-1 rounded text-xs hover:bg-red-600 transition text-white">Log Keluar</button>
@@ -461,223 +464,143 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         </footer>
     </div>
 
-   <script>
-        
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
-            authDomain: "familipintar.firebaseapp.com",
-            databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "familipintar",
-            storageBucket: "familipintar.firebasestorage.app",
-            messagingSenderId: "277029764059",
-            appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe",
-            measurementId: "G-S3RP7E4460"
-        };
-        
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database(); // INIT DATABASE SEBAGAI DB
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+        authDomain: "familipintar.firebaseapp.com",
+        projectId: "familipintar",
+        storageBucket: "familipintar.firebasestorage.app",
+        messagingSenderId: "277029764059",
+        appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        let activeUnlockTarget = '';
-        let currentSectionId = '';
+    let penggunaSemasa = null;
+    let bakiKredit = 0;
+    let modulTerbuka = [];
+    let targetModul = null;
 
-        // Sembunyi halaman pengenalan, papar jurnal (dengan fade-in)
-        function bukaJurnal() {
-            const intro = document.getElementById('introPage');
-            if (intro) intro.style.display = 'none';
-            const mc = document.getElementById('mainContent');
-            mc.style.display = '';
-            setTimeout(() => mc.classList.remove('opacity-0'), 20);
-            window.scrollTo(0, 0);
+    // --- 1. PENGURUSAN SESI LOG MASUK (SSO) ---
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            penggunaSemasa = user;
+            await muatDataPengguna();
+        } else {
+            window.location.href = "../index.html"; // Tendang jika tak login
         }
+    });
 
-        function showApp() {
-            bukaJurnal();
-            document.body.classList.remove('overflow-hidden');
+    async function muatDataPengguna() {
+        const snap = await getDoc(doc(db, "mynasab_users", penggunaSemasa.uid));
+        if (snap.exists()) {
+            const data = snap.data();
+            bakiKredit = data.credit_balance || 0;
+            modulTerbuka = data.jurnal_unlocked || []; // Array modul yang dah dibeli
             
-            // Paparkan No Telefon di Navbar
-            const phone = sessionStorage.getItem('userPhone');
-            if (phone) {
-                const userDisplay = document.getElementById('userDisplay');
-                if (userDisplay) userDisplay.innerText = `ID: ${phone}`;
+            document.getElementById('displayKredit').innerText = bakiKredit;
+            document.getElementById('userDisplay').innerText = data.name || "Pengguna";
+            
+            window.showApp();
+        }
+    }
+
+    // --- 2. SISTEM TOLAK KREDIT ---
+    window.bukaModalKredit = (modulKey) => {
+        targetModul = modulKey;
+        document.getElementById('modal-baki-jurnal').innerText = bakiKredit;
+        
+        if (bakiKredit >= 10) {
+            document.getElementById('btn-unlock-jurnal').classList.remove('hidden');
+            document.getElementById('btn-topup-jurnal').classList.add('hidden');
+        } else {
+            document.getElementById('btn-unlock-jurnal').classList.add('hidden');
+            document.getElementById('btn-topup-jurnal').classList.remove('hidden');
+        }
+        
+        document.getElementById('kreditModal').classList.remove('hidden');
+        document.getElementById('kreditModal').classList.add('flex');
+    };
+
+    window.tutupModalKredit = () => {
+        document.getElementById('kreditModal').classList.remove('flex');
+        document.getElementById('kreditModal').classList.add('hidden');
+    };
+
+    window.prosesTolakKreditJurnal = async () => {
+        if (bakiKredit < 10) return;
+        try {
+            await updateDoc(doc(db, "mynasab_users", penggunaSemasa.uid), {
+                credit_balance: increment(-10),
+                jurnal_unlocked: arrayUnion(targetModul)
+            });
+            alert("Berjaya! Modul telah dibuka.");
+            window.tutupModalKredit();
+            await muatDataPengguna(); // Reload UI & buang mangga
+        } catch (error) {
+            alert("Ralat: " + error.message);
+        }
+    };
+
+    // --- 3. LOGIK KAWALAN KUNCI MODUL ---
+    window.applyAccessControl = () => {
+        const modules = [
+            { id: 'mapa-intro', key: null }, 
+            { id: 'mapa-finance', key: 'main' },
+            { id: 'mapa-parenting', key: 'parenting' },
+            { id: 'mapa-legacy', key: 'legacy' },
+            { id: 'anakku', key: 'kids' },
+            { id: 'akuan', key: 'akuan' }
+        ];
+        
+        modules.forEach(mod => {
+            const el = document.getElementById(mod.id);
+            if (!el) return;
+            
+            // Semak jika modul tu percuma (intro) ATAU dah ada dalam array database
+            const hasAccess = mod.key === null || modulTerbuka.includes(mod.key);
+            const timeline = el.querySelector('.timeline-container');
+            const existingOverlay = document.getElementById(`lock-${mod.id}`);
+            
+            if (!hasAccess) {
+                timeline.style.filter = 'blur(12px)';
+                timeline.style.pointerEvents = 'none';
+                if (!existingOverlay) {
+                    const overlay = document.createElement('div');
+                    overlay.id = `lock-${mod.id}`;
+                    overlay.className = "absolute inset-0 z-30 flex items-center justify-center lock-container px-4 pt-40";
+                    overlay.innerHTML = `
+                        <div class="bg-white/95 p-8 rounded-2xl shadow-xl text-center border border-slate-200 lock-box max-w-[400px]">
+                            <i class="fa-solid fa-lock text-slate-300 text-3xl mb-3"></i>
+                            <h4 class="font-bold text-sm mb-4 text-slate-800">Buka kunci untuk teruskan perjalanan</h4>
+                            <button onclick="bukaModalKredit('${mod.key}')" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-sm font-bold shadow-md transition"> Buka (10 Kredit) </button>
+                        </div>`;
+                    el.appendChild(overlay);
+                }
+            } else {
+                timeline.style.filter = 'none';
+                timeline.style.pointerEvents = 'auto';
+                if (existingOverlay) existingOverlay.remove();
             }
+        });
+    };
 
-            renderAll();
-            applyAccessControl();
-        }
-
-        function applyAccessControl() {
-            const modules = [
-                { id: 'mapa-intro', key: null }, 
-                { id: 'mapa-finance', key: 'main' },
-                { id: 'mapa-parenting', key: 'parenting' },
-                { id: 'mapa-legacy', key: 'legacy' },
-                { id: 'anakku', key: 'kids' },
-                { id: 'akuan', key: 'akuan' }
-            ];
-            modules.forEach(mod => {
-                const el = document.getElementById(mod.id);
-                if (!el) return;
-                const hasAccess = mod.key === null || sessionStorage.getItem(`access_${mod.key}`) === 'true';
-                const timeline = el.querySelector('.timeline-container');
-                const existingOverlay = document.getElementById(`lock-${mod.id}`);
-                // FREE SECTION 
-                if (mod.key === null) { 
-                timeline.style.filter = 'none'; 
-                if (existingOverlay) 
-                existingOverlay.remove(); 
-                return; 
-                }
-                if (!hasAccess) {
-                    timeline.style.filter = 'blur(12px)';
-                    timeline.style.pointerEvents = 'none';
-                    if (!existingOverlay) {
-                        const overlay = document.createElement('div');
-                        overlay.id = `lock-${mod.id}`;
-                        overlay.className = "absolute inset-0 z-30 flex items-center justify-center lock-container px-4 pt-40";
-                        overlay.innerHTML = `
-                            <div class="bg-white/95 p-8 rounded-2xl shadow-xl text-center border border-slate-200 lock-box max-w-[400px]">
-                                <i class="fa-solid fa-lock text-slate-300 text-3xl mb-3"></i>
-                                <h4 class="font-bold text-sm mb-4 text-slate-800">Jom teroka lagi, journey anda baru bermula</h4>
-                                <div class="space-y-2">
-                                    <button onclick="buyAccess('${mod.key}')" class="w-full py-2 bg-sky-400 text-white rounded-lg text-xs font-bold"> Dapatkan Akses </button>
-                                </div>
-                            </div>
-                        `;
-                        el.appendChild(overlay);
-                    }
-                } else {
-                    timeline.style.filter = 'none';
-                    timeline.style.pointerEvents = 'auto';
-                    if (existingOverlay) existingOverlay.remove();
-                }
-            });
-        }
-
-        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
-
-async function mainLogin() {
-
-    const phone =
-    prompt('Masukkan nombor telefon');
-
-    if (!phone) return;
-
-   
-    try {
-
-        const snapshot =
-        await db.ref('users/' + phone).once('value');
-
-        const user =
-        snapshot.val();
-
-
-const adminSnapshot =
-await db.ref('admins/' + phone)
-.once('value');
-
-const isAdmin =
-adminSnapshot.val();
-
-if (isAdmin) {
-
-    sessionStorage.setItem('access_main', true);
-    sessionStorage.setItem('access_parenting', true);
-    sessionStorage.setItem('access_legacy', true);
-    sessionStorage.setItem('access_kids', true);
-    sessionStorage.setItem('access_akuan', true);
-
-    bukaJurnal();
-    renderAll();
-    applyAccessControl();
-
-    closeAccessModal();
-
-    return;
-
-}
-
-
-
-        if (!user) {
-
-            alert('Akses belum wujud');
-            return;
-
-        }
-
-        sessionStorage.setItem(
-            'userPhone',
-            phone
-        );
-
-        if (user.access) {
-
-            Object.keys(user.access)
-            .forEach(key => {
-
-                sessionStorage.setItem(
-                    `access_${key}`,
-                    user.access[key]
-                );
-
-            });
-
-        }
-
-        bukaJurnal();
-        renderAll();
-        applyAccessControl();
-        closeAccessModal();
-    }
-
-    catch(err) {
-
-        console.log(err);
-
-        alert(err.message);
-
-    }
-
-}
-
-
-
-function enterFree() {
-
-    document.getElementById(
-        'accessInfoModal'
-    ).classList.remove('hidden');
-
-}
-
-function closeAccessInfo() {
-
-    document.getElementById(
-        'accessInfoModal'
-    ).classList.add('hidden');
-
-}
-
-function continueEnter() {
-
-    document.getElementById(
-        'accessInfoModal'
-    ).classList.add('hidden');
-
-    bukaJurnal();
-
-    sessionStorage.setItem(
-        'isLoggedIn',
-        'true'
-    );
-
-    renderAll();
-
-    applyAccessControl();
-
-}
+    // --- 4. FUNGSI-FUNGSI UI (Kekal Sama) ---
+    window.showApp = () => {
+        const intro = document.getElementById('introPage');
+        if (intro) intro.style.display = 'none';
+        const mc = document.getElementById('mainContent');
+        mc.style.display = '';
+        setTimeout(() => mc.classList.remove('opacity-0'), 20);
+        window.renderAll();
+        window.applyAccessControl();
+    };
 
 
 
@@ -818,41 +741,41 @@ function continueEnter() {
 };
 
 
-        function renderTimeline(data, containerId) {
-            const container = document.getElementById(containerId);
-            if (!container || !data) return;
-            container.innerHTML = data.map(stage => `
-                <div class="relative z-10 mb-8 flex flex-col items-center px-4">
-                    <h3 class="text-lg font-bold text-${stage.color}-600 bg-white px-6 py-2 rounded-full shadow-sm border border-${stage.color}-100 mb-6 uppercase tracking-tight">
-                        <i class="fa-solid ${stage.icon} mr-2"></i>${stage.fasa}
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
-                        ${stage.tools.map(tool => `
-                            <div onclick="openModal('${tool.id}', '${stage.color}', '${containerId.replace('-timeline', '')}')" class="bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
-                                <div class="w-12 h-12 rounded-xl bg-${stage.color}-50 text-${stage.color}-600 flex items-center justify-center text-xl mr-4 group-hover:bg-${stage.color}-600 group-hover:text-white transition">
-                                    <i class="fa-solid ${tool.icon}"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="font-bold text-slate-800 text-sm">${tool.title}</h4>
-                                    <p class="text-xs text-slate-500">${tool.desc}</p>
-                                </div>
+       window.renderTimeline = (data, containerId) => {
+        const container = document.getElementById(containerId);
+        if (!container || !data) return;
+        container.innerHTML = data.map(stage => `
+            <div class="relative z-10 mb-8 flex flex-col items-center px-4">
+                <h3 class="text-lg font-bold text-${stage.color}-600 bg-white px-6 py-2 rounded-full shadow-sm border border-${stage.color}-100 mb-6 uppercase tracking-tight">
+                    <i class="fa-solid ${stage.icon} mr-2"></i>${stage.fasa}
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
+                    ${stage.tools.map(tool => `
+                        <div onclick="openModal('\${tool.id}', '${stage.color}', '${containerId.replace('-timeline', '')}')" class="bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
+                            <div class="w-12 h-12 rounded-xl bg-\${stage.color}-50 text-${stage.color}-600 flex items-center justify-center text-xl mr-4 group-hover:bg-${stage.color}-600 group-hover:text-white transition">
+                                <i class="fa-solid \${tool.icon}"></i>
                             </div>
-                        `).join('')}
-                    </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-slate-800 text-sm">\${tool.title}</h4>
+                                <p class="text-xs text-slate-500">\${tool.desc}</p>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
-            `).join('');
-        }
+            </div>
+        `).join('');
+    };
 
-        function renderAll() {
-            renderTimeline(timelineData.intro, 'intro-timeline');
-            renderTimeline(timelineData.finance, 'finance-timeline');
-            renderTimeline(timelineData.parenting, 'parenting-timeline');
-            renderTimeline(timelineData.legacy, 'legacy-timeline');
-            renderTimeline(timelineData.kids, 'anakku-timeline');
-            renderTimeline(timelineData.akuan, 'akuan-timeline');
-        }
-
-        function openModal(toolId, color, sectionId) {
+    window.renderAll = () => {
+        window.renderTimeline(timelineData.intro, 'intro-timeline');
+        window.renderTimeline(timelineData.finance, 'finance-timeline');
+        window.renderTimeline(timelineData.parenting, 'parenting-timeline');
+        window.renderTimeline(timelineData.legacy, 'legacy-timeline');
+        window.renderTimeline(timelineData.kids, 'anakku-timeline');
+        window.renderTimeline(timelineData.akuan, 'akuan-timeline');
+    };
+       
+        window.openModal = (toolId, color, sectionId) => {
             if (sectionId) currentSectionId = sectionId;
             let tool = null;
             Object.values(timelineData).forEach(stages => {
@@ -1207,5 +1130,32 @@ Tutup
 
 </div>
 
+<!-- MODAL TOLAK KREDIT JURNAL -->
+<div id="kreditModal" class="fixed inset-0 bg-slate-900/80 z-[9999] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+        <div class="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">💎</div>
+        <h3 class="text-2xl font-bold text-slate-800 mb-2">Buka Modul</h3>
+        
+        <!-- Tambah ID modal-cost-text -->
+        <p class="text-slate-500 text-sm mb-6">Anda memerlukan <strong class="text-blue-600"><span id="modal-cost-text">0</span> Kredit</strong> untuk membuka kunci akses kekal bagi modul ini.</p>
+        
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
+            <p class="text-sm text-slate-500 font-semibold">Baki Kredit Semasa:</p>
+            <p class="text-2xl font-bold text-slate-800"><span id="modal-baki-jurnal">0</span> 💰</p>
+        </div>
+
+        <!-- Tambah ID btn-cost-text -->
+        <button onclick="prosesTolakKreditJurnal()" id="btn-unlock-jurnal" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mb-3">
+            Buka Kunci (Tolak <span id="btn-cost-text">0</span> Kredit)
+        </button>
+        <button onclick="window.location.href='../topup.html'" id="btn-topup-jurnal" class="hidden w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mb-3">
+            Kredit Tak Cukup - Top Up
+        </button>
+        <button onclick="tutupModalKredit()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all">
+            Batal
+        </button>
+    </div>
+</div>
+    
 </body>
 </html>
