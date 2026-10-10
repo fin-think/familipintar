@@ -448,9 +448,9 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         </footer>
     </div>
 
-   <script type="module">
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -470,6 +470,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
     let bakiKredit = 0;
     let modulTerbuka = [];
     let targetModul = null;
+    let targetCost = 0;
 
     // --- 1. PENGURUSAN SESI LOG MASUK (SSO) ---
     onAuthStateChanged(auth, async (user) => {
@@ -477,30 +478,48 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
             penggunaSemasa = user;
             await muatDataPengguna();
         } else {
-            window.location.href = "../index.html"; // Tendang jika tak login
+            window.location.href = "../index.html"; 
         }
     });
 
     async function muatDataPengguna() {
-        const snap = await getDoc(doc(db, "mynasab_users", penggunaSemasa.uid));
-        if (snap.exists()) {
-            const data = snap.data();
-            bakiKredit = data.credit_balance || 0;
-            modulTerbuka = data.jurnal_unlocked || []; // Array modul yang dah dibeli
-            
-            document.getElementById('displayKredit').innerText = bakiKredit;
-            document.getElementById('userDisplay').innerText = data.name || "Pengguna";
-            
-            window.showApp();
+        try {
+            const snap = await getDoc(doc(db, "mynasab_users", penggunaSemasa.uid));
+            if (snap.exists()) {
+                const data = snap.data();
+                bakiKredit = data.credit_balance || 0;
+                modulTerbuka = data.jurnal_unlocked || []; 
+                
+                document.getElementById('displayKredit').innerText = bakiKredit;
+                document.getElementById('userDisplay').innerText = data.name || "Pengguna";
+            }
+        } catch (error) {
+            console.error("Ralat muat data:", error);
+        } finally {
+            // TERJAMIN: Pasti akan buka Jurnal walaupun data database baru diwujudkan
+            window.showApp(); 
         }
     }
 
-    // --- 2. SISTEM TOLAK KREDIT ---
-    window.bukaModalKredit = (modulKey) => {
+    window.logout = async () => {
+        try {
+            await signOut(auth);
+            window.location.href = '../index.html'; 
+        } catch (error) {
+            alert("Gagal log keluar: " + error.message);
+        }
+    };
+
+    // --- 2. SISTEM TOLAK KREDIT DINAMIK ---
+    window.bukaModalKredit = (modulKey, cost) => {
         targetModul = modulKey;
-        document.getElementById('modal-baki-jurnal').innerText = bakiKredit;
+        targetCost = cost;
         
-        if (bakiKredit >= 10) {
+        document.getElementById('modal-baki-jurnal').innerText = bakiKredit;
+        document.getElementById('modal-cost-text').innerText = cost; 
+        document.getElementById('btn-cost-text').innerText = cost;   
+        
+        if (bakiKredit >= cost) {
             document.getElementById('btn-unlock-jurnal').classList.remove('hidden');
             document.getElementById('btn-topup-jurnal').classList.add('hidden');
         } else {
@@ -518,15 +537,15 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
     };
 
     window.prosesTolakKreditJurnal = async () => {
-        if (bakiKredit < 10) return;
+        if (bakiKredit < targetCost) return;
         try {
             await updateDoc(doc(db, "mynasab_users", penggunaSemasa.uid), {
-                credit_balance: increment(-10),
+                credit_balance: increment(-targetCost),
                 jurnal_unlocked: arrayUnion(targetModul)
             });
             alert("Berjaya! Modul telah dibuka.");
             window.tutupModalKredit();
-            await muatDataPengguna(); // Reload UI & buang mangga
+            await muatDataPengguna(); 
         } catch (error) {
             alert("Ralat: " + error.message);
         }
@@ -535,19 +554,18 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
     // --- 3. LOGIK KAWALAN KUNCI MODUL ---
     window.applyAccessControl = () => {
         const modules = [
-            { id: 'mapa-intro', key: null }, 
-            { id: 'mapa-finance', key: 'main' },
-            { id: 'mapa-parenting', key: 'parenting' },
-            { id: 'mapa-legacy', key: 'legacy' },
-            { id: 'anakku', key: 'kids' },
-            { id: 'akuan', key: 'akuan' }
+            { id: 'mapa-intro', key: null, cost: 0 }, 
+            { id: 'mapa-finance', key: 'main', cost: 20 },
+            { id: 'mapa-parenting', key: 'parenting', cost: 30 },
+            { id: 'mapa-legacy', key: 'legacy', cost: 30 },
+            { id: 'anakku', key: 'kids', cost: 50 },
+            { id: 'akuan', key: 'akuan', cost: 20 }
         ];
         
         modules.forEach(mod => {
             const el = document.getElementById(mod.id);
             if (!el) return;
             
-            // Semak jika modul tu percuma (intro) ATAU dah ada dalam array database
             const hasAccess = mod.key === null || modulTerbuka.includes(mod.key);
             const timeline = el.querySelector('.timeline-container');
             const existingOverlay = document.getElementById(`lock-${mod.id}`);
@@ -563,7 +581,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                         <div class="bg-white/95 p-8 rounded-2xl shadow-xl text-center border border-slate-200 lock-box max-w-[400px]">
                             <i class="fa-solid fa-lock text-slate-300 text-3xl mb-3"></i>
                             <h4 class="font-bold text-sm mb-4 text-slate-800">Buka kunci untuk teruskan perjalanan</h4>
-                            <button onclick="bukaModalKredit('${mod.key}')" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-sm font-bold shadow-md transition"> Buka (10 Kredit) </button>
+                            <button onclick="window.bukaModalKredit('${mod.key}', ${mod.cost})" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-sm font-bold shadow-md transition"> Buka (${mod.cost} Kredit) </button>
                         </div>`;
                     el.appendChild(overlay);
                 }
@@ -575,7 +593,6 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         });
     };
 
-    // --- 4. FUNGSI-FUNGSI UI (Kekal Sama) ---
     window.showApp = () => {
         const intro = document.getElementById('introPage');
         if (intro) intro.style.display = 'none';
@@ -586,146 +603,142 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         window.applyAccessControl();
     };
 
+    // --- 4. DATA TIMELINE & EBOOKS ---
+    const ebooks = {
+        "survivalkit": { title: "Survival Kit Ibu Ayah", coverImage: "https://i.postimg.cc/0NQ1P663/(DB0525_D013)_Survival_Kit_Ibu_Ayah.png", gdriveLink: "https://drive.google.com/file/d/1taARvfss3qf1fKXSEvTkb_3rNpcSfC7k/view?usp=sharing" },
+        "genz": { title: "Gen Z Bukan Derhaka", coverImage: "https://i.postimg.cc/hP85gYrV/cover.png", gdriveLink: "https://drive.google.com/file/d/1oklm3N_v5GZcYPyqXQ6ji6TXjwGeRHP-/view?usp=sharing" },
+        "digital": { title: "Generasi Digital", coverImage: "https://i.postimg.cc/rwFQTwzr/1.png", gdriveLink: "https://drive.google.com/file/d/1PUMAHv4RHnDgBCPJ5WNS85zxuTE1ky5y/view?usp=sharing" },
+        "dilema": { title: "Dilema Parent Moden", coverImage: "https://i.postimg.cc/NFsQDXfF/(DB0625_D022)_Dilema_Parent_Moden_Panduan_Lengkap_Ibu_Bapa_2025.png", gdriveLink: "https://drive.google.com/file/d/1v8IlGfBm4IjWcwsNfhG6q876pTUz6L7i/view?usp=sharing" },
+        "sbp": { title: "Menuju SBP/MRSM", coverImage: "https://i.postimg.cc/zvb09tft/(DB0525_D014)_Menuju_SBP_MRSM.png", gdriveLink: "https://drive.google.com/file/d/1Hs1WEMHJPBDZKNffryO36WGw83OOPL_F/view?usp=sharing" },
+        "masadepan": { title: "Masa Depan Anak", coverImage: "https://i.postimg.cc/Tw2sHJg8/(DB0525_D015)_Masa_Depan_Anak_Anda.png", gdriveLink: "https://drive.google.com/file/d/1e7O5sX_uVsELHWIpAxs9Csf2WAjkTYJX/view?usp=sharing" },
+        "qawwam": { title: "Didik Anak Qawwam & Qanaah", coverImage: "https://i.postimg.cc/3xCn5DKK/(DB0925_D027)_Rahsia_Didik_Anak_Qawwam_Qanaah.png", gdriveLink: "https://drive.google.com/file/d/1fllhxrrhLmaVZcb3Yy_Z5Kqu0Q452LsD/view?usp=sharing" },
+        "yolo": { title: "Adakah Anak Anda YOLO", coverImage: "https://i.postimg.cc/NMQxdC1p/(DB1025_D028)_Adakah_Anak_Anda_Berfahaman_YOLO2.png", gdriveLink: "https://drive.google.com/file/d/116OeNHHb__O8dO9IFGdt6Gk067HnlYUF/view?usp=sharing" },
+        "tiada": { title: "Bila Kami Tiada", coverImage: "https://i.postimg.cc/wvsfj6yS/(DB0126_D031)_Bila_Kami_Tiada2.png", gdriveLink: "https://drive.google.com/file/d/1gCAtSXS7XV663XNzXjVV9gWYHpXiTMZO/view?usp=sharing" },
+        "wanita": { title: "Wanita Yang Tak Difahami", coverImage: "https://i.postimg.cc/25w8KT7T/(DB1225_D030)_Wanita_Yang_Tak_Difahami.png", gdriveLink: "https://drive.google.com/file/d/1sDQ1beo3QzlaYkXvUQWIKjG_KyAD-HLW/view?usp=sharing" },
+        "lelaki": { title: "Tenanglah Wahai Lelaki", coverImage: "https://i.postimg.cc/Rhnm4TwV/1.png", gdriveLink: "https://drive.google.com/file/d/1j_oZnlMXHpTcRA1yY56vskzIKtIOBwhq/view?usp=sharing" },
+        "hijrah": { title: "Kenapa Manusia Berubah", coverImage: "https://i.postimg.cc/qRCQ0kkx/(DB0825-D025)-Kenapa-Manusia-Berubah-Kisah-Hijrah-Hati-Mencari-Kebenaran.png", gdriveLink: "https://drive.google.com/file/d/1UyRelHlQGuIyXr8n8kGUlXUpl95G4iU-/view?usp=sharing" },
+        "simpanan": { title: "Formula Simpanan 10k", coverImage: "https://i.postimg.cc/qBCgkcJK/(DB0725_D023)_Formula_Simpanan_RM10_000_Setahun_Walaupun_Gaji_Biasa_Biasa.png", gdriveLink: "https://drive.google.com/file/d/1AZQZfFbxKUthoFAR9EF7mTCLsKQe1ur4/view?usp=sharing" },
+        "pelaburan": { title: "Pelaburan Tanpa Beban", coverImage: "https://i.postimg.cc/BZxsYmZ8/(DB0525_D018)_Pelaburan_Tanpa_Beban.png", gdriveLink: "https://drive.google.com/file/d/_O8D368w74JA5ocX4nEfUOmtmMA6HS4V/view?usp=sharing" },
+        "emas": { title: "Rahsia Pelaburan Emas", coverImage: "https://i.postimg.cc/HxDRbCyS/(DB0525_D017)_Strategi_Bijak_Simpan_Emas_Digital_Fizikal.png", gdriveLink: "https://drive.google.com/file/d/1iqiIj8zA1Vvg7pIjwgV4g1PvIgdbDa60/view?usp=sharing" },
+        "mudah": { title: "5 Sebab Melabur Itu Mudah", coverImage: "https://i.postimg.cc/ZqTynWfc/Screenshot_2025_02_24_114638.png", gdriveLink: "https://drive.google.com/file/d/1paZ_f49l5MDvvJnjkmumBvyq3XZInn-H/view?usp=sharing" },
+        "dibuang": { title: "Langkah Bijak Bertahan", coverImage: "https://i.postimg.cc/mDP3ZckG/Screenshot_2025_02_24_114155.png", gdriveLink: "https://drive.google.com/file/d/1305ZF-j0ns7Qqx0H-bZhHxX6HgYhQe_Y/view?usp=sharing" },
+        "temuduga": { title: "Cemerlang Temuduga", coverImage: "https://i.postimg.cc/sgKYRFy6/(DB0725-D024)-CEMERLANG-DALAM-TEMUDUGA-cover.png", gdriveLink: "https://drive.google.com/file/d/1aP-kll9rQqqp11bOOtjSRJYeJud_fG2o/view?usp=sharing" },
+        "tvet": { title: "TVET Laluan Bijak", coverImage: "https://i.postimg.cc/Fskb8StY/TP10-TVET.png", gdriveLink: "https://drive.google.com/file/d/1sS95yFoOJcIOisjvEZ2kJJo22yng7P_e/view?usp=sharing" },
+        "terbaik": { title: "Yang Terbaik Untuk Anak", coverImage: "https://i.postimg.cc/jjtzDkDG/TP09-Yang-Terbaik-Untuk-Anak.png", gdriveLink: "https://drive.google.com/file/d/153anI1HRLi06y660m0y4Cmqi7_UDG0bL/view?usp=sharing" },
+        "asrama": { title: "Tips Sekolah Asrama", coverImage: "https://i.postimg.cc/JhrkrDFb/TP08-Tips-lengkap-persediaan-masuk-sekolah-asrama.png", gdriveLink: "https://drive.google.com/file/d/1KToiVwgjhqelAP5vQ1Y0SgAelIvbevag/view?usp=sharing" },
+        "tipsgenz": { title: "15 Tips Fahami Gen Z", coverImage: "https://i.postimg.cc/gjN776fd/TP07-Tips-Bijak-Fahami-Anak-Gen-Z-Tanpa-Tekanan.png", gdriveLink: "https://drive.google.com/file/d/19c6mPmF3U8sv9-xBrNO2oJAOH06O39QU/view?usp=sharing" },
+        "kerjaya": { title: "Rahsia Kerjaya", coverImage: "https://i.postimg.cc/hP1mB8sM/cover.png", gdriveLink: "https://drive.google.com/file/d/1eiklisUH1qLYtfj8fVwuIMTSCMEHHHDf/view?usp=sharing" },
+        "bijak": { title: "Menabung Untuk Anak", coverImage: "https://i.postimg.cc/Bv0CxnV2/Tips-Bijak-Menabung-untuk-Masa-Depan-Anak.png", gdriveLink: "https://drive.google.com/file/d/1O3Oh613KEWzA_y2jgYb9rxTRb1WF-4Gh/view?usp=sharing" },
+        "kewangan": { title: "Tips Kewangan Mudah", coverImage: "https://i.postimg.cc/SNL77zBp/Adakah-Simpanan-dan-Pelaburan-Anda-Selari-dengan-Keperluan-Masa-Depan.png", gdriveLink: "https://drive.google.com/file/d/1IyeYJaP_69F8JXonyYFxzXKfZDHRoig5/view?usp=sharing" },
+        "ai": { title: "AI Senang Duit Masuk", coverImage: "https://i.postimg.cc/c4c1s9G5/cover.png", gdriveLink: "https://drive.google.com/file/d/1YuvvnCWvpLw3PTVxpToTwijXEkjT3fot/view?usp=sharing" },
+        "tipsemas": { title: "30 Tips Motivasi Emas", coverImage: "https://i.postimg.cc/vm7cCWtP/TP15-30-tips-Motivasi-Simpan-Emas.png", gdriveLink: "https://drive.google.com/file/d/1soVdPB5rDZmSLvdoaBvQsiWTPg1BoCFA/view?usp=sharing" },
+        "kaboji": { title: "Sifat Kaboji", coverImage: "https://i.postimg.cc/d055RTZx/1.png", gdriveLink: "https://drive.google.com/file/d/1ac9363-IiG2G96MlVYWqsS650bWGk6F0/view?usp=sharing" },
+        "blueprint": { title: "Blueprint Umur 40", coverImage: "https://i.postimg.cc/vHm2Bh16/blueprint-umur-40.png", gdriveLink: "https://drive.google.com/file/d/1Eqt_PLmcMuVOHborhyV5wlIKPzSQ6m_n/view?usp=sharing" },
+        "kurus": { title: "Kuruskan Badan", coverImage: "https://i.postimg.cc/hvB24KTX/(DB0525-D015)-Kuruskan-Badan-Bersihkan-Jiwa.png", gdriveLink: "https://drive.google.com/file/d/16TsPbpBjwsBzXd0BHn_xnBasQG2lFat8/view?usp=sharing" },
+        "resipi": { title: "Resepi Sihat", coverImage: "https://i.postimg.cc/KcDNrStj/Resipi-7-Hari-Sihat-cover.png", gdriveLink: "https://drive.google.com/file/d/1TAIf8hb6zZ71kr6N60GhHukFMo3dEcVD/view?usp=sharing" },
+        "ramadhan": { title: "Kurus Ramadhan", coverImage: "https://i.postimg.cc/kgpw6QKf/cover.png", gdriveLink: "https://drive.google.com/file/d/1DOeiQgJbPQK7sMF1LWZ-bb-at5nMbthU/view?usp=sharing" },
+        "solat": { title: "Kisah Israk Mikraj", coverImage: "https://i.postimg.cc/RV9DmRTy/Kisah-Solat-dalam-Peristiwa-Israk-Mikraj.png", gdriveLink: "https://drive.google.com/file/d/1dcipiwcaskv-ntWpl7kC1YKOoQg38cDK/view?usp=sharing" },
+        "iman": { title: "Iman & Islam", coverImage: "https://i.postimg.cc/0rRtbBck/Iman-Islam-Harta-Paling-Berharga.png", gdriveLink: "https://drive.google.com/file/d/1_aDIrYVaPCATsEzPqPq0gPncQhCe51yO/view?usp=sharing" },
+        "fatihah": { title: "Al-Fatihah", coverImage: "https://i.postimg.cc/Qx5dSTq8/Kisah-Surah-Al-Fatihah.png", gdriveLink: "https://drive.google.com/file/d/1Pe9tBD_R0D8igGQOgyLbA09jgZDUqNnH/view?usp=sharing" },
+        "math": { title: "Kod Matematik Rahsia", coverImage: "https://i.postimg.cc/g0RwFbQL/Kod-Matematik-Rahsia.png", gdriveLink: "https://drive.google.com/file/d/1D_J1jjXSGGaZku1OJN_6GKUqRLf8_lZ-/view?usp=sharing" },
+        "eng": { title: "Siti dan Misi English Explorer", coverImage: "https://i.postimg.cc/QMt31Qg2/Siti-dan-Misi-English-Explorer.png", gdriveLink: "https://drive.google.com/file/d/1GcY9goDUuEl3hJlUn-ig6etfcMeJlny7/view?usp=sharing" },
+        "sains": { title: "Amir dan Misi Saintis Muda", coverImage: "https://i.postimg.cc/Wzrjtsmr/Amir-dan-Misi-Saintis-Muda.png", gdriveLink: "https://drive.google.com/file/d/1XhbWIQDnZiF9v6ScN2EWXS_bSgudWcRP/view?usp=sharing" },
+        "adab": { title: "Adab Gen Z", coverImage: "https://i.postimg.cc/9FPjBYxm/Adab-Gen-Z-Antara-Normal-Tidak-di-Mata-Ibu-Bapa-dan-Masyarakat.png", gdriveLink: "https://drive.google.com/file/d/1u8kBwvhNq6z_Pmai24Zx-CcbGNc92vNd/view?usp=sharing" },
+        "krisis": { title: "Krisis Nilai Gen Z", coverImage: "https://i.postimg.cc/Gth2v3Yr/Krisis-Nilai-Gen-Z.png", gdriveLink: "https://drive.google.com/file/d/1uyKQDN4JRCXstmMXimir03WNGqbdDNzM/view?usp=sharing" },
+        "siri25#1": { title: "Siri 25 Soalan 1", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1OOCd0r3NYH24jz2YRL0TEiHNe_da3V1s/view?usp=sharing" },
+        "siri25#2": { title: "Siri 25 Soalan 2", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1AU6l-Z-Fdsomjwm_SHz1bMLB-o9hsVV1/view?usp=sharing" },
+        "siri25#3": { title: "Siri 25 Soalan 3", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1jpahNSGQyiHk2IdxXdTWWUSEuhp-nPFq/view?usp=sharing" },
+        "tata": { title: "Minggu Bersama Tata", coverImage: "https://i.postimg.cc/gkGKy2V1/Screenshot_2025_02_03_150820.png", gdriveLink: "https://drive.google.com/file/d/1mcp5p6-pLh1EmRdoLw3vLKz4Acl0DGcY/view?usp=sharing" },
+        "fin101": { title: "Survival Finance", coverImage: "https://i.postimg.cc/26jzMX0r/Untitled-design-(1).png", gdriveLink: "/app/finance.html" },
+        "dproperty": { title: "d'PROPERTY", coverImage: "", gdriveLink: "" },
+        "holiday": { title: "Holiday Planner", coverImage: "", gdriveLink: "" },
+        "tahu": { title: "Aku Sebagai Manusia", coverImage: "", gdriveLink: "" },
+        "solat": { title: "Solatku", coverImage: "", gdriveLink: "" },
+        "tabiat": { title: "myTRANSFORMATION", coverImage: "", gdriveLink: "" }
+    };
 
-
-        const ebooks = {
-            "survivalkit": { title: "Survival Kit Ibu Ayah", coverImage: "https://i.postimg.cc/0NQ1P663/(DB0525_D013)_Survival_Kit_Ibu_Ayah.png", gdriveLink: "https://drive.google.com/file/d/1taARvfss3qf1fKXSEvTkb_3rNpcSfC7k/view?usp=sharing" },
-            "genz": { title: "Gen Z Bukan Derhaka", coverImage: "https://i.postimg.cc/hP85gYrV/cover.png", gdriveLink: "https://drive.google.com/file/d/1oklm3N_v5GZcYPyqXQ6ji6TXjwGeRHP-/view?usp=sharing" },
-            "digital": { title: "Generasi Digital", coverImage: "https://i.postimg.cc/rwFQTwzr/1.png", gdriveLink: "https://drive.google.com/file/d/1PUMAHv4RHnDgBCPJ5WNS85zxuTE1ky5y/view?usp=sharing" },
-            "dilema": { title: "Dilema Parent Moden", coverImage: "https://i.postimg.cc/NFsQDXfF/(DB0625_D022)_Dilema_Parent_Moden_Panduan_Lengkap_Ibu_Bapa_2025.png", gdriveLink: "https://drive.google.com/file/d/1v8IlGfBm4IjWcwsNfhG6q876pTUz6L7i/view?usp=sharing" },
-            "sbp": { title: "Menuju SBP/MRSM", coverImage: "https://i.postimg.cc/zvb09tft/(DB0525_D014)_Menuju_SBP_MRSM.png", gdriveLink: "https://drive.google.com/file/d/1Hs1WEMHJPBDZKNffryO36WGw83OOPL_F/view?usp=sharing" },
-            "masadepan": { title: "Masa Depan Anak", coverImage: "https://i.postimg.cc/Tw2sHJg8/(DB0525_D015)_Masa_Depan_Anak_Anda.png", gdriveLink: "https://drive.google.com/file/d/1e7O5sX_uVsELHWIpAxs9Csf2WAjkTYJX/view?usp=sharing" },
-            "qawwam": { title: "Didik Anak Qawwam & Qanaah", coverImage: "https://i.postimg.cc/3xCn5DKK/(DB0925_D027)_Rahsia_Didik_Anak_Qawwam_Qanaah.png", gdriveLink: "https://drive.google.com/file/d/1fllhxrrhLmaVZcb3Yy_Z5Kqu0Q452LsD/view?usp=sharing" },
-            "yolo": { title: "Adakah Anak Anda YOLO", coverImage: "https://i.postimg.cc/NMQxdC1p/(DB1025_D028)_Adakah_Anak_Anda_Berfahaman_YOLO2.png", gdriveLink: "https://drive.google.com/file/d/116OeNHHb__O8dO9IFGdt6Gk067HnlYUF/view?usp=sharing" },
-            "tiada": { title: "Bila Kami Tiada", coverImage: "https://i.postimg.cc/wvsfj6yS/(DB0126_D031)_Bila_Kami_Tiada2.png", gdriveLink: "https://drive.google.com/file/d/1gCAtSXS7XV663XNzXjVV9gWYHpXiTMZO/view?usp=sharing" },
-            "wanita": { title: "Wanita Yang Tak Difahami", coverImage: "https://i.postimg.cc/25w8KT7T/(DB1225_D030)_Wanita_Yang_Tak_Difahami.png", gdriveLink: "https://drive.google.com/file/d/1sDQ1beo3QzlaYkXvUQWIKjG_KyAD-HLW/view?usp=sharing" },
-            "lelaki": { title: "Tenanglah Wahai Lelaki", coverImage: "https://i.postimg.cc/Rhnm4TwV/1.png", gdriveLink: "https://drive.google.com/file/d/1j_oZnlMXHpTcRA1yY56vskzIKtIOBwhq/view?usp=sharing" },
-            "hijrah": { title: "Kenapa Manusia Berubah", coverImage: "https://i.postimg.cc/qRCQ0kkx/(DB0825-D025)-Kenapa-Manusia-Berubah-Kisah-Hijrah-Hati-Mencari-Kebenaran.png", gdriveLink: "https://drive.google.com/file/d/1UyRelHlQGuIyXr8n8kGUlXUpl95G4iU-/view?usp=sharing" },
-            "simpanan": { title: "Formula Simpanan 10k", coverImage: "https://i.postimg.cc/qBCgkcJK/(DB0725_D023)_Formula_Simpanan_RM10_000_Setahun_Walaupun_Gaji_Biasa_Biasa.png", gdriveLink: "https://drive.google.com/file/d/1AZQZfFbxKUthoFAR9EF7mTCLsKQe1ur4/view?usp=sharing" },
-            "pelaburan": { title: "Pelaburan Tanpa Beban", coverImage: "https://i.postimg.cc/BZxsYmZ8/(DB0525_D018)_Pelaburan_Tanpa_Beban.png", gdriveLink: "https://drive.google.com/file/d/_O8D368w74JA5ocX4nEfUOmtmMA6HS4V/view?usp=sharing" },
-            "emas": { title: "Rahsia Pelaburan Emas", coverImage: "https://i.postimg.cc/HxDRbCyS/(DB0525_D017)_Strategi_Bijak_Simpan_Emas_Digital_Fizikal.png", gdriveLink: "https://drive.google.com/file/d/1iqiIj8zA1Vvg7pIjwgV4g1PvIgdbDa60/view?usp=sharing" },
-            "mudah": { title: "5 Sebab Melabur Itu Mudah", coverImage: "https://i.postimg.cc/ZqTynWfc/Screenshot_2025_02_24_114638.png", gdriveLink: "https://drive.google.com/file/d/1paZ_f49l5MDvvJnjkmumBvyq3XZInn-H/view?usp=sharing" },
-            "dibuang": { title: "Langkah Bijak Bertahan", coverImage: "https://i.postimg.cc/mDP3ZckG/Screenshot_2025_02_24_114155.png", gdriveLink: "https://drive.google.com/file/d/1305ZF-j0ns7Qqx0H-bZhHxX6HgYhQe_Y/view?usp=sharing" },
-            "temuduga": { title: "Cemerlang Temuduga", coverImage: "https://i.postimg.cc/sgKYRFy6/(DB0725-D024)-CEMERLANG-DALAM-TEMUDUGA-cover.png", gdriveLink: "https://drive.google.com/file/d/1aP-kll9rQqqp11bOOtjSRJYeJud_fG2o/view?usp=sharing" },
-            "tvet": { title: "TVET Laluan Bijak", coverImage: "https://i.postimg.cc/Fskb8StY/TP10-TVET.png", gdriveLink: "https://drive.google.com/file/d/1sS95yFoOJcIOisjvEZ2kJJo22yng7P_e/view?usp=sharing" },
-            "terbaik": { title: "Yang Terbaik Untuk Anak", coverImage: "https://i.postimg.cc/jjtzDkDG/TP09-Yang-Terbaik-Untuk-Anak.png", gdriveLink: "https://drive.google.com/file/d/153anI1HRLi06y660m0y4Cmqi7_UDG0bL/view?usp=sharing" },
-            "asrama": { title: "Tips Sekolah Asrama", coverImage: "https://i.postimg.cc/JhrkrDFb/TP08-Tips-lengkap-persediaan-masuk-sekolah-asrama.png", gdriveLink: "https://drive.google.com/file/d/1KToiVwgjhqelAP5vQ1Y0SgAelIvbevag/view?usp=sharing" },
-            "tipsgenz": { title: "15 Tips Fahami Gen Z", coverImage: "https://i.postimg.cc/gjN776fd/TP07-Tips-Bijak-Fahami-Anak-Gen-Z-Tanpa-Tekanan.png", gdriveLink: "https://drive.google.com/file/d/19c6mPmF3U8sv9-xBrNO2oJAOH06O39QU/view?usp=sharing" },
-            "kerjaya": { title: "Rahsia Kerjaya", coverImage: "https://i.postimg.cc/hP1mB8sM/cover.png", gdriveLink: "https://drive.google.com/file/d/1eiklisUH1qLYtfj8fVwuIMTSCMEHHHDf/view?usp=sharing" },
-            "bijak": { title: "Menabung Untuk Anak", coverImage: "https://i.postimg.cc/Bv0CxnV2/Tips-Bijak-Menabung-untuk-Masa-Depan-Anak.png", gdriveLink: "https://drive.google.com/file/d/1O3Oh613KEWzA_y2jgYb9rxTRb1WF-4Gh/view?usp=sharing" },
-            "kewangan": { title: "Tips Kewangan Mudah", coverImage: "https://i.postimg.cc/SNL77zBp/Adakah-Simpanan-dan-Pelaburan-Anda-Selari-dengan-Keperluan-Masa-Depan.png", gdriveLink: "https://drive.google.com/file/d/1IyeYJaP_69F8JXonyYFxzXKfZDHRoig5/view?usp=sharing" },
-            "ai": { title: "AI Senang Duit Masuk", coverImage: "https://i.postimg.cc/c4c1s9G5/cover.png", gdriveLink: "https://drive.google.com/file/d/1YuvvnCWvpLw3PTVxpToTwijXEkjT3fot/view?usp=sharing" },
-            "tipsemas": { title: "30 Tips Motivasi Emas", coverImage: "https://i.postimg.cc/vm7cCWtP/TP15-30-tips-Motivasi-Simpan-Emas.png", gdriveLink: "https://drive.google.com/file/d/1soVdPB5rDZmSLvdoaBvQsiWTPg1BoCFA/view?usp=sharing" },
-            "kaboji": { title: "Sifat Kaboji", coverImage: "https://i.postimg.cc/d055RTZx/1.png", gdriveLink: "https://drive.google.com/file/d/1ac9363-IiG2G96MlVYWqsS650bWGk6F0/view?usp=sharing" },
-            "blueprint": { title: "Blueprint Umur 40", coverImage: "https://i.postimg.cc/vHm2Bh16/blueprint-umur-40.png", gdriveLink: "https://drive.google.com/file/d/1Eqt_PLmcMuVOHborhyV5wlIKPzSQ6m_n/view?usp=sharing" },
-            "kurus": { title: "Kuruskan Badan", coverImage: "https://i.postimg.cc/hvB24KTX/(DB0525-D015)-Kuruskan-Badan-Bersihkan-Jiwa.png", gdriveLink: "https://drive.google.com/file/d/16TsPbpBjwsBzXd0BHn_xnBasQG2lFat8/view?usp=sharing" },
-            "resipi": { title: "Resepi Sihat", coverImage: "https://i.postimg.cc/KcDNrStj/Resipi-7-Hari-Sihat-cover.png", gdriveLink: "https://drive.google.com/file/d/1TAIf8hb6zZ71kr6N60GhHukFMo3dEcVD/view?usp=sharing" },
-            "ramadhan": { title: "Kurus Ramadhan", coverImage: "https://i.postimg.cc/kgpw6QKf/cover.png", gdriveLink: "https://drive.google.com/file/d/1DOeiQgJbPQK7sMF1LWZ-bb-at5nMbthU/view?usp=sharing" },
-            "solat": { title: "Kisah Israk Mikraj", coverImage: "https://i.postimg.cc/RV9DmRTy/Kisah-Solat-dalam-Peristiwa-Israk-Mikraj.png", gdriveLink: "https://drive.google.com/file/d/1dcipiwcaskv-ntWpl7kC1YKOoQg38cDK/view?usp=sharing" },
-            "iman": { title: "Iman & Islam", coverImage: "https://i.postimg.cc/0rRtbBck/Iman-Islam-Harta-Paling-Berharga.png", gdriveLink: "https://drive.google.com/file/d/1_aDIrYVaPCATsEzPqPq0gPncQhCe51yO/view?usp=sharing" },
-            "fatihah": { title: "Al-Fatihah", coverImage: "https://i.postimg.cc/Qx5dSTq8/Kisah-Surah-Al-Fatihah.png", gdriveLink: "https://drive.google.com/file/d/1Pe9tBD_R0D8igGQOgyLbA09jgZDUqNnH/view?usp=sharing" },
-            "math": { title: "Kod Matematik Rahsia", coverImage: "https://i.postimg.cc/g0RwFbQL/Kod-Matematik-Rahsia.png", gdriveLink: "https://drive.google.com/file/d/1D_J1jjXSGGaZku1OJN_6GKUqRLf8_lZ-/view?usp=sharing" },
-            "eng": { title: "Siti dan Misi English Explorer", coverImage: "https://i.postimg.cc/QMt31Qg2/Siti-dan-Misi-English-Explorer.png", gdriveLink: "https://drive.google.com/file/d/1GcY9goDUuEl3hJlUn-ig6etfcMeJlny7/view?usp=sharing" },
-            "sains": { title: "Amir dan Misi Saintis Muda", coverImage: "https://i.postimg.cc/Wzrjtsmr/Amir-dan-Misi-Saintis-Muda.png", gdriveLink: "https://drive.google.com/file/d/1XhbWIQDnZiF9v6ScN2EWXS_bSgudWcRP/view?usp=sharing" },
-            "adab": { title: "Adab Gen Z", coverImage: "https://i.postimg.cc/9FPjBYxm/Adab-Gen-Z-Antara-Normal-Tidak-di-Mata-Ibu-Bapa-dan-Masyarakat.png", gdriveLink: "https://drive.google.com/file/d/1u8kBwvhNq6z_Pmai24Zx-CcbGNc92vNd/view?usp=sharing" },
-            "krisis": { title: "Krisis Nilai Gen Z", coverImage: "https://i.postimg.cc/Gth2v3Yr/Krisis-Nilai-Gen-Z.png", gdriveLink: "https://drive.google.com/file/d/1uyKQDN4JRCXstmMXimir03WNGqbdDNzM/view?usp=sharing" },
-            "siri25#1": { title: "Siri 25 Soalan 1", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1OOCd0r3NYH24jz2YRL0TEiHNe_da3V1s/view?usp=sharing" },
-            "siri25#2": { title: "Siri 25 Soalan 2", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1AU6l-Z-Fdsomjwm_SHz1bMLB-o9hsVV1/view?usp=sharing" },
-            "siri25#3": { title: "Siri 25 Soalan 3", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1jpahNSGQyiHk2IdxXdTWWUSEuhp-nPFq/view?usp=sharing" },
-            "tata": { title: "Minggu Bersama Tata", coverImage: "https://i.postimg.cc/gkGKy2V1/Screenshot_2025_02_03_150820.png", gdriveLink: "https://drive.google.com/file/d/1mcp5p6-pLh1EmRdoLw3vLKz4Acl0DGcY/view?usp=sharing" },
-            "fin101": { title: "Survival Finance", coverImage: "https://i.postimg.cc/26jzMX0r/Untitled-design-(1).png", gdriveLink: "/app/finance.html" },
-            "dproperty": { title: "d'PROPERTY", coverImage: "", gdriveLink: "" },
-            "holiday": { title: "Holiday Planner", coverImage: "", gdriveLink: "" },
-            "tahu": { title: "Aku Sebagai Manusia", coverImage: "", gdriveLink: "" },
-            "solat": { title: "Solatku", coverImage: "", gdriveLink: "" },
-            "tabiat": { title: "myTRANSFORMATION", coverImage: "", gdriveLink: "" }
-        };
-
-        const timelineData = {
-            intro: [ { fasa: "Pengenalan Diri", icon: "fa-compass", color: "blue", 
-                tools: [ 
-                    { id: "dchecklist", title: "myCHECKLIST", icon: "fa-list-check", desc: "Semak status hala tuju kerjaya dan kestabilan semasa anda.", reqs: ["temuduga", "kerjaya", "dibuang"], githubLink: "/app/mychecklist.html", nextStep: "dhealth", nextMsg: "Kesihatan yang baik membantu keluarga yang lebih stabil." }, 
-                    { id: "dhealth", title: "myHEALTH", icon: "fa-heart-pulse", desc: "Semak tahap kesihatan diri anda demi masa depan.", reqs: ["resipi", "kurus","ramadhan"], githubLink: "/app/myhealth.html", nextStep: "dmandarin1", nextMsg: "Tahniah! selesai kesihatan, tambah kemahiran bahasa pula." },
-                    { id: "dmandarin1", title: "myMANDARIN1.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin1.0.html", isEndLevel: true, finishMsg: "Tahniah! Anda telah tahu kedudukan anda sekarang + kuasai Mandarin. Sila dapatkan kod akses untuk modul Kewangan seterusnya." }
-                    ] } 
-                ],
-
-
-            finance: [{ 
-                fasa: "Langkah pertama: Stabilkan asas keluarga", icon: "fa-sack-dollar", color: "sky", 
-                tools: [
-                    { id: "ddebt", title: "myDEBT", icon: "fa-credit-card", desc: "Kira nisbah hutang kepada pendapatan (DSR) dan rancang strategi.", reqs: ["simpanan", "kewangan"], githubLink: "/app/mydebt.html", nextStep: "myfp", nextMsg: "Sekarang, rancang pula masa depan dan persaraan anda selepas hutang terurus." },
-                    { id: "myfp", title: "myFINPLAN", icon: "fa-umbrella-beach", desc: "Ukur tahap kewangan masa depan anda untuk bersara dengan selesa kelak.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "/app/myfinplan.html", nextStep: "darrahnu", nextMsg: "Pelbagaikan instrumen kewangan anda dengan simpanan emas." },
-                    { id: "darrahnu", title: "myEMAS", icon: "fa-coins", desc: "Mengenali teknik fungsi emas sebagai instrumen alternatif kewangan.", reqs: ["emas", "tipsemas"], githubLink: "/app/myemas.html", nextStep: "dmandarin2", nextMsg: "Kewangan mantap, jom sambung belajar Mandarin" },
-                    { id: "dmandarin2", title: "myMANDARIN2.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin2.0.html", isEndLevel: true, finishMsg: "Tahniah! Anda telah melengkapkan modul Kewangan + kuasai Mandarin. Sila dapatkan kod akses untuk modul Keharmonian seterusnya." }
-                ]
-            }],
-            parenting: [{ 
-                fasa: "Langkah kedua: Kuatkan hubungan", icon: "fa-heart-pulse", color: "pink", 
-                tools: [ 
-                    { id: "dlove", title: "myLOVE", icon: "fa-hand-holding-heart", desc: "Mengenali bahasa cinta.", reqs: ["wanita", "lelaki"], githubLink: "/app/mylove.html", nextStep: "dpsiko", nextMsg: "Fahami pula tahap emosi dan tekanan anda sebagai ibubapa, ukur skor Indeks Keibubapaan Positif." },
-                    { id: "dpsiko", title: "myPSIKO", icon: "fa-brain", desc: "Kesihatan mental & stres sebagai ibubapa.", reqs: ["survivalkit", "dilema"], githubLink: "/app/mypsiko.html", nextStep: "dpersonaliti", nextMsg: "Positif? Jom kenali personaliti dalam mengurus keluarga." },
-                    { id: "dpersonaliti", title: "myPERSONALITI", icon: "fa-fingerprint", desc: "Fahami jenis personaliti anda dalam menguruskan keluarga.", reqs: ["genz", "digital"], githubLink: "/app/mypersonaliti.html", nextStep: "dfamiliplan", nextMsg: "Dah kenal personaliti? Mari rancang masa depan keluarga, bila nak ada cucu?" },
-                    { id: "dfamiliplan", title: "myFAMILIPLAN", icon: "fa-cake-candles", desc: "Kalendar bermakna untuk merancang masa depan keluarga", reqs: ["qawwam"], githubLink: "/app/myfamiliplan.html", nextStep: "dmandarin3", finishMsg: "Luar biasa! Anda memang positif dan kini lebih terancang. Jom santai dulu belajar Mandarin sebelum ke modul Legasi untuk masa depan anda dan zuriat." },
-                    { id: "dmandarin3", title: "myMANDARIN3.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin3.0.html", isEndLevel: true, finishMsg: "Tahniah! Anda telah melengkapkan modul Keharmonian + kuasai Mandarin. Sila dapatkan kod akses untuk modul Legasi seterusnya." }
-                ] 
-            }],
-            legacy: [{ 
-                fasa: "Langkah Ketiga: Bersedia Sekarang", icon: "fa-seedling", color: "indigo", 
-                tools: [
-                    { id: "dedukids", title: "myEDUkids", icon: "fa-graduation-cap", desc: "Kira kos pendidikan masa depan dan rancang tabung pengajian.", reqs: ["bijak", "sbp", "masadepan"], githubLink: "/app/myedukids.html", nextStep: "dplan4us", nextMsg: "Pendidikan anak selesai? Jom kira tabung persaraan anda pula." },
-                    { id: "dplan4us", title: "myPLAN4US", icon: "fa-wallet", desc: "Rancang persaraan dengan pasangan.", reqs: ["kewangan"], githubLink: "/app/myplan4us.html", nextStep: "dchecklist40", nextMsg: "Sejauh mana persediaan anda menghadapi usia 40 tahun?" },
-                    { id: "dchecklist40", title: "myCHECKLIST40", icon: "fa-list-check", desc: "Apa persediaan untuk umur 40.", reqs: ["hijrah", "blueprint", "kaboji"], githubLink: "/app/mychecklist40.html", nextStep: "mywaris", nextMsg: "Akhir sekali, pastikan harta pusaka terurus dengan baik." },
-                    { id: "mywaris", title: "myWARIS", icon: "fa-file-contract", desc: "Kalkulator faraid dan pengurusan harta pusaka.", reqs: ["tiada"], githubLink: "/app/mywaris.html", nextStep: "dmandarin4", finishMsg: "Perancangan legasi anda kini lengkap. Fokus seterusnya adalah pembangunan moral zuriat dalam modul Anakku sambil belajar Mandarin." },
-                    { id: "dmandarin4", title: "myMANDARIN4.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin4.0.html", isEndLevel: true, finishMsg: "Tahniah! Anda telah melengkapkan modul Legasi + kuasai Mandarin. Sila dapatkan kod akses untuk modul Anakku seterusnya." }
-                ] 
-            }],
-            kids: [
-                { fasa: "Asas Kerohanian", icon: "fa-moon", color: "teal", tools: [
-                    { id: "dintegrity", title: "myINTEGRITY", icon: "fa-scale-balanced", desc: "Ukur kejujuran dan pemahaman moral anak.", reqs: ["yolo"], githubLink: "/app/myintegrity.html", nextStep: "dpsikokids", nextMsg: "Anak-anak memang berintegriti, soleh & solehah ke tak?" },
-                    { id: "dpsikokids", title: "myPSIKOkids", icon: "fa-face-smile", desc: "Nilai emosi & sosial anak.", reqs: ["digital", "tata"], githubLink: "/app/mypsikokids.html", nextStep: "dsolat", nextMsg: "Alhamdulillah, mari semak kelancaran solat mereka pula." },
-                    { id: "dsolat", title: "mySOLAT", icon: "fa-person-praying", desc: "Semak pemahaman rukun dan kelancaran solat anak.", reqs: ["solat"], githubLink: "/app/mysolat.html", nextStep: "dfatihah", nextMsg: "Bagus! Mari perhalusi bacaan dab kefahaman Al-Fatihah anak anda." },
-                    { id: "dfatihah", title: "myFATIHAH", icon: "fa-book-quran", desc: "Uji kefahaman Surah Al-Fatihah anak.", reqs: ["fatihah"], githubLink: "/app/myfatihah.html", nextStep: "drukun", nextMsg: "Sempurnakan rukun Islam & Iman mereka melalui kuiz interaktif." },
-                    { id: "drukun", title: "myRUKUN", icon: "fa-hand-sparkles", desc: "Kuiz pemahaman Rukun Islam & Rukun Iman.", reqs: ["iman"], githubLink: "/app/myrukun.html", nextStep: "gamemath", nextMsg: "Asas agama mantap! Kini masanya mencabar minda dengan permainan dan ujian mudah, chill bersama anak." }
-                ]},
-                { fasa: "Minda & Games", icon: "fa-gamepad", color: "blue", tools: [
-                    { id: "gamemath", title: "Math Game", icon: "fa-calculator", desc: "Uji minda pantas anak.", reqs: ["math"], githubLink: "/app/mymath.html", nextStep: "gameeng", nextMsg: "Hebat! Teruskan dengan pengembaraan kosa kata bahasa Inggeris." },
-                    { id: "gameeng", title: "English Game", icon: "fa-spell-check", desc: "Uji kefahaman Inggeris interaktif anak.", reqs: ["eng"], githubLink: "/app/myenglish.html", nextStep: "gamebmsains", nextMsg: "Jom terokai dunia sains pula!" },
-                    { id: "gamebmsains", title: "Sains Game", icon: "fa-flask", desc: "Pelajari dunia sains.", reqs: ["sains", "siri25#1", "siri25#2"], githubLink: "/app/mysains.html", nextStep: "gamekafa", nextMsg: "Cabar pengetahuan silibus KAFA mereka sekarang." },
-                    { id: "gamekafa", title: "KAFA Game", icon: "fa-star-and-crescent", desc: "Ujian asas ringkas UPKK KAFA.", reqs: ["siri25#3"], githubLink: "/app/mykafa.html", nextStep: "dmandarin5", nextMsg: "Jom sambung belajar Mandarin sebelum kenali potensi dan personaliti anak untuk perancangan masa depan mereka." },
-                    { id: "dmandarin5", title: "myMANDARIN5.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin5.0/", isEndLevel: true, finishMsg: "Tahniah! Dah habis modul Mandarin, jom kenali potensi dan personaliti anak untuk perancangan masa depan mereka." }
-                ]},
-                { fasa: "Psikologi Tumbesaran", icon: "fa-masks-theater", color: "purple", tools: [
-                    { id: "dpersonalitids", title: "myPERSONALITIkids", icon: "fa-puzzle-piece", desc: "Kenali potensi & personaliti anak.", reqs: ["tvet", "asrama", "ai"], githubLink: "/app/mypersonalitikids.html", nextStep: "dpsikoteens", nextMsg: "Mari fahami tahap emosi dan sosial mereka pula." },
-                    { id: "dpsikoteens", title: "myPSIKOteens", icon: "fa-headphones", desc: "Ujian menilai aspek spiritual dan disiplin diri remaja.", reqs: ["adab", "genz"], githubLink: "/app/mypsikoteens.html", nextStep: "dpsikoteens2", nextMsg: "Langkah seterusnya: Menilai dan menangani kesan sosial media terhadap mereka." },
-                    { id: "dpsikoteens2", title: "myPSIKOteens2.0", icon: "fa-vr-cardboard", desc: "Menilai dan menangani kesan sosial media pada anak remaja.", reqs: ["adab", "genz", "yolo", "tipsgenz"], githubLink: "/app/mypsikoteens2.0.html", nextStep: "dpsikoteens3", nextMsg: "Langkah terakhir, kita nilai sesuatu hal yang orang jarang bincang." },
-                    { id: "dpsikoteens3", title: "myPSIKOteens3.0", icon: "fa-vr-cardboard", desc: "Menilai dan mengenalpasti kecenderungan kendiri anak remaja.", reqs: ["krisis", "qawwam"], githubLink: "/app/mypsikoteens3.0.html", isEndLevel: true, finishMsg: "Syabas! Anda telah melengkapkan seluruh Jurnal Famili Pintar. Semoga input ini membantu membina keluarga yang bahagia dan berjaya." }
-                ] } ], // <- tutup kids array
-              akuan: [
-    {
-        fasa: "Masa untuk tadbir urusan dunia akhirat dengan sempurna",
-        icon: "fa-file-signature",
-        color: "emerald",
-        tools: [
+    const timelineData = {
+        intro: [ { fasa: "Pengenalan Diri", icon: "fa-compass", color: "blue", 
+            tools: [ 
+                { id: "dchecklist", title: "myCHECKLIST", icon: "fa-list-check", desc: "Semak status hala tuju kerjaya dan kestabilan semasa anda.", reqs: ["temuduga", "kerjaya", "dibuang"], githubLink: "/app/mychecklist.html", nextStep: "dhealth", nextMsg: "Kesihatan yang baik membantu keluarga yang lebih stabil." }, 
+                { id: "dhealth", title: "myHEALTH", icon: "fa-heart-pulse", desc: "Semak tahap kesihatan diri anda demi masa depan.", reqs: ["resipi", "kurus","ramadhan"], githubLink: "/app/myhealth.html", nextStep: "dmandarin1", nextMsg: "Tahniah! selesai kesihatan, tambah kemahiran bahasa pula." },
+                { id: "dmandarin1", title: "myMANDARIN1.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin1.0.html", isEndLevel: true, finishMsg: "Tahniah! Anda telah tahu kedudukan anda sekarang + kuasai Mandarin. Sila dapatkan kod akses untuk modul Kewangan seterusnya." }
+                ] } 
+            ],
+        finance: [{ 
+            fasa: "Langkah pertama: Stabilkan asas keluarga", icon: "fa-sack-dollar", color: "sky", 
+            tools: [
+                { id: "ddebt", title: "myDEBT", icon: "fa-credit-card", desc: "Kira nisbah hutang kepada pendapatan (DSR) dan rancang strategi.", reqs: ["simpanan", "kewangan"], githubLink: "/app/mydebt.html", nextStep: "myfp", nextMsg: "Sekarang, rancang pula masa depan dan persaraan anda selepas hutang terurus." },
+                { id: "myfp", title: "myFINPLAN", icon: "fa-umbrella-beach", desc: "Ukur tahap kewangan masa depan anda untuk bersara dengan selesa kelak.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "/app/myfinplan.html", nextStep: "darrahnu", nextMsg: "Pelbagaikan instrumen kewangan anda dengan simpanan emas." },
+                { id: "darrahnu", title: "myEMAS", icon: "fa-coins", desc: "Mengenali teknik fungsi emas sebagai instrumen alternatif kewangan.", reqs: ["emas", "tipsemas"], githubLink: "/app/myemas.html", nextStep: "dmandarin2", nextMsg: "Kewangan mantap, jom sambung belajar Mandarin" },
+                { id: "dmandarin2", title: "myMANDARIN2.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin2.0.html", isEndLevel: true, finishMsg: "Tahniah! Anda telah melengkapkan modul Kewangan + kuasai Mandarin. Sila dapatkan kod akses untuk modul Keharmonian seterusnya." }
+            ]
+        }],
+        parenting: [{ 
+            fasa: "Langkah kedua: Kuatkan hubungan", icon: "fa-heart-pulse", color: "pink", 
+            tools: [ 
+                { id: "dlove", title: "myLOVE", icon: "fa-hand-holding-heart", desc: "Mengenali bahasa cinta.", reqs: ["wanita", "lelaki"], githubLink: "/app/mylove.html", nextStep: "dpsiko", nextMsg: "Fahami pula tahap emosi dan tekanan anda sebagai ibubapa, ukur skor Indeks Keibubapaan Positif." },
+                { id: "dpsiko", title: "myPSIKO", icon: "fa-brain", desc: "Kesihatan mental & stres sebagai ibubapa.", reqs: ["survivalkit", "dilema"], githubLink: "/app/mypsiko.html", nextStep: "dpersonaliti", nextMsg: "Positif? Jom kenali personaliti dalam mengurus keluarga." },
+                { id: "dpersonaliti", title: "myPERSONALITI", icon: "fa-fingerprint", desc: "Fahami jenis personaliti anda dalam menguruskan keluarga.", reqs: ["genz", "digital"], githubLink: "/app/mypersonaliti.html", nextStep: "dfamiliplan", nextMsg: "Dah kenal personaliti? Mari rancang masa depan keluarga, bila nak ada cucu?" },
+                { id: "dfamiliplan", title: "myFAMILIPLAN", icon: "fa-cake-candles", desc: "Kalendar bermakna untuk merancang masa depan keluarga", reqs: ["qawwam"], githubLink: "/app/myfamiliplan.html", nextStep: "dmandarin3", finishMsg: "Luar biasa! Anda memang positif dan kini lebih terancang. Jom santai dulu belajar Mandarin sebelum ke modul Legasi untuk masa depan anda dan zuriat." },
+                { id: "dmandarin3", title: "myMANDARIN3.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin3.0.html", isEndLevel: true, finishMsg: "Tahniah! Anda telah melengkapkan modul Keharmonian + kuasai Mandarin. Sila dapatkan kod akses untuk modul Legasi seterusnya." }
+            ] 
+        }],
+        legacy: [{ 
+            fasa: "Langkah Ketiga: Bersedia Sekarang", icon: "fa-seedling", color: "indigo", 
+            tools: [
+                { id: "dedukids", title: "myEDUkids", icon: "fa-graduation-cap", desc: "Kira kos pendidikan masa depan dan rancang tabung pengajian.", reqs: ["bijak", "sbp", "masadepan"], githubLink: "/app/myedukids.html", nextStep: "dplan4us", nextMsg: "Pendidikan anak selesai? Jom kira tabung persaraan anda pula." },
+                { id: "dplan4us", title: "myPLAN4US", icon: "fa-wallet", desc: "Rancang persaraan dengan pasangan.", reqs: ["kewangan"], githubLink: "/app/myplan4us.html", nextStep: "dchecklist40", nextMsg: "Sejauh mana persediaan anda menghadapi usia 40 tahun?" },
+                { id: "dchecklist40", title: "myCHECKLIST40", icon: "fa-list-check", desc: "Apa persediaan untuk umur 40.", reqs: ["hijrah", "blueprint", "kaboji"], githubLink: "/app/mychecklist40.html", nextStep: "mywaris", nextMsg: "Akhir sekali, pastikan harta pusaka terurus dengan baik." },
+                { id: "mywaris", title: "myWARIS", icon: "fa-file-contract", desc: "Kalkulator faraid dan pengurusan harta pusaka.", reqs: ["tiada"], githubLink: "/app/mywaris.html", nextStep: "dmandarin4", finishMsg: "Perancangan legasi anda kini lengkap. Fokus seterusnya adalah pembangunan moral zuriat dalam modul Anakku sambil belajar Mandarin." },
+                { id: "dmandarin4", title: "myMANDARIN4.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin4.0.html", isEndLevel: true, finishMsg: "Tahniah! Anda telah melengkapkan modul Legasi + kuasai Mandarin. Sila dapatkan kod akses untuk modul Anakku seterusnya." }
+            ] 
+        }],
+        kids: [
+            { fasa: "Asas Kerohanian", icon: "fa-moon", color: "teal", tools: [
+                { id: "dintegrity", title: "myINTEGRITY", icon: "fa-scale-balanced", desc: "Ukur kejujuran dan pemahaman moral anak.", reqs: ["yolo"], githubLink: "/app/myintegrity.html", nextStep: "dpsikokids", nextMsg: "Anak-anak memang berintegriti, soleh & solehah ke tak?" },
+                { id: "dpsikokids", title: "myPSIKOkids", icon: "fa-face-smile", desc: "Nilai emosi & sosial anak.", reqs: ["digital", "tata"], githubLink: "/app/mypsikokids.html", nextStep: "dsolat", nextMsg: "Alhamdulillah, mari semak kelancaran solat mereka pula." },
+                { id: "dsolat", title: "mySOLAT", icon: "fa-person-praying", desc: "Semak pemahaman rukun dan kelancaran solat anak.", reqs: ["solat"], githubLink: "/app/mysolat.html", nextStep: "dfatihah", nextMsg: "Bagus! Mari perhalusi bacaan dab kefahaman Al-Fatihah anak anda." },
+                { id: "dfatihah", title: "myFATIHAH", icon: "fa-book-quran", desc: "Uji kefahaman Surah Al-Fatihah anak.", reqs: ["fatihah"], githubLink: "/app/myfatihah.html", nextStep: "drukun", nextMsg: "Sempurnakan rukun Islam & Iman mereka melalui kuiz interaktif." },
+                { id: "drukun", title: "myRUKUN", icon: "fa-hand-sparkles", desc: "Kuiz pemahaman Rukun Islam & Rukun Iman.", reqs: ["iman"], githubLink: "/app/myrukun.html", nextStep: "gamemath", nextMsg: "Asas agama mantap! Kini masanya mencabar minda dengan permainan dan ujian mudah, chill bersama anak." }
+            ]},
+            { fasa: "Minda & Games", icon: "fa-gamepad", color: "blue", tools: [
+                { id: "gamemath", title: "Math Game", icon: "fa-calculator", desc: "Uji minda pantas anak.", reqs: ["math"], githubLink: "/app/mymath.html", nextStep: "gameeng", nextMsg: "Hebat! Teruskan dengan pengembaraan kosa kata bahasa Inggeris." },
+                { id: "gameeng", title: "English Game", icon: "fa-spell-check", desc: "Uji kefahaman Inggeris interaktif anak.", reqs: ["eng"], githubLink: "/app/myenglish.html", nextStep: "gamebmsains", nextMsg: "Jom terokai dunia sains pula!" },
+                { id: "gamebmsains", title: "Sains Game", icon: "fa-flask", desc: "Pelajari dunia sains.", reqs: ["sains", "siri25#1", "siri25#2"], githubLink: "/app/mysains.html", nextStep: "gamekafa", nextMsg: "Cabar pengetahuan silibus KAFA mereka sekarang." },
+                { id: "gamekafa", title: "KAFA Game", icon: "fa-star-and-crescent", desc: "Ujian asas ringkas UPKK KAFA.", reqs: ["siri25#3"], githubLink: "/app/mykafa.html", nextStep: "dmandarin5", nextMsg: "Jom sambung belajar Mandarin sebelum kenali potensi dan personaliti anak untuk perancangan masa depan mereka." },
+                { id: "dmandarin5", title: "myMANDARIN5.0", icon: "fa-language", desc: "Kuasai bahasa asing bersama keluarga.", reqs: ["" ], githubLink: "/app/mandarin5.0/", isEndLevel: true, finishMsg: "Tahniah! Dah habis modul Mandarin, jom kenali potensi dan personaliti anak untuk perancangan masa depan mereka." }
+            ]},
+            { fasa: "Psikologi Tumbesaran", icon: "fa-masks-theater", color: "purple", tools: [
+                { id: "dpersonalitids", title: "myPERSONALITIkids", icon: "fa-puzzle-piece", desc: "Kenali potensi & personaliti anak.", reqs: ["tvet", "asrama", "ai"], githubLink: "/app/mypersonalitikids.html", nextStep: "dpsikoteens", nextMsg: "Mari fahami tahap emosi dan sosial mereka pula." },
+                { id: "dpsikoteens", title: "myPSIKOteens", icon: "fa-headphones", desc: "Ujian menilai aspek spiritual dan disiplin diri remaja.", reqs: ["adab", "genz"], githubLink: "/app/mypsikoteens.html", nextStep: "dpsikoteens2", nextMsg: "Langkah seterusnya: Menilai dan menangani kesan sosial media terhadap mereka." },
+                { id: "dpsikoteens2", title: "myPSIKOteens2.0", icon: "fa-vr-cardboard", desc: "Menilai dan menangani kesan sosial media pada anak remaja.", reqs: ["adab", "genz", "yolo", "tipsgenz"], githubLink: "/app/mypsikoteens2.0.html", nextStep: "dpsikoteens3", nextMsg: "Langkah terakhir, kita nilai sesuatu hal yang orang jarang bincang." },
+                { id: "dpsikoteens3", title: "myPSIKOteens3.0", icon: "fa-vr-cardboard", desc: "Menilai dan mengenalpasti kecenderungan kendiri anak remaja.", reqs: ["krisis", "qawwam"], githubLink: "/app/mypsikoteens3.0.html", isEndLevel: true, finishMsg: "Syabas! Anda telah melengkapkan seluruh Jurnal Famili Pintar. Semoga input ini membantu membina keluarga yang bahagia dan berjaya." }
+            ] } ],
+        akuan: [
             {
-                id: "akuan1",
-                title: "myTADBIR",
-                icon: "fa-file-circle-check",
-                desc: "Kalkulator pertama.",
-                reqs: ["fin101"],
-                githubLink: "/app/mytadbir.html",
-                isEndLevel: true,
-                finishMsg: "Tahniah, InsyaAllah anda pasti berjaya dunia akhirat."
-            },
+                fasa: "Masa untuk tadbir urusan dunia akhirat dengan sempurna",
+                icon: "fa-file-signature",
+                color: "emerald",
+                tools: [
+                    {
+                        id: "akuan1",
+                        title: "myTADBIR",
+                        icon: "fa-file-circle-check",
+                        desc: "Kalkulator pertama.",
+                        reqs: ["fin101"],
+                        githubLink: "/app/mytadbir.html",
+                        isEndLevel: true,
+                        finishMsg: "Tahniah, InsyaAllah anda pasti berjaya dunia akhirat."
+                    },
 
-          ]
-    }
-]   // <- habis akuan
+                  ]
+            }
+        ]   // <- habis akuan
 
-};
+    };
 
-
-window.renderTimeline = (data, containerId) => {
+    window.renderTimeline = (data, containerId) => {
         const container = document.getElementById(containerId);
         if (!container || !data) return;
         container.innerHTML = data.map(stage => `
@@ -735,7 +748,7 @@ window.renderTimeline = (data, containerId) => {
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
                     ${stage.tools.map(tool => `
-                        <div onclick="openModal('\${tool.id}', '${stage.color}', '${containerId.replace('-timeline', '')}')" class="bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
+                        <div onclick="window.openModal('\${tool.id}', '${stage.color}', '${containerId.replace('-timeline', '')}')" class="bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
                             <div class="w-12 h-12 rounded-xl bg-\${stage.color}-50 text-${stage.color}-600 flex items-center justify-center text-xl mr-4 group-hover:bg-${stage.color}-600 group-hover:text-white transition">
                                 <i class="fa-solid \${tool.icon}"></i>
                             </div>
@@ -759,128 +772,126 @@ window.renderTimeline = (data, containerId) => {
         window.renderTimeline(timelineData.akuan, 'akuan-timeline');
     };
        
-        window.openModal = (toolId, color, sectionId) => {
-            if (sectionId) currentSectionId = sectionId;
-            let tool = null;
-            Object.values(timelineData).forEach(stages => {
-                stages.forEach(s => {
-                    const found = s.tools.find(t => t.id === toolId);
-                    if (found) tool = found;
-                });
+    window.openModal = (toolId, color, sectionId) => {
+        if (sectionId) window.currentSectionId = sectionId;
+        let tool = null;
+        Object.values(timelineData).forEach(stages => {
+            stages.forEach(s => {
+                const found = s.tools.find(t => t.id === toolId);
+                if (found) tool = found;
             });
-            if (!tool) return;
+        });
+        if (!tool) return;
 
-            document.getElementById('modalTitle').textContent = tool.title;
-            document.getElementById('modalDesc').textContent = tool.desc;
-            document.getElementById('modalIcon').innerHTML = `<i class="fa-solid ${tool.icon}"></i>`;
-            document.getElementById('modalHeader').className = `p-6 rounded-t-2xl text-white relative flex items-center bg-${color}-600`;
-            const btn = document.getElementById('modalActionBtn');
-            btn.className = `bg-${color}-500 text-white py-4 px-10 rounded-full font-bold shadow-lg`;
-            btn.textContent = `Jom guna ${tool.title}`;
-            
-            btn.onclick = () => {
-                window.open(tool.githubLink, '_blank');
-                setTimeout(() => {
-                    closeModal();
-                    if (tool.isEndLevel) {
-                        showCongratsModal(tool.finishMsg, color, toolId);
-                    } else if (tool.nextStep) {
-                        showNextStepModal(tool.nextStep, tool.nextMsg, toolId, color);
-                    }
-                }, 800);
-            };
-
-            const ebContainer = document.getElementById('modalEbooks');
-            ebContainer.innerHTML = '';
-            tool.reqs.forEach(rid => {
-                const eb = ebooks[rid];
-                if (eb) {
-                    ebContainer.innerHTML += `
-                        <div class="bg-white border rounded-lg p-3 flex items-center cursor-pointer hover:bg-slate-100 transition" onclick="window.open('${eb.gdriveLink}', '_blank')">
-                            <img src="${eb.coverImage}" class="w-10 h-14 object-cover mr-3 shadow-sm">
-                            <h5 class="font-bold text-xs">${eb.title}</h5>
-                        </div>`;
+        document.getElementById('modalTitle').textContent = tool.title;
+        document.getElementById('modalDesc').textContent = tool.desc;
+        document.getElementById('modalIcon').innerHTML = `<i class="fa-solid ${tool.icon}"></i>`;
+        document.getElementById('modalHeader').className = `p-6 rounded-t-2xl text-white relative flex items-center bg-${color}-600`;
+        const btn = document.getElementById('modalActionBtn');
+        btn.className = `bg-${color}-500 text-white py-4 px-10 rounded-full font-bold shadow-lg`;
+        btn.textContent = `Jom guna ${tool.title}`;
+        
+        btn.onclick = () => {
+            window.open(tool.githubLink, '_blank');
+            setTimeout(() => {
+                window.closeModal();
+                if (tool.isEndLevel) {
+                    window.showCongratsModal(tool.finishMsg, color, toolId);
+                } else if (tool.nextStep) {
+                    window.showNextStepModal(tool.nextStep, tool.nextMsg, toolId, color);
                 }
-            });
-            document.getElementById('toolModal').classList.remove('hidden');
-        }
+            }, 800);
+        };
 
+        const ebContainer = document.getElementById('modalEbooks');
+        ebContainer.innerHTML = '';
+        tool.reqs.forEach(rid => {
+            const eb = ebooks[rid];
+            if (eb) {
+                ebContainer.innerHTML += `
+                    <div class="bg-white border rounded-lg p-3 flex items-center cursor-pointer hover:bg-slate-100 transition" onclick="window.open('${eb.gdriveLink}', '_blank')">
+                        <img src="${eb.coverImage}" class="w-10 h-14 object-cover mr-3 shadow-sm">
+                        <h5 class="font-bold text-xs">${eb.title}</h5>
+                    </div>`;
+            }
+        });
+        document.getElementById('toolModal').classList.remove('hidden');
+    };
+    
     window.closeModal = () => { document.getElementById('toolModal').classList.add('hidden'); };
     window.showProfile = () => { document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('timelineContent').classList.add('hidden'); document.getElementById('heroSection').classList.add('hidden'); };
     window.hideProfile = () => { document.getElementById('profileSection').classList.add('hidden'); document.getElementById('timelineContent').classList.remove('hidden'); document.getElementById('heroSection').classList.remove('hidden'); };
 
-
     // --- FUNGSI WORKFLOW (Telah dipindahkan ke dalam modul) ---
     window.showCongratsModal = (msg, color, currentToolId) => {
-            const iconBox = document.getElementById('workflowIcon');
-            iconBox.className = `w-20 h-20 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 confetti-icon`;
-            iconBox.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
-            
-            document.getElementById('workflowTitle').textContent = "TAHNIAH!";
-            document.getElementById('workflowMsg').textContent = msg;
-            
-            const btnBox = document.getElementById('workflowButtons');
-            btnBox.innerHTML = `
-                <button onclick="closeWorkflowModal()" class="w-full py-4 bg-${color}-600 text-white font-bold rounded-2xl shadow-lg hover:bg-${color}-700 transition">
-                    Alhamdulillah, Selesai!
-                </button>
-                <button onclick="backToTool('${currentToolId}', '${color}')" class="w-full py-3 bg-slate-100 text-slate-500 font-bold rounded-2xl text-sm hover:bg-slate-200 transition">
-                    Bertenang seketika
-                </button>
-            `;
-            
-            document.getElementById('workflowModal').classList.remove('hidden');
-        }
+        const iconBox = document.getElementById('workflowIcon');
+        iconBox.className = `w-20 h-20 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 confetti-icon`;
+        iconBox.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
+        
+        document.getElementById('workflowTitle').textContent = "TAHNIAH!";
+        document.getElementById('workflowMsg').textContent = msg;
+        
+        const btnBox = document.getElementById('workflowButtons');
+        btnBox.innerHTML = `
+            <button onclick="window.closeWorkflowModal()" class="w-full py-4 bg-${color}-600 text-white font-bold rounded-2xl shadow-lg hover:bg-${color}-700 transition">
+                Alhamdulillah, Selesai!
+            </button>
+            <button onclick="window.backToTool('${currentToolId}', '${color}')" class="w-full py-3 bg-slate-100 text-slate-500 font-bold rounded-2xl text-sm hover:bg-slate-200 transition">
+                Bertenang seketika
+            </button>
+        `;
+        document.getElementById('workflowModal').classList.remove('hidden');
+    };
 
-       window.showNextStepModal = (nextToolId, msg, currentToolId, currentColor) => {
+    window.showNextStepModal = (nextToolId, msg, currentToolId, currentColor) => {
         let nextTool = null;
         let nextColor = 'teal';
         let nextSecId = '';
 
-            Object.keys(timelineData).forEach(cat => {
-                timelineData[cat].forEach(s => {
-                    const found = s.tools.find(t => t.id === nextToolId);
-                    if (found) { 
-                    nextTool = found; nextColor = (cat === 'intro') ? 'blue' : (cat === 'finance') ? 'sky' : (cat === 'parenting') ? 'pink' : (cat === 'legacy') ? 'indigo' : (cat === 'kids') ? 'orange' : (cat === 'akuan') ? 'emerald' : 'orange'; 
+        Object.keys(timelineData).forEach(cat => {
+            timelineData[cat].forEach(s => {
+                const found = s.tools.find(t => t.id === nextToolId);
+                if (found) { 
+                    nextTool = found; 
+                    nextColor = (cat === 'intro') ? 'blue' : (cat === 'finance') ? 'sky' : (cat === 'parenting') ? 'pink' : (cat === 'legacy') ? 'indigo' : (cat === 'kids') ? 'orange' : (cat === 'akuan') ? 'emerald' : 'orange'; 
                     nextSecId = (cat === 'kids') ? 'anakku' : (cat === 'akuan') ? 'akuan' : 'mapa-' + cat;
-                    }
-                });
+                }
             });
+        });
 
-            if (!nextTool) return;
+        if (!nextTool) return;
 
-            const iconBox = document.getElementById('workflowIcon');
-            iconBox.className = `w-20 h-20 bg-${nextColor}-100 text-${nextColor}-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-6`;
-            iconBox.innerHTML = `<i class="fa-solid fa-arrow-right-long"></i>`;
-            
-            document.getElementById('workflowTitle').textContent = "Langkah Seterusnya";
-            document.getElementById('workflowMsg').textContent = msg;
-            
-            const btnBox = document.getElementById('workflowButtons');
-            btnBox.innerHTML = `
-                <button id="nextActionBtn" class="w-full py-4 bg-${nextColor}-600 text-white font-bold rounded-2xl shadow-lg transition">
-                    Teruskan ke ${nextTool.title}
-                </button>
-                <button onclick="backToTool('${currentToolId}', '${currentColor}')" class="w-full py-3 bg-slate-100 text-slate-500 font-bold rounded-2xl text-sm hover:bg-slate-200 transition">
-                    Tenang sekejap 
-                </button>
-            `;
+        const iconBox = document.getElementById('workflowIcon');
+        iconBox.className = `w-20 h-20 bg-${nextColor}-100 text-${nextColor}-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-6`;
+        iconBox.innerHTML = `<i class="fa-solid fa-arrow-right-long"></i>`;
+        
+        document.getElementById('workflowTitle').textContent = "Langkah Seterusnya";
+        document.getElementById('workflowMsg').textContent = msg;
+        
+        const btnBox = document.getElementById('workflowButtons');
+        btnBox.innerHTML = `
+            <button id="nextActionBtn" class="w-full py-4 bg-${nextColor}-600 text-white font-bold rounded-2xl shadow-lg transition">
+                Teruskan ke ${nextTool.title}
+            </button>
+            <button onclick="window.backToTool('${currentToolId}', '${currentColor}')" class="w-full py-3 bg-slate-100 text-slate-500 font-bold rounded-2xl text-sm hover:bg-slate-200 transition">
+                Tenang sekejap 
+            </button>
+        `;
 
-            document.getElementById('nextActionBtn').onclick = () => {
-                closeWorkflowModal();
-                openModal(nextToolId, nextColor, nextSecId);
-            };
+        document.getElementById('nextActionBtn').onclick = () => {
+            window.closeWorkflowModal();
+            window.openModal(nextToolId, nextColor, nextSecId);
+        };
 
-            document.getElementById('workflowModal').classList.remove('hidden');
-        }
+        document.getElementById('workflowModal').classList.remove('hidden');
+    };
 
-       window.triggerNext = (tid, col, sid) => { window.closeWorkflowModal(); window.openModal(tid, col, sid); };
+    window.triggerNext = (tid, col, sid) => { window.closeWorkflowModal(); window.openModal(tid, col, sid); };
     window.backToTool = (toolId, color) => { window.closeWorkflowModal(); window.openModal(toolId, color, window.currentSectionId); };
     window.closeWorkflowModal = () => { document.getElementById('workflowModal').classList.add('hidden'); };
     window.contactWhatsApp = (t) => { window.open(`https://wa.me/60129443846?text=Bantuan%20${t}`, '_blank'); };
 
 </script> <!-- PENAMAT SKRIP MODUL FIREBASE -->
-
 
 
 <script>
