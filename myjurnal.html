@@ -172,7 +172,7 @@
             Log Masuk / Daftar Sekarang
         </button>
     </div>
-
+</div>
            
 
             <!-- CTA BANNER SECTION -->
@@ -305,22 +305,16 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
                         <a href="#anakku" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Zuriat</a>
                         <a href="#akuan" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">myTADBIR</a>
 
-                        <button onclick="window.location.href='../index.html'" class="bg-sky-500 hover:bg-sky-600 px-4 py-1.5 rounded-full font-bold transition text-white text-sm shadow-sm">
+                                               <button onclick="window.location.href='../index.html'" class="bg-sky-500 hover:bg-sky-600 px-4 py-1.5 rounded-full font-bold transition text-white text-sm shadow-sm">
                             <i class="fa-solid fa-arrow-left mr-1"></i> Kembali
                         </button>
-                    </div>
-
 
                         <button onclick="logout()" class="bg-sky-400 px-3 py-1 rounded text-xs hover:bg-red-600 transition text-white">Log Keluar</button>
                     </div>
-                   <div class="md:hidden ml-auto flex items-center gap-4"> 
-                    <button onclick="openAccessModal()" class="text-2xl"> 
-                        <i class="fa-solid fa-right-to-bracket"></i> </button> 
-                        <button onclick="toggleJournalMobileMenu()" class="text-2xl"> 
-                            <i class="fa-solid fa-bars"></i> </button> 
-                            </div>
 
-                  
+                    <div class="md:hidden ml-auto flex items-center gap-4">
+                        <button onclick="toggleJournalMobileMenu()" class="text-2xl"><i class="fa-solid fa-bars"></i></button>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -649,12 +643,8 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         "siri25#2": { title: "Siri 25 Soalan 2", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1AU6l-Z-Fdsomjwm_SHz1bMLB-o9hsVV1/view?usp=sharing" },
         "siri25#3": { title: "Siri 25 Soalan 3", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1jpahNSGQyiHk2IdxXdTWWUSEuhp-nPFq/view?usp=sharing" },
         "tata": { title: "Minggu Bersama Tata", coverImage: "https://i.postimg.cc/gkGKy2V1/Screenshot_2025_02_03_150820.png", gdriveLink: "https://drive.google.com/file/d/1mcp5p6-pLh1EmRdoLw3vLKz4Acl0DGcY/view?usp=sharing" },
-        "fin101": { title: "Survival Finance", coverImage: "https://i.postimg.cc/26jzMX0r/Untitled-design-(1).png", gdriveLink: "/app/finance.html" },
-        "dproperty": { title: "d'PROPERTY", coverImage: "", gdriveLink: "" },
-        "holiday": { title: "Holiday Planner", coverImage: "", gdriveLink: "" },
-        "tahu": { title: "Aku Sebagai Manusia", coverImage: "", gdriveLink: "" },
-        "solat": { title: "Solatku", coverImage: "", gdriveLink: "" },
-        "tabiat": { title: "myTRANSFORMATION", coverImage: "", gdriveLink: "" }
+        "fin101": { title: "Survival Finance", coverImage: "https://i.postimg.cc/26jzMX0r/Untitled-design-(1).png", gdriveLink: "/app/finance.html" }
+        
     };
 
     const timelineData = {
@@ -738,9 +728,10 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
 
     };
 
-    window.renderTimeline = (data, containerId) => {
+        window.renderTimeline = (data, containerId) => {
         const container = document.getElementById(containerId);
         if (!container || !data) return;
+        const seksyen = containerId.replace('-timeline', '');
         container.innerHTML = data.map(stage => `
             <div class="relative z-10 mb-8 flex flex-col items-center px-4">
                 <h3 class="text-lg font-bold text-${stage.color}-600 bg-white px-6 py-2 rounded-full shadow-sm border border-${stage.color}-100 mb-6 uppercase tracking-tight">
@@ -748,13 +739,13 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
                     ${stage.tools.map(tool => `
-                        <div onclick="window.openModal('\${tool.id}', '${stage.color}', '${containerId.replace('-timeline', '')}')" class="bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
-                            <div class="w-12 h-12 rounded-xl bg-\${stage.color}-50 text-${stage.color}-600 flex items-center justify-center text-xl mr-4 group-hover:bg-${stage.color}-600 group-hover:text-white transition">
-                                <i class="fa-solid \${tool.icon}"></i>
+                        <div onclick="window.openModal('${tool.id}', '${stage.color}', '${seksyen}')" class="bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
+                            <div class="w-12 h-12 rounded-xl bg-${stage.color}-50 text-${stage.color}-600 flex items-center justify-center text-xl mr-4 group-hover:bg-${stage.color}-600 group-hover:text-white transition">
+                                <i class="fa-solid ${tool.icon}"></i>
                             </div>
                             <div class="flex-1">
-                                <h4 class="font-bold text-slate-800 text-sm">\${tool.title}</h4>
-                                <p class="text-xs text-slate-500">\${tool.desc}</p>
+                                <h4 class="font-bold text-slate-800 text-sm">${tool.title}</h4>
+                                <p class="text-xs text-slate-500">${tool.desc}</p>
                             </div>
                         </div>
                     `).join('')}
@@ -762,7 +753,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
             </div>
         `).join('');
     };
-
+      
     window.renderAll = () => {
         window.renderTimeline(timelineData.intro, 'intro-timeline');
         window.renderTimeline(timelineData.finance, 'finance-timeline');
