@@ -382,32 +382,107 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     </div>
 </div>
 
-let penggunaSemasa = null; 
+<!-- SCRIPT FIREBASE & LOGIK SISTEM -->
+<script type="module">
+    // Import modul Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        window.semakAksesPintu = (namaAplikasi, urlSasaran) => {
-            if (penggunaSemasa) {
-                // Jika dah log masuk, benarkan masuk
-                window.location.href = urlSasaran;
-            } else {
-                // Jika belum log masuk, tunjuk modal
-                document.getElementById('namaPintuSekat').innerText = namaAplikasi;
-                document.getElementById('modalPenghalang').classList.remove('hidden');
-                document.getElementById('modalPenghalang').style.display = 'flex';
+    // Gunakan config yang sama dengan myNasab supaya database selari
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+        authDomain: "familipintar.firebaseapp.com",
+        databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "familipintar",
+        storageBucket: "familipintar.firebasestorage.app",
+        messagingSenderId: "277029764059",
+        appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe",
+        measurementId: "G-S3RP7E4460"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.penggunaSemasa = null;
+
+    // ==========================================
+    // 4C: KEMAS KINI UI APABILA LOG MASUK (HEADER & WALLET)
+    // ==========================================
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            window.penggunaSemasa = user; 
+
+            document.getElementById('menuBelumLogMasuk').classList.add('hidden');
+            document.getElementById('menuSudahLogMasuk').classList.remove('hidden');
+            
+            // Ambil baki kredit dompet dari database
+            const snapPengguna = await getDoc(doc(db, "mynasab_users", user.uid));
+            if (snapPengguna.exists()) {
+                document.getElementById('bakiKreditHeader').innerText = snapPengguna.data().credit_balance || 0;
             }
-        };
+        } else {
+            window.penggunaSemasa = null;
+            document.getElementById('menuBelumLogMasuk').classList.remove('hidden');
+            document.getElementById('menuSudahLogMasuk').classList.add('hidden');
+        }
+    });
 
-        window.tutupModalPenghalang = () => {
-            document.getElementById('modalPenghalang').classList.add('hidden');
-            document.getElementById('modalPenghalang').style.display = 'none';
-        };
+    // ==========================================
+    // 4A: FUNGSI TAPIS PINTU & POP-UP
+    // ==========================================
+    window.semakAksesPintu = (namaAplikasi, urlSasaran) => {
+        if (window.penggunaSemasa) {
+            // Jika dah log masuk, lepaskan masuk
+            window.location.href = urlSasaran;
+        } else {
+            // Jika belum log masuk, sekat dan suruh daftar
+            document.getElementById('namaPintuSekat').innerText = namaAplikasi;
+            document.getElementById('modalPenghalang').classList.remove('hidden');
+        }
+    };
 
-        // Fungsi dummy sementara untuk buka modal Auth (bos kena link kan dengan modal register/login bos)
-        window.bukaModalAuth = () => {
-            window.tutupModalPenghalang();
-            alert("Buka borang Log Masuk / Daftar di sini!"); 
-            // document.getElementById('authModal').style.display = 'flex';
-        };
-    </script>
+    window.tutupModalPenghalang = () => {
+        document.getElementById('modalPenghalang').classList.add('hidden');
+    };
+
+    window.bukaModalAuth = () => {
+        window.tutupModalPenghalang();
+        // NOTA UNTUK BOS: Panggil fungsi buka form Modal Log Masuk/Daftar bos di sini.
+        alert("Borang Pendaftaran/Log Masuk akan dipaparkan di sini."); 
+    };
+
+    // ==========================================
+    // 4B: FUNGSI DAFTAR (HADIAH 20 KREDIT PERCUMA)
+    // ==========================================
+    // Bila bos dah buat form daftar, sambungkan butang Submit ke fungsi ini:
+    window.daftarPengguna = async (emel, kataLaluan, namaPenuh) => {
+        try {
+            const kredensial = await createUserWithEmailAndPassword(auth, emel, kataLaluan);
+            const user = kredensial.user;
+
+            // Masukkan data pengguna ke Firestore beserta 20 Kredit
+            await setDoc(doc(db, "mynasab_users", user.uid), {
+                name: namaPenuh,
+                email: emel,
+                credit_balance: 20,  // <-- Ini magik wallet tu!
+                created_at: new Date()
+            });
+
+            alert("Pendaftaran berjaya! 20 Kredit Percuma telah dimasukkan ke dalam dompet anda.");
+            
+        } catch (error) {
+            alert("Ralat pendaftaran: " + error.message);
+        }
+    };
+
+    // Fungsi tambahan Log Keluar
+    window.logKeluar = async () => {
+        await signOut(auth);
+        window.location.reload();
+    };
+</script>
     
 </body>
 </html>
