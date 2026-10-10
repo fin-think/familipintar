@@ -188,33 +188,34 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         <!-- Logo Kiri -->
         <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="h-10 w-auto object-contain">
         
-        <!-- Ruang Menu Kanan (Header) -->
-        <div id="ruangAuthHeader" class="flex items-center gap-3">
-            
-            <!-- Mod Belum Log Masuk -->
-            <div id="menuBelumLogMasuk" class="flex items-center gap-2">
-                <button onclick="bukaModalAuth()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
-                    + Top Up
-                </button>
-                <button onclick="bukaModalAuth()" class="bg-sky-500 hover:bg-sky-600 text-white px-5 py-2.5 rounded-full font-bold text-sm transition-all shadow-md">
-                    Log Masuk / Daftar Percuma
-                </button>
-            </div>
-
-            <!-- Mod Sudah Log Masuk -->
-<div id="menuSudahLogMasuk" class="hidden flex-row items-center gap-4 whitespace-nowrap">
-    <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-bold text-sm border border-yellow-300 shadow-sm flex items-center gap-1">
-        💰 Kredit: <span id="bakiKreditHeader" class="text-yellow-800 text-base">0</span>
+       <!-- Ruang Menu Kanan (Header) -->
+<div id="ruangAuthHeader" class="flex items-center gap-3">
+    
+    <!-- Mod Belum Log Masuk -->
+    <div id="menuBelumLogMasuk" style="display: flex;" class="items-center gap-2">
+        <button onclick="bukaModalAuth()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
+            + Top Up
+        </button>
+        <button onclick="bukaModalAuth()" class="bg-sky-500 hover:bg-sky-600 text-white px-5 py-2.5 rounded-full font-bold text-sm transition-all shadow-md">
+            Log Masuk / Daftar Percuma
+        </button>
     </div>
-    <button onclick="window.location.href='topup.html'" class="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2 rounded-full font-bold text-sm transition-all shadow-md">
-        + Top Up
-    </button>
-    <button onclick="logKeluar()" class="text-slate-500 hover:text-slate-800 text-sm font-bold underline transition-all">
-        Log Keluar
-    </button>
-</div>
 
+    <!-- Mod Sudah Log Masuk -->
+    <!-- Tambahkan style="display: none;" dan class "flex" pada container ini -->
+    <div id="menuSudahLogMasuk" style="display: none;" class="flex items-center gap-3 whitespace-nowrap">
+        <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-bold text-sm border border-yellow-300 shadow-sm flex items-center gap-1">
+            💰 Kredit: <span id="bakiKreditHeader" class="text-yellow-800 text-base">0</span>
         </div>
+        <button onclick="window.location.href='topup.html'" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
+            + Top Up
+        </button>
+        <button onclick="logKeluar()" class="text-slate-500 hover:text-slate-800 text-sm font-bold underline transition-all ml-2">
+            Log Keluar
+        </button>
+    </div>
+
+</div>
     </div>
 </header>
 
@@ -433,15 +434,16 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 
     window.penggunaSemasa = null;
 
-    // ==========================================
+   // ==========================================
     // 4C: KEMAS KINI UI APABILA LOG MASUK (HEADER & WALLET)
     // ==========================================
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             window.penggunaSemasa = user; 
 
-            document.getElementById('menuBelumLogMasuk').classList.add('hidden');
-            document.getElementById('menuSudahLogMasuk').classList.remove('hidden');
+            // Gunakan style.display untuk memastikan flexbox aktif
+            document.getElementById('menuBelumLogMasuk').style.display = 'none';
+            document.getElementById('menuSudahLogMasuk').style.display = 'flex';
             
             // Ambil baki kredit dompet dari database
             const snapPengguna = await getDoc(doc(db, "mynasab_users", user.uid));
@@ -450,8 +452,10 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             }
         } else {
             window.penggunaSemasa = null;
-            document.getElementById('menuBelumLogMasuk').classList.remove('hidden');
-            document.getElementById('menuSudahLogMasuk').classList.add('hidden');
+            
+            // Kembalikan tampilan ke kondisi belum login
+            document.getElementById('menuBelumLogMasuk').style.display = 'flex';
+            document.getElementById('menuSudahLogMasuk').style.display = 'none';
         }
     });
 
