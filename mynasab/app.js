@@ -69,8 +69,8 @@ onAuthStateChanged(auth, async (user) => {
         }
     } else {
         penggunaSemasa = null;
-        // JIKA TAK LOG MASUK, TENDANG KELUAR KE PORTAL UTAMA!
-        window.location.href = "https://familipintar.com"; 
+        // Tendang keluar ke muka depan portal (naik satu folder)
+        window.location.href = "../index.html"; 
     }
 });
 
