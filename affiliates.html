@@ -51,7 +51,12 @@
                     <input type="text" id="bankAcc" placeholder="No Akaun Bank" class="w-full border rounded-lg p-2 text-sm bg-slate-50">
                 </div>
                 
-                <button onclick="simpanProfil()" class="w-full bg-slate-800 text-white font-bold px-4 py-3 rounded-lg text-sm hover:bg-slate-900 transition">Simpan Profil & Maklumat Bank</button>
+                <label class="flex items-start gap-2 text-xs text-slate-500 cursor-pointer mb-4">
+                    <input type="checkbox" id="termsCheck" class="mt-1">
+                    <span>Saya bersetuju dan patuh kepada semua syarat & terma program Affiliate Famili Pintar. Saya sahkan maklumat di atas adalah benar.</span>
+                </label>
+                
+                <button onclick="simpanProfil()" class="w-full bg-slate-800 text-white font-bold px-4 py-3 rounded-lg text-sm hover:bg-slate-900 transition">Simpan & Daftar Sebagai Affiliate</button>
             </div>
         </div>
 
@@ -130,7 +135,6 @@
         const snap = await getDoc(doc(db, "mynasab_users", currentUser.uid));
         if (snap.exists()) {
             const data = snap.data();
-            // Tunjuk emel jika nama belum diisi
             document.getElementById('userName').innerText = data.name || currentUser.email;
             
             // Jana Kod Referral jika belum ada (guna UID)
@@ -141,14 +145,15 @@
             }
             document.getElementById('refLink').value = `https://familipintar.com/?ref=${refCode}`;
             
-            // Paparkan data sedia ada
             if(data.name) document.getElementById('namaPenuh').value = data.name;
             if(data.phone) document.getElementById('noTelefon').value = data.phone;
             if(data.bank_name) document.getElementById('bankName').value = data.bank_name;
             if(data.bank_acc) document.getElementById('bankAcc').value = data.bank_acc;
+            if(data.is_affiliate) document.getElementById('termsCheck').checked = true; // Auto tick jika dah sah
         }
     }
 
+    // ... [Fungsi muatJualan kekal sama] ...
     async function muatJualan() {
         const q = query(collection(db, "mynasab_sales"), where("affiliate_uid", "==", currentUser.uid));
         const querySnapshot = await getDocs(q);
@@ -196,20 +201,26 @@
         const tel = document.getElementById('noTelefon').value;
         const bName = document.getElementById('bankName').value;
         const bAcc = document.getElementById('bankAcc').value;
+        const setujuTerma = document.getElementById('termsCheck').checked;
         
         if(!nama || !tel || !bName || !bAcc) {
             return alert("Sila isi semua maklumat profil dan bank untuk memudahkan kami membuat pembayaran komisen.");
+        }
+        
+        if(!setujuTerma) {
+            return alert("Sila tanda kotak persetujuan Terma & Syarat untuk meneruskan pendaftaran Affiliate.");
         }
         
         await updateDoc(doc(db, "mynasab_users", currentUser.uid), {
             name: nama,
             phone: tel,
             bank_name: bName, 
-            bank_acc: bAcc
+            bank_acc: bAcc,
+            is_affiliate: true // Ini yang akan trigger profil dia muncul di Admin
         });
         
         document.getElementById('userName').innerText = nama;
-        alert("Profil dan maklumat bank berjaya dikemas kini!");
+        alert("Tahniah! Anda kini adalah Affiliate sah Famili Pintar.");
     };
 
     window.mohonPengeluaran = async () => {
@@ -217,7 +228,6 @@
             return alert("Baki minimum pengeluaran adalah RM 30.00");
         }
         
-        // Cipta request
         await addDoc(collection(db, "mynasab_payouts"), {
             affiliate_uid: currentUser.uid,
             amount: bakiKomisen,
