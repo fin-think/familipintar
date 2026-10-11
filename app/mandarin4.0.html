@@ -60,7 +60,11 @@
       <button onclick="goHome()" class="flex items-center gap-2 text-rose-600 font-semibold mb-4 hover:text-rose-800 transition"> 
         <i data-lucide="arrow-left" style="width:20px;height:20px;"></i> 返回 fǎn huí (Kembali) 
       </button>
-      <h2 id="lesson-title" class="text-2xl font-bold text-gray-800 mb-4 chinese"></h2>
+      
+      <!-- SINI KITA TAMBAH SUBTITLE SUPAYA SCRIPT TAK CRASH -->
+      <h2 id="lesson-title" class="text-2xl font-bold text-gray-800 mb-1 chinese"></h2>
+      <p id="lesson-subtitle" class="text-md text-gray-500 font-bold mb-5"></p>
+      
       <div id="lesson-content"></div>
     </div>
 
