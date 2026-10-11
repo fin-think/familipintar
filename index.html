@@ -409,24 +409,55 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     </div>
 </div>
 
-<!-- Modal Log Masuk / Daftar -->
-<div id="authModal" class="hidden fixed inset-0 bg-black/60 items-center justify-center z-[9999]">
-    <div style="background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <h2 style="font-size: 20px; font-weight: 800; color: #2c3e50; margin-bottom: 20px; text-align: center;">Log Masuk / Daftar</h2>
+<!-- Modal Pengesahan (Auth) - Diasingkan 2 Paparan -->
+<div id="authModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 transition-opacity">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl relative overflow-hidden">
         
-        <!-- Input Nama dibuang untuk ringkaskan pendaftaran -->
-        <input type="email" id="authEmel" placeholder="Alamat Emel" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px;">
-        <input type="password" id="authKatalaluan" placeholder="Kata Laluan" style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px;">
-        
-        <button onclick="prosesDaftar()" style="width: 100%; background: #3498db; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">
-            Daftar Baru (Percuma 20 Kredit)
-        </button>
-        <button onclick="prosesLogMasuk()" style="width: 100%; background: #f39c12; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 15px;">
-            Log Masuk Sedia Ada
-        </button>
-        <button onclick="tutupModalAuth()" style="width: 100%; background: transparent; color: #7f8c8d; border: none; text-decoration: underline; cursor: pointer;">
-            Batal
-        </button>
+        <!-- Butang Tutup (X) -->
+        <button onclick="tutupModalAuth()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
+
+        <!-- ===================================== -->
+        <!-- PAPARAN 1: LOG MASUK -->
+        <!-- ===================================== -->
+        <div id="paparanLogin" class="block animate-fade-in">
+            <h2 class="text-2xl font-extrabold text-slate-800 mb-2 text-center">Log Masuk</h2>
+            <p class="text-sm text-slate-500 text-center mb-6">Selamat kembali ke Famili Pintar</p>
+
+            <input type="email" id="loginEmel" placeholder="Alamat Emel" class="w-full border border-slate-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-sky-500 outline-none">
+            <input type="password" id="loginKatalaluan" placeholder="Kata Laluan" class="w-full border border-slate-300 rounded-lg p-3 mb-6 focus:ring-2 focus:ring-sky-500 outline-none">
+
+            <button onclick="prosesLogMasukAsing()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md transition transform hover:-translate-y-0.5">
+                Log Masuk Akaun
+            </button>
+
+            <p class="text-center text-sm text-slate-500 mt-6">
+                Belum ada akaun? <button onclick="tukarPaparanAuth('daftar')" class="text-sky-600 font-bold hover:underline">Daftar Percuma</button>
+            </p>
+        </div>
+
+        <!-- ===================================== -->
+        <!-- PAPARAN 2: DAFTAR AKAUN BARU -->
+        <!-- ===================================== -->
+        <div id="paparanDaftar" class="hidden animate-fade-in">
+            <h2 class="text-2xl font-extrabold text-slate-800 mb-2 text-center">Daftar Akaun Baru</h2>
+            <p class="text-sm text-emerald-700 font-bold text-center mb-6 bg-emerald-50 py-2 rounded-lg border border-emerald-200">
+                🎁 Percuma 20 Kredit!
+            </p>
+
+            <!-- Tambah input Nama supaya nampak beza dari Log Masuk -->
+            <input type="text" id="daftarNama" placeholder="Nama Panggilan / Akaun" class="w-full border border-slate-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-sky-500 outline-none">
+            <input type="email" id="daftarEmel" placeholder="Alamat Emel" class="w-full border border-slate-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-sky-500 outline-none">
+            <input type="password" id="daftarKatalaluan" placeholder="Cipta Kata Laluan (Min 6 aksara)" class="w-full border border-slate-300 rounded-lg p-3 mb-6 focus:ring-2 focus:ring-sky-500 outline-none">
+
+            <button onclick="prosesDaftarAsing()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl shadow-md transition transform hover:-translate-y-0.5">
+                Daftar & Tebus Kredit
+            </button>
+
+            <p class="text-center text-sm text-slate-500 mt-6">
+                Sudah ada akaun? <button onclick="tukarPaparanAuth('login')" class="text-orange-500 font-bold hover:underline">Log Masuk</button>
+            </p>
+        </div>
+
     </div>
 </div>
 
@@ -505,20 +536,15 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     // ==========================================
     window.semakAksesPintu = (namaAplikasi, urlSasaran) => {
         if (window.penggunaSemasa) {
-            // Jika dah log masuk, lepaskan masuk
             window.location.href = urlSasaran;
         } else {
-            // Jika belum log masuk, sekat dan suruh daftar
             document.getElementById('namaPintuSekat').innerText = namaAplikasi;
-            
-            // Tunjuk modal
             const modal = document.getElementById('modalPenghalang');
             modal.classList.remove('hidden');
-            modal.classList.add('flex'); // Paksa ia jadi flex bila dibuka
+            modal.classList.add('flex'); 
         }
     };
     
-    // Fungsi Akses Affiliate
     window.pergiAffiliate = () => {
         if (window.penggunaSemasa) {
             window.location.href = 'affiliates.html';
@@ -531,14 +557,34 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     window.tutupModalPenghalang = () => {
         const modal = document.getElementById('modalPenghalang');
         modal.classList.add('hidden');
-        modal.classList.remove('flex'); // Buang flex supaya betul-betul hilang
+        modal.classList.remove('flex'); 
     };
 
-    window.bukaModalAuth = () => {
+    // --------------------------------------------------
+    // KAWALAN PAPARAN POP-UP BARU (LOG MASUK VS DAFTAR)
+    // --------------------------------------------------
+    window.tukarPaparanAuth = (mod) => {
+        if (mod === 'daftar') {
+            document.getElementById('paparanLogin').classList.add('hidden');
+            document.getElementById('paparanLogin').classList.remove('block');
+            document.getElementById('paparanDaftar').classList.remove('hidden');
+            document.getElementById('paparanDaftar').classList.add('block');
+        } else {
+            document.getElementById('paparanDaftar').classList.add('hidden');
+            document.getElementById('paparanDaftar').classList.remove('block');
+            document.getElementById('paparanLogin').classList.remove('hidden');
+            document.getElementById('paparanLogin').classList.add('block');
+        }
+    };
+
+    window.bukaModalAuth = (mod = 'login') => {
         if(typeof window.tutupModalPenghalang === 'function') window.tutupModalPenghalang();
         const modal = document.getElementById('authModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        
+        // Pilih borang mana yang nak ditunjuk
+        window.tukarPaparanAuth(mod); 
     };
 
     window.tutupModalAuth = () => {
@@ -547,52 +593,56 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         modal.classList.remove('flex');
     };
 
-    window.prosesDaftar = () => {
-        const emel = document.getElementById('authEmel').value;
-        const pass = document.getElementById('authKatalaluan').value;
-        if(emel && pass) {
-            window.daftarPengguna(emel, pass);
-            window.tutupModalAuth();
-        } else {
-            alert("Sila isi e-mel dan kata laluan untuk mendaftar.");
-        }
-    };
-
-    window.prosesLogMasuk = async () => {
-        const emel = document.getElementById('authEmel').value;
-        const pass = document.getElementById('authKatalaluan').value;
+    // ==========================================
+    // 4B: PROSES LOG MASUK & DAFTAR (DIASINGKAN)
+    // ==========================================
+    
+    // PROSES LOG MASUK
+    window.prosesLogMasukAsing = async () => {
+        const emel = document.getElementById('loginEmel').value;
+        const pass = document.getElementById('loginKatalaluan').value;
+        
         if(emel && pass) {
             try {
                 await signInWithEmailAndPassword(auth, emel, pass);
                 alert("Log masuk berjaya!");
                 window.tutupModalAuth();
             } catch (error) {
-                alert("Gagal log masuk: " + error.message);
+                alert("Gagal log masuk: Sila semak emel atau kata laluan anda.");
             }
         } else {
             alert("Sila isi emel dan kata laluan.");
         }
     };
 
-    // ==========================================
-    // 4B: FUNGSI DAFTAR (HADIAH 20 KREDIT PERCUMA)
-    // ==========================================
-    window.daftarPengguna = async (emel, kataLaluan) => {
-        try {
-            const kredensial = await createUserWithEmailAndPassword(auth, emel, kataLaluan);
-            const user = kredensial.user;
+    // PROSES DAFTAR BARU (HADIAH 20 KREDIT)
+    window.prosesDaftarAsing = async () => {
+        const nama = document.getElementById('daftarNama').value;
+        const emel = document.getElementById('daftarEmel').value;
+        const pass = document.getElementById('daftarKatalaluan').value;
 
-            // Masukkan data pengguna ke Firestore beserta 20 Kredit (Tanpa Nama Penuh)
-            await setDoc(doc(db, "mynasab_users", user.uid), {
-                email: emel,
-                credit_balance: 10,  // <-- Ini magik wallet tu!
-                created_at: new Date()
-            });
-
-            alert("Pendaftaran berjaya! 20 Kredit Percuma telah dimasukkan ke dalam dompet anda.");
+        if (nama && emel && pass) {
+            if (pass.length < 6) return alert("Kata laluan mesti sekurang-kurangnya 6 aksara.");
             
-        } catch (error) {
-            alert("Ralat pendaftaran: " + error.message);
+            try {
+                const kredensial = await createUserWithEmailAndPassword(auth, emel, pass);
+                const user = kredensial.user;
+
+                // Simpan profil & Beri 20 Kredit Percuma
+                await setDoc(doc(db, "mynasab_users", user.uid), {
+                    name: nama,
+                    email: emel,
+                    credit_balance: 20, 
+                    created_at: new Date()
+                });
+
+                alert(`Tahniah ${nama}! Pendaftaran berjaya. 20 Kredit Percuma telah dimasukkan ke dalam dompet anda.`);
+                window.tutupModalAuth();
+            } catch (error) {
+                alert("Ralat pendaftaran: E-mel ini mungkin telah wujud.");
+            }
+        } else {
+            alert("Sila isi semua maklumat (Nama, Emel & Kata Laluan).");
         }
     };
 
@@ -602,6 +652,5 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         window.location.reload();
     };
 </script>
-    
 </body>
 </html>
