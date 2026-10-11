@@ -494,43 +494,56 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         if (user) {
             window.penggunaSemasa = user; 
 
-            // Gunakan style.display untuk memastikan flexbox aktif
             document.getElementById('menuBelumLogMasuk').style.display = 'none';
             document.getElementById('menuSudahLogMasuk').style.display = 'flex';
             
-           // Logik Tampilkan Butang Admin & Affiliate
             const btnAdmin = document.getElementById('btnAdmin');
             const btnAffiliate = document.getElementById('btnAffiliate');
             
+            // Logik Tampilkan Butang Admin & Affiliate
             if (user.email === 'dae.book89@gmail.com') {
                 if (btnAdmin) btnAdmin.style.display = 'inline-flex';
                 if (btnAffiliate) btnAffiliate.style.display = 'none'; // Sembunyikan dari Admin
             } else {
                 if (btnAdmin) btnAdmin.style.display = 'none';
-                if (btnAffiliate) btnAffiliate.style.display = 'inline-flex'; // Paparkan untuk pengguna biasa
+                if (btnAffiliate) btnAffiliate.style.display = 'inline-flex';
             }
             
-            // Ambil baki kredit dompet dari database
+            // Ambil data dari database (Wallet & Status Affiliate)
             const snapPengguna = await getDoc(doc(db, "mynasab_users", user.uid));
             if (snapPengguna.exists()) {
-                document.getElementById('bakiKreditHeader').innerText = snapPengguna.data().credit_balance || 0;
+                const userData = snapPengguna.data();
+                
+                // 1. Update baki wallet
+                document.getElementById('bakiKreditHeader').innerText = userData.credit_balance || 0;
+
+                // 2. TUKAR TEKS BUTANG AFFILIATE JIKA DAH BERDAFTAR
+                if (btnAffiliate && user.email !== 'dae.book89@gmail.com') {
+                    if (userData.is_affiliate) {
+                        btnAffiliate.innerHTML = 'Dashboard Ejen (Affiliate)'; 
+                        btnAffiliate.classList.replace('bg-indigo-500', 'bg-slate-800'); // Tukar warna sikit supaya nampak eksklusif
+                    } else {
+                        btnAffiliate.innerHTML = 'Jana Pendapatan (Affiliate)';
+                    }
+                }
             }
         } else {
             window.penggunaSemasa = null;
             
-            // Kembalikan tampilan ke kondisi belum login
             document.getElementById('menuBelumLogMasuk').style.display = 'flex';
             document.getElementById('menuSudahLogMasuk').style.display = 'none';
             
-            // Sembunyikan butang admin, pastikan butang affiliate muncul
             const btnAdmin = document.getElementById('btnAdmin');
             const btnAffiliate = document.getElementById('btnAffiliate');
             
             if (btnAdmin) btnAdmin.style.display = 'none';
-            if (btnAffiliate) btnAffiliate.style.display = 'inline-flex';
+            if (btnAffiliate) {
+                btnAffiliate.style.display = 'inline-flex';
+                btnAffiliate.innerHTML = 'Jana Pendapatan (Affiliate)'; // Reset balik nama butang
+            }
         }
     });
-
+    
 // ==========================================
     // 4A: FUNGSI TAPIS PINTU & POP-UP
     // ==========================================
