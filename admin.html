@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Super | Famili Pintar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        body { font-family: 'Nunito', sans-serif; background-color: #f1f5f9; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Sidebar / Nav -->
+    <nav class="bg-slate-900 text-white shadow-xl sticky top-0 z-40">
+        <div class="w-full px-6 py-4 flex justify-between items-center">
+            <div class="font-bold text-xl tracking-wider text-sky-400">ADMINISTRATOR</div>
+            <div class="flex gap-4">
+                <button onclick="tab('dash')" class="hover:text-sky-300 transition text-sm font-semibold">Dashboard & P&L</button>
+                <button onclick="tab('aff')" class="hover:text-sky-300 transition text-sm font-semibold">Affiliate Payouts</button>
+                <button onclick="tab('cash')" class="hover:text-sky-300 transition text-sm font-semibold">Cashflow (Expenses)</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="w-full px-6 py-8 mx-auto">
+
+        <!-- TAB 1: DASHBOARD & P&L -->
+        <div id="tab-dash" class="block animate-fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">Ringkasan Untung Rugi (P&L)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-sky-500">
+                    <p class="text-sm text-slate-500 font-bold mb-1">Total Jualan Kasar</p>
+                    <h3 class="text-3xl font-extrabold text-slate-800">RM <span id="dashSales">0</span></h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-yellow-500">
+                    <p class="text-sm text-slate-500 font-bold mb-1">Komisen Affiliate (-)</p>
+                    <h3 class="text-3xl font-extrabold text-yellow-600">RM <span id="dashComm">0</span></h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-red-500">
+                    <p class="text-sm text-slate-500 font-bold mb-1">Perbelanjaan Bisnes (-)</p>
+                    <h3 class="text-3xl font-extrabold text-red-600">RM <span id="dashExp">0</span></h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-xl border-l-4 border-green-500 bg-green-50">
+                    <p class="text-sm text-green-800 font-bold mb-1">UNTUNG BERSIH</p>
+                    <h3 class="text-3xl font-extrabold text-green-700">RM <span id="dashNet">0</span></h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: PENGURUSAN AFFILIATE PENGELUARAN -->
+        <div id="tab-aff" class="hidden animate-fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">Pengurusan Permohonan Affiliate</h2>
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-100 text-sm text-slate-600">
+                        <tr>
+                            <th class="p-4">Tarikh</th>
+                            <th class="p-4">Affiliate UID</th>
+                            <th class="p-4">Jumlah Diminta</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4 text-center">Tindakan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payoutTableBody" class="text-sm divide-y">
+                        <tr><td colspan="5" class="p-4 text-center">Memuatkan...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: CASHFLOW / EXPENSES -->
+        <div id="tab-cash" class="hidden animate-fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">Rekod Perbelanjaan (Expenses)</h2>
+            <div class="bg-white p-6 rounded-2xl shadow-sm max-w-lg mb-6 border border-slate-200">
+                <div class="flex gap-4 mb-4">
+                    <input type="text" id="expDesc" placeholder="Keterangan (Cth: Ads FB, Server)" class="w-full border rounded-lg p-2">
+                    <input type="number" id="expAmount" placeholder="Jumlah RM" class="w-32 border rounded-lg p-2">
+                </div>
+                <button onclick="rekodBelanja()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900 transition">Rekod Duit Keluar</button>
+            </div>
+        </div>
+
+    </main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDocs, collection, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+        authDomain: "familipintar.firebaseapp.com",
+        projectId: "familipintar",
+        storageBucket: "familipintar.firebasestorage.app"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Sekuriti mudah: Hanya UID bos boleh buka page ni. (Ganti UID bos nanti)
+    // onAuthStateChanged(auth, user => { ... check admin logic ... });
+
+    // Dummy data fetch for UI demonstration
+    window.tab = (id) => {
+        document.getElementById('tab-dash').classList.add('hidden');
+        document.getElementById('tab-aff').classList.add('hidden');
+        document.getElementById('tab-cash').classList.add('hidden');
+        document.getElementById('tab-'+id).classList.remove('hidden');
+        if(id === 'dash') calculatePNL();
+        if(id === 'aff') loadPayouts();
+    };
+
+    async function calculatePNL() {
+        // Logik tarik data:
+        // 1. Sum semua 'amount' dari mynasab_sales -> Jualan Kasar
+        // 2. Sum semua 'amount' dari mynasab_payouts (status paid) -> Komisen dibayar
+        // 3. Sum dari mynasab_cashflow -> Expenses
+        // Buat masa ni kita letak dummy:
+        const sales = 15000;
+        const comm = 4500;
+        const exp = 2000;
+        
+        document.getElementById('dashSales').innerText = sales.toFixed(2);
+        document.getElementById('dashComm').innerText = comm.toFixed(2);
+        document.getElementById('dashExp').innerText = exp.toFixed(2);
+        document.getElementById('dashNet').innerText = (sales - comm - exp).toFixed(2);
+    }
+
+    async function loadPayouts() {
+        // Fetch dari mynasab_payouts
+        const snap = await getDocs(collection(db, "mynasab_payouts"));
+        let html = '';
+        snap.forEach(docSnap => {
+            const p = docSnap.data();
+            const btn = p.status === 'pending' 
+                ? `<button onclick="approvePayout('${docSnap.id}')" class="bg-blue-600 text-white px-4 py-1 rounded text-xs font-bold hover:bg-blue-700">Tandakan 'DIBAYAR'</button>`
+                : `<span class="text-green-600 font-bold text-xs"><i class="fa-solid fa-check-circle"></i> Selesai</span>`;
+            
+            html += `
+                <tr class="border-b">
+                    <td class="p-4">${p.timestamp ? p.timestamp.substring(0,10) : '-'}</td>
+                    <td class="p-4 font-mono text-xs">${p.affiliate_uid}</td>
+                    <td class="p-4 font-bold">RM ${p.amount}</td>
+                    <td class="p-4 uppercase text-xs">${p.status}</td>
+                    <td class="p-4 text-center">${btn}</td>
+                </tr>`;
+        });
+        document.getElementById('payoutTableBody').innerHTML = html || '<tr><td colspan="5" class="text-center p-4">Tiada rekod.</td></tr>';
+    }
+
+    window.approvePayout = async (docId) => {
+        if(confirm("Pastikan anda dah transfer duit ke bank ejen. Teruskan?")) {
+            await updateDoc(doc(db, "mynasab_payouts", docId), { status: 'paid' });
+            alert("Status dikemas kini!");
+            loadPayouts();
+        }
+    };
+
+    window.rekodBelanja = async () => {
+        const desc = document.getElementById('expDesc').value;
+        const amt = document.getElementById('expAmount').value;
+        if(!desc || !amt) return;
+        
+        await addDoc(collection(db, "mynasab_cashflow"), {
+            desc: desc, amount: parseFloat(amt), timestamp: new Date().toISOString()
+        });
+        alert("Perbelanjaan direkodkan!");
+        document.getElementById('expDesc').value = '';
+        document.getElementById('expAmount').value = '';
+    };
+
+    // Auto-load dash
+    calculatePNL();
+</script>
+</body>
+</html>
