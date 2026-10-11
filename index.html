@@ -360,6 +360,20 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                     </a>
 
                 </div>
+
+                <!-- SEKSYEN TAMBAHAN: BUTANG AFFILIATE & ADMIN -->
+                <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <!-- Butang Affiliate (Sentiasa ada) -->
+                    <button onclick="pergiAffiliate()" class="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all flex items-center gap-2 transform hover:scale-105">
+                        <i class="fa-solid fa-handshake"></i> Nak jd affiliate?
+                    </button>
+                    
+                    <!-- Butang Admin (Akan dipaparkan secara automatik jika email = admin) -->
+                    <button id="btnAdmin" onclick="window.location.href='admin.html'" style="display: none;" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-user-shield"></i> Panel Admin
+                    </button>
+                </div>
+
             </section>
 
             <!-- FOOTER HALUS -->
@@ -392,7 +406,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     <div style="background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <h2 style="font-size: 20px; font-weight: 800; color: #2c3e50; margin-bottom: 20px; text-align: center;">Log Masuk / Daftar</h2>
         
-        <input type="text" id="authNama" placeholder="Nama Penuh (Untuk daftar baru)" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px;">
+        <!-- Input Nama dibuang untuk ringkaskan pendaftaran -->
         <input type="email" id="authEmel" placeholder="Alamat Emel" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px;">
         <input type="password" id="authKatalaluan" placeholder="Kata Laluan" style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px;">
         
@@ -445,6 +459,16 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             document.getElementById('menuBelumLogMasuk').style.display = 'none';
             document.getElementById('menuSudahLogMasuk').style.display = 'flex';
             
+            // Logik Tampilkan Butang Admin Jika Email Sepadan
+            const btnAdmin = document.getElementById('btnAdmin');
+            if (btnAdmin) {
+                if (user.email === 'dae.book89@gmail.com') {
+                    btnAdmin.style.display = 'inline-flex';
+                } else {
+                    btnAdmin.style.display = 'none';
+                }
+            }
+            
             // Ambil baki kredit dompet dari database
             const snapPengguna = await getDoc(doc(db, "mynasab_users", user.uid));
             if (snapPengguna.exists()) {
@@ -456,6 +480,10 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             // Kembalikan tampilan ke kondisi belum login
             document.getElementById('menuBelumLogMasuk').style.display = 'flex';
             document.getElementById('menuSudahLogMasuk').style.display = 'none';
+            
+            // Sembunyikan butang admin
+            const btnAdmin = document.getElementById('btnAdmin');
+            if (btnAdmin) btnAdmin.style.display = 'none';
         }
     });
 
@@ -476,6 +504,16 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             modal.classList.add('flex'); // Paksa ia jadi flex bila dibuka
         }
     };
+    
+    // Fungsi Akses Affiliate
+    window.pergiAffiliate = () => {
+        if (window.penggunaSemasa) {
+            window.location.href = 'affiliates.html';
+        } else {
+            alert("Sila log masuk atau daftar percuma dahulu untuk mengakses menu Affiliate.");
+            window.bukaModalAuth();
+        }
+    };
 
     window.tutupModalPenghalang = () => {
         const modal = document.getElementById('modalPenghalang');
@@ -483,7 +521,6 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         modal.classList.remove('flex'); // Buang flex supaya betul-betul hilang
     };
 
-    // (Gantikan fungsi bukaModalAuth yang lama dengan ini)
     window.bukaModalAuth = () => {
         if(typeof window.tutupModalPenghalang === 'function') window.tutupModalPenghalang();
         const modal = document.getElementById('authModal');
@@ -498,14 +535,13 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     };
 
     window.prosesDaftar = () => {
-        const nama = document.getElementById('authNama').value;
         const emel = document.getElementById('authEmel').value;
         const pass = document.getElementById('authKatalaluan').value;
-        if(nama && emel && pass) {
-            window.daftarPengguna(emel, pass, nama);
+        if(emel && pass) {
+            window.daftarPengguna(emel, pass);
             window.tutupModalAuth();
         } else {
-            alert("Sila isi semua maklumat untuk mendaftar.");
+            alert("Sila isi e-mel dan kata laluan untuk mendaftar.");
         }
     };
 
@@ -528,15 +564,13 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     // ==========================================
     // 4B: FUNGSI DAFTAR (HADIAH 20 KREDIT PERCUMA)
     // ==========================================
-    // Bila bos dah buat form daftar, sambungkan butang Submit ke fungsi ini:
-    window.daftarPengguna = async (emel, kataLaluan, namaPenuh) => {
+    window.daftarPengguna = async (emel, kataLaluan) => {
         try {
             const kredensial = await createUserWithEmailAndPassword(auth, emel, kataLaluan);
             const user = kredensial.user;
 
-            // Masukkan data pengguna ke Firestore beserta 20 Kredit
+            // Masukkan data pengguna ke Firestore beserta 20 Kredit (Tanpa Nama Penuh)
             await setDoc(doc(db, "mynasab_users", user.uid), {
-                name: namaPenuh,
                 email: emel,
                 credit_balance: 20,  // <-- Ini magik wallet tu!
                 created_at: new Date()
