@@ -35,39 +35,37 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="topic-grid"></div>
 
       <!-- Bahagian Upgrade (Hanya di Main Page) -->
-<div class="mt-12 mb-12 p-8 bg-white/60 backdrop-blur-sm border-2 border-dashed border-amber-300 rounded-3xl text-center shadow-sm">
-  <div class="inline-flex items-center justify-center w-12 h-12 bg-amber-100 rounded-full mb-4">
-    <i data-lucide="crown" class="text-amber-600"></i>
-  </div>
-  
-  <h3 class="text-xl font-bold text-amber-900 mb-2">Ingin Belajar Lebih Banyak?</h3>
-  
-  <!-- Ayat Hook Baru -->
-  <p class="text-gray-600 mb-8 max-w-md mx-auto">
-    Nak sembang Mandarin selancar penutur asli? Buka kunci modul penuh dan kuasai perbualan dari tahap harian hingga profesional!
-  </p>
-  
-  <!-- Pautan ditukar ke mandarin.html -->
-  <a href="https://familipintar.com/mandarin.html" class="inline-flex items-center gap-3 px-10 py-4 bg-yellow-400 text-black font-bold rounded-2xl shadow-xl hover:scale-105 transition-transform active:scale-95">
-    <i data-lucide="zap" class="fill-current"></i>
-    升级到下一级 (Upgrade to Next Level)
-  </a>
-</div>
+      <div class="mt-12 mb-12 p-8 bg-white/60 backdrop-blur-sm border-2 border-dashed border-amber-300 rounded-3xl text-center shadow-sm">
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-amber-100 rounded-full mb-4">
+          <i data-lucide="crown" class="text-amber-600"></i>
+        </div>
+        
+        <h3 class="text-xl font-bold text-amber-900 mb-2">Ingin Belajar Lebih Banyak?</h3>
+        
+        <p class="text-gray-600 mb-8 max-w-md mx-auto">
+          Nak sembang Mandarin selancar penutur asli? Buka kunci modul penuh dan kuasai perbualan dari tahap harian hingga profesional!
+        </p>
+        
+        <a href="https://familipintar.com/mandarin.html" class="inline-flex items-center gap-3 px-10 py-4 bg-yellow-400 text-black font-bold rounded-2xl shadow-xl hover:scale-105 transition-transform active:scale-95">
+          <i data-lucide="zap" class="fill-current"></i>
+          升级到下一级 (Upgrade to Next Level)
+        </a>
+      </div>
+      
+    </div> <!-- ✅ PENTING: TAMBAH </div> INI DI SINI UNTUK MENUTUP #home-view -->
+
 
     <!-- Pandangan Pelajaran -->
     <div id="lesson-view" class="fade-in p-4 max-w-4xl mx-auto hidden">
       <button onclick="goHome()" class="flex items-center gap-2 text-rose-600 font-semibold mb-4 hover:text-rose-800 transition"> 
         <i data-lucide="arrow-left" style="width:20px;height:20px;"></i> 返回 fǎn huí (Kembali) 
       </button>
-      <div id="lesson-header" class="mb-6">
-        <h2 id="lesson-title" class="text-2xl font-bold text-gray-800 chinese"></h2>
-        <p id="lesson-subtitle" class="text-rose-600 font-medium italic"></p>
-      </div>
+      <h2 id="lesson-title" class="text-2xl font-bold text-gray-800 mb-4 chinese"></h2>
       <div id="lesson-content"></div>
     </div>
 
-  </div>
-
+  </div> <!-- Ini penutup untuk #app -->
+  
   <script>
     const topics = [
       { id: 'restaurant', emoji: '🍜', title: 'Perbualan di Restoran', cn: '在餐厅', py: 'zài cān tīng', desc: 'Order + komplen + request', color: 'bg-red-100 border-red-300' },
