@@ -120,7 +120,10 @@ onAuthStateChanged(auth, async (user) => {
         }
     } else {
         penggunaSemasa = null;
-        window.location.href = "../index.html";
+        // JANGAN tendang ke muka depan jika dia ada link jemputan
+        if (!sessionStorage.getItem('simpanJemput') && !new URLSearchParams(location.search).get('jemput')) {
+            window.location.href = "../index.html";
+        }
     }
 });
 
