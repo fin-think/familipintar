@@ -192,14 +192,22 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 <div id="ruangAuthHeader" class="flex items-center gap-3">
     
     <!-- Mod Belum Log Masuk -->
-    <div id="menuBelumLogMasuk" style="display: flex;" class="items-center gap-2">
-        <button onclick="bukaModalAuth()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
-            + Top Up
-        </button>
-        <button onclick="bukaModalAuth()" class="bg-sky-500 hover:bg-sky-600 text-white px-5 py-2.5 rounded-full font-bold text-sm transition-all shadow-md">
-            Log Masuk / Daftar Percuma
-        </button>
-    </div>
+<div id="menuBelumLogMasuk" style="display: flex;" class="items-center gap-2">
+    <!-- 1. Butang Top Up (Menghala terus ke halaman Top Up) -->
+    <button onclick="window.location.href='topup.html'" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
+        + Top Up
+    </button>
+    
+    <!-- 2. Butang Log Masuk -->
+    <button onclick="bukaModalAuth('login')" class="bg-white text-sky-600 border border-sky-500 hover:bg-sky-50 px-5 py-2 rounded-full font-bold text-sm transition-all shadow-sm">
+        Log Masuk
+    </button>
+
+    <!-- 3. Butang Daftar Percuma -->
+    <button onclick="bukaModalAuth('daftar')" class="bg-sky-500 hover:bg-sky-600 text-white px-5 py-2 rounded-full font-bold text-sm transition-all shadow-md">
+        Daftar Percuma
+    </button>
+</div>
 
     <!-- Mod Sudah Log Masuk -->
     <!-- Tambahkan style="display: none;" dan class "flex" pada container ini -->
