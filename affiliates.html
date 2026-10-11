@@ -25,7 +25,7 @@
 
     <main class="w-full max-w-6xl mx-auto px-4 py-8">
         
-        <!-- ROW 1: Maklumat Bank & Link -->
+        <!-- ROW 1: Maklumat Profil & Link -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <!-- Pautan Affiliate -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
@@ -37,14 +37,21 @@
                 </div>
             </div>
 
-            <!-- Maklumat Bank -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <h3 class="font-bold text-lg mb-4 text-slate-700">Akaun Pembayaran</h3>
-                <div class="grid grid-cols-2 gap-2 mb-3">
-                    <input type="text" id="bankName" placeholder="Nama Bank (Cth: Maybank)" class="w-full border rounded-lg p-2 text-sm">
-                    <input type="text" id="bankAcc" placeholder="No Akaun Bank" class="w-full border rounded-lg p-2 text-sm">
+            <!-- Maklumat Profil & Bank -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-t-4 border-t-yellow-400">
+                <h3 class="font-bold text-lg mb-4 text-slate-700">Profil & Akaun Pembayaran</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <input type="text" id="namaPenuh" placeholder="Nama Penuh Anda" class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+                    <input type="tel" id="noTelefon" placeholder="No. Telefon (Cth: 0123456789)" class="w-full border rounded-lg p-2 text-sm bg-slate-50">
                 </div>
-                <button onclick="simpanBank()" class="w-full bg-slate-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-900 transition">Simpan Maklumat Bank</button>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                    <input type="text" id="bankName" placeholder="Nama Bank (Cth: Maybank)" class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+                    <input type="text" id="bankAcc" placeholder="No Akaun Bank" class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+                </div>
+                
+                <button onclick="simpanProfil()" class="w-full bg-slate-800 text-white font-bold px-4 py-3 rounded-lg text-sm hover:bg-slate-900 transition">Simpan Profil & Maklumat Bank</button>
             </div>
         </div>
 
@@ -115,7 +122,7 @@
             await muatDataAffiliate();
             await muatJualan();
         } else {
-            window.location.href = "index.html"; // Tendang jika belum login
+            window.location.href = "index.html"; 
         }
     });
 
@@ -123,9 +130,10 @@
         const snap = await getDoc(doc(db, "mynasab_users", currentUser.uid));
         if (snap.exists()) {
             const data = snap.data();
-            document.getElementById('userName').innerText = data.name || currentUser.uid;
+            // Tunjuk emel jika nama belum diisi
+            document.getElementById('userName').innerText = data.name || currentUser.email;
             
-            // Jana Kod Referral jika belum ada (guna no tel/UID)
+            // Jana Kod Referral jika belum ada (guna UID)
             let refCode = data.referral_code;
             if(!refCode) {
                 refCode = "REF" + currentUser.uid.substring(0,6).toUpperCase();
@@ -133,6 +141,9 @@
             }
             document.getElementById('refLink').value = `https://familipintar.com/?ref=${refCode}`;
             
+            // Paparkan data sedia ada
+            if(data.name) document.getElementById('namaPenuh').value = data.name;
+            if(data.phone) document.getElementById('noTelefon').value = data.phone;
             if(data.bank_name) document.getElementById('bankName').value = data.bank_name;
             if(data.bank_acc) document.getElementById('bankAcc').value = data.bank_acc;
         }
@@ -157,7 +168,7 @@
 
             html += `
                 <tr class="border-b hover:bg-slate-50">
-                    <td class="p-3">${sale.timestamp || '-'}</td>
+                    <td class="p-3">${sale.timestamp ? sale.timestamp.substring(0,10) : '-'}</td>
                     <td class="p-3 font-semibold">${sale.buyer_name || sale.buyer_email}</td>
                     <td class="p-3 uppercase">${sale.package_type}</td>
                     <td class="p-3">RM ${sale.amount}</td>
@@ -180,15 +191,25 @@
         alert("Pautan telah disalin!");
     };
 
-    window.simpanBank = async () => {
+    window.simpanProfil = async () => {
+        const nama = document.getElementById('namaPenuh').value;
+        const tel = document.getElementById('noTelefon').value;
         const bName = document.getElementById('bankName').value;
         const bAcc = document.getElementById('bankAcc').value;
-        if(!bName || !bAcc) return alert("Sila isi nama dan nombor akaun bank.");
+        
+        if(!nama || !tel || !bName || !bAcc) {
+            return alert("Sila isi semua maklumat profil dan bank untuk memudahkan kami membuat pembayaran komisen.");
+        }
         
         await updateDoc(doc(db, "mynasab_users", currentUser.uid), {
-            bank_name: bName, bank_acc: bAcc
+            name: nama,
+            phone: tel,
+            bank_name: bName, 
+            bank_acc: bAcc
         });
-        alert("Maklumat bank berjaya disimpan!");
+        
+        document.getElementById('userName').innerText = nama;
+        alert("Profil dan maklumat bank berjaya dikemas kini!");
     };
 
     window.mohonPengeluaran = async () => {
@@ -204,7 +225,6 @@
             timestamp: new Date().toISOString()
         });
 
-        // Tandakan jualan sebagai requested (Logik ringkas)
         alert(`Permohonan pengeluaran RM ${bakiKomisen.toFixed(2)} sedang diproses oleh Admin.`);
         document.getElementById('btnWithdraw').innerText = "Sedang Diproses";
         document.getElementById('btnWithdraw').disabled = true;
