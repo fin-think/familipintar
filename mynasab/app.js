@@ -907,7 +907,9 @@ window.tolakPautan = async (uid) => {
     window.muatMenunggu();
 };
 
-// --- 11. POKOK BESAR (KELUARGA DIPAUTKAN) ---
+// ==========================================
+// 11. POKOK BESAR (KELUARGA DIPAUTKAN) - ENJIN PIVOT PERSPEKTIF
+// ==========================================
 window.tukarPaparan = (kekal = false) => {
     kekalZoom = (kekal === true);
     const v = document.getElementById('pilihanPaparan').value;
@@ -965,7 +967,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         const kelompok = (nod) => {
             const k = { 
                 diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], turun: [[], [], [], [], []],
-                adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [] // <-- TAMBAHAN UTK MANUAL SIBLINGS
+                adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: []
             };
             nod.forEach(d => {
                 const h = (d.relationship || '').toLowerCase();
@@ -984,7 +986,6 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
                 else if (h === 'cicit') k.turun[2].push(d);
                 else if (h.includes('piut') || h.includes('cece')) k.turun[3].push(d);
                 else if (h.includes('oneng')) k.turun[4].push(d);
-                // LOGIK KUTIP ADIK BERADIK MANUAL
                 else if (h.includes('adik') || h.includes('abang') || h.includes('kakak') || h === 'adik-beradik') k.adikBeradik.push(d);
                 else if (h.includes('ipar')) k.ipar.push(d);
                 else if (h.includes('anak saudara')) k.anakSaudara.push(d);
@@ -993,14 +994,49 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             return k;
         };
         
-        const k0 = kelompok(nodInduk);
-        if (!k0.diri) { 
+        const kInduk = kelompok(nodInduk);
+        if (!kInduk.diri) { 
             ruang.innerHTML = '<p>Data akaun induk tidak dijumpai.</p>'; 
             return; 
         }
         
-        const indukRootId = k0.diri.id;
-        const semuaId = new Set(nodInduk.map(n => n.id));
+        const indukRootId = kInduk.diri.id;
+        
+        // --- ENJIN PERSPEKTIF PUSAT (PIVOT KELUARGA) ---
+        let kPusat;
+        let ibuBapaPusat = [], sisaLeluhurPusat = [[], [], [], [], []];
+        let sasaranIdPusat = indukRootId; 
+
+        if (sayaInduk) {
+            // Jika bos (Induk) tengok, kekalkan pusat asal
+            kPusat = kInduk;
+            ibuBapaPusat = kInduk.ibuBapa;
+            sisaLeluhurPusat = [kInduk.datukNenek, kInduk.moyang, kInduk.buyut, kInduk.cakawari, kInduk.cilawagi];
+        } else {
+            // Jika Adi tengok, tukar pusat jadi Adi!
+            const akaunSaya = akaun.find(a => a.uid === saya);
+            if (!akaunSaya) throw new Error("Akaun anda tidak dijumpai dalam pautan aktif.");
+            kPusat = kelompok(akaunSaya.nod);
+            sasaranIdPusat = akaunSaya.sasaran;
+
+            const sasaranNode = nodInduk.find(n => n.id === sasaranIdPusat);
+            if (sasaranNode) {
+                const rel = (sasaranNode.relationship || '').toLowerCase();
+                if (rel === 'isteri' || rel === 'suami') {
+                    // Ayah Anis (Mertua Awi) akan dijadikan IbuBapa Adi!
+                    ibuBapaPusat = kInduk.mertua; 
+                } else {
+                    ibuBapaPusat = kInduk.ibuBapa;
+                    sisaLeluhurPusat = [kInduk.datukNenek, kInduk.moyang, kInduk.buyut, kInduk.cakawari, kInduk.cilawagi];
+                }
+            }
+        }
+
+        // Gabungkan semua ID untuk rujukan silang
+        let semuaIdArr = [...nodInduk.map(n => n.id)];
+        akaun.forEach(a => semuaIdArr.push(...a.nod.map(n => n.id)));
+        const semuaId = new Set(semuaIdArr);
+        
         const sasaranUid = {};
         akaun.forEach(a => { sasaranUid[a.uid] = a.sasaran; });
 
@@ -1008,10 +1044,19 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             const h = n.relationship || '';
             if (n.is_root) {
                 if (n.owner_uid === saya) return 'Diri Sendiri';
-                if (n.owner_uid === indukUid) return 'Adik-beradik';
-                return sasaranUid[n.owner_uid] === indukRootId ? 'Adik-beradik' : (sayaInduk ? 'Ipar' : 'Keluarga');
+                if (n.owner_uid === indukUid) {
+                    const sasaranNode = nodInduk.find(x => x.id === sasaranIdPusat);
+                    if (sasaranNode && (/suami|isteri/i.test(sasaranNode.relationship || ''))) return 'Ipar';
+                    return 'Adik-beradik';
+                }
+                if (sayaInduk) {
+                    return sasaranUid[n.owner_uid] === indukRootId ? 'Adik-beradik' : 'Ipar';
+                } else {
+                    return sasaranUid[n.owner_uid] === sasaranIdPusat ? 'Adik-beradik' : 'Ipar';
+                }
             }
             if (n.owner_uid !== saya) {
+                if (!sayaInduk && n.id === sasaranIdPusat) return 'Adik-beradik'; // Anis ialah adik-beradik Adi
                 if (/suami|isteri/i.test(h)) return 'Ipar';
                 if (h === 'Anak') return 'Anak saudara';
                 if (h === 'Cucu') return 'Cucu saudara';
@@ -1042,16 +1087,16 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         const jantinaL = x => x.gender ? x.gender === 'L' : /suami|ayah|bapa/.test((x.relationship || '').toLowerCase());
         const susunKiri = (arr) => [...arr].sort((a, b) => (jantinaL(b) ? 1 : 0) - (jantinaL(a) ? 1 : 0));
 
-        const cariIbuBapa = (ahli, levels, utama) => {
+        const cariIbuBapa = (matchId, levels, utama) => {
             const idx = levels.findIndex(arr => arr.length > 0);
             if (idx === -1) return { senarai: [], sisa: [] };
-            const senarai = levels[idx].filter(x => (x.ref_id && semuaId.has(x.ref_id)) ? x.ref_id === ahli.id : utama);
+            const senarai = levels[idx].filter(x => (x.ref_id && semuaId.has(x.ref_id)) ? x.ref_id === matchId : utama);
             return { senarai, sisa: levels.slice(idx + 1) };
         };
 
         const binaTiangAtasan = (ahli, levels = [], utama = true) => {
             let s = '<div class="pillar">';
-            const { senarai, sisa } = cariIbuBapa(ahli, levels, utama);
+            const { senarai, sisa } = cariIbuBapa(ahli.id, levels, utama);
             
             if (senarai.length > 0) {
                 const bapa = senarai.find(lelaki) || senarai[0];
@@ -1059,7 +1104,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
                 let kelas = 'couple-wrapper ancestor-couple has-children';
                 if (ibu) kelas += ' has-spouse';
                 
-                if (ibu && cariIbuBapa(bapa, sisa, true).senarai.length > 0 && cariIbuBapa(ibu, sisa, false).senarai.length > 0) {
+                if (ibu && cariIbuBapa(bapa.id, sisa, true).senarai.length > 0 && cariIbuBapa(ibu.id, sisa, false).senarai.length > 0) {
                     kelas += ' anc-both';
                 }
                 s += `<div class="${kelas}">${binaTiangAtasan(bapa, sisa, true)}${ibu ? binaTiangAtasan(ibu, sisa, false) : ''}</div>`;
@@ -1072,8 +1117,8 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         const binaIbuBapaAtas = (senarai, sisa) => {
             const bapa = senarai.find(lelaki) || senarai[0];
             const ibu = senarai.find(x => x !== bapa);
-            const bAda = cariIbuBapa(bapa, sisa, true).senarai.length > 0;
-            const iAda = ibu && cariIbuBapa(ibu, sisa, false).senarai.length > 0;
+            const bAda = cariIbuBapa(bapa.id, sisa, true).senarai.length > 0;
+            const iAda = ibu && cariIbuBapa(ibu.id, sisa, false).senarai.length > 0;
             let kelas = 'couple-wrapper main-couple induk-atas has-children';
             if (ibu) kelas += ' has-spouse';
             if (bAda && iAda) kelas += ' anc-both';
@@ -1152,38 +1197,48 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         const tarikh = (n) => n && n.dob ? new Date(n.dob).getTime() : Infinity;
         const hiddenList = [];
 
-       // SKROL KE BAWAH SIKIT DAN GANTIKAN FUNGSI binaSisi() DENGAN INI
-        const binaSisi = (judul, jangkar, ibuBapa, sisa, sasaranId) => {
+        const binaSisi = (judul, jangkar, ibuBapa, sisa, sasaranIdSisi) => {
             const entri = [{ t: tarikh(jangkar.penentu), html: binaRumah(jangkar.k, jangkar.orang, false) }];
             
             // 1. Adik Beradik dari Pautan (Akaun Luar)
-            akaun.filter(a => a.sasaran === sasaranId).forEach(a => {
-                const k = kelompok(a.nod);
-                if (!k.diri) return;
+            akaun.filter(a => a.sasaran === sasaranIdSisi && a.uid !== jangkar.k.diri.owner_uid).forEach(a => {
+                const kAkaun = kelompok(a.nod);
+                if (!kAkaun.diri) return;
                 
                 if (sembunyi.includes(a.uid)) { 
-                    hiddenList.push({ uid: a.uid, nama: k.diri.name }); 
+                    hiddenList.push({ uid: a.uid, nama: kAkaun.diri.name }); 
                     return; 
                 }
                 
-                let susunanOrang = susunKiri([k.diri, ...k.pasangan]);
-                entri.push({ t: tarikh(k.diri), html: binaRumah(k, susunanOrang, a.uid !== saya) });
+                let susunanOrang = susunKiri([kAkaun.diri, ...kAkaun.pasangan]);
+                entri.push({ t: tarikh(kAkaun.diri), html: binaRumah(kAkaun, susunanOrang, a.uid !== saya) });
             });
+
+            // 1.5. MASUKKAN KELUARGA INDUK JIKA SAYA BUKAN INDUK
+            if (!sayaInduk && sasaranIdSisi === sasaranIdPusat) {
+                if (sembunyi.includes(indukUid)) {
+                    hiddenList.push({ uid: indukUid, nama: kInduk.diri.name });
+                } else {
+                    let susunanOrangInduk = susunKiri([kInduk.diri, ...kInduk.pasangan]);
+                    const sasaranNode = nodInduk.find(n => n.id === sasaranIdPusat) || kInduk.diri;
+                    entri.push({ t: tarikh(sasaranNode), html: binaRumah(kInduk, susunanOrangInduk, true) });
+                }
+            }
 
             // 2. Adik Beradik Manual (Ditambah dalam akaun sendiri)
             if (jangkar.k.adikBeradik && jangkar.k.adikBeradik.length > 0) {
                 jangkar.k.adikBeradik.forEach(adik => {
-                    // Bina 'kelompok' buatan khas untuk adik beradik manual ini
                     const kAdik = {
                         diri: adik,
                         pasangan: jangkar.k.ipar.filter(i => i.ref_id === adik.id),
                         menantu: jangkar.k.ipar, 
                         ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [],
                         turun: [
-                            jangkar.k.anakSaudara.filter(c => c.ref_id === adik.id), // Letak di slot Anak
-                            jangkar.k.cucuSaudara, // Slot Cucu
+                            jangkar.k.anakSaudara.filter(c => c.ref_id === adik.id),
+                            jangkar.k.cucuSaudara,
                             [], [], []
-                        ]
+                        ],
+                        adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: []
                     };
                     let susunanOrang = susunKiri([kAdik.diri, ...kAdik.pasangan]);
                     entri.push({ t: tarikh(kAdik.diri), html: binaRumah(kAdik, susunanOrang, false) });
@@ -1206,16 +1261,17 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
 
         const sisi = [];
         if (mod === 'saya' || mod === 'semua') {
-            const { senarai, sisa } = cariIbuBapa(k0.diri, [k0.ibuBapa, k0.datukNenek, k0.moyang, k0.buyut, k0.cakawari, k0.cilawagi], true);
-            let susunanOrangDiri = susunKiri([k0.diri, ...k0.pasangan]);
-            sisi.push(binaSisi('Belah ' + k0.diri.name, { k: k0, orang: susunanOrangDiri, penentu: k0.diri }, senarai, sisa, indukRootId));
+            const matchIdSaya = sayaInduk ? kPusat.diri.id : sasaranIdPusat;
+            const { senarai, sisa } = cariIbuBapa(matchIdSaya, [ibuBapaPusat, ...sisaLeluhurPusat], true);
+            let susunanOrangDiri = susunKiri([kPusat.diri, ...kPusat.pasangan]);
+            sisi.push(binaSisi('Belah ' + kPusat.diri.name, { k: kPusat, orang: susunanOrangDiri, penentu: kPusat.diri }, senarai, sisa, sasaranIdPusat));
         }
         
         if (mod === 'pasangan' || mod === 'semua') {
-            k0.pasangan.forEach((p, i) => {
-                const { senarai } = cariIbuBapa(p, [k0.mertua], i === 0);
-                let susunanOrangPsg = susunKiri([p, k0.diri]);
-                const s = binaSisi('Belah ' + p.name, { k: k0, orang: susunanOrangPsg, penentu: p }, senarai, [], p.id);
+            kPusat.pasangan.forEach((p, i) => {
+                const { senarai } = cariIbuBapa(p.id, [kPusat.mertua], i === 0);
+                let susunanOrangPsg = susunKiri([p, kPusat.diri]);
+                const s = binaSisi('Belah ' + p.name, { k: kPusat, orang: susunanOrangPsg, penentu: p }, senarai, [], p.id);
                 if (s.ada) sisi.push(s);
             });
         }
