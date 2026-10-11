@@ -121,7 +121,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, getDocs, collection, updateDoc, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -134,6 +134,17 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // KAWALAN KESELAMATAN: Tunggu Admin login baru tarik data
+    onAuthStateChanged(auth, (user) => {
+        if (user && user.email === 'dae.book89@gmail.com') {
+            calculatePNL();
+            loadAffiliatesList();
+        } else {
+            alert("Akses Ditolak! Hanya Admin dibenarkan membuka halaman ini.");
+            window.location.href = "index.html"; // Tendang jika bukan Admin
+        }
+    });
 
     window.tab = (id) => {
         document.getElementById('tab-dash').classList.add('hidden');
@@ -153,7 +164,7 @@
         const snapAff = await getDocs(qAff);
         document.getElementById('dashAffCount').innerText = snapAff.size;
 
-        // Dummy data P&L untuk sekarang (Bos boleh gabungkan real data bila sedia)
+        // Dummy data P&L untuk sekarang
         const sales = 15000;
         const comm = 4500;
         const exp = 2000;
@@ -164,7 +175,6 @@
         document.getElementById('dashNet').innerText = (sales - comm - exp).toFixed(2);
     }
     
-    // FUNGSI BARU: MUAT SENARAI AFFILIATE RASMI
     async function loadAffiliatesList() {
         const q = query(collection(db, "mynasab_users"), where("is_affiliate", "==", true));
         const snap = await getDocs(q);
@@ -186,7 +196,6 @@
     }
 
     async function loadPayouts() {
-        // Fetch dari mynasab_payouts
         const snap = await getDocs(collection(db, "mynasab_payouts"));
         let html = '';
         snap.forEach(docSnap => {
