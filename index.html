@@ -572,7 +572,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             // Masukkan data pengguna ke Firestore beserta 20 Kredit (Tanpa Nama Penuh)
             await setDoc(doc(db, "mynasab_users", user.uid), {
                 email: emel,
-                credit_balance: 20,  // <-- Ini magik wallet tu!
+                credit_balance: 10,  // <-- Ini magik wallet tu!
                 created_at: new Date()
             });
 
