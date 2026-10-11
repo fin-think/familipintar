@@ -364,9 +364,9 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                 <!-- SEKSYEN TAMBAHAN: BUTANG AFFILIATE & ADMIN -->
                 <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
                     <!-- Butang Affiliate (Sentiasa ada) -->
-                    <button onclick="pergiAffiliate()" class="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all flex items-center gap-2 transform hover:scale-105">
-                        <i class="fa-solid fa-handshake"></i> Nak jd affiliate?
-                    </button>
+                    <button id="btnAffiliate" onclick="pergiAffiliate()" class="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all flex items-center gap-2 transform hover:scale-105">
+    <i class="fa-solid fa-handshake"></i> Nak jd affiliate?
+</button>
                     
                     <!-- Butang Admin (Akan dipaparkan secara automatik jika email = admin) -->
                     <button id="btnAdmin" onclick="window.location.href='admin.html'" style="display: none;" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all flex items-center gap-2">
@@ -459,14 +459,16 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             document.getElementById('menuBelumLogMasuk').style.display = 'none';
             document.getElementById('menuSudahLogMasuk').style.display = 'flex';
             
-            // Logik Tampilkan Butang Admin Jika Email Sepadan
+           // Logik Tampilkan Butang Admin & Affiliate
             const btnAdmin = document.getElementById('btnAdmin');
-            if (btnAdmin) {
-                if (user.email === 'dae.book89@gmail.com') {
-                    btnAdmin.style.display = 'inline-flex';
-                } else {
-                    btnAdmin.style.display = 'none';
-                }
+            const btnAffiliate = document.getElementById('btnAffiliate');
+            
+            if (user.email === 'dae.book89@gmail.com') {
+                if (btnAdmin) btnAdmin.style.display = 'inline-flex';
+                if (btnAffiliate) btnAffiliate.style.display = 'none'; // Sembunyikan dari Admin
+            } else {
+                if (btnAdmin) btnAdmin.style.display = 'none';
+                if (btnAffiliate) btnAffiliate.style.display = 'inline-flex'; // Paparkan untuk pengguna biasa
             }
             
             // Ambil baki kredit dompet dari database
@@ -481,9 +483,12 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             document.getElementById('menuBelumLogMasuk').style.display = 'flex';
             document.getElementById('menuSudahLogMasuk').style.display = 'none';
             
-            // Sembunyikan butang admin
+            // Sembunyikan butang admin, pastikan butang affiliate muncul
             const btnAdmin = document.getElementById('btnAdmin');
+            const btnAffiliate = document.getElementById('btnAffiliate');
+            
             if (btnAdmin) btnAdmin.style.display = 'none';
+            if (btnAffiliate) btnAffiliate.style.display = 'inline-flex';
         }
     });
 
