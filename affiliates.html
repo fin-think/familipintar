@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Affiliate | Famili Pintar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        body { font-family: 'Nunito', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <nav class="bg-blue-600 text-white shadow-lg sticky top-0 z-40">
+        <div class="w-full px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+            <div class="font-bold text-xl"><i class="fa-solid fa-users mr-2"></i> Rakan Pintar (Affiliate)</div>
+            <div class="flex items-center gap-4">
+                <span id="userName" class="text-sm font-semibold hidden md:block">Loading...</span>
+                <button onclick="window.location.href='index.html'" class="bg-blue-700 px-4 py-2 rounded-lg text-sm hover:bg-blue-800 transition">Kembali</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="w-full max-w-6xl mx-auto px-4 py-8">
+        
+        <!-- ROW 1: Maklumat Bank & Link -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Pautan Affiliate -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="font-bold text-lg mb-4 text-slate-700">Pautan Affiliate Anda</h3>
+                <p class="text-sm text-slate-500 mb-2">Kongsi pautan ini. Anda dapat 30% untuk setiap jualan berjaya!</p>
+                <div class="flex bg-slate-100 rounded-lg p-2 items-center">
+                    <input type="text" id="refLink" class="w-full bg-transparent outline-none text-blue-600 font-semibold text-sm" readonly>
+                    <button onclick="salinLink()" class="bg-blue-500 text-white px-4 py-1.5 rounded-md text-sm hover:bg-blue-600">Salin</button>
+                </div>
+            </div>
+
+            <!-- Maklumat Bank -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="font-bold text-lg mb-4 text-slate-700">Akaun Pembayaran</h3>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <input type="text" id="bankName" placeholder="Nama Bank (Cth: Maybank)" class="w-full border rounded-lg p-2 text-sm">
+                    <input type="text" id="bankAcc" placeholder="No Akaun Bank" class="w-full border rounded-lg p-2 text-sm">
+                </div>
+                <button onclick="simpanBank()" class="w-full bg-slate-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-900 transition">Simpan Maklumat Bank</button>
+            </div>
+        </div>
+
+        <!-- ROW 2: Statistik & Pengeluaran -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex gap-8">
+                <div>
+                    <p class="text-sm text-slate-500 font-semibold">Komisen Terkumpul</p>
+                    <p class="text-3xl font-extrabold text-green-600">RM <span id="totalKomisen">0.00</span></p>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500 font-semibold">Telah Dibayar</p>
+                    <p class="text-3xl font-extrabold text-slate-800">RM <span id="totalPaid">0.00</span></p>
+                </div>
+            </div>
+            <button onclick="mohonPengeluaran()" id="btnWithdraw" class="bg-green-500 hover:bg-green-600 text-white font-bold px-8 py-4 rounded-xl shadow-lg transition transform hover:scale-105">
+                Mohon Pengeluaran (Payout)
+            </button>
+        </div>
+
+        <!-- ROW 3: Senarai Jualan -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <h3 class="font-bold text-lg mb-4 text-slate-700">Senarai Jualan Anda</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-500 text-sm border-b">
+                            <th class="p-3">Tarikh</th>
+                            <th class="p-3">Pembeli</th>
+                            <th class="p-3">Pakej</th>
+                            <th class="p-3">Jualan (RM)</th>
+                            <th class="p-3 text-green-600">Komisen (30%)</th>
+                            <th class="p-3">Status Bayaran</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody" class="text-sm">
+                        <tr><td colspan="6" class="p-4 text-center text-slate-400">Memuatkan data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+        authDomain: "familipintar.firebaseapp.com",
+        projectId: "familipintar",
+        storageBucket: "familipintar.firebasestorage.app",
+        messagingSenderId: "277029764059",
+        appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let currentUser = null;
+    let bakiKomisen = 0;
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            await muatDataAffiliate();
+            await muatJualan();
+        } else {
+            window.location.href = "index.html"; // Tendang jika belum login
+        }
+    });
+
+    async function muatDataAffiliate() {
+        const snap = await getDoc(doc(db, "mynasab_users", currentUser.uid));
+        if (snap.exists()) {
+            const data = snap.data();
+            document.getElementById('userName').innerText = data.name || currentUser.uid;
+            
+            // Jana Kod Referral jika belum ada (guna no tel/UID)
+            let refCode = data.referral_code;
+            if(!refCode) {
+                refCode = "REF" + currentUser.uid.substring(0,6).toUpperCase();
+                await updateDoc(doc(db, "mynasab_users", currentUser.uid), { referral_code: refCode });
+            }
+            document.getElementById('refLink').value = `https://familipintar.com/?ref=${refCode}`;
+            
+            if(data.bank_name) document.getElementById('bankName').value = data.bank_name;
+            if(data.bank_acc) document.getElementById('bankAcc').value = data.bank_acc;
+        }
+    }
+
+    async function muatJualan() {
+        const q = query(collection(db, "mynasab_sales"), where("affiliate_uid", "==", currentUser.uid));
+        const querySnapshot = await getDocs(q);
+        
+        let html = '';
+        let totalUnpaid = 0;
+        let totalPaid = 0;
+
+        querySnapshot.forEach((docSnap) => {
+            const sale = docSnap.data();
+            const komisen = sale.commission_amount || (sale.amount * 0.3);
+            
+            if(sale.payout_status === 'paid') totalPaid += komisen;
+            else if(sale.payout_status === 'pending') totalUnpaid += komisen;
+
+            let badgeColor = sale.payout_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
+
+            html += `
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="p-3">${sale.timestamp || '-'}</td>
+                    <td class="p-3 font-semibold">${sale.buyer_name || sale.buyer_email}</td>
+                    <td class="p-3 uppercase">${sale.package_type}</td>
+                    <td class="p-3">RM ${sale.amount}</td>
+                    <td class="p-3 font-bold text-green-600">RM ${komisen.toFixed(2)}</td>
+                    <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${badgeColor}">${sale.payout_status}</span></td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('salesTableBody').innerHTML = html || '<tr><td colspan="6" class="p-4 text-center">Tiada jualan lagi. Teruskan usaha!</td></tr>';
+        document.getElementById('totalKomisen').innerText = totalUnpaid.toFixed(2);
+        document.getElementById('totalPaid').innerText = totalPaid.toFixed(2);
+        bakiKomisen = totalUnpaid;
+    }
+
+    window.salinLink = () => {
+        const link = document.getElementById('refLink');
+        link.select();
+        document.execCommand("copy");
+        alert("Pautan telah disalin!");
+    };
+
+    window.simpanBank = async () => {
+        const bName = document.getElementById('bankName').value;
+        const bAcc = document.getElementById('bankAcc').value;
+        if(!bName || !bAcc) return alert("Sila isi nama dan nombor akaun bank.");
+        
+        await updateDoc(doc(db, "mynasab_users", currentUser.uid), {
+            bank_name: bName, bank_acc: bAcc
+        });
+        alert("Maklumat bank berjaya disimpan!");
+    };
+
+    window.mohonPengeluaran = async () => {
+        if(bakiKomisen < 30) {
+            return alert("Baki minimum pengeluaran adalah RM 30.00");
+        }
+        
+        // Cipta request
+        await addDoc(collection(db, "mynasab_payouts"), {
+            affiliate_uid: currentUser.uid,
+            amount: bakiKomisen,
+            status: 'pending',
+            timestamp: new Date().toISOString()
+        });
+
+        // Tandakan jualan sebagai requested (Logik ringkas)
+        alert(`Permohonan pengeluaran RM ${bakiKomisen.toFixed(2)} sedang diproses oleh Admin.`);
+        document.getElementById('btnWithdraw').innerText = "Sedang Diproses";
+        document.getElementById('btnWithdraw').disabled = true;
+    };
+</script>
+</body>
+</html>
