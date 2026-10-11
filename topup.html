@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Up Kredit | Famili Pintar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        body { font-family: 'Nunito', sans-serif; background-color: #f8fafc; }
+        .pakej-card { transition: all 0.2s ease-in-out; }
+        .pakej-card:hover { transform: translateY(-5px); border-color: #3b82f6; box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3); }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <nav class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+            <div class="font-extrabold text-xl text-slate-800">Famili<span class="text-sky-500">Pintar</span></div>
+            <button onclick="window.location.href='index.html'" class="text-slate-500 hover:text-slate-800 font-bold transition">Kembali</button>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-extrabold mb-3">Tambah Nilai Kredit</h1>
+            <p class="text-slate-500">Beli kredit untuk kegunaan premium dalam ekosistem Famili Pintar.</p>
+            
+            <div class="inline-flex items-center gap-3 bg-yellow-50 border-2 border-yellow-400 px-6 py-3 rounded-full mt-6 shadow-sm">
+                <span class="text-yellow-700 font-bold">Baki Semasa:</span>
+                <span class="text-2xl font-extrabold text-yellow-600"><i class="fa-solid fa-coins"></i> <span id="bakiSemasa">Memuatkan...</span></span>
+            </div>
+        </div>
+
+        <!-- PILIHAN PAKEJ KREDIT -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Pakej RM 5 -->
+            <div class="bg-white border-2 border-slate-100 rounded-2xl p-6 text-center shadow-sm pakej-card relative">
+                <h3 class="text-slate-500 font-bold mb-2">Pakej Asas</h3>
+                <div class="text-4xl font-extrabold text-slate-800 mb-1">7 <span class="text-lg">Kredit</span></div>
+                <div class="text-3xl font-bold text-sky-600 mt-4 mb-6">RM 5</div>
+                <button onclick="beliKredit(5, 7)" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900">Beli Sekarang</button>
+            </div>
+
+            <!-- Pakej RM 10 -->
+            <div class="bg-white border-2 border-slate-100 rounded-2xl p-6 text-center shadow-sm pakej-card relative">
+                <h3 class="text-slate-500 font-bold mb-2">Pakej Ekstra</h3>
+                <div class="text-4xl font-extrabold text-slate-800 mb-1">12 <span class="text-lg">Kredit</span></div>
+                <div class="text-xs font-bold text-emerald-500 bg-emerald-50 inline-block px-2 py-1 rounded-md mb-2">+ 2 Kredit Bonus</div>
+                <div class="text-3xl font-bold text-sky-600 mt-2 mb-6">RM 10</div>
+                <button onclick="beliKredit(10, 12)" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900">Beli Sekarang</button>
+            </div>
+
+            <!-- Pakej RM 20 -->
+            <div class="bg-white border-2 border-blue-500 rounded-2xl p-6 text-center shadow-lg pakej-card relative transform scale-105 z-10">
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">PALING POPULAR</div>
+                <h3 class="text-slate-500 font-bold mb-2">Pakej Keluarga</h3>
+                <div class="text-4xl font-extrabold text-slate-800 mb-1">25 <span class="text-lg">Kredit</span></div>
+                <div class="text-xs font-bold text-emerald-500 bg-emerald-50 inline-block px-2 py-1 rounded-md mb-2">+ 5 Kredit Bonus</div>
+                <div class="text-3xl font-bold text-sky-600 mt-2 mb-6">RM 20</div>
+                <button onclick="beliKredit(20, 25)" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 shadow-md">Beli Sekarang</button>
+            </div>
+
+            <!-- Pakej RM 50 -->
+            <div class="bg-white border-2 border-slate-100 rounded-2xl p-6 text-center shadow-sm pakej-card relative lg:col-start-2 sm:col-span-1">
+                <h3 class="text-slate-500 font-bold mb-2">Pakej Premium</h3>
+                <div class="text-4xl font-extrabold text-slate-800 mb-1">60 <span class="text-lg">Kredit</span></div>
+                <div class="text-xs font-bold text-emerald-500 bg-emerald-50 inline-block px-2 py-1 rounded-md mb-2">+ 10 Kredit Bonus</div>
+                <div class="text-3xl font-bold text-sky-600 mt-2 mb-6">RM 50</div>
+                <button onclick="beliKredit(50, 60)" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900">Beli Sekarang</button>
+            </div>
+
+            <!-- Pakej RM 100 -->
+            <div class="bg-white border-2 border-slate-100 rounded-2xl p-6 text-center shadow-sm pakej-card relative sm:col-span-1">
+                <h3 class="text-slate-500 font-bold mb-2">Pakej Super</h3>
+                <div class="text-4xl font-extrabold text-slate-800 mb-1">125 <span class="text-lg">Kredit</span></div>
+                <div class="text-xs font-bold text-emerald-500 bg-emerald-50 inline-block px-2 py-1 rounded-md mb-2">+ 25 Kredit Bonus</div>
+                <div class="text-3xl font-bold text-sky-600 mt-2 mb-6">RM 100</div>
+                <button onclick="beliKredit(100, 125)" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900">Beli Sekarang</button>
+            </div>
+
+        </div>
+    </main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+        authDomain: "familipintar.firebaseapp.com",
+        projectId: "familipintar",
+        storageBucket: "familipintar.firebasestorage.app"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let currentUser = null;
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            const snap = await getDoc(doc(db, "mynasab_users", user.uid));
+            if (snap.exists()) {
+                document.getElementById('bakiSemasa').innerText = snap.data().credit_balance || 0;
+            }
+        } else {
+            alert("Sila log masuk dahulu untuk top up kredit.");
+            window.location.href = "index.html"; 
+        }
+    });
+
+    window.beliKredit = async (hargaRM, jumlahKredit) => {
+        if (!currentUser) return;
+        
+        const nama = "Kredit Famili Pintar (" + jumlahKredit + ")";
+        const emel = currentUser.email;
+        const uid = currentUser.uid;
+
+        // INI PENTING: Bos perlu panggil API dari server.js bos di sini
+        // Tukar URL ini kepada URL server sebenar bos (cth: https://api.familipintar.com/create-bill)
+        const SERVER_API_URL = "http://localhost:3000/create-bill"; // Ubah masa live
+
+        try {
+            // Tunjuk mesej memuatkan
+            document.body.style.cursor = 'wait';
+            
+            const respon = await fetch(SERVER_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    uid: uid,
+                    emel: emel,
+                    hargaRM: hargaRM,
+                    jumlahKredit: jumlahKredit,
+                    namaPakej: nama
+                })
+            });
+
+            const data = await respon.json();
+            if (data.billUrl) {
+                // Halakan pengguna ke ToyyibPay
+                window.location.href = data.billUrl;
+            } else {
+                alert("Gagal menjana bil pembayaran: " + (data.error || "Ralat tidak diketahui"));
+            }
+        } catch (error) {
+            alert("Sistem sedang diselenggara atau pelayan tergendala. Sila cuba sebentar lagi.");
+            console.error(error);
+        } finally {
+            document.body.style.cursor = 'default';
+        }
+    };
+</script>
+</body>
+</html>
