@@ -194,8 +194,16 @@
             if(snap.exists()){
                 const data = snap.data();
                 bakiKredit = data.credit_balance || 0;
-                // Baca array tahap yang dah pernah dibeli. Jika belum wujud, letak [1]
-                tahapTerbuka = data.mandarin_unlocked || [1]; 
+                
+                // 1. Tarik senarai dari DB. Jika tiada, jadikan ia array kosong []
+                let senaraiDariDB = data.mandarin_unlocked || []; 
+                
+                // 2. PAKSA Tahap 1 masuk dalam senarai (Bypass supaya tak terkunci)
+                if (!senaraiDariDB.includes(1)) {
+                    senaraiDariDB.push(1);
+                }
+                
+                tahapTerbuka = senaraiDariDB; 
                 
                 document.getElementById('displayKredit').innerText = bakiKredit;
                 renderCards();
@@ -208,7 +216,8 @@
             container.innerHTML = ''; 
 
             levels.forEach(level => {
-                const isLocked = !tahapTerbuka.includes(level.id);
+                // 3. SEMAKAN KESELAMATAN: Jika id = 1, ia automatik takkan locked (false)
+                const isLocked = level.id !== 1 && !tahapTerbuka.includes(level.id);
                 
                 const card = document.createElement('div');
                 card.className = `relative group rounded-3xl p-6 border-2 transition-all duration-300 ${level.colorClass} hover:-translate-y-2 hover:shadow-xl cursor-pointer ${isLocked ? 'opacity-80' : ''}`;
@@ -237,8 +246,8 @@
 
         // --- KLIK KAD & TOLAK KREDIT ---
         window.handleCardClick = (levelId, levelTitle, url) => {
-            if (tahapTerbuka.includes(levelId)) {
-                // Dah pernah buka (atau Tahap 1 percuma)
+            // 4. LEPASKAN TAHAP 1 TANPA SEKATAN
+            if (levelId === 1 || tahapTerbuka.includes(levelId)) {
                 window.location.href = url; 
             } else {
                 // Kena bayar 5 kredit
@@ -258,7 +267,7 @@
                 openModal();
             }
         };
-
+        
         window.prosesTolakKredit = async () => {
             if (bakiKredit < 5) return; // double check
 
