@@ -315,6 +315,17 @@
         </button>
     </div>
 </div>
+
+    <!-- Skrip Semakan Memori Browser -->
+    <script>
+        // Skrip ini menyemak ingatan peranti: adakah pengguna ini pernah tekan setuju PDPA?
+        // Jika BELUM pernah setuju, barulah paparkan pop-up ini.
+        if (localStorage.getItem("pdpa_mynasab_agreed") !== "true") {
+            document.getElementById('welcomeScreen').style.display = 'flex';
+        }
+    </script>
+
+    
     <!-- Modal Log Masuk / Daftar -->
     <div id="authModal" class="modal-overlay hidden">
         <div class="modal-box">
