@@ -512,9 +512,9 @@
         
         // Semak jika pengguna datang dari MyJurnal
         if (jejakAsal.includes('myjurnal.html')) {
-            window.location.href = '../myjurnal.html'; // Pastikan path ../ ini betul ikut folder bos
+            // Hantar parameter ?bahagian=utama supaya MyJurnal tahu dia nak pergi mana
+            window.location.href = '../myjurnal.html?bahagian=utama'; 
         } else {
-            // Default balik ke halaman Mandarin biasa
             window.location.href = '../mandarin.html';
         }
     };
