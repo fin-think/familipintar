@@ -46,10 +46,10 @@
           Nak sembang Mandarin selancar penutur asli? Buka kunci modul penuh dan kuasai perbualan dari tahap harian hingga profesional!
         </p>
         
-        <a href="https://familipintar.com/mandarin.html" class="inline-flex items-center gap-3 px-10 py-4 bg-yellow-400 text-black font-bold rounded-2xl shadow-xl hover:scale-105 transition-transform active:scale-95">
-          <i data-lucide="zap" class="fill-current"></i>
-          升级到下一级 (Upgrade to Next Level)
-        </a>
+         <a href="javascript:void(0)" onclick="kembaliKePintuAsal()" class="inline-flex items-center gap-3 px-10 py-4 bg-yellow-400 text-black font-bold rounded-2xl shadow-xl hover:scale-105 transition-transform active:scale-95">
+  <i data-lucide="zap" class="fill-current"></i>
+  升级到下一级 (Back & Upgrade to Next Level)
+</a>
       </div>
       
     </div> <!-- ✅ PENTING: TAMBAH </div> INI DI SINI UNTUK MENUTUP #home-view -->
@@ -455,5 +455,20 @@
     }
     lucide.createIcons();
   </script>
+
+<script>
+    window.kembaliKePintuAsal = function() {
+        const jejakAsal = document.referrer;
+        
+        // Semak jika pengguna datang dari MyJurnal
+        if (jejakAsal.includes('myjurnal.html')) {
+            // Hantar parameter ?bahagian=utama supaya MyJurnal tahu dia nak pergi mana
+            window.location.href = '../myjurnal.html?bahagian=utama'; 
+        } else {
+            window.location.href = '../mandarin.html';
+        }
+    };
+</script>
+  
 </body>
 </html>
