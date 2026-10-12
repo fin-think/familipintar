@@ -347,16 +347,17 @@ else {
                 ? `<img src="${data.photo_url}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #bdc3c7;">` 
                 : `<div style="width: 32px; height: 32px; border-radius: 50%; background: #ecf0f1; display: flex; justify-content: center; align-items: center; font-size: 16px; border: 1px solid #bdc3c7;">👤</div>`;
             
-            const tr = document.createElement('tr');
+          const tr = document.createElement('tr');
             
-            // --- KOD BARU: SEKATAN BUTANG JIKA BUKAN PEMILIK ASAL ---
+            // --- KOD BARU: SEKATAN BUTANG & FIX KLIK ---
             let butangTindakan = '';
             if (data.created_by && data.created_by !== penggunaSemasa.uid) {
                 butangTindakan = `<span style="color:#95a5a6; font-size:12px; font-style:italic; font-weight:bold;">🔒 Milik Pengundang</span>`;
             } else {
-                butangTindakan = `<a onclick="window.bukaModalEdit('\${data.id}')" class="action-link">✏️ Edit</a>`;
+                // Tambahan href="javascript:void(0)" agar tombol wajib bereaksi saat diklik
+                butangTindakan = `<a href="javascript:void(0)" onclick="window.bukaModalEdit('${data.id}')" class="action-link" style="cursor: pointer;">✏️ Edit</a>`;
                 if (!data.is_root) { 
-                    butangTindakan += `<a onclick="padamAhli('\${data.id}')" class="action-link" style="color: #e74c3c; margin-left: 10px;">🗑️ Padam</a>`;
+                    butangTindakan += `<a href="javascript:void(0)" onclick="padamAhli('${data.id}')" class="action-link" style="color: #e74c3c; margin-left: 10px; cursor: pointer;">🗑️ Padam</a>`;
                 }
             }
             // ---------------------------------------------------------
@@ -544,23 +545,29 @@ window.bukaModalEdit = async (idKotak) => {
             document.getElementById('editAhliNegeri').value = data.state || "";
             document.getElementById('editAhliJantina').value = data.gender || "";
 
-            const radioStatus = document.querySelector(`input[name="editStatus"][value="${data.status === 'meninggal' ? 'meninggal' : 'hidup'}"]`);
+            const statusVal = data.status === 'meninggal' ? 'meninggal' : 'hidup';
+            const radioStatus = document.querySelector(`input[name="editStatus"][value="${statusVal}"]`);
             if (radioStatus) radioStatus.checked = true;
             if (window.tukarStatus) window.tukarStatus('edit');
 
+            // Logika khusus untuk Diri Sendiri (Induk) dengan safety checks
             const groupAkaun = document.getElementById('groupEditAkaun');
-            if (data.is_root) {
+            if (data.is_root && groupAkaun) {
                 groupAkaun.classList.remove('hidden');
                 const snapPengguna = await getDoc(doc(db, "mynasab_users", penggunaSemasa.uid));
-                document.getElementById('editAkaunKeluarga').value = snapPengguna.data().name || "";
-            } else {
+                if (snapPengguna.exists()) {
+                    const inputAkaun = document.getElementById('editAkaunKeluarga');
+                    if (inputAkaun) inputAkaun.value = snapPengguna.data().name || "";
+                }
+            } else if (groupAkaun) {
                 groupAkaun.classList.add('hidden');
             }
 
             document.getElementById('modalEditAhli').classList.remove('hidden');
         }
     } catch (error) {
-        alert("Gagal memuat turun data profil: " + error.message);
+        alert("Gagal membuka borang edit. Ralat: " + error.message);
+        console.error("Ralat Modal Edit:", error);
     }
 };
 
