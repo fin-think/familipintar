@@ -117,7 +117,7 @@
 </head>
 <body>
 
-<div id="authScreen" class="gate">
+<div id="authScreen" class="gate hidden">
     <div class="gate-card">
         <h1><span class="we">we</span><span class="care">Care</span></h1>
         <p id="authSubtitle">Pantau ubat, temujanji & rutin ibu bapa bersama adik-beradik secara berpusat.</p>
@@ -370,6 +370,10 @@
                 document.getElementById('inviteLink').value = url.toString();
                 
                 muatAhliKeluarga(currentUserData.group_id);
+
+                muatProfilIbuBapa(user.uid);
+                
+                
             }
         } else {
             document.getElementById('authScreen').classList.remove('hidden');
