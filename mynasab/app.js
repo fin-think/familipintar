@@ -168,7 +168,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
             created_at: new Date()
         });
 
-        if (jem) {
+       if (jem) {
             await setDoc(doc(db, "mynasab_links", user.uid), {
                 uid: user.uid,
                 owner_uid: jem.owner_uid,
@@ -179,7 +179,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
                 created_at: new Date()
             });
 
-            // --- KOD BARU: AUTO-SALIN LELUHUR DARI PENGUNDANG ---
+            // --- KOD BARU: AUTO-SALIN LELUHUR DARI PENGUNDANG (DISEMPURNAKAN) ---
             try {
                 const qLeluhur = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", jem.owner_uid));
                 const snapLeluhur = await getDocs(qLeluhur);
@@ -187,6 +187,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
                 let idMapping = {}; 
                 let senaraiSalin = [];
                 
+                // 1. Tapis Ibu Bapa dan leluhur ke atas
                 snapLeluhur.forEach((docSnap) => {
                     const dataLama = docSnap.data();
                     const hub = (dataLama.relationship || '').toLowerCase();
@@ -195,6 +196,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
                     }
                 });
                 
+                // 2. Salin ke akun baru (Adi)
                 for (let item of senaraiSalin) {
                     const docRef = await addDoc(collection(db, "mynasab_nodes"), {
                         ...item.data,
@@ -205,17 +207,21 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
                     idMapping[item.idLama] = docRef.id;
                 }
                 
+                // 3. Perbaiki Ikatan (ref_id) agar tersambung di pohon
                 for (let lama in idMapping) {
                     const baruId = idMapping[lama];
                     const asal = senaraiSalin.find(x => x.idLama === lama).data;
                     
-                    let newRef = "";
-                    const refAwi = "root_" + jem.owner_uid;
-                    const refAnis = "root_" + jem.sasaran_id;
+                    let newRef = asal.ref_id || ""; 
+                    const refPengundang = "root_" + jem.owner_uid;
+                    const refSasaran = "root_" + jem.sasaran_id;
                     
-                    if ([refAwi, refAnis, jem.owner_uid, jem.sasaran_id].includes(asal.ref_id)) {
-                        newRef = "root_" + user.uid; // Ikat terus ke Adi
-                    } else if (asal.ref_id && idMapping[asal.ref_id]) {
+                    // Jika sebelumnya terikat ke Pengundang atau Sasaran, ikat langsung ke "Diri Sendiri" pengguna baru
+                    if ([refPengundang, refSasaran, jem.owner_uid, jem.sasaran_id].includes(asal.ref_id)) {
+                        newRef = "root_" + user.uid; 
+                    } 
+                    // Jika terikat ke datuk/nenek, ikat ke datuk/nenek yang baru disalin
+                    else if (asal.ref_id && idMapping[asal.ref_id]) {
                         newRef = idMapping[asal.ref_id]; 
                     }
                     
@@ -224,7 +230,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
             } catch(e) { console.warn("Gagal auto-salin leluhur", e); }
             // ---------------------------------------------------------
         }
-
+        
         alert(jem
             ? `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit. Pautan keluarga anda menunggu kelulusan ${jem.nama_pengundang}.`
             : `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit percuma.`);
