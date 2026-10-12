@@ -974,27 +974,30 @@ document.addEventListener("DOMContentLoaded", loadQuestion);
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Semak URL kalau ada '?bahagian=utama'
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        if (urlParams.get('bahagian') === 'utama') {
-            // 1. Sembunyikan Intro
-            const intro = document.getElementById('introPage');
-            if (intro) intro.style.display = 'none';
-            
-            // 2. Tunjuk Main Content terus (buang opacity-0 supaya tak lutsinar)
-            const main = document.getElementById('mainContent');
-            if (main) {
-                main.style.display = 'block';
-                main.classList.remove('opacity-0');
-                main.classList.add('opacity-100');
+<script>    
+async function muatDataPengguna() {
+        try {
+            const snap = await getDoc(doc(db, "mynasab_users", penggunaSemasa.uid));
+            if (snap.exists()) {
+                const data = snap.data();
+                bakiKredit = data.credit_balance || 0;
+                modulTerbuka = data.jurnal_unlocked || []; 
+                
+                document.getElementById('displayKredit').innerText = bakiKredit;
+                document.getElementById('userDisplay').innerText = data.name || "Pengguna";
             }
+        } catch (error) {
+            console.error("Ralat muat data:", error);
+        } 
+        
+        // SEMAK URL: Jika datang dari butang Kembali (ada ?bahagian=utama)
+        // Kita terus panggil showApp() supaya data timeline & mangga (lock) dilukis dengan sempurna!
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('bahagian') === 'utama') {
+            window.showApp();
         }
-    });
+    }
 </script>
-
     
 </body>
 </html>
