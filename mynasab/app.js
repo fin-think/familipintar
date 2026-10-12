@@ -178,6 +178,51 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
                 nama: namaKeluarga,
                 created_at: new Date()
             });
+
+            // --- KOD BARU: AUTO-SALIN LELUHUR DARI PENGUNDANG ---
+            try {
+                const qLeluhur = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", jem.owner_uid));
+                const snapLeluhur = await getDocs(qLeluhur);
+                
+                let idMapping = {}; 
+                let senaraiSalin = [];
+                
+                snapLeluhur.forEach((docSnap) => {
+                    const dataLama = docSnap.data();
+                    const hub = (dataLama.relationship || '').toLowerCase();
+                    if (hub.match(/ayah|ibu|bapa|datuk|nenek|moyang|buyut|cakawari|cilawagi/)) {
+                        senaraiSalin.push({ idLama: docSnap.id, data: dataLama });
+                    }
+                });
+                
+                for (let item of senaraiSalin) {
+                    const docRef = await addDoc(collection(db, "mynasab_nodes"), {
+                        ...item.data,
+                        owner_uid: user.uid,
+                        created_by: jem.owner_uid, // Kekalkan hak cipta Awi
+                        created_at: new Date()
+                    });
+                    idMapping[item.idLama] = docRef.id;
+                }
+                
+                for (let lama in idMapping) {
+                    const baruId = idMapping[lama];
+                    const asal = senaraiSalin.find(x => x.idLama === lama).data;
+                    
+                    let newRef = "";
+                    const refAwi = "root_" + jem.owner_uid;
+                    const refAnis = "root_" + jem.sasaran_id;
+                    
+                    if ([refAwi, refAnis, jem.owner_uid, jem.sasaran_id].includes(asal.ref_id)) {
+                        newRef = "root_" + user.uid; // Ikat terus ke Adi
+                    } else if (asal.ref_id && idMapping[asal.ref_id]) {
+                        newRef = idMapping[asal.ref_id]; 
+                    }
+                    
+                    await updateDoc(doc(db, "mynasab_nodes", baruId), { ref_id: newRef });
+                }
+            } catch(e) { console.warn("Gagal auto-salin leluhur", e); }
+            // ---------------------------------------------------------
         }
 
         alert(jem
@@ -276,10 +321,18 @@ else {
                 : `<div style="width: 32px; height: 32px; border-radius: 50%; background: #ecf0f1; display: flex; justify-content: center; align-items: center; font-size: 16px; border: 1px solid #bdc3c7;">👤</div>`;
             
             const tr = document.createElement('tr');
-            let butangTindakan = `<a onclick="window.bukaModalEdit('${data.id}')" class="action-link">✏️ Edit</a>`;
-            if (!data.is_root) { 
-                butangTindakan += `<a onclick="padamAhli('${data.id}')" class="action-link" style="color: #e74c3c; margin-left: 10px;">🗑️ Padam</a>`;
+            
+            // --- KOD BARU: SEKATAN BUTANG JIKA BUKAN PEMILIK ASAL ---
+            let butangTindakan = '';
+            if (data.created_by && data.created_by !== penggunaSemasa.uid) {
+                butangTindakan = `<span style="color:#95a5a6; font-size:12px; font-style:italic; font-weight:bold;">🔒 Milik Pengundang</span>`;
+            } else {
+                butangTindakan = `<a onclick="window.bukaModalEdit('\${data.id}')" class="action-link">✏️ Edit</a>`;
+                if (!data.is_root) { 
+                    butangTindakan += `<a onclick="padamAhli('\${data.id}')" class="action-link" style="color: #e74c3c; margin-left: 10px;">🗑️ Padam</a>`;
+                }
             }
+            // ---------------------------------------------------------
 
             tr.innerHTML = `
                 <td>
@@ -394,6 +447,7 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
             }
         }
 
+           
         const kosGambar = (failGambar && failGambar.size > 0) ? 1 : 0;
         const jumlahKos = kosAhli + kosGambar;
 
@@ -422,6 +476,7 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
             state: negeri,
             photo_url: urlGambar,
             is_root: false,
+            created_by: penggunaSemasa.uid,  // Menyimpan ID pencipta asal (Contoh: ID Awi)
             created_at: new Date()
         });
 
