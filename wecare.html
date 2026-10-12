@@ -47,8 +47,9 @@
         .who { font-size: 13px; color: var(--muted); text-align: right; }
         .who b { color: var(--ink); font-weight: 700; }
         .who button {
-            border: none; background: none; color: var(--danger); font-size: 12px;
-            cursor: pointer; font-weight: 600; padding: 0; margin-top: 2px; font-family: inherit;
+            border: none; background: none; color: var(--secondary); font-size: 12px;
+            cursor: pointer; font-weight: 700; padding: 0; margin-top: 2px; font-family: inherit;
+            text-decoration: underline;
         }
 
         /* TABS */
@@ -162,7 +163,8 @@
         <div class="brand"><span class="we">we</span><span class="care">Care</span></div>
         <div class="who">
             <div><b id="displayUserName">Pengguna</b></div>
-            <button id="btnLogout">Log Keluar</button>
+            <!-- Ditukar kepada butang Kembali ke myNasab -->
+            <button id="btnKembali">← Kembali ke myNasab</button>
         </div>
     </div>
     
@@ -185,6 +187,25 @@
                     Memuatkan data dari myNasab...
                 </div>
             </div>
+        </div>
+
+        <!-- PANEL KALENDAR -->
+        <div id="calendar" class="panel">
+            <h2 class="section-title">Temujanji Hospital</h2>
+            <p class="section-sub">Rekod temujanji berpusat akan dibangunkan di sini.</p>
+        </div>
+
+        <!-- PANEL UBAT -->
+        <div id="meds" class="panel">
+            <h2 class="section-title">Senarai Ubat</h2>
+            <p class="section-sub">Modul pengurusan ubat berpusat akan dibangunkan di sini.</p>
+        </div>
+
+        <!-- PANEL KELUARGA -->
+        <div id="team" class="panel">
+            <h2 class="section-title">Ahli Keluarga Jagaan</h2>
+            <p class="section-sub">Senarai adik-beradik di dalam kumpulan ini.</p>
+            <div id="teamList">Memuatkan...</div>
         </div>
 
         <!-- MODAL KEMASKINI KESIHATAN -->
@@ -226,9 +247,10 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
 <script type="module">
-    // 1. IMPORT FIREBASE (Gunakan konfigurasi Familipintar bos)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -247,15 +269,13 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // 2. STATE & UI LOGIC
     let isRegistering = false;
     let currentUserData = null;
     
-    // Kesan pautan jemputan
     const kodJemput = new URLSearchParams(location.search).get('jemput');
     if(kodJemput) {
         document.getElementById('inviteBanner').classList.remove('hidden');
-        document.getElementById('parentNameField').classList.add('hidden'); // Tak perlu isi nama mak ayah jika dijemput
+        document.getElementById('parentNameField').classList.add('hidden');
         isRegistering = true;
         kemaskiniBorangAuth();
     }
@@ -277,7 +297,6 @@
         kemaskiniBorangAuth();
     });
 
-    // 3. TAB NAVIGATION
     document.querySelectorAll('.tab').forEach(t => {
         t.addEventListener('click', () => {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -287,7 +306,6 @@
         });
     });
 
-    // 4. LOG MASUK / DAFTAR BERSAMA LOGIK JEMPUTAN
     document.getElementById('authForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('authEmail').value;
@@ -301,19 +319,16 @@
                 const name = document.getElementById('authName').value;
                 const parentName = document.getElementById('authParentName').value;
                 
-                // Cipta Firebase Auth
                 const userCred = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCred.user;
                 
                 let groupID = kodJemput; 
                 let role = "Anak/Ahli";
 
-                // Jika tiada jemputan, cipta Kumpulan Baru (Induk)
                 if (!groupID) {
                     groupID = "GRP-" + Date.now().toString(36).toUpperCase();
                     role = "Induk/Admin";
                     
-                    // Daftar Kumpulan Baru di Firestore
                     await setDoc(doc(db, "wecare_groups", groupID), {
                         group_id: groupID,
                         parents_name: parentName,
@@ -322,7 +337,6 @@
                     });
                 }
 
-                // Simpan Profil Pengguna di Firestore
                 await setDoc(doc(db, "wecare_users", user.uid), {
                     uid: user.uid,
                     name: name,
@@ -344,36 +358,28 @@
         }
     });
 
-    // 5. PENYEDIAAN DASHBOARD LEPAS LOGIN
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('authScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             
-            // Dapatkan profil weCare pengguna
             const userDoc = await getDoc(doc(db, "wecare_users", user.uid));
             if (userDoc.exists()) {
                 currentUserData = userDoc.data();
                 
                 document.getElementById('displayUserName').innerText = currentUserData.name;
-                document.getElementById('dashUserName').innerText = currentUserData.name;
                 
-                // Dapatkan info kumpulan
                 const groupDoc = await getDoc(doc(db, "wecare_groups", currentUserData.group_id));
                 if(groupDoc.exists()) {
                     document.getElementById('dashGroupName').innerText = groupDoc.data().parents_name;
                 }
 
-                // Jana pautan jemputan
                 const url = new URL(window.location.href);
                 url.searchParams.set('jemput', currentUserData.group_id);
                 document.getElementById('inviteLink').value = url.toString();
                 
                 muatAhliKeluarga(currentUserData.group_id);
-
                 muatProfilIbuBapa(user.uid);
-                
-                
             }
         } else {
             document.getElementById('authScreen').classList.remove('hidden');
@@ -381,21 +387,15 @@
         }
     });
 
-// FUNGSI TARIK DATA DARI MYNASAB KE WECARE
     async function muatProfilIbuBapa(uidPengguna) {
         try {
-            // 1. Tentukan ID Pokok Induk (Boleh datang dari profil wecare_users atau mynasab_links)
             let indukUid = uidPengguna; 
             const linkDoc = await getDoc(doc(db, "mynasab_links", uidPengguna));
             if (linkDoc.exists() && linkDoc.data().status === 'aktif') {
-                indukUid = linkDoc.data().owner_uid; // Jika dia adik yang dijemput, guna ID Abang Long
+                indukUid = linkDoc.data().owner_uid;
             }
 
-            // 2. Tarik rekod Ibu & Ayah dari myNasab
-            const qParents = query(
-                collection(db, "mynasab_nodes"), 
-                where("owner_uid", "==", indukUid)
-            );
+            const qParents = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid));
             const snapParents = await getDocs(qParents);
             
             let htmlProfil = "";
@@ -405,15 +405,12 @@
                 const data = docSnap.data();
                 const hub = (data.relationship || '').toLowerCase();
                 
-                // Tapis hanya ibu dan bapa
                 if (hub === 'ayah' || hub === 'ibu' || hub === 'bapa') {
                     adaIbuBapa = true;
                     
-                    // 3. Tarik data kesihatan tambahan dari weCare (jika ada)
                     const healthDoc = await getDoc(doc(db, "wecare_health_profiles", docSnap.id));
                     const hData = healthDoc.exists() ? healthDoc.data() : {};
 
-                    // Tetapan gambar default
                     const avatar = data.photo_url 
                         ? `<img src="${data.photo_url}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">`
                         : `<div style="width:60px; height:60px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800;">${data.name.charAt(0)}</div>`;
@@ -452,19 +449,16 @@
         }
     }
 
-    // FUNGSI KAWALAN MODAL KESIHATAN
     window.bukaModalKesihatan = async (idNod, nama) => {
         document.getElementById('tajukModalKesihatan').innerText = "Kesihatan: " + nama;
         document.getElementById('editKesihatanId').value = idNod;
         
-        // Kosongkan form
         document.getElementById('kBlood').value = "";
         document.getElementById('kChronic').value = "";
         document.getElementById('kAllergy').value = "";
         document.getElementById('kHospital').value = "";
         document.getElementById('kDoctor').value = "";
 
-        // Muat data sedia ada jika ada
         const healthDoc = await getDoc(doc(db, "wecare_health_profiles", idNod));
         if (healthDoc.exists()) {
             const d = healthDoc.data();
@@ -498,14 +492,12 @@
             await setDoc(doc(db, "wecare_health_profiles", idNod), dataUpdate, { merge: true });
             alert("Rekod kesihatan berjaya dikemas kini!");
             tutupModalKesihatan();
-            muatProfilIbuBapa(auth.currentUser.uid); // Refresh profil
+            muatProfilIbuBapa(auth.currentUser.uid);
         } catch (error) {
             alert("Ralat menyimpan data: " + error.message);
         }
     }
 
-    
-    // 6. MUAT TURUN AHLI KUMPULAN
     async function muatAhliKeluarga(groupId) {
         const q = query(collection(db, "wecare_users"), where("group_id", "==", groupId));
         const snap = await getDocs(q);
@@ -524,7 +516,6 @@
         document.getElementById('teamList').innerHTML = html;
     }
 
-    // FUNGSI UMUM
     window.salinPautan = () => {
         const copyText = document.getElementById("inviteLink");
         copyText.select();
@@ -532,8 +523,9 @@
         alert("Pautan kumpulan disalin! Hantar ke grup WhatsApp keluarga.");
     }
 
-    document.getElementById('btnLogout').addEventListener('click', () => {
-        signOut(auth);
+    // Fungsi butang kembali ke indeks myNasab/Familipintar
+    document.getElementById('btnKembali').addEventListener('click', () => {
+        window.location.href = "../index.html";
     });
 </script>
 </body>
