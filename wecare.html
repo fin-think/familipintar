@@ -174,35 +174,58 @@
     </div>
     
     <div class="content">
+        <!-- PANEL DASHBOARD & PROFIL IBU BAPA -->
         <div id="dashboard" class="panel active">
-            <h2 class="section-title">Selamat datang, <span id="dashUserName"></span></h2>
-            <p class="section-sub">Kumpulan Jagaan: <b id="dashGroupName" style="color:var(--secondary);"></b></p>
+            <h2 class="section-title">Pemantauan Kesihatan</h2>
+            <p class="section-sub">Data ibu bapa ditarik secara automatik dari myNasab.</p>
             
-            <div class="card" style="background:#eef7ff; border-color:#9ccbf0;">
-                <div class="card-title" style="color:#2980b9;">Jemput Adik-Beradik</div>
-                <p style="font-size:13px; color:#34495e; margin:5px 0 10px;">Kongsi pautan ini di WhatsApp keluarga untuk pantau bersama.</p>
-                <input type="text" id="inviteLink" readonly onclick="this.select()" style="margin-bottom:10px; background:#fff;">
-                <button class="primary" onclick="salinPautan()" style="background:#2980b9;">Salin Pautan</button>
+            <!-- Ruang Kad Profil Ibu Bapa -->
+            <div id="ruangProfilIbuBapa">
+                <div style="text-align:center; padding:20px; color:var(--muted);">
+                    Memuatkan data dari myNasab...
+                </div>
             </div>
         </div>
 
-        <div id="calendar" class="panel">
-            <h2 class="section-title">Temujanji Hospital</h2>
-            <p class="section-sub">Rekod temujanji berpusat akan dibangunkan di sini.</p>
+        <!-- MODAL KEMASKINI KESIHATAN -->
+        <div id="modalKesihatan" class="gate hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:1000; background:rgba(0,0,0,0.5); display:flex; padding:20px; align-items:center;">
+            <div class="card" style="width:100%; max-width:500px; margin:0 auto; background:#fff; max-height:90vh; overflow-y:auto;">
+                <h2 class="section-title" id="tajukModalKesihatan">Kemaskini Kesihatan</h2>
+                <input type="hidden" id="editKesihatanId">
+                
+                <div class="field" style="margin-top:15px;">
+                    <label>Jenis Darah</label>
+                    <select id="kBlood">
+                        <option value="">-- Pilih --</option>
+                        <option>A+</option><option>A-</option>
+                        <option>B+</option><option>B-</option>
+                        <option>AB+</option><option>AB-</option>
+                        <option>O+</option><option>O-</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Penyakit Kronik (Cth: Kencing Manis, Darah Tinggi)</label>
+                    <textarea id="kChronic" placeholder="Senaraikan penyakit..."></textarea>
+                </div>
+                <div class="field">
+                    <label>Alahan (Ubat / Makanan)</label>
+                    <textarea id="kAllergy" placeholder="Cth: Alergik Penicillin..."></textarea>
+                </div>
+                <div class="field">
+                    <label>Klinik / Hospital Rujukan Utama</label>
+                    <input type="text" id="kHospital" placeholder="Cth: Hospital Taiping">
+                </div>
+                <div class="field">
+                    <label>Doktor Pakar / Merawat</label>
+                    <input type="text" id="kDoctor" placeholder="Cth: Dr. Ahmad (Kardiologi)">
+                </div>
+                
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button class="primary" onclick="simpanProfilKesihatan()">Simpan Rekod</button>
+                    <button class="ghost" onclick="tutupModalKesihatan()">Batal</button>
+                </div>
+            </div>
         </div>
-
-        <div id="meds" class="panel">
-            <h2 class="section-title">Senarai Ubat</h2>
-            <p class="section-sub">Modul pengurusan ubat berpusat akan dibangunkan di sini.</p>
-        </div>
-
-        <div id="team" class="panel">
-            <h2 class="section-title">Ahli Keluarga Jagaan</h2>
-            <p class="section-sub">Senarai adik-beradik di dalam kumpulan ini.</p>
-            <div id="teamList">Memuatkan...</div>
-        </div>
-    </div>
-</div>
 
 <script type="module">
     // 1. IMPORT FIREBASE (Gunakan konfigurasi Familipintar bos)
@@ -354,6 +377,130 @@
         }
     });
 
+// FUNGSI TARIK DATA DARI MYNASAB KE WECARE
+    async function muatProfilIbuBapa(uidPengguna) {
+        try {
+            // 1. Tentukan ID Pokok Induk (Boleh datang dari profil wecare_users atau mynasab_links)
+            let indukUid = uidPengguna; 
+            const linkDoc = await getDoc(doc(db, "mynasab_links", uidPengguna));
+            if (linkDoc.exists() && linkDoc.data().status === 'aktif') {
+                indukUid = linkDoc.data().owner_uid; // Jika dia adik yang dijemput, guna ID Abang Long
+            }
+
+            // 2. Tarik rekod Ibu & Ayah dari myNasab
+            const qParents = query(
+                collection(db, "mynasab_nodes"), 
+                where("owner_uid", "==", indukUid)
+            );
+            const snapParents = await getDocs(qParents);
+            
+            let htmlProfil = "";
+            let adaIbuBapa = false;
+
+            for (const docSnap of snapParents.docs) {
+                const data = docSnap.data();
+                const hub = (data.relationship || '').toLowerCase();
+                
+                // Tapis hanya ibu dan bapa
+                if (hub === 'ayah' || hub === 'ibu' || hub === 'bapa') {
+                    adaIbuBapa = true;
+                    
+                    // 3. Tarik data kesihatan tambahan dari weCare (jika ada)
+                    const healthDoc = await getDoc(doc(db, "wecare_health_profiles", docSnap.id));
+                    const hData = healthDoc.exists() ? healthDoc.data() : {};
+
+                    // Tetapan gambar default
+                    const avatar = data.photo_url 
+                        ? `<img src="${data.photo_url}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">`
+                        : `<div style="width:60px; height:60px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800;">${data.name.charAt(0)}</div>`;
+
+                    htmlProfil += `
+                    <div class="card" style="display:flex; flex-direction:column; gap:15px;">
+                        <div style="display:flex; gap:15px; align-items:center;">
+                            ${avatar}
+                            <div style="flex:1;">
+                                <h3 style="margin:0; color:var(--ink); font-size:18px;">${data.name}</h3>
+                                <p style="margin:0; color:var(--muted); font-size:13px; font-weight:700;">
+                                    ${data.relationship.toUpperCase()} ${data.dob ? '· Lahir: ' + data.dob : ''}
+                                </p>
+                            </div>
+                            <button class="ghost" style="width:auto; padding:8px 15px; font-size:13px;" onclick="bukaModalKesihatan('${docSnap.id}', '${data.name}')">Kemaskini Kesihatan</button>
+                        </div>
+                        
+                        <div style="background:var(--bg-color); padding:12px; border-radius:8px; border:1px dashed var(--line); display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:13px;">
+                            <div><strong style="color:var(--secondary);">Darah:</strong> ${hData.blood_type || '-'}</div>
+                            <div><strong style="color:var(--danger);">Alahan:</strong> ${hData.allergies || '-'}</div>
+                            <div style="grid-column: span 2;"><strong style="color:var(--accent);">Penyakit:</strong> ${hData.chronic || '-'}</div>
+                            <div style="grid-column: span 2;"><strong style="color:var(--primary);">Klinik/Pakar:</strong> ${hData.hospital || '-'} (${hData.doctor || '-'})</div>
+                        </div>
+                    </div>`;
+                }
+            }
+
+            if (!adaIbuBapa) {
+                htmlProfil = `<div class="empty">Sila daftar rekod Ayah atau Ibu di <b>myNasab</b> terlebih dahulu. Data akan muncul di sini secara automatik.</div>`;
+            }
+
+            document.getElementById('ruangProfilIbuBapa').innerHTML = htmlProfil;
+
+        } catch (error) {
+            console.error("Gagal muat profil hibrid:", error);
+        }
+    }
+
+    // FUNGSI KAWALAN MODAL KESIHATAN
+    window.bukaModalKesihatan = async (idNod, nama) => {
+        document.getElementById('tajukModalKesihatan').innerText = "Kesihatan: " + nama;
+        document.getElementById('editKesihatanId').value = idNod;
+        
+        // Kosongkan form
+        document.getElementById('kBlood').value = "";
+        document.getElementById('kChronic').value = "";
+        document.getElementById('kAllergy').value = "";
+        document.getElementById('kHospital').value = "";
+        document.getElementById('kDoctor').value = "";
+
+        // Muat data sedia ada jika ada
+        const healthDoc = await getDoc(doc(db, "wecare_health_profiles", idNod));
+        if (healthDoc.exists()) {
+            const d = healthDoc.data();
+            document.getElementById('kBlood').value = d.blood_type || "";
+            document.getElementById('kChronic').value = d.chronic || "";
+            document.getElementById('kAllergy').value = d.allergies || "";
+            document.getElementById('kHospital').value = d.hospital || "";
+            document.getElementById('kDoctor').value = d.doctor || "";
+        }
+
+        document.getElementById('modalKesihatan').classList.remove('hidden');
+    }
+
+    window.tutupModalKesihatan = () => {
+        document.getElementById('modalKesihatan').classList.add('hidden');
+    }
+
+    window.simpanProfilKesihatan = async () => {
+        const idNod = document.getElementById('editKesihatanId').value;
+        const dataUpdate = {
+            blood_type: document.getElementById('kBlood').value,
+            chronic: document.getElementById('kChronic').value.trim(),
+            allergies: document.getElementById('kAllergy').value.trim(),
+            hospital: document.getElementById('kHospital').value.trim(),
+            doctor: document.getElementById('kDoctor').value.trim(),
+            updated_by: auth.currentUser.uid,
+            updated_at: new Date()
+        };
+
+        try {
+            await setDoc(doc(db, "wecare_health_profiles", idNod), dataUpdate, { merge: true });
+            alert("Rekod kesihatan berjaya dikemas kini!");
+            tutupModalKesihatan();
+            muatProfilIbuBapa(auth.currentUser.uid); // Refresh profil
+        } catch (error) {
+            alert("Ralat menyimpan data: " + error.message);
+        }
+    }
+
+    
     // 6. MUAT TURUN AHLI KUMPULAN
     async function muatAhliKeluarga(groupId) {
         const q = query(collection(db, "wecare_users"), where("group_id", "==", groupId));
