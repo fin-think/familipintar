@@ -490,9 +490,15 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         } catch (error) {
             console.error("Ralat muat data:", error);
         } 
-        // KITA BUANG window.showApp() DI SINI SUPAYA INTRO TAK HILANG AUTOMATIK
+        
+        // SEMAK URL: Jika datang dari butang Kembali (ada ?bahagian=utama)
+        // Kita terus panggil showApp() supaya data timeline & mangga (lock) dilukis dengan sempurna!
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('bahagian') === 'utama') {
+            window.showApp();
+        }
     }
-
+      
     // TAMBAH FUNGSI BARU INI UNTUK BUTANG MASUK
     window.masukJurnal = () => {
         if (penggunaSemasa) {
@@ -974,30 +980,6 @@ document.addEventListener("DOMContentLoaded", loadQuestion);
     </div>
 </div>
 
-<script>    
-async function muatDataPengguna() {
-        try {
-            const snap = await getDoc(doc(db, "mynasab_users", penggunaSemasa.uid));
-            if (snap.exists()) {
-                const data = snap.data();
-                bakiKredit = data.credit_balance || 0;
-                modulTerbuka = data.jurnal_unlocked || []; 
-                
-                document.getElementById('displayKredit').innerText = bakiKredit;
-                document.getElementById('userDisplay').innerText = data.name || "Pengguna";
-            }
-        } catch (error) {
-            console.error("Ralat muat data:", error);
-        } 
-        
-        // SEMAK URL: Jika datang dari butang Kembali (ada ?bahagian=utama)
-        // Kita terus panggil showApp() supaya data timeline & mangga (lock) dilukis dengan sempurna!
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('bahagian') === 'utama') {
-            window.showApp();
-        }
-    }
-</script>
-    
+
 </body>
 </html>
