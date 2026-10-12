@@ -179,24 +179,48 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
                 created_at: new Date()
             });
 
-            // --- KOD BARU: AUTO-SALIN LELUHUR DARI PENGUNDANG (DISEMPURNAKAN) ---
+            // 🧬 FUNGSI AUTO-SALIN IBUBAPA & LELUHUR DARI PENGUNDANG (DIBETULKAN PIVOT)
             try {
                 const qLeluhur = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", jem.owner_uid));
                 const snapLeluhur = await getDocs(qLeluhur);
                 
                 let idMapping = {}; 
                 let senaraiSalin = [];
+                let nodesLama = [];
                 
-                // 1. Tapis Ibu Bapa dan leluhur ke atas
-                snapLeluhur.forEach((docSnap) => {
-                    const dataLama = docSnap.data();
-                    const hub = (dataLama.relationship || '').toLowerCase();
-                    if (hub.match(/ayah|ibu|bapa|datuk|nenek|moyang|buyut|cakawari|cilawagi/)) {
-                        senaraiSalin.push({ idLama: docSnap.id, data: dataLama });
-                    }
-                });
+                // Simpan semua data lama dalam memori dulu
+                snapLeluhur.forEach(d => nodesLama.push({ idLama: d.id, data: d.data() }));
                 
-                // 2. Salin ke akun baru (Adi)
+                // 1. CARI IDENTITI PENGUNDANG SEBENAR (AWI ATAU ANIS?)
+                const sasaranNode = nodesLama.find(n => n.idLama === jem.sasaran_id);
+                const sasaranRel = sasaranNode ? (sasaranNode.data.relationship || '').toLowerCase() : '';
+                
+                if (sasaranRel.includes('suami') || sasaranRel.includes('isteri')) {
+                    // KES 1: Anis (Isteri) yang jemput Adi. 
+                    // Kita kena tarik Mertua Awi, dan ubah status jadi Mak/Ayah Adi.
+                    nodesLama.forEach((n) => {
+                        let hub = (n.data.relationship || '').toLowerCase();
+                        if (hub.includes('mertua')) {
+                            // Pastikan mertua ini memang terikat pada Anis
+                            if (!n.data.ref_id || n.data.ref_id === jem.sasaran_id) {
+                                let newHub = hub.includes('bapa') ? 'Ayah' : 'Ibu';
+                                // Ubah 'Bapa Mertua' jadi 'Ayah' sebelum salin
+                                senaraiSalin.push({ idLama: n.idLama, data: { ...n.data, relationship: newHub } });
+                            }
+                        }
+                    });
+                } else {
+                    // KES 2: Awi (Induk) yang jemput adik dia. 
+                    // Tarik leluhur Awi macam biasa.
+                    nodesLama.forEach((n) => {
+                        let hub = (n.data.relationship || '').toLowerCase();
+                        if (hub.match(/ayah|ibu|bapa|datuk|nenek|moyang|buyut|cakawari|cilawagi/)) {
+                            senaraiSalin.push({ idLama: n.idLama, data: n.data });
+                        }
+                    });
+                }
+                
+                // 2. Salin data yang dah ditapis ke akaun baru (Adi)
                 for (let item of senaraiSalin) {
                     const docRef = await addDoc(collection(db, "mynasab_nodes"), {
                         ...item.data,
@@ -207,28 +231,25 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
                     idMapping[item.idLama] = docRef.id;
                 }
                 
-                // 3. Perbaiki Ikatan (ref_id) agar tersambung di pohon
+                // 3. Perbaiki Ikatan (ref_id)
                 for (let lama in idMapping) {
                     const baruId = idMapping[lama];
-                    const asal = senaraiSalin.find(x => x.idLama === lama).data;
+                    const asal = nodesLama.find(x => x.idLama === lama).data; // Rujuk fail asal untuk ref_id lama
                     
                     let newRef = asal.ref_id || ""; 
                     const refPengundang = "root_" + jem.owner_uid;
                     const refSasaran = "root_" + jem.sasaran_id;
                     
-                    // Jika sebelumnya terikat ke Pengundang atau Sasaran, ikat langsung ke "Diri Sendiri" pengguna baru
+                    // Ikat pada Adi (Induk baharu)
                     if ([refPengundang, refSasaran, jem.owner_uid, jem.sasaran_id].includes(asal.ref_id)) {
                         newRef = "root_" + user.uid; 
-                    } 
-                    // Jika terikat ke datuk/nenek, ikat ke datuk/nenek yang baru disalin
-                    else if (asal.ref_id && idMapping[asal.ref_id]) {
+                    } else if (asal.ref_id && idMapping[asal.ref_id]) {
                         newRef = idMapping[asal.ref_id]; 
                     }
                     
                     await updateDoc(doc(db, "mynasab_nodes", baruId), { ref_id: newRef });
                 }
             } catch(e) { console.warn("Gagal auto-salin leluhur", e); }
-            // ---------------------------------------------------------
         }
         
         alert(jem
