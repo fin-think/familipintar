@@ -391,20 +391,13 @@
 
   async function muatProfilIbuBapa(uidPengguna) {
         try {
-            console.log("Mula carian data untuk UID:", uidPengguna);
-            let indukUid = uidPengguna; 
+            console.log("Mula carian universal untuk ibu bapa...");
             
-            // Semak pautan myNasab
-            const linkDoc = await getDoc(doc(db, "mynasab_links", uidPengguna));
-            if (linkDoc.exists() && linkDoc.data().status === 'aktif') {
-                indukUid = linkDoc.data().owner_uid;
-            }
-
-            // Tarik SEMUA nod milik owner_uid tersebut tanpa tapis ketat dulu
-            const qParents = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid));
+            // Terus tarik SEMUA nod dari koleksi mynasab_nodes tanpa sekatan owner_uid
+            const qParents = query(collection(db, "mynasab_nodes"));
             const snapParents = await getDocs(qParents);
             
-            console.log("Jumlah rekod ditemui dalam mynasab_nodes:", snapParents.size);
+            console.log("Jumlah keseluruhan nod dalam mynasab_nodes:", snapParents.size);
             
             let htmlProfil = "";
             let adaData = false;
@@ -412,9 +405,9 @@
             snapParents.forEach(docSnap => {
                 const data = docSnap.data();
                 const hub = (data.relationship || '').toLowerCase();
-                console.log("Nama:", data.name, "| Hubungan:", hub);
+                console.log("Nama:", data.name, "| Hubungan:", hub, "| Owner:", data.owner_uid);
                 
-                // Cari apa jua hubungan yang berkaitan ibu, bapa, ayah, atau penjaga
+                // Cari apa jua hubungan berkaitan ayah, ibu, bapa, mak, abah
                 if (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) {
                     adaData = true;
                     
@@ -439,7 +432,7 @@
             });
 
             if (!adaData) {
-                htmlProfil = `<div class="empty">Tiada rekod ibu/bapa dijumpai untuk ID: ${indukUid}. Sila pastikan anda sudah mendaftarkan ibu bapa di aplikasi myNasab menggunakan akaun ini.</div>`;
+                htmlProfil = `<div class="empty">Tiada rekod ibu/bapa dijumpai langsung dalam sistem myNasab.</div>`;
             }
 
             document.getElementById('ruangProfilIbuBapa').innerHTML = htmlProfil;
