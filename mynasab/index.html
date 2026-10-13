@@ -271,7 +271,92 @@
     border-left: 1px solid #a0a0a0; z-index: 1; transform: translateX(-50%);
 }
 
+/* --- LESTARI DAN KEMAS UNTUK SKRIN TELEFON (MOBILE) --- */
+@media (max-width: 768px) {
+    
+    /* 1. Kurangkan padding container tepi */
+    .dashboard-container {
+        padding: 0 12px !important;
+        margin: 15px 0 !important;
+        grid-template-columns: 1fr !important; /* Semua pilar disusun 1 baris menegak */
+        gap: 15px !important;
+    }
 
+    /* 2. Selaraskan Top Bar (Header) supaya tak bertindih */
+    .top-bar {
+        padding: 10px 15px !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+    }
+    
+    .logo {
+        font-size: 18px !important;
+    }
+
+    .user-menu {
+        gap: 8px !important;
+    }
+
+    .wallet-badge {
+        font-size: 12px !important;
+        padding: 4px 10px !important;
+    }
+
+    .btn-logout {
+        padding: 4px 8px !important;
+        font-size: 12px !important;
+    }
+
+    /* 3. Jadual Ahli Boleh Di-scroll Secara Horizontal Tanpa Pecahkan Layout */
+    .main-panel {
+        width: 100% !important;
+        overflow-x: auto !important; /* Tambah tatalan mendatar jika jadual panjang */
+    }
+
+    .member-list {
+        min-width: 500px !important; /* Pastikan teks jadual tak terhimpit rapat */
+        font-size: 13px !important;
+    }
+
+    .member-list th, .member-list td {
+        padding: 10px 8px !important;
+    }
+
+    /* 4. Modal Pop-up (Skrin Pengenalan / Edit) Kemas Di Tengah Phone */
+    .modal-box {
+        width: 92% !important;
+        padding: 20px 15px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+    }
+
+    /* 5. Modal Preview Pokok Keluarga (Boleh Zum / Pan) */
+    .modal-preview-box {
+        padding: 10px !important;
+    }
+
+    .kertas-cetakan {
+        padding: 15px 10px !important;
+    }
+
+    /* Saiz kad pokok diisi lebih ringkas pada telefon */
+    .mh-card {
+        width: 150px !important; /* Kotak jadi comel sikit di mobile */
+        height: 50px !important;
+    }
+
+    .mh-avatar {
+        width: 35px !important;
+    }
+
+    .mh-name {
+        font-size: 11px !important;
+    }
+
+    .mh-info {
+        font-size: 9px !important;
+    }
+}
        
     </style>
 </head>
