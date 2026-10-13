@@ -31,8 +31,39 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        .app { max-width: 720px; margin: 0 auto; min-height: 100vh; background: var(--bg-color); box-shadow: 0 0 20px rgba(0,0,0,0.02); }
+      .app { 
+    max-width: 1280px; /* Kelebaran standard max-w-7xl */
+    margin: 0 auto; 
+    padding: 24px 16px; /* Meniru px-4 sm:px-6 lg:px-8 */
+    min-height: 100vh; 
+    background: var(--bg-color); 
+}
 
+@media (min-width: 640px) {
+    .app { padding-left: 24px; padding-right: 24px; }
+}
+
+@media (min-width: 1024px) {
+    .app { padding-left: 32px; padding-right: 32px; }
+}
+
+@media (min-width: 768px) {
+    /* Menjadikan ruangan Kalendar, Ubat & Nota kepada 2 kolum bila skrin besar */
+    #calendar.panel, #meds.panel, #team.panel {
+        display: none;
+    }
+    #calendar.panel.active, #meds.panel.active, #team.panel.active {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    /* Header tajuk ambil selebar 2 kolum */
+    .section-title, .section-sub {
+        grid-column: 1 / -1;
+    }
+}
+        
         /* HEADER */
         .topbar {
             padding: 20px;
