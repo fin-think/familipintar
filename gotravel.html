@@ -28,8 +28,48 @@
     pointer-events: none; z-index: 0;
   }
 
-  .container { max-width: 600px; margin: 0 auto; padding: 16px 12px 80px; position: relative; z-index: 1; }
+ /* --- KONFIGURASI LEBAR PENUH & GRID ANJAL (SAMA SEPERTI WECARE) --- */
+  .container { 
+    max-width: 1280px; /* Kelebaran standard max-w-7xl */
+    margin: 0 auto; 
+    padding: 24px 16px 80px; 
+    position: relative; 
+    z-index: 1; 
+  }
 
+  /* Susunan Grid 2 Kolum untuk Skrin Besar (Tablet & Desktop) */
+  @media (min-width: 768px) {
+    .container {
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+
+    /* Membahagikan kandungan utama kepada 2 kolum utama */
+    .main-grid-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* Pengepala & Undur detik mengambil lebar penuh */
+    .header, .countdown-banner {
+      grid-column: 1 / -1;
+    }
+
+    /* Ringkasan Bajet mengambil lebar penuh di bahagian bawah */
+    .budget-summary {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 32px;
+      padding-right: 32px;
+    }
+  }
+  
   /* Pengepala */
   .header { text-align: center; padding: 10px 0 20px; }
   .header h1 {
@@ -187,16 +227,17 @@
 </head>
 <body>
 
-<div id="toast">✅ Disimpan!</div>
+<div id="toast" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #333; color: white; padding: 12px 24px; border-radius: 99px; font-weight: 800; font-size: 0.85rem; z-index: 9999; transition: transform 0.3s; white-space: nowrap;">✅ Disimpan!</div>
 
 <div class="container">
 
+  <!-- Pengepala Utama -->
   <div class="header">
     <h1>✈️ Perancang Percutian</h1>
     <p>Rancang & Kira Bajet Dalam Satu App!</p>
   </div>
 
-  <!-- Undur Detik -->
+  <!-- Undur Detik (Kelebaran Penuh) -->
   <div class="countdown-banner">
     <div class="cd-header-wrap">
       <div class="cd-icon">🗓️</div>
@@ -214,95 +255,110 @@
     <button class="alarm-btn" id="alarm-toggle-btn" onclick="toggleAlarm()">🔔 Tetapkan Penggera Berlepas</button>
   </div>
 
-  <!-- Maklumat Trip -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title-wrap">
-        <div class="card-icon bg-coral">🏖️</div>
-        <h2>Maklumat Perjalanan</h2>
-      </div>
-    </div>
-    <div class="form-grid">
-      <div class="field">
-        <label>Nama Perjalanan</label>
-        <input type="text" id="trip-name" placeholder="cth. Percutian Bali 🌺" oninput="updateAll()">
-      </div>
-      <div class="field">
-        <label>Destinasi Utama</label>
-        <input type="text" id="destination" placeholder="cth. Bali, Indonesia 🇮🇩" oninput="updateAll()">
-      </div>
-      <div class="grid-2-col">
-        <div class="field">
-          <label>Tarikh Pergi</label>
-          <input type="date" id="date-go" onchange="updateAll()">
-        </div>
-        <div class="field">
-          <label>Tarikh Balik</label>
-          <input type="date" id="date-back" onchange="updateAll()">
-        </div>
-      </div>
-    </div>
+  <!-- CONTAINER GRID UTAMA (2 KOLUM DI DESKTOP / 1 KOLUM DI MOBILE) -->
+  <div class="main-grid-layout">
     
-    <button class="btn-cal" onclick="syncCalendar()">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" width="18">
-      Simpan ke Google Calendar
-    </button>
-  </div>
+    <!-- KOLUM KIRI -->
+    <div class="left-column">
+      
+      <!-- Maklumat Trip -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-wrap">
+            <div class="card-icon bg-coral">🏖️</div>
+            <h2>Maklumat Perjalanan</h2>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Nama Perjalanan</label>
+            <input type="text" id="trip-name" placeholder="cth. Percutian Bali 🌺" oninput="updateAll()">
+          </div>
+          <div class="field">
+            <label>Destinasi Utama</label>
+            <input type="text" id="destination" placeholder="cth. Bali, Indonesia 🇮🇩" oninput="updateAll()">
+          </div>
+          <div class="grid-2-col">
+            <div class="field">
+              <label>Tarikh Pergi</label>
+              <input type="date" id="date-go" onchange="updateAll()">
+            </div>
+            <div class="field">
+              <label>Tarikh Balik</label>
+              <input type="date" id="date-back" onchange="updateAll()">
+            </div>
+          </div>
+        </div>
+        
+        <button class="btn-cal" onclick="syncCalendar()">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" width="18" alt="Google Calendar">
+          Simpan ke Google Calendar
+        </button>
+      </div>
 
-  <!-- Penginapan -->
-  <div class="card">
-    <div class="card-header">
-        <div class="card-title-wrap">
+      <!-- Pengangkutan -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-wrap">
+            <div class="card-icon bg-peach">🚗</div>
+            <h2>Pengangkutan</h2>
+          </div>
+          <button onclick="toggleSettings()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">⚙️</button>
+        </div>
+
+        <!-- Panel Tetapan Kos Minyak -->
+        <div id="settings-panel" class="settings-panel">
+          <div class="field">
+            <label>Kadar Kos Minyak + Tol (RM per KM)</label>
+            <div class="input-prefix"><span>RM</span><input type="number" id="fuel-rate" value="0.35" step="0.05" oninput="updateSummary()"></div>
+            <p style="font-size:0.65rem; color:#888; margin-top:4px;">*Auto-kira kos berdasarkan jarak KM jika mod Kereta dipilih.</p>
+          </div>
+        </div>
+
+        <div id="transport-list"></div>
+        <button class="add-row-btn" onclick="addTransport()">➕ Tambah Laluan</button>
+      </div>
+
+    </div> <!-- PENATAP KOLUM KIRI -->
+
+    <!-- KOLUM KANAN -->
+    <div class="right-column">
+      
+      <!-- Penginapan -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-wrap">
             <div class="card-icon bg-sky">🏨</div>
             <h2>Penginapan</h2>
+          </div>
         </div>
-    </div>
-    
-    <div class="action-buttons">
-      <button class="btn-book agoda" onclick="openBooking('agoda')">Cari Hotel di Agoda</button>
-      <button class="btn-book booking" onclick="openBooking('booking')">Cari di Booking.com</button>
-    </div>
+        
+        <div class="action-buttons">
+          <button class="btn-book agoda" onclick="openBooking('agoda')">Cari Hotel di Agoda</button>
+          <button class="btn-book booking" onclick="openBooking('booking')">Cari di Booking.com</button>
+        </div>
 
-    <div id="accom-list"></div>
-    <button class="add-row-btn" onclick="addAccom()">➕ Tambah Penginapan</button>
-  </div>
-
-  <!-- Pengangkutan -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title-wrap">
-        <div class="card-icon bg-peach">🚗</div>
-        <h2>Pengangkutan</h2>
+        <div id="accom-list"></div>
+        <button class="add-row-btn" onclick="addAccom()">➕ Tambah Penginapan</button>
       </div>
-      <button onclick="toggleSettings()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">⚙️</button>
-    </div>
 
-    <!-- Panel Tetapan Kos Minyak -->
-    <div id="settings-panel" class="settings-panel">
-      <div class="field">
-        <label>Kadar Kos Minyak + Tol (RM per KM)</label>
-        <div class="input-prefix"><span>RM</span><input type="number" id="fuel-rate" value="0.35" step="0.05" oninput="updateSummary()"></div>
-        <p style="font-size:0.65rem; color:#888; margin-top:4px;">*Auto-kira kos berdasarkan jarak KM jika mod Kereta dipilih.</p>
-      </div>
-    </div>
-
-    <div id="transport-list"></div>
-    <button class="add-row-btn" onclick="addTransport()">➕ Tambah Laluan</button>
-  </div>
-
-  <!-- Lain-lain -->
-  <div class="card">
-    <div class="card-header">
-        <div class="card-title-wrap">
+      <!-- Lain-lain -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-wrap">
             <div class="card-icon bg-lavender">🎒</div>
             <h2>Lain-lain</h2>
+          </div>
         </div>
-    </div>
-    <div id="misc-list"></div>
-    <button class="add-row-btn" onclick="addMisc()">➕ Tambah Item Bajet</button>
-  </div>
+        <div id="misc-list"></div>
+        <button class="add-row-btn" onclick="addMisc()">➕ Tambah Item Bajet</button>
+      </div>
 
-  <!-- Ringkasan Bajet -->
+    </div> <!-- PENATAP KOLUM KANAN -->
+
+  </div> <!-- PENATAP BEKAS GRID UTAMA -->
+
+  <!-- Ringkasan Bajet (Kelebaran Penuh Di Bahagian Bawah) -->
   <div class="budget-summary">
     <h2>💰 Ringkasan Keseluruhan</h2>
     <div class="budget-rows">
