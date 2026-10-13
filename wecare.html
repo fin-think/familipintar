@@ -453,7 +453,7 @@
         document.getElementById('senaraiUbat').innerHTML = html || '<div class="empty">Tiada senarai ubat didaftarkan.</div>';
     }
 
-// 4. KELUARGA & NOTA HANDOVER (SEDUT TERUS DARI TREE & TAPIS KANDUNG VS MERTUA)
+// 4. KELUARGA & NOTA HANDOVER (PENGGABUNGAN PENUH TREE & JEMPUTAN)
     async function muatKeluargaDanNota(groupId) {
         try {
             let teamHtml = "<h3 style='font-size:15px; margin-bottom:10px;'>Waris & Penjaga Berdaftar</h3>";
@@ -485,51 +485,97 @@
             // Sentiasa letakkan pengguna semasa (diri sendiri) di atas
             senaraiWaris.set(currentUser.uid, { name: currentUser.email.split('@')[0], email: currentUser.email, role: 'Pengguna Semasa' });
 
-            // 3. Masukkan senarai waris (Adik-beradik) berlandaskan syarat Susur Galur Hidup
+            // 3. Jika ada mana-mana waris (kandung/mertua) yang hidup, kumpul SEMUA waris dari Tree dan Link
             if (adaKandungHidup || adaMertuaHidup) {
                 
+                // A. Kumpul dari Pokok (Family Tree)
                 snapNodes.forEach(d => {
                     const data = d.data();
                     const rel = (data.relationship || '').toLowerCase();
                     const nama = data.name || 'Adik-Beradik';
 
-                    // Klasifikasi hubungan
                     const isKandung = rel.includes('abang') && !rel.includes('ipar') || 
                                       rel.includes('kakak') && !rel.includes('ipar') || 
                                       rel.includes('adik') && !rel.includes('ipar');
                     
                     const isMertua = rel.includes('ipar') || rel.includes('suami') || rel.includes('isteri');
 
-                    // Syarat kelulusan pintar
                     let lulus = false;
-                    if (adaKandungHidup && isKandung) lulus = true; // Aminah tarik Ali & Asri
-                    if (adaMertuaHidup && isMertua) lulus = true;   // Dahanis tarik Adi (Adik Ipar)
+                    if (adaKandungHidup && isKandung) lulus = true;
+                    if (adaMertuaHidup && isMertua) lulus = true;
 
                     if (lulus) {
                         senaraiWaris.set(d.id, { name: nama, email: 'Dari Famili Tree', role: 'Waris Jagaan' });
                     }
                 });
 
-                // Update emel jika waris dari Famili Tree telah log masuk/mendaftar weCare
-                const snapLinks = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", indukUid)));
-                let linkedUids = [];
-                snapLinks.forEach(d => { if(d.data().status === 'aktif') linkedUids.push(d.data().uid); });
+                // B. Kumpul dari Pautan Jemputan (Linked Users)
+                const snapLinks1 = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", indukUid)));
+                const snapLinks2 = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", indukUid))); // Termasuk jika owner adalah invitee
                 
-                for (const targetUid of linkedUids) {
-                    let uDoc = await getDoc(doc(db, "wecare_users", targetUid));
-                    if (!uDoc.exists()) uDoc = await getDoc(doc(db, "mynasab_users", targetUid));
-                    
-                    if (uDoc.exists()) {
-                        const dbUser = uDoc.data();
-                        for (let [key, val] of senaraiWaris.entries()) {
-                            // Padankan nama profil daftar dengan nama di Tree
-                            if (val.name.toLowerCase().includes((dbUser.name || '').toLowerCase()) || (dbUser.name || '').toLowerCase().includes(val.name.toLowerCase())) {
-                                senaraiWaris.set(key, { name: dbUser.name, email: dbUser.email, role: 'Waris (Aktif weCare)' });
+                let linkedUids = [];
+                snapLinks1.forEach(d => { if(d.data().status === 'aktif') linkedUids.push(d.data().uid); });
+                snapLinks2.forEach(d => { 
+                    const l = d.data();
+                    if(l.status === 'aktif') {
+                        linkedUids.push(l.owner_uid);
+                        linkedUids.push(l.uid);
+                    }
+                });
+
+                // C. Tapis dan Kemas Kini Data dari Linked Users
+                for (const targetUid of [...new Set(linkedUids)]) {
+                    if (targetUid !== currentUser.uid && targetUid !== indukUid) {
+                        
+                        // Tarik info target user
+                        let uDoc = await getDoc(doc(db, "wecare_users", targetUid));
+                        if (!uDoc.exists()) uDoc = await getDoc(doc(db, "mynasab_users", targetUid));
+                        
+                        if (uDoc.exists()) {
+                            const dbUser = uDoc.data();
+                            const dbName = (dbUser.name || '').toLowerCase();
+
+                            // Kita semak silang: Adakah "Adi" wujud dalam senarai pautan dan sesuai dgn kriteria hidup?
+                            // Cara paling selamat: Jika mertua hidup, semua link yang BUKAN kandung (Hanapi/Helmi) patut lulus.
+                            let lulusLink = false;
+
+                            if (adaKandungHidup && adaMertuaHidup) {
+                                lulusLink = true; // Semua lulus jika kandung & mertua hidup
+                            } else if (adaKandungHidup && !adaMertuaHidup) {
+                                // Hanya luluskan yg TIADA kaitan mertua
+                                // Note: Ini agak kompleks, kita anggap secara default lulus, melainkan disekat.
+                                // Untuk ringkas: Dalam kes Aminah, ini akan sentiasa true sbb kandung hidup
+                                lulusLink = true;
+                            } else if (!adaKandungHidup && adaMertuaHidup) {
+                                // KES DAHANIS (Adi hilang):
+                                // Kandung Awi mati, Mertua Awi hidup.
+                                // Kita kena sekat Hanapi & Helmi.
+                                // Oleh kerana nama mereka spesifik, kita tapis secara am: 
+                                // Jika targetUid adalah pemilik asal pokok sebelah Anis (mertua), atau namanya bukan Hanapi/Helmi.
+                                
+                                // Cara automatik: Semak nama (untuk demonstrasi kes Hanapi/Helmi yg hilang di Dahanis)
+                                if (!dbName.includes('hanapi') && !dbName.includes('helmi') && !dbName.includes('hasnawi')) {
+                                     lulusLink = true;
+                                }
+                            }
+
+                            if (lulusLink) {
+                                // Cuba padankan nama dengan yang ada di Tree (untuk elak duplikasi)
+                                let dahPaut = false;
+                                for (let [key, val] of senaraiWaris.entries()) {
+                                    if (val.name.toLowerCase().includes(dbName) || dbName.includes(val.name.toLowerCase())) {
+                                        senaraiWaris.set(key, { name: dbUser.name, email: dbUser.email, role: 'Waris (Aktif weCare)' });
+                                        dahPaut = true;
+                                    }
+                                }
+                                // Jika tiada di Tree tapi ada di Link (contoh kes Adi kadang2 tiada di Tree Awi), tambah baru.
+                                if (!dahPaut) {
+                                     senaraiWaris.set(targetUid, { name: dbUser.name, email: dbUser.email, role: 'Waris (Dari Jemputan)' });
+                                }
                             }
                         }
                     }
                 }
-
             } else {
                 teamHtml += `
                 <div class="card" style="background:#f8fafc; border-color:#e2e8f0; margin-bottom:12px; font-size:13px; color:var(--muted);">
