@@ -322,43 +322,118 @@
         }
     });
 
-// 1. PROFIL IBU BAPA (Cari Induk UID dengan Tepat untuk Waris Jemputan)
+// 1. PROFIL IBU BAPA (GABUNGAN POKOK INDUK & POKOK SENDIRI UNTUK MERTUA)
     async function muatProfilIbuBapa(uidPengguna) {
-        // Dapatkan Induk (Owner Tree) jika pengguna ini adalah adik-beradik yang dijemput
-        let indukUid = uidPengguna;
-        const snapMyLink = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", uidPengguna), where("status", "==", "aktif")));
-        snapMyLink.forEach(d => { indukUid = d.data().owner_uid; });
+        try {
+            // 1. Dapatkan Induk (Owner Tree)
+            let indukUid = uidPengguna;
+            let isInvitee = false;
+            const snapMyLink = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", uidPengguna), where("status", "==", "aktif")));
+            snapMyLink.forEach(d => { 
+                indukUid = d.data().owner_uid; 
+                isInvitee = true;
+            });
 
-        const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
-        let html = "";
+            // 2. Jika yang log masuk tu Invitee, kenal pasti pihak dia (Kandung vs Mertua) dalam pokok Induk
+            let pihakInvitee = "semua"; 
+            if (isInvitee) {
+                let myName = "";
+                let uDoc = await getDoc(doc(db, "wecare_users", uidPengguna));
+                if (!uDoc.exists()) uDoc = await getDoc(doc(db, "mynasab_users", uidPengguna));
+                if (uDoc.exists()) myName = (uDoc.data().name || '').toLowerCase().trim();
 
-        snap.forEach(docSnap => {
-            const d = docSnap.data();
-            const hub = (d.relationship || '').toLowerCase();
-            if (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) {
+                const snapAllNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
+                snapAllNodes.forEach(n => {
+                    const nodeName = (n.data().name || '').toLowerCase();
+                    const rel = (n.data().relationship || '').toLowerCase();
+                    
+                    let isMatch = false;
+                    if (myName === nodeName) isMatch = true;
+                    else if (myName.length > 2 && nodeName.includes(myName)) isMatch = true;
+                    else {
+                        let words = myName.split(" ").filter(w => w.length > 3);
+                        for (let w of words) { if (nodeName.includes(w)) isMatch = true; }
+                    }
+
+                    if (isMatch) {
+                        if (rel.includes('ipar')) pihakInvitee = "mertua";
+                        else if (rel.includes('abang') || rel.includes('kakak') || rel.includes('adik')) pihakInvitee = "kandung";
+                    }
+                });
+            }
+
+            let html = "";
+            let dipaparkan = new Set(); // Untuk elak duplikasi jika nama yang sama ada dalam kedua-dua pokok
+
+            // Fungsi render kad 
+            const renderKad = (id, d, paparanHubungan) => {
+                const namaKey = (d.name || '').toLowerCase().trim();
+                if (dipaparkan.has(namaKey)) return ""; // Elak render dua kali
+                dipaparkan.add(namaKey);
+
                 const isDecedent = d.status === 'meninggal';
-                
                 const avatar = d.photo_url 
                     ? `<img src="${d.photo_url}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">`
                     : `<div style="width:60px; height:60px; border-radius:50%; background:${isDecedent?'#94a3b8':'var(--primary)'}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800;">${(d.name || '?').charAt(0)}</div>`;
 
-                html += `
+                return `
                 <div class="card ${isDecedent?'decedent':''}" style="display:flex; flex-direction:column; gap:12px;">
                     <div style="display:flex; gap:15px; align-items:center;">
                         ${avatar}
                         <div style="flex:1;">
                             <h3 style="margin:0; color:var(--ink); font-size:18px;">${d.name}</h3>
                             <p style="margin:2px 0 0; color:var(--muted); font-size:13px; font-weight:700;">
-                                ${d.relationship || 'Keluarga'} ${d.dob ? '· Lahir: ' + d.dob : ''}
+                                ${paparanHubungan} ${d.dob ? '· Lahir: ' + d.dob : ''}
                             </p>
                             <div>${isDecedent ? '<span class="badge-decedent">🕊️ Meninggal Dunia</span>' : '<span class="badge-alive">🟢 Masih Hidup</span>'}</div>
                         </div>
-                        ${!isDecedent ? `<button class="ghost" style="width:auto; padding:8px 12px; font-size:12px;" onclick="bukaModalKesihatan('${docSnap.id}', '${d.name}')">Kemaskini</button>` : ''}
+                        ${!isDecedent ? `<button class="ghost" style="width:auto; padding:8px 12px; font-size:12px;" onclick="bukaModalKesihatan('${id}', '${d.name}')">Kemaskini</button>` : ''}
                     </div>
                 </div>`;
+            };
+
+            // 3. Tarik dari Pokok Induk (Cth: Tarik Asmah & Mohd Saad dari pokok Awi untuk Adi)
+            const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
+            snapInduk.forEach(docSnap => {
+                const d = docSnap.data();
+                const hub = (d.relationship || '').toLowerCase();
+                const isMertuaNode = hub.includes('mertua');
+                const isKandungNode = (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) && !isMertuaNode;
+
+                let letak = false;
+                if (isMertuaNode || isKandungNode) {
+                    if (pihakInvitee === "semua") letak = true;
+                    else if (pihakInvitee === "mertua" && isMertuaNode) letak = true;
+                    else if (pihakInvitee === "kandung" && isKandungNode) letak = true;
+                }
+
+                if (letak) {
+                    let paparanHubungan = d.relationship || 'Keluarga';
+                    if (isInvitee && pihakInvitee === "mertua" && isMertuaNode) {
+                        paparanHubungan = paparanHubungan.replace(/Mertua/ig, '').trim() + " (Ibu/Bapa Anda)";
+                    }
+                    html += renderKad(docSnap.id, d, paparanHubungan);
+                }
+            });
+
+            // 4. Tarik dari Pokok Sendiri (Cth: Tarik mertua Adi sendiri dari pangkalan datanya)
+            // Sistem hanya semak jika pengguna adalah invitee dan ada UID berbeza
+            if (isInvitee && uidPengguna !== indukUid) {
+                const snapSendiri = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna)));
+                snapSendiri.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const hub = (d.relationship || '').toLowerCase();
+                    // Tarik mana-mana yang berstatus ibu/bapa/mertua
+                    if (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah') || hub.includes('mertua')) {
+                        html += renderKad(docSnap.id, d, d.relationship);
+                    }
+                });
             }
-        });
-        document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty">Tiada rekod ibu bapa dikesan.</div>';
+
+            document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty">Tiada rekod ibu bapa dikesan untuk paparan anda.</div>';
+        } catch(e) {
+            console.error("Ralat Profil:", e);
+        }
     }
     
     // 2. KALENDAR & SYIF JAGAAN + GOOGLE CALENDAR
