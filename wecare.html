@@ -338,34 +338,47 @@
         muatKeluargaDanNota(currentGroup);
     };
 
-    // 1. PROFIL IBU BAPA (DIKAWAL OLEH DROPDOWN & NAMA DINAMIK)
+    // 1. PROFIL IBU BAPA (DIKAWAL SEPENUHNYA OLEH DROPDOWN: KANDUNG VS MERTUA)
     async function muatProfilIbuBapa(uidPengguna) {
         try {
             let indukUid = uidPengguna;
             const snapMyLink = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", uidPengguna), where("status", "==", "aktif")));
             snapMyLink.forEach(d => { indukUid = d.data().owner_uid; });
 
+            const pilihanBelah = document.getElementById('filterBelah').value;
             const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
             
-            // --- TUKAR NAMA DROPDOWN SECARA AUTOMATIK ---
-            let namaDiri = "Suami";
-            let namaPasangan = "Isteri";
-            snapInduk.forEach(d => {
-                const rel = (d.data().relationship || '').toLowerCase();
-                const nm = (d.data().name || '').split(" ")[0]; // Ambil nama pertama sahaja
-                if (rel === 'diri sendiri') namaDiri = nm;
-                if (rel === 'isteri' || rel === 'suami') namaPasangan = nm;
-            });
-            const optKandung = document.getElementById('optKandung');
-            const optMertua = document.getElementById('optMertua');
-            if (optKandung) optKandung.innerText = `👨‍👦 Keluarga Belah ${namaDiri}`;
-            if (optMertua) optMertua.innerText = `👩‍👧 Keluarga Belah ${namaPasangan}`;
-            // --------------------------------------------
-
-            const pilihanBelah = document.getElementById('filterBelah').value;
             let html = "";
             let dipaparkan = new Set();
 
+            // Fungsi render kad profil
+            const renderKad = (id, d, paparanHubungan) => {
+                const namaKey = (d.name || '').toLowerCase().trim();
+                if (dipaparkan.has(namaKey)) return ""; 
+                dipaparkan.add(namaKey);
+
+                const isDecedent = d.status === 'meninggal';
+                const avatar = d.photo_url 
+                    ? `<img src="${d.photo_url}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">`
+                    : `<div style="width:60px; height:60px; border-radius:50%; background:${isDecedent?'#94a3b8':'var(--primary)'}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800;">${(d.name || '?').charAt(0)}</div>`;
+
+                return `
+                <div class="card ${isDecedent?'decedent':''}" style="display:flex; flex-direction:column; gap:12px;">
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        ${avatar}
+                        <div style="flex:1;">
+                            <h3 style="margin:0; color:var(--ink); font-size:18px;">${d.name}</h3>
+                            <p style="margin:2px 0 0; color:var(--muted); font-size:13px; font-weight:700;">
+                                ${paparanHubungan} ${d.dob ? '· Lahir: ' + d.dob : ''}
+                            </p>
+                            <div>${isDecedent ? '<span class="badge-decedent">🕊️ Meninggal Dunia</span>' : '<span class="badge-alive">🟢 Masih Hidup</span>'}</div>
+                        </div>
+                        ${!isDecedent ? `<button class="ghost" style="width:auto; padding:8px 12px; font-size:12px;" onclick="bukaModalKesihatan('${id}', '${d.name}')">Kemaskini</button>` : ''}
+                    </div>
+                </div>`;
+            };
+
+            // 1. Tarik Data dari Pokok Induk (Awi / Aminah)
             snapInduk.forEach(docSnap => {
                 const d = docSnap.data();
                 const hub = (d.relationship || '').toLowerCase();
@@ -373,41 +386,151 @@
                 const isKandung = (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) && !isMertua;
 
                 let lulusTapis = false;
-                if (isMertua || isKandung) {
-                    if (pilihanBelah === 'semua') lulusTapis = true;
-                    else if (pilihanBelah === 'kandung' && isKandung) lulusTapis = true;
-                    else if (pilihanBelah === 'mertua' && isMertua) lulusTapis = true;
-                }
+                if (pilihanBelah === 'semua' && (isMertua || isKandung)) lulusTapis = true;
+                else if (pilihanBelah === 'kandung' && isKandung) lulusTapis = true;
+                else if (pilihanBelah === 'mertua' && isMertua) lulusTapis = true;
 
                 if (lulusTapis) {
-                    const namaKey = (d.name || '').toLowerCase().trim();
-                    if (!dipaparkan.has(namaKey)) {
-                        dipaparkan.add(namaKey);
-                        const isDecedent = d.status === 'meninggal';
-                        const avatar = d.photo_url 
-                            ? `<img src="${d.photo_url}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">`
-                            : `<div style="width:60px; height:60px; border-radius:50%; background:${isDecedent?'#94a3b8':'var(--primary)'}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800;">${(d.name || '?').charAt(0)}</div>`;
-
-                        html += `
-                        <div class="card ${isDecedent?'decedent':''}" style="display:flex; flex-direction:column; gap:12px;">
-                            <div style="display:flex; gap:15px; align-items:center;">
-                                ${avatar}
-                                <div style="flex:1;">
-                                    <h3 style="margin:0; color:var(--ink); font-size:18px;">${d.name}</h3>
-                                    <p style="margin:2px 0 0; color:var(--muted); font-size:13px; font-weight:700;">
-                                        ${d.relationship || 'Keluarga'} ${d.dob ? '· Lahir: ' + d.dob : ''}
-                                    </p>
-                                    <div>${isDecedent ? '<span class="badge-decedent">🕊️ Meninggal Dunia</span>' : '<span class="badge-alive">🟢 Masih Hidup</span>'}</div>
-                                </div>
-                                ${!isDecedent ? `<button class="ghost" style="width:auto; padding:8px 12px; font-size:12px;" onclick="bukaModalKesihatan('${docSnap.id}', '${d.name}')">Kemaskini</button>` : ''}
-                            </div>
-                        </div>`;
-                    }
+                    html += renderKad(docSnap.id, d, d.relationship || 'Keluarga');
                 }
             });
 
+            // 2. Tarik Data dari Pokok Sendiri (Adi)
+            if (uidPengguna !== indukUid) {
+                const snapSendiri = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna)));
+                snapSendiri.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const hub = (d.relationship || '').toLowerCase();
+                    const isMertua = hub.includes('mertua');
+                    const isKandung = (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) && !isMertua;
+
+                    let lulusTapis = false;
+                    if (pilihanBelah === 'semua' && (isMertua || isKandung)) lulusTapis = true;
+                    else if (pilihanBelah === 'kandung' && isKandung) lulusTapis = true;
+                    else if (pilihanBelah === 'mertua' && isMertua) lulusTapis = true;
+
+                    if (lulusTapis) {
+                        html += renderKad(docSnap.id, d, d.relationship || 'Keluarga');
+                    }
+                });
+            }
+
             document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty">Tiada rekod ibu bapa dikesan untuk keluarga ini.</div>';
         } catch(e) { console.error("Ralat muatProfilIbuBapa:", e); }
+    }
+
+    // 4. KELUARGA & NOTA HANDOVER (DIKAWAL OLEH DROPDOWN: KANDUNG VS MERTUA)
+    async function muatKeluargaDanNota(groupId) {
+        try {
+            const pilihanBelah = document.getElementById('filterBelah').value;
+            let teamHtml = "<h3 style='font-size:15px; margin-bottom:10px;'>Waris & Penjaga Berdaftar</h3>";
+            let senaraiWaris = new Map();
+
+            senaraiWaris.set(currentUser.uid, { name: currentUser.email.split('@')[0], email: currentUser.email, role: 'Pengguna Semasa' });
+
+            let indukUid = currentUser.uid;
+            const snapMyLink = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid), where("status", "==", "aktif")));
+            snapMyLink.forEach(d => { indukUid = d.data().owner_uid; });
+
+            // 1. Tapis Adik-beradik dari Pokok Induk
+            const snapNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
+            snapNodes.forEach(d => {
+                const rel = (d.data().relationship || '').toLowerCase();
+                const nama = d.data().name || 'Adik-Beradik';
+
+                const isKandung = rel.includes('abang') && !rel.includes('ipar') || rel.includes('kakak') && !rel.includes('ipar') || rel.includes('adik') && !rel.includes('ipar');
+                const isMertua = rel.includes('ipar') || rel.includes('suami') || rel.includes('isteri');
+
+                let lulusTapis = false;
+                if (pilihanBelah === 'semua' && (isKandung || isMertua)) lulusTapis = true;
+                else if (pilihanBelah === 'kandung' && isKandung) lulusTapis = true;
+                else if (pilihanBelah === 'mertua' && isMertua) lulusTapis = true;
+
+                if (lulusTapis) {
+                    senaraiWaris.set(d.id, { name: nama, email: 'Dari Famili Tree', role: 'Waris Jagaan' });
+                }
+            });
+
+            // 2. Tapis Adik-beradik dari Pokok Sendiri (Adi)
+            if (currentUser.uid !== indukUid) {
+                const snapSendiriNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
+                snapSendiriNodes.forEach(d => {
+                    const rel = (d.data().relationship || '').toLowerCase();
+                    const nama = d.data().name || 'Adik-Beradik';
+
+                    const isKandung = rel.includes('abang') && !rel.includes('ipar') || rel.includes('kakak') && !rel.includes('ipar') || rel.includes('adik') && !rel.includes('ipar');
+                    const isMertua = rel.includes('ipar') || rel.includes('suami') || rel.includes('isteri');
+
+                    let lulusTapis = false;
+                    if (pilihanBelah === 'semua' && (isKandung || isMertua)) lulusTapis = true;
+                    else if (pilihanBelah === 'kandung' && isKandung) lulusTapis = true;
+                    else if (pilihanBelah === 'mertua' && isMertua) lulusTapis = true;
+
+                    if (lulusTapis) {
+                        // Anti Duplikasi Nama
+                        let namaKey = nama.toLowerCase().trim();
+                        let dahAda = false;
+                        for (let val of senaraiWaris.values()) {
+                            if (val.name.toLowerCase().trim() === namaKey) dahAda = true;
+                        }
+                        if (!dahAda) {
+                            senaraiWaris.set(d.id, { name: nama, email: 'Dari Famili Tree (Sendiri)', role: 'Waris Jagaan' });
+                        }
+                    }
+                });
+            }
+
+            // 3. Pautkan E-mel
+            const snapLinks = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", indukUid)));
+            let linkedUids = [];
+            snapLinks.forEach(d => { if(d.data().status === 'aktif') linkedUids.push(d.data().uid); });
+            
+            for (const targetUid of linkedUids) {
+                let uDoc = await getDoc(doc(db, "wecare_users", targetUid));
+                if (!uDoc.exists()) uDoc = await getDoc(doc(db, "mynasab_users", targetUid));
+                
+                if (uDoc.exists()) {
+                    const dbUser = uDoc.data();
+                    for (let [key, val] of senaraiWaris.entries()) {
+                        if (val.name.toLowerCase().includes((dbUser.name || '').toLowerCase()) || (dbUser.name || '').toLowerCase().includes(val.name.toLowerCase())) {
+                            senaraiWaris.set(key, { name: dbUser.name, email: dbUser.email, role: 'Waris (Aktif weCare)' });
+                        }
+                    }
+                }
+            }
+
+            senaraiWaris.forEach((val, key) => {
+                teamHtml += `
+                <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-weight:700; color:var(--ink);">${val.name}</div>
+                        <div style="font-size:12px; color:var(--muted);">${val.email}</div>
+                    </div>
+                    <span style="font-size:11px; font-weight:700; color:var(--primary); background:#e8f8f5; padding:4px 8px; border-radius:6px;">${val.role}</span>
+                </div>`;
+            });
+            document.getElementById('teamList').innerHTML = teamHtml;
+
+            // Render Nota
+            const snapNotes = await getDocs(query(collection(db, "wecare_notes"), where("group_id", "==", groupId)));
+            let noteHtml = "<h3 style='font-size:16px; margin:25px 0 10px;'>Sejarah Nota Handover</h3>";
+            let notesArr = [];
+            snapNotes.forEach(d => notesArr.push(d.data()));
+            notesArr.sort((a, b) => b.created_at - a.created_at);
+
+            notesArr.forEach(n => {
+                const tarikhMasa = new Date(n.created_at).toLocaleString('ms-MY', {dateStyle:'medium', timeStyle:'short'});
+                noteHtml += `
+                <div class="card" style="background:#fff;">
+                    <div style="font-size:13.5px; color:var(--ink); line-height:1.4;">${n.note}</div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:8px; border-top:1px solid var(--line); padding-top:5px;">
+                        <span>Oleh: <b>${n.author}</b></span>
+                        <span>${tarikhMasa}</span>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('senaraiNotaKeluarga').innerHTML = noteHtml || '<div class="empty">Belum ada nota handover ditinggalkan.</div>';
+        } catch(e) { console.error("Ralat muatKeluarga:", e); }
     }
     
     // 2. KALENDAR & SYIF JAGAAN + GOOGLE CALENDAR
