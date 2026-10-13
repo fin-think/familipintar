@@ -470,7 +470,7 @@
         document.getElementById('senaraiUbat').innerHTML = html || '<div class="empty">Tiada senarai ubat didaftarkan.</div>';
     }
 
-// 4. KELUARGA & NOTA HANDOVER (TARIK JIKA ADA SEKURANG-KURANGNYA SEORANG IBU/BAPA MASIH HIDUP)
+// 4. KELUARGA & NOTA HANDOVER (SEMAK STATUS HIDUP/MATI SECARA TERUS TANPA GLOBAL VARIABLE)
     async function muatKeluargaDanNota(groupId) {
         try {
             let teamHtml = "<h3 style='font-size:15px; margin-bottom:10px;'>Waris & Penjaga Berdaftar</h3>";
@@ -479,8 +479,28 @@
             // Sentiasa masukkan pengguna semasa
             senaraiWaris.set(currentUser.uid, { name: currentUser.email.split('@')[0], email: currentUser.email, role: 'Induk/Admin' });
 
-            // Syarat: Selagi ada sekurang-kurangnya seorang ibu bapa hidup (Kandung atau Mertua), tarik adik-beradik!
-            if (window.adaKandungHidupGlobal === true || window.adaMertuaHidupGlobal === true) {
+            // 1. Semak status ibu bapa pengguna semasa (owner) dari mynasab_nodes
+            const myNodesSnap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
+            let adaKandungHidup = false;
+            let adaMertuaHidup = false;
+            
+            myNodesSnap.forEach(d => {
+                const data = d.data();
+                const rel = (data.relationship || '').toLowerCase();
+                const isDecedent = data.status === 'meninggal';
+                
+                if (!isDecedent) {
+                    if (rel.includes('mertua')) {
+                        adaMertuaHidup = true;
+                    } else if (rel.includes('ayah') || rel.includes('ibu') || rel.includes('bapa') || rel.includes('mak') || rel.includes('abah')) {
+                        adaKandungHidup = true;
+                    }
+                }
+            });
+
+            // 2. Jika ada sekurang-kurangnya seorang ibu bapa (kandung ATAU mertua) yang hidup, tarik waris
+            if (adaKandungHidup || adaMertuaHidup) {
+                // Tarik pautan aktif mynasab_links
                 const snapLinks1 = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", currentUser.uid)));
                 const snapLinks2 = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid)));
                 
@@ -496,18 +516,39 @@
 
                 for (const targetUid of [...new Set(linkedUids)]) {
                     if (targetUid !== currentUser.uid) {
-                        let mUserDoc = await getDoc(doc(db, "wecare_users", targetUid));
-                        if (!mUserDoc.exists()) {
-                            mUserDoc = await getDoc(doc(db, "mynasab_users", targetUid));
-                        }
+                        // Semak susur galur waris ini untuk tentukan sama ada mereka patut ditarik
+                        const snapNodesTarget = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", targetUid)));
+                        let warisAdaKaitanMertua = false;
                         
-                        if (mUserDoc.exists()) {
-                            const mData = mUserDoc.data();
-                            senaraiWaris.set(targetUid, { 
-                                name: mData.name || 'Adik-Beradik', 
-                                email: mData.email || '', 
-                                role: 'Warisan (myNasab)' 
-                            });
+                        snapNodesTarget.forEach(nDoc => {
+                            if ((nDoc.data().relationship || '').toLowerCase().includes('mertua')) {
+                                warisAdaKaitanMertua = true;
+                            }
+                        });
+
+                        // Logik Penapisan:
+                        // Jika kandung pengguna semasa dah mati (adaKandungHidup == false),
+                        // HANYA benarkan waris yang ada kaitan mertua dengan mereka masuk (seperti Adi).
+                        // Tapi bagi Aminah (adaKandungHidup == true), semua berhak masuk!
+                        let lulus = true;
+                        if (!adaKandungHidup && adaMertuaHidup) {
+                            lulus = warisAdaKaitanMertua; // Hanapi/Helmi akan gagal, Adi akan lulus
+                        }
+
+                        if (lulus) {
+                            let mUserDoc = await getDoc(doc(db, "wecare_users", targetUid));
+                            if (!mUserDoc.exists()) {
+                                mUserDoc = await getDoc(doc(db, "mynasab_users", targetUid));
+                            }
+                            
+                            if (mUserDoc.exists()) {
+                                const mData = mUserDoc.data();
+                                senaraiWaris.set(targetUid, { 
+                                    name: mData.name || 'Adik-Beradik', 
+                                    email: mData.email || '', 
+                                    role: 'Warisan (myNasab)' 
+                                });
+                            }
                         }
                     }
                 }
