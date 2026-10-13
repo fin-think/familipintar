@@ -186,44 +186,83 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     <div class="w-full flex items-center justify-between">
         
         <!-- Logo Kiri -->
-        <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="h-10 w-auto object-contain">
+        <a href="index.html" class="flex items-center">
+            <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="h-10 w-auto object-contain">
+        </a>
         
-       <!-- Ruang Menu Kanan (Header) -->
-<div id="ruangAuthHeader" class="flex items-center gap-3">
-    
-    <!-- Mod Belum Log Masuk -->
-<div id="menuBelumLogMasuk" style="display: flex;" class="items-center gap-2">
-    <!-- 1. Butang Top Up (Menghala terus ke halaman Top Up) -->
-    <button onclick="window.location.href='topup.html'" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
-        + Top Up
-    </button>
-    
-    <!-- 2. Butang Log Masuk -->
-    <button onclick="bukaModalAuth('login')" class="bg-white text-sky-600 border border-sky-500 hover:bg-sky-50 px-5 py-2 rounded-full font-bold text-sm transition-all shadow-sm">
-        Log Masuk
-    </button>
+        <!-- Ruang Menu Kanan (Desktop / Tablet) -->
+        <div id="ruangAuthHeader" class="hidden md:flex items-center gap-3">
+            
+            <!-- Mod Belum Log Masuk (Desktop) -->
+            <div id="menuBelumLogMasuk" style="display: flex;" class="items-center gap-2">
+                <!-- Butang Top Up -->
+                <button onclick="window.location.href='topup.html'" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
+                    + Top Up
+                </button>
+                
+                <!-- Butang Log Masuk -->
+                <button onclick="bukaModalAuth('login')" class="bg-white text-sky-600 border border-sky-500 hover:bg-sky-50 px-5 py-2 rounded-full font-bold text-sm transition-all shadow-sm">
+                    Log Masuk
+                </button>
 
-    <!-- 3. Butang Daftar Percuma -->
-    <button onclick="bukaModalAuth('daftar')" class="bg-sky-500 hover:bg-sky-600 text-white px-5 py-2 rounded-full font-bold text-sm transition-all shadow-md">
-        Daftar Percuma
-    </button>
-</div>
+                <!-- Butang Daftar Percuma -->
+                <button onclick="bukaModalAuth('daftar')" class="bg-sky-500 hover:bg-sky-600 text-white px-5 py-2 rounded-full font-bold text-sm transition-all shadow-md">
+                    Daftar Percuma
+                </button>
+            </div>
 
-    <!-- Mod Sudah Log Masuk -->
-    <!-- Tambahkan style="display: none;" dan class "flex" pada container ini -->
-    <div id="menuSudahLogMasuk" style="display: none;" class="flex items-center gap-3 whitespace-nowrap">
-        <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-bold text-sm border border-yellow-300 shadow-sm flex items-center gap-1">
-            💰 Kredit: <span id="bakiKreditHeader" class="text-yellow-800 text-base">0</span>
+            <!-- Mod Sudah Log Masuk (Desktop) -->
+            <div id="menuSudahLogMasuk" style="display: none;" class="flex items-center gap-3 whitespace-nowrap">
+                <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-bold text-sm border border-yellow-300 shadow-sm flex items-center gap-1">
+                    💰 Kredit: <span id="bakiKreditHeader" class="text-yellow-800 text-base">0</span>
+                </div>
+                <button onclick="window.location.href='topup.html'" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
+                    + Top Up
+                </button>
+                <button onclick="logKeluar()" class="text-slate-500 hover:text-slate-800 text-sm font-bold underline transition-all ml-2">
+                    Log Keluar
+                </button>
+            </div>
+
         </div>
-        <button onclick="window.location.href='topup.html'" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
-            + Top Up
-        </button>
-        <button onclick="logKeluar()" class="text-slate-500 hover:text-slate-800 text-sm font-bold underline transition-all ml-2">
-            Log Keluar
+
+        <!-- Butang Hamburger (Hanya dipaparkan di Mobile / Telefon) -->
+        <button onclick="toggleFrontPageMobileMenu()" id="hamburgerBtn" class="md:hidden text-slate-600 text-2xl focus:outline-none p-2">
+            <i class="fa-solid fa-bars transition-all duration-300"></i>
         </button>
     </div>
 
-</div>
+    <!-- Menu Dropdown (Mobile View) -->
+    <div id="mobileMenu" class="hidden md:hidden flex-col gap-3 mt-4 pt-4 border-t border-slate-100 pb-2">
+        
+        <!-- Status / Menu Mengikut Akses Log Masuk (Mobile) -->
+        <div id="mobileMenuBelumLogMasuk" style="display: flex;" class="flex-col gap-2">
+            <button onclick="window.location.href='topup.html'" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 px-4 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2">
+                <i class="fa-solid fa-wallet"></i> + Top Up Kredit
+            </button>
+            <div class="grid grid-cols-2 gap-2 mt-1">
+                <button onclick="bukaModalAuth('login')" class="w-full bg-white text-sky-600 border border-sky-500 hover:bg-sky-50 py-2.5 px-4 rounded-xl font-bold text-sm transition-all text-center">
+                    Log Masuk
+                </button>
+                <button onclick="bukaModalAuth('daftar')" class="w-full bg-sky-500 hover:bg-sky-600 text-white py-2.5 px-4 rounded-xl font-bold text-sm transition-all text-center shadow-sm">
+                    Daftar Percuma
+                </button>
+            </div>
+        </div>
+
+        <div id="mobileMenuSudahLogMasuk" style="display: none;" class="flex-col gap-2">
+            <div class="w-full bg-yellow-100 text-yellow-800 py-2.5 px-4 rounded-xl font-bold text-sm border border-yellow-300 flex items-center justify-between">
+                <span>💰 Baki Kredit Anda:</span>
+                <span id="bakiKreditHeaderMobile" class="text-base font-extrabold">0</span>
+            </div>
+            <button onclick="window.location.href='topup.html'" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 px-4 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2">
+                <i class="fa-solid fa-wallet"></i> + Top Up Kredit
+            </button>
+            <button onclick="logKeluar()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2.5 px-4 rounded-xl font-bold text-sm transition-all text-center mt-1">
+                Log Keluar
+            </button>
+        </div>
+
     </div>
 </header>
 
@@ -678,6 +717,27 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         await signOut(auth);
         window.location.reload();
     };
+
+function toggleFrontPageMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const hamburgerBtnIcon = document.querySelector('#hamburgerBtn i');
+    
+    if (mobileMenu) {
+        mobileMenu.classList.toggle('hidden');
+        mobileMenu.classList.toggle('flex');
+        
+        // Tukar ikon dari 'bars' ke 'xmark' apabila menu dibuka
+        if (mobileMenu.classList.contains('flex')) {
+            hamburgerBtnIcon.classList.remove('fa-bars');
+            hamburgerBtnIcon.classList.add('fa-xmark');
+        } else {
+            hamburgerBtnIcon.classList.remove('fa-xmark');
+            hamburgerBtnIcon.classList.add('fa-bars');
+        }
+    }
+}
+
+    
 </script>
 </body>
 </html>
