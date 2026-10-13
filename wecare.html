@@ -462,61 +462,58 @@
         document.getElementById('senaraiUbat').innerHTML = html || '<div class="empty">Tiada senarai ubat didaftarkan.</div>';
     }
 
-   // 4. KELUARGA & NOTA HANDOVER (TARIK TERUS DARI mynasab_links & wecare_users)
+   // 4. KELUARGA & NOTA HANDOVER (PENAPISAN MENGIKUT STATUS HIDUP IBU BAPA SEBELAH MASING-MASING)
     async function muatKeluargaDanNota(groupId) {
         try {
-            if (window.adaIbuBapaHidupGlobal === false) {
-                document.getElementById('teamList').innerHTML = `
-                <div class="card" style="background:#f8fafc; text-align:center; color:var(--muted); padding:20px;">
-                    <b>Makluman:</b> Kedua-dua ibu bapa telah meninggal dunia. Senarai adik-beradik penjaga ditutup secara rasmi.
-                </div>`;
-                return;
-            }
-
             let teamHtml = "<h3 style='font-size:15px; margin-bottom:10px;'>Waris & Penjaga Berdaftar</h3>";
             let senaraiWaris = new Map();
 
-            // 1. Ambil dari wecare_users yang berkongsi group_id
-            const snapUsers = await getDocs(query(collection(db, "wecare_users"), where("group_id", "==", groupId)));
-            snapUsers.forEach(d => {
-                const u = d.data();
-                senaraiWaris.set(u.uid, { name: u.name, email: u.email, role: u.role || 'Ahli' });
-            });
+            // Sentiasa masukkan pengguna semasa
+            senaraiWaris.set(currentUser.uid, { name: currentUser.email.split('@')[0], email: currentUser.email, role: 'Induk/Admin' });
 
-            // 2. Ambil dari mynasab_links (Adik-beradik yang dijemput/paut aktif)
-            // Semak link di mana pengguna semasa adalah owner ATAU rakan pautan
-            const snapLinks1 = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", currentUser.uid)));
-            const snapLinks2 = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid)));
-            
-            let linkedUids = [];
-            snapLinks1.forEach(d => { if(d.data().status === 'aktif') linkedUids.push(d.data().uid); });
-            snapLinks2.forEach(d => { 
-                const l = d.data();
-                if(l.status === 'aktif') {
-                    linkedUids.push(l.owner_uid);
-                    linkedUids.push(l.uid);
-                }
-            });
+            // Jika ibu bapa kandung (owner akaun) sudah meninggal dua-dua, 
+            // kita jangan tarik adik-beradik kandung (seperti Hanapi & Helmi).
+            // Kecuali jika pautan itu adalah sebelah pihak yang masih hidup (mertua/Anis).
+            if (window.adaIbuBapaHidupGlobal === true) {
+                // Tarik adik-beradik pautan aktif mynasab_links
+                const snapLinks1 = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", currentUser.uid)));
+                const snapLinks2 = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid)));
+                
+                let linkedUids = [];
+                snapLinks1.forEach(d => { if(d.data().status === 'aktif') linkedUids.push(d.data().uid); });
+                snapLinks2.forEach(d => { 
+                    const l = d.data();
+                    if(l.status === 'aktif') {
+                        linkedUids.push(l.owner_uid);
+                        linkedUids.push(l.uid);
+                    }
+                });
 
-            // Masukkan juga UID pengguna semasa sendiri
-            linkedUids.push(currentUser.uid);
-
-            // Tarik maklumat nama dari mynasab_users / wecare_users untuk setiap UID yang berhubung
-            for (const targetUid of [...new Set(linkedUids)]) {
-                if (!senaraiWaris.has(targetUid)) {
-                    // Cuba semak nama dari mynasab_users dulu
-                    let mUserDoc = await getDoc(doc(db, "mynasab_users", targetUid));
-                    if (mUserDoc.exists()) {
-                        const mData = mUserDoc.data();
-                        senaraiWaris.set(targetUid, { name: mData.name || 'Adik-Beradik', email: mData.email || '', role: 'Warisan (myNasab)' });
-                    } else {
-                        // Fallback ke auth email jika tiada profil
-                        senaraiWaris.set(targetUid, { name: "Ahli Keluarga", email: "", role: 'Warisan' });
+                for (const targetUid of [...new Set(linkedUids)]) {
+                    if (targetUid !== currentUser.uid) {
+                        let mUserDoc = await getDoc(doc(db, "wecare_users", targetUid));
+                        if (!mUserDoc.exists()) {
+                            mUserDoc = await getDoc(doc(db, "mynasab_users", targetUid));
+                        }
+                        
+                        if (mUserDoc.exists()) {
+                            const mData = mUserDoc.data();
+                            senaraiWaris.set(targetUid, { 
+                                name: mData.name || 'Adik-Beradik', 
+                                email: mData.email || '', 
+                                role: 'Warisan (myNasab)' 
+                            });
+                        }
                     }
                 }
+            } else {
+                teamHtml += `
+                <div class="card" style="background:#f8fafc; border-color:#e2e8f0; margin-bottom:12px; font-size:13px; color:var(--muted);">
+                    <b>Nota Susur Galur:</b> Ibu bapa kandung telah meninggal dunia. Senarai adik-beradik kandung disembunyikan. Hanya waris penjaga yang sah dilesenkan.
+                </div>`;
             }
 
-            // Paparkan ke HTML
+            // Paparkan senarai waris yang layak
             senaraiWaris.forEach((val, key) => {
                 teamHtml += `
                 <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
@@ -530,7 +527,7 @@
 
             document.getElementById('teamList').innerHTML = teamHtml;
 
-            // 3. Muat Sejarah Nota Handover
+            // Muat Sejarah Nota Handover
             const snapNotes = await getDocs(query(collection(db, "wecare_notes"), where("group_id", "==", groupId)));
             let noteHtml = "<h3 style='font-size:16px; margin:25px 0 10px;'>Sejarah Nota Handover</h3>";
             
