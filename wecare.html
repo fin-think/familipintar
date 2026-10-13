@@ -391,18 +391,11 @@
 
 async function muatProfilIbuBapa(uidPengguna) {
         try {
-            console.log("Mula carian langsung untuk UID:", uidPengguna);
+            console.log("Memuatkan profil ibu bapa untuk UID:", uidPengguna);
             
-            // Cuba tarik terus nod menggunakan owner_uid akaun semasa
-            let qParents = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna));
-            let snapParents = await getDocs(qParents);
-            
-            // Jika kosong, cuba cari guna created_by atau cari semua nodes (sebagai fallback keselamatan)
-            if (snapParents.empty) {
-                console.log("Tiada nod dengan owner_uid semasa, cuba cari alternatif...");
-                qParents = query(collection(db, "mynasab_nodes"));
-                snapParents = await getDocs(qParents);
-            }
+            // Terus cari nod yang sepadan dengan owner_uid semasa
+            const qParents = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna));
+            const snapParents = await getDocs(qParents);
             
             console.log("Jumlah nod dijumpai:", snapParents.size);
             
@@ -412,9 +405,8 @@ async function muatProfilIbuBapa(uidPengguna) {
             snapParents.forEach(docSnap => {
                 const data = docSnap.data();
                 const hub = (data.relationship || '').toLowerCase();
-                console.log("Data - Nama:", data.name, "| Hubungan:", hub, "| Owner:", data.owner_uid);
                 
-                // Tapisan mesra ejaan (ayah, ibu, bapa, mak, abah, penjaga)
+                // Tapisan mesra ejaan hubungan
                 if (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) {
                     adaData = true;
                     
@@ -439,14 +431,14 @@ async function muatProfilIbuBapa(uidPengguna) {
             });
 
             if (!adaData) {
-                htmlProfil = `<div class="empty">Tiada rekod ibu/bapa dikesan dalam pangkalan data. Sila pastikan anda sudah mendaftarkan ibu bapa di aplikasi myNasab.</div>`;
+                htmlProfil = `<div class="empty">Tiada rekod ibu/bapa dijumpai di bawah akaun ini. Sila daftar rekod Ayah atau Ibu di aplikasi <b>myNasab</b> terlebih dahulu.</div>`;
             }
 
             document.getElementById('ruangProfilIbuBapa').innerHTML = htmlProfil;
 
         } catch (error) {
-            console.error("Ralat pada muatProfilIbuBapa:", error);
-            document.getElementById('ruangProfilIbuBapa').innerHTML = `<div class="empty" style="color:var(--danger);">Ralat: ${error.message}</div>`;
+            console.error("Ralat memuatkan profil:", error);
+            document.getElementById('ruangProfilIbuBapa').innerHTML = `<div class="empty" style="color:var(--danger);">Ralat Sambungan: Sila muat semula halaman (Refresh).</div>`;
         }
     }
     
