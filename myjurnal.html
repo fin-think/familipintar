@@ -950,6 +950,15 @@ function showResult() {
 
 // Load first question
 document.addEventListener("DOMContentLoaded", loadQuestion);
+
+// Fungsi untuk buka/tutup menu mobile Jurnal
+window.toggleJournalMobileMenu = () => {
+    const menu = document.getElementById('journalmobileMenu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+};
+    
 </script>
 
 
