@@ -79,6 +79,18 @@
   }
   .header p { color: #888; font-size: 0.9rem; font-weight: 700; }
 
+  /* Butang Kembali Atas Kanan */
+  .btn-kembali {
+    position: absolute; right: 0; top: 5px;
+    background: #0ea5e9; color: white; border: none;
+    padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    box-shadow: 0 2px 6px rgba(14,165,233,0.3); transition: 0.2s;
+    font-family: 'Nunito', sans-serif; z-index: 10;
+  }
+  .btn-kembali:hover { background: #0284c7; }
+
+  
   /* Kain Rentang Undur Detik */
   .countdown-banner {
     background: linear-gradient(135deg, var(--coral), var(--peach));
@@ -233,8 +245,13 @@
 
   <!-- Pengepala Utama -->
   <div class="header">
-    <h1>✈️ Perancang Percutian</h1>
-    <p>Rancang & Kira Bajet Dalam Satu App!</p>
+    <button onclick="window.location.href='index.html'" class="btn-kembali">
+      <i class="fa-solid fa-arrow-left"></i> Kembali
+    </button>
+    <div>
+      <h1>✈️ Perancang Percutian</h1>
+      <p>Rancang & Kira Bajet Dalam Satu App!</p>
+    </div>
   </div>
 
   <!-- Undur Detik (Kelebaran Penuh) -->
