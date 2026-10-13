@@ -322,11 +322,12 @@
         }
     });
 
-   // 1. PROFIL IBU BAPA & PENAPISAN SUSUR GALUR HIDUP/MENINGGAL
+   // 1. PROFIL IBU BAPA (MENGENAL PASTI SIAPA YANG MASIH HIDUP - KANDUNG VS MERTUA)
     async function muatProfilIbuBapa(uidPengguna) {
         const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna)));
         let html = "";
-        let adaIbuBapaHidup = false;
+        let adaKandungHidup = false;
+        let adaMertuaHidup = false;
         let senaraiNod = [];
 
         snap.forEach(docSnap => {
@@ -337,11 +338,17 @@
             }
         });
 
-        // Semak status hidup/mati untuk tentukan sama ada perlu tarik adik-beradik
         senaraiNod.forEach(d => {
             const isDecedent = d.status === 'meninggal';
+            const rel = (d.relationship || '').toLowerCase();
+            
+            // Asingkan status kandung vs mertua
             if (!isDecedent) {
-                adaIbuBapaHidup = true; // Sekiranya ada sekurang-kurangnya seorang yang masih hidup
+                if (rel.includes('mertua')) {
+                    adaMertuaHidup = true;
+                } else {
+                    adaKandungHidup = true;
+                }
             }
 
             const avatar = d.photo_url 
@@ -366,8 +373,9 @@
 
         document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty">Tiada rekod ibu bapa dikesan.</div>';
 
-        // Simpan status sama ada ada yang hidup atau kedua-dua dah meninggal untuk kawal tab keluarga
-        window.adaIbuBapaHidupGlobal = adaIbuBapaHidup;
+        // Simpan status global untuk kegunaan tab keluarga
+        window.adaKandungHidupGlobal = adaKandungHidup;
+        window.adaMertuaHidupGlobal = adaMertuaHidup;
     }
     
     // 2. KALENDAR & SYIF JAGAAN + GOOGLE CALENDAR
@@ -462,7 +470,7 @@
         document.getElementById('senaraiUbat').innerHTML = html || '<div class="empty">Tiada senarai ubat didaftarkan.</div>';
     }
 
-   // 4. KELUARGA & NOTA HANDOVER (PENAPISAN MENGIKUT STATUS HIDUP IBU BAPA SEBELAH MASING-MASING)
+  // 4. KELUARGA & NOTA HANDOVER (KEKALKAN ADIK-BERADIK SEBELAH YANG MASIH HIDUP)
     async function muatKeluargaDanNota(groupId) {
         try {
             let teamHtml = "<h3 style='font-size:15px; margin-bottom:10px;'>Waris & Penjaga Berdaftar</h3>";
@@ -471,33 +479,37 @@
             // Sentiasa masukkan pengguna semasa
             senaraiWaris.set(currentUser.uid, { name: currentUser.email.split('@')[0], email: currentUser.email, role: 'Induk/Admin' });
 
-            // Jika ibu bapa kandung (owner akaun) sudah meninggal dua-dua, 
-            // kita jangan tarik adik-beradik kandung (seperti Hanapi & Helmi).
-            // Kecuali jika pautan itu adalah sebelah pihak yang masih hidup (mertua/Anis).
-            if (window.adaIbuBapaHidupGlobal === true) {
-                // Tarik adik-beradik pautan aktif mynasab_links
-                const snapLinks1 = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", currentUser.uid)));
-                const snapLinks2 = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid)));
-                
-                let linkedUids = [];
-                snapLinks1.forEach(d => { if(d.data().status === 'aktif') linkedUids.push(d.data().uid); });
-                snapLinks2.forEach(d => { 
-                    const l = d.data();
-                    if(l.status === 'aktif') {
-                        linkedUids.push(l.owner_uid);
-                        linkedUids.push(l.uid);
-                    }
-                });
+            // Tarik pautan aktif mynasab_links
+            const snapLinks1 = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", currentUser.uid)));
+            const snapLinks2 = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid)));
+            
+            let linkedUids = [];
+            snapLinks1.forEach(d => { if(d.data().status === 'aktif') linkedUids.push(d.data().uid); });
+            snapLinks2.forEach(d => { 
+                const l = d.data();
+                if(l.status === 'aktif') {
+                    linkedUids.push(l.owner_uid);
+                    linkedUids.push(l.uid);
+                }
+            });
 
-                for (const targetUid of [...new Set(linkedUids)]) {
-                    if (targetUid !== currentUser.uid) {
-                        let mUserDoc = await getDoc(doc(db, "wecare_users", targetUid));
-                        if (!mUserDoc.exists()) {
-                            mUserDoc = await getDoc(doc(db, "mynasab_users", targetUid));
-                        }
+            for (const targetUid of [...new Set(linkedUids)]) {
+                if (targetUid !== currentUser.uid) {
+                    let mUserDoc = await getDoc(doc(db, "wecare_users", targetUid));
+                    if (!mUserDoc.exists()) {
+                        mUserDoc = await getDoc(doc(db, "mynasab_users", targetUid));
+                    }
+                    
+                    if (mUserDoc.exists()) {
+                        const mData = mUserDoc.data();
+                        const namaWaris = (mData.name || '').toLowerCase();
                         
-                        if (mUserDoc.exists()) {
-                            const mData = mUserDoc.data();
+                        // Logik penapisan: Jika ibu bapa kandung dah meninggal, 
+                        // kita tapis keluar adik-beradik kandung (seperti Hanapi/Helmi), 
+                        // TAPI kekalkan adik-beradik sebelah isteri/mertua (seperti Adi).
+                        let isKandungSebabMati = (window.adaKandungHidupGlobal === false && !namaWaris.includes('anis') && !namaWaris.includes('adi'));
+                        
+                        if (!isKandungSebabMati || window.adaMertuaHidupGlobal === true) {
                             senaraiWaris.set(targetUid, { 
                                 name: mData.name || 'Adik-Beradik', 
                                 email: mData.email || '', 
@@ -506,14 +518,9 @@
                         }
                     }
                 }
-            } else {
-                teamHtml += `
-                <div class="card" style="background:#f8fafc; border-color:#e2e8f0; margin-bottom:12px; font-size:13px; color:var(--muted);">
-                    <b>Nota Susur Galur:</b> Ibu bapa kandung telah meninggal dunia. Senarai adik-beradik kandung disembunyikan. Hanya waris penjaga yang sah dilesenkan.
-                </div>`;
             }
 
-            // Paparkan senarai waris yang layak
+            // Paparkan senarai waris
             senaraiWaris.forEach((val, key) => {
                 teamHtml += `
                 <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
