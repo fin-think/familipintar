@@ -391,7 +391,85 @@
 
 </div>
 
-<script>
+<!-- SCRIPT FIREBASE & LOGIK WECARE -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // Firebase Config (Sama dengan myNasab & Famili Pintar)
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+        authDomain: "familipintar.firebaseapp.com",
+        databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "familipintar",
+        storageBucket: "familipintar.firebasestorage.app",
+        messagingSenderId: "277029764059",
+        appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.penggunaSemasa = null;
+
+    // 1. Kawalan Tab Menu weCare
+    document.querySelectorAll('.tab').forEach(t => {
+        t.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+            t.classList.add('active');
+            const panelAktif = document.getElementById(t.dataset.tab);
+            if (panelAktif) panelAktif.classList.add('active');
+        });
+    });
+
+    // 2. Semakan Auth (Guna Akaun Famili Pintar)
+    onAuthStateChanged(auth, async (user) => {
+        const authScreen = document.getElementById('authScreen');
+        const mainApp = document.getElementById('mainApp');
+
+        if (user) {
+            window.penggunaSemasa = user;
+            if (authScreen) authScreen.classList.add('hidden');
+            if (mainApp) mainApp.classList.remove('hidden');
+
+            // Ambil Nama Pengguna
+            const snapUser = await getDoc(doc(db, "mynasab_users", user.uid));
+            if (snapUser.exists()) {
+                const data = snapUser.data();
+                const elNama = document.getElementById('displayUserName');
+                if (elNama) elNama.innerText = data.name || user.email;
+            }
+            
+            // Muatkan data profil kesihatan/ibu bapa
+            if (typeof window.muatDataKesihatan === 'function') {
+                window.muatDataKesihatan();
+            }
+        } else {
+            window.penggunaSemasa = null;
+            if (authScreen) authScreen.classList.remove('hidden');
+            if (mainApp) mainApp.classList.add('hidden');
+        }
+    });
+
+    // 3. Proses Log Masuk Borang Auth Screen
+    const authForm = document.getElementById('authForm');
+    if (authForm) {
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const emel = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPassword').value;
+
+            try {
+                await signInWithEmailAndPassword(auth, emel, pass);
+            } catch (err) {
+                alert("Gagal Log Masuk: Sila semak e-mel atau kata laluan anda.");
+            }
+        });
+    }
+  
 let accomList = []; let transportList = []; let miscList = [];
 let alarmActive = false; let countdownInterval = null;
 let toastTimer = null;
