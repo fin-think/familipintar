@@ -322,7 +322,7 @@
         }
     });
 
-// 1. PROFIL IBU BAPA (PEMBETULAN CARIAN NAMA & PENAPISAN KANDUNG/MERTUA)
+// 1. PROFIL IBU BAPA (LOGIK EXCLUDE INDUK PARENTS UNTUK INVITEE)
     async function muatProfilIbuBapa(uidPengguna) {
         try {
             // 1. Dapatkan Induk (Owner Tree)
@@ -334,37 +334,20 @@
                 isInvitee = true;
             });
 
-            // 2. Jika Invitee, kenal pasti dia pihak mana
-            let pihakInvitee = "semua"; 
-            if (isInvitee) {
-                let myName = "";
-                let uDoc = await getDoc(doc(db, "wecare_users", uidPengguna));
-                if (!uDoc.exists()) uDoc = await getDoc(doc(db, "mynasab_users", uidPengguna));
-                if (uDoc.exists()) myName = (uDoc.data().name || '').toLowerCase().trim();
-
-                const snapAllNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
-                snapAllNodes.forEach(n => {
-                    const nodeName = (n.data().name || '').toLowerCase().trim();
-                    const rel = (n.data().relationship || '').toLowerCase();
-                    
-                    let isMatch = false;
-                    if (nodeName && myName) {
-                        if (myName === nodeName) isMatch = true;
-                        // Semak jika "adi" ada di dalam "adi bin mohd saad"
-                        else if (nodeName.length >= 3 && myName.includes(nodeName)) isMatch = true;
-                        // Semak jika sebaliknya
-                        else if (myName.length >= 3 && nodeName.includes(myName)) isMatch = true;
-                    }
-
-                    if (isMatch) {
-                        if (rel.includes('ipar')) pihakInvitee = "mertua";
-                        else if (rel.includes('abang') || rel.includes('kakak') || rel.includes('adik')) pihakInvitee = "kandung";
-                    }
-                });
-            }
+            // 2. Semak adakah Ibu Bapa Kandung Induk dah meninggal (Untuk tentukan Exclude)
+            const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
+            let indukKandungMati = true; 
+            
+            snapInduk.forEach(d => {
+                const rel = (d.data().relationship || '').toLowerCase();
+                const status = d.data().status;
+                if ((rel.includes('ayah') || rel.includes('ibu') || rel.includes('bapa') || rel.includes('mak')) && !rel.includes('mertua')) {
+                    if (status !== 'meninggal') indukKandungMati = false; // Ada yang masih hidup
+                }
+            });
 
             let html = "";
-            let dipaparkan = new Set(); // Elak duplikasi 
+            let dipaparkan = new Set(); // Anti-Duplikasi
 
             const renderKad = (id, d, paparanHubungan) => {
                 const namaKey = (d.name || '').toLowerCase().trim();
@@ -392,8 +375,7 @@
                 </div>`;
             };
 
-            // 3. Tarik dari Pokok Induk (Awi) dan Tapis
-            const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
+            // 3. Tarik dari Pokok Induk & Apply Logik Exclude
             snapInduk.forEach(docSnap => {
                 const d = docSnap.data();
                 const hub = (d.relationship || '').toLowerCase();
@@ -401,22 +383,29 @@
                 const isKandungNode = (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) && !isMertuaNode;
 
                 let letak = false;
-                if (isMertuaNode || isKandungNode) {
-                    if (pihakInvitee === "semua") letak = true;
-                    else if (pihakInvitee === "mertua" && isMertuaNode) letak = true; // Adi nampak Asmah/Mohd Saad sahaja
-                    else if (pihakInvitee === "kandung" && isKandungNode) letak = true;
+                
+                if (isInvitee) {
+                    // LOGIK "EXCLUDE" IDEA BOS:
+                    if (indukKandungMati) {
+                        // Kalau parents owner dah mati, EXCLUDE parents owner, tunjuk Mertua sahaja (Kes Adi)
+                        if (isMertuaNode) letak = true; 
+                    } else {
+                        // Kalau parents owner masih hidup, EXCLUDE mertua, tunjuk parents owner sahaja (Kes adik-beradik Aminah)
+                        if (isKandungNode) letak = true;
+                    }
+                } else {
+                    // Jika Owner log masuk, takde exclude. Tunjuk semua kandung & mertua.
+                    if (isMertuaNode || isKandungNode) letak = true;
                 }
 
                 if (letak) {
                     let paparanHubungan = d.relationship || 'Keluarga';
-                    if (isInvitee && pihakInvitee === "mertua" && isMertuaNode) {
-                        paparanHubungan = paparanHubungan.replace(/Mertua/ig, '').trim() + " (Ibu/Bapa Anda)";
-                    }
+                    if (isInvitee && isMertuaNode) paparanHubungan = paparanHubungan.replace(/Mertua/ig, '').trim() + " (Ibu/Bapa Anda)";
                     html += renderKad(docSnap.id, d, paparanHubungan);
                 }
             });
 
-            // 4. Tarik dari Pokok Sendiri (Jika Adi ada daftar mertua dia di myNasab sendiri)
+            // 4. Tarik tambahan jika Invitee ada letak di Pokok Sendiri (MyNasab)
             if (isInvitee && uidPengguna !== indukUid) {
                 const snapSendiri = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna)));
                 snapSendiri.forEach(docSnap => {
