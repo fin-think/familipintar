@@ -389,35 +389,22 @@
         }
     });
 
- async function muatProfilIbuBapa(uidPengguna) {
+async function muatProfilIbuBapa(uidPengguna) {
         try {
-            console.log("Mula proses carian profil untuk UID:", uidPengguna);
-            let indukUid = uidPengguna; 
+            console.log("Mula carian langsung untuk UID:", uidPengguna);
             
-            // Semak selamat: Bungkus dengan try-catch khas untuk mynasab_links
-            try {
-                const linkRef = doc(db, "mynasab_links", uidPengguna);
-                const linkSnap = await getDoc(linkRef);
-                if (linkSnap.exists()) {
-                    const linkData = linkSnap.data();
-                    console.log("Jumpa rekod link:", linkData);
-                    if (linkData.status === 'aktif' && linkData.owner_uid) {
-                        indukUid = linkData.owner_uid;
-                    }
-                } else {
-                    console.log("Tiada rekod link, kekal guna UID sendiri sebagai induk.");
-                }
-            } catch (err) {
-                console.log("Akaun tiada kaitan dengan link jemputan, guna UID sendiri.");
+            // Cuba tarik terus nod menggunakan owner_uid akaun semasa
+            let qParents = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna));
+            let snapParents = await getDocs(qParents);
+            
+            // Jika kosong, cuba cari guna created_by atau cari semua nodes (sebagai fallback keselamatan)
+            if (snapParents.empty) {
+                console.log("Tiada nod dengan owner_uid semasa, cuba cari alternatif...");
+                qParents = query(collection(db, "mynasab_nodes"));
+                snapParents = await getDocs(qParents);
             }
-
-            console.log("ID Induk rasmi untuk carian nodes:", indukUid);
-
-            // Tarik nod dari mynasab_nodes
-            const qParents = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid));
-            const snapParents = await getDocs(qParents);
             
-            console.log("Jumlah nod dijumpai dalam mynasab_nodes:", snapParents.size);
+            console.log("Jumlah nod dijumpai:", snapParents.size);
             
             let htmlProfil = "";
             let adaData = false;
@@ -425,9 +412,9 @@
             snapParents.forEach(docSnap => {
                 const data = docSnap.data();
                 const hub = (data.relationship || '').toLowerCase();
-                console.log("Semak ahli - Nama:", data.name, "| Hubungan:", hub);
+                console.log("Data - Nama:", data.name, "| Hubungan:", hub, "| Owner:", data.owner_uid);
                 
-                // Cari hubungan ibu atau bapa
+                // Tapisan mesra ejaan (ayah, ibu, bapa, mak, abah, penjaga)
                 if (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) {
                     adaData = true;
                     
@@ -452,14 +439,14 @@
             });
 
             if (!adaData) {
-                htmlProfil = `<div class="empty">Tiada rekod ibu/bapa dijumpai di bawah ID: ${indukUid}. Sila pastikan anda sudah mendaftarkan ibu bapa di aplikasi myNasab.</div>`;
+                htmlProfil = `<div class="empty">Tiada rekod ibu/bapa dikesan dalam pangkalan data. Sila pastikan anda sudah mendaftarkan ibu bapa di aplikasi myNasab.</div>`;
             }
 
             document.getElementById('ruangProfilIbuBapa').innerHTML = htmlProfil;
 
         } catch (error) {
-            console.error("Ralat kritikal dalam muatProfilIbuBapa:", error);
-            document.getElementById('ruangProfilIbuBapa').innerHTML = `<div class="empty" style="color:var(--danger);">Ralat Sistem: ${error.message}</div>`;
+            console.error("Ralat pada muatProfilIbuBapa:", error);
+            document.getElementById('ruangProfilIbuBapa').innerHTML = `<div class="empty" style="color:var(--danger);">Ralat: ${error.message}</div>`;
         }
     }
     
