@@ -540,15 +540,22 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 
     window.penggunaSemasa = null;
 
-   // ==========================================
+    // ==========================================
     // 4C: KEMAS KINI UI APABILA LOG MASUK (HEADER & WALLET)
     // ==========================================
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             window.penggunaSemasa = user; 
 
+            // 1. Paparan Menu Desktop
             document.getElementById('menuBelumLogMasuk').style.display = 'none';
             document.getElementById('menuSudahLogMasuk').style.display = 'flex';
+            
+            // 2. Paparan Menu Mobile (Tambahan selamat)
+            const mobBelum = document.getElementById('mobileMenuBelumLogMasuk');
+            const mobSudah = document.getElementById('mobileMenuSudahLogMasuk');
+            if (mobBelum) mobBelum.style.display = 'none';
+            if (mobSudah) mobSudah.style.display = 'flex';
             
             const btnAdmin = document.getElementById('btnAdmin');
             const btnAffiliate = document.getElementById('btnAffiliate');
@@ -566,9 +573,13 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             const snapPengguna = await getDoc(doc(db, "mynasab_users", user.uid));
             if (snapPengguna.exists()) {
                 const userData = snapPengguna.data();
+                const baki = userData.credit_balance || 0;
                 
-                // 1. Update baki wallet
-                document.getElementById('bakiKreditHeader').innerText = userData.credit_balance || 0;
+                // 1. Update baki wallet (Desktop & Mobile)
+                const elKredit = document.getElementById('bakiKreditHeader');
+                const elKreditMob = document.getElementById('bakiKreditHeaderMobile');
+                if (elKredit) elKredit.innerText = baki;
+                if (elKreditMob) elKreditMob.innerText = baki;
 
                 // 2. TUKAR TEKS BUTANG AFFILIATE JIKA DAH BERDAFTAR
                 if (btnAffiliate && user.email !== 'dae.book89@gmail.com') {
@@ -583,8 +594,14 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         } else {
             window.penggunaSemasa = null;
             
+            // Paparan Belum Log Masuk (Desktop & Mobile)
             document.getElementById('menuBelumLogMasuk').style.display = 'flex';
             document.getElementById('menuSudahLogMasuk').style.display = 'none';
+            
+            const mobBelum = document.getElementById('mobileMenuBelumLogMasuk');
+            const mobSudah = document.getElementById('mobileMenuSudahLogMasuk');
+            if (mobBelum) mobBelum.style.display = 'flex';
+            if (mobSudah) mobSudah.style.display = 'none';
             
             const btnAdmin = document.getElementById('btnAdmin');
             const btnAffiliate = document.getElementById('btnAffiliate');
@@ -718,7 +735,8 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         window.location.reload();
     };
 
-function toggleFrontPageMobileMenu() {
+// Jadikan fungsi ini global supaya boleh dipanggil oleh HTML onclick
+window.toggleFrontPageMobileMenu = () => {
     const mobileMenu = document.getElementById('mobileMenu');
     const hamburgerBtnIcon = document.querySelector('#hamburgerBtn i');
     
@@ -735,7 +753,7 @@ function toggleFrontPageMobileMenu() {
             hamburgerBtnIcon.classList.add('fa-bars');
         }
     }
-}
+};
 
     
 </script>
