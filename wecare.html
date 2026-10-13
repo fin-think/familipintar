@@ -322,7 +322,7 @@
         }
     });
 
-// 1. PROFIL IBU BAPA (GABUNGAN POKOK INDUK & POKOK SENDIRI UNTUK MERTUA)
+// 1. PROFIL IBU BAPA (PEMBETULAN CARIAN NAMA & PENAPISAN KANDUNG/MERTUA)
     async function muatProfilIbuBapa(uidPengguna) {
         try {
             // 1. Dapatkan Induk (Owner Tree)
@@ -334,7 +334,7 @@
                 isInvitee = true;
             });
 
-            // 2. Jika yang log masuk tu Invitee, kenal pasti pihak dia (Kandung vs Mertua) dalam pokok Induk
+            // 2. Jika Invitee, kenal pasti dia pihak mana
             let pihakInvitee = "semua"; 
             if (isInvitee) {
                 let myName = "";
@@ -344,15 +344,16 @@
 
                 const snapAllNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
                 snapAllNodes.forEach(n => {
-                    const nodeName = (n.data().name || '').toLowerCase();
+                    const nodeName = (n.data().name || '').toLowerCase().trim();
                     const rel = (n.data().relationship || '').toLowerCase();
                     
                     let isMatch = false;
-                    if (myName === nodeName) isMatch = true;
-                    else if (myName.length > 2 && nodeName.includes(myName)) isMatch = true;
-                    else {
-                        let words = myName.split(" ").filter(w => w.length > 3);
-                        for (let w of words) { if (nodeName.includes(w)) isMatch = true; }
+                    if (nodeName && myName) {
+                        if (myName === nodeName) isMatch = true;
+                        // Semak jika "adi" ada di dalam "adi bin mohd saad"
+                        else if (nodeName.length >= 3 && myName.includes(nodeName)) isMatch = true;
+                        // Semak jika sebaliknya
+                        else if (myName.length >= 3 && nodeName.includes(myName)) isMatch = true;
                     }
 
                     if (isMatch) {
@@ -363,12 +364,11 @@
             }
 
             let html = "";
-            let dipaparkan = new Set(); // Untuk elak duplikasi jika nama yang sama ada dalam kedua-dua pokok
+            let dipaparkan = new Set(); // Elak duplikasi 
 
-            // Fungsi render kad 
             const renderKad = (id, d, paparanHubungan) => {
                 const namaKey = (d.name || '').toLowerCase().trim();
-                if (dipaparkan.has(namaKey)) return ""; // Elak render dua kali
+                if (dipaparkan.has(namaKey)) return ""; 
                 dipaparkan.add(namaKey);
 
                 const isDecedent = d.status === 'meninggal';
@@ -392,7 +392,7 @@
                 </div>`;
             };
 
-            // 3. Tarik dari Pokok Induk (Cth: Tarik Asmah & Mohd Saad dari pokok Awi untuk Adi)
+            // 3. Tarik dari Pokok Induk (Awi) dan Tapis
             const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
             snapInduk.forEach(docSnap => {
                 const d = docSnap.data();
@@ -403,7 +403,7 @@
                 let letak = false;
                 if (isMertuaNode || isKandungNode) {
                     if (pihakInvitee === "semua") letak = true;
-                    else if (pihakInvitee === "mertua" && isMertuaNode) letak = true;
+                    else if (pihakInvitee === "mertua" && isMertuaNode) letak = true; // Adi nampak Asmah/Mohd Saad sahaja
                     else if (pihakInvitee === "kandung" && isKandungNode) letak = true;
                 }
 
@@ -416,14 +416,12 @@
                 }
             });
 
-            // 4. Tarik dari Pokok Sendiri (Cth: Tarik mertua Adi sendiri dari pangkalan datanya)
-            // Sistem hanya semak jika pengguna adalah invitee dan ada UID berbeza
+            // 4. Tarik dari Pokok Sendiri (Jika Adi ada daftar mertua dia di myNasab sendiri)
             if (isInvitee && uidPengguna !== indukUid) {
                 const snapSendiri = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna)));
                 snapSendiri.forEach(docSnap => {
                     const d = docSnap.data();
                     const hub = (d.relationship || '').toLowerCase();
-                    // Tarik mana-mana yang berstatus ibu/bapa/mertua
                     if (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah') || hub.includes('mertua')) {
                         html += renderKad(docSnap.id, d, d.relationship);
                     }
