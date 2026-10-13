@@ -77,6 +77,7 @@
             background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--radius);
             padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
+        .card.decedent { background: #f1f5f9; border-color: #cbd5e1; opacity: 0.85; }
         .card-title { font-weight: 800; font-size: 16px; margin: 0 0 4px; color: var(--ink); }
         .card-meta { font-size: 13px; color: var(--muted); margin: 0; }
 
@@ -101,59 +102,24 @@
         input:focus, select:focus, textarea:focus { border-color: var(--secondary); background: #fff;}
         label { font-size: 13px; color: var(--muted); font-weight: 700; display: block; margin-bottom: 6px; }
 
-        /* GATE / AUTH SCREEN */
-        .gate {
-            min-height: 100vh; display: flex; align-items: center; justify-content: center;
-            padding: 20px; background: var(--bg-color);
-        }
-        .gate-card {
-            background: var(--card-bg); border-radius: 16px; padding: 40px 30px; max-width: 400px; width: 100%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid var(--line); text-align: center;
-        }
-        .gate-card h1 { color: var(--ink); font-size: 26px; margin: 0 0 10px; font-weight: 800; }
-        .gate-card p { color: var(--muted); font-size: 14px; margin: 0 0 25px; line-height: 1.5; }
+        .badge-decedent { background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; display: inline-block; margin-top: 4px; }
+        .badge-alive { background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; display: inline-block; margin-top: 4px; }
+
+        .note-box { background: #fffbeb; border: 1px solid #fde68a; padding: 10px 12px; border-radius: 8px; margin-top: 10px; font-size: 13px; color: #92400e; }
         
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div id="authScreen" class="gate hidden">
-    <div class="gate-card">
-        <h1><span class="we">we</span><span class="care">Care</span></h1>
-        <p id="authSubtitle">Pantau ubat, temujanji & rutin ibu bapa bersama adik-beradik secara berpusat.</p>
-        
-        <div id="inviteBanner" class="hidden" style="background:#e8f8f5; color:#117a65; padding:10px; border-radius:8px; margin-bottom:20px; font-size:13px; font-weight:700;">
-            Anda dijemput menyertai Kumpulan Jagaan. Mendaftar akan memautkan akaun anda secara automatik.
-        </div>
-
+<div id="authScreen" class="gate hidden" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--bg-color);">
+    <div style="background:var(--card-bg); border-radius:16px; padding:40px 30px; max-width:400px; width:100%; box-shadow:0 10px 30px rgba(0,0,0,0.05); border:1px solid var(--line); text-align:center;">
+        <h1><span style="color:var(--secondary)">we</span><span style="color:var(--primary)">Care</span></h1>
+        <p style="color:var(--muted); font-size:14px; margin-bottom:25px;">Sistem Jagaan Kesihatan Ibu Bapa Berpusat</p>
         <form id="authForm">
-            <div class="field" style="text-align: left;">
-                <label>Emel Anda</label>
-                <input type="email" id="authEmail" required placeholder="cth: nama@emel.com">
-            </div>
-            <div class="field" style="text-align: left;">
-                <label>Kata Laluan</label>
-                <input type="password" id="authPassword" required placeholder="Min 6 aksara">
-            </div>
-            
-            <div id="registerFields" class="hidden">
-                <div class="field" style="text-align: left;">
-                    <label>Nama Anda</label>
-                    <input type="text" id="authName" placeholder="cth: Along">
-                </div>
-                <div class="field" id="parentNameField" style="text-align: left;">
-                    <label>Nama Ibu / Bapa (Untuk Kumpulan Baru)</label>
-                    <input type="text" id="authParentName" placeholder="cth: Mak Aminah">
-                    <small style="color:var(--muted); font-size:11px;">Abaikan jika anda mendaftar melalui pautan jemputan adik-beradik.</small>
-                </div>
-            </div>
-
-            <button type="submit" class="primary" id="btnSubmitAuth">Log Masuk</button>
-            <p style="margin-top:20px; font-size:14px; color:var(--muted);">
-                <span id="toggleText">Belum ada akaun?</span> 
-                <a href="#" id="btnToggleAuth" style="color:var(--secondary); font-weight:700; text-decoration:none;">Daftar Sini</a>
-            </p>
+            <input type="email" id="authEmail" required placeholder="Emel Anda">
+            <input type="password" id="authPassword" required placeholder="Kata Laluan">
+            <button type="submit" class="primary">Log Masuk</button>
         </form>
     </div>
 </div>
@@ -163,7 +129,7 @@
         <div class="brand"><span class="we">we</span><span class="care">Care</span></div>
         <div class="who">
             <div><b id="displayUserName">Pengguna</b></div>
-            <button id="btnKembali">Kembali</button>
+            <button id="btnKembali">Kembali ke myNasab</button>
         </div>
     </div>
     
@@ -175,36 +141,64 @@
     </div>
     
     <div class="content">
-        <!-- PANEL DASHBOARD & PROFIL IBU BAPA -->
+        <!-- 1. DASHBOARD -->
         <div id="dashboard" class="panel active">
             <h2 class="section-title">Pemantauan Kesihatan</h2>
-            <p class="section-sub">Data ibu bapa ditarik secara automatik dari myNasab.</p>
-            
-            <!-- Ruang Kad Profil Ibu Bapa -->
-            <div id="ruangProfilIbuBapa">
-                <div style="text-align:center; padding:20px; color:var(--muted);">
-                    Memuatkan data dari myNasab...
-                </div>
-            </div>
+            <p class="section-sub">Data ditarik terus dari pangkalan data myNasab.</p>
+            <div id="ruangProfilIbuBapa">Memuatkan data...</div>
         </div>
 
-        <!-- PANEL KALENDAR -->
+        <!-- 2. KALENDAR & SYIF -->
         <div id="calendar" class="panel">
-            <h2 class="section-title">Temujanji Hospital</h2>
-            <p class="section-sub">Rekod temujanji berpusat akan dibangunkan di sini.</p>
+            <h2 class="section-title">Kalendar & Jadual Jagaan</h2>
+            <p class="section-sub">Rekod temujanji hospital dan jadual bertugas adik-beradik.</p>
+            
+            <div class="card" style="background:#f0fdf4; border-color:#bbf7d0;">
+                <div class="card-title" style="color:#166534;">+ Tambah Jadual / Temujanji</div>
+                <input type="text" id="cTitle" placeholder="Perkara (Cth: Syif Jagaan Along / Klinik Kesihatan)">
+                <div style="display:flex; gap:10px;">
+                    <input type="date" id="cDate" style="flex:1;">
+                    <input type="time" id="cTime" style="flex:1;">
+                </div>
+                <input type="text" id="cLoc" placeholder="Lokasi / Nama Hospital (Pilihan)">
+                <textarea id="cNote" placeholder="Nota / Pesanan untuk adik-beradik lain..."></textarea>
+                <button class="primary" onclick="simpanKalendar()">Simpan & Sync Google Calendar</button>
+            </div>
+
+            <div id="senaraiKalendar"></div>
         </div>
 
-        <!-- PANEL UBAT -->
+        <!-- 3. UBAT -->
         <div id="meds" class="panel">
-            <h2 class="section-title">Senarai Ubat</h2>
-            <p class="section-sub">Modul pengurusan ubat berpusat akan dibangunkan di sini.</p>
+            <h2 class="section-title">Pengurusan Ubat</h2>
+            <p class="section-sub">Senarai preskripsi dan nota pematuhan ubat.</p>
+            
+            <div class="card" style="background:#eff6ff; border-color:#bfdbfe;">
+                <div class="card-title" style="color:#1e40af;">+ Tambah Preskripsi Ubat</div>
+                <input type="text" id="mName" placeholder="Nama Ubat (Cth: Metformin 500mg)">
+                <input type="text" id="mDosage" placeholder="Preskripsi / Dos (Cth: 1 biji pagi & malam selepas makan)">
+                <label style="font-size:12px; font-weight:700; color:var(--muted)">Gambar Ubat / Kotak / Preskripsi:</label>
+                <input type="file" id="mPhoto" accept="image/*" style="background:#fff;">
+                <textarea id="mNote" placeholder="Nota ubat untuk penjaga lain..."></textarea>
+                <button class="primary" onclick="simpanUbat()" style="background:var(--secondary);">Simpan Maklumat Ubat</button>
+            </div>
+
+            <div id="senaraiUbat"></div>
         </div>
 
-        <!-- PANEL KELUARGA -->
+        <!-- 4. KELUARGA -->
         <div id="team" class="panel">
-            <h2 class="section-title">Ahli Keluarga Jagaan</h2>
-            <p class="section-sub">Senarai adik-beradik di dalam kumpulan ini.</p>
-            <div id="teamList">Memuatkan...</div>
+            <h2 class="section-title">Keluarga & Handover Bersama</h2>
+            <p class="section-sub">Senarai waris penjaga dan papan nota komunikasi harian.</p>
+            
+            <div class="card" style="background:#fef3c7; border-color:#fde68a;">
+                <div class="card-title" style="color:#92400e;">💬 Tinggalkan Nota / Handover Terkini</div>
+                <textarea id="teamNote" placeholder="Tulis mesej / status terkini keadaan ibu bapa untuk dibaca adik-beradik..."></textarea>
+                <button class="primary" onclick="simpanNotaKeluarga()" style="background:#d97706;">Hantar Nota</button>
+            </div>
+
+            <div id="teamList">Memuatkan senarai...</div>
+            <div id="senaraiNotaKeluarga"></div>
         </div>
 
         <!-- MODAL KEMASKINI KESIHATAN -->
@@ -212,34 +206,14 @@
             <div class="card" style="width:100%; max-width:500px; margin:0 auto; background:#fff; max-height:90vh; overflow-y:auto;">
                 <h2 class="section-title" id="tajukModalKesihatan">Kemaskini Kesihatan</h2>
                 <input type="hidden" id="editKesihatanId">
-                
                 <div class="field" style="margin-top:15px;">
                     <label>Jenis Darah</label>
-                    <select id="kBlood">
-                        <option value="">-- Pilih --</option>
-                        <option>A+</option><option>A-</option>
-                        <option>B+</option><option>B-</option>
-                        <option>AB+</option><option>AB-</option>
-                        <option>O+</option><option>O-</option>
-                    </select>
+                    <select id="kBlood"><option value="">-- Pilih --</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
                 </div>
-                <div class="field">
-                    <label>Penyakit Kronik (Cth: Kencing Manis, Darah Tinggi)</label>
-                    <textarea id="kChronic" placeholder="Senaraikan penyakit..."></textarea>
-                </div>
-                <div class="field">
-                    <label>Alahan (Ubat / Makanan)</label>
-                    <textarea id="kAllergy" placeholder="Cth: Alergik Penicillin..."></textarea>
-                </div>
-                <div class="field">
-                    <label>Klinik / Hospital Rujukan Utama</label>
-                    <input type="text" id="kHospital" placeholder="Cth: Hospital Taiping">
-                </div>
-                <div class="field">
-                    <label>Doktor Pakar / Merawat</label>
-                    <input type="text" id="kDoctor" placeholder="Cth: Dr. Ahmad (Kardiologi)">
-                </div>
-                
+                <div class="field"><label>Penyakit Kronik</label><textarea id="kChronic"></textarea></div>
+                <div class="field"><label>Alahan</label><textarea id="kAllergy"></textarea></div>
+                <div class="field"><label>Hospital / Klinik Rujukan</label><input type="text" id="kHospital"></div>
+                <div class="field"><label>Doktor Pakar</label><input type="text" id="kDoctor"></div>
                 <div style="display:flex; gap:10px; margin-top:20px;">
                     <button class="primary" onclick="simpanProfilKesihatan()">Simpan Rekod</button>
                     <button class="ghost" onclick="tutupModalKesihatan()">Batal</button>
@@ -252,7 +226,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, addTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -268,164 +242,238 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Pengurusan Auth State & Auto-Pendaftaran Profil Wecare jika tiada
+    let currentGroup = null;
+    let currentUser = null;
+
+    document.querySelectorAll('.tab').forEach(t => {
+        t.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+            t.classList.add('active');
+            document.getElementById(t.dataset.tab).classList.add('active');
+        });
+    });
+
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
+    });
+
     onAuthStateChanged(auth, async (user) => {
         if (user) {
+            currentUser = user;
             document.getElementById('authScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             
             let userDoc = await getDoc(doc(db, "wecare_users", user.uid));
-            
-            // Jika akaun wujud dari myNasab tapi belum ada dlm wecare_users, kita auto-daftar serta-merta
             if (!userDoc.exists()) {
-                const autoName = user.email ? user.email.split('@')[0] : "Pengguna";
                 await setDoc(doc(db, "wecare_users", user.uid), {
                     uid: user.uid,
-                    name: autoName,
-                    email: user.email || "",
-                    role: "Induk/Admin",
+                    name: user.email.split('@')[0],
+                    email: user.email,
+                    role: "Warisan/Anak",
                     group_id: user.uid,
                     created_at: new Date()
                 });
                 userDoc = await getDoc(doc(db, "wecare_users", user.uid));
             }
+            const uData = userDoc.data();
+            currentGroup = uData.group_id || user.uid;
+            document.getElementById('displayUserName').innerText = uData.name;
 
-            const currentUserData = userDoc.data();
-            document.getElementById('displayUserName').innerText = currentUserData.name;
-            
-            // Panggil fungsi muat profil ibu bapa terus guna UID semasa
             muatProfilIbuBapa(user.uid);
-            muatAhliKeluarga(currentUserData.group_id || user.uid);
+            muatKalendar();
+            muatUbat();
+            muatKeluargaDanNota(currentGroup);
         } else {
             document.getElementById('authScreen').classList.remove('hidden');
             document.getElementById('mainApp').classList.add('hidden');
         }
     });
 
-    // Fungsi Muat Profil Ibu Bapa yang Selamat & Tepat
+    // 1. PROFIL IBU BAPA (DENGAN STATUS MENINGGAL DUNIA)
     async function muatProfilIbuBapa(uidPengguna) {
-        try {
-            console.log("Memuatkan profil ibu bapa untuk UID:", uidPengguna);
-            
-            const qParents = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna));
-            const snapParents = await getDocs(qParents);
-            
-            console.log("Jumlah nod dijumpai:", snapParents.size);
-            
-            let htmlProfil = "";
-            let adaData = false;
-
-            snapParents.forEach(docSnap => {
-                const data = docSnap.data();
-                const hub = (data.relationship || '').toLowerCase();
+        const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna)));
+        let html = "";
+        snap.forEach(docSnap => {
+            const d = docSnap.data();
+            const hub = (d.relationship || '').toLowerCase();
+            if (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) {
+                const isDecedent = d.status === 'meninggal';
                 
-                if (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) {
-                    adaData = true;
-                    
-                    const avatar = data.photo_url 
-                        ? `<img src="${data.photo_url}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">`
-                        : `<div style="width:60px; height:60px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800;">${(data.name || '?').charAt(0)}</div>`;
+                const avatar = d.photo_url 
+                    ? `<img src="${d.photo_url}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">`
+                    : `<div style="width:60px; height:60px; border-radius:50%; background:${isDecedent?'#94a3b8':'var(--primary)'}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800;">${(d.name || '?').charAt(0)}</div>`;
 
-                    htmlProfil += `
-                    <div class="card" style="display:flex; flex-direction:column; gap:15px;">
-                        <div style="display:flex; gap:15px; align-items:center;">
-                            ${avatar}
-                            <div style="flex:1;">
-                                <h3 style="margin:0; color:var(--ink); font-size:18px;">${data.name}</h3>
-                                <p style="margin:0; color:var(--muted); font-size:13px; font-weight:700;">
-                                    ${data.relationship || 'Ahli Keluarga'} ${data.dob ? '· Lahir: ' + data.dob : ''}
-                                </p>
-                            </div>
-                            <button class="ghost" style="width:auto; padding:8px 15px; font-size:13px;" onclick="bukaModalKesihatan('${docSnap.id}', '${data.name}')">Kemaskini Kesihatan</button>
+                html += `
+                <div class="card ${isDecedent?'decedent':''}" style="display:flex; flex-direction:column; gap:12px;">
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        ${avatar}
+                        <div style="flex:1;">
+                            <h3 style="margin:0; color:var(--ink); font-size:18px;">${d.name}</h3>
+                            <p style="margin:2px 0 0; color:var(--muted); font-size:13px; font-weight:700;">
+                                ${d.relationship || 'Keluarga'} ${d.dob ? '· Lahir: ' + d.dob : ''}
+                            </p>
+                            <div>${isDecedent ? '<span class="badge-decedent">🕊️ Meninggal Dunia</span>' : '<span class="badge-alive">🟢 Masih Hidup</span>'}</div>
                         </div>
-                    </div>`;
-                }
-            });
-
-            if (!adaData) {
-                htmlProfil = `<div class="empty">Tiada rekod ibu/bapa dijumpai di bawah akaun ini. Sila daftar rekod Ayah atau Ibu di aplikasi <b>myNasab</b> terlebih dahulu.</div>`;
+                        ${!isDecedent ? `<button class="ghost" style="width:auto; padding:8px 12px; font-size:12px;" onclick="bukaModalKesihatan('${docSnap.id}', '${d.name}')">Kemaskini</button>` : ''}
+                    </div>
+                </div>`;
             }
-
-            document.getElementById('ruangProfilIbuBapa').innerHTML = htmlProfil;
-
-        } catch (error) {
-            console.error("Ralat memuatkan profil:", error);
-            document.getElementById('ruangProfilIbuBapa').innerHTML = `<div class="empty" style="color:var(--danger);">Ralat Sambungan: Sila muat semula halaman.</div>`;
-        }
+        });
+        document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty">Tiada rekod ibu bapa dikesan.</div>';
     }
 
+    // 2. KALENDAR & SYIF JAGAAN + GOOGLE CALENDAR
+    window.simpanKalendar = async () => {
+        const title = document.getElementById('cTitle').value.trim();
+        const date = document.getElementById('cDate').value;
+        const time = document.getElementById('cTime').value;
+        const loc = document.getElementById('cLoc').value.trim();
+        const note = document.getElementById('cNote').value.trim();
+
+        if(!title || !date) { alert('Sila isi Perkara & Tarikh!'); return; }
+
+        const eventData = { title, date, time, loc, note, author: currentUser.email.split('@')[0], group_id: currentGroup, created_at: Date.now() };
+        await setDoc(doc(collection(db, "wecare_calendar")), eventData);
+        
+        // Jana URL Google Calendar
+        const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${date.replace(/-/g,'')}/${date.replace(/-/g,'')}&details=${encodeURIComponent(note + ' (Oleh: ' + eventData.author + ')')}&location=${encodeURIComponent(loc)}`;
+        window.open(gcalUrl, '_blank');
+
+        document.getElementById('cTitle').value = '';
+        document.getElementById('cDate').value = '';
+        document.getElementById('cTime').value = '';
+        document.getElementById('cLoc').value = '';
+        document.getElementById('cNote').value = '';
+        muatKalendar();
+    }
+
+    async function muatKalendar() {
+        const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", currentGroup)));
+        let html = "";
+        snap.forEach(d => {
+            const data = d.data();
+            html += `
+            <div class="card">
+                <div class="card-title">${data.title}</div>
+                <div class="card-meta">📅 ${data.date} ${data.time?'· '+data.time:''} ${data.loc?'· 🏥 '+data.loc:''}</div>
+                ${data.note ? `<div class="note-box"><b>Nota Adik-Beradik:</b> \${data.note}</div>` : ''}
+                <div style="font-size:11px; color:var(--muted); margin-top:6px; text-align:right;">Oleh: ${data.author}</div>
+            </div>`;
+        });
+        document.getElementById('senaraiKalendar').innerHTML = html || '<div class="empty">Tiada jadual disimpan lagi.</div>';
+    }
+
+    // 3. UBAT + GAMBAR (BASE64)
+    window.simpanUbat = async () => {
+        const name = document.getElementById('mName').value.trim();
+        const dosage = document.getElementById('mDosage').value.trim();
+        const note = document.getElementById('mNote').value.trim();
+        const fileInput = document.getElementById('mPhoto').files[0];
+
+        if(!name) { alert('Sila isi nama ubat!'); return; }
+
+        let photoBase64 = null;
+        if(fileInput) {
+            photoBase64 = await toBase64(fileInput);
+        }
+
+        const medData = { name, dosage, note, photo: photoBase64, author: currentUser.email.split('@')[0], group_id: currentGroup, created_at: Date.now() };
+        await setDoc(doc(collection(db, "wecare_meds")), medData);
+        
+        document.getElementById('mName').value = '';
+        document.getElementById('mDosage').value = '';
+        document.getElementById('mNote').value = '';
+        document.getElementById('mPhoto').value = '';
+        muatUbat();
+    }
+
+    function toBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    async function muatUbat() {
+        const snap = await getDocs(query(collection(db, "wecare_meds"), where("group_id", "==", currentGroup)));
+        let html = "";
+        snap.forEach(d => {
+            const data = d.data();
+            html += `
+            <div class="card" style="display:flex; gap:15px; align-items:flex-start;">
+                ${data.photo ? `<img src="\${data.photo}" style="width:70px; height:70px; border-radius:8px; object-fit:cover;">` : ''}
+                <div style="flex:1;">
+                    <div class="card-title">${data.name}</div>
+                    <div class="card-meta"><b>Dos:</b> ${data.dosage}</div>
+                    ${data.note ? `<div class="note-box"><b>Nota Ubat:</b> \${data.note}</div>` : ''}
+                </div>
+            </div>`;
+        });
+        document.getElementById('senaraiUbat').innerHTML = html || '<div class="empty">Tiada senarai ubat didaftarkan.</div>';
+    }
+
+    // 4. KELUARGA & NOTA HANDOVER
+    window.simpanNotaKeluarga = async () => {
+        const note = document.getElementById('teamNote').value.trim();
+        if(!note) return;
+        await setDoc(doc(collection(db, "wecare_notes")), { note, author: currentUser.email.split('@')[0], group_id: currentGroup, created_at: Date.now() });
+        document.getElementById('teamNote').value = '';
+        muatKeluargaDanNota(currentGroup);
+    }
+
+    async function muatKeluargaDanNota(groupId) {
+        const snapUsers = await getDocs(query(collection(db, "wecare_users"), where("group_id", "==", groupId)));
+        let teamHtml = "";
+        snapUsers.forEach(d => {
+            const u = d.data();
+            teamHtml += `<div class="card" style="padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between;"><b>${u.name}</b> <span style="font-size:12px; color:var(--muted);">${u.email}</span></div>`;
+        });
+        document.getElementById('teamList').innerHTML = teamHtml;
+
+        const snapNotes = await getDocs(query(collection(db, "wecare_notes"), where("group_id", "==", groupId)));
+        let noteHtml = "<h3 style='font-size:16px; margin:20px 0 10px;'>Sejarah Nota Handover</h3>";
+        snapNotes.forEach(d => {
+            const n = d.data();
+            noteHtml += `<div class="card"><div style="font-size:13px;">${n.note}</div><div style="font-size:11px; color:var(--muted); text-align:right; margin-top:5px;">${n.author}</div></div>`;
+        });
+        document.getElementById('senaraiNotaKeluarga').innerHTML = noteHtml;
+    }
+
+    // MODAL KESIHATAN
     window.bukaModalKesihatan = async (idNod, nama) => {
         document.getElementById('tajukModalKesihatan').innerText = "Kesihatan: " + nama;
         document.getElementById('editKesihatanId').value = idNod;
-        
-        document.getElementById('kBlood').value = "";
-        document.getElementById('kChronic').value = "";
-        document.getElementById('kAllergy').value = "";
-        document.getElementById('kHospital').value = "";
-        document.getElementById('kDoctor').value = "";
-
-        const healthDoc = await getDoc(doc(db, "wecare_health_profiles", idNod));
-        if (healthDoc.exists()) {
-            const d = healthDoc.data();
+        const hDoc = await getDoc(doc(db, "wecare_health_profiles", idNod));
+        if (hDoc.exists()) {
+            const d = hDoc.data();
             document.getElementById('kBlood').value = d.blood_type || "";
             document.getElementById('kChronic').value = d.chronic || "";
             document.getElementById('kAllergy').value = d.allergies || "";
             document.getElementById('kHospital').value = d.hospital || "";
             document.getElementById('kDoctor').value = d.doctor || "";
         }
-
         document.getElementById('modalKesihatan').classList.remove('hidden');
     }
-
-    window.tutupModalKesihatan = () => {
-        document.getElementById('modalKesihatan').classList.add('hidden');
-    }
-
+    window.tutupModalKesihatan = () => { document.getElementById('modalKesihatan').classList.add('hidden'); }
     window.simpanProfilKesihatan = async () => {
         const idNod = document.getElementById('editKesihatanId').value;
-        const dataUpdate = {
+        await setDoc(doc(db, "wecare_health_profiles", idNod), {
             blood_type: document.getElementById('kBlood').value,
             chronic: document.getElementById('kChronic').value.trim(),
             allergies: document.getElementById('kAllergy').value.trim(),
             hospital: document.getElementById('kHospital').value.trim(),
             doctor: document.getElementById('kDoctor').value.trim(),
-            updated_by: auth.currentUser.uid,
             updated_at: new Date()
-        };
-
-        try {
-            await setDoc(doc(db, "wecare_health_profiles", idNod), dataUpdate, { merge: true });
-            alert("Rekod kesihatan berjaya dikemas kini!");
-            tutupModalKesihatan();
-            muatProfilIbuBapa(auth.currentUser.uid);
-        } catch (error) {
-            alert("Ralat menyimpan data: " + error.message);
-        }
+        }, { merge: true });
+        alert("Berjaya dikemas kini!");
+        tutupModalKesihatan();
     }
 
-    async function muatAhliKeluarga(groupId) {
-        try {
-            const q = query(collection(db, "wecare_users"), where("group_id", "==", groupId));
-            const snap = await getDocs(q);
-            let html = '';
-            snap.forEach(doc => {
-                const d = doc.data();
-                html += `
-                <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div class="card-title">${d.name}</div>
-                        <div class="card-meta">${d.email}</div>
-                    </div>
-                    <span style="font-size:12px; font-weight:700; color:var(--primary); background:#e8f8f5; padding:4px 10px; border-radius:12px;">${d.role}</span>
-                </div>`;
-            });
-            document.getElementById('teamList').innerHTML = html;
-        } catch(e) { console.log(e); }
-    }
-
-    document.getElementById('btnKembali').addEventListener('click', () => {
-        window.location.href = "../index.html";
-    });
+    document.getElementById('btnKembali').addEventListener('click', () => { window.location.href = "../index.html"; });
 </script>
 </body>
 </html>
