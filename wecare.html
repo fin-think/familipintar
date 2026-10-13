@@ -391,13 +391,25 @@
 
   async function muatProfilIbuBapa(uidPengguna) {
         try {
-            console.log("Mula carian universal untuk ibu bapa...");
+            console.log("Mula semak profil mengikut Firestore Rules untuk UID:", uidPengguna);
+            let indukUid = uidPengguna; 
             
-            // Terus tarik SEMUA nod dari koleksi mynasab_nodes tanpa sekatan owner_uid
-            const qParents = query(collection(db, "mynasab_nodes"));
+            // 1. Semak sama ada pengguna ini ada pautan aktif di mynasab_links
+            const linkDoc = await getDoc(doc(db, "mynasab_links", uidPengguna));
+            if (linkDoc.exists()) {
+                const linkData = linkDoc.data();
+                console.log("Status pautan link:", linkData.status);
+                if (linkData.status === 'aktif' && linkData.owner_uid) {
+                    indukUid = linkData.owner_uid;
+                }
+            }
+            console.log("ID Induk rasmi yang dibenarkan rules:", indukUid);
+
+            // 2. Query mengikut owner_uid yang sah (Lepas syarat Firestore Rules)
+            const qParents = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid));
             const snapParents = await getDocs(qParents);
             
-            console.log("Jumlah keseluruhan nod dalam mynasab_nodes:", snapParents.size);
+            console.log("Jumlah nod dijumpai:", snapParents.size);
             
             let htmlProfil = "";
             let adaData = false;
@@ -405,9 +417,9 @@
             snapParents.forEach(docSnap => {
                 const data = docSnap.data();
                 const hub = (data.relationship || '').toLowerCase();
-                console.log("Nama:", data.name, "| Hubungan:", hub, "| Owner:", data.owner_uid);
+                console.log("Nama:", data.name, "| Hubungan:", hub);
                 
-                // Cari apa jua hubungan berkaitan ayah, ibu, bapa, mak, abah
+                // Cari hubungan ibu atau bapa
                 if (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) {
                     adaData = true;
                     
@@ -432,14 +444,14 @@
             });
 
             if (!adaData) {
-                htmlProfil = `<div class="empty">Tiada rekod ibu/bapa dijumpai langsung dalam sistem myNasab.</div>`;
+                htmlProfil = `<div class="empty">Tiada rekod ibu/bapa dijumpai di bawah ID Induk: ${indukUid}. Sila pastikan akaun ini mempunyai pautan aktif atau rekod ibu bapa di myNasab.</div>`;
             }
 
             document.getElementById('ruangProfilIbuBapa').innerHTML = htmlProfil;
 
         } catch (error) {
-            console.error("Ralat:", error);
-            document.getElementById('ruangProfilIbuBapa').innerHTML = `<div class="empty" style="color:var(--danger);">Ralat: ${error.message}</div>`;
+            console.error("Ralat dikesan:", error);
+            document.getElementById('ruangProfilIbuBapa').innerHTML = `<div class="empty" style="color:var(--danger);">Ralat Keselamatan Firestore: ${error.message}</div>`;
         }
     }
     
