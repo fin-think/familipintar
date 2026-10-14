@@ -1,932 +1,704 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>weCare - Jagaan Bersama</title>
-   <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
-
-        :root {
-            --bg-color: #f8fafc; --card-bg: #ffffff; --ink: #1e293b;
-            --primary: #27ae60; --primary-hover: #219a52; --secondary: #3b82f6;
-            --line: #e2e8f0; --muted: #64748b; --radius: 12px;
-            --ayah-color: #3b82f6; /* Biru */
-            --ibu-color: #ec4899; /* Pink */
-            --umum-color: #10b981; /* Hijau */
-        }
-
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--bg-color); color: var(--ink); font-family: 'Nunito', sans-serif; -webkit-font-smoothing: antialiased; }
-
-        .app { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            padding: 0 0 40px; 
-            min-height: 100vh; 
-            background: var(--bg-color); 
-        }
-        
-        /* HEADER & DROPDOWN */
-        .topbar { padding: 15px 20px; background: var(--card-bg); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-        .brand { font-size: 22px; font-weight: 800; color: var(--ink); }
-        .brand span.we { color: var(--secondary); }
-        .brand span.care { color: var(--primary); }
-        .who { text-align: right; font-size: 13px; color: var(--muted); }
-        
-        .filter-section { background: var(--card-bg); padding: 15px 20px; border-bottom: 1px solid var(--line); }
-        .filter-section select { width: 100%; padding: 12px; border-radius: 8px; background: #eef2ff; border: 1px solid #c7d2fe; color: #4f46e5; font-weight: 800; font-size: 15px; text-align: center; cursor: pointer; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-        .content { padding: 20px; }
-        .section-title { font-size: 18px; font-weight: 800; margin: 0 0 5px; color: var(--ink); }
-        .section-sub { font-size: 13px; color: var(--muted); margin: 0 0 15px; }
-
-        /* KAD PROFIL */
-        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
-        @media (min-width: 768px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
-        
-        .card { background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); position: relative; overflow: hidden; }
-        .card.decedent { background: #f1f5f9; border-color: #cbd5e1; opacity: 0.85; }
-
-        /* LAYOUT UTAMA: Kalendar (kiri) + Waris/Nota/Penjaga (kanan)
-            Telefon & tablet kecil: disusun ke bawah (kalendar dahulu, kemudian waris/nota) */
-        .layout-utama {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-            align-items: stretch;
-        }
-        .kolum-kalendar, .kolum-waris {
-            width: 100%;
-            min-width: 0; /* benarkan kalendar mengecil, jangan tolak kolum kanan */
-        }
-        #senaraiNotaKeluarga .card { margin-top: 10px; }
-        .kotak-penjaga { margin-top: 15px; }
-
-        /* Desktop: dua kolum */
-        @media (min-width: 992px) {
-            .layout-utama {
-                flex-direction: row;
-                align-items: flex-start;
-                gap: 25px;
-            }
-            .kolum-kalendar {
-                flex: 1 1 0;
-            }
-            .kolum-waris {
-                flex: 0 0 380px;
-                width: 380px;
-                position: sticky;
-                top: 85px;
-                max-height: calc(100vh - 105px);
-                overflow-y: auto;
-                padding-right: 2px;
-            }
-        }
-        
-        /* CALENDAR GRID */
-        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #fff; padding: 10px 15px; border-radius: 8px; border: 1px solid var(--line); }
-        .cal-header button { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--secondary); font-weight: 800; }
-        .cal-header h3 { margin: 0; font-size: 16px; font-weight: 800; }
-        
-        .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
-        .cal-day-name { text-align: center; font-weight: 800; font-size: 11px; color: var(--muted); padding-bottom: 5px; text-transform: uppercase; }
-        .cal-date { background: #fff; border: 1px solid var(--line); border-radius: 6px; min-height: 80px; min-width: 0; padding: 6px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; }
-        .cal-date:hover { border-color: var(--secondary); background: #f8fafc; }
-        .cal-date.empty-slot { background: transparent; border: none; cursor: default; }
-        .cal-date.today { border-color: var(--primary); background: #f0fdf4; }
-        
-        .dt-num { font-weight: 800; font-size: 13px; color: var(--ink); margin-bottom: 4px; text-align: right; }
-        .cal-event { font-size: 10px; padding: 3px 5px; border-radius: 4px; color: #fff; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
-        
-        .evt-ayah { background: var(--ayah-color); }
-        .evt-ibu { background: var(--ibu-color); }
-        .evt-umum { background: var(--umum-color); }
-
-        /* BUTTONS & INPUTS */
-        button.primary { background: var(--primary); color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; transition:0.2s; }
-        button.primary:hover { opacity: 0.9; }
-        button.ghost { background: transparent; border: 1px solid var(--muted); color: var(--ink); padding: 8px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 700; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; font-family: inherit; margin-bottom: 12px; outline: none; }
-        label { font-size: 12px; color: var(--muted); font-weight: 700; display: block; margin-bottom: 4px; }
-        
-        .badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; display: inline-block; }
-        .hidden { display: none !important; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>weCare - Jagaan Bersama</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+:root{--bg-color:#f8fafc;--card-bg:#fff;--ink:#1e293b;--primary:#27ae60;--primary-hover:#219a52;--secondary:#3b82f6;--line:#e2e8f0;--muted:#64748b;--radius:12px;--ayah-color:#3b82f6;--ibu-color:#ec4899;--umum-color:#10b981}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg-color);color:var(--ink);font-family:'Nunito',sans-serif;-webkit-font-smoothing:antialiased}
+.app{max-width:1200px;margin:0 auto;padding:0 0 40px;min-height:100vh;background:var(--bg-color)}
+.topbar{padding:15px 20px;background:var(--card-bg);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.brand{font-size:22px;font-weight:800;color:var(--ink)}
+.brand span.we{color:var(--secondary)}
+.brand span.care{color:var(--primary)}
+.who{text-align:right;font-size:13px;color:var(--muted)}
+.filter-section{background:var(--card-bg);padding:15px 20px;border-bottom:1px solid var(--line)}
+.filter-section select{width:100%;padding:12px;border-radius:8px;background:#eef2ff;border:1px solid #c7d2fe;color:#4f46e5;font-weight:800;font-size:15px;text-align:center;cursor:pointer;outline:none;box-shadow:0 2px 4px rgba(0,0,0,.05)}
+.content{padding:20px}
+.section-title{font-size:18px;font-weight:800;margin:0 0 5px;color:var(--ink)}
+.section-sub{font-size:13px;color:var(--muted);margin:0 0 15px}
+.grid-2{display:grid;grid-template-columns:1fr;gap:15px;margin-bottom:25px}
+@media(min-width:768px){.grid-2{grid-template-columns:1fr 1fr}}
+.card{background:var(--card-bg);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:0 2px 5px rgba(0,0,0,.02);position:relative;overflow:hidden}
+.card.decedent{background:#f1f5f9;border-color:#cbd5e1;opacity:.85}
+.layout-utama{display:flex;flex-direction:column;gap:30px;align-items:stretch}
+.kolum-kalendar,.kolum-waris{width:100%;min-width:0}
+#senaraiNotaKeluarga .card{margin-top:10px}
+.kotak-penjaga{margin-top:15px}
+@media(min-width:992px){
+.layout-utama{flex-direction:row;align-items:flex-start;gap:25px}
+.kolum-kalendar{flex:1 1 0}
+.kolum-waris{flex:0 0 380px;width:380px;position:sticky;top:85px;max-height:calc(100vh - 105px);overflow-y:auto;padding-right:2px}
+}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;background:#fff;padding:10px 15px;border-radius:8px;border:1px solid var(--line)}
+.cal-header button{background:none;border:none;font-size:18px;cursor:pointer;color:var(--secondary);font-weight:800}
+.cal-header h3{margin:0;font-size:16px;font-weight:800}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.cal-day-name{text-align:center;font-weight:800;font-size:11px;color:var(--muted);padding-bottom:5px;text-transform:uppercase}
+.cal-date{background:#fff;border:1px solid var(--line);border-radius:6px;min-height:80px;min-width:0;padding:6px;cursor:pointer;transition:.2s;display:flex;flex-direction:column}
+.cal-date:hover{border-color:var(--secondary);background:#f8fafc}
+.cal-date.empty-slot{background:transparent;border:none;cursor:default}
+.cal-date.today{border-color:var(--primary);background:#f0fdf4}
+.dt-num{font-weight:800;font-size:13px;color:var(--ink);margin-bottom:4px;text-align:right}
+.cal-event{font-size:10px;padding:3px 5px;border-radius:4px;color:#fff;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.evt-ayah{background:var(--ayah-color)}.evt-ibu{background:var(--ibu-color)}.evt-umum{background:var(--umum-color)}
+button.primary{background:var(--primary);color:#fff;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;width:100%;transition:.2s}
+button.primary:hover{opacity:.9}
+button.ghost{background:transparent;border:1px solid var(--muted);color:var(--ink);padding:8px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;margin-bottom:12px;outline:none}
+label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px}
+.badge{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:800;display:inline-block}
+.hidden{display:none!important}
+</style>
 </head>
 <body>
 
-<div id="authScreen" class="gate hidden" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--bg-color);">
-    <div style="background:var(--card-bg); border-radius:16px; padding:40px 30px; max-width:400px; width:100%; box-shadow:0 10px 30px rgba(0,0,0,0.05); border:1px solid var(--line); text-align:center;">
-        <h1><span style="color:var(--secondary)">we</span><span style="color:var(--primary)">Care</span></h1>
-        <p style="color:var(--muted); font-size:14px; margin-bottom:25px;">Sistem Jagaan Kesihatan Ibu Bapa Berpusat</p>
-        <form id="authForm">
-            <input type="email" id="authEmail" required placeholder="Emel Anda">
-            <input type="password" id="authPassword" required placeholder="Kata Laluan">
-            <button type="submit" class="primary">Log Masuk</button>
-        </form>
-    </div>
+<div id="authScreen" class="gate hidden" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg-color);">
+  <div style="background:var(--card-bg);border-radius:16px;padding:40px 30px;max-width:400px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.05);border:1px solid var(--line);text-align:center;">
+    <h1><span style="color:var(--secondary)">we</span><span style="color:var(--primary)">Care</span></h1>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:25px;">Sistem Jagaan Kesihatan Ibu Bapa Berpusat</p>
+    <form id="authForm">
+      <input type="email" id="authEmail" required placeholder="Emel Anda">
+      <input type="password" id="authPassword" required placeholder="Kata Laluan">
+      <button type="submit" class="primary">Log Masuk</button>
+    </form>
+  </div>
 </div>
 
 <div id="mainApp" class="app hidden">
-    <!-- HEADER -->
-    <div class="topbar">
-        <div class="brand"><span class="we">we</span><span class="care">Care</span></div>
-        <div class="who">
-            <div id="displayUserName" style="font-weight:800; color:var(--ink);">Pengguna</div>
-            <a href="../index.html" style="font-size:12px; color:var(--muted); text-decoration:none;">Kembali ke myNasab</a>
+  <div class="topbar">
+    <div class="brand"><span class="we">we</span><span class="care">Care</span></div>
+    <div class="who">
+      <div id="displayUserName" style="font-weight:800;color:var(--ink);">Pengguna</div>
+      <a href="../index.html" style="font-size:12px;color:var(--muted);text-decoration:none;">Kembalib</a>
+    </div>
+  </div>
+
+  <div class="filter-section">
+    <select id="filterBelah" onchange="tukarBelahPaparan()">
+      <option value="induk">👨‍👦 Papan Pemuka: Keluarga Induk</option>
+      <option value="pasangan">👩‍👧 Papan Pemuka: Keluarga Pasangan</option>
+    </select>
+  </div>
+
+  <div class="content">
+    <h2 class="section-title">Profil & Kesihatan Ibu Bapa</h2>
+    <p class="section-sub">Kemaskini maklumat ubat, jenis darah dan rujukan hospital.</p>
+    <div id="ruangProfilIbuBapa" class="grid-2">Memuatkan data...</div>
+
+    <div class="layout-utama">
+      <div class="kolum-kalendar">
+        <h2 class="section-title">Kalendar Jagaan & Ubat</h2>
+        <p class="section-sub">Pengecaman Warna:
+          <span style="color:var(--ayah-color);font-weight:800;">🔵 Bapa</span> |
+          <span style="color:var(--ibu-color);font-weight:800;">🔴 Ibu</span> |
+          <span style="color:var(--umum-color);font-weight:800;">🟢 Umum (Rumah)</span>
+        </p>
+        <div class="cal-header">
+          <button onclick="tukarBulan(-1)">❮</button>
+          <h3 id="paparanBulanTahun">Bulan Tahun</h3>
+          <button onclick="tukarBulan(1)">❯</button>
         </div>
-    </div>
-    
-    <!-- DROPDOWN FILTER -->
-    <div class="filter-section">
-        <select id="filterBelah" onchange="tukarBelahPaparan()">
-            <option value="induk">👨‍👦 Papan Pemuka: Keluarga Induk</option>
-            <option value="pasangan">👩‍👧 Papan Pemuka: Keluarga Pasangan</option>
-        </select>
-    </div>
-    
-    <!-- KANDUNGAN UTAMA (DASHBOARD KESELURUHAN) -->
-    <div class="content">
-        
-        <!-- 1. PROFIL IBU BAPA -->
-        <h2 class="section-title">Profil & Kesihatan Ibu Bapa</h2>
-        <p class="section-sub">Kemaskini maklumat ubat, jenis darah dan rujukan hospital.</p>
-        <div id="ruangProfilIbuBapa" class="grid-2">Memuatkan data...</div>
-
-        <!-- 2 + 3. LAYOUT: KALENDAR (KIRI) | WARIS & NOTA (KANAN) -->
-        <div class="layout-utama">
-
-            <!-- KIRI: KALENDAR -->
-            <div class="kolum-kalendar">
-                <h2 class="section-title">Kalendar Jagaan & Ubat</h2>
-                <p class="section-sub">
-                    Pengecaman Warna: 
-                    <span style="color:var(--ayah-color); font-weight:800;">🔵 Bapa</span> | 
-                    <span style="color:var(--ibu-color); font-weight:800;">🔴 Ibu</span> | 
-                    <span style="color:var(--umum-color); font-weight:800;">🟢 Umum (Rumah)</span>
-                </p>
-                
-                <div class="cal-header">
-                    <button onclick="tukarBulan(-1)">❮</button>
-                    <h3 id="paparanBulanTahun">Bulan Tahun</h3>
-                    <button onclick="tukarBulan(1)">❯</button>
-                </div>
-                <div class="cal-grid" id="hariKalendar">
-                    <div class="cal-day-name">Aha</div><div class="cal-day-name">Isn</div>
-                    <div class="cal-day-name">Sel</div><div class="cal-day-name">Rab</div>
-                    <div class="cal-day-name">Kha</div><div class="cal-day-name">Jum</div>
-                    <div class="cal-day-name">Sab</div>
-                </div>
-                <div class="cal-grid" id="gridKalendar">
-                    <!-- Grid akan dijana oleh Javascript -->
-                </div>
-            </div>
-
-            <!-- KANAN: WARIS, PAPAN NOTA & SENARAI PENJAGA -->
-            <div class="kolum-waris">
-                <h2 class="section-title">Waris & Papan Nota Keluarga</h2>
-                <p class="section-sub">Tinggalkan pesanan ringkas buat adik-beradik / penjaga lain.</p>
-
-                <div class="card" style="background:#fef3c7; border-color:#fde68a;">
-                    <textarea id="teamNote" placeholder="Tulis mesej / status terkini keadaan ibu bapa di sini..." style="border-color:#fcd34d; min-height:80px;"></textarea>
-                    <button class="primary" onclick="simpanNotaKeluarga()" style="background:#d97706;">💬 Hantar Pesanan</button>
-                </div>
-
-                <div class="kotak-penjaga" style="background:var(--card-bg); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
-                    <h3 style="margin:0 0 15px; font-size:14px; color:var(--ink); font-weight:800; border-bottom:1px solid var(--line); padding-bottom:10px;">👥 Senarai Penjaga / Anak</h3>
-                    <div id="teamList">Memuatkan senarai...</div>
-                </div>
-
-                <!-- Senarai nota diletakkan paling bawah kerana ia terus bertambah -->
-                <div id="senaraiNotaKeluarga"></div>
-            </div>
-
+        <div class="cal-grid" id="hariKalendar">
+          <div class="cal-day-name">Aha</div><div class="cal-day-name">Isn</div>
+          <div class="cal-day-name">Sel</div><div class="cal-day-name">Rab</div>
+          <div class="cal-day-name">Kha</div><div class="cal-day-name">Jum</div>
+          <div class="cal-day-name">Sab</div>
         </div>
+        <div class="cal-grid" id="gridKalendar"></div>
+      </div>
+
+      <div class="kolum-waris">
+        <h2 class="section-title">Waris & Papan Nota Keluarga</h2>
+        <p class="section-sub">Tinggalkan pesanan ringkas buat adik-beradik / penjaga lain.</p>
+        <div class="card" style="background:#fef3c7;border-color:#fde68a;">
+          <textarea id="teamNote" placeholder="Tulis mesej / status terkini keadaan ibu bapa di sini..." style="border-color:#fcd34d;min-height:80px;"></textarea>
+          <button class="primary" onclick="simpanNotaKeluarga()" style="background:#d97706;">💬 Hantar Pesanan</button>
+        </div>
+        <div class="kotak-penjaga" style="background:var(--card-bg);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,.05);">
+          <h3 style="margin:0 0 15px;font-size:14px;color:var(--ink);font-weight:800;border-bottom:1px solid var(--line);padding-bottom:10px;">👥 Senarai Penjaga / Anak</h3>
+          <div id="teamList">Memuatkan senarai...</div>
+        </div>
+        <div id="senaraiNotaKeluarga"></div>
+      </div>
     </div>
+  </div>
 </div>
 
-<!-- MODAL TARIKH (Bila klik petak kalendar) -->
-<div id="modalTarikh" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:15px;">
-    <div style="background:#fff; width:100%; max-width:450px; border-radius:12px; padding:20px; max-height:90vh; overflow-y:auto; position:relative;">
-        <h2 id="tajukTarikh" style="margin:0 0 15px; font-size:18px; color:var(--ink); font-weight:800;">Tugas: Tarikh</h2>
-        
-        <div id="senaraiTugasTarikh" style="margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid var(--line);">
-            <!-- Senarai tugas pada tarikh tersebut -->
-        </div>
-
-        <h3 style="font-size:14px; margin:0 0 10px; color:var(--secondary);">+ Tambah Tugas / Shift Baru</h3>
-        
-        <!-- Tarikh Mula & Tamat -->
-        <div style="display:flex; gap:10px; margin-bottom:12px;">
-            <div style="flex:1;">
-                <label>Tarikh Mula</label>
-                <input type="date" id="tDate">
-            </div>
-            <div style="flex:1;">
-                <label>Tarikh Tamat</label>
-                <input type="date" id="tEndDate">
-            </div>
-        </div>
-        
-        <div style="display:flex; gap:10px; margin-bottom:12px;">
-            <div style="flex:1;">
-                <label>Untuk Siapa?</label>
-                <select id="tWhom">
-                    <option value="ayah">Bapa (Biru)</option>
-                    <option value="ibu">Ibu (Pink)</option>
-                    <option value="umum">Umum (Hijau)</option>
-                </select>
-            </div>
-            <div style="flex:1;">
-                <label>Masa (Pilihan)</label>
-                <input type="time" id="tTime">
-            </div>
-        </div>
-        
-        <label>Shift / Tugasan Siapa?</label>
-        <select id="tShiftSiapa">
-            <!-- Akan dijana oleh JS dari Senarai Waris -->
-            <option value="Umum">Umum / Semua Terlibat</option>
-        </select>
-        
-        <label style="margin-top:12px;">Perkara (Cth: Bawa ke Klinik / Makan Ubat)</label>
-        <input type="text" id="tTitle" placeholder="Tulis tugas...">
-        
-        <label>Nota / Dos Ubat</label>
-        <textarea id="tNote" placeholder="Maklumat tambahan..."></textarea>
-        
-        <button class="primary" onclick="simpanTugasKalendar(false)" style="margin-bottom:10px;">💾 Simpan Tugas Sahaja</button>
-        <button class="ghost" style="width:100%; margin-bottom:10px; background:#f8fafc;" onclick="simpanTugasKalendar(true)">📅 Simpan & Sync Google Calendar</button>
-        <button class="ghost" style="width:100%; border:none;" onclick="tutupModalTarikh()">Tutup</button>
+<!-- MODAL TARIKH -->
+<div id="modalTarikh" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center;padding:15px;">
+  <div style="background:#fff;width:100%;max-width:450px;border-radius:12px;padding:20px;max-height:90vh;overflow-y:auto;position:relative;">
+    <h2 id="tajukTarikh" style="margin:0 0 15px;font-size:18px;color:var(--ink);font-weight:800;">Tugas: Tarikh</h2>
+    <div id="senaraiTugasTarikh" style="margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid var(--line);"></div>
+    <h3 style="font-size:14px;margin:0 0 10px;color:var(--secondary);">+ Tambah Tugas / Shift Baru</h3>
+    <div style="display:flex;gap:10px;margin-bottom:12px;">
+      <div style="flex:1;"><label>Tarikh Mula</label><input type="date" id="tDate"></div>
+      <div style="flex:1;"><label>Tarikh Tamat</label><input type="date" id="tEndDate"></div>
     </div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;">
+      <div style="flex:1;"><label>Untuk Siapa?</label>
+        <select id="tWhom"><option value="ayah">Bapa (Biru)</option><option value="ibu">Ibu (Pink)</option><option value="umum">Umum (Hijau)</option></select>
+      </div>
+      <div style="flex:1;"><label>Masa (Pilihan)</label><input type="time" id="tTime"></div>
+    </div>
+    <label>Shift / Tugasan Siapa?</label>
+    <select id="tShiftSiapa"><option value="Umum">Umum / Semua Terlibat</option></select>
+    <label style="margin-top:12px;">Perkara (Cth: Bawa ke Klinik / Makan Ubat)</label>
+    <input type="text" id="tTitle" placeholder="Tulis tugas...">
+    <label>Nota / Dos Ubat</label>
+    <textarea id="tNote" placeholder="Maklumat tambahan..."></textarea>
+    <button class="primary" onclick="simpanTugasKalendar(false)" style="margin-bottom:10px;">💾 Simpan Tugas Sahaja</button>
+    <button class="ghost" style="width:100%;margin-bottom:10px;background:#f8fafc;" onclick="simpanTugasKalendar(true)">📅 Simpan & Sync Google Calendar</button>
+    <button class="ghost" style="width:100%;border:none;" onclick="tutupModalTarikh()">Tutup</button>
+  </div>
 </div>
 
 <!-- MODAL KESIHATAN -->
-<div id="modalKesihatan" class="gate hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:1000; background:rgba(0,0,0,0.5); display:flex; padding:20px; align-items:center;">
-    <div class="card" style="width:100%; max-width:500px; margin:0 auto; background:#fff; max-height:90vh; overflow-y:auto;">
-        <h2 class="section-title" id="tajukModalKesihatan">Kemaskini Kesihatan</h2>
-        <input type="hidden" id="editKesihatanId">
-        <div class="field" style="margin-top:15px;">
-            <label>Jenis Darah</label>
-            <select id="kBlood"><option value="">-- Pilih --</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
-        </div>
-        <div class="field"><label>Penyakit Kronik</label><textarea id="kChronic"></textarea></div>
-        <div class="field"><label>Alahan</label><textarea id="kAllergy"></textarea></div>
-        <div class="field"><label>Hospital / Klinik Rujukan</label><input type="text" id="kHospital"></div>
-        <div class="field"><label>Doktor Pakar</label><input type="text" id="kDoctor"></div>
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="primary" onclick="simpanProfilKesihatan()">Simpan Rekod</button>
-            <button class="ghost" onclick="tutupModalKesihatan()">Batal</button>
-        </div>
+<div id="modalKesihatan" class="gate hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;background:rgba(0,0,0,.5);display:flex;padding:20px;align-items:center;">
+  <div class="card" style="width:100%;max-width:500px;margin:0 auto;background:#fff;max-height:90vh;overflow-y:auto;">
+    <h2 class="section-title" id="tajukModalKesihatan">Kemaskini Kesihatan</h2>
+    <input type="hidden" id="editKesihatanId">
+    <div class="field" style="margin-top:15px;"><label>Jenis Darah</label>
+      <select id="kBlood"><option value="">-- Pilih --</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
     </div>
+    <div class="field"><label>Penyakit Kronik</label><textarea id="kChronic"></textarea></div>
+    <div class="field"><label>Alahan</label><textarea id="kAllergy"></textarea></div>
+    <div class="field"><label>Hospital / Klinik Rujukan</label><input type="text" id="kHospital"></div>
+    <div class="field"><label>Doktor Pakar</label><input type="text" id="kDoctor"></div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="primary" onclick="simpanProfilKesihatan()">Simpan Rekod</button>
+      <button class="ghost" onclick="tutupModalKesihatan()">Batal</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    
-    const firebaseConfig = {
-        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
-        authDomain: "familipintar.firebaseapp.com",
-        databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "familipintar",
-        storageBucket: "familipintar.firebasestorage.app",
-        messagingSenderId: "277029764059",
-        appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
-    };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const firebaseConfig = {
+  apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+  authDomain: "familipintar.firebaseapp.com",
+  databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "familipintar",
+  storageBucket: "familipintar.firebasestorage.app",
+  messagingSenderId: "277029764059",
+  appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+};
 
-    let currentGroup = null;
-    let currentUser = null;
-    window.globalTeamMap = new Map(); // Untuk simpan list dropdown anak
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-// --- LOGIK PAYWALL ---
-    window.semakStatusLangganan = async (uid) => {
+let currentGroup = null;   // = UID induk (dikongsi semua adik-beradik)
+let currentUser = null;
+window.globalTeamMap = new Map();
+
+// --- PAYWALL ---
+window.semakStatusLangganan = async (uid) => {
+  try {
+    const userDoc = await getDoc(doc(db, "mynasab_users", uid));
+    if (userDoc.exists()) {
+      const tarikhLuput = userDoc.data().wecare_expiry_date;
+      const masaSekarang = new Date().getTime();
+      document.getElementById('modalPaywall').style.display = (!tarikhLuput || tarikhLuput < masaSekarang) ? 'flex' : 'none';
+    }
+  } catch (error) {
+    console.error("Ralat semak langganan:", error);
+    document.getElementById('modalPaywall').style.display = 'flex';
+  }
+};
+
+// --- T&C ---
+window.semakTnC = () => {
+  if (!localStorage.getItem('wecare_tnc_agreed')) {
+    document.getElementById('modalTnC').style.display = 'flex';
+  } else if (currentUser) {
+    window.semakStatusLangganan(currentUser.uid);
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnSetuju = document.getElementById('btnSetujuTnC');
+  if (btnSetuju) {
+    btnSetuju.addEventListener('click', async () => {
+      localStorage.setItem('wecare_tnc_agreed', 'true');
+      document.getElementById('modalTnC').style.display = 'none';
+      if (currentUser) {
         try {
-            const userDoc = await getDoc(doc(db, "mynasab_users", uid));
-            if (userDoc.exists()) {
-                const data = userDoc.data();
-                const tarikhLuput = data.wecare_expiry_date; 
-                const masaSekarang = new Date().getTime();
-
-                if (!tarikhLuput || tarikhLuput < masaSekarang) {
-                    document.getElementById('modalPaywall').style.display = 'flex';
-                } else {
-                    document.getElementById('modalPaywall').style.display = 'none';
-                }
-            }
-        } catch (error) {
-            console.error("Ralat semak langganan:", error);
-            document.getElementById('modalPaywall').style.display = 'flex';
-        }
-    };
-
-    // --- LOGIK PAPARAN T&C ---
-    window.semakTnC = () => {
-        const dahSetuju = localStorage.getItem('wecare_tnc_agreed');
-        if (!dahSetuju) {
-            document.getElementById('modalTnC').style.display = 'flex';
-        } else {
-            if (currentUser) window.semakStatusLangganan(currentUser.uid);
-        }
-    };
-
-   // --- KLIK BUTANG SETUJU (T&C) + FREE TRIAL 30 HARI ---
-    document.addEventListener('DOMContentLoaded', () => {
-        const btnSetuju = document.getElementById('btnSetujuTnC');
-        if (btnSetuju) {
-            btnSetuju.addEventListener('click', async () => {
-                localStorage.setItem('wecare_tnc_agreed', 'true');
-                document.getElementById('modalTnC').style.display = 'none';
-                
-                if (currentUser) {
-                    try {
-                        const userRef = doc(db, "mynasab_users", currentUser.uid);
-                        const userSnap = await getDoc(userRef);
-                        
-                        if (userSnap.exists()) {
-                            const data = userSnap.data();
-                            if (!data.wecare_expiry_date) {
-                                const masaSekarang = new Date().getTime();
-                                const tambah30Hari = masaSekarang + (30 * 24 * 60 * 60 * 1000); 
-                                
-                                await setDoc(userRef, { wecare_expiry_date: tambah30Hari }, { merge: true });
-                            }
-                        }
-                        await window.semakStatusLangganan(currentUser.uid);
-                        
-                    } catch (err) {
-                        console.error("Ralat mengaktifkan percubaan percuma:", err);
-                    }
-                }
-            });
-        }
+          const userRef = doc(db, "mynasab_users", currentUser.uid);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists() && !userSnap.data().wecare_expiry_date) {
+            const tambah30Hari = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
+            await setDoc(userRef, { wecare_expiry_date: tambah30Hari }, { merge: true });
+          }
+          await window.semakStatusLangganan(currentUser.uid);
+        } catch (err) { console.error("Ralat mengaktifkan percubaan percuma:", err); }
+      }
     });
-    
-    document.getElementById('authForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
-    });
+  }
+});
+
+document.getElementById('authForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
+});
 
 onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUser = user;
-            document.getElementById('authScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            
-            let userDoc = await getDoc(doc(db, "mynasab_users", user.uid));
-            if (!userDoc.exists()) {
-                alert("Sila daftar dan bina salasilah di myNasab terlebih dahulu sebelum menggunakan weCare.");
-                auth.signOut();
-                return;
-            }
+  if (user) {
+    currentUser = user;
+    document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
 
-            const uData = userDoc.data();
-            currentGroup = user.uid; 
-            
-            if (document.getElementById('displayUserName')) {
-                document.getElementById('displayUserName').innerText = uData.name || user.email.split('@')[0];
-            }
-
-            semakTnC();
-
-            muatProfilIbuBapa(user.uid);
-            await muatKeluargaDanNota(currentGroup);
-            muatDataKalendar(); 
-            
-        } else {
-            document.getElementById('authScreen').classList.remove('hidden');
-            document.getElementById('mainApp').classList.add('hidden');
-        }
-    });
-    
-    // --- FUNGSI PEMBAHARUAN LANGGANAN 20 KREDIT ---
-    window.bayarGunaKredit = async () => {
-        if (!currentUser) return;
-        try {
-            const userRef = doc(db, "mynasab_users", currentUser.uid);
-            const snap = await getDoc(userRef);
-            if (snap.exists()) {
-                let baki = parseInt(snap.data().credit_balance) || 0;
-                
-                if (baki >= 20) {
-                    const masaSekarang = new Date().getTime();
-                    const tambah30Hari = masaSekarang + (30 * 24 * 60 * 60 * 1000);
-                    
-                    await setDoc(userRef, { 
-                        credit_balance: baki - 20,
-                        wecare_expiry_date: tambah30Hari 
-                    }, { merge: true });
-                    
-                    alert("Pembaharuan berjaya! 20 Kredit telah dipotong dari akaun anda.");
-                    document.getElementById('modalPaywall').style.display = 'none';
-                } else {
-                    alert("Kredit tidak mencukupi. Baki semasa anda: " + baki + " Kredit.\n\nSila tambah nilai kredit di myNasab terlebih dahulu.");
-                    window.location.href = "../topup.html";
-                }
-            }
-        } catch (e) {
-            alert("Gagal memproses langganan: " + e.message);
-        }
-    };
-    
-    // FUNGSI TRIGGER DROPDOWN
-    window.tukarBelahPaparan = () => {
-        if (!currentUser) return;
-        muatProfilIbuBapa(currentUser.uid);
-        muatKeluargaDanNota(currentGroup);
-    };
-
-    // 1. PROFIL IBU BAPA (BACA POKOK SENDIRI SECARA MUTLAK)
-    async function muatProfilIbuBapa(uidPengguna) {
-        try {
-            const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
-            const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
-            
-            let html = "";
-            let dipaparkan = new Set();
-
-            const renderKad = (id, d, paparanHubungan) => {
-                const namaKey = (d.name || '').toLowerCase().trim();
-                if (dipaparkan.has(namaKey)) return ""; 
-                dipaparkan.add(namaKey);
-
-                const isDecedent = d.status === 'meninggal';
-                const isBapa = (d.relationship || '').toLowerCase().includes('bapa') || (d.relationship || '').toLowerCase().includes('ayah');
-                const borderWarna = isBapa ? 'var(--ayah-color)' : 'var(--ibu-color)';
-                
-                const avatar = d.photo_url 
-                    ? `<img src="${d.photo_url}" style="width:65px; height:65px; border-radius:50%; object-fit:cover; border:3px solid ${borderWarna};">`
-                    : `<div style="width:65px; height:65px; border-radius:50%; background:${isDecedent?'#94a3b8':borderWarna}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800; border:3px solid #fff; box-shadow:0 0 0 2px ${borderWarna};">${(d.name || '?').charAt(0)}</div>`;
-
-                return `
-                <div class="card ${isDecedent?'decedent':''}" style="border-top: 4px solid ${isDecedent?'#cbd5e1':borderWarna};">
-                    <div style="display:flex; gap:15px; align-items:center;">
-                        ${avatar}
-                        <div style="flex:1;">
-                            <h3 style="margin:0; color:var(--ink); font-size:16px;">${d.name}</h3>
-                            <p style="margin:2px 0 0; color:var(--muted); font-size:13px; font-weight:700;">
-                                ${paparanHubungan} ${d.dob ? '· Lahir: ' + d.dob : ''}
-                            </p>
-                            <div>${isDecedent ? '<span class="badge" style="background:#fee2e2; color:#991b1b;">🕊️ Meninggal Dunia</span>' : '<span class="badge" style="background:#dcfce7; color:#166534;">🟢 Masih Hidup</span>'}</div>
-                        </div>
-                        ${!isDecedent ? `<button class="ghost" style="width:auto;" onclick="bukaModalKesihatan('${id}', '${d.name}')">Kemaskini</button>` : ''}
-                    </div>
-                </div>`;
-            };
-
-            snapInduk.forEach(docSnap => {
-                const d = docSnap.data();
-                const rel = (d.relationship || '').toLowerCase();
-                
-                const isMertua = rel.includes('mertua');
-                const isKandung = (rel.includes('ayah') || rel.includes('ibu') || rel.includes('bapa') || rel.includes('mak') || rel.includes('abah')) && !isMertua;
-
-                let lulusTapis = false;
-                if (pilihanBelah === 'induk' && isKandung) lulusTapis = true;
-                else if (pilihanBelah === 'pasangan' && isMertua) lulusTapis = true;
-
-                if (lulusTapis) {
-                    html += renderKad(docSnap.id, d, d.relationship || 'Keluarga');
-                }
-            });
-
-            document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty" style="text-align:center; color:var(--muted); font-size:14px; padding:20px;">Tiada rekod ibu bapa dikesan untuk pilihan keluarga ini.</div>';
-        } catch(e) { console.error("Ralat Profil:", e); }
+    const userDoc = await getDoc(doc(db, "mynasab_users", user.uid));
+    if (!userDoc.exists()) {
+      alert("Sila daftar dan bina salasilah di myNasab terlebih dahulu sebelum menggunakan weCare.");
+      auth.signOut();
+      return;
     }
-        
-    // --- LOGIK KALENDAR PINTAR ---
-    let semasaTarikh = new Date();
-    let bulanSemasa = semasaTarikh.getMonth();
-    let tahunSemasa = semasaTarikh.getFullYear();
-    let dataKalendarGlobal = []; 
+    const uData = userDoc.data();
 
-    window.tukarBulan = (arah) => {
-        bulanSemasa += arah;
-        if (bulanSemasa < 0) { bulanSemasa = 11; tahunSemasa--; }
-        else if (bulanSemasa > 11) { bulanSemasa = 0; tahunSemasa++; }
-        window.renderKalendar();
-    };
-
-    async function muatDataKalendar() {
-        if (!currentGroup) return;
-        const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", currentGroup)));
-        dataKalendarGlobal = [];
-        snap.forEach(d => { dataKalendarGlobal.push(d.data()); });
-        window.renderKalendar();
-    }
-
-    window.renderKalendar = () => {
-        const senaraiBulan = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
-        document.getElementById('paparanBulanTahun').innerText = `${senaraiBulan[bulanSemasa]} ${tahunSemasa}`;
-        
-        const tarikhPertama = new Date(tahunSemasa, bulanSemasa, 1);
-        const hariMula = tarikhPertama.getDay(); 
-        const jumlahHari = new Date(tahunSemasa, bulanSemasa + 1, 0).getDate();
-        
-        let htmlGrid = "";
-        
-        for (let i = 0; i < hariMula; i++) {
-            htmlGrid += `<div class="cal-date empty-slot"></div>`;
-        }
-        
-        const hariIni = new Date();
-        for (let i = 1; i <= jumlahHari; i++) {
-            const strBulan = (bulanSemasa + 1).toString().padStart(2, '0');
-            const strHari = i.toString().padStart(2, '0');
-            const tarikhKunci = `${tahunSemasa}-${strBulan}-${strHari}`;
-            
-            let kelasToday = (i === hariIni.getDate() && bulanSemasa === hariIni.getMonth() && tahunSemasa === hariIni.getFullYear()) ? "today" : "";
-            
-            // Semak tugasan dalam julat tarikh
-            const tugasanHariIni = dataKalendarGlobal.filter(t => {
-                const tarikhTamat = t.end_date || t.date;
-                return tarikhKunci >= t.date && tarikhKunci <= tarikhTamat;
-            });
-            
-            let htmlTugas = "";
-            tugasanHariIni.forEach(t => {
-                let warnaKelas = "evt-umum";
-                if (t.for_whom === 'ayah') warnaKelas = "evt-ayah";
-                if (t.for_whom === 'ibu') warnaKelas = "evt-ibu";
-                
-                const shiftLabel = (t.shift_siapa && t.shift_siapa !== 'Umum') ? `[${t.shift_siapa}] ` : '';
-                htmlTugas += `<div class="cal-event ${warnaKelas}">${t.time ? t.time + ' ' : ''}${shiftLabel}${t.title}</div>`;
-            });
-
-            htmlGrid += `
-                <div class="cal-date ${kelasToday}" onclick="bukaModalTarikh('${tarikhKunci}')">
-                    <div class="dt-num">${i}</div>
-                    ${htmlTugas}
-                </div>
-            `;
-        }
-        
-        document.getElementById('gridKalendar').innerHTML = htmlGrid;
-    }
-
-    // Modal Tarikh Detail
-    window.bukaModalTarikh = (tarikhStr) => {
-        document.getElementById('tajukTarikh').innerText = "Tugas: " + tarikhStr;
-        document.getElementById('tDate').value = tarikhStr;
-        document.getElementById('tEndDate').value = tarikhStr;
-        
-        // Render dropdown anak/shift dari globalTeamMap
-        let htmlOptionShift = `<option value="Umum">Umum / Semua Terlibat</option>`;
-        window.globalTeamMap.forEach((val) => {
-            htmlOptionShift += `<option value="${val.name}">${val.name} (${val.role})</option>`;
-        });
-        document.getElementById('tShiftSiapa').innerHTML = htmlOptionShift;
-
-        // Render senarai sedia ada
-        const tugasanHariIni = dataKalendarGlobal.filter(t => tarikhStr >= t.date && tarikhStr <= (t.end_date || t.date));
-        let htmlList = "";
-        
-        if(tugasanHariIni.length === 0) {
-            htmlList = "<div style='font-size:13px; color:var(--muted); text-align:center;'>Tiada tugas/ubat direkodkan.</div>";
-        } else {
-            tugasanHariIni.forEach(t => {
-                let badge = "<span class='badge' style='background:var(--umum-color); color:#fff;'>Umum</span>";
-                if(t.for_whom === 'ayah') badge = "<span class='badge' style='background:var(--ayah-color); color:#fff;'>Bapa</span>";
-                if(t.for_whom === 'ibu') badge = "<span class='badge' style='background:var(--ibu-color); color:#fff;'>Ibu</span>";
-                
-                const shiftBadge = (t.shift_siapa && t.shift_siapa !== 'Umum') ? `<span style="font-size:10px; color:var(--primary); font-weight:800; background:#e8f8f5; padding:2px 6px; border-radius:4px; margin-right:5px; border:1px solid #bbf7d0;">S: ${t.shift_siapa}</span>` : '';
-
-                htmlList += `
-                <div style="background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:8px;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
-                        <div style="font-weight:700; font-size:14px; line-height:1.4;">${shiftBadge}${t.title}</div>
-                        ${badge}
-                    </div>
-                    ${t.time ? `<div style="font-size:12px; color:var(--secondary); margin-bottom:4px;">⏰ \${t.time}</div>` : ''}
-                    ${t.note ? `<div style="font-size:13px; color:var(--muted); margin-top:5px;">📝 \${t.note}</div>` : ''}
-                </div>`;
-            });
-        }
-        
-        document.getElementById('senaraiTugasTarikh').innerHTML = htmlList;
-        document.getElementById('modalTarikh').style.display = 'flex';
-    };
-
-    window.tutupModalTarikh = () => {
-        document.getElementById('modalTarikh').style.display = 'none';
-        document.getElementById('tTitle').value = '';
-        document.getElementById('tTime').value = '';
-        document.getElementById('tNote').value = '';
-    };
-
-    window.simpanTugasKalendar = async (syncGoogle = false) => {
-        const title = document.getElementById('tTitle').value.trim();
-        const date = document.getElementById('tDate').value;
-        let end_date = document.getElementById('tEndDate').value;
-        const time = document.getElementById('tTime').value;
-        const for_whom = document.getElementById('tWhom').value;
-        const shift_siapa = document.getElementById('tShiftSiapa').value;
-        const note = document.getElementById('tNote').value.trim();
-
-        if(!title || !date) { alert('Sila isi Perkara & Tarikh Mula!'); return; }
-        if(!end_date) end_date = date; 
-
-        const eventData = { 
-            title, date, end_date, time, for_whom, shift_siapa, note, 
-            author: currentUser.email.split('@')[0], 
-            group_id: currentGroup, 
-            created_at: Date.now() 
-        };
-        
-        await setDoc(doc(collection(db, "wecare_calendar")), eventData);
-        
-        if (syncGoogle) {
-            const dateG = date.replace(/-/g,'');
-            const endDateObj = new Date(end_date);
-            endDateObj.setDate(endDateObj.getDate() + 1);
-            const endDateG = endDateObj.toISOString().split('T')[0].replace(/-/g,'');
-
-            const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${dateG}/${endDateG}&details=${encodeURIComponent('Shift: ' + shift_siapa + '\n\n' + note + '\n\nUntuk: ' + for_whom.toUpperCase() + '\nDirekod oleh: ' + eventData.author)}`;
-            window.open(gcalUrl, '_blank');
-        }
-
-        window.tutupModalTarikh();
-        muatDataKalendar(); 
-    };
-
-   // 4. KELUARGA & NOTA HANDOVER (PIVOT DENGAN PENAPISAN REF_ID)
-    async function muatKeluargaDanNota(groupId) {
+    // KONGSI KALENDAR & NOTA: group_id = UID induk (pengundang), bukan UID sendiri
+    currentGroup = user.uid;
     try {
-        const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
-        const saya = currentUser.uid;
- 
-        window.globalTeamMap.clear();
-        const teamListMap = window.globalTeamMap;
- 
-        // --- 1. Siapa induk? (sama macam app.js) ---
-        let indukUid = saya;
-        let sasaranIdPusat = null;
-        let sayaInduk = true;
- 
-        const sLinkSaya = await getDoc(doc(db, "mynasab_links", saya));
-        if (sLinkSaya.exists() && sLinkSaya.data().status === 'aktif') {
-            indukUid = sLinkSaya.data().owner_uid;
-            sasaranIdPusat = sLinkSaya.data().sasaran_id;
-            sayaInduk = false;
-        }
- 
-        const sPautan = await getDocs(query(
-            collection(db, "mynasab_links"),
-            where("owner_uid", "==", indukUid),
-            where("status", "==", "aktif")
-        ));
-        const pautan = sPautan.docs.map(d => d.data());
- 
-        const sUser = await getDoc(doc(db, "mynasab_users", saya));
-        const sembunyi = (sUser.exists() && sUser.data().sembunyi) || [];
- 
-        // --- 2. Ambil nod ---
-        const ambil = async (uid) => {
-            try {
-                const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
-                return s.docs.map(d => ({ ...d.data(), id: d.id }));
-            } catch (e) {
-                console.warn("Tak dapat baca nod", uid, e.message);
-                return [];
-            }
-        };
- 
-        const nodSaya = await ambil(saya);
-        const nodInduk = sayaInduk ? nodSaya : await ambil(indukUid);
-        const akaun = await Promise.all(pautan.map(async p => ({
-            uid: p.uid,
-            sasaran: p.sasaran_id,
-            nod: p.uid === saya ? nodSaya : await ambil(p.uid)
-        })));
- 
-        const kelompok = (nod) => {
-            const k = { diri: null, pasangan: [], adikBeradik: [] };
-            nod.forEach(d => {
-                const h = (d.relationship || '').toLowerCase();
-                if (d.is_root) k.diri = d;
-                else if (h.includes('suami') || h.includes('isteri')) k.pasangan.push(d);
-                else if (!h.includes('ipar') && !h.includes('saudara') &&
-                         (h.includes('adik') || h.includes('abang') || h.includes('kakak'))) k.adikBeradik.push(d);
-            });
-            return k;
-        };
- 
-        const kPusat = kelompok(nodSaya);
-        if (!kPusat.diri) {
-            document.getElementById('teamList').innerHTML =
-                `<div class="card" style="background:#f8fafc; font-size:13px; color:var(--muted);">Data akaun tidak dijumpai.</div>`;
-            muatNotaKeluarga();
-            return;
-        }
- 
-        // --- 3. Bantuan ---
-        const tarikh = (n) => (n && n.dob) ? new Date(n.dob).getTime() : Infinity;
-        const banding = (x, y) => x.t < y.t ? -1 : (x.t > y.t ? 1 : 0);
- 
-        const emelAkaun = async (uid) => {
-            try {
-                const s = await getDoc(doc(db, "mynasab_users", uid));
-                return (s.exists() && s.data().email) || 'Tiada E-mel';
-            } catch (e) { return 'Tiada E-mel'; }
-        };
- 
-        const tambah = (kunci, nama, email, role) => {
-            const key = (nama || '').toLowerCase().trim();
-            if (!key || teamListMap.has(key)) return;
-            teamListMap.set(key, { uidKunci: kunci, name: nama, email: email || 'Tiada E-mel', role });
-        };
- 
-        // Kumpul adik-beradik untuk satu "sasaran" (sama seperti binaSisi dalam app.js)
-        const tambahAdikBeradik = async (sasaranId, role, termasukManual) => {
-            const calon = [];
- 
-            // a) Akaun berpaut yang menyasarkan nod ini
-            akaun.forEach(a => {
-                if (a.sasaran !== sasaranId || a.uid === saya) return;
-                if (sembunyi.includes(a.uid)) return;
-                const k = kelompok(a.nod);
-                if (!k.diri) return;
-                calon.push({ t: tarikh(k.diri), kunci: a.uid, nama: k.diri.name, akaunUid: a.uid });
-            });
- 
-            // b) Adik-beradik manual (ditambah dalam akaun sendiri) - belah saya sahaja
-            if (termasukManual) {
-                kPusat.adikBeradik.forEach(n => {
-                    calon.push({ t: tarikh(n), kunci: n.id, nama: n.name, email: n.email });
-                });
-            }
- 
-            calon.sort(banding);
-            for (const c of calon) {
-                const email = c.akaunUid ? await emelAkaun(c.akaunUid) : c.email;
-                tambah(c.kunci, c.nama, email, role);
-            }
-        };
- 
-        // --- 4. Bina senarai ikut pilihan belah ---
-        if (pilihanBelah === 'induk') {
-            tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa');
-            kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan'));
- 
-            const matchId = sayaInduk ? kPusat.diri.id : sasaranIdPusat;
-            await tambahAdikBeradik(matchId, 'Adik-beradik', true);
- 
-            // Jika saya bukan induk (cth Adi), keluarga pengundang (Anis & Awi) juga masuk
-            if (!sayaInduk && !sembunyi.includes(indukUid)) {
-                const kInduk = kelompok(nodInduk);
-                const sasaranNode = nodInduk.find(n => n.id === sasaranIdPusat);
-                if (sasaranNode) tambah(sasaranNode.id, sasaranNode.name, sasaranNode.email, 'Adik-beradik');
-                if (kInduk.diri) tambah(kInduk.diri.id, kInduk.diri.name, await emelAkaun(indukUid), 'Ipar');
-            }
-        } else {
-            kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan'));
-            tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa');
- 
-            for (const p of kPusat.pasangan) {
-                await tambahAdikBeradik(p.id, 'Ipar', false);
-            }
-        }
- 
-        // --- 5. Paparan ---
-        let teamHtml = "";
-        teamListMap.forEach((val) => {
-            const bgWarna = val.role.includes('Pengguna Semasa') ? '#f0fdf4' : '#fff';
-            teamHtml += `
-            <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:${bgWarna}; border:1px solid var(--line);">
-                <div>
-                    <div style="font-weight:700; color:var(--ink);">${val.name}</div>
-                    <div style="font-size:12px; color:var(--muted);">${val.email}</div>
-                </div>
-                <span style="font-size:11px; font-weight:700; color:var(--primary); background:#e8f8f5; padding:4px 8px; border-radius:6px; text-align:right;">${val.role}</span>
-            </div>`;
-        });
- 
-        if (teamListMap.size === 0) {
-            teamHtml = `<div class="card" style="background:#f8fafc; border-color:#e2e8f0; margin-bottom:12px; font-size:13px; color:var(--muted);">Tiada waris dikesan untuk keluarga ini.</div>`;
-        }
-        document.getElementById('teamList').innerHTML = teamHtml;
- 
-        muatNotaKeluarga();
- 
-    } catch (e) { console.error("Ralat muatKeluarga:", e); }
+      const sLink = await getDoc(doc(db, "mynasab_links", user.uid));
+      if (sLink.exists() && sLink.data().status === 'aktif') currentGroup = sLink.data().owner_uid;
+    } catch (e) { console.warn("Gagal baca pautan:", e.message); }
+    await migrasiDataLama(user.uid, currentGroup);
+
+    document.getElementById('displayUserName').innerText = uData.name || user.email.split('@')[0];
+
+    semakTnC();
+    muatProfilIbuBapa(user.uid);
+    await muatKeluargaDanNota(currentGroup);
+    muatDataKalendar();
+  } else {
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('mainApp').classList.add('hidden');
+  }
+});
+
+// MIGRASI SEKALI: pindahkan kalendar & nota lama (group_id = uid sendiri) ke kumpulan induk.
+// Hanya berjalan untuk akaun berpaut (bukan induk). Selepas dipindah, query pulangkan kosong,
+// jadi selamat dijalankan setiap kali log masuk.
+async function migrasiDataLama(uid, groupBaru) {
+  if (!groupBaru || groupBaru === uid) return;
+  try {
+    for (const nama of ["wecare_calendar", "wecare_notes"]) {
+      const snap = await getDocs(query(collection(db, nama), where("group_id", "==", uid)));
+      for (const d of snap.docs) await updateDoc(d.ref, { group_id: groupBaru });
+    }
+  } catch (e) { console.warn("Migrasi data lama gagal:", e.message); }
 }
-    
-    // FUNGSI SIMPAN & MUAT NOTA KELUARGA
-    window.simpanNotaKeluarga = async () => {
-        const note = document.getElementById('teamNote').value.trim();
-        if(!note) { alert('Sila tulis nota dahulu!'); return; }
-        
-        await setDoc(doc(collection(db, "wecare_notes")), { 
-            note, author: currentUser.email.split('@')[0], group_id: currentGroup, created_at: Date.now() 
-        });
-        document.getElementById('teamNote').value = '';
-        muatNotaKeluarga();
+
+window.bayarGunaKredit = async () => {
+  if (!currentUser) return;
+  try {
+    const userRef = doc(db, "mynasab_users", currentUser.uid);
+    const snap = await getDoc(userRef);
+    if (snap.exists()) {
+      const baki = parseInt(snap.data().credit_balance) || 0;
+      if (baki >= 20) {
+        const tambah30Hari = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
+        await setDoc(userRef, { credit_balance: baki - 20, wecare_expiry_date: tambah30Hari }, { merge: true });
+        alert("Pembaharuan berjaya! 20 Kredit telah dipotong dari akaun anda.");
+        document.getElementById('modalPaywall').style.display = 'none';
+      } else {
+        alert("Kredit tidak mencukupi. Baki semasa anda: " + baki + " Kredit.\n\nSila tambah nilai kredit di myNasab terlebih dahulu.");
+        window.location.href = "../topup.html";
+      }
+    }
+  } catch (e) { alert("Gagal memproses langganan: " + e.message); }
+};
+
+window.tukarBelahPaparan = () => {
+  if (!currentUser) return;
+  muatProfilIbuBapa(currentUser.uid);
+  muatKeluargaDanNota(currentGroup);
+};
+
+// 1. PROFIL IBU BAPA
+async function muatProfilIbuBapa(uidPengguna) {
+  try {
+    const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
+    const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
+    let html = "";
+    const dipaparkan = new Set();
+
+    const renderKad = (id, d, paparanHubungan) => {
+      const namaKey = (d.name || '').toLowerCase().trim();
+      if (dipaparkan.has(namaKey)) return "";
+      dipaparkan.add(namaKey);
+      const isDecedent = d.status === 'meninggal';
+      const isBapa = (d.relationship || '').toLowerCase().includes('bapa') || (d.relationship || '').toLowerCase().includes('ayah');
+      const borderWarna = isBapa ? 'var(--ayah-color)' : 'var(--ibu-color)';
+      const avatar = d.photo_url
+        ? `<img src="${d.photo_url}" style="width:65px;height:65px;border-radius:50%;object-fit:cover;border:3px solid ${borderWarna};">`
+        : `<div style="width:65px;height:65px;border-radius:50%;background:${isDecedent ? '#94a3b8' : borderWarna};color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;border:3px solid #fff;box-shadow:0 0 0 2px ${borderWarna};">${(d.name || '?').charAt(0)}</div>`;
+      return `
+      <div class="card ${isDecedent ? 'decedent' : ''}" style="border-top:4px solid ${isDecedent ? '#cbd5e1' : borderWarna};">
+        <div style="display:flex;gap:15px;align-items:center;">
+          ${avatar}
+          <div style="flex:1;">
+            <h3 style="margin:0;color:var(--ink);font-size:16px;">${d.name}</h3>
+            <p style="margin:2px 0 0;color:var(--muted);font-size:13px;font-weight:700;">${paparanHubungan} ${d.dob ? '· Lahir: ' + d.dob : ''}</p>
+            <div>${isDecedent ? '<span class="badge" style="background:#fee2e2;color:#991b1b;">🕊️ Meninggal Dunia</span>' : '<span class="badge" style="background:#dcfce7;color:#166534;">🟢 Masih Hidup</span>'}</div>
+          </div>
+          ${!isDecedent ? `<button class="ghost" style="width:auto;" onclick="bukaModalKesihatan('${id}', '${d.name}')">Kemaskini</button>` : ''}
+        </div>
+      </div>`;
+    };
+
+    snapInduk.forEach(docSnap => {
+      const d = docSnap.data();
+      const rel = (d.relationship || '').toLowerCase();
+      const isMertua = rel.includes('mertua');
+      const isKandung = (rel.includes('ayah') || rel.includes('ibu') || rel.includes('bapa') || rel.includes('mak') || rel.includes('abah')) && !isMertua;
+      if ((pilihanBelah === 'induk' && isKandung) || (pilihanBelah === 'pasangan' && isMertua)) {
+        html += renderKad(docSnap.id, d, d.relationship || 'Keluarga');
+      }
+    });
+
+    document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty" style="text-align:center;color:var(--muted);font-size:14px;padding:20px;">Tiada rekod ibu bapa dikesan untuk pilihan keluarga ini.</div>';
+  } catch (e) { console.error("Ralat Profil:", e); }
+}
+
+// --- KALENDAR ---
+let semasaTarikh = new Date();
+let bulanSemasa = semasaTarikh.getMonth();
+let tahunSemasa = semasaTarikh.getFullYear();
+let dataKalendarGlobal = [];
+
+window.tukarBulan = (arah) => {
+  bulanSemasa += arah;
+  if (bulanSemasa < 0) { bulanSemasa = 11; tahunSemasa--; }
+  else if (bulanSemasa > 11) { bulanSemasa = 0; tahunSemasa++; }
+  window.renderKalendar();
+};
+
+async function muatDataKalendar() {
+  if (!currentGroup) return;
+  const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", currentGroup)));
+  dataKalendarGlobal = [];
+  snap.forEach(d => { dataKalendarGlobal.push(d.data()); });
+  window.renderKalendar();
+}
+
+window.renderKalendar = () => {
+  const senaraiBulan = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
+  document.getElementById('paparanBulanTahun').innerText = `${senaraiBulan[bulanSemasa]} ${tahunSemasa}`;
+  const hariMula = new Date(tahunSemasa, bulanSemasa, 1).getDay();
+  const jumlahHari = new Date(tahunSemasa, bulanSemasa + 1, 0).getDate();
+  let htmlGrid = "";
+  for (let i = 0; i < hariMula; i++) htmlGrid += `<div class="cal-date empty-slot"></div>`;
+
+  const hariIni = new Date();
+  for (let i = 1; i <= jumlahHari; i++) {
+    const tarikhKunci = `${tahunSemasa}-${(bulanSemasa + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
+    const kelasToday = (i === hariIni.getDate() && bulanSemasa === hariIni.getMonth() && tahunSemasa === hariIni.getFullYear()) ? "today" : "";
+    const tugasanHariIni = dataKalendarGlobal.filter(t => tarikhKunci >= t.date && tarikhKunci <= (t.end_date || t.date));
+    let htmlTugas = "";
+    tugasanHariIni.forEach(t => {
+      let warnaKelas = "evt-umum";
+      if (t.for_whom === 'ayah') warnaKelas = "evt-ayah";
+      if (t.for_whom === 'ibu') warnaKelas = "evt-ibu";
+      const shiftLabel = (t.shift_siapa && t.shift_siapa !== 'Umum') ? `[${t.shift_siapa}] ` : '';
+      htmlTugas += `<div class="cal-event ${warnaKelas}">${t.time ? t.time + ' ' : ''}${shiftLabel}${t.title}</div>`;
+    });
+    htmlGrid += `<div class="cal-date ${kelasToday}" onclick="bukaModalTarikh('${tarikhKunci}')"><div class="dt-num">${i}</div>${htmlTugas}</div>`;
+  }
+  document.getElementById('gridKalendar').innerHTML = htmlGrid;
+};
+
+window.bukaModalTarikh = (tarikhStr) => {
+  document.getElementById('tajukTarikh').innerText = "Tugas: " + tarikhStr;
+  document.getElementById('tDate').value = tarikhStr;
+  document.getElementById('tEndDate').value = tarikhStr;
+
+  let htmlOptionShift = `<option value="Umum">Umum / Semua Terlibat</option>`;
+  window.globalTeamMap.forEach((val) => { htmlOptionShift += `<option value="${val.name}">${val.name} (${val.role})</option>`; });
+  document.getElementById('tShiftSiapa').innerHTML = htmlOptionShift;
+
+  const tugasanHariIni = dataKalendarGlobal.filter(t => tarikhStr >= t.date && tarikhStr <= (t.end_date || t.date));
+  let htmlList = "";
+  if (tugasanHariIni.length === 0) {
+    htmlList = "<div style='font-size:13px;color:var(--muted);text-align:center;'>Tiada tugas/ubat direkodkan.</div>";
+  } else {
+    tugasanHariIni.forEach(t => {
+      let badge = "<span class='badge' style='background:var(--umum-color);color:#fff;'>Umum</span>";
+      if (t.for_whom === 'ayah') badge = "<span class='badge' style='background:var(--ayah-color);color:#fff;'>Bapa</span>";
+      if (t.for_whom === 'ibu') badge = "<span class='badge' style='background:var(--ibu-color);color:#fff;'>Ibu</span>";
+      const shiftBadge = (t.shift_siapa && t.shift_siapa !== 'Umum') ? `<span style="font-size:10px;color:var(--primary);font-weight:800;background:#e8f8f5;padding:2px 6px;border-radius:4px;margin-right:5px;border:1px solid #bbf7d0;">S: ${t.shift_siapa}</span>` : '';
+      htmlList += `
+      <div style="background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;">
+          <div style="font-weight:700;font-size:14px;line-height:1.4;">${shiftBadge}${t.title}</div>${badge}
+        </div>
+        ${t.time ? `<div style="font-size:12px;color:var(--secondary);margin-bottom:4px;">⏰ ${t.time}</div>` : ''}
+        ${t.note ? `<div style="font-size:13px;color:var(--muted);margin-top:5px;">📝 ${t.note}</div>` : ''}
+      </div>`;
+    });
+  }
+  document.getElementById('senaraiTugasTarikh').innerHTML = htmlList;
+  document.getElementById('modalTarikh').style.display = 'flex';
+};
+
+window.tutupModalTarikh = () => {
+  document.getElementById('modalTarikh').style.display = 'none';
+  document.getElementById('tTitle').value = '';
+  document.getElementById('tTime').value = '';
+  document.getElementById('tNote').value = '';
+};
+
+window.simpanTugasKalendar = async (syncGoogle = false) => {
+  const title = document.getElementById('tTitle').value.trim();
+  const date = document.getElementById('tDate').value;
+  let end_date = document.getElementById('tEndDate').value;
+  const time = document.getElementById('tTime').value;
+  const for_whom = document.getElementById('tWhom').value;
+  const shift_siapa = document.getElementById('tShiftSiapa').value;
+  const note = document.getElementById('tNote').value.trim();
+
+  if (!title || !date) { alert('Sila isi Perkara & Tarikh Mula!'); return; }
+  if (!end_date) end_date = date;
+
+  const eventData = {
+    title, date, end_date, time, for_whom, shift_siapa, note,
+    author: currentUser.email.split('@')[0],
+    group_id: currentGroup,
+    created_at: Date.now()
+  };
+  await setDoc(doc(collection(db, "wecare_calendar")), eventData);
+
+  if (syncGoogle) {
+    const dateG = date.replace(/-/g, '');
+    const endDateObj = new Date(end_date);
+    endDateObj.setDate(endDateObj.getDate() + 1);
+    const endDateG = endDateObj.toISOString().split('T')[0].replace(/-/g, '');
+    const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${dateG}/${endDateG}&details=${encodeURIComponent('Shift: ' + shift_siapa + '\n\n' + note + '\n\nUntuk: ' + for_whom.toUpperCase() + '\nDirekod oleh: ' + eventData.author)}`;
+    window.open(gcalUrl, '_blank');
+  }
+  window.tutupModalTarikh();
+  muatDataKalendar();
+};
+
+// 4. SENARAI PENJAGA - logik sama seperti bukaPreviewBesar() dalam app.js
+//    Belah Saya     -> Diri, Pasangan, Adik-beradik (manual + akaun berpaut)
+//    Belah Pasangan -> Pasangan, Diri, Adik-beradik pasangan (akaun berpaut)
+async function muatKeluargaDanNota(groupId) {
+  try {
+    const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
+    const saya = currentUser.uid;
+    window.globalTeamMap.clear();
+    const teamListMap = window.globalTeamMap;
+
+    let indukUid = saya, sasaranIdPusat = null, sayaInduk = true;
+    const sLinkSaya = await getDoc(doc(db, "mynasab_links", saya));
+    if (sLinkSaya.exists() && sLinkSaya.data().status === 'aktif') {
+      indukUid = sLinkSaya.data().owner_uid;
+      sasaranIdPusat = sLinkSaya.data().sasaran_id;
+      sayaInduk = false;
     }
 
-    async function muatNotaKeluarga() {
-        const snapNotes = await getDocs(query(collection(db, "wecare_notes"), where("group_id", "==", currentGroup)));
-        let noteHtml = "";
-        let notesArr = [];
-        snapNotes.forEach(d => notesArr.push(d.data()));
-        notesArr.sort((a, b) => b.created_at - a.created_at);
+    const sPautan = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", indukUid), where("status", "==", "aktif")));
+    const pautan = sPautan.docs.map(d => d.data());
 
-        notesArr.forEach(n => {
-            const tarikhMasa = new Date(n.created_at).toLocaleString('ms-MY', {dateStyle:'medium', timeStyle:'short'});
-            noteHtml += `
-            <div class="card" style="background:#fff;">
-                <div style="font-size:13.5px; color:var(--ink); line-height:1.4;">${n.note}</div>
-                <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:8px; border-top:1px solid var(--line); padding-top:5px;">
-                    <span>Oleh: <b>${n.author}</b></span>
-                    <span>${tarikhMasa}</span>
-                </div>
-            </div>`;
-        });
-        document.getElementById('senaraiNotaKeluarga').innerHTML = noteHtml || '<div style="font-size:13px; color:var(--muted); text-align:center; margin-top:20px;">Belum ada nota handover ditinggalkan.</div>';
-    }
-    
-    // MODAL KESIHATAN
-    window.bukaModalKesihatan = async (idNod, nama) => {
-        document.getElementById('tajukModalKesihatan').innerText = "Kesihatan: " + nama;
-        document.getElementById('editKesihatanId').value = idNod;
-        const hDoc = await getDoc(doc(db, "wecare_health_profiles", idNod));
-        if (hDoc.exists()) {
-            const d = hDoc.data();
-            document.getElementById('kBlood').value = d.blood_type || "";
-            document.getElementById('kChronic').value = d.chronic || "";
-            document.getElementById('kAllergy').value = d.allergies || "";
-            document.getElementById('kHospital').value = d.hospital || "";
-            document.getElementById('kDoctor').value = d.doctor || "";
-        }
-        document.getElementById('modalKesihatan').classList.remove('hidden');
-    }
-    window.tutupModalKesihatan = () => { document.getElementById('modalKesihatan').classList.add('hidden'); }
-    window.simpanProfilKesihatan = async () => {
-        const idNod = document.getElementById('editKesihatanId').value;
-        await setDoc(doc(db, "wecare_health_profiles", idNod), {
-            blood_type: document.getElementById('kBlood').value,
-            chronic: document.getElementById('kChronic').value.trim(),
-            allergies: document.getElementById('kAllergy').value.trim(),
-            hospital: document.getElementById('kHospital').value.trim(),
-            doctor: document.getElementById('kDoctor').value.trim(),
-            updated_at: new Date()
-        }, { merge: true });
-        alert("Berjaya dikemas kini!");
-        window.tutupModalKesihatan();
+    const sUser = await getDoc(doc(db, "mynasab_users", saya));
+    const sembunyi = (sUser.exists() && sUser.data().sembunyi) || [];
+
+    const ambil = async (uid) => {
+      try {
+        const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
+        return s.docs.map(d => ({ ...d.data(), id: d.id }));
+      } catch (e) { console.warn("Tak dapat baca nod", uid, e.message); return []; }
+    };
+
+    const nodSaya = await ambil(saya);
+    const nodInduk = sayaInduk ? nodSaya : await ambil(indukUid);
+    const akaun = await Promise.all(pautan.map(async p => ({
+      uid: p.uid, sasaran: p.sasaran_id, nod: p.uid === saya ? nodSaya : await ambil(p.uid)
+    })));
+
+    const kelompok = (nod) => {
+      const k = { diri: null, pasangan: [], adikBeradik: [] };
+      nod.forEach(d => {
+        const h = (d.relationship || '').toLowerCase();
+        if (d.is_root) k.diri = d;
+        else if (h.includes('suami') || h.includes('isteri')) k.pasangan.push(d);
+        else if (!h.includes('ipar') && !h.includes('saudara') && (h.includes('adik') || h.includes('abang') || h.includes('kakak'))) k.adikBeradik.push(d);
+      });
+      return k;
+    };
+
+    const kPusat = kelompok(nodSaya);
+    if (!kPusat.diri) {
+      document.getElementById('teamList').innerHTML = `<div class="card" style="background:#f8fafc;font-size:13px;color:var(--muted);">Data akaun tidak dijumpai.</div>`;
+      muatNotaKeluarga();
+      return;
     }
 
+    const tarikh = (n) => (n && n.dob) ? new Date(n.dob).getTime() : Infinity;
+    const banding = (x, y) => x.t < y.t ? -1 : (x.t > y.t ? 1 : 0);
+    const emelAkaun = async (uid) => {
+      try { const s = await getDoc(doc(db, "mynasab_users", uid)); return (s.exists() && s.data().email) || 'Tiada E-mel'; }
+      catch (e) { return 'Tiada E-mel'; }
+    };
+    const tambah = (kunci, nama, email, role) => {
+      const key = (nama || '').toLowerCase().trim();
+      if (!key || teamListMap.has(key)) return;
+      teamListMap.set(key, { uidKunci: kunci, name: nama, email: email || 'Tiada E-mel', role });
+    };
+
+    const tambahAdikBeradik = async (sasaranId, role, termasukManual) => {
+      const calon = [];
+      akaun.forEach(a => {
+        if (a.sasaran !== sasaranId || a.uid === saya || sembunyi.includes(a.uid)) return;
+        const k = kelompok(a.nod);
+        if (!k.diri) return;
+        calon.push({ t: tarikh(k.diri), kunci: a.uid, nama: k.diri.name, akaunUid: a.uid });
+      });
+      if (termasukManual) {
+        kPusat.adikBeradik.forEach(n => calon.push({ t: tarikh(n), kunci: n.id, nama: n.name, email: n.email }));
+      }
+      calon.sort(banding);
+      for (const c of calon) {
+        tambah(c.kunci, c.nama, c.akaunUid ? await emelAkaun(c.akaunUid) : c.email, role);
+      }
+    };
+
+    if (pilihanBelah === 'induk') {
+      tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa');
+      kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan'));
+      await tambahAdikBeradik(sayaInduk ? kPusat.diri.id : sasaranIdPusat, 'Adik-beradik', true);
+
+      if (!sayaInduk && !sembunyi.includes(indukUid)) {
+        const kInduk = kelompok(nodInduk);
+        const sasaranNode = nodInduk.find(n => n.id === sasaranIdPusat);
+        if (sasaranNode) tambah(sasaranNode.id, sasaranNode.name, sasaranNode.email, 'Adik-beradik');
+        if (kInduk.diri) tambah(kInduk.diri.id, kInduk.diri.name, await emelAkaun(indukUid), 'Ipar');
+      }
+    } else {
+      kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan'));
+      tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa');
+      for (const p of kPusat.pasangan) await tambahAdikBeradik(p.id, 'Ipar', false);
+    }
+
+    let teamHtml = "";
+    teamListMap.forEach((val) => {
+      const bgWarna = val.role.includes('Pengguna Semasa') ? '#f0fdf4' : '#fff';
+      teamHtml += `
+      <div class="card" style="padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;background:${bgWarna};border:1px solid var(--line);">
+        <div>
+          <div style="font-weight:700;color:var(--ink);">${val.name}</div>
+          <div style="font-size:12px;color:var(--muted);">${val.email}</div>
+        </div>
+        <span style="font-size:11px;font-weight:700;color:var(--primary);background:#e8f8f5;padding:4px 8px;border-radius:6px;text-align:right;">${val.role}</span>
+      </div>`;
+    });
+    if (teamListMap.size === 0) {
+      teamHtml = `<div class="card" style="background:#f8fafc;border-color:#e2e8f0;margin-bottom:12px;font-size:13px;color:var(--muted);">Tiada waris dikesan untuk keluarga ini.</div>`;
+    }
+    document.getElementById('teamList').innerHTML = teamHtml;
+    muatNotaKeluarga();
+  } catch (e) { console.error("Ralat muatKeluarga:", e); }
+}
+
+// NOTA KELUARGA
+window.simpanNotaKeluarga = async () => {
+  const note = document.getElementById('teamNote').value.trim();
+  if (!note) { alert('Sila tulis nota dahulu!'); return; }
+  await setDoc(doc(collection(db, "wecare_notes")), {
+    note, author: currentUser.email.split('@')[0], group_id: currentGroup, created_at: Date.now()
+  });
+  document.getElementById('teamNote').value = '';
+  muatNotaKeluarga();
+};
+
+async function muatNotaKeluarga() {
+  const snapNotes = await getDocs(query(collection(db, "wecare_notes"), where("group_id", "==", currentGroup)));
+  let noteHtml = "";
+  const notesArr = [];
+  snapNotes.forEach(d => notesArr.push(d.data()));
+  notesArr.sort((a, b) => b.created_at - a.created_at);
+  notesArr.forEach(n => {
+    const tarikhMasa = new Date(n.created_at).toLocaleString('ms-MY', { dateStyle: 'medium', timeStyle: 'short' });
+    noteHtml += `
+    <div class="card" style="background:#fff;">
+      <div style="font-size:13.5px;color:var(--ink);line-height:1.4;">${n.note}</div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:8px;border-top:1px solid var(--line);padding-top:5px;">
+        <span>Oleh: <b>${n.author}</b></span><span>${tarikhMasa}</span>
+      </div>
+    </div>`;
+  });
+  document.getElementById('senaraiNotaKeluarga').innerHTML = noteHtml || '<div style="font-size:13px;color:var(--muted);text-align:center;margin-top:20px;">Belum ada nota handover ditinggalkan.</div>';
+}
+
+// MODAL KESIHATAN
+window.bukaModalKesihatan = async (idNod, nama) => {
+  document.getElementById('tajukModalKesihatan').innerText = "Kesihatan: " + nama;
+  document.getElementById('editKesihatanId').value = idNod;
+  const hDoc = await getDoc(doc(db, "wecare_health_profiles", idNod));
+  if (hDoc.exists()) {
+    const d = hDoc.data();
+    document.getElementById('kBlood').value = d.blood_type || "";
+    document.getElementById('kChronic').value = d.chronic || "";
+    document.getElementById('kAllergy').value = d.allergies || "";
+    document.getElementById('kHospital').value = d.hospital || "";
+    document.getElementById('kDoctor').value = d.doctor || "";
+  }
+  document.getElementById('modalKesihatan').classList.remove('hidden');
+};
+window.tutupModalKesihatan = () => { document.getElementById('modalKesihatan').classList.add('hidden'); };
+window.simpanProfilKesihatan = async () => {
+  const idNod = document.getElementById('editKesihatanId').value;
+  await setDoc(doc(db, "wecare_health_profiles", idNod), {
+    blood_type: document.getElementById('kBlood').value,
+    chronic: document.getElementById('kChronic').value.trim(),
+    allergies: document.getElementById('kAllergy').value.trim(),
+    hospital: document.getElementById('kHospital').value.trim(),
+    doctor: document.getElementById('kDoctor').value.trim(),
+    updated_at: new Date()
+  }, { merge: true });
+  alert("Berjaya dikemas kini!");
+  window.tutupModalKesihatan();
+};
 </script>
 
- <!-- MODAL TERMA & SYARAT (T&C) WECARE -->
-    <div id="modalTnC" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.8); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-        <div style="background:#fff; width:100%; max-width:450px; border-radius:16px; padding:24px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative;">
-            <h2 style="margin:0 0 15px; color:var(--ink); font-size:20px; font-weight:800; text-align:center;">📜 Terma & Syarat weCare</h2>
-            
-            <div style="font-size:14px; color:var(--muted); line-height:1.6; max-height:60vh; overflow-y:auto; padding-right:5px; margin-bottom:20px;">
-                <p>Selamat datang ke <b>weCare</b>, modul penjagaan eksklusif yang diintegrasikan sepenuhnya dengan pangkalan data salasilah <b>myNasab</b>.</p>
-                
-                <b style="color:var(--ink); display:block; margin-top:12px;">1. Sumber Data (myNasab)</b>
-                <p style="margin-top:4px;">Aplikasi weCare tidak mempunyai sistem pendaftarannya sendiri. Segala data profil, senarai waris, dan status ibu bapa diambil secara langsung dari akaun myNasab anda. Sila pastikan anda mengemaskini e-mel ahli keluarga di myNasab untuk membolehkan mereka mengakses weCare.</p>
-
-                <b style="color:var(--ink); display:block; margin-top:12px;">2. Langganan Premium</b>
-                <p style="margin-top:4px;">weCare adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar penjagaan, pengurusan ubat, dan nota handover keluarga tertakluk kepada caj langganan sebanyak <b>20 Kredit / Sebulan</b>.</p>
-
-                <b style="color:var(--ink); display:block; margin-top:12px;">3. Privasi Keluarga</b>
-                <p style="margin-top:4px;">Paparan data dikawal ketat mengikut hierarki keluarga (Induk / Pasangan) yang ditetapkan di dalam myNasab bagi menjamin privasi setiap isi rumah.</p>
-            </div>
-            
-            <button id="btnSetujuTnC" style="width:100%; background:var(--primary); color:#fff; padding:12px; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; transition:0.2s;">Saya Faham & Bersetuju</button>
-        </div>   
+<!-- MODAL TERMA & SYARAT -->
+<div id="modalTnC" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.8);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;width:100%;max-width:450px;border-radius:16px;padding:24px;box-shadow:0 20px 25px -5px rgba(0,0,0,.1);position:relative;">
+    <h2 style="margin:0 0 15px;color:var(--ink);font-size:20px;font-weight:800;text-align:center;">📜 Terma & Syarat weCare</h2>
+    <div style="font-size:14px;color:var(--muted);line-height:1.6;max-height:60vh;overflow-y:auto;padding-right:5px;margin-bottom:20px;">
+      <p>Selamat datang ke <b>weCare</b>, modul penjagaan eksklusif yang diintegrasikan sepenuhnya dengan pangkalan data salasilah <b>myNasab</b>.</p>
+      <b style="color:var(--ink);display:block;margin-top:12px;">1. Sumber Data (myNasab)</b>
+      <p style="margin-top:4px;">Aplikasi weCare tidak mempunyai sistem pendaftarannya sendiri. Segala data profil, senarai waris, dan status ibu bapa diambil secara langsung dari akaun myNasab anda. Sila pastikan anda mengemaskini e-mel ahli keluarga di myNasab untuk membolehkan mereka mengakses weCare.</p>
+      <b style="color:var(--ink);display:block;margin-top:12px;">2. Langganan Premium</b>
+      <p style="margin-top:4px;">weCare adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar penjagaan, pengurusan ubat, dan nota handover keluarga tertakluk kepada caj langganan sebanyak <b>20 Kredit / Sebulan</b>.</p>
+      <b style="color:var(--ink);display:block;margin-top:12px;">3. Privasi Keluarga</b>
+      <p style="margin-top:4px;">Paparan data dikawal ketat mengikut hierarki keluarga (Induk / Pasangan) yang ditetapkan di dalam myNasab bagi menjamin privasi setiap isi rumah.</p>
     </div>
-    
-<!-- MODAL PAYWALL (SEKATAN LANGGANAN TAMAT) -->
-    <div id="modalPaywall" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:10000; align-items:center; justify-content:center; padding:20px; text-align:center;">
-        <div style="background:#fff; width:100%; max-width:420px; border-radius:16px; padding:32px 24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-            <div style="font-size:48px; margin-bottom:16px;">🔒</div>
-            <h2 style="margin:0 0 12px; color:var(--ink); font-size:22px; font-weight:800;">Akses weCare Disekat</h2>
-            
-            <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-bottom:24px;">
-                Langganan weCare anda telah tamat tempoh. Akses ke modul Kalendar, Pengurusan Ubat, dan Nota Handover Keluarga kini dikunci.<br><br>
-                Sila perbaharui langganan menggunakan <b>20 Kredit</b> untuk terus menggunakan sistem penjagaan ini tanpa gangguan selama 30 hari.
-            </p>
-            
-            <button onclick="bayarGunaKredit()" style="width:100%; background:var(--primary); color:#fff; padding:14px; border:none; border-radius:8px; font-weight:700; font-size:16px; cursor:pointer; margin-bottom:12px; transition:0.2s; box-shadow:0 4px 6px -1px rgba(79,70,229,0.3);">
-                💳 Potong 20 Kredit
-            </button>
-            
-            <button onclick="window.location.href='../topup.html'" style="width:100%; background:transparent; color:var(--muted); padding:10px; border:none; font-weight:600; font-size:14px; cursor:pointer; margin-bottom:5px;">
-                ➕ Tambah Nilai Kredit
-            </button>
-            <button onclick="window.location.href='../index.html'" style="width:100%; background:transparent; color:#94a3b8; padding:5px; border:none; font-weight:400; font-size:12px; cursor:pointer;">
-                Kembali ke Muka Depan myNasab
-            </button>
-        </div>
-    </div>
-    
+    <button id="btnSetujuTnC" style="width:100%;background:var(--primary);color:#fff;padding:12px;border:none;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;transition:.2s;">Saya Faham & Bersetuju</button>
+  </div>
+</div>
+
+<!-- MODAL PAYWALL -->
+<div id="modalPaywall" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.95);z-index:10000;align-items:center;justify-content:center;padding:20px;text-align:center;">
+  <div style="background:#fff;width:100%;max-width:420px;border-radius:16px;padding:32px 24px;box-shadow:0 25px 50px -12px rgba(0,0,0,.25);">
+    <div style="font-size:48px;margin-bottom:16px;">🔒</div>
+    <h2 style="margin:0 0 12px;color:var(--ink);font-size:22px;font-weight:800;">Akses weCare Disekat</h2>
+    <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;">
+      Langganan weCare anda telah tamat tempoh. Akses ke modul Kalendar, Pengurusan Ubat, dan Nota Handover Keluarga kini dikunci.<br><br>
+      Sila perbaharui langganan menggunakan <b>20 Kredit</b> untuk terus menggunakan sistem penjagaan ini tanpa gangguan selama 30 hari.
+    </p>
+    <button onclick="bayarGunaKredit()" style="width:100%;background:var(--primary);color:#fff;padding:14px;border:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer;margin-bottom:12px;transition:.2s;box-shadow:0 4px 6px -1px rgba(79,70,229,.3);">💳 Potong 20 Kredit</button>
+    <button onclick="window.location.href='../topup.html'" style="width:100%;background:transparent;color:var(--muted);padding:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;margin-bottom:5px;">➕ Tambah Nilai Kredit</button>
+    <button onclick="window.location.href='../index.html'" style="width:100%;background:transparent;color:#94a3b8;padding:5px;border:none;font-weight:400;font-size:12px;cursor:pointer;">Kembali</button>
+  </div>
+</div>
+
 </body>
 </html>
