@@ -298,33 +298,45 @@
         await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
     });
 
-    onAuthStateChanged(auth, async (user) => {
+  onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
             document.getElementById('authScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             
-            let userDoc = await getDoc(doc(db, "wecare_users", user.uid));
+            // 1. BACA TERUS DARI MYNASAB (TIADA LAGI PENDAFTARAN WECARE_USERS)
+            let userDoc = await getDoc(doc(db, "mynasab_users", user.uid));
+            
+            // Jika pengguna cuba ceroboh weCare tanpa daftar myNasab, tendang keluar
             if (!userDoc.exists()) {
-                await setDoc(doc(db, "wecare_users", user.uid), {
-                    uid: user.uid,
-                    name: user.email.split('@')[0],
-                    email: user.email,
-                    role: "Warisan/Anak",
-                    group_id: user.uid,
-                    created_at: new Date()
-                });
-                userDoc = await getDoc(doc(db, "wecare_users", user.uid));
+                alert("Sila daftar dan bina salasilah di myNasab terlebih dahulu sebelum menggunakan weCare.");
+                // Boleh tukar link ini ke halaman utama myNasab bos
+                auth.signOut();
+                return;
             }
-            const uData = userDoc.data();
-            currentGroup = uData.group_id || user.uid;
-            document.getElementById('displayUserName').innerText = uData.name;
 
+            const uData = userDoc.data();
+            currentGroup = user.uid; // Gunakan UID sebagai kunci rujukan utama
+            
+            // Papar nama pengguna dari myNasab
+            if (document.getElementById('displayUserName')) {
+                document.getElementById('displayUserName').innerText = uData.name || user.email.split('@')[0];
+            }
+
+            // 2. SEMAK STATUS LANGGANAN (PAYWALL RM20)
+            await semakStatusLangganan(user.uid);
+            
+            // 3. SEMAK TERMA & SYARAT (T&C)
+            semakTnC();
+
+            // 4. MUAT SEMUA DATA (DI SEBALIK PAYWALL)
             muatProfilIbuBapa(user.uid);
             muatKalendar();
             muatUbat();
             muatKeluargaDanNota(currentGroup);
+            
         } else {
+            // Jika log keluar, tunjuk skrin login weCare / myNasab
             document.getElementById('authScreen').classList.remove('hidden');
             document.getElementById('mainApp').classList.add('hidden');
         }
@@ -350,6 +362,42 @@
     });
     // -------------------------
 
+// --- LOGIK SEMAKAN PAYWALL (LANGGANAN) ---
+    async function semakStatusLangganan(uid) {
+        try {
+            // Semak status pengguna di mynasab_users
+            const userDoc = await getDoc(doc(db, "mynasab_users", uid));
+            
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                const tarikhLuput = data.wecare_expiry_date; // Bos kena set field ini di Firebase (cth format milisaat/timestamp)
+                const masaSekarang = new Date().getTime();
+
+                // Logik Paywall: Jika tiada rekod langganan ATAU tarikh luput dah lepas
+                if (!tarikhLuput || tarikhLuput < masaSekarang) {
+                    // Kunci skrin dengan modal Paywall
+                    document.getElementById('modalPaywall').style.display = 'flex';
+                } else {
+                    // Benarkan akses jika langganan masih aktif
+                    document.getElementById('modalPaywall').style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error("Ralat semak langganan:", error);
+            // Kunci skrin sebagai langkah keselamatan jika ralat berlaku
+            document.getElementById('modalPaywall').style.display = 'flex';
+        }
+    }
+
+    // Fungsi Pautan ke Gateway Pembayaran (ToyyibPay)
+    window.bayarLangganan = () => {
+        // Gantikan dengan URL borang ToyyibPay/OnPay bos yang sebenar
+        const urlPembayaran = "https://toyyibpay.com/weCare-Langganan-Bulanan"; 
+        window.open(urlPembayaran, "_blank");
+    };
+    // -----------------------------------------
+
+    
     // FUNGSI TRIGGER DROPDOWN
     window.tukarBelahPaparan = () => {
         if (!currentUser) return;
@@ -684,6 +732,28 @@
             <button onclick="setujuTnC()" style="width:100%; background:var(--primary); color:#fff; padding:12px; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer;">Saya Faham & Bersetuju</button>
         </div>
     </div>   
+
+<!-- MODAL PAYWALL (SEKATAN LANGGANAN TAMAT) -->
+    <div id="modalPaywall" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:10000; align-items:center; justify-content:center; padding:20px; text-align:center;">
+        <div style="background:#fff; width:100%; max-width:420px; border-radius:16px; padding:32px 24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="font-size:48px; margin-bottom:16px;">🔒</div>
+            <h2 style="margin:0 0 12px; color:var(--ink); font-size:22px; font-weight:800;">Akses weCare Disekat</h2>
+            
+            <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-bottom:24px;">
+                Langganan weCare anda telah tamat tempoh (atau belum diaktifkan). Akses ke modul Kalendar, Pengurusan Ubat, dan Nota Handover Keluarga kini dikunci.<br><br>
+                Sila perbaharui langganan pada harga <b>RM20.00 / Sebulan</b> untuk memastikan sistem penjagaan keluarga anda terus beroperasi tanpa gangguan.
+            </p>
+            
+            <button onclick="bayarLangganan()" style="width:100%; background:var(--primary); color:#fff; padding:14px; border:none; border-radius:8px; font-weight:700; font-size:16px; cursor:pointer; margin-bottom:12px; transition:0.2s; box-shadow:0 4px 6px -1px rgba(79,70,229,0.3);">
+                💳 Perbaharui Langganan (RM20)
+            </button>
+            
+            <button onclick="window.location.href='index.html'" style="width:100%; background:transparent; color:var(--muted); padding:10px; border:none; font-weight:600; font-size:14px; cursor:pointer;">
+                Kembali ke myNasab
+            </button>
+        </div>
+    </div>
+
     
 </body>
 </html>
