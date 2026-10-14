@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>weCare - Jagaan Bersama</title>
     <style>
-       @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
         :root {
             --bg-color: #f8fafc; --card-bg: #ffffff; --ink: #1e293b;
@@ -19,15 +19,15 @@
         * { box-sizing: border-box; }
         body { margin: 0; background: var(--bg-color); color: var(--ink); font-family: 'Nunito', sans-serif; -webkit-font-smoothing: antialiased; }
 
-      .app { 
-    max-width: 1000px; 
-    margin: 0 auto; 
-    padding: 0 0 40px; 
-    min-height: 100vh; 
-    background: var(--bg-color); 
-}
+        .app { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 0 0 40px; 
+            min-height: 100vh; 
+            background: var(--bg-color); 
+        }
         
-    /* HEADER & DROPDOWN */
+        /* HEADER & DROPDOWN */
         .topbar { padding: 15px 20px; background: var(--card-bg); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
         .brand { font-size: 22px; font-weight: 800; color: var(--ink); }
         .brand span.we { color: var(--secondary); }
@@ -49,17 +49,26 @@
         .card.decedent { background: #f1f5f9; border-color: #cbd5e1; opacity: 0.85; }
 
         /* SUSUNAN NOTA & WARIS */
-        .susunan-nota-waris { display: flex; flex-direction: column; gap: 20px; }
+        .susunan-nota-waris { 
+            display: flex; 
+            flex-direction: column; /* Handphone: Tersusun ke bawah */
+            gap: 20px; 
+        }
         .ruang-nota { width: 100%; }
         .ruang-waris { width: 100%; }
         
         @media (min-width: 768px) { 
-            .susunan-nota-waris { flex-direction: row; align-items: flex-start; }
-            .ruang-nota { flex: 2; /* Nota ambil ruang lebih besar (66%) */ }
+            .susunan-nota-waris { 
+                flex-direction: row; /* Desktop: Kiri dan Kanan */
+                align-items: flex-start; 
+            }
+            .ruang-nota { 
+                width: 65%; /* Nota di kiri ambil 65% ruang */
+            }
             .ruang-waris { 
-                flex: 1; /* Waris ambil 33% */
+                width: 35%; /* Waris di kanan ambil 35% ruang */
                 position: sticky; 
-                top: 85px; /* Senarai waris melekat bila di-scroll ke bawah */
+                top: 85px; 
             } 
         }
         
