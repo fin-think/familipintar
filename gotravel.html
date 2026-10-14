@@ -508,12 +508,14 @@ window.muatKeluargaRombongan = async () => {
         const allLinks = sPautan.docs.map(d => d.data());
 
         const snapNodesSaya = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
-        let nodesSaya = snapNodesSaya.docs.map(d => ({ ...d.data(), id: d.id }));
+        // TAPISAN KEMATIAN: Hanya simpan ahli yang berstatus selain 'meninggal'
+        let nodesSaya = snapNodesSaya.docs.map(d => ({ ...d.data(), id: d.id })).filter(d => d.status !== 'meninggal');
 
         let nodesInduk = nodesSaya;
         if (!sayaInduk) {
             const snapNodesInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", masterIndukUid)));
-            nodesInduk = snapNodesInduk.docs.map(d => ({ ...d.data(), id: d.id }));
+            // TAPISAN KEMATIAN UNTUK AKAUN INDUK JUGA
+            nodesInduk = snapNodesInduk.docs.map(d => ({ ...d.data(), id: d.id })).filter(d => d.status !== 'meninggal');
         }
 
         const addWaris = (uid, name, role) => {
@@ -536,7 +538,8 @@ window.muatKeluargaRombongan = async () => {
         if (pilihanBelah === 'induk') {
             nodesSaya.forEach(n => {
                 const rel = (n.relationship || '').toLowerCase();
-                if (rel.match(/ayah|ibu|bapa|mak|abah|abang|kakak|adik/)) {
+                // TAMBAHAN ANAK SAUDARA KE DALAM LOGIK REGEX
+                if (rel.match(/ayah|ibu|bapa|mak|abah|abang|kakak|adik|anak saudara/)) {
                     addWaris(n.id, n.name, n.relationship);
                 }
             });
@@ -546,7 +549,8 @@ window.muatKeluargaRombongan = async () => {
                     const sNode = nodesInduk.find(n => n.id === link.sasaran_id);
                     if (sNode) {
                         const rel = (sNode.relationship || '').toLowerCase();
-                        if (rel.match(/ayah|ibu|bapa|mak|abah|abang|kakak|adik/)) teamUids.add(link.uid);
+                        // TAMBAHAN ANAK SAUDARA KE DALAM LOGIK REGEX
+                        if (rel.match(/ayah|ibu|bapa|mak|abah|abang|kakak|adik|anak saudara/)) teamUids.add(link.uid);
                     }
                 });
             } else {
@@ -566,7 +570,8 @@ window.muatKeluargaRombongan = async () => {
         else if (pilihanBelah === 'pasangan') {
             nodesSaya.forEach(n => {
                 const rel = (n.relationship || '').toLowerCase();
-                if (rel.includes('ipar') || rel.includes('mertua')) {
+                // Turut benarkan tarikan anak saudara daripada belah pasangan
+                if (rel.includes('ipar') || rel.includes('mertua') || rel.includes('anak saudara')) {
                     addWaris(n.id, n.name, n.relationship);
                 }
             });
@@ -582,6 +587,7 @@ window.muatKeluargaRombongan = async () => {
             }
         }
 
+        // Dapatkan nama dari UID link
         for (let tUid of teamUids) {
             if (tUid === currentUser.uid) continue; 
             const uDoc = await getDoc(doc(db, "mynasab_users", tUid));
@@ -591,6 +597,7 @@ window.muatKeluargaRombongan = async () => {
             }
         }
 
+        // Render Checkboxes
         globalTeamMap.forEach((val, key) => {
             const isChecked = val.role === 'Anda' || val.role === 'Pasangan' ? 'checked' : '';
             htmlList += `
