@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>weCare - Jagaan Bersama</title>
-    <style>
+   <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
         :root {
@@ -20,7 +20,7 @@
         body { margin: 0; background: var(--bg-color); color: var(--ink); font-family: 'Nunito', sans-serif; -webkit-font-smoothing: antialiased; }
 
         .app { 
-            max-width: 1000px; 
+            max-width: 1200px; 
             margin: 0 auto; 
             padding: 0 0 40px; 
             min-height: 100vh; 
@@ -48,24 +48,40 @@
         .card { background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); position: relative; overflow: hidden; }
         .card.decedent { background: #f1f5f9; border-color: #cbd5e1; opacity: 0.85; }
 
-        /* SUSUNAN NOTA & WARIS (CSS GRID) */
-        .susunan-nota-waris { 
-            display: grid; 
-            grid-template-columns: 1fr; 
-            gap: 20px; 
-            align-items: start;
+        /* LAYOUT UTAMA: Kalendar (kiri) + Waris/Nota/Penjaga (kanan)
+            Telefon & tablet kecil: disusun ke bawah (kalendar dahulu, kemudian waris/nota) */
+        .layout-utama {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: stretch;
         }
-        .ruang-nota, .ruang-waris { width: 100%; }
-        
-        @media (min-width: 768px) { 
-            .susunan-nota-waris { 
-                grid-template-columns: 2fr 1fr; 
+        .kolum-kalendar, .kolum-waris {
+            width: 100%;
+            min-width: 0; /* benarkan kalendar mengecil, jangan tolak kolum kanan */
+        }
+        #senaraiNotaKeluarga .card { margin-top: 10px; }
+        .kotak-penjaga { margin-top: 15px; }
+
+        /* Desktop: dua kolum */
+        @media (min-width: 992px) {
+            .layout-utama {
+                flex-direction: row;
+                align-items: flex-start;
                 gap: 25px;
             }
-            .ruang-waris { 
-                position: sticky; 
-                top: 85px; 
-            } 
+            .kolum-kalendar {
+                flex: 1 1 0;
+            }
+            .kolum-waris {
+                flex: 0 0 380px;
+                width: 380px;
+                position: sticky;
+                top: 85px;
+                max-height: calc(100vh - 105px);
+                overflow-y: auto;
+                padding-right: 2px;
+            }
         }
         
         /* CALENDAR GRID */
@@ -73,9 +89,9 @@
         .cal-header button { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--secondary); font-weight: 800; }
         .cal-header h3 { margin: 0; font-size: 16px; font-weight: 800; }
         
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
         .cal-day-name { text-align: center; font-weight: 800; font-size: 11px; color: var(--muted); padding-bottom: 5px; text-transform: uppercase; }
-        .cal-date { background: #fff; border: 1px solid var(--line); border-radius: 6px; min-height: 80px; padding: 6px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; }
+        .cal-date { background: #fff; border: 1px solid var(--line); border-radius: 6px; min-height: 80px; min-width: 0; padding: 6px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; }
         .cal-date:hover { border-color: var(--secondary); background: #f8fafc; }
         .cal-date.empty-slot { background: transparent; border: none; cursor: default; }
         .cal-date.today { border-color: var(--primary); background: #f0fdf4; }
@@ -130,53 +146,62 @@
         </select>
     </div>
     
+    <!-- KANDUNGAN UTAMA (DASHBOARD KESELURUHAN) -->
     <div class="content">
+        
         <!-- 1. PROFIL IBU BAPA -->
         <h2 class="section-title">Profil & Kesihatan Ibu Bapa</h2>
         <p class="section-sub">Kemaskini maklumat ubat, jenis darah dan rujukan hospital.</p>
         <div id="ruangProfilIbuBapa" class="grid-2">Memuatkan data...</div>
 
-        <!-- 2. KALENDAR GOOGLE-STYLE -->
-        <h2 class="section-title" style="margin-top:20px;">Kalendar Jagaan & Ubat</h2>
-        <p class="section-sub">
-            Pengecaman Warna: 
-            <span style="color:var(--ayah-color); font-weight:800;">🔵 Bapa</span> | 
-            <span style="color:var(--ibu-color); font-weight:800;">🔴 Ibu</span> | 
-            <span style="color:var(--umum-color); font-weight:800;">🟢 Umum (Rumah)</span>
-        </p>
-        
-        <div class="cal-header">
-            <button onclick="tukarBulan(-1)">❮</button>
-            <h3 id="paparanBulanTahun">Bulan Tahun</h3>
-            <button onclick="tukarBulan(1)">❯</button>
-        </div>
-        <div class="cal-grid" id="hariKalendar">
-            <div class="cal-day-name">Aha</div><div class="cal-day-name">Isn</div>
-            <div class="cal-day-name">Sel</div><div class="cal-day-name">Rab</div>
-            <div class="cal-day-name">Kha</div><div class="cal-day-name">Jum</div>
-            <div class="cal-day-name">Sab</div>
-        </div>
-        <div class="cal-grid" id="gridKalendar"></div>
+        <!-- 2 + 3. LAYOUT: KALENDAR (KIRI) | WARIS & NOTA (KANAN) -->
+        <div class="layout-utama">
 
-        <!-- 3. NOTA WARIS JAGAAN -->
-        <h2 class="section-title" style="margin-top:35px;">Waris & Papan Nota Keluarga</h2>
-        <p class="section-sub">Tinggalkan pesanan ringkas buat adik-beradik / penjaga lain.</p>
-        
-        <div class="susunan-nota-waris">
-            <div class="ruang-nota">
+            <!-- KIRI: KALENDAR -->
+            <div class="kolum-kalendar">
+                <h2 class="section-title">Kalendar Jagaan & Ubat</h2>
+                <p class="section-sub">
+                    Pengecaman Warna: 
+                    <span style="color:var(--ayah-color); font-weight:800;">🔵 Bapa</span> | 
+                    <span style="color:var(--ibu-color); font-weight:800;">🔴 Ibu</span> | 
+                    <span style="color:var(--umum-color); font-weight:800;">🟢 Umum (Rumah)</span>
+                </p>
+                
+                <div class="cal-header">
+                    <button onclick="tukarBulan(-1)">❮</button>
+                    <h3 id="paparanBulanTahun">Bulan Tahun</h3>
+                    <button onclick="tukarBulan(1)">❯</button>
+                </div>
+                <div class="cal-grid" id="hariKalendar">
+                    <div class="cal-day-name">Aha</div><div class="cal-day-name">Isn</div>
+                    <div class="cal-day-name">Sel</div><div class="cal-day-name">Rab</div>
+                    <div class="cal-day-name">Kha</div><div class="cal-day-name">Jum</div>
+                    <div class="cal-day-name">Sab</div>
+                </div>
+                <div class="cal-grid" id="gridKalendar">
+                    <!-- Grid akan dijana oleh Javascript -->
+                </div>
+            </div>
+
+            <!-- KANAN: WARIS, PAPAN NOTA & SENARAI PENJAGA -->
+            <div class="kolum-waris">
+                <h2 class="section-title">Waris & Papan Nota Keluarga</h2>
+                <p class="section-sub">Tinggalkan pesanan ringkas buat adik-beradik / penjaga lain.</p>
+
                 <div class="card" style="background:#fef3c7; border-color:#fde68a;">
                     <textarea id="teamNote" placeholder="Tulis mesej / status terkini keadaan ibu bapa di sini..." style="border-color:#fcd34d; min-height:80px;"></textarea>
                     <button class="primary" onclick="simpanNotaKeluarga()" style="background:#d97706;">💬 Hantar Pesanan</button>
                 </div>
-                <div id="senaraiNotaKeluarga"></div>
-            </div>
-            
-            <div class="ruang-waris">
-                <div style="background:var(--card-bg); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
+
+                <div class="kotak-penjaga" style="background:var(--card-bg); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
                     <h3 style="margin:0 0 15px; font-size:14px; color:var(--ink); font-weight:800; border-bottom:1px solid var(--line); padding-bottom:10px;">👥 Senarai Penjaga / Anak</h3>
                     <div id="teamList">Memuatkan senarai...</div>
                 </div>
+
+                <!-- Senarai nota diletakkan paling bawah kerana ia terus bertambah -->
+                <div id="senaraiNotaKeluarga"></div>
             </div>
+
         </div>
     </div>
 </div>
@@ -204,10 +229,9 @@
             </div>
         </div>
         
-        <!-- Untuk Siapa & Masa -->
         <div style="display:flex; gap:10px; margin-bottom:12px;">
             <div style="flex:1;">
-                <label>Untuk Siapa? (Warna)</label>
+                <label>Untuk Siapa?</label>
                 <select id="tWhom">
                     <option value="ayah">Bapa (Biru)</option>
                     <option value="ibu">Ibu (Pink)</option>
@@ -219,11 +243,10 @@
                 <input type="time" id="tTime">
             </div>
         </div>
-
-        <!-- Shift Siapa Dropdown -->
+        
         <label>Shift / Tugasan Siapa?</label>
         <select id="tShiftSiapa">
-            <!-- Pilihan ini akan dijana oleh Javascript dari Senarai Waris -->
+            <!-- Akan dijana oleh JS dari Senarai Waris -->
             <option value="Umum">Umum / Semua Terlibat</option>
         </select>
         
@@ -336,6 +359,7 @@
                             }
                         }
                         await window.semakStatusLangganan(currentUser.uid);
+                        
                     } catch (err) {
                         console.error("Ralat mengaktifkan percubaan percuma:", err);
                     }
@@ -373,7 +397,7 @@ onAuthStateChanged(auth, async (user) => {
 
             muatProfilIbuBapa(user.uid);
             await muatKeluargaDanNota(currentGroup);
-            muatDataKalendar();
+            muatDataKalendar(); 
             
         } else {
             document.getElementById('authScreen').classList.remove('hidden');
@@ -381,7 +405,7 @@ onAuthStateChanged(auth, async (user) => {
         }
     });
     
-    // FUNGSI PEMBAHARUAN LANGGANAN 20 KREDIT
+    // --- FUNGSI PEMBAHARUAN LANGGANAN 20 KREDIT ---
     window.bayarGunaKredit = async () => {
         if (!currentUser) return;
         try {
@@ -410,14 +434,15 @@ onAuthStateChanged(auth, async (user) => {
             alert("Gagal memproses langganan: " + e.message);
         }
     };
-
+    
+    // FUNGSI TRIGGER DROPDOWN
     window.tukarBelahPaparan = () => {
         if (!currentUser) return;
         muatProfilIbuBapa(currentUser.uid);
         muatKeluargaDanNota(currentGroup);
     };
 
-    // 1. PROFIL IBU BAPA
+    // 1. PROFIL IBU BAPA (BACA POKOK SENDIRI SECARA MUTLAK)
     async function muatProfilIbuBapa(uidPengguna) {
         try {
             const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
@@ -458,6 +483,7 @@ onAuthStateChanged(auth, async (user) => {
             snapInduk.forEach(docSnap => {
                 const d = docSnap.data();
                 const rel = (d.relationship || '').toLowerCase();
+                
                 const isMertua = rel.includes('mertua');
                 const isKandung = (rel.includes('ayah') || rel.includes('ibu') || rel.includes('bapa') || rel.includes('mak') || rel.includes('abah')) && !isMertua;
 
@@ -513,16 +539,16 @@ onAuthStateChanged(auth, async (user) => {
         for (let i = 1; i <= jumlahHari; i++) {
             const strBulan = (bulanSemasa + 1).toString().padStart(2, '0');
             const strHari = i.toString().padStart(2, '0');
-            const tarikhKunci = `${tahunSemasa}-${strBulan}-${strHari}`; // YYYY-MM-DD
+            const tarikhKunci = `${tahunSemasa}-${strBulan}-${strHari}`;
             
             let kelasToday = (i === hariIni.getDate() && bulanSemasa === hariIni.getMonth() && tahunSemasa === hariIni.getFullYear()) ? "today" : "";
             
-            // Cari tarikh kunci berada di dalam range Start Date dan End Date
+            // Semak tugasan dalam julat tarikh
             const tugasanHariIni = dataKalendarGlobal.filter(t => {
                 const tarikhTamat = t.end_date || t.date;
                 return tarikhKunci >= t.date && tarikhKunci <= tarikhTamat;
             });
-
+            
             let htmlTugas = "";
             tugasanHariIni.forEach(t => {
                 let warnaKelas = "evt-umum";
@@ -604,7 +630,7 @@ onAuthStateChanged(auth, async (user) => {
         const note = document.getElementById('tNote').value.trim();
 
         if(!title || !date) { alert('Sila isi Perkara & Tarikh Mula!'); return; }
-        if(!end_date) end_date = date; // Fallback jika tarikh tamat dikosongkan
+        if(!end_date) end_date = date; 
 
         const eventData = { 
             title, date, end_date, time, for_whom, shift_siapa, note, 
@@ -617,7 +643,6 @@ onAuthStateChanged(auth, async (user) => {
         
         if (syncGoogle) {
             const dateG = date.replace(/-/g,'');
-            // Untuk Google Calendar Date Range (tambah 1 hari jika All Day event)
             const endDateObj = new Date(end_date);
             endDateObj.setDate(endDateObj.getDate() + 1);
             const endDateG = endDateObj.toISOString().split('T')[0].replace(/-/g,'');
@@ -630,7 +655,7 @@ onAuthStateChanged(auth, async (user) => {
         muatDataKalendar(); 
     };
 
-    // 4. KELUARGA & NOTA HANDOVER (PIVOT DENGAN PENAPISAN REF_ID)
+   // 4. KELUARGA & NOTA HANDOVER (PIVOT DENGAN PENAPISAN REF_ID)
     async function muatKeluargaDanNota(groupId) {
         try {
             const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
