@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>💰 OurMoney - Penjejak Aliran Tunai</title>
-<link href="[https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap](https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap)" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg-color: #f8fafc; --card-bg: #ffffff; --ink: #1e293b;
@@ -28,7 +28,7 @@
 
   /* Pengepala */
   .header { text-align: center; padding: 10px 0 20px; position: relative; }
-  .header h1 { font-family: 'Baloo 2', cursive; font-size: 2.2rem; font-weight: 800; color: var(--primary); line-height: 1.1; margin-bottom: 4px; }
+  .header h1 { font-size: 2rem; font-weight: 900; color: var(--primary); line-height: 1.1; margin-bottom: 4px; }
   .header p { color: var(--muted); font-size: 0.95rem; font-weight: 700; }
   .btn-kembali { position: absolute; right: 0; top: 10px; background: #0ea5e9; color: white; border: none; padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 6px rgba(14,165,233,0.3); transition: 0.2s; }
   .btn-kembali:hover { background: #0284c7; }
@@ -47,19 +47,19 @@
   /* Kad Komponen */
   .card { background: var(--card-bg); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--line); }
   .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 2px dashed var(--line); padding-bottom: 12px; }
-  .card-header h2 { font-family: 'Baloo 2', cursive; font-size: 1.3rem; font-weight: 800; color: var(--ink); }
+  .card-header h2 { font-size: 1.2rem; font-weight: 800; color: var(--ink); }
 
   /* Borang Transaksi */
   .form-grid { display: flex; flex-direction: column; gap: 12px; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field label { font-size: 0.75rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .field input, .field select { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px; font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--ink); background: #f8fafc; outline: none; transition: 0.2s; }
+  .field input, .field select { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 0.95rem; font-weight: 600; color: var(--ink); background: #f8fafc; outline: none; transition: 0.2s; }
   .field input:focus, .field select:focus { border-color: var(--primary); background: #fff; }
   
   .input-prefix { position: relative; width: 100%; }
   .input-prefix span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 800; color: #94a3b8; font-size: 0.9rem; }
-  .input-prefix input { padding-left: 45px; font-family: 'Baloo 2', cursive; font-size: 1.1rem; }
+  .input-prefix input { padding-left: 45px; font-weight: 800; font-size: 1.1rem; }
 
   /* Butang */
   button.btn-submit { background: var(--primary); color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 800; cursor: pointer; margin-top: 10px; width: 100%; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: 0.2s; }
@@ -78,7 +78,7 @@
   .txn-info { display: flex; flex-direction: column; gap: 4px; }
   .txn-cat { font-weight: 800; color: var(--ink); font-size: 0.95rem; }
   .txn-note { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
-  .txn-amt { font-family: 'Baloo 2', cursive; font-size: 1.2rem; font-weight: 800; text-align: right; }
+  .txn-amt { font-size: 1.1rem; font-weight: 800; text-align: right; }
   .amt-in { color: var(--primary); }
   .amt-out { color: var(--danger); }
   .btn-del-txn { background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; margin-left: 10px; transition: 0.2s; }
@@ -90,18 +90,18 @@
   .dash-box.in { border-bottom: 4px solid var(--primary); }
   .dash-box.out { border-bottom: 4px solid var(--danger); }
   .dash-label { font-size: 0.75rem; font-weight: 800; color: var(--muted); text-transform: uppercase; }
-  .dash-val { font-family: 'Baloo 2', cursive; font-size: 1.4rem; font-weight: 800; color: var(--ink); margin-top: 4px; line-height: 1; }
+  .dash-val { font-size: 1.3rem; font-weight: 800; color: var(--ink); margin-top: 4px; line-height: 1; }
   
   .dash-balance { background: var(--ink); color: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 8px 20px rgba(30,41,59,0.2); }
   .dash-balance .dash-label { color: #94a3b8; }
-  .dash-balance .dash-val { color: white; font-size: 2.2rem; }
+  .dash-balance .dash-val { color: white; font-size: 2rem; font-weight: 800; }
 
   /* Peringatan JomBercuti */
   .vacation-card { background: linear-gradient(135deg, #FFF9F0, #FFF4E5); border: 2px solid #FFECCC; border-radius: 12px; padding: 16px; margin-top: 20px; display: flex; align-items: center; gap: 15px; }
   .vac-icon { font-size: 2.2rem; }
   .vac-details { flex: 1; }
   .vac-title { font-weight: 800; color: #b45309; font-size: 0.9rem; text-transform: uppercase; }
-  .vac-amt { font-family: 'Baloo 2', cursive; font-size: 1.4rem; font-weight: 800; color: #ea580c; line-height: 1.2; }
+  .vac-amt { font-size: 1.2rem; font-weight: 800; color: #ea580c; line-height: 1.2; }
 
   /* Analisis Hujung Bulan */
   .health-card { margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--line); }
@@ -120,11 +120,11 @@
 
 <div id="authScreen" class="gate hidden" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--bg-color); position: fixed; inset:0; z-index:9999;">
     <div style="background:var(--card-bg); border-radius:16px; padding:40px 30px; max-width:400px; width:100%; box-shadow:var(--shadow); text-align:center;">
-        <h1 style="font-family:'Baloo 2',cursive; color:var(--primary); font-size:2rem; margin-bottom:5px;">OurMoney</h1>
+        <h1 style="color:var(--primary); font-size:2rem; font-weight:900; margin-bottom:5px;">OurMoney</h1>
         <p style="color:var(--muted); font-size:14px; margin-bottom:25px;">Sila log masuk dengan akaun myNasab anda.</p>
         <form id="authForm" style="display:flex; flex-direction:column; gap:12px;">
-            <input type="email" id="authEmail" required placeholder="Emel Anda" style="padding:12px; border-radius:8px; border:1px solid #ccc; font-family:'Nunito';">
-            <input type="password" id="authPassword" required placeholder="Kata Laluan" style="padding:12px; border-radius:8px; border:1px solid #ccc; font-family:'Nunito';">
+            <input type="email" id="authEmail" required placeholder="Emel Anda" style="padding:12px; border-radius:8px; border:1px solid #ccc;">
+            <input type="password" id="authPassword" required placeholder="Kata Laluan" style="padding:12px; border-radius:8px; border:1px solid #ccc;">
             <button type="submit" style="padding:12px; border-radius:8px; background:var(--primary); color:white; font-weight:bold; border:none; cursor:pointer;">Log Masuk</button>
         </form>
     </div>
@@ -133,7 +133,7 @@
 <div class="container" id="mainApp">
   <!-- Pengepala Utama -->
   <div class="header">
-    <button onclick="window.location.href='index.html'" class="btn-kembali">🏠 myNasab</button>
+    <button onclick="window.location.href='index.html'" class="btn-kembali">Kembali</button>
     <div>
       <h1>💰 OurMoney</h1>
       <p>Penjejak Aliran Tunai & Kesihatan Kewangan Keluarga</p>
@@ -153,9 +153,9 @@
         
         <form id="form-transaksi" class="form-grid">
           <div class="type-toggle">
-            <input type="radio" name="txnType" id="type-out" value="outflow" checked onchange="tukarKategori()">
+            <input type="radio" name="txnType" id="type-out" value="outflow" checked>
             <label for="type-out">Duit Keluar 💸</label>
-            <input type="radio" name="txnType" id="type-in" value="inflow" onchange="tukarKategori()">
+            <input type="radio" name="txnType" id="type-in" value="inflow">
             <label for="type-in">Duit Masuk 📥</label>
           </div>
 
@@ -258,14 +258,14 @@
 </div>
 
 <script type="module">
-    import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js)";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js)";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, query, where, getDocs, orderBy } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js)";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
         authDomain: "familipintar.firebaseapp.com",
-        databaseURL: "[https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app](https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app)",
+        databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
         projectId: "familipintar",
         storageBucket: "familipintar.firebasestorage.app",
         messagingSenderId: "277029764059",
@@ -277,7 +277,7 @@
     const db = getFirestore(app);
 
     let currentUser = null;
-    let targetPercutian = 0; // Diambil dari jombercuti_trips
+    let targetPercutian = 0;
 
     const bulanIniDate = new Date();
     document.getElementById('txnDate').value = bulanIniDate.toISOString().split('T')[0];
@@ -287,13 +287,20 @@
     const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Pakaian", "Lain-lain"];
     const catInflow = ["Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
 
-    window.tukarKategori = () => {
+    // Logik Tukar Kategori dipindahkan terus ke dalam Module Event Listener
+    const btnRadios = document.querySelectorAll('input[name="txnType"]');
+    const selectCat = document.getElementById('txnCat');
+
+    function kemaskiniSenaraiKategori() {
         const type = document.querySelector('input[name="txnType"]:checked').value;
-        const select = document.getElementById('txnCat');
         const options = type === 'outflow' ? catOutflow : catInflow;
-        select.innerHTML = options.map(c => `<option value="${c}">${c}</option>`).join('');
-    };
-    window.tukarKategori(); // Run on init
+        selectCat.innerHTML = options.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    btnRadios.forEach(radio => {
+        radio.addEventListener('change', kemaskiniSenaraiKategori);
+    });
+    kemaskiniSenaraiKategori(); // Panggil sekali untuk muat pilihan awal
 
     // Semakan Auth
     onAuthStateChanged(auth, async (user) => {
@@ -431,7 +438,7 @@
         } catch(e) { console.error("Ralat muat transaksi:", e); }
     }
 
-    // 4. Padam Rekod
+    // 4. Padam Rekod (Attach To Window Since Inside Module)
     window.padamRekod = async (id) => {
         if(confirm("Anda pasti mahu memadam rekod ini?")) {
             await deleteDoc(doc(db, "ourmoney_transactions", id));
