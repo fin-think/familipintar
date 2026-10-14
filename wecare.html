@@ -20,36 +20,11 @@
         body { margin: 0; background: var(--bg-color); color: var(--ink); font-family: 'Nunito', sans-serif; -webkit-font-smoothing: antialiased; }
 
       .app { 
-    max-width: 1280px; /* Kelebaran standard max-w-7xl */
+    max-width: 1000px; 
     margin: 0 auto; 
-    padding: 24px 16px; /* Meniru px-4 sm:px-6 lg:px-8 */
+    padding: 0 0 40px; 
     min-height: 100vh; 
     background: var(--bg-color); 
-}
-
-@media (min-width: 640px) {
-    .app { padding-left: 24px; padding-right: 24px; }
-}
-
-@media (min-width: 1024px) {
-    .app { padding-left: 32px; padding-right: 32px; }
-}
-
-@media (min-width: 768px) {
-    /* Menjadikan ruangan Kalendar, Ubat & Nota kepada 2 kolum bila skrin besar */
-    #calendar.panel, #meds.panel, #team.panel {
-        display: none;
-    }
-    #calendar.panel.active, #meds.panel.active, #team.panel.active {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-    
-    /* Header tajuk ambil selebar 2 kolum */
-    .section-title, .section-sub {
-        grid-column: 1 / -1;
-    }
 }
         
     /* HEADER & DROPDOWN */
@@ -93,7 +68,8 @@
         .evt-umum { background: var(--umum-color); }
 
         /* BUTTONS & INPUTS */
-        button.primary { background: var(--primary); color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; }
+        button.primary { background: var(--primary); color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; transition:0.2s; }
+        button.primary:hover { opacity: 0.9; }
         button.ghost { background: transparent; border: 1px solid var(--muted); color: var(--ink); padding: 8px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 700; }
         input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; font-family: inherit; margin-bottom: 12px; outline: none; }
         label { font-size: 12px; color: var(--muted); font-weight: 700; display: block; margin-bottom: 4px; }
@@ -223,7 +199,27 @@
         <button class="ghost" style="width:100%;" onclick="tutupModalTarikh()">Tutup</button>
     </div>
 </div>
-    
+
+<!-- MODAL KESIHATAN -->
+<div id="modalKesihatan" class="gate hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:1000; background:rgba(0,0,0,0.5); display:flex; padding:20px; align-items:center;">
+    <div class="card" style="width:100%; max-width:500px; margin:0 auto; background:#fff; max-height:90vh; overflow-y:auto;">
+        <h2 class="section-title" id="tajukModalKesihatan">Kemaskini Kesihatan</h2>
+        <input type="hidden" id="editKesihatanId">
+        <div class="field" style="margin-top:15px;">
+            <label>Jenis Darah</label>
+            <select id="kBlood"><option value="">-- Pilih --</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
+        </div>
+        <div class="field"><label>Penyakit Kronik</label><textarea id="kChronic"></textarea></div>
+        <div class="field"><label>Alahan</label><textarea id="kAllergy"></textarea></div>
+        <div class="field"><label>Hospital / Klinik Rujukan</label><input type="text" id="kHospital"></div>
+        <div class="field"><label>Doktor Pakar</label><input type="text" id="kDoctor"></div>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="primary" onclick="simpanProfilKesihatan()">Simpan Rekod</button>
+            <button class="ghost" onclick="tutupModalKesihatan()">Batal</button>
+        </div>
+    </div>
+</div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -292,16 +288,13 @@
                         
                         if (userSnap.exists()) {
                             const data = userSnap.data();
-                            // Jika pengguna BARU PERTAMA KALI masuk (tiada wecare_expiry_date)
                             if (!data.wecare_expiry_date) {
                                 const masaSekarang = new Date().getTime();
                                 const tambah30Hari = masaSekarang + (30 * 24 * 60 * 60 * 1000); 
                                 
-                                // Berikan Free Trial 30 Hari secara automatik!
                                 await setDoc(userRef, { wecare_expiry_date: tambah30Hari }, { merge: true });
                             }
                         }
-                        // Semak paywall untuk pastikan semuanya berjalan lancar
                         await window.semakStatusLangganan(currentUser.uid);
                         
                     } catch (err) {
@@ -312,15 +305,6 @@
         }
     });
     
-    document.querySelectorAll('.tab').forEach(t => {
-        t.addEventListener('click', () => {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
-            t.classList.add('active');
-            document.getElementById(t.dataset.tab).classList.add('active');
-        });
-    });
-
     document.getElementById('authForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
@@ -346,14 +330,11 @@ onAuthStateChanged(auth, async (user) => {
                 document.getElementById('displayUserName').innerText = uData.name || user.email.split('@')[0];
             }
 
-            // Panggil T&C sahaja di sini. (Paywall akan dipanggil dari dalam semakTnC / setujuTnC)
             semakTnC();
 
-            // Muat data di latar belakang
             muatProfilIbuBapa(user.uid);
-            muatKalendar();
-            muatUbat();
             muatKeluargaDanNota(currentGroup);
+            muatDataKalendar(); // Panggil fungsi kalendar baru di sini
             
         } else {
             document.getElementById('authScreen').classList.remove('hidden');
@@ -361,54 +342,6 @@ onAuthStateChanged(auth, async (user) => {
         }
     });
     
-// --- LOGIK PAPARAN T&C & PAYWALL ---
-    function semakTnC() {
-        const dahSetuju = localStorage.getItem('wecare_tnc_agreed');
-        if (!dahSetuju) {
-            document.getElementById('modalTnC').style.display = 'flex';
-        } else {
-            // Kalau dah pernah setuju T&C sebelum ni, terus semak status langganan
-            if (currentUser) semakStatusLangganan(currentUser.uid);
-        }
-    }
-
-    async function setujuTnC() {
-        localStorage.setItem('wecare_tnc_agreed', 'true');
-        document.getElementById('modalTnC').style.display = 'none';
-        
-        // Lepas setuju T&C, baru sistem semak ada langganan RM20 atau tidak
-        if (currentUser) {
-            await semakStatusLangganan(currentUser.uid);
-        }
-    }
-    
-// --- LOGIK SEMAKAN PAYWALL (LANGGANAN) ---
-    async function semakStatusLangganan(uid) {
-        try {
-            // Semak status pengguna di mynasab_users
-            const userDoc = await getDoc(doc(db, "mynasab_users", uid));
-            
-            if (userDoc.exists()) {
-                const data = userDoc.data();
-                const tarikhLuput = data.wecare_expiry_date; // Bos kena set field ini di Firebase (cth format milisaat/timestamp)
-                const masaSekarang = new Date().getTime();
-
-                // Logik Paywall: Jika tiada rekod langganan ATAU tarikh luput dah lepas
-                if (!tarikhLuput || tarikhLuput < masaSekarang) {
-                    // Kunci skrin dengan modal Paywall
-                    document.getElementById('modalPaywall').style.display = 'flex';
-                } else {
-                    // Benarkan akses jika langganan masih aktif
-                    document.getElementById('modalPaywall').style.display = 'none';
-                }
-            }
-        } catch (error) {
-            console.error("Ralat semak langganan:", error);
-            // Kunci skrin sebagai langkah keselamatan jika ralat berlaku
-            document.getElementById('modalPaywall').style.display = 'flex';
-        }
-    }
-
     // Fungsi Pautan ke Gateway Pembayaran (ToyyibPay)
     window.bayarLangganan = () => {
         if (!currentUser) return;
@@ -416,7 +349,6 @@ onAuthStateChanged(auth, async (user) => {
         const kodBilToyyibPay = "KOD_BIL_WECARE_BOS"; // Gantikan dengan Kod Bil sebenar dari dashboard ToyyibPay
         const uidPengguna = currentUser.uid;
         
-        // Kita hantar UID melalui parameter URL (supaya ToyyibPay boleh pulangkan semula data ini kepada Webhook)
         const urlPembayaran = `https://toyyibpay.com/${kodBilToyyibPay}?order_id=${uidPengguna}`; 
         
         window.open(urlPembayaran, "_blank");
@@ -469,27 +401,6 @@ onAuthStateChanged(auth, async (user) => {
                 </div>`;
             };
 
-                const isDecedent = d.status === 'meninggal';
-                const avatar = d.photo_url 
-                    ? `<img src="${d.photo_url}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">`
-                    : `<div style="width:60px; height:60px; border-radius:50%; background:${isDecedent?'#94a3b8':'var(--primary)'}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800;">${(d.name || '?').charAt(0)}</div>`;
-
-                return `
-                <div class="card ${isDecedent?'decedent':''}" style="display:flex; flex-direction:column; gap:12px;">
-                    <div style="display:flex; gap:15px; align-items:center;">
-                        ${avatar}
-                        <div style="flex:1;">
-                            <h3 style="margin:0; color:var(--ink); font-size:18px;">${d.name}</h3>
-                            <p style="margin:2px 0 0; color:var(--muted); font-size:13px; font-weight:700;">
-                                ${paparanHubungan} ${d.dob ? '· Lahir: ' + d.dob : ''}
-                            </p>
-                            <div>${isDecedent ? '<span class="badge-decedent">🕊️ Meninggal Dunia</span>' : '<span class="badge-alive">🟢 Masih Hidup</span>'}</div>
-                        </div>
-                        ${!isDecedent ? `<button class="ghost" style="width:auto; padding:8px 12px; font-size:12px;" onclick="bukaModalKesihatan('${id}', '${d.name}')">Kemaskini</button>` : ''}
-                    </div>
-                </div>`;
-            };
-
             snapInduk.forEach(docSnap => {
                 const d = docSnap.data();
                 const rel = (d.relationship || '').toLowerCase();
@@ -506,7 +417,7 @@ onAuthStateChanged(auth, async (user) => {
                 }
             });
 
-            document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty">Tiada rekod ibu bapa dikesan untuk pilihan keluarga ini.</div>';
+            document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty" style="text-align:center; color:var(--muted); font-size:14px; padding:20px;">Tiada rekod ibu bapa dikesan untuk pilihan keluarga ini.</div>';
         } catch(e) { console.error("Ralat Profil:", e); }
     }
         
@@ -520,7 +431,7 @@ onAuthStateChanged(auth, async (user) => {
         bulanSemasa += arah;
         if (bulanSemasa < 0) { bulanSemasa = 11; tahunSemasa--; }
         else if (bulanSemasa > 11) { bulanSemasa = 0; tahunSemasa++; }
-        renderKalendar();
+        window.renderKalendar();
     };
 
     // Tarik data kalendar dari pangkalan data
@@ -529,11 +440,11 @@ onAuthStateChanged(auth, async (user) => {
         const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", currentGroup)));
         dataKalendarGlobal = [];
         snap.forEach(d => { dataKalendarGlobal.push(d.data()); });
-        renderKalendar();
+        window.renderKalendar();
     }
 
     // Bina UI Grid Kalendar
-    function renderKalendar() {
+    window.renderKalendar = () => {
         const senaraiBulan = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
         document.getElementById('paparanBulanTahun').innerText = `${senaraiBulan[bulanSemasa]} ${tahunSemasa}`;
         
@@ -551,20 +462,16 @@ onAuthStateChanged(auth, async (user) => {
         // Slot Hari-Hari Dalam Bulan Ini
         const hariIni = new Date();
         for (let i = 1; i <= jumlahHari; i++) {
-            // Format YYYY-MM-DD
             const strBulan = (bulanSemasa + 1).toString().padStart(2, '0');
             const strHari = i.toString().padStart(2, '0');
             const tarikhKunci = `${tahunSemasa}-${strBulan}-${strHari}`;
             
-            // Tandakan jika hari ini
             let kelasToday = (i === hariIni.getDate() && bulanSemasa === hariIni.getMonth() && tahunSemasa === hariIni.getFullYear()) ? "today" : "";
             
-            // Cari jika ada tugas pada tarikh ini
             const tugasanHariIni = dataKalendarGlobal.filter(d => d.date === tarikhKunci);
             let htmlTugas = "";
             
             tugasanHariIni.forEach(t => {
-                // Tentukan warna Color ID
                 let warnaKelas = "evt-umum";
                 if (t.for_whom === 'ayah') warnaKelas = "evt-ayah";
                 if (t.for_whom === 'ibu') warnaKelas = "evt-ibu";
@@ -588,7 +495,6 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById('tajukTarikh').innerText = "Tugas: " + tarikhStr;
         document.getElementById('tDate').value = tarikhStr;
         
-        // Paparkan senarai sedia ada
         const tugasanHariIni = dataKalendarGlobal.filter(d => d.date === tarikhStr);
         let htmlList = "";
         
@@ -641,70 +547,18 @@ onAuthStateChanged(auth, async (user) => {
         
         await setDoc(doc(collection(db, "wecare_calendar")), eventData);
         
-        // Sync ke Google Calendar
         const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${date.replace(/-/g,'')}/${date.replace(/-/g,'')}&details=${encodeURIComponent(note + '\n\nUntuk: ' + for_whom.toUpperCase() + '\nDirekod oleh: ' + eventData.author)}`;
         window.open(gcalUrl, '_blank');
 
-        tutupModalTarikh();
-        muatDataKalendar(); // Refresh Kalendar Grid
+        window.tutupModalTarikh();
+        muatDataKalendar(); 
     };
-    
-    // 3. UBAT + GAMBAR (BASE64)
-    window.simpanUbat = async () => {
-        const name = document.getElementById('mName').value.trim();
-        const dosage = document.getElementById('mDosage').value.trim();
-        const note = document.getElementById('mNote').value.trim();
-        const fileInput = document.getElementById('mPhoto').files[0];
 
-        if(!name) { alert('Sila isi nama ubat!'); return; }
-
-        let photoBase64 = null;
-        if(fileInput) {
-            photoBase64 = await toBase64(fileInput);
-        }
-
-        const medData = { name, dosage, note, photo: photoBase64, author: currentUser.email.split('@')[0], group_id: currentGroup, created_at: Date.now() };
-        await setDoc(doc(collection(db, "wecare_meds")), medData);
-        
-        document.getElementById('mName').value = '';
-        document.getElementById('mDosage').value = '';
-        document.getElementById('mNote').value = '';
-        document.getElementById('mPhoto').value = '';
-        muatUbat();
-    }
-
-    function toBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-    }
-
-    async function muatUbat() {
-        const snap = await getDocs(query(collection(db, "wecare_meds"), where("group_id", "==", currentGroup)));
-        let html = "";
-        snap.forEach(d => {
-            const data = d.data();
-            html += `
-            <div class="card" style="display:flex; gap:15px; align-items:flex-start;">
-                ${data.photo ? `<img src="\${data.photo}" style="width:70px; height:70px; border-radius:8px; object-fit:cover;">` : ''}
-                <div style="flex:1;">
-                    <div class="card-title">${data.name}</div>
-                    <div class="card-meta"><b>Dos:</b> ${data.dosage}</div>
-                    ${data.note ? `<div class="note-box"><b>Nota Ubat:</b> \${data.note}</div>` : ''}
-                </div>
-            </div>`;
-        });
-        document.getElementById('senaraiUbat').innerHTML = html || '<div class="empty">Tiada senarai ubat didaftarkan.</div>';
-    }
-
-// 4. KELUARGA & NOTA HANDOVER (KOD BERSIH - HANYA BACA myNasab)
+    // 4. KELUARGA & NOTA HANDOVER (KOD BERSIH - HANYA BACA myNasab)
     async function muatKeluargaDanNota(groupId) {
         try {
             const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
-            let teamHtml = "<h3 style='font-size:15px; margin-bottom:10px;'>Waris & Penjaga Berdaftar</h3>";
+            let teamHtml = "";
             let senaraiWaris = new Map();
 
             const snapNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
@@ -725,7 +579,6 @@ onAuthStateChanged(auth, async (user) => {
                 const rel = (data.relationship || '').toLowerCase();
                 const nama = data.name || '';
                 
-                // Jika bos tambah input email di modalTambahAhli, kita terus tarik dari sini!
                 const emailDalamTree = data.email || 'Tiada E-mel Berdaftar'; 
 
                 let letak = false;
@@ -756,7 +609,6 @@ onAuthStateChanged(auth, async (user) => {
                 }
             });
 
-            // Semak pautan akaun myNasab rasmi jika waris tersebut sudah mendaftar dan menyambung akaun
             const snapLinks1 = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", currentUser.uid), where("status", "==", "aktif")));
             const snapLinks2 = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid), where("status", "==", "aktif")));
             
@@ -766,7 +618,6 @@ onAuthStateChanged(auth, async (user) => {
 
             for (const targetUid of linkedUids) {
                 if (targetUid === currentUser.uid) continue;
-                // KOD DIBERSIHKAN: Hanya semak mynasab_users
                 const uDoc = await getDoc(doc(db, "mynasab_users", targetUid)); 
                 
                 if (uDoc.exists()) {
@@ -778,7 +629,7 @@ onAuthStateChanged(auth, async (user) => {
                             senaraiWaris.set(namaKey, { 
                                 uidKunci: val.uidKunci,
                                 name: dbUser.name, 
-                                email: dbUser.email, // Timpa emel dengan emel pendaftaran myNasab yang sah
+                                email: dbUser.email, 
                                 role: (val.role === 'Waris Jagaan' || val.role === 'Pasangan') ? 'Akaun Berhubung' : val.role
                             });
                         }
@@ -789,7 +640,7 @@ onAuthStateChanged(auth, async (user) => {
             senaraiWaris.forEach((val, namaKey) => {
                 const bgWarna = val.role.includes('Pengguna Semasa') ? '#f0fdf4' : '#fff'; 
                 teamHtml += `
-                <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:${bgWarna};">
+                <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:${bgWarna}; border:1px solid var(--line);">
                     <div>
                         <div style="font-weight:700; color:var(--ink);">${val.name}</div>
                         <div style="font-size:12px; color:var(--muted);">${val.email}</div>
@@ -804,26 +655,42 @@ onAuthStateChanged(auth, async (user) => {
             document.getElementById('teamList').innerHTML = teamHtml;
 
             // Render Nota Handover
-            const snapNotes = await getDocs(query(collection(db, "wecare_notes"), where("group_id", "==", groupId)));
-            let noteHtml = "<h3 style='font-size:16px; margin:25px 0 10px;'>Sejarah Nota Handover</h3>";
-            let notesArr = [];
-            snapNotes.forEach(d => notesArr.push(d.data()));
-            notesArr.sort((a, b) => b.created_at - a.created_at);
-
-            notesArr.forEach(n => {
-                const tarikhMasa = new Date(n.created_at).toLocaleString('ms-MY', {dateStyle:'medium', timeStyle:'short'});
-                noteHtml += `
-                <div class="card" style="background:#fff;">
-                    <div style="font-size:13.5px; color:var(--ink); line-height:1.4;">${n.note}</div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:8px; border-top:1px solid var(--line); padding-top:5px;">
-                        <span>Oleh: <b>${n.author}</b></span>
-                        <span>${tarikhMasa}</span>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('senaraiNotaKeluarga').innerHTML = noteHtml || '<div class="empty">Belum ada nota handover ditinggalkan.</div>';
+            muatNotaKeluarga();
 
         } catch(e) { console.error("Ralat muatKeluarga:", e); }
+    }
+
+    // FUNGSI SIMPAN & MUAT NOTA KELUARGA
+    window.simpanNotaKeluarga = async () => {
+        const note = document.getElementById('teamNote').value.trim();
+        if(!note) { alert('Sila tulis nota dahulu!'); return; }
+        
+        await setDoc(doc(collection(db, "wecare_notes")), { 
+            note, author: currentUser.email.split('@')[0], group_id: currentGroup, created_at: Date.now() 
+        });
+        document.getElementById('teamNote').value = '';
+        muatNotaKeluarga();
+    }
+
+    async function muatNotaKeluarga() {
+        const snapNotes = await getDocs(query(collection(db, "wecare_notes"), where("group_id", "==", currentGroup)));
+        let noteHtml = "";
+        let notesArr = [];
+        snapNotes.forEach(d => notesArr.push(d.data()));
+        notesArr.sort((a, b) => b.created_at - a.created_at);
+
+        notesArr.forEach(n => {
+            const tarikhMasa = new Date(n.created_at).toLocaleString('ms-MY', {dateStyle:'medium', timeStyle:'short'});
+            noteHtml += `
+            <div class="card" style="background:#fff;">
+                <div style="font-size:13.5px; color:var(--ink); line-height:1.4;">${n.note}</div>
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:8px; border-top:1px solid var(--line); padding-top:5px;">
+                    <span>Oleh: <b>${n.author}</b></span>
+                    <span>${tarikhMasa}</span>
+                </div>
+            </div>`;
+        });
+        document.getElementById('senaraiNotaKeluarga').innerHTML = noteHtml || '<div style="font-size:13px; color:var(--muted); text-align:center; margin-top:20px;">Belum ada nota handover ditinggalkan.</div>';
     }
     
     // MODAL KESIHATAN
@@ -853,10 +720,9 @@ onAuthStateChanged(auth, async (user) => {
             updated_at: new Date()
         }, { merge: true });
         alert("Berjaya dikemas kini!");
-        tutupModalKesihatan();
+        window.tutupModalKesihatan();
     }
 
-    document.getElementById('btnKembali').addEventListener('click', () => { window.location.href = "../index.html"; });
 </script>
 
  <!-- MODAL TERMA & SYARAT (T&C) WECARE -->
@@ -877,9 +743,9 @@ onAuthStateChanged(auth, async (user) => {
                 <p style="margin-top:4px;">Paparan data dikawal ketat mengikut hierarki keluarga (Induk / Pasangan) yang ditetapkan di dalam myNasab bagi menjamin privasi setiap isi rumah.</p>
             </div>
             
-            <button id="btnSetujuTnC" style="width:100%; background:var(--primary); color:#fff; padding:12px; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer;">Saya Faham & Bersetuju</button>
-    </div>   
-</div>
+            <button id="btnSetujuTnC" style="width:100%; background:var(--primary); color:#fff; padding:12px; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; transition:0.2s;">Saya Faham & Bersetuju</button>
+        </div>   
+    </div>
     
 <!-- MODAL PAYWALL (SEKATAN LANGGANAN TAMAT) -->
     <div id="modalPaywall" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:10000; align-items:center; justify-content:center; padding:20px; text-align:center;">
@@ -896,12 +762,11 @@ onAuthStateChanged(auth, async (user) => {
                 💳 Perbaharui Langganan (RM20)
             </button>
             
-            <button onclick="window.location.href='index.html'" style="width:100%; background:transparent; color:var(--muted); padding:10px; border:none; font-weight:600; font-size:14px; cursor:pointer;">
+            <button onclick="window.location.href='../index.html'" style="width:100%; background:transparent; color:var(--muted); padding:10px; border:none; font-weight:600; font-size:14px; cursor:pointer;">
                 Kembali ke myNasab
             </button>
         </div>
     </div>
-
     
 </body>
 </html>
