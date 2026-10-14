@@ -171,10 +171,9 @@
         <div class="tab" data-tab="team">Keluarga</div>
     </div>
     
-    <!-- KOTAK DROPDOWN PILIHAN KELUARGA -->
+    <!-- KOTAK DROPDOWN PILIHAN KELUARGA (2 PILIHAN SAHAJA) -->
     <div style="padding: 15px 20px 0; background: var(--bg-color);">
         <select id="filterBelah" onchange="tukarBelahPaparan()" style="width:100%; padding:10px; border-radius:8px; background:#eef2ff; border:1px solid #c7d2fe; color:#4f46e5; font-weight:800; text-align:center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); cursor:pointer;">
-            <option value="semua">👨‍👩‍👧‍👦 Paparkan Semua (Keluarga Besar)</option>
             <option value="kandung" id="optKandung">👨‍👦 Keluarga Belah Suami</option>
             <option value="mertua" id="optMertua">👩‍👧 Keluarga Belah Isteri</option>
         </select>
@@ -338,20 +337,36 @@
         muatKeluargaDanNota(currentGroup);
     };
 
-    // 1. PROFIL IBU BAPA (DIKAWAL SEPENUHNYA OLEH DROPDOWN: KANDUNG VS MERTUA)
+    // 1. PROFIL IBU BAPA (FOKUS 2 PILIHAN SAHAJA)
     async function muatProfilIbuBapa(uidPengguna) {
         try {
-            let indukUid = uidPengguna;
-            const snapMyLink = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", uidPengguna), where("status", "==", "aktif")));
-            snapMyLink.forEach(d => { indukUid = d.data().owner_uid; });
-
-            const pilihanBelah = document.getElementById('filterBelah').value;
-            const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
+            const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna)));
             
+            // --- CARI NAMA INDUK & PASANGAN ---
+            let namaInduk = "Suami";
+            let namaPasangan = "Isteri";
+
+            snapInduk.forEach(d => {
+                const rel = (d.data().relationship || '').toLowerCase();
+                const nm = (d.data().name || '').split(" ")[0]; 
+                
+                if (rel === 'diri sendiri') Object.assign(window, {namaInduk: nm});
+                if (rel === 'isteri' || rel === 'suami') Object.assign(window, {namaPasangan: nm});
+                
+                if (rel === 'diri sendiri') namaInduk = nm;
+                if (rel === 'isteri' || rel === 'suami') namaPasangan = nm;
+            });
+
+            // Kemas kini nama pada Dropdown
+            const optKandung = document.getElementById('optKandung');
+            const optMertua = document.getElementById('optMertua');
+            if (optKandung) optKandung.innerText = `👨‍👦 Keluarga Belah ${namaInduk}`;
+            if (optMertua) optMertua.innerText = `👩‍👧 Keluarga Belah ${namaPasangan}`;
+
+            const pilihanBelah = document.getElementById('filterBelah').value || 'kandung';
             let html = "";
             let dipaparkan = new Set();
 
-            // Fungsi render kad profil
             const renderKad = (id, d, paparanHubungan) => {
                 const namaKey = (d.name || '').toLowerCase().trim();
                 if (dipaparkan.has(namaKey)) return ""; 
@@ -378,47 +393,26 @@
                 </div>`;
             };
 
-            // 1. Tarik Data dari Pokok Induk (Awi / Aminah)
+            // Loop Data dari Pokok
             snapInduk.forEach(docSnap => {
                 const d = docSnap.data();
                 const hub = (d.relationship || '').toLowerCase();
-                const isMertua = hub.includes('mertua');
-                const isKandung = (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) && !isMertua;
+                
+                const isMertuaNode = hub.includes('mertua');
+                const isKandungNode = (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) && !isMertuaNode;
 
                 let lulusTapis = false;
-                if (pilihanBelah === 'semua' && (isMertua || isKandung)) lulusTapis = true;
-                else if (pilihanBelah === 'kandung' && isKandung) lulusTapis = true;
-                else if (pilihanBelah === 'mertua' && isMertua) lulusTapis = true;
+                if (pilihanBelah === 'kandung' && isKandungNode) lulusTapis = true;
+                else if (pilihanBelah === 'mertua' && isMertuaNode) lulusTapis = true;
 
                 if (lulusTapis) {
                     html += renderKad(docSnap.id, d, d.relationship || 'Keluarga');
                 }
             });
 
-            // 2. Tarik Data dari Pokok Sendiri (Adi)
-            if (uidPengguna !== indukUid) {
-                const snapSendiri = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna)));
-                snapSendiri.forEach(docSnap => {
-                    const d = docSnap.data();
-                    const hub = (d.relationship || '').toLowerCase();
-                    const isMertua = hub.includes('mertua');
-                    const isKandung = (hub.includes('ayah') || hub.includes('ibu') || hub.includes('bapa') || hub.includes('mak') || hub.includes('abah')) && !isMertua;
-
-                    let lulusTapis = false;
-                    if (pilihanBelah === 'semua' && (isMertua || isKandung)) lulusTapis = true;
-                    else if (pilihanBelah === 'kandung' && isKandung) lulusTapis = true;
-                    else if (pilihanBelah === 'mertua' && isMertua) lulusTapis = true;
-
-                    if (lulusTapis) {
-                        html += renderKad(docSnap.id, d, d.relationship || 'Keluarga');
-                    }
-                });
-            }
-
-            document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty">Tiada rekod ibu bapa dikesan untuk keluarga ini.</div>';
+            document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty">Tiada rekod ibu bapa dikesan untuk pilihan keluarga ini.</div>';
         } catch(e) { console.error("Ralat muatProfilIbuBapa:", e); }
     }
-
         
     // 2. KALENDAR & SYIF JAGAAN + GOOGLE CALENDAR
     window.simpanKalendar = async () => {
@@ -512,69 +506,43 @@
         document.getElementById('senaraiUbat').innerHTML = html || '<div class="empty">Tiada senarai ubat didaftarkan.</div>';
     }
 
-// 4. KELUARGA & NOTA HANDOVER (DIKAWAL OLEH DROPDOWN: KANDUNG VS MERTUA)
+// 4. KELUARGA & NOTA HANDOVER (FOKUS 2 PILIHAN SAHAJA)
     async function muatKeluargaDanNota(groupId) {
         try {
-            const pilihanBelah = document.getElementById('filterBelah').value;
+            const pilihanBelah = document.getElementById('filterBelah').value || 'kandung';
             let teamHtml = "<h3 style='font-size:15px; margin-bottom:10px;'>Waris & Penjaga Berdaftar</h3>";
             let senaraiWaris = new Map();
 
-            senaraiWaris.set(currentUser.uid, { name: currentUser.email.split('@')[0], email: currentUser.email, role: 'Pengguna Semasa' });
-
-            let indukUid = currentUser.uid;
-            const snapMyLink = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid), where("status", "==", "aktif")));
-            snapMyLink.forEach(d => { indukUid = d.data().owner_uid; });
-
-            // 1. Tapis Adik-beradik dari Pokok Induk
-            const snapNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", indukUid)));
+            const snapNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
+            
             snapNodes.forEach(d => {
                 const rel = (d.data().relationship || '').toLowerCase();
-                const nama = d.data().name || 'Adik-Beradik';
+                const nama = d.data().name || '';
 
-                const isKandung = rel.includes('abang') && !rel.includes('ipar') || rel.includes('kakak') && !rel.includes('ipar') || rel.includes('adik') && !rel.includes('ipar');
-                const isMertua = rel.includes('ipar') || rel.includes('suami') || rel.includes('isteri');
+                const isPihakInduk = rel === 'diri sendiri' || (rel.includes('abang') && !rel.includes('ipar')) || (rel.includes('kakak') && !rel.includes('ipar')) || (rel.includes('adik') && !rel.includes('ipar'));
+                const isPihakPasangan = rel === 'suami' || rel === 'isteri' || rel.includes('ipar');
 
                 let lulusTapis = false;
-                if (pilihanBelah === 'semua' && (isKandung || isMertua)) lulusTapis = true;
-                else if (pilihanBelah === 'kandung' && isKandung) lulusTapis = true;
-                else if (pilihanBelah === 'mertua' && isMertua) lulusTapis = true;
+                if (pilihanBelah === 'kandung' && isPihakInduk) lulusTapis = true;
+                else if (pilihanBelah === 'mertua' && isPihakPasangan) lulusTapis = true;
 
                 if (lulusTapis) {
-                    senaraiWaris.set(d.id, { name: nama, email: 'Dari Famili Tree', role: 'Waris Jagaan' });
+                    let roleWaris = 'Waris Jagaan';
+                    if (rel === 'diri sendiri' || rel === 'suami' || rel === 'isteri') {
+                         roleWaris = (rel === 'diri sendiri') ? 'Pengguna Semasa' : 'Pasangan';
+                    }
+                    
+                    senaraiWaris.set(nama.toLowerCase().trim(), { 
+                        uidKunci: d.id,
+                        name: nama, 
+                        email: (roleWaris === 'Pengguna Semasa') ? currentUser.email : 'Dari Famili Tree', 
+                        role: roleWaris 
+                    });
                 }
             });
 
-            // 2. Tapis Adik-beradik dari Pokok Sendiri (Adi)
-            if (currentUser.uid !== indukUid) {
-                const snapSendiriNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
-                snapSendiriNodes.forEach(d => {
-                    const rel = (d.data().relationship || '').toLowerCase();
-                    const nama = d.data().name || 'Adik-Beradik';
-
-                    const isKandung = rel.includes('abang') && !rel.includes('ipar') || rel.includes('kakak') && !rel.includes('ipar') || rel.includes('adik') && !rel.includes('ipar');
-                    const isMertua = rel.includes('ipar') || rel.includes('suami') || rel.includes('isteri');
-
-                    let lulusTapis = false;
-                    if (pilihanBelah === 'semua' && (isKandung || isMertua)) lulusTapis = true;
-                    else if (pilihanBelah === 'kandung' && isKandung) lulusTapis = true;
-                    else if (pilihanBelah === 'mertua' && isMertua) lulusTapis = true;
-
-                    if (lulusTapis) {
-                        // Anti Duplikasi Nama
-                        let namaKey = nama.toLowerCase().trim();
-                        let dahAda = false;
-                        for (let val of senaraiWaris.values()) {
-                            if (val.name.toLowerCase().trim() === namaKey) dahAda = true;
-                        }
-                        if (!dahAda) {
-                            senaraiWaris.set(d.id, { name: nama, email: 'Dari Famili Tree (Sendiri)', role: 'Waris Jagaan' });
-                        }
-                    }
-                });
-            }
-
-            // 3. Pautkan E-mel
-            const snapLinks = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", indukUid)));
+            // Kemas kini e-mel jika ada waris mendaftar
+            const snapLinks = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", currentUser.uid)));
             let linkedUids = [];
             snapLinks.forEach(d => { if(d.data().status === 'aktif') linkedUids.push(d.data().uid); });
             
@@ -584,17 +552,25 @@
                 
                 if (uDoc.exists()) {
                     const dbUser = uDoc.data();
-                    for (let [key, val] of senaraiWaris.entries()) {
-                        if (val.name.toLowerCase().includes((dbUser.name || '').toLowerCase()) || (dbUser.name || '').toLowerCase().includes(val.name.toLowerCase())) {
-                            senaraiWaris.set(key, { name: dbUser.name, email: dbUser.email, role: 'Waris (Aktif weCare)' });
+                    const dbName = (dbUser.name || '').toLowerCase().trim();
+                    
+                    for (let [namaKey, val] of senaraiWaris.entries()) {
+                        if (namaKey.includes(dbName) || dbName.includes(namaKey)) {
+                            senaraiWaris.set(namaKey, { 
+                                uidKunci: val.uidKunci,
+                                name: dbUser.name, 
+                                email: dbUser.email, 
+                                role: 'Waris (Aktif weCare)' 
+                            });
                         }
                     }
                 }
             }
 
-            senaraiWaris.forEach((val, key) => {
+            senaraiWaris.forEach((val, namaKey) => {
+                const bgWarna = val.role === 'Pengguna Semasa' ? '#f0fdf4' : '#fff'; 
                 teamHtml += `
-                <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:${bgWarna};">
                     <div>
                         <div style="font-weight:700; color:var(--ink);">${val.name}</div>
                         <div style="font-size:12px; color:var(--muted);">${val.email}</div>
@@ -602,9 +578,14 @@
                     <span style="font-size:11px; font-weight:700; color:var(--primary); background:#e8f8f5; padding:4px 8px; border-radius:6px;">${val.role}</span>
                 </div>`;
             });
+            
+            if (senaraiWaris.size === 0) {
+                teamHtml += `<div class="empty">Tiada waris dikesan untuk keluarga ini.</div>`;
+            }
+            
             document.getElementById('teamList').innerHTML = teamHtml;
 
-            // Render Nota
+            // Render Nota Handover
             const snapNotes = await getDocs(query(collection(db, "wecare_notes"), where("group_id", "==", groupId)));
             let noteHtml = "<h3 style='font-size:16px; margin:25px 0 10px;'>Sejarah Nota Handover</h3>";
             let notesArr = [];
@@ -623,6 +604,7 @@
                 </div>`;
             });
             document.getElementById('senaraiNotaKeluarga').innerHTML = noteHtml || '<div class="empty">Belum ada nota handover ditinggalkan.</div>';
+
         } catch(e) { console.error("Ralat muatKeluarga:", e); }
     }
     
