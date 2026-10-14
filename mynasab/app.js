@@ -211,16 +211,18 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
                     });
                 } else {
                     // KES 2: Awi (Induk) yang jemput adik dia. 
-                    // Tarik leluhur Awi macam biasa.
+                    // Tarik leluhur Awi macam biasa. (DIPERBAIKI: TOLAK MERTUA)
                     nodesLama.forEach((n) => {
                         let hub = (n.data.relationship || '').toLowerCase();
-                        if (hub.match(/ayah|ibu|bapa|datuk|nenek|moyang|buyut|cakawari|cilawagi/)) {
+                        let isMertua = hub.includes('mertua') || hub.includes('mentua');
+                        
+                        if (hub.match(/ayah|ibu|bapa|mak|abah|mama|papa|datuk|nenek|moyang|buyut|cakawari|cilawagi/) && !isMertua) {
                             senaraiSalin.push({ idLama: n.idLama, data: n.data });
                         }
                     });
                 }
                 
-                // 2. Salin data yang dah ditapis ke akaun baru (Adi)
+                // 2. Salin data yang dah ditapis ke akaun baru (Adi / Hanapi)
                 for (let item of senaraiSalin) {
                     const docRef = await addDoc(collection(db, "mynasab_nodes"), {
                         ...item.data,
@@ -240,8 +242,8 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
                     const refPengundang = "root_" + jem.owner_uid;
                     const refSasaran = "root_" + jem.sasaran_id;
                     
-                    // Ikat pada Adi (Induk baharu)
-                    if ([refPengundang, refSasaran, jem.owner_uid, jem.sasaran_id].includes(asal.ref_id)) {
+                    // Ikat pada Induk baharu (DIPERBAIKI: TAMBAH STRING KOSONG "")
+                    if ([refPengundang, refSasaran, jem.owner_uid, jem.sasaran_id, ""].includes(asal.ref_id)) {
                         newRef = "root_" + user.uid; 
                     } else if (asal.ref_id && idMapping[asal.ref_id]) {
                         newRef = idMapping[asal.ref_id]; 
