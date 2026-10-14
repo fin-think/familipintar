@@ -315,8 +315,7 @@
         }
     };
 
-    // --- KLIK BUTANG SETUJU (EVENT LISTENER) ---
-    // Cara ini kalis ralat untuk <script type="module">
+   // --- KLIK BUTANG SETUJU (T&C) + FREE TRIAL 30 HARI ---
     document.addEventListener('DOMContentLoaded', () => {
         const btnSetuju = document.getElementById('btnSetujuTnC');
         if (btnSetuju) {
@@ -324,9 +323,28 @@
                 localStorage.setItem('wecare_tnc_agreed', 'true');
                 document.getElementById('modalTnC').style.display = 'none';
                 
-                // Lepas setuju, terus semak paywall langganan RM20
                 if (currentUser) {
-                    await window.semakStatusLangganan(currentUser.uid);
+                    try {
+                        const userRef = doc(db, "mynasab_users", currentUser.uid);
+                        const userSnap = await getDoc(userRef);
+                        
+                        if (userSnap.exists()) {
+                            const data = userSnap.data();
+                            // Jika pengguna BARU PERTAMA KALI masuk (tiada wecare_expiry_date)
+                            if (!data.wecare_expiry_date) {
+                                const masaSekarang = new Date().getTime();
+                                const tambah30Hari = masaSekarang + (30 * 24 * 60 * 60 * 1000); 
+                                
+                                // Berikan Free Trial 30 Hari secara automatik!
+                                await setDoc(userRef, { wecare_expiry_date: tambah30Hari }, { merge: true });
+                            }
+                        }
+                        // Semak paywall untuk pastikan semuanya berjalan lancar
+                        await window.semakStatusLangganan(currentUser.uid);
+                        
+                    } catch (err) {
+                        console.error("Ralat mengaktifkan percubaan percuma:", err);
+                    }
                 }
             });
         }
@@ -777,7 +795,8 @@ onAuthStateChanged(auth, async (user) => {
             
             <button id="btnSetujuTnC" style="width:100%; background:var(--primary); color:#fff; padding:12px; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer;">Saya Faham & Bersetuju</button>
     </div>   
-
+</div>
+    
 <!-- MODAL PAYWALL (SEKATAN LANGGANAN TAMAT) -->
     <div id="modalPaywall" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:10000; align-items:center; justify-content:center; padding:20px; text-align:center;">
         <div style="background:#fff; width:100%; max-width:420px; border-radius:16px; padding:32px 24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
