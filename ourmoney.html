@@ -64,6 +64,8 @@
   /* Butang */
   button.btn-submit { background: var(--primary); color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 800; cursor: pointer; margin-top: 10px; width: 100%; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: 0.2s; }
   button.btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+  button.btn-ghost { background: #f1f5f9; color: var(--ink); border: 1px dashed #cbd5e1; border-radius: 10px; padding: 12px; font-size: 0.9rem; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; }
+  button.btn-ghost:hover { background: #e2e8f0; border-color: #94a3b8; }
   
   /* Toggle Duit Masuk/Keluar */
   .type-toggle { display: flex; background: #f1f5f9; border-radius: 10px; overflow: hidden; margin-bottom: 15px; border: 1px solid var(--line); }
@@ -77,12 +79,13 @@
   .txn-item { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; }
   .txn-info { display: flex; flex-direction: column; gap: 4px; }
   .txn-cat { font-weight: 800; color: var(--ink); font-size: 0.95rem; }
-  .txn-note { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+  .txn-note { font-size: 0.8rem; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 6px; }
   .txn-amt { font-size: 1.1rem; font-weight: 800; text-align: right; }
   .amt-in { color: var(--primary); }
   .amt-out { color: var(--danger); }
   .btn-del-txn { background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; margin-left: 10px; transition: 0.2s; }
   .btn-del-txn:hover { color: var(--danger); }
+  .resit-link { color: var(--secondary); text-decoration: none; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; }
 
   /* Dashboard Kewangan */
   .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -133,7 +136,7 @@
 <div class="container" id="mainApp">
   <!-- Pengepala Utama -->
   <div class="header">
-    <button onclick="window.location.href='index.html'" class="btn-kembali">Kembali</button>
+    <button onclick="window.location.href='index.html'" class="btn-kembali">🏠 myNasab</button>
     <div>
       <h1>OurMoney</h1>
       <p>Penjejak Aliran Tunai & Kesihatan Kewangan Keluarga</p>
@@ -185,7 +188,18 @@
             <input type="text" id="txnNote" placeholder="Cth: Barang Dapur Lotus">
           </div>
 
-          <button type="submit" class="btn-submit">💾 Simpan Rekod</button>
+          <!-- GAMBAR RESIT (CAPTURE ENVIRONMENT UTK BUKA KAMERA TERUS DI HP) -->
+          <div class="field">
+            <label>Resit / Gambar Bukti (Pilihan)</label>
+            <input type="file" id="txnImage" accept="image/*" capture="environment" style="display:none;" onchange="pilihGambar(event)">
+            <button type="button" class="btn-ghost" onclick="document.getElementById('txnImage').click()">📸 Ambil Gambar / Upload Resit</button>
+            <div id="previewContainer" style="display:none; position:relative; margin-top:10px;">
+              <img id="imgPreview" style="max-width:100%; border-radius:8px; border:1px solid #cbd5e1;" />
+              <button type="button" onclick="buangGambar()" style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">✕</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="btn-save-txn">💾 Simpan Rekod</button>
         </form>
       </div>
 
@@ -240,7 +254,6 @@
         <div class="health-card">
           <div class="health-title">🩺 Kesihatan Kewangan (Analisis Hujung Bulan)</div>
           
-          <!-- Bar Keseluruhan (Pendapatan = 100%) -->
           <div class="progress-wrap" id="health-bar-wrap" style="display:none;">
             <div class="prog-out" id="bar-out" title="Perbelanjaan"></div>
             <div class="prog-save" id="bar-save" title="Sasaran Simpanan Percutian"></div>
@@ -257,233 +270,19 @@
   </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
-        authDomain: "familipintar.firebaseapp.com",
-        databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "familipintar",
-        storageBucket: "familipintar.firebasestorage.app",
-        messagingSenderId: "277029764059",
-        appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    let currentUser = null;
-    let targetPercutian = 0;
-
-    const bulanIniDate = new Date();
-    document.getElementById('txnDate').value = bulanIniDate.toISOString().split('T')[0];
-    document.getElementById('label-bulan-semasa').innerText = bulanIniDate.toLocaleString('ms-MY', { month: 'long', year: 'numeric' });
-
-    // Kategori Pilihan
-    const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Pakaian", "Lain-lain"];
-    const catInflow = ["Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
-
-    // Logik Tukar Kategori dipindahkan terus ke dalam Module Event Listener
-    const btnRadios = document.querySelectorAll('input[name="txnType"]');
-    const selectCat = document.getElementById('txnCat');
-
-    function kemaskiniSenaraiKategori() {
-        const type = document.querySelector('input[name="txnType"]:checked').value;
-        const options = type === 'outflow' ? catOutflow : catInflow;
-        selectCat.innerHTML = options.map(c => `<option value="${c}">${c}</option>`).join('');
-    }
-
-    btnRadios.forEach(radio => {
-        radio.addEventListener('change', kemaskiniSenaraiKategori);
-    });
-    kemaskiniSenaraiKategori(); // Panggil sekali untuk muat pilihan awal
-
-    // Semakan Auth
-    onAuthStateChanged(auth, async (user) => {
-        const authScreen = document.getElementById('authScreen');
-        const mainApp = document.getElementById('mainApp');
-        if (user) {
-            currentUser = user;
-            if (authScreen) authScreen.classList.add('hidden');
-            if (mainApp) mainApp.classList.remove('hidden');
-            await muatTargetPercutian();
-            muatDataOurMoney();
-        } else {
-            currentUser = null;
-            if (authScreen) authScreen.classList.remove('hidden');
-            if (mainApp) mainApp.classList.add('hidden');
-        }
-    });
-
-    document.getElementById('authForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        try {
-            await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
-        } catch (err) { alert("Gagal Log Masuk."); }
-    });
-
-    // 1. Integrasi Sasaran JomBercuti
-    async function muatTargetPercutian() {
-        try {
-            const q = query(collection(db, "jombercuti_trips"), where("owner_uid", "==", currentUser.uid));
-            const snap = await getDocs(q);
-            targetPercutian = 0;
-            snap.forEach(d => {
-                const saving = parseFloat(d.data().monthly_saving) || 0;
-                targetPercutian += saving;
-            });
-
-            if (targetPercutian > 0) {
-                document.getElementById('vac-saving').innerText = `RM ${targetPercutian.toFixed(2)} / bulan`;
-                document.getElementById('vacation-target').style.display = 'flex';
-            }
-        } catch(e) { console.error("Gagal muat JomBercuti", e); }
-    }
-
-    // 2. Simpan Transaksi Baru
-    document.getElementById('form-transaksi').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if(!currentUser) return;
-
-        const btn = document.querySelector('.btn-submit');
-        btn.disabled = true; btn.innerText = "Menyimpan...";
-
-        const txnData = {
-            owner_uid: currentUser.uid,
-            type: document.querySelector('input[name="txnType"]:checked').value,
-            category: document.getElementById('txnCat').value,
-            date: document.getElementById('txnDate').value,
-            amount: parseFloat(document.getElementById('txnAmount').value),
-            note: document.getElementById('txnNote').value.trim(),
-            created_at: Date.now()
-        };
-
-        try {
-            await setDoc(doc(collection(db, "ourmoney_transactions")), txnData);
-            document.getElementById('txnAmount').value = '';
-            document.getElementById('txnNote').value = '';
-            muatDataOurMoney();
-        } catch (err) { alert("Gagal menyimpan rekod: " + err.message); }
+<!-- MODAL TERMA & SYARAT (T&C) OURMONEY -->
+<div id="modalTnC" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.8); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#fff; width:100%; max-width:450px; border-radius:16px; padding:24px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative;">
+        <h2 style="margin:0 0 15px; color:var(--ink); font-size:20px; font-weight:800; text-align:center;">📜 Terma & Syarat OurMoney</h2>
         
-        btn.disabled = false; btn.innerText = "💾 Simpan Rekod";
-    });
-
-    // 3. Muat Data Transaksi & Analisis Kewangan
-    async function muatDataOurMoney() {
-        if(!currentUser) return;
-        try {
-            const strBulanIni = bulanIniDate.toISOString().substring(0, 7); // YYYY-MM
+        <div style="font-size:14px; color:var(--muted); line-height:1.6; max-height:60vh; overflow-y:auto; padding-right:5px; margin-bottom:20px;">
+            <p>Selamat datang ke <b>OurMoney</b>, modul kewangan komprehensif yang dihubungkan dengan <b>myNasab</b> & <b>JomBercuti</b>.</p>
             
-            const q = query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid));
-            const snap = await getDocs(q);
+            <b style="color:var(--ink); display:block; margin-top:12px;">1. Langganan Premium</b>
+            <p style="margin-top:4px;">OurMoney adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar kewangan, integrasi percutian, analisis bulanan dan storan gambar (resit) tertakluk kepada caj langganan sebanyak <b>20 Kredit / Sebulan</b>.</p>
 
-            let htmlTxn = "";
-            let totalIn = 0; let totalOut = 0;
-            let listSemasa = [];
-
-            snap.forEach(d => {
-                const data = d.data();
-                // Tapis manual ikut bulan YYYY-MM untuk elak index error Firestore
-                if (data.date && data.date.startsWith(strBulanIni)) {
-                    listSemasa.push({ id: d.id, ...data });
-                }
-            });
-
-            // Susun terbaharu di atas
-            listSemasa.sort((a, b) => b.created_at - a.created_at);
-
-            listSemasa.forEach(t => {
-                const isOut = t.type === 'outflow';
-                if (isOut) totalOut += t.amount; else totalIn += t.amount;
-                
-                const icon = isOut ? '📉' : '📈';
-                const amtClass = isOut ? 'amt-out' : 'amt-in';
-                const amtPrefix = isOut ? '- RM' : '+ RM';
-                const tarikhFormat = t.date.split('-').reverse().join('/'); // DD/MM/YYYY
-
-                htmlTxn += `
-                <div class="txn-item">
-                    <div style="display:flex; gap:12px; align-items:center;">
-                        <div style="font-size:1.5rem;">${icon}</div>
-                        <div class="txn-info">
-                            <span class="txn-cat">${t.category}</span>
-                            <span class="txn-note">${tarikhFormat} ${t.note ? `• \${t.note}` : ''}</span>
-                        </div>
-                    </div>
-                    <div style="display:flex; align-items:center;">
-                        <span class="txn-amt ${amtClass}">${amtPrefix} ${t.amount.toFixed(2)}</span>
-                        <button class="btn-del-txn" onclick="padamRekod('${t.id}')">✕</button>
-                    </div>
-                </div>`;
-            });
-
-            if (listSemasa.length === 0) {
-                htmlTxn = "<div style='text-align:center; padding:20px; color:#aaa;'>Belum ada perbelanjaan atau pendapatan direkodkan untuk bulan ini.</div>";
-            }
-            document.getElementById('senarai-transaksi').innerHTML = htmlTxn;
-
-            // Kemas Kini Dashboard
-            const netBalance = totalIn - totalOut;
-            document.getElementById('dash-in').innerText = `RM ${totalIn.toFixed(2)}`;
-            document.getElementById('dash-out').innerText = `RM ${totalOut.toFixed(2)}`;
-            document.getElementById('dash-net').innerText = `RM ${netBalance.toFixed(2)}`;
-
-            // Enjin Analisis Kesihatan Kewangan
-            renderAnalisisKesihatan(totalIn, totalOut, targetPercutian);
-
-        } catch(e) { console.error("Ralat muat transaksi:", e); }
-    }
-
-    // 4. Padam Rekod (Attach To Window Since Inside Module)
-    window.padamRekod = async (id) => {
-        if(confirm("Anda pasti mahu memadam rekod ini?")) {
-            await deleteDoc(doc(db, "ourmoney_transactions", id));
-            muatDataOurMoney();
-        }
-    };
-
-    // 5. Analisis Kesihatan Kewangan
-    function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
-        const barWrap = document.getElementById('health-bar-wrap');
-        const barOut = document.getElementById('bar-out');
-        const barSave = document.getElementById('bar-save');
-        const msgBox = document.getElementById('health-message');
-
-        if (pendapatan === 0) {
-            barWrap.style.display = 'none';
-            msgBox.className = 'health-msg msg-bad';
-            msgBox.innerHTML = 'Tiada data pendapatan. Sila rekod "Duit Masuk" (gaji/elaun) untuk sistem menganalisis status kewangan anda.';
-            return;
-        }
-
-        barWrap.style.display = 'flex';
-
-        // Kiraan Peratusan berdasarkan Pendapatan
-        let pctOut = (belanja / pendapatan) * 100;
-        let pctSave = (simpanan / pendapatan) * 100;
-
-        // Visual limit pada 100% supaya bar tak pecah
-        barOut.style.width = Math.min(pctOut, 100) + '%';
-        barSave.style.width = Math.min(pctSave, 100 - Math.min(pctOut, 100)) + '%';
-
-        const bakiTinggal = pendapatan - belanja - simpanan;
-
-        if (bakiTinggal < 0) {
-            msgBox.className = 'health-msg msg-bad';
-            msgBox.innerHTML = `⚠️ <b>Kritikal!</b> Jumlah perbelanjaan dan komitmen percutian anda telah melebihi pendapatan bulan ini sebanyak <b>RM ${Math.abs(bakiTinggal).toFixed(2)}</b>. Anda berisiko menggunakan duit simpanan lama atau berhutang.`;
-        } else if (bakiTinggal < (pendapatan * 0.1)) {
-            msgBox.className = 'health-msg msg-bad';
-            msgBox.innerHTML = `⚠️ <b>Amaran:</b> Baki anda selepas ditolak belanja dan simpanan percutian hanya tinggal <b>RM ${bakiTinggal.toFixed(2)}</b>. Sila kurangkan perbelanjaan yang tidak perlu.`;
-        } else {
-            msgBox.className = 'health-msg msg-good';
-            msgBox.innerHTML = `✅ <b>Kewangan Sihat!</b> Baki selamat bulan ini adalah <b>RM ${bakiTinggal.toFixed(2)}</b>. Anda berada di landasan yang betul untuk mencapai sasaran percutian keluarga anda.`;
-        }
-    }
-
-</script>
-</body>
-</html>
+            <b style="color:var(--ink); display:block; margin-top:12px;">2. Privasi Data & Storan</b>
+            <p style="margin-top:4px;">Kesemua rekod kewangan dan gambar resit yang dimuat naik akan disimpan secara selamat di bawah pengkalan data keluarga anda.</p>
+        </div>
+        
+        <button id="btnSetujuTnC" style="width:100%; background:var(--primary); color:#fff; padding:12px; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; transition:0.2s;">Saya Faham & Bersetuju</button>
