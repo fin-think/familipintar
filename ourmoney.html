@@ -1,0 +1,492 @@
+Idea ini memang **sangat mantap bos!** Ini akan melengkapkan "Ekosistem" Famili Pintar bos. Bila sistem percutian (`jombercuti.html`) dapat "bercakap" dengan sistem kewangan (`ourmoney.html`), pengguna akan nampak realiti kewangan mereka setiap hari dan lebih berdisiplin untuk menyimpan.
+
+Saya telah membina fail **`ourmoney.html`** dengan ciri-ciri berikut:
+1.  **Penjejak Aliran Tunai (Cashflow Tracker):** Borang kemasukan pantas untuk merekod "Duit Masuk" (Pendapatan) dan "Duit Keluar" (Perbelanjaan).
+2.  **Integrasi JomBercuti Automatik:** Sistem akan membaca terus dari pangkalan data `jombercuti_trips` bos, menjumlahkan sasaran simpanan bulanan, dan menampalnya di *dashboard* OurMoney sebagai peringatan wajib!
+3.  **Enjin Analisis Kesihatan Kewangan (Month-End Analysis):** Sistem mengira: `[Jumlah Pendapatan] - [Jumlah Perbelanjaan] - [Sasaran Simpanan Percutian]`. Jika bakinya negatif atau terlalu rapat, sistem akan mengeluarkan amaran "Merah" (Kritikal). Jika sihat, ia akan berwarna "Hijau".
+
+Sila cipta fail baharu bernama **`ourmoney.html`** (letakkan di dalam folder yang sama dengan `wecare` dan `jombercuti`), kemudian *copy/paste* kod penuh di bawah ini:
+
+```html
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>💰 OurMoney - Penjejak Aliran Tunai</title>
+<link href="[https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap](https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap)" rel="stylesheet">
+<style>
+  :root {
+    --bg-color: #f8fafc; --card-bg: #ffffff; --ink: #1e293b;
+    --primary: #10b981; --primary-hover: #059669; --danger: #ef4444; 
+    --secondary: #3b82f6; --warning: #f59e0b; --muted: #64748b; 
+    --line: #e2e8f0; --radius: 16px; --shadow: 0 4px 20px rgba(0,0,0,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+  body { background: var(--bg-color); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
+
+  /* Latar Belakang Terapung */
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(circle at 15% 50%, #10b98111 0%, transparent 40%),
+                radial-gradient(circle at 85% 20%, #3b82f611 0%, transparent 40%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px; position: relative; z-index: 1; }
+
+  /* Pengepala */
+  .header { text-align: center; padding: 10px 0 20px; position: relative; }
+  .header h1 { font-family: 'Baloo 2', cursive; font-size: 2.2rem; font-weight: 800; color: var(--primary); line-height: 1.1; margin-bottom: 4px; }
+  .header p { color: var(--muted); font-size: 0.95rem; font-weight: 700; }
+  .btn-kembali { position: absolute; right: 0; top: 10px; background: #0ea5e9; color: white; border: none; padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 6px rgba(14,165,233,0.3); transition: 0.2s; }
+  .btn-kembali:hover { background: #0284c7; }
+
+  /* Grid Utama */
+  .layout-utama { display: flex; flex-direction: column; gap: 24px; align-items: stretch; }
+  .kolum-kiri, .kolum-kanan { width: 100%; display: flex; flex-direction: column; gap: 20px; }
+  
+  @media (min-width: 992px) {
+    .container { padding-left: 32px; padding-right: 32px; }
+    .layout-utama { flex-direction: row; align-items: flex-start; }
+    .kolum-kiri { flex: 1 1 0; }
+    .kolum-kanan { flex: 0 0 400px; width: 400px; position: sticky; top: 20px; }
+  }
+
+  /* Kad Komponen */
+  .card { background: var(--card-bg); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 2px dashed var(--line); padding-bottom: 12px; }
+  .card-header h2 { font-family: 'Baloo 2', cursive; font-size: 1.3rem; font-weight: 800; color: var(--ink); }
+
+  /* Borang Transaksi */
+  .form-grid { display: flex; flex-direction: column; gap: 12px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 0.75rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .field input, .field select { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px; font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--ink); background: #f8fafc; outline: none; transition: 0.2s; }
+  .field input:focus, .field select:focus { border-color: var(--primary); background: #fff; }
+  
+  .input-prefix { position: relative; width: 100%; }
+  .input-prefix span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 800; color: #94a3b8; font-size: 0.9rem; }
+  .input-prefix input { padding-left: 45px; font-family: 'Baloo 2', cursive; font-size: 1.1rem; }
+
+  /* Butang */
+  button.btn-submit { background: var(--primary); color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 800; cursor: pointer; margin-top: 10px; width: 100%; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: 0.2s; }
+  button.btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+  
+  /* Toggle Duit Masuk/Keluar */
+  .type-toggle { display: flex; background: #f1f5f9; border-radius: 10px; overflow: hidden; margin-bottom: 15px; border: 1px solid var(--line); }
+  .type-toggle label { flex: 1; text-align: center; padding: 12px; font-weight: 800; font-size: 0.9rem; cursor: pointer; color: var(--muted); transition: 0.2s; }
+  .type-toggle input { display: none; }
+  .type-toggle input[value="outflow"]:checked + label { background: var(--danger); color: white; }
+  .type-toggle input[value="inflow"]:checked + label { background: var(--primary); color: white; }
+
+  /* Senarai Transaksi */
+  .txn-list { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; padding-right: 5px; }
+  .txn-item { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; }
+  .txn-info { display: flex; flex-direction: column; gap: 4px; }
+  .txn-cat { font-weight: 800; color: var(--ink); font-size: 0.95rem; }
+  .txn-note { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+  .txn-amt { font-family: 'Baloo 2', cursive; font-size: 1.2rem; font-weight: 800; text-align: right; }
+  .amt-in { color: var(--primary); }
+  .amt-out { color: var(--danger); }
+  .btn-del-txn { background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; margin-left: 10px; transition: 0.2s; }
+  .btn-del-txn:hover { color: var(--danger); }
+
+  /* Dashboard Kewangan */
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .dash-box { background: #f8fafc; padding: 16px; border-radius: 12px; text-align: center; border: 1px solid var(--line); }
+  .dash-box.in { border-bottom: 4px solid var(--primary); }
+  .dash-box.out { border-bottom: 4px solid var(--danger); }
+  .dash-label { font-size: 0.75rem; font-weight: 800; color: var(--muted); text-transform: uppercase; }
+  .dash-val { font-family: 'Baloo 2', cursive; font-size: 1.4rem; font-weight: 800; color: var(--ink); margin-top: 4px; line-height: 1; }
+  
+  .dash-balance { background: var(--ink); color: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 8px 20px rgba(30,41,59,0.2); }
+  .dash-balance .dash-label { color: #94a3b8; }
+  .dash-balance .dash-val { color: white; font-size: 2.2rem; }
+
+  /* Peringatan JomBercuti */
+  .vacation-card { background: linear-gradient(135deg, #FFF9F0, #FFF4E5); border: 2px solid #FFECCC; border-radius: 12px; padding: 16px; margin-top: 20px; display: flex; align-items: center; gap: 15px; }
+  .vac-icon { font-size: 2.2rem; }
+  .vac-details { flex: 1; }
+  .vac-title { font-weight: 800; color: #b45309; font-size: 0.9rem; text-transform: uppercase; }
+  .vac-amt { font-family: 'Baloo 2', cursive; font-size: 1.4rem; font-weight: 800; color: #ea580c; line-height: 1.2; }
+
+  /* Analisis Hujung Bulan */
+  .health-card { margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--line); }
+  .health-title { font-size: 1rem; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .progress-wrap { background: #e2e8f0; height: 12px; border-radius: 99px; overflow: hidden; margin-bottom: 10px; display: flex; }
+  .prog-out { background: var(--danger); height: 100%; transition: width 0.5s; }
+  .prog-save { background: var(--warning); height: 100%; transition: width 0.5s; }
+  .health-msg { font-size: 0.85rem; font-weight: 700; line-height: 1.4; padding: 12px; border-radius: 8px; }
+  .msg-good { background: #dcfce7; color: #166534; }
+  .msg-bad { background: #fee2e2; color: #991b1b; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="authScreen" class="gate hidden" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--bg-color); position: fixed; inset:0; z-index:9999;">
+    <div style="background:var(--card-bg); border-radius:16px; padding:40px 30px; max-width:400px; width:100%; box-shadow:var(--shadow); text-align:center;">
+        <h1 style="font-family:'Baloo 2',cursive; color:var(--primary); font-size:2rem; margin-bottom:5px;">OurMoney</h1>
+        <p style="color:var(--muted); font-size:14px; margin-bottom:25px;">Sila log masuk dengan akaun myNasab anda.</p>
+        <form id="authForm" style="display:flex; flex-direction:column; gap:12px;">
+            <input type="email" id="authEmail" required placeholder="Emel Anda" style="padding:12px; border-radius:8px; border:1px solid #ccc; font-family:'Nunito';">
+            <input type="password" id="authPassword" required placeholder="Kata Laluan" style="padding:12px; border-radius:8px; border:1px solid #ccc; font-family:'Nunito';">
+            <button type="submit" style="padding:12px; border-radius:8px; background:var(--primary); color:white; font-weight:bold; border:none; cursor:pointer;">Log Masuk</button>
+        </form>
+    </div>
+</div>
+
+<div class="container" id="mainApp">
+  <!-- Pengepala Utama -->
+  <div class="header">
+    <button onclick="window.location.href='index.html'" class="btn-kembali">🏠 myNasab</button>
+    <div>
+      <h1>💰 OurMoney</h1>
+      <p>Penjejak Aliran Tunai & Kesihatan Kewangan Keluarga</p>
+    </div>
+  </div>
+
+  <div class="layout-utama">
+    
+    <!-- KOLUM KIRI (Kemasukan & Senarai) -->
+    <div class="kolum-kiri">
+      
+      <!-- Kad Tambah Transaksi -->
+      <div class="card">
+        <div class="card-header">
+          <h2>✍️ Rekod Transaksi Harian</h2>
+        </div>
+        
+        <form id="form-transaksi" class="form-grid">
+          <div class="type-toggle">
+            <input type="radio" name="txnType" id="type-out" value="outflow" checked onchange="tukarKategori()">
+            <label for="type-out">Duit Keluar 💸</label>
+            <input type="radio" name="txnType" id="type-in" value="inflow" onchange="tukarKategori()">
+            <label for="type-in">Duit Masuk 📥</label>
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label>Kategori</label>
+              <select id="txnCat" required>
+                <!-- Pilihan dijana secara dinamik oleh JS -->
+              </select>
+            </div>
+            <div class="field">
+              <label>Tarikh</label>
+              <input type="date" id="txnDate" required>
+            </div>
+          </div>
+          
+          <div class="field">
+            <label>Jumlah (RM)</label>
+            <div class="input-prefix">
+              <span>RM</span>
+              <input type="number" id="txnAmount" placeholder="0.00" step="0.01" min="0.01" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Nota Perbelanjaan (Pilihan)</label>
+            <input type="text" id="txnNote" placeholder="Cth: Barang Dapur Lotus">
+          </div>
+
+          <button type="submit" class="btn-submit">💾 Simpan Rekod</button>
+        </form>
+      </div>
+
+      <!-- Kad Senarai Transaksi -->
+      <div class="card">
+        <div class="card-header">
+          <h2>📋 Transaksi Bulan Ini</h2>
+          <span style="font-size:0.8rem; font-weight:700; color:var(--muted);" id="label-bulan-semasa"></span>
+        </div>
+        <div class="txn-list" id="senarai-transaksi">
+          <div style="text-align:center; color:#aaa; font-size:0.9rem; padding:20px;">Memuatkan data...</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- KOLUM KANAN (Analisis) -->
+    <div class="kolum-kanan">
+      
+      <!-- Kad Dashboard -->
+      <div class="card">
+        <div class="card-header">
+          <h2>📊 Aliran Tunai Bulan Ini</h2>
+        </div>
+        
+        <div class="dash-grid">
+          <div class="dash-box in">
+            <div class="dash-label">Jumlah Masuk</div>
+            <div class="dash-val" id="dash-in">RM 0.00</div>
+          </div>
+          <div class="dash-box out">
+            <div class="dash-label">Jumlah Keluar</div>
+            <div class="dash-val" id="dash-out">RM 0.00</div>
+          </div>
+        </div>
+
+        <div class="dash-balance">
+          <div class="dash-label">Baki Bersih Semasa</div>
+          <div class="dash-val" id="dash-net">RM 0.00</div>
+        </div>
+
+        <!-- Kad Integrasi JomBercuti -->
+        <div class="vacation-card" id="vacation-target" style="display:none;">
+          <div class="vac-icon">✈️</div>
+          <div class="vac-details">
+            <div class="vac-title">Sasaran JomBercuti</div>
+            <div class="vac-amt" id="vac-saving">RM 0.00 / bulan</div>
+          </div>
+        </div>
+
+        <!-- Analisis Kesihatan Kewangan -->
+        <div class="health-card">
+          <div class="health-title">🩺 Kesihatan Kewangan (Analisis Hujung Bulan)</div>
+          
+          <!-- Bar Keseluruhan (Pendapatan = 100%) -->
+          <div class="progress-wrap" id="health-bar-wrap" style="display:none;">
+            <div class="prog-out" id="bar-out" title="Perbelanjaan"></div>
+            <div class="prog-save" id="bar-save" title="Sasaran Simpanan Percutian"></div>
+          </div>
+
+          <div class="health-msg" id="health-message">
+            Sila masukkan rekod Pendapatan (Duit Masuk) terlebih dahulu untuk melihat analisis kewangan.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js)";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js)";
+    import { getFirestore, doc, setDoc, deleteDoc, collection, query, where, getDocs, orderBy } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js)";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+        authDomain: "familipintar.firebaseapp.com",
+        databaseURL: "[https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app](https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app)",
+        projectId: "familipintar",
+        storageBucket: "familipintar.firebasestorage.app",
+        messagingSenderId: "277029764059",
+        appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let targetPercutian = 0; // Diambil dari jombercuti_trips
+
+    const bulanIniDate = new Date();
+    document.getElementById('txnDate').value = bulanIniDate.toISOString().split('T')[0];
+    document.getElementById('label-bulan-semasa').innerText = bulanIniDate.toLocaleString('ms-MY', { month: 'long', year: 'numeric' });
+
+    // Kategori Pilihan
+    const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Pakaian", "Lain-lain"];
+    const catInflow = ["Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
+
+    window.tukarKategori = () => {
+        const type = document.querySelector('input[name="txnType"]:checked').value;
+        const select = document.getElementById('txnCat');
+        const options = type === 'outflow' ? catOutflow : catInflow;
+        select.innerHTML = options.map(c => `<option value="${c}">${c}</option>`).join('');
+    };
+    window.tukarKategori(); // Run on init
+
+    // Semakan Auth
+    onAuthStateChanged(auth, async (user) => {
+        const authScreen = document.getElementById('authScreen');
+        const mainApp = document.getElementById('mainApp');
+        if (user) {
+            currentUser = user;
+            if (authScreen) authScreen.classList.add('hidden');
+            if (mainApp) mainApp.classList.remove('hidden');
+            await muatTargetPercutian();
+            muatDataOurMoney();
+        } else {
+            currentUser = null;
+            if (authScreen) authScreen.classList.remove('hidden');
+            if (mainApp) mainApp.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
+        } catch (err) { alert("Gagal Log Masuk."); }
+    });
+
+    // 1. Integrasi Sasaran JomBercuti
+    async function muatTargetPercutian() {
+        try {
+            const q = query(collection(db, "jombercuti_trips"), where("owner_uid", "==", currentUser.uid));
+            const snap = await getDocs(q);
+            targetPercutian = 0;
+            snap.forEach(d => {
+                const saving = parseFloat(d.data().monthly_saving) || 0;
+                targetPercutian += saving;
+            });
+
+            if (targetPercutian > 0) {
+                document.getElementById('vac-saving').innerText = `RM ${targetPercutian.toFixed(2)} / bulan`;
+                document.getElementById('vacation-target').style.display = 'flex';
+            }
+        } catch(e) { console.error("Gagal muat JomBercuti", e); }
+    }
+
+    // 2. Simpan Transaksi Baru
+    document.getElementById('form-transaksi').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if(!currentUser) return;
+
+        const btn = document.querySelector('.btn-submit');
+        btn.disabled = true; btn.innerText = "Menyimpan...";
+
+        const txnData = {
+            owner_uid: currentUser.uid,
+            type: document.querySelector('input[name="txnType"]:checked').value,
+            category: document.getElementById('txnCat').value,
+            date: document.getElementById('txnDate').value,
+            amount: parseFloat(document.getElementById('txnAmount').value),
+            note: document.getElementById('txnNote').value.trim(),
+            created_at: Date.now()
+        };
+
+        try {
+            await setDoc(doc(collection(db, "ourmoney_transactions")), txnData);
+            document.getElementById('txnAmount').value = '';
+            document.getElementById('txnNote').value = '';
+            muatDataOurMoney();
+        } catch (err) { alert("Gagal menyimpan rekod: " + err.message); }
+        
+        btn.disabled = false; btn.innerText = "💾 Simpan Rekod";
+    });
+
+    // 3. Muat Data Transaksi & Analisis Kewangan
+    async function muatDataOurMoney() {
+        if(!currentUser) return;
+        try {
+            const strBulanIni = bulanIniDate.toISOString().substring(0, 7); // YYYY-MM
+            
+            const q = query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid));
+            const snap = await getDocs(q);
+
+            let htmlTxn = "";
+            let totalIn = 0; let totalOut = 0;
+            let listSemasa = [];
+
+            snap.forEach(d => {
+                const data = d.data();
+                // Tapis manual ikut bulan YYYY-MM untuk elak index error Firestore
+                if (data.date && data.date.startsWith(strBulanIni)) {
+                    listSemasa.push({ id: d.id, ...data });
+                }
+            });
+
+            // Susun terbaharu di atas
+            listSemasa.sort((a, b) => b.created_at - a.created_at);
+
+            listSemasa.forEach(t => {
+                const isOut = t.type === 'outflow';
+                if (isOut) totalOut += t.amount; else totalIn += t.amount;
+                
+                const icon = isOut ? '📉' : '📈';
+                const amtClass = isOut ? 'amt-out' : 'amt-in';
+                const amtPrefix = isOut ? '- RM' : '+ RM';
+                const tarikhFormat = t.date.split('-').reverse().join('/'); // DD/MM/YYYY
+
+                htmlTxn += `
+                <div class="txn-item">
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <div style="font-size:1.5rem;">${icon}</div>
+                        <div class="txn-info">
+                            <span class="txn-cat">${t.category}</span>
+                            <span class="txn-note">${tarikhFormat} ${t.note ? `• \${t.note}` : ''}</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center;">
+                        <span class="txn-amt ${amtClass}">${amtPrefix} ${t.amount.toFixed(2)}</span>
+                        <button class="btn-del-txn" onclick="padamRekod('${t.id}')">✕</button>
+                    </div>
+                </div>`;
+            });
+
+            if (listSemasa.length === 0) {
+                htmlTxn = "<div style='text-align:center; padding:20px; color:#aaa;'>Belum ada perbelanjaan atau pendapatan direkodkan untuk bulan ini.</div>";
+            }
+            document.getElementById('senarai-transaksi').innerHTML = htmlTxn;
+
+            // Kemas Kini Dashboard
+            const netBalance = totalIn - totalOut;
+            document.getElementById('dash-in').innerText = `RM ${totalIn.toFixed(2)}`;
+            document.getElementById('dash-out').innerText = `RM ${totalOut.toFixed(2)}`;
+            document.getElementById('dash-net').innerText = `RM ${netBalance.toFixed(2)}`;
+
+            // Enjin Analisis Kesihatan Kewangan
+            renderAnalisisKesihatan(totalIn, totalOut, targetPercutian);
+
+        } catch(e) { console.error("Ralat muat transaksi:", e); }
+    }
+
+    // 4. Padam Rekod
+    window.padamRekod = async (id) => {
+        if(confirm("Anda pasti mahu memadam rekod ini?")) {
+            await deleteDoc(doc(db, "ourmoney_transactions", id));
+            muatDataOurMoney();
+        }
+    };
+
+    // 5. Analisis Kesihatan Kewangan
+    function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
+        const barWrap = document.getElementById('health-bar-wrap');
+        const barOut = document.getElementById('bar-out');
+        const barSave = document.getElementById('bar-save');
+        const msgBox = document.getElementById('health-message');
+
+        if (pendapatan === 0) {
+            barWrap.style.display = 'none';
+            msgBox.className = 'health-msg msg-bad';
+            msgBox.innerHTML = 'Tiada data pendapatan. Sila rekod "Duit Masuk" (gaji/elaun) untuk sistem menganalisis status kewangan anda.';
+            return;
+        }
+
+        barWrap.style.display = 'flex';
+
+        // Kiraan Peratusan berdasarkan Pendapatan
+        let pctOut = (belanja / pendapatan) * 100;
+        let pctSave = (simpanan / pendapatan) * 100;
+
+        // Visual limit pada 100% supaya bar tak pecah
+        barOut.style.width = Math.min(pctOut, 100) + '%';
+        barSave.style.width = Math.min(pctSave, 100 - Math.min(pctOut, 100)) + '%';
+
+        const bakiTinggal = pendapatan - belanja - simpanan;
+
+        if (bakiTinggal < 0) {
+            msgBox.className = 'health-msg msg-bad';
+            msgBox.innerHTML = `⚠️ <b>Kritikal!</b> Jumlah perbelanjaan dan komitmen percutian anda telah melebihi pendapatan bulan ini sebanyak <b>RM ${Math.abs(bakiTinggal).toFixed(2)}</b>. Anda berisiko menggunakan duit simpanan lama atau berhutang.`;
+        } else if (bakiTinggal < (pendapatan * 0.1)) {
+            msgBox.className = 'health-msg msg-bad';
+            msgBox.innerHTML = `⚠️ <b>Amaran:</b> Baki anda selepas ditolak belanja dan simpanan percutian hanya tinggal <b>RM ${bakiTinggal.toFixed(2)}</b>. Sila kurangkan perbelanjaan yang tidak perlu.`;
+        } else {
+            msgBox.className = 'health-msg msg-good';
+            msgBox.innerHTML = `✅ <b>Kewangan Sihat!</b> Baki selamat bulan ini adalah <b>RM ${bakiTinggal.toFixed(2)}</b>. Anda berada di landasan yang betul untuk mencapai sasaran percutian keluarga anda.`;
+        }
+    }
+
+</script>
+</body>
+</html>
