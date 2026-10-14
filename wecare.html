@@ -330,7 +330,27 @@
         }
     });
 
-// FUNGSI TRIGGER DROPDOWN
+// --- LOGIK PAPARAN T&C ---
+    function semakTnC() {
+        const dahSetuju = localStorage.getItem('wecare_tnc_agreed');
+        if (!dahSetuju) {
+            document.getElementById('modalTnC').style.display = 'flex';
+        }
+    }
+
+    function setujuTnC() {
+        localStorage.setItem('wecare_tnc_agreed', 'true');
+        document.getElementById('modalTnC').style.display = 'none';
+        // Di sini nanti bos boleh tambah logik semak status langganan RM20 (Paywall)
+    }
+
+    // Panggil semakTnC() sebaik sahaja pengguna berjaya login/paparan dimuatkan
+    window.addEventListener('DOMContentLoaded', () => {
+        semakTnC(); 
+    });
+    // -------------------------
+
+    // FUNGSI TRIGGER DROPDOWN
     window.tukarBelahPaparan = () => {
         if (!currentUser) return;
         muatProfilIbuBapa(currentUser.uid);
@@ -341,8 +361,6 @@
     async function muatProfilIbuBapa(uidPengguna) {
         try {
             const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
-            
-            // Sistem HANYA menyedut data dari pokok pengguna yang sedang log masuk
             const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
             
             let html = "";
@@ -486,17 +504,15 @@
         document.getElementById('senaraiUbat').innerHTML = html || '<div class="empty">Tiada senarai ubat didaftarkan.</div>';
     }
 
-// 4. KELUARGA & NOTA HANDOVER (TARIK ADIK-BERADIK MENGIKUT PIHAK)
+// 4. KELUARGA & NOTA HANDOVER (KOD BERSIH - HANYA BACA myNasab)
     async function muatKeluargaDanNota(groupId) {
         try {
             const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
             let teamHtml = "<h3 style='font-size:15px; margin-bottom:10px;'>Waris & Penjaga Berdaftar</h3>";
             let senaraiWaris = new Map();
 
-            // 1. Tarik secara langsung dari pokok pengguna itu sendiri
             const snapNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
             
-            // 2. Tentukan status hidup ibu bapa untuk kedua-dua pihak
             let kandungHidup = false;
             let mertuaHidup = false;
             
@@ -508,10 +524,13 @@
                 }
             });
 
-            // 3. Masukkan senarai waris
             snapNodes.forEach(d => {
-                const rel = (d.data().relationship || '').toLowerCase();
-                const nama = d.data().name || '';
+                const data = d.data();
+                const rel = (data.relationship || '').toLowerCase();
+                const nama = data.name || '';
+                
+                // Jika bos tambah input email di modalTambahAhli, kita terus tarik dari sini!
+                const emailDalamTree = data.email || 'Tiada E-mel Berdaftar'; 
 
                 let letak = false;
                 let roleWaris = 'Waris Jagaan';
@@ -519,7 +538,6 @@
                 if (pilihanBelah === 'induk') {
                     if (rel === 'diri sendiri') { letak = true; roleWaris = 'Pengguna Semasa (Induk)'; }
                     else if (rel === 'suami' || rel === 'isteri') { letak = true; roleWaris = 'Pasangan'; }
-                    // Hanya paparkan adik-beradik (kandung) jika ibu/bapa kandung hidup
                     else if (kandungHidup && (rel.includes('abang') || rel.includes('kakak') || rel.includes('adik')) && !rel.includes('ipar')) {
                         letak = true;
                     }
@@ -527,7 +545,6 @@
                 else if (pilihanBelah === 'pasangan') {
                     if (rel === 'diri sendiri') { letak = true; roleWaris = 'Pengguna Semasa (Induk)'; }
                     else if (rel === 'suami' || rel === 'isteri') { letak = true; roleWaris = 'Pasangan'; }
-                    // Hanya paparkan ipar jika ibu/bapa mertua hidup
                     else if (mertuaHidup && rel.includes('ipar')) {
                         letak = true;
                     }
@@ -537,13 +554,13 @@
                     senaraiWaris.set(nama.toLowerCase().trim(), { 
                         uidKunci: d.id,
                         name: nama, 
-                        email: (roleWaris.includes('Pengguna Semasa')) ? currentUser.email : 'Dari Famili Tree', 
+                        email: (roleWaris.includes('Pengguna Semasa')) ? currentUser.email : emailDalamTree, 
                         role: roleWaris 
                     });
                 }
             });
 
-            // 4. Padankan E-mel (Jika ahli keluarga dalam Tree tersebut telah daftar weCare)
+            // Semak pautan akaun myNasab rasmi jika waris tersebut sudah mendaftar dan menyambung akaun
             const snapLinks1 = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", currentUser.uid), where("status", "==", "aktif")));
             const snapLinks2 = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid), where("status", "==", "aktif")));
             
@@ -553,8 +570,8 @@
 
             for (const targetUid of linkedUids) {
                 if (targetUid === currentUser.uid) continue;
-                let uDoc = await getDoc(doc(db, "wecare_users", targetUid));
-                if (!uDoc.exists()) uDoc = await getDoc(doc(db, "mynasab_users", targetUid));
+                // KOD DIBERSIHKAN: Hanya semak mynasab_users
+                const uDoc = await getDoc(doc(db, "mynasab_users", targetUid)); 
                 
                 if (uDoc.exists()) {
                     const dbUser = uDoc.data();
@@ -565,15 +582,14 @@
                             senaraiWaris.set(namaKey, { 
                                 uidKunci: val.uidKunci,
                                 name: dbUser.name, 
-                                email: dbUser.email, 
-                                role: (val.role === 'Waris Jagaan' || val.role === 'Pasangan') ? 'Waris (Aktif weCare)' : val.role
+                                email: dbUser.email, // Timpa emel dengan emel pendaftaran myNasab yang sah
+                                role: (val.role === 'Waris Jagaan' || val.role === 'Pasangan') ? 'Akaun Berhubung' : val.role
                             });
                         }
                     }
                 }
             }
 
-            // Paparkan senarai ke UI
             senaraiWaris.forEach((val, namaKey) => {
                 const bgWarna = val.role.includes('Pengguna Semasa') ? '#f0fdf4' : '#fff'; 
                 teamHtml += `
@@ -591,7 +607,7 @@
             }
             document.getElementById('teamList').innerHTML = teamHtml;
 
-            // Paparkan Nota Handover
+            // Render Nota Handover
             const snapNotes = await getDocs(query(collection(db, "wecare_notes"), where("group_id", "==", groupId)));
             let noteHtml = "<h3 style='font-size:16px; margin:25px 0 10px;'>Sejarah Nota Handover</h3>";
             let notesArr = [];
@@ -646,5 +662,28 @@
 
     document.getElementById('btnKembali').addEventListener('click', () => { window.location.href = "../index.html"; });
 </script>
+
+ <!-- MODAL TERMA & SYARAT (T&C) WECARE -->
+    <div id="modalTnC" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.8); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+        <div style="background:#fff; width:100%; max-width:450px; border-radius:16px; padding:24px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative;">
+            <h2 style="margin:0 0 15px; color:var(--ink); font-size:20px; font-weight:800; text-align:center;">📜 Terma & Syarat weCare</h2>
+            
+            <div style="font-size:14px; color:var(--muted); line-height:1.6; max-height:60vh; overflow-y:auto; padding-right:5px; margin-bottom:20px;">
+                <p>Selamat datang ke <b>weCare</b>, modul penjagaan eksklusif yang diintegrasikan sepenuhnya dengan pangkalan data salasilah <b>myNasab</b>.</p>
+                
+                <b style="color:var(--ink); display:block; margin-top:12px;">1. Sumber Data (myNasab)</b>
+                <p style="margin-top:4px;">Aplikasi weCare tidak mempunyai sistem pendaftarannya sendiri. Segala data profil, senarai waris, dan status ibu bapa diambil secara langsung dari akaun myNasab anda. Sila pastikan anda mengemaskini e-mel ahli keluarga di myNasab untuk membolehkan mereka mengakses weCare.</p>
+
+                <b style="color:var(--ink); display:block; margin-top:12px;">2. Langganan Premium</b>
+                <p style="margin-top:4px;">weCare adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar penjagaan, pengurusan ubat, dan nota handover keluarga tertakluk kepada caj langganan sebanyak <b>RM20.00 / Sebulan</b>.</p>
+
+                <b style="color:var(--ink); display:block; margin-top:12px;">3. Privasi Keluarga</b>
+                <p style="margin-top:4px;">Paparan data dikawal ketat mengikut hierarki keluarga (Induk / Pasangan) yang ditetapkan di dalam myNasab bagi menjamin privasi setiap isi rumah.</p>
+            </div>
+            
+            <button onclick="setujuTnC()" style="width:100%; background:var(--primary); color:#fff; padding:12px; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer;">Saya Faham & Bersetuju</button>
+        </div>
+    </div>   
+    
 </body>
 </html>
