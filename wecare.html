@@ -391,8 +391,14 @@
 
     // Fungsi Pautan ke Gateway Pembayaran (ToyyibPay)
     window.bayarLangganan = () => {
-        // Gantikan dengan URL borang ToyyibPay/OnPay bos yang sebenar
-        const urlPembayaran = "https://toyyibpay.com/weCare-Langganan-Bulanan"; 
+        if (!currentUser) return;
+        
+        const kodBilToyyibPay = "KOD_BIL_WECARE_BOS"; // Gantikan dengan Kod Bil sebenar dari dashboard ToyyibPay
+        const uidPengguna = currentUser.uid;
+        
+        // Kita hantar UID melalui parameter URL (supaya ToyyibPay boleh pulangkan semula data ini kepada Webhook)
+        const urlPembayaran = `https://toyyibpay.com/${kodBilToyyibPay}?order_id=${uidPengguna}`; 
+        
         window.open(urlPembayaran, "_blank");
     };
     // -----------------------------------------
