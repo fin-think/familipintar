@@ -136,7 +136,7 @@
 <div class="container" id="mainApp">
   <!-- Pengepala Utama -->
   <div class="header">
-    <button onclick="window.location.href='index.html'" class="btn-kembali">🏠 myNasab</button>
+    <button onclick="window.location.href='index.html'" class="btn-kembali">Kembali</button>
     <div>
       <h1>OurMoney</h1>
       <p>Penjejak Aliran Tunai & Kesihatan Kewangan Keluarga</p>
@@ -286,3 +286,369 @@
         </div>
         
         <button id="btnSetujuTnC" style="width:100%; background:var(--primary); color:#fff; padding:12px; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; transition:0.2s;">Saya Faham & Bersetuju</button>
+    </div>   
+</div>
+
+<!-- MODAL PAYWALL (SEKATAN LANGGANAN TAMAT) -->
+<div id="modalPaywall" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:10000; align-items:center; justify-content:center; padding:20px; text-align:center;">
+    <div style="background:#fff; width:100%; max-width:420px; border-radius:16px; padding:32px 24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+        <div style="font-size:48px; margin-bottom:16px;">🔒</div>
+        <h2 style="margin:0 0 12px; color:var(--ink); font-size:22px; font-weight:800;">Akses OurMoney Disekat</h2>
+        
+        <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-bottom:24px;">
+            Langganan OurMoney anda telah tamat tempoh. Akses merekod aliran tunai dan integrasi percutian kini dikunci.<br><br>
+            Sila perbaharui langganan menggunakan <b>20 Kredit</b> untuk terus menggunakan sistem kewangan ini tanpa gangguan selama 30 hari.
+        </p>
+        
+        <button onclick="bayarGunaKredit()" style="width:100%; background:var(--primary); color:#fff; padding:14px; border:none; border-radius:8px; font-weight:700; font-size:16px; cursor:pointer; margin-bottom:12px; transition:0.2s;">
+            💳 Potong 20 Kredit
+        </button>
+        
+        <button onclick="window.location.href='../topup.html'" style="width:100%; background:transparent; color:var(--muted); padding:10px; border:none; font-weight:600; font-size:14px; cursor:pointer; margin-bottom:5px;">
+            ➕ Tambah Nilai Kredit
+        </button>
+        <button onclick="window.location.href='../index.html'" style="width:100%; background:transparent; color:#94a3b8; padding:5px; border:none; font-weight:400; font-size:12px; cursor:pointer;">
+            Kembali ke Muka Depan myNasab
+        </button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    // IMPORT STORAGE UNTUK GAMBAR
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+        authDomain: "familipintar.firebaseapp.com",
+        databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "familipintar",
+        storageBucket: "familipintar.firebasestorage.app",
+        messagingSenderId: "277029764059",
+        appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app); // INISIASI STORAGE
+
+    let currentUser = null;
+    let targetPercutian = 0;
+    let selectedImageFile = null;
+
+    const bulanIniDate = new Date();
+    document.getElementById('txnDate').value = bulanIniDate.toISOString().split('T')[0];
+    document.getElementById('label-bulan-semasa').innerText = bulanIniDate.toLocaleString('ms-MY', { month: 'long', year: 'numeric' });
+
+    // Kategori Pilihan
+    const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Pakaian", "Lain-lain"];
+    const catInflow = ["Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
+
+    const btnRadios = document.querySelectorAll('input[name="txnType"]');
+    const selectCat = document.getElementById('txnCat');
+
+    function kemaskiniSenaraiKategori() {
+        const type = document.querySelector('input[name="txnType"]:checked').value;
+        const options = type === 'outflow' ? catOutflow : catInflow;
+        selectCat.innerHTML = options.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    btnRadios.forEach(radio => radio.addEventListener('change', kemaskiniSenaraiKategori));
+    kemaskiniSenaraiKategori(); 
+
+    // --- LOGIK PAYWALL OURMONEY ---
+    window.semakStatusLangganan = async (uid) => {
+        try {
+            const userDoc = await getDoc(doc(db, "mynasab_users", uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                const tarikhLuput = data.ourmoney_expiry_date; 
+                const masaSekarang = new Date().getTime();
+
+                if (!tarikhLuput || tarikhLuput < masaSekarang) {
+                    document.getElementById('modalPaywall').style.display = 'flex';
+                } else {
+                    document.getElementById('modalPaywall').style.display = 'none';
+                }
+            }
+        } catch (error) {
+            document.getElementById('modalPaywall').style.display = 'flex';
+        }
+    };
+
+    window.semakTnC = () => {
+        const dahSetuju = localStorage.getItem('ourmoney_tnc_agreed');
+        if (!dahSetuju) {
+            document.getElementById('modalTnC').style.display = 'flex';
+        } else {
+            if (currentUser) window.semakStatusLangganan(currentUser.uid);
+        }
+    };
+
+    document.getElementById('btnSetujuTnC').addEventListener('click', async () => {
+        localStorage.setItem('ourmoney_tnc_agreed', 'true');
+        document.getElementById('modalTnC').style.display = 'none';
+        
+        if (currentUser) {
+            try {
+                const userRef = doc(db, "mynasab_users", currentUser.uid);
+                const userSnap = await getDoc(userRef);
+                
+                if (userSnap.exists()) {
+                    const data = userSnap.data();
+                    if (!data.ourmoney_expiry_date) {
+                        const masaSekarang = new Date().getTime();
+                        const tambah30Hari = masaSekarang + (30 * 24 * 60 * 60 * 1000); 
+                        await setDoc(userRef, { ourmoney_expiry_date: tambah30Hari }, { merge: true });
+                    }
+                }
+                await window.semakStatusLangganan(currentUser.uid);
+            } catch (err) { console.error(err); }
+        }
+    });
+
+    window.bayarGunaKredit = async () => {
+        if (!currentUser) return;
+        try {
+            const userRef = doc(db, "mynasab_users", currentUser.uid);
+            const snap = await getDoc(userRef);
+            if (snap.exists()) {
+                let baki = parseInt(snap.data().credit_balance) || 0;
+                if (baki >= 20) {
+                    const masaSekarang = new Date().getTime();
+                    const tambah30Hari = masaSekarang + (30 * 24 * 60 * 60 * 1000);
+                    
+                    await setDoc(userRef, { 
+                        credit_balance: baki - 20,
+                        ourmoney_expiry_date: tambah30Hari 
+                    }, { merge: true });
+                    
+                    alert("Pembaharuan berjaya! 20 Kredit telah dipotong dari akaun anda.");
+                    document.getElementById('modalPaywall').style.display = 'none';
+                } else {
+                    alert("Kredit tidak mencukupi. Baki semasa anda: " + baki + " Kredit.");
+                    window.location.href = "../topup.html";
+                }
+            }
+        } catch (e) { alert("Gagal memproses langganan: " + e.message); }
+    };
+
+    // Semakan Auth
+    onAuthStateChanged(auth, async (user) => {
+        const authScreen = document.getElementById('authScreen');
+        const mainApp = document.getElementById('mainApp');
+        if (user) {
+            currentUser = user;
+            if (authScreen) authScreen.classList.add('hidden');
+            if (mainApp) mainApp.classList.remove('hidden');
+            semakTnC();
+            await muatTargetPercutian();
+            muatDataOurMoney();
+        } else {
+            currentUser = null;
+            if (authScreen) authScreen.classList.remove('hidden');
+            if (mainApp) mainApp.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try { await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value); } 
+        catch (err) { alert("Gagal Log Masuk."); }
+    });
+
+    // 1. Integrasi Sasaran JomBercuti
+    async function muatTargetPercutian() {
+        try {
+            const q = query(collection(db, "jombercuti_trips"), where("owner_uid", "==", currentUser.uid));
+            const snap = await getDocs(q);
+            targetPercutian = 0;
+            snap.forEach(d => {
+                const saving = parseFloat(d.data().monthly_saving) || 0;
+                targetPercutian += saving;
+            });
+
+            if (targetPercutian > 0) {
+                document.getElementById('vac-saving').innerText = `RM ${targetPercutian.toFixed(2)} / bulan`;
+                document.getElementById('vacation-target').style.display = 'flex';
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // 2. FUNGSI GAMBAR (PREVIEW & CLEAR)
+    window.pilihGambar = (e) => {
+        selectedImageFile = e.target.files[0];
+        if (selectedImageFile) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById('imgPreview');
+                img.src = e.target.result;
+                document.getElementById('previewContainer').style.display = 'block';
+            };
+            reader.readAsDataURL(selectedImageFile);
+        }
+    };
+
+    window.buangGambar = () => {
+        selectedImageFile = null;
+        document.getElementById('txnImage').value = '';
+        document.getElementById('previewContainer').style.display = 'none';
+        document.getElementById('imgPreview').src = '';
+    };
+
+    // 3. Simpan Transaksi Baru & Upload Gambar Jika Ada
+    document.getElementById('form-transaksi').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if(!currentUser) return;
+
+        const btn = document.getElementById('btn-save-txn');
+        btn.disabled = true; btn.innerText = "Memuat Naik & Menyimpan...";
+
+        try {
+            let imgUrl = "";
+            // Jika user ada pilih gambar, upload ke Firebase Storage dahulu
+            if (selectedImageFile) {
+                const storageRef = ref(storage, `ourmoney_receipts/${currentUser.uid}_${Date.now()}_${selectedImageFile.name}`);
+                await uploadBytes(storageRef, selectedImageFile);
+                imgUrl = await getDownloadURL(storageRef);
+            }
+
+            const txnData = {
+                owner_uid: currentUser.uid,
+                type: document.querySelector('input[name="txnType"]:checked').value,
+                category: document.getElementById('txnCat').value,
+                date: document.getElementById('txnDate').value,
+                amount: parseFloat(document.getElementById('txnAmount').value),
+                note: document.getElementById('txnNote').value.trim(),
+                receipt_url: imgUrl, // Masukkan URL gambar (boleh jadi "" jika tiada)
+                created_at: Date.now()
+            };
+
+            await setDoc(doc(collection(db, "ourmoney_transactions")), txnData);
+            
+            // Reset Borang
+            document.getElementById('txnAmount').value = '';
+            document.getElementById('txnNote').value = '';
+            window.buangGambar();
+            
+            muatDataOurMoney();
+        } catch (err) { alert("Gagal menyimpan rekod: " + err.message); }
+        
+        btn.disabled = false; btn.innerText = "💾 Simpan Rekod";
+    });
+
+    // 4. Muat Data Transaksi & Analisis Kewangan
+    async function muatDataOurMoney() {
+        if(!currentUser) return;
+        try {
+            const strBulanIni = bulanIniDate.toISOString().substring(0, 7); 
+            const q = query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid));
+            const snap = await getDocs(q);
+
+            let htmlTxn = "";
+            let totalIn = 0; let totalOut = 0;
+            let listSemasa = [];
+
+            snap.forEach(d => {
+                const data = d.data();
+                if (data.date && data.date.startsWith(strBulanIni)) {
+                    listSemasa.push({ id: d.id, ...data });
+                }
+            });
+
+            listSemasa.sort((a, b) => b.created_at - a.created_at);
+
+            listSemasa.forEach(t => {
+                const isOut = t.type === 'outflow';
+                if (isOut) totalOut += t.amount; else totalIn += t.amount;
+                
+                const icon = isOut ? '📉' : '📈';
+                const amtClass = isOut ? 'amt-out' : 'amt-in';
+                const amtPrefix = isOut ? '- RM' : '+ RM';
+                const tarikhFormat = t.date.split('-').reverse().join('/');
+                
+                // HTML Icon Resit (Bila klik, buka gambar resit tab baru)
+                const resitHtml = t.receipt_url 
+                    ? `<a href="${t.receipt_url}" target="_blank" class="resit-link">📸 Resit</a>` 
+                    : '';
+
+                htmlTxn += `
+                <div class="txn-item">
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <div style="font-size:1.5rem;">${icon}</div>
+                        <div class="txn-info">
+                            <span class="txn-cat">${t.category}</span>
+                            <span class="txn-note">${tarikhFormat} ${t.note ? `• \${t.note}` : ''} ${resitHtml}</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center;">
+                        <span class="txn-amt ${amtClass}">${amtPrefix} ${t.amount.toFixed(2)}</span>
+                        <button class="btn-del-txn" onclick="padamRekod('${t.id}')">✕</button>
+                    </div>
+                </div>`;
+            });
+
+            if (listSemasa.length === 0) {
+                htmlTxn = "<div style='text-align:center; padding:20px; color:#aaa;'>Belum ada perbelanjaan atau pendapatan direkodkan untuk bulan ini.</div>";
+            }
+            document.getElementById('senarai-transaksi').innerHTML = htmlTxn;
+
+            const netBalance = totalIn - totalOut;
+            document.getElementById('dash-in').innerText = `RM ${totalIn.toFixed(2)}`;
+            document.getElementById('dash-out').innerText = `RM ${totalOut.toFixed(2)}`;
+            document.getElementById('dash-net').innerText = `RM ${netBalance.toFixed(2)}`;
+
+            renderAnalisisKesihatan(totalIn, totalOut, targetPercutian);
+
+        } catch(e) { console.error("Ralat muat transaksi:", e); }
+    }
+
+    // 5. Padam Rekod
+    window.padamRekod = async (id) => {
+        if(confirm("Anda pasti mahu memadam rekod ini?")) {
+            await deleteDoc(doc(db, "ourmoney_transactions", id));
+            muatDataOurMoney();
+        }
+    };
+
+    // 6. Analisis Kesihatan Kewangan
+    function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
+        const barWrap = document.getElementById('health-bar-wrap');
+        const barOut = document.getElementById('bar-out');
+        const barSave = document.getElementById('bar-save');
+        const msgBox = document.getElementById('health-message');
+
+        if (pendapatan === 0) {
+            barWrap.style.display = 'none';
+            msgBox.className = 'health-msg msg-bad';
+            msgBox.innerHTML = 'Tiada data pendapatan. Sila rekod "Duit Masuk" (gaji/elaun) untuk sistem menganalisis status kewangan anda.';
+            return;
+        }
+
+        barWrap.style.display = 'flex';
+        let pctOut = (belanja / pendapatan) * 100;
+        let pctSave = (simpanan / pendapatan) * 100;
+
+        barOut.style.width = Math.min(pctOut, 100) + '%';
+        barSave.style.width = Math.min(pctSave, 100 - Math.min(pctOut, 100)) + '%';
+
+        const bakiTinggal = pendapatan - belanja - simpanan;
+
+        if (bakiTinggal < 0) {
+            msgBox.className = 'health-msg msg-bad';
+            msgBox.innerHTML = `⚠️ <b>Kritikal!</b> Jumlah perbelanjaan dan komitmen percutian anda telah melebihi pendapatan bulan ini sebanyak <b>RM ${Math.abs(bakiTinggal).toFixed(2)}</b>. Anda berisiko menggunakan duit simpanan lama atau berhutang.`;
+        } else if (bakiTinggal < (pendapatan * 0.1)) {
+            msgBox.className = 'health-msg msg-bad';
+            msgBox.innerHTML = `⚠️ <b>Amaran:</b> Baki anda selepas ditolak belanja dan simpanan percutian hanya tinggal <b>RM ${bakiTinggal.toFixed(2)}</b>. Sila kurangkan perbelanjaan yang tidak perlu.`;
+        } else {
+            msgBox.className = 'health-msg msg-good';
+            msgBox.innerHTML = `✅ <b>Kewangan Sihat!</b> Baki selamat bulan ini adalah <b>RM ${bakiTinggal.toFixed(2)}</b>. Anda berada di landasan yang betul untuk mencapai sasaran kewangan keluarga anda.`;
+        }
+    }
+
+</script>
+</body>
+</html>
