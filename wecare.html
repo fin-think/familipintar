@@ -572,90 +572,155 @@ onAuthStateChanged(auth, async (user) => {
         muatDataKalendar(); 
     };
 
-    // 4. KELUARGA & NOTA HANDOVER (KOD BERSIH - HANYA BACA myNasab)
+   // 4. KELUARGA & NOTA HANDOVER (LOGIK PIVOT myNasab - DIBETULKAN)
     async function muatKeluargaDanNota(groupId) {
         try {
             const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
             let teamHtml = "";
-            let senaraiWaris = new Map();
+            let teamListMap = new Map();
 
-            const snapNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
-            
+            // A. KENAL PASTI IDENTITI & HUBUNGAN (Adakah saya Induk atau Jemputan?)
+            let masterIndukUid = currentUser.uid;
+            let sasaranIdPusat = null;
+            let sayaInduk = true;
+
+            const sLinkSaya = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid), where("status", "==", "aktif")));
+            sLinkSaya.forEach(d => {
+                masterIndukUid = d.data().owner_uid;
+                sasaranIdPusat = d.data().sasaran_id;
+                sayaInduk = false;
+            });
+
+            // B. TARIK DATA NOD & PAUTAN
+            const sPautan = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", masterIndukUid), where("status", "==", "aktif")));
+            const allLinks = sPautan.docs.map(d => d.data());
+
+            const snapNodesSaya = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
+            let nodesSaya = snapNodesSaya.docs.map(d => ({ ...d.data(), id: d.id }));
+
+            let nodesInduk = nodesSaya;
+            if (!sayaInduk) {
+                const snapNodesInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", masterIndukUid)));
+                nodesInduk = snapNodesInduk.docs.map(d => ({ ...d.data(), id: d.id }));
+            }
+
+            // C. SEMAK STATUS IBU BAPA (Untuk penapisan keluarga mati)
             let kandungHidup = false;
             let mertuaHidup = false;
-            
-            snapNodes.forEach(d => {
-                const rel = (d.data().relationship || '').toLowerCase();
-                if (d.data().status !== 'meninggal') {
+            nodesSaya.forEach(d => {
+                const rel = (d.relationship || '').toLowerCase();
+                if (d.status !== 'meninggal') {
                     if (rel.includes('mertua')) mertuaHidup = true;
-                    else if (rel.includes('ayah') || rel.includes('ibu') || rel.includes('bapa') || rel.includes('mak') || rel.includes('abah')) kandungHidup = true;
+                    else if (rel.match(/ayah|ibu|bapa|mak|abah/)) kandungHidup = true;
                 }
             });
 
-            snapNodes.forEach(d => {
-                const data = d.data();
-                const rel = (data.relationship || '').toLowerCase();
-                const nama = data.name || '';
-                
-                const emailDalamTree = data.email || 'Tiada E-mel Berdaftar'; 
+            // Fungsi Pembantu untuk elak nama bertindih
+            const addWaris = (uid, name, email, role) => {
+                let key = name.toLowerCase().trim();
+                if (!teamListMap.has(key) || role.includes('Semasa') || role.includes('Utama')) {
+                    teamListMap.set(key, { uidKunci: uid, name, email, role });
+                }
+            };
 
-                let letak = false;
-                let roleWaris = 'Waris Jagaan';
+            let teamUids = new Set();
+            teamUids.add(currentUser.uid);
 
-                if (pilihanBelah === 'induk') {
-                    if (rel === 'diri sendiri') { letak = true; roleWaris = 'Pengguna Semasa (Induk)'; }
-                    else if (rel === 'suami' || rel === 'isteri') { letak = true; roleWaris = 'Pasangan'; }
-                    else if (kandungHidup && (rel.includes('abang') || rel.includes('kakak') || rel.includes('adik')) && !rel.includes('ipar')) {
-                        letak = true;
+            // D. SUSUN SENARAI MENGIKUT PILIHAN (Diri Sendiri & Pasangan sentiasa masuk)
+            nodesSaya.forEach(n => {
+                const rel = (n.relationship || '').toLowerCase();
+                if (rel === 'diri sendiri') addWaris(n.id, n.name, currentUser.email, 'Pengguna Semasa');
+                if (rel === 'suami' || rel === 'isteri') addWaris(n.id, n.name, n.email || 'Tiada E-mel', 'Pasangan');
+            });
+
+            if (pilihanBelah === 'induk' && kandungHidup) {
+                // 1. Tambah Adik-Beradik Manual
+                nodesSaya.forEach(n => {
+                    const rel = (n.relationship || '').toLowerCase();
+                    if ((rel.includes('abang') || rel.includes('kakak') || rel.includes('adik') || rel === 'adik-beradik') && !rel.includes('ipar')) {
+                        addWaris(n.id, n.name, n.email || 'Tiada E-mel', 'Waris Jagaan');
                     }
-                } 
-                else if (pilihanBelah === 'pasangan') {
-                    if (rel === 'diri sendiri') { letak = true; roleWaris = 'Pengguna Semasa (Induk)'; }
-                    else if (rel === 'suami' || rel === 'isteri') { letak = true; roleWaris = 'Pasangan'; }
-                    else if (mertuaHidup && rel.includes('ipar')) {
-                        letak = true;
+                });
+
+                // 2. Tambah Adik-Beradik Bersambung (Akaun weCare)
+                if (sayaInduk) {
+                    allLinks.forEach(link => {
+                        const sasaranNode = nodesInduk.find(n => n.id === link.sasaran_id);
+                        if (sasaranNode) {
+                            const rel = (sasaranNode.relationship || '').toLowerCase();
+                            if ((rel.includes('abang') || rel.includes('kakak') || rel.includes('adik') || rel === 'adik-beradik') && !rel.includes('ipar')) {
+                                teamUids.add(link.uid);
+                            }
+                        }
+                    });
+                } else {
+                    // PIVOT: Jika saya (Adi) jemputan, masukkan Pengundang Utama (Awi) sebagai keluarga Induk saya
+                    teamUids.add(masterIndukUid); 
+                    
+                    // Tarik jemputan lain yang sama status dengan saya (contoh: adik-beradik Anis yang lain)
+                    const mySasaranNode = nodesInduk.find(n => n.id === sasaranIdPusat);
+                    if (mySasaranNode) {
+                        const myRelIsIpar = (mySasaranNode.relationship || '').toLowerCase().includes('ipar');
+                        allLinks.forEach(link => {
+                            const sNode = nodesInduk.find(n => n.id === link.sasaran_id);
+                            if (sNode) {
+                                const relIsIpar = (sNode.relationship || '').toLowerCase().includes('ipar');
+                                if (myRelIsIpar === relIsIpar) teamUids.add(link.uid);
+                            }
+                        });
                     }
                 }
+            } 
+            else if (pilihanBelah === 'pasangan' && mertuaHidup) {
+                // 1. Tambah Ipar Manual
+                nodesSaya.forEach(n => {
+                    const rel = (n.relationship || '').toLowerCase();
+                    if (rel.includes('ipar')) addWaris(n.id, n.name, n.email || 'Tiada E-mel', 'Waris Jagaan');
+                });
 
-                if (letak) {
-                    senaraiWaris.set(nama.toLowerCase().trim(), { 
-                        uidKunci: d.id,
-                        name: nama, 
-                        email: (roleWaris.includes('Pengguna Semasa')) ? currentUser.email : emailDalamTree, 
-                        role: roleWaris 
+                // 2. Tambah Ipar Bersambung (Akaun weCare)
+                if (sayaInduk) {
+                    allLinks.forEach(link => {
+                        const sasaranNode = nodesInduk.find(n => n.id === link.sasaran_id);
+                        if (sasaranNode) {
+                            const rel = (sasaranNode.relationship || '').toLowerCase();
+                            if (rel.includes('ipar')) teamUids.add(link.uid);
+                        }
                     });
                 }
-            });
+            }
 
-            const snapLinks1 = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", currentUser.uid), where("status", "==", "aktif")));
-            const snapLinks2 = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid), where("status", "==", "aktif")));
-            
-            let linkedUids = new Set();
-            snapLinks1.forEach(d => linkedUids.add(d.data().uid));
-            snapLinks2.forEach(d => linkedUids.add(d.data().owner_uid));
-
-            for (const targetUid of linkedUids) {
-                if (targetUid === currentUser.uid) continue;
-                const uDoc = await getDoc(doc(db, "mynasab_users", targetUid)); 
-                
+            // E. TERJEMAH UID KEPADA DATA PENGGUNA SEBENAR
+            for (let tUid of teamUids) {
+                if (tUid === currentUser.uid) continue;
+                const uDoc = await getDoc(doc(db, "mynasab_users", tUid));
                 if (uDoc.exists()) {
                     const dbUser = uDoc.data();
-                    const dbName = (dbUser.name || '').toLowerCase().trim();
-                    
-                    for (let [namaKey, val] of senaraiWaris.entries()) {
+                    let assignedRole = 'Waris (Aktif weCare)';
+                    if (tUid === masterIndukUid) assignedRole = 'Keluarga Utama (Pengundang)';
+                    addWaris(tUid, dbUser.name, dbUser.email, assignedRole);
+                }
+            }
+
+            // Padankan nama manual dengan akaun berhubung (sekiranya ada)
+            for (let link of allLinks) {
+                if (link.uid === currentUser.uid || teamUids.has(link.uid)) continue;
+                const uDoc = await getDoc(doc(db, "mynasab_users", link.uid));
+                if (uDoc.exists()) {
+                    const dbName = (uDoc.data().name || '').toLowerCase().trim();
+                    for (let [namaKey, val] of teamListMap.entries()) {
                         if (namaKey.includes(dbName) || dbName.includes(namaKey)) {
-                            senaraiWaris.set(namaKey, { 
-                                uidKunci: val.uidKunci,
-                                name: dbUser.name, 
-                                email: dbUser.email, 
-                                role: (val.role === 'Waris Jagaan' || val.role === 'Pasangan') ? 'Akaun Berhubung' : val.role
+                            teamListMap.set(namaKey, { 
+                                uidKunci: val.uidKunci, name: uDoc.data().name, 
+                                email: uDoc.data().email, role: 'Akaun Berhubung' 
                             });
                         }
                     }
                 }
             }
 
-            senaraiWaris.forEach((val, namaKey) => {
+            // F. RENDER KE HTML
+            teamListMap.forEach((val, namaKey) => {
                 const bgWarna = val.role.includes('Pengguna Semasa') ? '#f0fdf4' : '#fff'; 
                 teamHtml += `
                 <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:${bgWarna}; border:1px solid var(--line);">
@@ -667,17 +732,16 @@ onAuthStateChanged(auth, async (user) => {
                 </div>`;
             });
             
-            if (senaraiWaris.size === 0) {
+            if (teamListMap.size === 0) {
                 teamHtml += `<div class="card" style="background:#f8fafc; border-color:#e2e8f0; margin-bottom:12px; font-size:13px; color:var(--muted);">Tiada waris dikesan untuk keluarga ini.</div>`;
             }
             document.getElementById('teamList').innerHTML = teamHtml;
 
-            // Render Nota Handover
             muatNotaKeluarga();
 
         } catch(e) { console.error("Ralat muatKeluarga:", e); }
     }
-
+    
     // FUNGSI SIMPAN & MUAT NOTA KELUARGA
     window.simpanNotaKeluarga = async () => {
         const note = document.getElementById('teamNote').value.trim();
