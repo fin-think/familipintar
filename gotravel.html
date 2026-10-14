@@ -34,7 +34,15 @@
 
   /* --- SUSUNAN GRID & FLEXBOX UTK KAD SAMA TINGGI --- */
   .left-column, .right-column {
-    display: flex; flex-direction: column; gap: 16px;
+    display: flex; flex-direction: column; 
+    gap: 20px; /* Jarak tetap 20px antara setiap kad atas dan bawah */
+  }
+
+  /* Kad Utama */
+  .card {
+    background: var(--card); border-radius: 16px; padding: 20px; 
+    box-shadow: var(--shadow); border: 1px solid #F5F5F5;
+    /* margin-bottom dibuang sepenuhnya supaya tak clash dengan gap */
   }
 
   @media (min-width: 768px) {
@@ -42,13 +50,13 @@
     .main-grid-layout { 
       display: grid; 
       grid-template-columns: 1fr 1fr; 
-      gap: 20px; 
+      gap: 20px; /* Jarak tetap 20px antara kolum kiri dan kanan */
       align-items: stretch; /* Memastikan kolum kiri & kanan sama tinggi */
     }
     .header, .countdown-banner, .budget-summary { grid-column: 1 / -1; }
     
     /* Kad Rombongan meregang untuk penuhi ruang kosong di bawahnya */
-    .card-rombongan { flex: 1; display: flex; flex-direction: column; margin-bottom: 0 !important; }
+    .card-rombongan { flex: 1; display: flex; flex-direction: column; }
     .family-check-list { flex: 1; max-height: none !important; }
   }
 
