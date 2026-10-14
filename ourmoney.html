@@ -343,6 +343,8 @@
     const db = getFirestore(app);
     const storage = getStorage(app); 
 
+    localStorage.removeItem('ourmoney_tnc_agreed');
+  
     let currentUser = null;
     let targetPercutian = 0;
     let selectedImageFile = null;
