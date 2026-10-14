@@ -330,19 +330,20 @@
         }
     });
 
-// FUNGSI TRIGGER DROPDOWN BILA PENGGUNA KLIK
+// FUNGSI TRIGGER DROPDOWN
     window.tukarBelahPaparan = () => {
         if (!currentUser) return;
         muatProfilIbuBapa(currentUser.uid);
         muatKeluargaDanNota(currentGroup);
     };
 
-    // 1. PROFIL IBU BAPA (BACA POKOK SENDIRI SAHAJA)
+    // 1. PROFIL IBU BAPA (BACA POKOK SENDIRI SECARA MUTLAK)
     async function muatProfilIbuBapa(uidPengguna) {
         try {
             const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
-            // Setiap pengguna membaca pokok mereka sendiri secara mutlak
-            const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidPengguna)));
+            
+            // Sistem HANYA menyedut data dari pokok pengguna yang sedang log masuk
+            const snapInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
             
             let html = "";
             let dipaparkan = new Set();
@@ -485,59 +486,64 @@
         document.getElementById('senaraiUbat').innerHTML = html || '<div class="empty">Tiada senarai ubat didaftarkan.</div>';
     }
 
-// 4. KELUARGA & NOTA HANDOVER (PENAPISAN TEPAT MENGIKUT PIHAK)
+// 4. KELUARGA & NOTA HANDOVER (TARIK ADIK-BERADIK MENGIKUT PIHAK)
     async function muatKeluargaDanNota(groupId) {
         try {
             const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
             let teamHtml = "<h3 style='font-size:15px; margin-bottom:10px;'>Waris & Penjaga Berdaftar</h3>";
             let senaraiWaris = new Map();
 
-            // 1. Dapatkan semua nod dari pokok pengguna semasa
+            // 1. Tarik secara langsung dari pokok pengguna itu sendiri
             const snapNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
             
-            // 2. Semak status hidup/mati ibu bapa bagi pihak yang dipilih
-            let parentAlive = false;
+            // 2. Tentukan status hidup ibu bapa untuk kedua-dua pihak
+            let kandungHidup = false;
+            let mertuaHidup = false;
+            
             snapNodes.forEach(d => {
                 const rel = (d.data().relationship || '').toLowerCase();
-                const isMeninggal = d.data().status === 'meninggal';
-                if (!isMeninggal) {
-                    if (pilihanBelah === 'induk' && (rel.includes('ayah') || rel.includes('ibu') || rel.includes('bapa') || rel.includes('mak') || rel.includes('abah')) && !rel.includes('mertua')) parentAlive = true;
-                    if (pilihanBelah === 'pasangan' && rel.includes('mertua')) parentAlive = true;
+                if (d.data().status !== 'meninggal') {
+                    if (rel.includes('mertua')) mertuaHidup = true;
+                    else if (rel.includes('ayah') || rel.includes('ibu') || rel.includes('bapa') || rel.includes('mak') || rel.includes('abah')) kandungHidup = true;
                 }
             });
 
-            // 3. Masukkan senarai waris HANYA jika ada ibu bapa yang hidup di pihak tersebut
-            if (parentAlive) {
-                snapNodes.forEach(d => {
-                    const rel = (d.data().relationship || '').toLowerCase();
-                    const nama = d.data().name || '';
+            // 3. Masukkan senarai waris
+            snapNodes.forEach(d => {
+                const rel = (d.data().relationship || '').toLowerCase();
+                const nama = d.data().name || '';
 
-                    let letak = false;
-                    let roleWaris = 'Waris Jagaan';
+                let letak = false;
+                let roleWaris = 'Waris Jagaan';
 
-                    // Logik penapisan ikut belah
-                    if (pilihanBelah === 'induk') {
-                        if (rel === 'diri sendiri') { letak = true; roleWaris = 'Pengguna Semasa'; }
-                        else if ((rel.includes('abang') || rel.includes('kakak') || rel.includes('adik')) && !rel.includes('ipar')) { letak = true; }
-                    } 
-                    else if (pilihanBelah === 'pasangan') {
-                        if (rel === 'diri sendiri') { letak = true; roleWaris = 'Pengguna Semasa'; }
-                        else if (rel === 'suami' || rel === 'isteri') { letak = true; roleWaris = 'Pasangan'; }
-                        else if (rel.includes('ipar')) { letak = true; }
+                if (pilihanBelah === 'induk') {
+                    if (rel === 'diri sendiri') { letak = true; roleWaris = 'Pengguna Semasa (Induk)'; }
+                    else if (rel === 'suami' || rel === 'isteri') { letak = true; roleWaris = 'Pasangan'; }
+                    // Hanya paparkan adik-beradik (kandung) jika ibu/bapa kandung hidup
+                    else if (kandungHidup && (rel.includes('abang') || rel.includes('kakak') || rel.includes('adik')) && !rel.includes('ipar')) {
+                        letak = true;
                     }
-
-                    if (letak) {
-                        senaraiWaris.set(nama.toLowerCase().trim(), { 
-                            uidKunci: d.id,
-                            name: nama, 
-                            email: (roleWaris === 'Pengguna Semasa') ? currentUser.email : 'Dari Famili Tree', 
-                            role: roleWaris 
-                        });
+                } 
+                else if (pilihanBelah === 'pasangan') {
+                    if (rel === 'diri sendiri') { letak = true; roleWaris = 'Pengguna Semasa (Induk)'; }
+                    else if (rel === 'suami' || rel === 'isteri') { letak = true; roleWaris = 'Pasangan'; }
+                    // Hanya paparkan ipar jika ibu/bapa mertua hidup
+                    else if (mertuaHidup && rel.includes('ipar')) {
+                        letak = true;
                     }
-                });
-            }
+                }
 
-            // 4. Padankan emel untuk waris yang sudah daftar weCare
+                if (letak) {
+                    senaraiWaris.set(nama.toLowerCase().trim(), { 
+                        uidKunci: d.id,
+                        name: nama, 
+                        email: (roleWaris.includes('Pengguna Semasa')) ? currentUser.email : 'Dari Famili Tree', 
+                        role: roleWaris 
+                    });
+                }
+            });
+
+            // 4. Padankan E-mel (Jika ahli keluarga dalam Tree tersebut telah daftar weCare)
             const snapLinks1 = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", currentUser.uid), where("status", "==", "aktif")));
             const snapLinks2 = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid), where("status", "==", "aktif")));
             
@@ -560,14 +566,14 @@
                                 uidKunci: val.uidKunci,
                                 name: dbUser.name, 
                                 email: dbUser.email, 
-                                role: (val.role === 'Pengguna Semasa') ? 'Pengguna Semasa' : 'Waris (Aktif weCare)'
+                                role: (val.role === 'Waris Jagaan' || val.role === 'Pasangan') ? 'Waris (Aktif weCare)' : val.role
                             });
                         }
                     }
                 }
             }
 
-            // Render ke UI
+            // Paparkan senarai ke UI
             senaraiWaris.forEach((val, namaKey) => {
                 const bgWarna = val.role.includes('Pengguna Semasa') ? '#f0fdf4' : '#fff'; 
                 teamHtml += `
@@ -585,7 +591,7 @@
             }
             document.getElementById('teamList').innerHTML = teamHtml;
 
-            // Render Nota Handover
+            // Paparkan Nota Handover
             const snapNotes = await getDocs(query(collection(db, "wecare_notes"), where("group_id", "==", groupId)));
             let noteHtml = "<h3 style='font-size:16px; margin:25px 0 10px;'>Sejarah Nota Handover</h3>";
             let notesArr = [];
