@@ -284,6 +284,54 @@
     let currentGroup = null;
     let currentUser = null;
 
+// --- LOGIK PAYWALL ---
+    window.semakStatusLangganan = async (uid) => {
+        try {
+            const userDoc = await getDoc(doc(db, "mynasab_users", uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                const tarikhLuput = data.wecare_expiry_date; 
+                const masaSekarang = new Date().getTime();
+
+                if (!tarikhLuput || tarikhLuput < masaSekarang) {
+                    document.getElementById('modalPaywall').style.display = 'flex';
+                } else {
+                    document.getElementById('modalPaywall').style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error("Ralat semak langganan:", error);
+            document.getElementById('modalPaywall').style.display = 'flex';
+        }
+    };
+
+    // --- LOGIK PAPARAN T&C ---
+    window.semakTnC = () => {
+        const dahSetuju = localStorage.getItem('wecare_tnc_agreed');
+        if (!dahSetuju) {
+            document.getElementById('modalTnC').style.display = 'flex';
+        } else {
+            if (currentUser) window.semakStatusLangganan(currentUser.uid);
+        }
+    };
+
+    // --- KLIK BUTANG SETUJU (EVENT LISTENER) ---
+    // Cara ini kalis ralat untuk <script type="module">
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnSetuju = document.getElementById('btnSetujuTnC');
+        if (btnSetuju) {
+            btnSetuju.addEventListener('click', async () => {
+                localStorage.setItem('wecare_tnc_agreed', 'true');
+                document.getElementById('modalTnC').style.display = 'none';
+                
+                // Lepas setuju, terus semak paywall langganan RM20
+                if (currentUser) {
+                    await window.semakStatusLangganan(currentUser.uid);
+                }
+            });
+        }
+    });
+    
     document.querySelectorAll('.tab').forEach(t => {
         t.addEventListener('click', () => {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -727,8 +775,7 @@ onAuthStateChanged(auth, async (user) => {
                 <p style="margin-top:4px;">Paparan data dikawal ketat mengikut hierarki keluarga (Induk / Pasangan) yang ditetapkan di dalam myNasab bagi menjamin privasi setiap isi rumah.</p>
             </div>
             
-            <button onclick="setujuTnC()" style="width:100%; background:var(--primary); color:#fff; padding:12px; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer;">Saya Faham & Bersetuju</button>
-        </div>
+            <button id="btnSetujuTnC" style="width:100%; background:var(--primary); color:#fff; padding:12px; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer;">Saya Faham & Bersetuju</button>
     </div>   
 
 <!-- MODAL PAYWALL (SEKATAN LANGGANAN TAMAT) -->
