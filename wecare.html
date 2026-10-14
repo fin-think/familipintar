@@ -657,174 +657,165 @@ onAuthStateChanged(auth, async (user) => {
 
    // 4. KELUARGA & NOTA HANDOVER (PIVOT DENGAN PENAPISAN REF_ID)
     async function muatKeluargaDanNota(groupId) {
-        try {
-            const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
-            let teamHtml = "";
-            window.globalTeamMap.clear(); 
-            let teamListMap = window.globalTeamMap;
-
-            let masterIndukUid = currentUser.uid;
-            let sasaranIdPusat = null;
-            let sayaInduk = true;
-
-            const sLinkSaya = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid), where("status", "==", "aktif")));
-            sLinkSaya.forEach(d => {
-                masterIndukUid = d.data().owner_uid;
-                sasaranIdPusat = d.data().sasaran_id;
-                sayaInduk = false;
+    try {
+        const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
+        const saya = currentUser.uid;
+ 
+        window.globalTeamMap.clear();
+        const teamListMap = window.globalTeamMap;
+ 
+        // --- 1. Siapa induk? (sama macam app.js) ---
+        let indukUid = saya;
+        let sasaranIdPusat = null;
+        let sayaInduk = true;
+ 
+        const sLinkSaya = await getDoc(doc(db, "mynasab_links", saya));
+        if (sLinkSaya.exists() && sLinkSaya.data().status === 'aktif') {
+            indukUid = sLinkSaya.data().owner_uid;
+            sasaranIdPusat = sLinkSaya.data().sasaran_id;
+            sayaInduk = false;
+        }
+ 
+        const sPautan = await getDocs(query(
+            collection(db, "mynasab_links"),
+            where("owner_uid", "==", indukUid),
+            where("status", "==", "aktif")
+        ));
+        const pautan = sPautan.docs.map(d => d.data());
+ 
+        const sUser = await getDoc(doc(db, "mynasab_users", saya));
+        const sembunyi = (sUser.exists() && sUser.data().sembunyi) || [];
+ 
+        // --- 2. Ambil nod ---
+        const ambil = async (uid) => {
+            try {
+                const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
+                return s.docs.map(d => ({ ...d.data(), id: d.id }));
+            } catch (e) {
+                console.warn("Tak dapat baca nod", uid, e.message);
+                return [];
+            }
+        };
+ 
+        const nodSaya = await ambil(saya);
+        const nodInduk = sayaInduk ? nodSaya : await ambil(indukUid);
+        const akaun = await Promise.all(pautan.map(async p => ({
+            uid: p.uid,
+            sasaran: p.sasaran_id,
+            nod: p.uid === saya ? nodSaya : await ambil(p.uid)
+        })));
+ 
+        const kelompok = (nod) => {
+            const k = { diri: null, pasangan: [], adikBeradik: [] };
+            nod.forEach(d => {
+                const h = (d.relationship || '').toLowerCase();
+                if (d.is_root) k.diri = d;
+                else if (h.includes('suami') || h.includes('isteri')) k.pasangan.push(d);
+                else if (!h.includes('ipar') && !h.includes('saudara') &&
+                         (h.includes('adik') || h.includes('abang') || h.includes('kakak'))) k.adikBeradik.push(d);
             });
-
-            const sPautan = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", masterIndukUid), where("status", "==", "aktif")));
-            const allLinks = sPautan.docs.map(d => d.data());
-
-            const snapNodesSaya = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
-            let nodesSaya = snapNodesSaya.docs.map(d => ({ ...d.data(), id: d.id }));
-
-            let nodesInduk = nodesSaya;
-            if (!sayaInduk) {
-                const snapNodesInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", masterIndukUid)));
-                nodesInduk = snapNodesInduk.docs.map(d => ({ ...d.data(), id: d.id }));
-            }
-
-            let kandungHidup = false;
-            let mertuaHidup = false;
-            nodesSaya.forEach(d => {
-                const rel = (d.relationship || '').toLowerCase();
-                if (d.status !== 'meninggal') {
-                    if (rel.includes('mertua')) mertuaHidup = true;
-                    else if (rel.match(/ayah|ibu|bapa|mak|abah/)) kandungHidup = true;
-                }
-            });
-
-            const addWaris = (uid, name, email, role) => {
-                let key = name.toLowerCase().trim();
-                if (!teamListMap.has(key) || role.includes('Semasa') || role.includes('Utama')) {
-                    teamListMap.set(key, { uidKunci: uid, name, email, role });
-                }
-            };
-
-            let teamUids = new Set();
-            teamUids.add(currentUser.uid); 
-
-            nodesSaya.forEach(n => {
-                const rel = (n.relationship || '').toLowerCase();
-                if (rel.includes('diri sendiri')) {
-                    addWaris(n.id, n.name, currentUser.email, 'Pengguna Semasa');
-                }
-                if (rel === 'suami' || rel === 'isteri') {
-                    addWaris(n.id, n.name, n.email || 'Tiada E-mel', 'Pasangan');
-                }
-            });
-
-            if (pilihanBelah === 'induk' && kandungHidup) {
-                nodesSaya.forEach(n => {
-                    const rel = (n.relationship || '').toLowerCase();
-                    if ((rel.includes('abang') || rel.includes('kakak') || rel.includes('adik') || rel === 'adik-beradik') && !rel.includes('ipar')) {
-                        addWaris(n.id, n.name, n.email || 'Tiada E-mel', 'Waris Jagaan');
-                    }
-                });
-
-                if (sayaInduk) {
-                    allLinks.forEach(link => {
-                        const sasaranNode = nodesInduk.find(n => n.id === link.sasaran_id);
-                        if (sasaranNode) {
-                            const rel = (sasaranNode.relationship || '').toLowerCase();
-                            if ((rel.includes('abang') || rel.includes('kakak') || rel.includes('adik') || rel === 'adik-beradik') && !rel.includes('ipar')) {
-                                teamUids.add(link.uid);
-                            }
-                        }
-                    });
-                } else {
-                    teamUids.add(masterIndukUid); 
-                    const mySasaranNode = nodesInduk.find(n => n.id === sasaranIdPusat);
-                    if (mySasaranNode) {
-                        const myRefId = mySasaranNode.ref_id; 
-                        const myRelIsIpar = (mySasaranNode.relationship || '').toLowerCase().includes('ipar');
-                        
-                        allLinks.forEach(link => {
-                            const sNode = nodesInduk.find(n => n.id === link.sasaran_id);
-                            if (sNode) {
-                                // Guna Ref_ID untuk memastikan dia betul-betul adik beradik Adi
-                                if (myRefId && sNode.ref_id === myRefId) {
-                                    teamUids.add(link.uid);
-                                } else if (!myRefId) {
-                                    const relIsIpar = (sNode.relationship || '').toLowerCase().includes('ipar');
-                                    if (myRelIsIpar === relIsIpar) teamUids.add(link.uid);
-                                }
-                            }
-                        });
-                    }
-                }
-            } 
-            else if (pilihanBelah === 'pasangan' && mertuaHidup) {
-                nodesSaya.forEach(n => {
-                    const rel = (n.relationship || '').toLowerCase();
-                    if (rel.includes('ipar')) {
-                        addWaris(n.id, n.name, n.email || 'Tiada E-mel', 'Waris Jagaan');
-                    }
-                });
-
-                if (sayaInduk) {
-                    allLinks.forEach(link => {
-                        const sasaranNode = nodesInduk.find(n => n.id === link.sasaran_id);
-                        if (sasaranNode) {
-                            const rel = (sasaranNode.relationship || '').toLowerCase();
-                            if (rel.includes('ipar')) {
-                                teamUids.add(link.uid);
-                            }
-                        }
-                    });
-                }
-            }
-
-            for (let tUid of teamUids) {
-                if (tUid === currentUser.uid) continue; 
-                const uDoc = await getDoc(doc(db, "mynasab_users", tUid));
-                if (uDoc.exists()) {
-                    const dbUser = uDoc.data();
-                    let assignedRole = 'Waris (Aktif weCare)';
-                    if (tUid === masterIndukUid) assignedRole = 'Keluarga Utama (Pengundang)';
-                    addWaris(tUid, dbUser.name, dbUser.email, assignedRole);
-                }
-            }
-
-            for (let link of allLinks) {
-                if (link.uid === currentUser.uid || teamUids.has(link.uid)) continue;
-                const uDoc = await getDoc(doc(db, "mynasab_users", link.uid));
-                if (uDoc.exists()) {
-                    const dbName = (uDoc.data().name || '').toLowerCase().trim();
-                    for (let [namaKey, val] of teamListMap.entries()) {
-                        if (namaKey.includes(dbName) || dbName.includes(namaKey)) {
-                            teamListMap.set(namaKey, { 
-                                uidKunci: val.uidKunci, name: uDoc.data().name, 
-                                email: uDoc.data().email, role: 'Akaun Berhubung' 
-                            });
-                        }
-                    }
-                }
-            }
-
-            teamListMap.forEach((val, namaKey) => {
-                const bgWarna = val.role.includes('Pengguna Semasa') ? '#f0fdf4' : '#fff'; 
-                teamHtml += `
-                <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:${bgWarna}; border:1px solid var(--line);">
-                    <div>
-                        <div style="font-weight:700; color:var(--ink);">${val.name}</div>
-                        <div style="font-size:12px; color:var(--muted);">${val.email}</div>
-                    </div>
-                    <span style="font-size:11px; font-weight:700; color:var(--primary); background:#e8f8f5; padding:4px 8px; border-radius:6px; text-align:right;">${val.role}</span>
-                </div>`;
-            });
-            
-            if (teamListMap.size === 0) {
-                teamHtml += `<div class="card" style="background:#f8fafc; border-color:#e2e8f0; margin-bottom:12px; font-size:13px; color:var(--muted);">Tiada waris dikesan untuk keluarga ini.</div>`;
-            }
-            document.getElementById('teamList').innerHTML = teamHtml;
-
+            return k;
+        };
+ 
+        const kPusat = kelompok(nodSaya);
+        if (!kPusat.diri) {
+            document.getElementById('teamList').innerHTML =
+                `<div class="card" style="background:#f8fafc; font-size:13px; color:var(--muted);">Data akaun tidak dijumpai.</div>`;
             muatNotaKeluarga();
-
-        } catch(e) { console.error("Ralat muatKeluarga:", e); }
-    }
+            return;
+        }
+ 
+        // --- 3. Bantuan ---
+        const tarikh = (n) => (n && n.dob) ? new Date(n.dob).getTime() : Infinity;
+        const banding = (x, y) => x.t < y.t ? -1 : (x.t > y.t ? 1 : 0);
+ 
+        const emelAkaun = async (uid) => {
+            try {
+                const s = await getDoc(doc(db, "mynasab_users", uid));
+                return (s.exists() && s.data().email) || 'Tiada E-mel';
+            } catch (e) { return 'Tiada E-mel'; }
+        };
+ 
+        const tambah = (kunci, nama, email, role) => {
+            const key = (nama || '').toLowerCase().trim();
+            if (!key || teamListMap.has(key)) return;
+            teamListMap.set(key, { uidKunci: kunci, name: nama, email: email || 'Tiada E-mel', role });
+        };
+ 
+        // Kumpul adik-beradik untuk satu "sasaran" (sama seperti binaSisi dalam app.js)
+        const tambahAdikBeradik = async (sasaranId, role, termasukManual) => {
+            const calon = [];
+ 
+            // a) Akaun berpaut yang menyasarkan nod ini
+            akaun.forEach(a => {
+                if (a.sasaran !== sasaranId || a.uid === saya) return;
+                if (sembunyi.includes(a.uid)) return;
+                const k = kelompok(a.nod);
+                if (!k.diri) return;
+                calon.push({ t: tarikh(k.diri), kunci: a.uid, nama: k.diri.name, akaunUid: a.uid });
+            });
+ 
+            // b) Adik-beradik manual (ditambah dalam akaun sendiri) - belah saya sahaja
+            if (termasukManual) {
+                kPusat.adikBeradik.forEach(n => {
+                    calon.push({ t: tarikh(n), kunci: n.id, nama: n.name, email: n.email });
+                });
+            }
+ 
+            calon.sort(banding);
+            for (const c of calon) {
+                const email = c.akaunUid ? await emelAkaun(c.akaunUid) : c.email;
+                tambah(c.kunci, c.nama, email, role);
+            }
+        };
+ 
+        // --- 4. Bina senarai ikut pilihan belah ---
+        if (pilihanBelah === 'induk') {
+            tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa');
+            kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan'));
+ 
+            const matchId = sayaInduk ? kPusat.diri.id : sasaranIdPusat;
+            await tambahAdikBeradik(matchId, 'Adik-beradik', true);
+ 
+            // Jika saya bukan induk (cth Adi), keluarga pengundang (Anis & Awi) juga masuk
+            if (!sayaInduk && !sembunyi.includes(indukUid)) {
+                const kInduk = kelompok(nodInduk);
+                const sasaranNode = nodInduk.find(n => n.id === sasaranIdPusat);
+                if (sasaranNode) tambah(sasaranNode.id, sasaranNode.name, sasaranNode.email, 'Adik-beradik');
+                if (kInduk.diri) tambah(kInduk.diri.id, kInduk.diri.name, await emelAkaun(indukUid), 'Ipar');
+            }
+        } else {
+            kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan'));
+            tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa');
+ 
+            for (const p of kPusat.pasangan) {
+                await tambahAdikBeradik(p.id, 'Ipar', false);
+            }
+        }
+ 
+        // --- 5. Paparan ---
+        let teamHtml = "";
+        teamListMap.forEach((val) => {
+            const bgWarna = val.role.includes('Pengguna Semasa') ? '#f0fdf4' : '#fff';
+            teamHtml += `
+            <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:${bgWarna}; border:1px solid var(--line);">
+                <div>
+                    <div style="font-weight:700; color:var(--ink);">${val.name}</div>
+                    <div style="font-size:12px; color:var(--muted);">${val.email}</div>
+                </div>
+                <span style="font-size:11px; font-weight:700; color:var(--primary); background:#e8f8f5; padding:4px 8px; border-radius:6px; text-align:right;">${val.role}</span>
+            </div>`;
+        });
+ 
+        if (teamListMap.size === 0) {
+            teamHtml = `<div class="card" style="background:#f8fafc; border-color:#e2e8f0; margin-bottom:12px; font-size:13px; color:var(--muted);">Tiada waris dikesan untuk keluarga ini.</div>`;
+        }
+        document.getElementById('teamList').innerHTML = teamHtml;
+ 
+        muatNotaKeluarga();
+ 
+    } catch (e) { console.error("Ralat muatKeluarga:", e); }
+}
     
     // FUNGSI SIMPAN & MUAT NOTA KELUARGA
     window.simpanNotaKeluarga = async () => {
