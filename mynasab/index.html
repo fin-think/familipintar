@@ -468,206 +468,217 @@
     </div>
 
 <!-- Modal Tambah Ahli -->
-    <div id="modalTambahAhli" class="modal-overlay hidden">
-        <div class="modal-box" style="max-height: 85vh; overflow-y: auto;">
-            <h2 style="margin-bottom: 15px; color: #2c3e50;">Tambah Ahli Keluarga</h2>
+<div id="modalTambahAhli" class="modal-overlay hidden">
+    <div class="modal-box" style="max-height: 85vh; overflow-y: auto;">
+        <h2 style="margin-bottom: 15px; color: #2c3e50;">Tambah Ahli Keluarga</h2>
+        
+        <form id="formTambahAhli">
+            <div class="input-group">
+                <label>Nama Lengkap Individu</label>
+                <input type="text" id="tambahNama" required placeholder="Cth: Ahmad Bin Ali">
+            </div>
             
-            <form id="formTambahAhli">
-                <div class="input-group">
-                    <label>Nama Lengkap Individu</label>
-                    <input type="text" id="tambahNama" required placeholder="Cth: Ahmad Bin Ali">
-                </div>
-                
-                <div class="input-group">
-                    <label>Hubungan (dengan anda)</label>
-                    <select id="tambahHubungan" required>
-                        <option value="">-- Pilih Hubungan --</option>
-                        
-                        <optgroup label="Leluhur & Moyang (Percuma)">
-                            <option value="Cilawagi">Cilawagi (Peringkat ke-5) - Percuma</option>
-                            <option value="Cakawari">Cakawari (Datuk kpd Moyang) - Percuma</option>
-                            <option value="Buyut">Buyut (Ibubapa kpd Moyang) - Percuma</option>
-                            <option value="Moyang">Moyang (Ibubapa kpd Datuk) - Percuma</option>
-                            <option value="Datuk">Datuk - Percuma</option>
-                            <option value="Nenek">Nenek - Percuma</option>
-                            <option value="Ayah">Ayah - Percuma</option>
-                            <option value="Ibu">Ibu - Percuma</option>
-                        </optgroup>
-                        
-                        <optgroup label="Keluarga Utama & In-Law">
-                            <option value="Suami">Suami - Percuma</option>
-                            <option value="Isteri">Isteri - Percuma</option>
-                            <option value="Bapa Mertua">Bapa Mertua - Tolak 5 Kredit</option>
-                            <option value="Ibu Mertua">Ibu Mertua - Tolak 5 Kredit</option>
-                        </optgroup>
-                        
-                        <optgroup label="Keturunan & Generasi Bawah">
-                            <option value="Anak">Anak (5 Terawal Percuma, Ke-6: 1 Kredit)</option>
-                            <option value="Menantu">Menantu (Pasangan Anak) - Tolak 1 Kredit</option>
-                            <option value="Cucu">Cucu - Tolak 1 Kredit</option>
-                            <option value="Pasangan Cucu">Pasangan Cucu - Tolak 1 Kredit</option>
-                            <option value="Cicit">Cicit - Tolak 1 Kredit</option>
-                            <option value="Piut / Cece">Piut / Cece - Tolak 1 Kredit</option>
-                            <option value="Oneng-oneng">Oneng-oneng - Tolak 1 Kredit</option>
-                        </optgroup>
+            <div class="input-group">
+                <label>Hubungan (dengan anda)</label>
+                <select id="tambahHubungan" required>
+                    <option value="">-- Pilih Hubungan --</option>
+                    
+                    <optgroup label="Leluhur & Moyang (Percuma)">
+                        <option value="Cilawagi">Cilawagi (Peringkat ke-5) - Percuma</option>
+                        <option value="Cakawari">Cakawari (Datuk kpd Moyang) - Percuma</option>
+                        <option value="Buyut">Buyut (Ibubapa kpd Moyang) - Percuma</option>
+                        <option value="Moyang">Moyang (Ibubapa kpd Datuk) - Percuma</option>
+                        <option value="Datuk">Datuk - Percuma</option>
+                        <option value="Nenek">Nenek - Percuma</option>
+                        <option value="Ayah">Ayah - Percuma</option>
+                        <option value="Ibu">Ibu - Percuma</option>
+                    </optgroup>
+                    
+                    <optgroup label="Keluarga Utama & In-Law">
+                        <option value="Suami">Suami - Percuma</option>
+                        <option value="Isteri">Isteri - Percuma</option>
+                        <option value="Bapa Mertua">Bapa Mertua - Tolak 5 Kredit</option>
+                        <option value="Ibu Mertua">Ibu Mertua - Tolak 5 Kredit</option>
+                    </optgroup>
+                    
+                    <optgroup label="Keturunan & Generasi Bawah">
+                        <option value="Anak">Anak (5 Terawal Percuma, Ke-6: 1 Kredit)</option>
+                        <option value="Menantu">Menantu (Pasangan Anak) - Tolak 1 Kredit</option>
+                        <option value="Cucu">Cucu - Tolak 1 Kredit</option>
+                        <option value="Pasangan Cucu">Pasangan Cucu - Tolak 1 Kredit</option>
+                        <option value="Cicit">Cicit - Tolak 1 Kredit</option>
+                        <option value="Piut / Cece">Piut / Cece - Tolak 1 Kredit</option>
+                        <option value="Oneng-oneng">Oneng-oneng - Tolak 1 Kredit</option>
+                    </optgroup>
 
-<optgroup label="Adik Beradik & Keluarganya">
-    <option value="Abang">Abang - Tolak 1 Kredit</option>
-    <option value="Kakak">Kakak - Tolak 1 Kredit</option>
-    <option value="Adik">Adik - Tolak 1 Kredit</option>
-    <option value="Ipar">Ipar - Tolak 1 Kredit</option>
-    <option value="Anak Saudara">Anak Saudara - Tolak 1 Kredit</option>
-    <option value="Cucu Saudara">Cucu Saudara - Tolak 1 Kredit</option>
-</optgroup>
-                        
-                    </select>
-                </div>
-                
-<div class="input-group">
-    <label>Jantina</label>
-    <select id="tambahJantina" required>
-        <option value="">-- Pilih Jantina --</option>
-        <option value="L">Lelaki</option>
-        <option value="P">Perempuan</option>
-    </select>
-    <small style="color:#7f8c8d;">Ayah/Suami/Bapa Mertua dan Ibu/Isteri/Ibu Mertua auto dipilih. Anak, pilih sendiri.</small>
-</div>
+                    <optgroup label="Adik Beradik & Keluarganya">
+                        <option value="Abang">Abang - Tolak 1 Kredit</option>
+                        <option value="Kakak">Kakak - Tolak 1 Kredit</option>
+                        <option value="Adik">Adik - Tolak 1 Kredit</option>
+                        <option value="Ipar">Ipar - Tolak 1 Kredit</option>
+                        <option value="Anak Saudara">Anak Saudara - Tolak 1 Kredit</option>
+                        <option value="Cucu Saudara">Cucu Saudara - Tolak 1 Kredit</option>
+                    </optgroup>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label>Jantina</label>
+                <select id="tambahJantina" required>
+                    <option value="">-- Pilih Jantina --</option>
+                    <option value="L">Lelaki</option>
+                    <option value="P">Perempuan</option>
+                </select>
+                <small style="color:#7f8c8d;">Ayah/Suami/Bapa Mertua dan Ibu/Isteri/Ibu Mertua auto dipilih. Anak, pilih sendiri.</small>
+            </div>
 
-<div class="input-group">
-    <label>Status</label>
-    <div style="display:flex; gap:20px;">
-        <label style="display:flex; gap:6px; align-items:center; margin:0; color:#2c3e50;">
-            <input type="radio" name="tambahStatus" value="hidup" checked style="width:auto;" onchange="window.tukarStatus('tambah')"> Hidup
-        </label>
-        <label style="display:flex; gap:6px; align-items:center; margin:0; color:#2c3e50;">
-            <input type="radio" name="tambahStatus" value="meninggal" style="width:auto;" onchange="window.tukarStatus('tambah')"> Meninggal dunia
-        </label>
+            <div class="input-group">
+                <label>Status</label>
+                <div style="display:flex; gap:20px;">
+                    <label style="display:flex; gap:6px; align-items:center; margin:0; color:#2c3e50;">
+                        <input type="radio" name="tambahStatus" value="hidup" checked style="width:auto;" onchange="window.tukarStatus('tambah')"> Hidup
+                    </label>
+                    <label style="display:flex; gap:6px; align-items:center; margin:0; color:#2c3e50;">
+                        <input type="radio" name="tambahStatus" value="meninggal" style="width:auto;" onchange="window.tukarStatus('tambah')"> Meninggal dunia
+                    </label>
+                </div>
+            </div>
+            
+            <div class="input-group hidden" id="groupRujukan" style="background:#eef7ff; padding:10px; border-radius:8px; border:1px solid #9ccbf0;">
+                <label>Ibu/bapa kepada siapa?</label>
+                <select id="tambahRujukan"></select>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1;" id="tambahDobGroup">
+                    <label>Tarikh Lahir</label>
+                    <input type="date" id="tambahDob">
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>No. Telefon</label>
+                    <input type="tel" id="tambahTelefon" placeholder="Pilihan">
+                </div>
+            </div>
+
+            <!-- RUANGAN E-MEL TAMBAHAN -->
+            <div class="input-group">
+                <label>E-mel</label>
+                <input type="email" id="tambahEmail" placeholder="Cth: nama@email.com (Pilihan)">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>Bandar</label>
+                    <input type="text" id="tambahBandar" placeholder="Pilihan">
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>Negeri</label>
+                    <input type="text" id="tambahNegeri" placeholder="Pilihan">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Gambar Profil (Premium: Caj 1 Kredit)</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="file" id="tambahGambar" accept="image/*" style="flex: 1;">
+                    <button type="button" onclick="document.getElementById('tambahGambar').value = ''" style="background: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; white-space: nowrap;">X Padam Pilihan</button>
+                </div>
+                <small style="color: #7f8c8d;">*Pilihan: Biarkan kosong jika tiada gambar (Ikon siluet akan digunakan).</small>
+            </div>
+            
+            <button type="submit" class="btn-primary" style="background-color: #27ae60; margin-top: 15px;">Simpan Ahli</button>
+            <button type="button" onclick="tutupModalBorang()" style="background:transparent; border:none; color:#7f8c8d; width:100%; margin-top:10px; cursor:pointer;">Batal</button>
+        </form>
     </div>
 </div>
-                
-<div class="input-group hidden" id="groupRujukan" style="background:#eef7ff; padding:10px; border-radius:8px; border:1px solid #9ccbf0;">
-    <label>Ibu/bapa kepada siapa?</label>
-    <select id="tambahRujukan"></select>
-</div>
-                
-                <div style="display: flex; gap: 10px;">
-                    <div class="input-group" style="flex: 1;" id="tambahDobGroup">
-                        <label>Tarikh Lahir</label>
-                        <input type="date" id="tambahDob">
-                    </div>
-                    <div class="input-group" style="flex: 1;">
-                        <label>No. Telefon</label>
-                        <input type="tel" id="tambahTelefon" placeholder="Pilihan">
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 10px;">
-                    <div class="input-group" style="flex: 1;">
-                        <label>Bandar</label>
-                        <input type="text" id="tambahBandar" placeholder="Pilihan">
-                    </div>
-                    <div class="input-group" style="flex: 1;">
-                        <label>Negeri</label>
-                        <input type="text" id="tambahNegeri" placeholder="Pilihan">
-                    </div>
-                </div>
-
-               <div class="input-group">
-                    <label>Gambar Profil (Premium: Caj 1 Kredit)</label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="file" id="tambahGambar" accept="image/*" style="flex: 1;">
-                        <button type="button" onclick="document.getElementById('tambahGambar').value = ''" style="background: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; white-space: nowrap;">X Padam Pilihan</button>
-                    </div>
-                    <small style="color: #7f8c8d;">*Pilihan: Biarkan kosong jika tiada gambar (Ikon siluet akan digunakan).</small>
-                </div>
-                
-                <button type="submit" class="btn-primary" style="background-color: #27ae60; margin-top: 15px;">Simpan Ahli</button>
-                <button type="button" onclick="tutupModalBorang()" style="background:transparent; border:none; color:#7f8c8d; width:100%; margin-top:10px; cursor:pointer;">Batal</button>
-            </form>
-        </div>
-    </div>
-
+    
     <!-- Modal Kemaskini Profil (Edit) -->
-    <div id="modalEditAhli" class="modal-overlay hidden">
-        <div class="modal-box" style="max-height: 85vh; overflow-y: auto;">
-            <h2 style="margin-bottom: 15px; color: #2c3e50;">Kemaskini Profil</h2>
-            <form id="formEditAhli">
-                <input type="hidden" id="editAhliId">
-                
-                <!-- Kotak ini HANYA MUNCUL jika edit Diri Sendiri (Ketua Keluarga) -->
-                <div class="input-group hidden" id="groupEditAkaun" style="background: #fdf2e9; padding: 10px; border-radius: 8px; border: 1px solid #e67e22;">
-                    <label style="color: #d35400; font-weight: bold;">Nama Akaun Keluarga</label>
-                    <input type="text" id="editAkaunKeluarga" placeholder="Cth: Dahanis Famili">
-                    <small style="color: #e67e22;">Ini adalah nama sistem akaun anda di penjuru atas kanan.</small>
-                </div>
+<div id="modalEditAhli" class="modal-overlay hidden">
+    <div class="modal-box" style="max-height: 85vh; overflow-y: auto;">
+        <h2 style="margin-bottom: 15px; color: #2c3e50;">Kemaskini Profil</h2>
+        <form id="formEditAhli">
+            <input type="hidden" id="editAhliId">
+            
+            <!-- Kotak ini HANYA MUNCUL jika edit Diri Sendiri (Ketua Keluarga) -->
+            <div class="input-group hidden" id="groupEditAkaun" style="background: #fdf2e9; padding: 10px; border-radius: 8px; border: 1px solid #e67e22;">
+                <label style="color: #d35400; font-weight: bold;">Nama Akaun Keluarga</label>
+                <input type="text" id="editAkaunKeluarga" placeholder="Cth: Dahanis Famili">
+                <small style="color: #e67e22;">Ini adalah nama sistem akaun anda di penjuru atas kanan.</small>
+            </div>
 
-                <div class="input-group">
-                    <label>Nama Lengkap Individu</label>
-                    <input type="text" id="editAhliNama" required>
-                </div>
-                
-                <div class="input-group">
-                    <label>Hubungan (Ketetapan Sistem)</label>
-                    <input type="text" id="editAhliHubungan" disabled style="background-color: #f8f9f9; color: #7f8c8d; font-weight: bold; cursor: not-allowed;">
-                </div>
-                
-<div class="input-group">
-    <label>Jantina</label>
-    <select id="editAhliJantina" required>
-        <option value="">-- Pilih Jantina --</option>
-        <option value="L">Lelaki</option>
-        <option value="P">Perempuan</option>
-    </select>
-</div>
+            <div class="input-group">
+                <label>Nama Lengkap Individu</label>
+                <input type="text" id="editAhliNama" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Hubungan (Ketetapan Sistem)</label>
+                <input type="text" id="editAhliHubungan" disabled style="background-color: #f8f9f9; color: #7f8c8d; font-weight: bold; cursor: not-allowed;">
+            </div>
+            
+            <div class="input-group">
+                <label>Jantina</label>
+                <select id="editAhliJantina" required>
+                    <option value="">-- Pilih Jantina --</option>
+                    <option value="L">Lelaki</option>
+                    <option value="P">Perempuan</option>
+                </select>
+            </div>
 
-<div class="input-group">
-    <label>Status</label>
-    <div style="display:flex; gap:20px;">
-        <label style="display:flex; gap:6px; align-items:center; margin:0; color:#2c3e50;">
-            <input type="radio" name="editStatus" value="hidup" checked style="width:auto;" onchange="window.tukarStatus('edit')"> Hidup
-        </label>
-        <label style="display:flex; gap:6px; align-items:center; margin:0; color:#2c3e50;">
-            <input type="radio" name="editStatus" value="meninggal" style="width:auto;" onchange="window.tukarStatus('edit')"> Meninggal dunia
-        </label>
+            <div class="input-group">
+                <label>Status</label>
+                <div style="display:flex; gap:20px;">
+                    <label style="display:flex; gap:6px; align-items:center; margin:0; color:#2c3e50;">
+                        <input type="radio" name="editStatus" value="hidup" checked style="width:auto;" onchange="window.tukarStatus('edit')"> Hidup
+                    </label>
+                    <label style="display:flex; gap:6px; align-items:center; margin:0; color:#2c3e50;">
+                        <input type="radio" name="editStatus" value="meninggal" style="width:auto;" onchange="window.tukarStatus('edit')"> Meninggal dunia
+                    </label>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1;" id="editDobGroup">
+                    <label>Tarikh Lahir</label>
+                    <input type="date" id="editAhliDob">
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>No. Telefon</label>
+                    <input type="tel" id="editAhliTelefon">
+                </div>
+            </div>
+
+            <!-- RUANGAN E-MEL EDIT TAMBAHAN -->
+            <div class="input-group">
+                <label>E-mel</label>
+                <input type="email" id="editAhliEmail" placeholder="Cth: nama@email.com">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>Bandar</label>
+                    <input type="text" id="editAhliBandar">
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>Negeri</label>
+                    <input type="text" id="editAhliNegeri">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Tukar Gambar Profil (Premium: Caj 1 Kredit)</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="file" id="editAhliGambar" accept="image/*" style="flex: 1;">
+                    <button type="button" onclick="document.getElementById('editAhliGambar').value = ''" style="background: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; white-space: nowrap;">X Padam Pilihan</button>
+                </div>
+                <small style="color: #7f8c8d;">Biarkan kosong jika tidak mahu tukar gambar.</small>
+            </div>
+            
+            <button type="submit" class="btn-primary" style="background-color: #2980b9; margin-top: 15px;">Simpan Perubahan</button>
+            <button type="button" onclick="document.getElementById('modalEditAhli').classList.add('hidden')" style="background:transparent; border:none; color:#7f8c8d; width:100%; margin-top:10px; cursor:pointer;">Batal</button>
+        </form>
     </div>
 </div>
-                
-                <div style="display: flex; gap: 10px;">
-                    <div class="input-group" style="flex: 1;" id="editDobGroup">
-                        <label>Tarikh Lahir</label>
-                        <input type="date" id="editAhliDob">
-                    </div>
-                    <div class="input-group" style="flex: 1;">
-                        <label>No. Telefon</label>
-                        <input type="tel" id="editAhliTelefon">
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 10px;">
-                    <div class="input-group" style="flex: 1;">
-                        <label>Bandar</label>
-                        <input type="text" id="editAhliBandar">
-                    </div>
-                    <div class="input-group" style="flex: 1;">
-                        <label>Negeri</label>
-                        <input type="text" id="editAhliNegeri">
-                    </div>
-                </div>
-
-               <div class="input-group">
-                    <label>Tukar Gambar Profil (Premium: Caj 1 Kredit)</label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="file" id="editAhliGambar" accept="image/*" style="flex: 1;">
-                        <button type="button" onclick="document.getElementById('editAhliGambar').value = ''" style="background: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; white-space: nowrap;">X Padam Pilihan</button>
-                    </div>
-                    <small style="color: #7f8c8d;">Biarkan kosong jika tidak mahu tukar gambar.</small>
-                </div>
-                
-                <button type="submit" class="btn-primary" style="background-color: #2980b9; margin-top: 15px;">Simpan Perubahan</button>
-                <button type="button" onclick="document.getElementById('modalEditAhli').classList.add('hidden')" style="background:transparent; border:none; color:#7f8c8d; width:100%; margin-top:10px; cursor:pointer;">Batal</button>
-            </form>
-        </div>
-    </div>
 
 <div id="modalJemput" class="modal-overlay hidden">
     <div class="modal-box">
