@@ -316,8 +316,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    // IMPORT STORAGE UNTUK GAMBAR
+    // KEMAS KINI: Tambah 'addDoc' untuk cipta rekod baru dengan betul
+    import { getFirestore, doc, setDoc, addDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
     const firebaseConfig = {
@@ -333,15 +333,20 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app); // INISIASI STORAGE
+    const storage = getStorage(app); 
 
     let currentUser = null;
     let targetPercutian = 0;
     let selectedImageFile = null;
 
-    const bulanIniDate = new Date();
-    document.getElementById('txnDate').value = bulanIniDate.toISOString().split('T')[0];
-    document.getElementById('label-bulan-semasa').innerText = bulanIniDate.toLocaleString('ms-MY', { month: 'long', year: 'numeric' });
+    // --- PEMBAIKAN ISU TIMEZONE (WAKTU MALAYSIA) ---
+    const todayLocal = new Date();
+    const localOffset = todayLocal.getTimezoneOffset() * 60000;
+    const localDateStr = new Date(todayLocal.getTime() - localOffset).toISOString().split('T')[0]; // Format YYYY-MM-DD
+    const strBulanIni = localDateStr.substring(0, 7); // Format YYYY-MM (Kunci Tapisan Bulan Semasa)
+
+    document.getElementById('txnDate').value = localDateStr;
+    document.getElementById('label-bulan-semasa').innerText = todayLocal.toLocaleString('ms-MY', { month: 'long', year: 'numeric' });
 
     // Kategori Pilihan
     const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Pakaian", "Lain-lain"];
@@ -505,12 +510,12 @@
         if(!currentUser) return;
 
         const btn = document.getElementById('btn-save-txn');
-        btn.disabled = true; btn.innerText = "Memuat Naik & Menyimpan...";
+        btn.disabled = true; btn.innerText = "Menyimpan...";
 
         try {
             let imgUrl = "";
-            // Jika user ada pilih gambar, upload ke Firebase Storage dahulu
             if (selectedImageFile) {
+                btn.innerText = "Memuat Naik Resit...";
                 const storageRef = ref(storage, `ourmoney_receipts/${currentUser.uid}_${Date.now()}_${selectedImageFile.name}`);
                 await uploadBytes(storageRef, selectedImageFile);
                 imgUrl = await getDownloadURL(storageRef);
@@ -523,11 +528,12 @@
                 date: document.getElementById('txnDate').value,
                 amount: parseFloat(document.getElementById('txnAmount').value),
                 note: document.getElementById('txnNote').value.trim(),
-                receipt_url: imgUrl, // Masukkan URL gambar (boleh jadi "" jika tiada)
+                receipt_url: imgUrl, 
                 created_at: Date.now()
             };
 
-            await setDoc(doc(collection(db, "ourmoney_transactions")), txnData);
+            // GUNA addDoc UNTUK DOKUMEN BARU
+            await addDoc(collection(db, "ourmoney_transactions"), txnData);
             
             // Reset Borang
             document.getElementById('txnAmount').value = '';
@@ -535,7 +541,15 @@
             window.buangGambar();
             
             muatDataOurMoney();
-        } catch (err) { alert("Gagal menyimpan rekod: " + err.message); }
+        } catch (err) { 
+            console.error(err);
+            // PAPARKAN RALAT JIKA KENA SEKAT DENGAN FIRESTORE RULES
+            if(err.code === "permission-denied" || err.message.includes("permission")) {
+                alert("Ralat Firebase: Database menyekat penyimpanan rekod ini. Sila pastikan tetapan 'Rules' Firestore bos membenarkan tulis (write) ke modul 'ourmoney_transactions'.");
+            } else {
+                alert("Gagal menyimpan rekod: " + err.message); 
+            }
+        }
         
         btn.disabled = false; btn.innerText = "💾 Simpan Rekod";
     });
@@ -544,7 +558,6 @@
     async function muatDataOurMoney() {
         if(!currentUser) return;
         try {
-            const strBulanIni = bulanIniDate.toISOString().substring(0, 7); 
             const q = query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid));
             const snap = await getDocs(q);
 
@@ -554,6 +567,7 @@
 
             snap.forEach(d => {
                 const data = d.data();
+                // Tapis rekod supaya padan dengan rentetan YYYY-MM (strBulanIni)
                 if (data.date && data.date.startsWith(strBulanIni)) {
                     listSemasa.push({ id: d.id, ...data });
                 }
@@ -570,7 +584,6 @@
                 const amtPrefix = isOut ? '- RM' : '+ RM';
                 const tarikhFormat = t.date.split('-').reverse().join('/');
                 
-                // HTML Icon Resit (Bila klik, buka gambar resit tab baru)
                 const resitHtml = t.receipt_url 
                     ? `<a href="${t.receipt_url}" target="_blank" class="resit-link">📸 Resit</a>` 
                     : '';
