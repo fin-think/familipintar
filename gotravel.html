@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="ms">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>✈️ Perancang Percutian</title>
+<title>🌴 JomBercuti - Perancang & Kewangan</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -28,73 +28,44 @@
     pointer-events: none; z-index: 0;
   }
 
- /* --- KONFIGURASI LEBAR PENUH & GRID ANJAL (SAMA SEPERTI WECARE) --- */
   .container { 
-    max-width: 1280px; /* Kelebaran standard max-w-7xl */
-    margin: 0 auto; 
-    padding: 24px 16px 80px; 
-    position: relative; 
-    z-index: 1; 
+    max-width: 1280px; margin: 0 auto; padding: 24px 16px 80px; position: relative; z-index: 1; 
   }
 
-  /* Susunan Grid 2 Kolum untuk Skrin Besar (Tablet & Desktop) */
   @media (min-width: 768px) {
-    .container {
-      padding-left: 24px;
-      padding-right: 24px;
-    }
-
-    /* Membahagikan kandungan utama kepada 2 kolum utama */
-    .main-grid-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      align-items: start;
-    }
-
-    /* Pengepala & Undur detik mengambil lebar penuh */
-    .header, .countdown-banner {
-      grid-column: 1 / -1;
-    }
-
-    /* Ringkasan Bajet mengambil lebar penuh di bahagian bawah */
-    .budget-summary {
-      grid-column: 1 / -1;
-    }
+    .container { padding-left: 24px; padding-right: 24px; }
+    .main-grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    .header, .countdown-banner, .budget-summary { grid-column: 1 / -1; }
   }
 
-  @media (min-width: 1024px) {
-    .container {
-      padding-left: 32px;
-      padding-right: 32px;
-    }
-  }
+  @media (min-width: 1024px) { .container { padding-left: 32px; padding-right: 32px; } }
   
   /* Pengepala */
-  .header { text-align: center; padding: 10px 0 20px; }
+  .header { text-align: center; padding: 10px 0 20px; position: relative; }
   .header h1 {
-    font-family: 'Baloo 2', cursive; font-size: 2rem; font-weight: 800;
+    font-family: 'Baloo 2', cursive; font-size: 2.2rem; font-weight: 800;
     background: linear-gradient(135deg, var(--coral), var(--peach));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; margin-bottom: 4px;
   }
-  .header p { color: #888; font-size: 0.9rem; font-weight: 700; }
+  .header p { color: #888; font-size: 0.95rem; font-weight: 700; }
 
-  /* Butang Kembali Atas Kanan */
   .btn-kembali {
-    position: absolute; right: 0; top: 5px;
+    position: absolute; right: 0; top: 10px;
     background: #0ea5e9; color: white; border: none;
     padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.85rem;
     cursor: pointer; display: flex; align-items: center; gap: 6px;
     box-shadow: 0 2px 6px rgba(14,165,233,0.3); transition: 0.2s;
-    font-family: 'Nunito', sans-serif; z-index: 10;
   }
   .btn-kembali:hover { background: #0284c7; }
 
-  
+  /* Dropdown Filter */
+  .filter-section { background: var(--card); padding: 15px 20px; border-radius:16px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow); }
+  .filter-section select { width: 100%; padding: 12px; border-radius: 8px; background: #eef2ff; border: 1px solid #c7d2fe; color: #4f46e5; font-weight: 800; font-size: 15px; text-align: center; cursor: pointer; outline: none; }
+
   /* Kain Rentang Undur Detik */
   .countdown-banner {
     background: linear-gradient(135deg, var(--coral), var(--peach));
-    border-radius: 16px; padding: 16px; color: white; margin-bottom: 20px;
+    border-radius: 16px; padding: 20px; color: white; margin-bottom: 20px;
     box-shadow: 0 8px 24px rgba(255,107,107,0.3); display: flex; flex-direction: column; gap: 16px;
   }
   .cd-header-wrap { display: flex; align-items: center; gap: 16px; }
@@ -107,16 +78,9 @@
   .cd-box .num { font-family: 'Baloo 2', cursive; font-size: 1.4rem; font-weight: 800; line-height: 1; }
   .cd-box .lbl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; margin-top: 4px; font-weight: 700; }
 
-  .alarm-btn {
-    background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5);
-    color: white; border-radius: 10px; padding: 10px; font-family: 'Nunito', sans-serif;
-    font-weight: 800; font-size: 0.85rem; cursor: pointer; text-align: center; width: 100%; transition: 0.2s;
-  }
-  .alarm-btn.active { background: white; color: var(--coral); border-color: white; }
-
   /* Kad Utama */
   .card {
-    background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 16px;
+    background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 16px;
     box-shadow: var(--shadow); border: 1px solid #F5F5F5;
   }
   .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -133,13 +97,21 @@
   .field input, .field select {
     border: 1.5px solid #E8E8E8; border-radius: 10px; padding: 12px;
     font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 600;
-    color: var(--dark); background: #FAFAFA; width: 100%; appearance: none;
+    color: var(--dark); background: #FAFAFA; width: 100%; outline: none;
   }
-  .field input:focus, .field select:focus { border-color: var(--sky); background: white; outline: none; }
-
+  .field input:focus, .field select:focus { border-color: var(--sky); background: white; }
   .input-prefix { position: relative; width: 100%; }
   .input-prefix span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: 800; color: #999; font-size: 0.9rem; }
   .input-prefix input { padding-left: 36px; }
+
+  /* Checkbox Keluarga */
+  .family-check-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
+  .family-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+  .family-item:hover { background: #e0f2fe; border-color: #7dd3fc; }
+  .family-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--sky); cursor: pointer; }
+  .family-item div { flex: 1; }
+  .family-item .f-name { font-weight: 700; font-size: 0.95rem; color: var(--ink); }
+  .family-item .f-role { font-size: 0.75rem; color: var(--muted); }
 
   /* Butang Interaksi */
   .add-row-btn {
@@ -147,72 +119,50 @@
     border-radius: 12px; padding: 12px; width: 100%; font-family: 'Nunito', sans-serif; font-weight: 800;
     font-size: 0.9rem; color: #AAA; cursor: pointer; margin-top: 8px;
   }
-
   .btn-cal {
     width: 100%; background: #E8F0FE; color: #1967D2; border: none; border-radius: 10px; padding: 12px;
-    font-weight: 800; font-family: 'Nunito', sans-serif; font-size: 0.9rem; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px;
+    font-weight: 800; font-family: 'Nunito', sans-serif; font-size: 0.95rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; transition: 0.2s;
   }
-
-  .action-buttons { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-  .btn-book {
-    width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 800; font-size: 0.9rem;
-    color: white; cursor: pointer; font-family: 'Nunito', sans-serif; text-align: center;
-  }
-  .btn-book.agoda { background: #E50027; }
-  .btn-book.booking { background: #003580; }
+  .btn-cal:hover { background: #d2e3fc; }
+  .btn-save-trip { background: var(--primary); color: #fff; width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 800; font-size: 1rem; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 12px rgba(39,174,96,0.3); }
 
   /* Item Cards */
-  .item-card {
-    background: #F9FBFF; border: 1.5px solid #E6F0FF; border-radius: 14px; padding: 14px;
-    margin-bottom: 12px; display: flex; flex-direction: column; gap: 12px; position: relative;
-  }
+  .item-card { background: #F9FBFF; border: 1.5px solid #E6F0FF; border-radius: 14px; padding: 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 12px; position: relative; }
   .item-card.bg-peach-light { background: #FFF9F0; border-color: #FFECCC; }
   .item-card.bg-lavender-light { background: #FCF9FF; border-color: #EFE6FF; }
-
   .item-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
-  .del-btn {
-    background: #FFE5E5; border: none; border-radius: 8px; width: 40px; height: 40px;
-    color: var(--coral); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-
-  .item-footer {
-    margin-top: 4px; padding-top: 12px; border-top: 1px dashed rgba(0,0,0,0.1);
-    font-size: 0.85rem; font-weight: 800; text-align: right;
-  }
+  .del-btn { background: #FFE5E5; border: none; border-radius: 8px; width: 40px; height: 40px; color: var(--coral); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .item-footer { margin-top: 4px; padding-top: 12px; border-top: 1px dashed rgba(0,0,0,0.1); font-size: 0.85rem; font-weight: 800; text-align: right; }
   .item-footer.color-sky { color: var(--sky); }
   .item-footer.color-peach { color: var(--peach); }
   .item-footer.color-lavender { color: var(--lavender); }
 
-  .search-dist-btn {
-    background: var(--sky); color: white; border: none; border-radius: 8px; padding: 0 16px;
-    font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 44px;
-  }
-
-  .auto-calc-badge {
-    font-size: 0.65rem; background: #6BCB77; color: white; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 4px;
-  }
-
-  /* Ringkasan Bajet */
+  /* Ringkasan Bajet & Kewangan */
   .budget-summary {
     background: linear-gradient(135deg, #F8FAFC, #F1F5F9); border: 2px solid #E2E8F0;
-    border-radius: 16px; padding: 20px; margin-bottom: 20px;
+    border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow);
   }
-  .budget-summary h2 { font-family: 'Baloo 2', cursive; font-size: 1.3rem; color: var(--dark); margin-bottom: 16px; }
-  .budget-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-  .budget-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; font-weight: 700; color: #555; }
+  .budget-summary h2 { font-family: 'Baloo 2', cursive; font-size: 1.4rem; color: var(--dark); margin-bottom: 16px; border-bottom: 2px dashed #cbd5e1; padding-bottom: 10px;}
+  .budget-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .budget-row { display: flex; justify-content: space-between; align-items: center; font-size: 1rem; font-weight: 700; color: #475569; }
   
   .budget-total {
     background: linear-gradient(135deg, var(--coral), var(--peach)); color: white; border-radius: 12px;
-    padding: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 16px rgba(255,107,107,0.3);
+    padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 16px rgba(255,107,107,0.3); margin-bottom: 20px;
   }
-  .budget-total .label { font-weight: 800; font-size: 1rem; }
-  .budget-total .amount { font-family: 'Baloo 2', cursive; font-size: 1.6rem; font-weight: 800; line-height: 1; }
+  .budget-total .label { font-weight: 800; font-size: 1.1rem; }
+  .budget-total .amount { font-family: 'Baloo 2', cursive; font-size: 1.8rem; font-weight: 800; line-height: 1; }
 
-  /* Tag Jenis */
-  .tag-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-  .tag { padding: 8px 14px; border-radius: 99px; font-size: 0.8rem; font-weight: 700; border: 1.5px solid #EEE; color: #777; background: white; }
-  .tag.selected { border-color: var(--coral); color: var(--coral); background: #FFF5F5; }
+  /* Pelan Kewangan (Financial Planner) */
+  .financial-planner { background: #fff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; }
+  .financial-planner h3 { font-size: 1rem; color: var(--sky); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .fin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+  .fin-box { background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #f1f5f9; }
+  .fin-box .fin-label { font-size: 0.75rem; color: var(--muted); font-weight: 800; text-transform: uppercase; }
+  .fin-box .fin-val { font-size: 1.2rem; font-weight: 800; color: var(--dark); margin-top: 4px; font-family: 'Baloo 2', cursive; }
+  .fin-box.highlight { background: #e0f2fe; border-color: #bae6fd; }
+  .fin-box.highlight .fin-val { color: #0284c7; font-size: 1.4rem; }
 
   #toast {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
@@ -221,36 +171,45 @@
   }
   #toast.show { transform: translateX(-50%) translateY(0); }
 
-  /* Settings Modal */
-  .settings-panel {
-    display: none; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-top: 10px;
-  }
-  .settings-panel.show { display: block; }
-
   .bg-coral { background: #FF6B6B22; color: var(--coral); }
   .bg-sky { background: #6BCFEF22; color: var(--sky); }
   .bg-peach { background: #FFB34722; color: var(--peach); }
   .bg-lavender { background: #C084FC22; color: var(--lavender); }
+  .bg-mint { background: #6BCB7722; color: var(--mint); }
   
   .color-sky { color: var(--sky); }
   .color-peach { color: var(--peach); }
   .color-lavender { color: var(--lavender); }
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
-<div id="toast" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #333; color: white; padding: 12px 24px; border-radius: 99px; font-weight: 800; font-size: 0.85rem; z-index: 9999; transition: transform 0.3s; white-space: nowrap;">✅ Disimpan!</div>
+<div id="toast">✅ Disimpan!</div>
 
-<div class="container">
+<!-- Skrin Log Masuk -->
+<div id="authScreen" class="hidden" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--bg-color); position: fixed; inset:0; z-index:9999;">
+    <div style="background:var(--card); border-radius:16px; padding:40px 30px; max-width:400px; width:100%; box-shadow:0 10px 30px rgba(0,0,0,0.05); text-align:center;">
+        <h1 style="font-family:'Baloo 2',cursive; color:var(--sky); font-size:2rem; margin-bottom:5px;">JomBercuti</h1>
+        <p style="color:var(--muted); font-size:14px; margin-bottom:25px;">Sila log masuk menggunakan akaun myNasab / Famili Pintar anda.</p>
+        <form id="authForm" style="display:flex; flex-direction:column; gap:12px;">
+            <input type="email" id="authEmail" required placeholder="Emel Anda" style="padding:12px; border-radius:8px; border:1px solid #ccc; font-family:'Nunito';">
+            <input type="password" id="authPassword" required placeholder="Kata Laluan" style="padding:12px; border-radius:8px; border:1px solid #ccc; font-family:'Nunito';">
+            <button type="submit" style="padding:12px; border-radius:8px; background:var(--primary); color:white; font-weight:bold; border:none; cursor:pointer;">Log Masuk</button>
+        </form>
+    </div>
+</div>
+
+<div class="container" id="mainApp">
 
   <!-- Pengepala Utama -->
   <div class="header">
     <button onclick="window.location.href='index.html'" class="btn-kembali">
-      <i class="fa-solid fa-arrow-left"></i> Kembali
+      🏠 myNasab
     </button>
     <div>
-      <h1>✈️ Perancang Percutian</h1>
-      <p>Rancang & Kira Bajet Dalam Satu App!</p>
+      <h1>🌴 JomBercuti</h1>
+      <p>Perancang Kewangan & Acara Keluarga</p>
     </div>
   </div>
 
@@ -259,7 +218,7 @@
     <div class="cd-header-wrap">
       <div class="cd-icon">🗓️</div>
       <div>
-        <div class="cd-label">Kiraan Detik Bercuti</div>
+        <div class="cd-label" id="cd-title-label">Kiraan Detik Bercuti</div>
         <div class="cd-main" id="cd-main">Tetapkan tarikh!</div>
       </div>
     </div>
@@ -269,10 +228,18 @@
       <div class="cd-box"><div class="num" id="cd-mins">0</div><div class="lbl">Min</div></div>
       <div class="cd-box"><div class="num" id="cd-secs">0</div><div class="lbl">Saat</div></div>
     </div>
-    <button class="alarm-btn" id="alarm-toggle-btn" onclick="toggleAlarm()">🔔 Tetapkan Penggera Berlepas</button>
   </div>
 
-  <!-- CONTAINER GRID UTAMA (2 KOLUM DI DESKTOP / 1 KOLUM DI MOBILE) -->
+  <!-- DROPDOWN FILTER KELUARGA -->
+  <div class="filter-section">
+      <label style="font-size:0.8rem; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:5px; display:block;">Pilih Rangkaian Keluarga</label>
+      <select id="filterBelah" onchange="muatKeluargaRombongan()">
+          <option value="induk">👨‍👦 Keluarga Induk (Belah Saya)</option>
+          <option value="pasangan">👩‍👧 Keluarga Pasangan (Belah Isteri/Suami)</option>
+      </select>
+  </div>
+
+  <!-- CONTAINER GRID UTAMA -->
   <div class="main-grid-layout">
     
     <!-- KOLUM KIRI -->
@@ -288,12 +255,12 @@
         </div>
         <div class="form-grid">
           <div class="field">
-            <label>Nama Perjalanan</label>
-            <input type="text" id="trip-name" placeholder="cth. Percutian Bali 🌺" oninput="updateAll()">
+            <label>Nama Program / Percutian</label>
+            <input type="text" id="trip-name" placeholder="cth. Family Day 2028 🌺" oninput="updateAll()">
           </div>
           <div class="field">
             <label>Destinasi Utama</label>
-            <input type="text" id="destination" placeholder="cth. Bali, Indonesia 🇮🇩" oninput="updateAll()">
+            <input type="text" id="destination" placeholder="cth. Paris / Bali ✈️" oninput="updateAll()">
           </div>
           <div class="grid-2-col">
             <div class="field">
@@ -306,65 +273,60 @@
             </div>
           </div>
         </div>
-        
-        <button class="btn-cal" onclick="syncCalendar()">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" width="18" alt="Google Calendar">
-          Simpan ke Google Calendar
-        </button>
       </div>
 
-      <!-- Pengangkutan -->
+      <!-- Ahli Rombongan (Involvement) -->
       <div class="card">
         <div class="card-header">
           <div class="card-title-wrap">
-            <div class="card-icon bg-peach">🚗</div>
-            <h2>Pengangkutan</h2>
-          </div>
-          <button onclick="toggleSettings()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">⚙️</button>
-        </div>
-
-        <!-- Panel Tetapan Kos Minyak -->
-        <div id="settings-panel" class="settings-panel">
-          <div class="field">
-            <label>Kadar Kos Minyak + Tol (RM per KM)</label>
-            <div class="input-prefix"><span>RM</span><input type="number" id="fuel-rate" value="0.35" step="0.05" oninput="updateSummary()"></div>
-            <p style="font-size:0.65rem; color:#888; margin-top:4px;">*Auto-kira kos berdasarkan jarak KM jika mod Kereta dipilih.</p>
+            <div class="card-icon bg-mint">👥</div>
+            <h2>Ahli Rombongan / Jemputan</h2>
           </div>
         </div>
-
-        <div id="transport-list"></div>
-        <button class="add-row-btn" onclick="addTransport()">➕ Tambah Laluan</button>
+        <p style="font-size:0.85rem; color:var(--muted); margin-bottom:10px; line-height:1.4;">
+            Pilih ahli keluarga yang akan menyertai (atau berkongsi kos) program ini.
+        </p>
+        <div class="family-check-list" id="family-invite-list">
+            <!-- Dijana oleh Javascript -->
+            <div style="text-align:center; padding:20px; font-size:0.9rem; color:#aaa;">Memuatkan data myNasab...</div>
+        </div>
       </div>
 
     </div> <!-- PENATAP KOLUM KIRI -->
 
     <!-- KOLUM KANAN -->
     <div class="right-column">
+
+      <!-- Pengangkutan -->
+      <div class="card">
+        <div class="card-header" style="margin-bottom:5px;">
+          <div class="card-title-wrap">
+            <div class="card-icon bg-peach">🚗</div>
+            <h2>Pengangkutan / Tiket</h2>
+          </div>
+        </div>
+        <div id="transport-list"></div>
+        <button class="add-row-btn" onclick="addTransport()">➕ Tambah Laluan / Tiket</button>
+      </div>
       
       <!-- Penginapan -->
       <div class="card">
-        <div class="card-header">
+        <div class="card-header" style="margin-bottom:5px;">
           <div class="card-title-wrap">
             <div class="card-icon bg-sky">🏨</div>
             <h2>Penginapan</h2>
           </div>
         </div>
-        
-        <div class="action-buttons">
-          <button class="btn-book agoda" onclick="openBooking('agoda')">Cari Hotel di Agoda</button>
-          <button class="btn-book booking" onclick="openBooking('booking')">Cari di Booking.com</button>
-        </div>
-
         <div id="accom-list"></div>
-        <button class="add-row-btn" onclick="addAccom()">➕ Tambah Penginapan</button>
+        <button class="add-row-btn" onclick="addAccom()">➕ Tambah Hotel / Homestay</button>
       </div>
 
       <!-- Lain-lain -->
       <div class="card">
-        <div class="card-header">
+        <div class="card-header" style="margin-bottom:5px;">
           <div class="card-title-wrap">
             <div class="card-icon bg-lavender">🎒</div>
-            <h2>Lain-lain</h2>
+            <h2>Makan & Lain-lain</h2>
           </div>
         </div>
         <div id="misc-list"></div>
@@ -375,29 +337,55 @@
 
   </div> <!-- PENATAP BEKAS GRID UTAMA -->
 
-  <!-- Ringkasan Bajet (Kelebaran Penuh Di Bahagian Bawah) -->
+  <!-- Ringkasan Bajet & Financial Planner -->
   <div class="budget-summary">
-    <h2>💰 Ringkasan Keseluruhan</h2>
+    <h2>💰 Ringkasan & Pelan Kewangan</h2>
+    
     <div class="budget-rows">
       <div class="budget-row"><span>🏨 Penginapan</span><span class="color-sky" id="sum-accom">RM 0.00</span></div>
       <div class="budget-row"><span>🚗 Pengangkutan</span><span class="color-peach" id="sum-transport">RM 0.00</span></div>
-      <div class="budget-row"><span>🎒 Lain-lain</span><span class="color-lavender" id="sum-misc">RM 0.00</span></div>
+      <div class="budget-row"><span>🎒 Lain-lain / Makan</span><span class="color-lavender" id="sum-misc">RM 0.00</span></div>
     </div>
+    
     <div class="budget-total">
-      <span class="label">Jumlah Besar</span>
+      <span class="label">Jumlah Anggaran Kos</span>
       <span class="amount" id="sum-total">RM 0.00</span>
     </div>
+
+    <!-- Modul Pelan Kewangan (Financial Planner) -->
+    <div class="financial-planner">
+        <h3>📈 Kalkulator Simpanan JomBercuti</h3>
+        <p style="font-size:0.85rem; color:var(--muted); margin-bottom:15px; line-height:1.4;">
+            Berdasarkan tarikh berlepas anda, ini adalah sasaran simpanan yang perlu diasingkan setiap bulan bermula <strong>hari ini</strong>.
+        </p>
+        <div class="fin-grid">
+            <div class="fin-box">
+                <div class="fin-label">Masa Berbaki</div>
+                <div class="fin-val" id="plan-months">- Bulan</div>
+            </div>
+            <div class="fin-box highlight">
+                <div class="fin-label">Simpanan Bulanan</div>
+                <div class="fin-val" id="plan-monthly">RM 0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-cal" onclick="syncCalendar()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" width="18" alt="Google Calendar">
+      Simpan Tarikh ke Google Calendar
+    </button>
+    <button class="btn-save-trip" onclick="simpanPelanKeDatabase()">💾 Simpan Pelan Percutian Ini</button>
+
   </div>
 
 </div>
 
-<!-- SCRIPT FIREBASE & LOGIK WECARE -->
+<!-- SCRIPT FIREBASE & LOGIK -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // Firebase Config (Sama dengan myNasab & Famili Pintar)
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
         authDomain: "familipintar.firebaseapp.com",
@@ -412,265 +400,259 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.penggunaSemasa = null;
+    let currentUser = null;
+    let globalTeamMap = new Map();
 
-    // 1. Kawalan Tab Menu weCare
-    document.querySelectorAll('.tab').forEach(t => {
-        t.addEventListener('click', () => {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
-            t.classList.add('active');
-            const panelAktif = document.getElementById(t.dataset.tab);
-            if (panelAktif) panelAktif.classList.add('active');
-        });
-    });
-
-    // 2. Semakan Auth (Guna Akaun Famili Pintar)
     onAuthStateChanged(auth, async (user) => {
         const authScreen = document.getElementById('authScreen');
         const mainApp = document.getElementById('mainApp');
 
         if (user) {
-            window.penggunaSemasa = user;
+            currentUser = user;
             if (authScreen) authScreen.classList.add('hidden');
             if (mainApp) mainApp.classList.remove('hidden');
 
-            // Ambil Nama Pengguna
-            const snapUser = await getDoc(doc(db, "mynasab_users", user.uid));
-            if (snapUser.exists()) {
-                const data = snapUser.data();
-                const elNama = document.getElementById('displayUserName');
-                if (elNama) elNama.innerText = data.name || user.email;
-            }
-            
-            // Muatkan data profil kesihatan/ibu bapa
-            if (typeof window.muatDataKesihatan === 'function') {
-                window.muatDataKesihatan();
-            }
+            window.muatKeluargaRombongan(); // Tarik senarai keluarga
+            init(); // Mula kalkulator
         } else {
-            window.penggunaSemasa = null;
+            currentUser = null;
             if (authScreen) authScreen.classList.remove('hidden');
             if (mainApp) mainApp.classList.add('hidden');
         }
     });
 
-    // 3. Proses Log Masuk Borang Auth Screen
     const authForm = document.getElementById('authForm');
     if (authForm) {
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const emel = document.getElementById('authEmail').value;
             const pass = document.getElementById('authPassword').value;
-
-            try {
-                await signInWithEmailAndPassword(auth, emel, pass);
-            } catch (err) {
-                alert("Gagal Log Masuk: Sila semak e-mel atau kata laluan anda.");
-            }
+            try { await signInWithEmailAndPassword(auth, emel, pass); } 
+            catch (err) { alert("Gagal Log Masuk. Sila semak semula."); }
         });
     }
-  
+
+// =================== LOGIK PIVOT KELUARGA (SAMA MCM WECARE) ===================
+window.muatKeluargaRombongan = async () => {
+    if (!currentUser) return;
+    try {
+        const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
+        let htmlList = "";
+        globalTeamMap.clear();
+
+        let masterIndukUid = currentUser.uid;
+        let sasaranIdPusat = null;
+        let sayaInduk = true;
+
+        const sLinkSaya = await getDocs(query(collection(db, "mynasab_links"), where("uid", "==", currentUser.uid), where("status", "==", "aktif")));
+        sLinkSaya.forEach(d => {
+            masterIndukUid = d.data().owner_uid;
+            sasaranIdPusat = d.data().sasaran_id;
+            sayaInduk = false;
+        });
+
+        const sPautan = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", masterIndukUid), where("status", "==", "aktif")));
+        const allLinks = sPautan.docs.map(d => d.data());
+
+        const snapNodesSaya = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid)));
+        let nodesSaya = snapNodesSaya.docs.map(d => ({ ...d.data(), id: d.id }));
+
+        let nodesInduk = nodesSaya;
+        if (!sayaInduk) {
+            const snapNodesInduk = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", masterIndukUid)));
+            nodesInduk = snapNodesInduk.docs.map(d => ({ ...d.data(), id: d.id }));
+        }
+
+        let kandungHidup = true; // Kita assume sentiasa papar untuk percutian (bebas)
+        let mertuaHidup = true;
+
+        const addWaris = (uid, name, role) => {
+            let key = name.toLowerCase().trim();
+            if (!globalTeamMap.has(key)) {
+                globalTeamMap.set(key, { uid: uid, name, role });
+            }
+        };
+
+        let teamUids = new Set();
+        teamUids.add(currentUser.uid); 
+
+        nodesSaya.forEach(n => {
+            const rel = (n.relationship || '').toLowerCase();
+            if (rel.includes('diri sendiri')) addWaris(n.id, n.name, 'Anda');
+            if (rel === 'suami' || rel === 'isteri') addWaris(n.id, n.name, 'Pasangan');
+            if (rel === 'anak') addWaris(n.id, n.name, 'Anak');
+        });
+
+        if (pilihanBelah === 'induk') {
+            nodesSaya.forEach(n => {
+                const rel = (n.relationship || '').toLowerCase();
+                if (rel.match(/ayah|ibu|bapa|mak|abah|abang|kakak|adik/)) {
+                    addWaris(n.id, n.name, n.relationship);
+                }
+            });
+
+            if (sayaInduk) {
+                allLinks.forEach(link => {
+                    const sNode = nodesInduk.find(n => n.id === link.sasaran_id);
+                    if (sNode) {
+                        const rel = (sNode.relationship || '').toLowerCase();
+                        if (rel.match(/ayah|ibu|bapa|mak|abah|abang|kakak|adik/)) teamUids.add(link.uid);
+                    }
+                });
+            } else {
+                teamUids.add(masterIndukUid); 
+                const mySasaranNode = nodesInduk.find(n => n.id === sasaranIdPusat);
+                if (mySasaranNode) {
+                    const myRefId = mySasaranNode.ref_id; 
+                    allLinks.forEach(link => {
+                        const sNode = nodesInduk.find(n => n.id === link.sasaran_id);
+                        if (sNode && myRefId && sNode.ref_id === myRefId) {
+                            teamUids.add(link.uid);
+                        }
+                    });
+                }
+            }
+        } 
+        else if (pilihanBelah === 'pasangan') {
+            nodesSaya.forEach(n => {
+                const rel = (n.relationship || '').toLowerCase();
+                if (rel.includes('ipar') || rel.includes('mertua')) {
+                    addWaris(n.id, n.name, n.relationship);
+                }
+            });
+
+            if (sayaInduk) {
+                allLinks.forEach(link => {
+                    const sNode = nodesInduk.find(n => n.id === link.sasaran_id);
+                    if (sNode) {
+                        const rel = (sNode.relationship || '').toLowerCase();
+                        if (rel.includes('ipar')) teamUids.add(link.uid);
+                    }
+                });
+            }
+        }
+
+        // Dapatkan nama dari UID link
+        for (let tUid of teamUids) {
+            if (tUid === currentUser.uid) continue; 
+            const uDoc = await getDoc(doc(db, "mynasab_users", tUid));
+            if (uDoc.exists()) {
+                let r = tUid === masterIndukUid ? 'Keluarga Utama' : 'Akaun Berhubung';
+                addWaris(tUid, uDoc.data().name, r);
+            }
+        }
+
+        // Render Checkboxes
+        globalTeamMap.forEach((val, key) => {
+            const isChecked = val.role === 'Anda' || val.role === 'Pasangan' ? 'checked' : '';
+            htmlList += `
+            <label class="family-item">
+                <input type="checkbox" class="fam-check" value="${val.name}" data-uid="${val.uid}" ${isChecked}>
+                <div>
+                    <div class="f-name">${val.name}</div>
+                    <div class="f-role">${val.role}</div>
+                </div>
+            </label>`;
+        });
+
+        if (globalTeamMap.size === 0) htmlList = "<div style='color:#888; font-size:0.9rem; text-align:center;'>Tiada rekod keluarga dijumpai.</div>";
+        document.getElementById('family-invite-list').innerHTML = htmlList;
+
+    } catch(e) { console.error("Ralat muat Keluarga:", e); }
+}
+
+// =================== VARIABEL & INIT KALKULATOR ===================
 let accomList = []; let transportList = []; let miscList = [];
-let alarmActive = false; let countdownInterval = null;
-let toastTimer = null;
+let countdownInterval = null; let toastTimer = null;
 
 function init() {
   addAccom(true); addTransport(true); addMisc(true);
-  const today = new Date(); const goDate = new Date(today); goDate.setDate(today.getDate() + 14);
+  const today = new Date(); const goDate = new Date(today); goDate.setDate(today.getDate() + 180); // Default 6 bulan
   const backDate = new Date(goDate); backDate.setDate(goDate.getDate() + 3);
   document.getElementById('date-go').value = goDate.toISOString().split('T')[0];
   document.getElementById('date-back').value = backDate.toISOString().split('T')[0];
-  updateAll();
-}
-
-function toggleSettings() {
-  document.getElementById('settings-panel').classList.toggle('show');
+  window.updateAll();
 }
 
 // =================== PENGINAPAN ===================
-function addAccom(silent) {
-  accomList.push({ id: Date.now(), name: '', type: 'hotel', cost: '', nights: '' });
+window.addAccom = (silent) => {
+  accomList.push({ id: Date.now(), name: '', cost: '', nights: '' });
   renderAccom(); if(!silent) showToast('🏨 Penginapan ditambah!');
 }
-
-function removeAccom(id) {
-  accomList = accomList.filter(a => a.id !== id);
-  renderAccom(); updateSummary();
-}
-
+window.removeAccom = (id) => { accomList = accomList.filter(a => a.id !== id); renderAccom(); window.updateAll(); }
 function renderAccom() {
   const el = document.getElementById('accom-list'); el.innerHTML = '';
   accomList.forEach(a => {
     const div = document.createElement('div'); div.className = 'item-card';
     div.innerHTML = `
       <div class="item-header">
-        <div class="field" style="flex:1">
-          <label>Nama Penginapan</label>
-          <input type="text" placeholder="Hotel XYZ" value="${a.name}" oninput="updateAccom(${a.id},'name',this.value)">
-        </div>
+        <div class="field" style="flex:1"><label>Nama Penginapan</label><input type="text" placeholder="Hotel XYZ" value="${a.name}" oninput="updateAccom(${a.id},'name',this.value)"></div>
         <button class="del-btn" onclick="removeAccom(${a.id})">✕</button>
       </div>
       <div class="grid-2-col">
-        <div class="field">
-          <label>RM/Malam</label>
-          <div class="input-prefix"><span>RM</span><input type="number" placeholder="0" value="${a.cost}" oninput="updateAccom(${a.id},'cost',this.value)"></div>
-        </div>
-        <div class="field">
-          <label>Bil. Malam</label>
-          <input type="number" placeholder="1" value="${a.nights}" oninput="updateAccom(${a.id},'nights',this.value)">
-        </div>
+        <div class="field"><label>RM/Malam</label><div class="input-prefix"><span>RM</span><input type="number" placeholder="0" value="${a.cost}" oninput="updateAccom(${a.id},'cost',this.value)"></div></div>
+        <div class="field"><label>Bil. Malam</label><input type="number" placeholder="1" value="${a.nights}" oninput="updateAccom(${a.id},'nights',this.value)"></div>
       </div>
-      <div class="item-footer color-sky">Subjumlah: <span id="accom-sub-${a.id}">RM 0.00</span></div>
     `;
-    el.appendChild(div); updateAccomSub(a.id);
+    el.appendChild(div);
   });
 }
-function updateAccom(id, f, v) { const item = accomList.find(a => a.id === id); if (item) { item[f] = v; updateAccomSub(id); updateSummary(); } }
-function updateAccomSub(id) {
-  const item = accomList.find(a => a.id === id); const el = document.getElementById('accom-sub-' + id);
-  if(item && el) el.textContent = 'RM ' + ((parseFloat(item.cost)||0) * (parseInt(item.nights)||0)).toFixed(2);
-}
+window.updateAccom = (id, f, v) => { const item = accomList.find(a => a.id === id); if (item) { item[f] = v; window.updateAll(); } }
 
 // =================== PENGANGKUTAN ===================
-function addTransport(silent) {
-  transportList.push({ id: Date.now(), mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true });
+window.addTransport = (silent) => {
+  transportList.push({ id: Date.now(), title: '', cost: '' });
   renderTransport(); if(!silent) showToast('🚗 Laluan ditambah!');
 }
-
-function removeTransport(id) {
-  transportList = transportList.filter(t => t.id !== id);
-  renderTransport(); updateSummary();
-}
-
+window.removeTransport = (id) => { transportList = transportList.filter(t => t.id !== id); renderTransport(); window.updateAll(); }
 function renderTransport() {
   const el = document.getElementById('transport-list'); el.innerHTML = '';
   transportList.forEach(t => {
     const div = document.createElement('div'); div.className = 'item-card bg-peach-light';
-    const isAuto = t.mode === 'car' && t.autoCalc;
     div.innerHTML = `
       <div class="item-header">
-        <div class="field" style="flex:1">
-          <label>Mod Kenderaan</label>
-          <select onchange="updateTransportMode(${t.id}, this.value)">
-            <option value="car" ${t.mode==='car'?'selected':''}>🚗 Kereta (Minyak/Tol)</option>
-            <option value="flight" ${t.mode==='flight'?'selected':''}>✈️ Kapal Terbang</option>
-            <option value="bus" ${t.mode==='bus'?'selected':''}>🚌 Bas Ekspres</option>
-            <option value="train" ${t.mode==='train'?'selected':''}>🚆 Keretapi</option>
-            <option value="grab" ${t.mode==='grab'?'selected':''}>📱 Grab / Taxi</option>
-          </select>
-        </div>
+        <div class="field" style="flex:1"><label>Perkara (Tiket/Minyak/Tol)</label><input type="text" placeholder="Tiket Flight AirAsia" value="${t.title}" oninput="updateTransport(${t.id},'title',this.value)"></div>
         <button class="del-btn" onclick="removeTransport(${t.id})">✕</button>
       </div>
-      <div class="grid-2-col">
-        <div class="field"><label>Dari</label><input type="text" placeholder="Mula" value="${t.from}" oninput="updateTransport(${t.id},'from',this.value)"></div>
-        <div class="field"><label>Ke</label><input type="text" placeholder="Tuju" value="${t.to}" oninput="updateTransport(${t.id},'to',this.value)"></div>
-      </div>
-      <div class="grid-2-col" style="align-items:end;">
-        <div class="field">
-          <label>Jarak (KM)</label>
-          <div style="display:flex; gap:6px;">
-            <input type="number" placeholder="0" value="${t.km}" oninput="updateTransportKM(${t.id},this.value)" style="flex:1;">
-            <button class="search-dist-btn" onclick="calculateDistance(${t.id})">🔍</button>
-          </div>
-        </div>
-        <div class="field">
-          <label>Kos (RM) ${isAuto ? '<span class="auto-calc-badge">AUTO</span>' : ''}</label>
-          <div class="input-prefix">
-            <span>RM</span><input type="number" placeholder="0.00" value="${t.cost}" id="trans-input-${t.id}" 
-            ${isAuto ? 'readonly style="background:#E8F5E9"' : ''} 
-            oninput="updateTransportCost(${t.id},this.value)">
-          </div>
-        </div>
-      </div>
-      <div class="item-footer color-peach">Kos Laluan: <span id="trans-cost-text-${t.id}">RM 0.00</span></div>
+      <div class="field"><label>Kos Keseluruhan (RM)</label><div class="input-prefix"><span>RM</span><input type="number" placeholder="0.00" value="${t.cost}" oninput="updateTransport(${t.id},'cost',this.value)"></div></div>
     `;
-    el.appendChild(div); updateTransportSubDisplay(t.id);
+    el.appendChild(div);
   });
 }
-
-function updateTransportMode(id, mode) {
-  const item = transportList.find(t => t.id === id);
-  if (item) {
-    item.mode = mode;
-    if (mode !== 'car') item.autoCalc = false;
-    else item.autoCalc = true;
-    recalculateTransportCost(item);
-    renderTransport();
-    updateSummary();
-  }
-}
-
-function updateTransportKM(id, km) {
-  const item = transportList.find(t => t.id === id);
-  if (item) {
-    item.km = km;
-    recalculateTransportCost(item);
-    updateTransportSubDisplay(id);
-    updateSummary();
-  }
-}
-
-function updateTransportCost(id, cost) {
-  const item = transportList.find(t => t.id === id);
-  if (item) {
-    item.cost = cost;
-    item.autoCalc = false; // Jika user taip manual, tutup auto
-    updateTransportSubDisplay(id);
-    updateSummary();
-  }
-}
-
-function recalculateTransportCost(item) {
-  if (item.mode === 'car' && item.autoCalc && item.km) {
-    const rate = parseFloat(document.getElementById('fuel-rate').value) || 0;
-    item.cost = (parseFloat(item.km) * rate).toFixed(2);
-    const input = document.getElementById(`trans-input-${item.id}`);
-    if(input) input.value = item.cost;
-  }
-}
-
-function updateTransportSubDisplay(id) {
-  const item = transportList.find(t => t.id === id);
-  const el = document.getElementById('trans-cost-text-' + id);
-  if(item && el) el.textContent = 'RM ' + (parseFloat(item.cost)||0).toFixed(2);
-}
+window.updateTransport = (id, f, v) => { const item = transportList.find(t => t.id === id); if (item) { item[f] = v; window.updateAll(); } }
 
 // =================== LAIN-LAIN ===================
-function addMisc(silent) {
+window.addMisc = (silent) => {
   miscList.push({ id: Date.now(), name: '', cost: '' });
   renderMisc(); if(!silent) showToast('🎒 Item ditambah!');
 }
-function removeMisc(id) { miscList = miscList.filter(m => m.id !== id); renderMisc(); updateSummary(); }
+window.removeMisc = (id) => { miscList = miscList.filter(m => m.id !== id); renderMisc(); window.updateAll(); }
 function renderMisc() {
   const el = document.getElementById('misc-list'); el.innerHTML = '';
   miscList.forEach(m => {
     const div = document.createElement('div'); div.className = 'item-card bg-lavender-light';
     div.innerHTML = `
       <div class="item-header">
-        <div class="field" style="flex:1">
-          <label>Perkara</label>
-          <input type="text" placeholder="Tiket / Makan" value="${m.name}" oninput="updateMisc(${m.id},'name',this.value)">
-        </div>
+        <div class="field" style="flex:1"><label>Perkara</label><input type="text" placeholder="Makan / Cenderamata" value="${m.name}" oninput="updateMisc(${m.id},'name',this.value)"></div>
         <button class="del-btn" onclick="removeMisc(${m.id})">✕</button>
       </div>
-      <div class="field">
-        <label>Anggaran Kos (RM)</label>
-        <div class="input-prefix"><span>RM</span><input type="number" placeholder="0.00" value="${m.cost}" oninput="updateMisc(${m.id},'cost',this.value)"></div>
-      </div>
+      <div class="field"><label>Anggaran Kos (RM)</label><div class="input-prefix"><span>RM</span><input type="number" placeholder="0.00" value="${m.cost}" oninput="updateMisc(${m.id},'cost',this.value)"></div></div>
     `;
     el.appendChild(div);
   });
 }
-function updateMisc(id, f, v) { const item = miscList.find(m => m.id === id); if (item) { item[f] = v; updateSummary(); } }
+window.updateMisc = (id, f, v) => { const item = miscList.find(m => m.id === id); if (item) { item[f] = v; window.updateAll(); } }
 
-// =================== LOGIK UTAMA ===================
-function updateAll() { updateCountdown(); updateSummary(); }
+// =================== LOGIK UTAMA & FINANCIAL PLANNER ===================
+window.updateAll = () => { 
+    const tripName = document.getElementById('trip-name').value || 'Percutian';
+    document.getElementById('cd-title-label').textContent = "Kiraan Detik: " + tripName;
+    updateCountdown(); 
+    updateSummary(); 
+}
 
 function updateSummary() {
-  // Update transport costs first in case fuel rate changed
-  transportList.forEach(t => recalculateTransportCost(t));
-  
-  const aTot = accomList.reduce((s, a) => s + (parseFloat(a.cost)||0)*(parseInt(a.nights)||0), 0);
+  const aTot = accomList.reduce((s, a) => s + (parseFloat(a.cost)||0)*(parseInt(a.nights)||1), 0);
   const tTot = transportList.reduce((s, t) => s + (parseFloat(t.cost)||0), 0);
   const mTot = miscList.reduce((s, m) => s + (parseFloat(m.cost)||0), 0);
   const grand = aTot + tTot + mTot;
@@ -679,42 +661,24 @@ function updateSummary() {
   document.getElementById('sum-transport').textContent = 'RM ' + tTot.toFixed(2);
   document.getElementById('sum-misc').textContent = 'RM ' + mTot.toFixed(2);
   document.getElementById('sum-total').textContent = 'RM ' + grand.toFixed(2);
-}
 
-// Pengiraan Jarak Pantas (OSRM)
-async function calculateDistance(id) {
-  const item = transportList.find(t => t.id === id);
-  if (!item || !item.from || !item.to) { showToast('⚠️ Isi Mula & Tuju!'); return; }
-  
-  showToast('⏳ Mencari laluan pantas...');
-  
-  try {
-    // Gunakan Nominatim untuk koordinat (lebih laju)
-    const [resF, resT] = await Promise.all([
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.from)}`),
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.to)}`)
-    ]);
-    const [dF, dT] = await Promise.all([resF.json(), resT.json()]);
+  // KIRAAN FINANCIAL PLANNER (Bulan Berbaki & Simpanan Bulanan)
+  const goDateStr = document.getElementById('date-go').value;
+  if(goDateStr && grand > 0) {
+      const goDate = new Date(goDateStr);
+      const today = new Date();
+      
+      let monthsLeft = (goDate.getFullYear() - today.getFullYear()) * 12 + (goDate.getMonth() - today.getMonth());
+      if (goDate.getDate() < today.getDate()) monthsLeft--; // Tolak 1 bulan jika tarikh hari belum lepas
+      if (monthsLeft <= 0) monthsLeft = 1; // Minimum 1 bulan supaya tak bahagi kosong
 
-    if(!dF.length || !dT.length) throw new Error('Lokasi tidak ditemui');
+      const monthlySavings = grand / monthsLeft;
 
-    // Gunakan OSRM untuk jarak pemanduan sebenar
-    const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${dF[0].lon},${dF[0].lat};${dT[0].lon},${dT[0].lat}?overview=false`);
-    const dataRoute = await resRoute.json();
-    
-    if (dataRoute.code !== 'Ok') throw new Error('Laluan tidak ditemui');
-
-    const distanceKm = (dataRoute.routes[0].distance / 1000).toFixed(1);
-    item.km = distanceKm;
-    
-    // Auto-recalculate cost
-    recalculateTransportCost(item);
-    renderTransport();
-    updateSummary();
-    showToast(`✅ Jarak dikesan: ${distanceKm} km`);
-  } catch (e) {
-    showToast('❌ Gagal. Membuka Google Maps...');
-    setTimeout(() => { window.open(`https://www.google.com/maps/dir/${encodeURIComponent(item.from)}/${encodeURIComponent(item.to)}`, '_blank'); }, 800);
+      document.getElementById('plan-months').innerText = monthsLeft + ' Bulan';
+      document.getElementById('plan-monthly').innerText = 'RM ' + monthlySavings.toFixed(2);
+  } else {
+      document.getElementById('plan-months').innerText = '- Bulan';
+      document.getElementById('plan-monthly').innerText = 'RM 0.00';
   }
 }
 
@@ -723,7 +687,7 @@ function updateCountdown() {
   if (countdownInterval) clearInterval(countdownInterval);
   countdownInterval = setInterval(() => {
     const diff = new Date(go + 'T00:00:00') - new Date();
-    if (diff <= 0) { document.getElementById('cd-boxes').style.display = 'none'; document.getElementById('cd-main').textContent = '🎉 Tiba Masanya!'; return; }
+    if (diff <= 0) { document.getElementById('cd-boxes').style.display = 'none'; document.getElementById('cd-main').textContent = '🎉 Tibalah Masanya!'; return; }
     document.getElementById('cd-boxes').style.display = 'flex';
     document.getElementById('cd-days').textContent = String(Math.floor(diff/86400000)).padStart(2,'0');
     document.getElementById('cd-hrs').textContent = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
@@ -733,8 +697,8 @@ function updateCountdown() {
   }, 1000);
 }
 
-function syncCalendar() {
-  const name = document.getElementById('trip-name').value || 'Percutian';
+window.syncCalendar = () => {
+  const name = document.getElementById('trip-name').value || 'JomBercuti';
   const dest = document.getElementById('destination').value || '';
   const go = document.getElementById('date-go').value; const back = document.getElementById('date-back').value;
   if (!go || !back) { showToast('⚠️ Sila lengkapkan tarikh!'); return; }
@@ -743,26 +707,47 @@ function syncCalendar() {
   window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(name)}&dates=${start}/${end}&location=${encodeURIComponent(dest)}`, '_blank');
 }
 
-function openBooking(platform) {
-  const dest = document.getElementById('destination').value; const go = document.getElementById('date-go').value; const back = document.getElementById('date-back').value;
-  if (!dest) { showToast('⚠️ Sila isi Destinasi!'); return; }
-  let url = platform === 'agoda' ? `https://www.agoda.com/search?textToSearch=${encodeURIComponent(dest)}&checkIn=${go}&checkOut=${back}` 
-                                : `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(dest)}&checkin=${go}&checkout=${back}`;
-  window.open(url, '_blank');
-}
+// SIMPAN KE FIREBASE (DATABASE)
+window.simpanPelanKeDatabase = async () => {
+    if (!currentUser) return;
+    const title = document.getElementById('trip-name').value;
+    if (!title) { alert("Sila masukkan Nama Program / Percutian terlebih dahulu."); return; }
 
-function toggleAlarm() {
-  alarmActive = !alarmActive; const btn = document.getElementById('alarm-toggle-btn');
-  if (alarmActive) { btn.textContent = '🔔 Aktif (H-1 Peringatan)'; btn.classList.add('active'); showToast('🔔 Peringatan diset!'); } 
-  else { btn.textContent = '🔔 Tetapkan Penggera Berlepas'; btn.classList.remove('active'); showToast('🔕 Ditutup'); }
+    // Kumpul senarai ahli rombongan yang di-tick
+    let senaraiAhli = [];
+    document.querySelectorAll('.fam-check:checked').forEach(cb => {
+        senaraiAhli.push({ nama: cb.value, uid: cb.dataset.uid });
+    });
+
+    const tripData = {
+        title: title,
+        destination: document.getElementById('destination').value,
+        date_go: document.getElementById('date-go').value,
+        date_back: document.getElementById('date-back').value,
+        total_budget: parseFloat(document.getElementById('sum-total').textContent.replace('RM ', '')) || 0,
+        monthly_saving: parseFloat(document.getElementById('plan-monthly').textContent.replace('RM ', '')) || 0,
+        months_left: parseInt(document.getElementById('plan-months').textContent) || 0,
+        accommodation: accomList,
+        transportation: transportList,
+        miscellaneous: miscList,
+        team_members: senaraiAhli,
+        owner_uid: currentUser.uid,
+        created_at: Date.now()
+    };
+
+    try {
+        const idUnik = "TRIP_" + Date.now();
+        await setDoc(doc(db, "jombercuti_trips", idUnik), tripData);
+        showToast("💾 Pelan Percutian Berjaya Disimpan!");
+    } catch (e) {
+        alert("Gagal menyimpan pelan: " + e.message);
+    }
 }
 
 function showToast(msg) { 
     const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); 
     clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2500); 
 }
-
-init();
 </script>
 </body>
 </html>
