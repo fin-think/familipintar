@@ -298,70 +298,62 @@
         await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPassword').value);
     });
 
-  onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
             document.getElementById('authScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             
-            // 1. BACA TERUS DARI MYNASAB (TIADA LAGI PENDAFTARAN WECARE_USERS)
             let userDoc = await getDoc(doc(db, "mynasab_users", user.uid));
-            
-            // Jika pengguna cuba ceroboh weCare tanpa daftar myNasab, tendang keluar
             if (!userDoc.exists()) {
                 alert("Sila daftar dan bina salasilah di myNasab terlebih dahulu sebelum menggunakan weCare.");
-                // Boleh tukar link ini ke halaman utama myNasab bos
                 auth.signOut();
                 return;
             }
 
             const uData = userDoc.data();
-            currentGroup = user.uid; // Gunakan UID sebagai kunci rujukan utama
+            currentGroup = user.uid; 
             
-            // Papar nama pengguna dari myNasab
             if (document.getElementById('displayUserName')) {
                 document.getElementById('displayUserName').innerText = uData.name || user.email.split('@')[0];
             }
 
-            // 2. SEMAK STATUS LANGGANAN (PAYWALL RM20)
-            await semakStatusLangganan(user.uid);
-            
-            // 3. SEMAK TERMA & SYARAT (T&C)
+            // Panggil T&C sahaja di sini. (Paywall akan dipanggil dari dalam semakTnC / setujuTnC)
             semakTnC();
 
-            // 4. MUAT SEMUA DATA (DI SEBALIK PAYWALL)
+            // Muat data di latar belakang
             muatProfilIbuBapa(user.uid);
             muatKalendar();
             muatUbat();
             muatKeluargaDanNota(currentGroup);
             
         } else {
-            // Jika log keluar, tunjuk skrin login weCare / myNasab
             document.getElementById('authScreen').classList.remove('hidden');
             document.getElementById('mainApp').classList.add('hidden');
         }
     });
-
-// --- LOGIK PAPARAN T&C ---
+    
+// --- LOGIK PAPARAN T&C & PAYWALL ---
     function semakTnC() {
         const dahSetuju = localStorage.getItem('wecare_tnc_agreed');
         if (!dahSetuju) {
             document.getElementById('modalTnC').style.display = 'flex';
+        } else {
+            // Kalau dah pernah setuju T&C sebelum ni, terus semak status langganan
+            if (currentUser) semakStatusLangganan(currentUser.uid);
         }
     }
 
-    function setujuTnC() {
+    async function setujuTnC() {
         localStorage.setItem('wecare_tnc_agreed', 'true');
         document.getElementById('modalTnC').style.display = 'none';
-        // Di sini nanti bos boleh tambah logik semak status langganan RM20 (Paywall)
+        
+        // Lepas setuju T&C, baru sistem semak ada langganan RM20 atau tidak
+        if (currentUser) {
+            await semakStatusLangganan(currentUser.uid);
+        }
     }
-
-    // Panggil semakTnC() sebaik sahaja pengguna berjaya login/paparan dimuatkan
-    window.addEventListener('DOMContentLoaded', () => {
-        semakTnC(); 
-    });
-    // -------------------------
-
+    
 // --- LOGIK SEMAKAN PAYWALL (LANGGANAN) ---
     async function semakStatusLangganan(uid) {
         try {
