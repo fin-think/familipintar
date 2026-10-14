@@ -56,13 +56,12 @@
             align-items: start;
         }
 
-        .ruang-nota, .ruang-waris {
-            width: 100%; 
-        }
+        /* Padamkan kod .ruang-nota, .ruang-waris { width: 100%; } yang lama tu */
         
         @media (min-width: 768px) { 
             .susunan-nota-waris { 
-                grid-template-columns: 65% 35%; /* Desktop: Pecah dua! Kiri 65%, Kanan 35% */
+                /* Gunakan 'fr' supaya browser tolak 'gap' secara automatik. 2fr = ~66%, 1fr = ~33% */
+                grid-template-columns: 2fr 1fr; 
                 gap: 25px;
             }
             .ruang-waris { 
