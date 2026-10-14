@@ -294,6 +294,9 @@ onAuthStateChanged(auth, async (user) => {
       const sLink = await getDoc(doc(db, "mynasab_links", user.uid));
       if (sLink.exists() && sLink.data().status === 'aktif') currentGroup = sLink.data().owner_uid;
     } catch (e) { console.warn("Gagal baca pautan:", e.message); }
+
+    await siapkanJangkar(user, currentGroup);
+    
     await migrasiDataLama(user.uid, currentGroup);
 
     document.getElementById('displayUserName').innerText = uData.name || user.email.split('@')[0];
@@ -308,6 +311,30 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
+async function siapkanJangkar(user, groupUid) {
+  const baca = async (uid) => {
+    try {
+      const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
+      return s.docs.map(d => ({ ...d.data(), id: d.id }));
+    } catch (e) { console.warn("Tak dapat baca nod", uid, e.message); return []; }
+  };
+  const idDiri = (nod) => (nod.find(n => n.is_root) || {}).id || null;
+  const idPasangan = (nod) => (nod.find(n => /suami|isteri/i.test(n.relationship || '')) || {}).id || null;
+
+  const sLink = await getDoc(doc(db, "mynasab_links", user.uid));
+  const berpaut = sLink.exists() && sLink.data().status === 'aktif';
+  const nodSaya = await baca(user.uid);
+
+  jangkar.pasangan = idPasangan(nodSaya);
+  jangkar.induk = berpaut ? (sLink.data().sasaran_id || idDiri(nodSaya)) : idDiri(nodSaya);
+
+  // untuk tugas lama (tiada anchor_id): sudut pandang pemilik kumpulan
+  const nodPemilik = berpaut ? await baca(groupUid) : nodSaya;
+  jangkar.lamaInduk = idDiri(nodPemilik);
+  jangkar.lamaPasangan = idPasangan(nodPemilik);
+  window._jangkar = jangkar;   // untuk semakan di Console
+}
+  
 // MIGRASI SEKALI: pindahkan kalendar & nota lama (group_id = uid sendiri) ke kumpulan induk.
 // Hanya berjalan untuk akaun berpaut (bukan induk). Selepas dipindah, query pulangkan kosong,
 // jadi selamat dijalankan setiap kali log masuk.
@@ -316,7 +343,14 @@ async function migrasiDataLama(uid, groupBaru) {
   try {
     for (const nama of ["wecare_calendar", "wecare_notes"]) {
       const snap = await getDocs(query(collection(db, nama), where("group_id", "==", uid)));
-      for (const d of snap.docs) await updateDoc(d.ref, { group_id: groupBaru });
+      for (const d of snap.docs) {
+        const x = d.data();
+        const ubah = { group_id: groupBaru };
+        // data lama ditulis dari sudut pandang SAYA, jadi tetapkan jangkar sekarang
+        const a = x.belah === 'pasangan' ? jangkar.pasangan : jangkar.induk;
+        if (!x.anchor_id && a) ubah.anchor_id = a;
+        await updateDoc(d.ref, ubah);
+      }
     }
   } catch (e) { console.warn("Migrasi data lama gagal:", e.message); }
 }
@@ -525,6 +559,9 @@ window.simpanTugasKalendar = async (syncGoogle = false) => {
   if (!title || !date) { alert('Sila isi Perkara & Tarikh Mula!'); return; }
   if (!end_date) end_date = date;
   if (end_date < date) { alert('Tarikh tamat tidak boleh sebelum tarikh mula!'); return; }
+  
+  const jb = jangkarBelah();
+  if (!editId && !jb) { alert('Belah ini belum ada pasangan dalam myNasab. Tambah pasangan dahulu.'); return; }
 
   const author = currentUser.email.split('@')[0];
   const dataTugas = { title, date, end_date, time, for_whom, shift_siapa, note };
@@ -532,7 +569,7 @@ window.simpanTugasKalendar = async (syncGoogle = false) => {
     if (editId) {
       await updateDoc(doc(db, "wecare_calendar", editId), { ...dataTugas, updated_at: Date.now() });
     } else {
-      await setDoc(doc(collection(db, "wecare_calendar")), { ...dataTugas, belah: belahSemasa(), author, group_id: currentGroup, created_at: Date.now() });
+      await setDoc(doc(collection(db, "wecare_calendar")), { ...dataTugas, anchor_id: jb, author, group_id: currentGroup, created_at: Date.now() });
     }
   } catch (e) { alert("Gagal menyimpan: " + e.message); return; }
 
@@ -672,17 +709,31 @@ async function muatKeluargaDanNota(groupId) {
 // NOTA KELUARGA - dipaparkan sebagai ikon 🗒️ pada kalendar, diasingkan ikut belah (induk / pasangan)
 // Nota lama tanpa medan "belah" dianggap belah induk.
 let dataNotaGlobal = [];
-const belahSemasa = () => document.getElementById('filterBelah').value || 'induk';
+// --- JANGKAR KELUARGA: pengenalan MUTLAK sesebuah keluarga ibu bapa ---
+// 'induk'/'pasangan' bersifat NISBI (Saad & Asmah = "pasangan" bagi Awi, tapi "induk" bagi Adi),
+// jadi tugas & nota disimpan dengan ID nod yang sama dilihat oleh semua akaun.
+let jangkar = { induk: null, pasangan: null, lamaInduk: null, lamaPasangan: null };
+const pilihBelah = () => document.getElementById('filterBelah').value || 'induk';
+const labelBelah = () => pilihBelah() === 'induk' ? 'Keluarga Induk' : 'Keluarga Pasangan';
+const jangkarBelah = () => pilihBelah() === 'pasangan' ? jangkar.pasangan : jangkar.induk;
+// Data lama (tiada anchor_id): tafsir ikut sudut pandang pemilik kumpulan
+const jangkarItem = (x) => x.anchor_id || (x.belah === 'pasangan' ? jangkar.lamaPasangan : jangkar.lamaInduk);
 const kunciTarikh = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
-const notaHari = (kunci) => dataNotaGlobal.filter(n => (n.belah || 'induk') === belahSemasa() && (n.date || kunciTarikh(n.created_at)) === kunci);
+const notaHari = (kunci) => {
+  const j = jangkarBelah();
+  if (!j) return [];
+  return dataNotaGlobal.filter(n => jangkarItem(n) === j && (n.date || kunciTarikh(n.created_at)) === kunci);
+};
 const chipNota = (kunci) => { const n = notaHari(kunci); return n.length ? `<div class="cal-event cal-note" onclick="event.stopPropagation();lihatNota('${kunci}')">🗒️ ${n.length}</div>` : ''; };
 
 window.simpanNotaKeluarga = async () => {
   const note = document.getElementById('teamNote').value.trim();
   if (!note) { alert('Sila tulis nota dahulu!'); return; }
+  const jb = jangkarBelah();
+  if (!jb) { alert('Belah ini belum ada pasangan dalam myNasab.'); return; }
   const date = document.getElementById('teamNoteDate').value || kunciTarikh(Date.now());
   await setDoc(doc(collection(db, "wecare_notes")), {
-    note, date, belah: belahSemasa(),
+    note, date, anchor_id: jb,
     author: currentUser.email.split('@')[0], group_id: currentGroup, created_at: Date.now()
   });
   document.getElementById('teamNote').value = '';
@@ -695,21 +746,24 @@ async function muatNotaKeluarga() {
   dataNotaGlobal = snap.docs.map(d => d.data());
   const tkh = document.getElementById('teamNoteDate');
   if (tkh && !tkh.value) tkh.value = kunciTarikh(Date.now());
-  document.getElementById('notaHint').innerText = 'Nota muncul di kalendar (🗒️) untuk ' + (belahSemasa() === 'induk' ? 'Keluarga Induk' : 'Keluarga Pasangan') + ' sahaja.';
+    document.getElementById('notaHint').innerText = 'Nota muncul di kalendar (🗒️) untuk ' + labelBelah() + ' sahaja.';
   window.renderKalendar();
 }
 
 // Tugas ikut belah semasa (tugas lama tanpa medan "belah" dianggap belah induk)
-const tugasHari = (kunci) => dataKalendarGlobal.filter(t =>
-  (t.belah || 'induk') === belahSemasa() && kunci >= t.date && kunci <= (t.end_date || t.date));
-
+const tugasHari = (kunci) => {
+  const j = jangkarBelah();
+  if (!j) return [];
+  return dataKalendarGlobal.filter(t => jangkarItem(t) === j && kunci >= t.date && kunci <= (t.end_date || t.date));
+};
+  
 window.renderAktivitiHariIni = () => {
   const box = document.getElementById('aktivitiHariIni');
   if (!box) return;
   const kini = new Date();
   const kunci = kunciTarikh(kini.getTime());
   const tajukTarikh = kini.toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
-  const belah = belahSemasa() === 'induk' ? 'Keluarga Induk' : 'Keluarga Pasangan';
+  const belah = labelBelah();
   const untuk = { ayah: 'untuk Bapa', ibu: 'untuk Ibu', umum: 'untuk semua' };
 
   const senarai = tugasHari(kunci).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
