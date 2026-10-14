@@ -48,27 +48,26 @@
         .card { background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); position: relative; overflow: hidden; }
         .card.decedent { background: #f1f5f9; border-color: #cbd5e1; opacity: 0.85; }
 
-        /* SUSUNAN NOTA & WARIS */
+        /* SUSUNAN NOTA & WARIS (GUNA CSS GRID - LEBIH KUKUH) */
         .susunan-nota-waris { 
-            display: flex; 
-            flex-direction: column; /* Handphone: Tersusun ke bawah */
+            display: grid; 
+            grid-template-columns: 1fr; /* Default Handphone: 1 kolum ke bawah */
             gap: 20px; 
+            align-items: start;
         }
-        .ruang-nota { width: 100%; }
-        .ruang-waris { width: 100%; }
+
+        .ruang-nota, .ruang-waris {
+            width: 100%; 
+        }
         
         @media (min-width: 768px) { 
             .susunan-nota-waris { 
-                flex-direction: row; /* Desktop: Kiri dan Kanan */
-                align-items: flex-start; 
-            }
-            .ruang-nota { 
-                width: 65%; /* Nota di kiri ambil 65% ruang */
+                grid-template-columns: 65% 35%; /* Desktop: Pecah dua! Kiri 65%, Kanan 35% */
+                gap: 25px;
             }
             .ruang-waris { 
-                width: 35%; /* Waris di kanan ambil 35% ruang */
                 position: sticky; 
-                top: 85px; 
+                top: 85px; /* Bagi dia melekat bila scroll bawah */
             } 
         }
         
