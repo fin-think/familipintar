@@ -47,6 +47,21 @@
         
         .card { background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); position: relative; overflow: hidden; }
         .card.decedent { background: #f1f5f9; border-color: #cbd5e1; opacity: 0.85; }
+
+        /* SUSUNAN NOTA & WARIS */
+        .susunan-nota-waris { display: flex; flex-direction: column; gap: 20px; }
+        .ruang-nota { width: 100%; }
+        .ruang-waris { width: 100%; }
+        
+        @media (min-width: 768px) { 
+            .susunan-nota-waris { flex-direction: row; align-items: flex-start; }
+            .ruang-nota { flex: 2; /* Nota ambil ruang lebih besar (66%) */ }
+            .ruang-waris { 
+                flex: 1; /* Waris ambil 33% */
+                position: sticky; 
+                top: 85px; /* Senarai waris melekat bila di-scroll ke bawah */
+            } 
+        }
         
         /* CALENDAR GRID */
         .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #fff; padding: 10px 15px; border-radius: 8px; border: 1px solid var(--line); }
@@ -146,21 +161,24 @@
         <h2 class="section-title" style="margin-top:35px;">Waris & Papan Nota Keluarga</h2>
         <p class="section-sub">Tinggalkan pesanan ringkas buat adik-beradik / penjaga lain.</p>
         
-        <div class="grid-2">
-            <div>
+        <div class="susunan-nota-waris">
+            <!-- KIRI: PAPAN NOTA (Kawasan Utama) -->
+            <div class="ruang-nota">
                 <div class="card" style="background:#fef3c7; border-color:#fde68a;">
-                    <textarea id="teamNote" placeholder="Tulis mesej / status terkini keadaan ibu bapa di sini..." style="border-color:#fcd34d;"></textarea>
+                    <textarea id="teamNote" placeholder="Tulis mesej / status terkini keadaan ibu bapa di sini..." style="border-color:#fcd34d; min-height:80px;"></textarea>
                     <button class="primary" onclick="simpanNotaKeluarga()" style="background:#d97706;">💬 Hantar Pesanan</button>
                 </div>
                 <div id="senaraiNotaKeluarga"></div>
             </div>
-            <div>
-                <div id="teamList">Memuatkan senarai...</div>
+            
+            <!-- KANAN: SENARAI WARIS (Sidebar) -->
+            <div class="ruang-waris">
+                <div style="background:var(--card-bg); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
+                    <h3 style="margin:0 0 15px; font-size:14px; color:var(--ink); font-weight:800; border-bottom:1px solid var(--line); padding-bottom:10px;">👥 Senarai Penjaga / Anak</h3>
+                    <div id="teamList">Memuatkan senarai...</div>
+                </div>
             </div>
         </div>
-        
-    </div>
-</div>
 
 <!-- MODAL TARIKH (Bila klik petak kalendar) -->
 <div id="modalTarikh" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:15px;">
