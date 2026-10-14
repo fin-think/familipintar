@@ -500,6 +500,7 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
             dob: status === 'meninggal' ? '' : dob,
             status: status,
             phone: telefon,
+            email: email,
             city: bandar,
             state: negeri,
             photo_url: urlGambar,
@@ -541,6 +542,7 @@ window.bukaModalEdit = async (idKotak) => {
             document.getElementById('editAhliHubungan').value = data.relationship || "";
             document.getElementById('editAhliDob').value = data.dob || "";
             document.getElementById('editAhliTelefon').value = data.phone || "";
+            document.getElementById('editAhliEmail').value = data.email || "";
             document.getElementById('editAhliBandar').value = data.city || "";
             document.getElementById('editAhliNegeri').value = data.state || "";
             document.getElementById('editAhliJantina').value = data.gender || "";
@@ -558,6 +560,9 @@ window.bukaModalEdit = async (idKotak) => {
                 if (snapPengguna.exists()) {
                     const inputAkaun = document.getElementById('editAkaunKeluarga');
                     if (inputAkaun) inputAkaun.value = snapPengguna.data().name || "";
+                }
+                if (!data.email && window.penggunaSemasa) {
+                    document.getElementById('editAhliEmail').value = window.penggunaSemasa.email;
                 }
             } else if (groupAkaun) {
                 groupAkaun.classList.add('hidden');
@@ -585,6 +590,7 @@ if (formEdit) {
                 name: document.getElementById('editAhliNama').value,
                 dob: document.getElementById('editAhliDob').value,
                 phone: document.getElementById('editAhliTelefon').value,
+                email: document.getElementById('editAhliEmail').value,
                 city: document.getElementById('editAhliBandar').value,
                 state: document.getElementById('editAhliNegeri').value,
                 gender: document.getElementById('editAhliJantina').value,
