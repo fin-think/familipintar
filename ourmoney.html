@@ -16,7 +16,6 @@
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
   body { background: var(--bg-color); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
 
-  /* Latar Belakang Terapung */
   body::before {
     content: ''; position: fixed; inset: 0;
     background: radial-gradient(circle at 15% 50%, #10b98111 0%, transparent 40%),
@@ -48,6 +47,12 @@
   .card { background: var(--card-bg); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--line); }
   .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 2px dashed var(--line); padding-bottom: 12px; }
   .card-header h2 { font-size: 1.2rem; font-weight: 800; color: var(--ink); }
+
+  /* Filter Ruangan Transaksi */
+  .filter-wrap { display: flex; gap: 10px; margin-bottom: 15px; }
+  .filter-wrap input[type="month"] { flex: 1; padding: 10px; border: 1.5px solid var(--line); border-radius: 8px; font-weight: 800; color: var(--ink); outline: none; }
+  .filter-wrap button { background: #e0f2fe; color: #0284c7; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+  .filter-wrap button:hover { background: #bae6fd; }
 
   /* Borang Transaksi */
   .form-grid { display: flex; flex-direction: column; gap: 12px; }
@@ -105,6 +110,8 @@
   .vac-details { flex: 1; }
   .vac-title { font-weight: 800; color: #b45309; font-size: 0.9rem; text-transform: uppercase; }
   .vac-amt { font-size: 1.2rem; font-weight: 800; color: #ea580c; line-height: 1.2; }
+  .btn-rancang { font-size: 0.75rem; background: #fff; border: 1px solid #FFECCC; border-radius: 6px; padding: 4px 10px; text-decoration: none; color: #ea580c; display: inline-block; margin-top: 6px; font-weight: 800; box-shadow: 0 2px 4px rgba(234,88,12,0.1); }
+  .btn-rancang:hover { background: #fff7ed; }
 
   /* Analisis Hujung Bulan */
   .health-card { margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--line); }
@@ -165,9 +172,7 @@
           <div class="grid-2">
             <div class="field">
               <label>Kategori</label>
-              <select id="txnCat" required>
-                <!-- Pilihan dijana secara dinamik oleh JS -->
-              </select>
+              <select id="txnCat" required></select>
             </div>
             <div class="field">
               <label>Tarikh</label>
@@ -188,7 +193,7 @@
             <input type="text" id="txnNote" placeholder="Cth: Barang Dapur Lotus">
           </div>
 
-          <!-- GAMBAR RESIT (CAPTURE ENVIRONMENT UTK BUKA KAMERA TERUS DI HP) -->
+          <!-- GAMBAR RESIT -->
           <div class="field">
             <label>Resit / Gambar Bukti (Pilihan)</label>
             <input type="file" id="txnImage" accept="image/*" capture="environment" style="display:none;" onchange="pilihGambar(event)">
@@ -205,9 +210,12 @@
 
       <!-- Kad Senarai Transaksi -->
       <div class="card">
-        <div class="card-header">
-          <h2>📋 Transaksi Bulan Ini</h2>
-          <span style="font-size:0.8rem; font-weight:700; color:var(--muted);" id="label-bulan-semasa"></span>
+        <div class="card-header" style="display:block; border-bottom:none; margin-bottom:5px;">
+          <h2 id="tajuk-transaksi" style="margin-bottom:10px;">📋 Senarai Transaksi</h2>
+          <div class="filter-wrap">
+              <input type="month" id="filterBulan" onchange="tukarBulanPaparan()">
+              <button onclick="lihatTahunan()">Paparan Tahunan</button>
+          </div>
         </div>
         <div class="txn-list" id="senarai-transaksi">
           <div style="text-align:center; color:#aaa; font-size:0.9rem; padding:20px;">Memuatkan data...</div>
@@ -222,7 +230,7 @@
       <!-- Kad Dashboard -->
       <div class="card">
         <div class="card-header">
-          <h2>📊 Aliran Tunai Bulan Ini</h2>
+          <h2 id="tajuk-dashboard">📊 Aliran Tunai Bulan Ini</h2>
         </div>
         
         <div class="dash-grid">
@@ -241,18 +249,19 @@
           <div class="dash-val" id="dash-net">RM 0.00</div>
         </div>
 
-        <!-- Kad Integrasi JomBercuti -->
-        <div class="vacation-card" id="vacation-target" style="display:none;">
+        <!-- Kad Integrasi JomBercuti (Sentiasa Ada, Link ke gotravel.html) -->
+        <div class="vacation-card" id="vacation-target">
           <div class="vac-icon">✈️</div>
           <div class="vac-details">
             <div class="vac-title">Sasaran JomBercuti</div>
             <div class="vac-amt" id="vac-saving">RM 0.00 / bulan</div>
+            <a href="gotravel.html" class="btn-rancang" id="btn-pautan-jombercuti">Rancang Sekarang ➔</a>
           </div>
         </div>
 
         <!-- Analisis Kesihatan Kewangan -->
-        <div class="health-card">
-          <div class="health-title">🩺 Kesihatan Kewangan (Analisis Hujung Bulan)</div>
+        <div class="health-card" id="health-card-section">
+          <div class="health-title">🩺 Kesihatan Kewangan (Analisis Penutup Bulan)</div>
           
           <div class="progress-wrap" id="health-bar-wrap" style="display:none;">
             <div class="prog-out" id="bar-out" title="Perbelanjaan"></div>
@@ -316,7 +325,6 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    // KEMAS KINI: Tambah 'addDoc' untuk cipta rekod baru dengan betul
     import { getFirestore, doc, setDoc, addDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
@@ -339,14 +347,18 @@
     let targetPercutian = 0;
     let selectedImageFile = null;
 
-    // --- PEMBAIKAN ISU TIMEZONE (WAKTU MALAYSIA) ---
+    // --- SETUP WAKTU MALAYSIA (ELAK ISU TIMEZONE) ---
     const todayLocal = new Date();
     const localOffset = todayLocal.getTimezoneOffset() * 60000;
-    const localDateStr = new Date(todayLocal.getTime() - localOffset).toISOString().split('T')[0]; // Format YYYY-MM-DD
-    const strBulanIni = localDateStr.substring(0, 7); // Format YYYY-MM (Kunci Tapisan Bulan Semasa)
-
+    const localDateStr = new Date(todayLocal.getTime() - localOffset).toISOString().split('T')[0]; // YYYY-MM-DD
+    const bulanIniStr = localDateStr.substring(0, 7); // YYYY-MM
+    
+    // Tetapan Mod Paparan
+    let modPaparan = 'bulan'; // 'bulan' atau 'tahun'
+    
+    // Masukkan ke ruangan Filter
+    document.getElementById('filterBulan').value = bulanIniStr;
     document.getElementById('txnDate').value = localDateStr;
-    document.getElementById('label-bulan-semasa').innerText = todayLocal.toLocaleString('ms-MY', { month: 'long', year: 'numeric' });
 
     // Kategori Pilihan
     const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Pakaian", "Lain-lain"];
@@ -372,36 +384,28 @@
                 const data = userDoc.data();
                 const tarikhLuput = data.ourmoney_expiry_date; 
                 const masaSekarang = new Date().getTime();
-
                 if (!tarikhLuput || tarikhLuput < masaSekarang) {
                     document.getElementById('modalPaywall').style.display = 'flex';
                 } else {
                     document.getElementById('modalPaywall').style.display = 'none';
                 }
             }
-        } catch (error) {
-            document.getElementById('modalPaywall').style.display = 'flex';
-        }
+        } catch (error) { document.getElementById('modalPaywall').style.display = 'flex'; }
     };
 
     window.semakTnC = () => {
         const dahSetuju = localStorage.getItem('ourmoney_tnc_agreed');
-        if (!dahSetuju) {
-            document.getElementById('modalTnC').style.display = 'flex';
-        } else {
-            if (currentUser) window.semakStatusLangganan(currentUser.uid);
-        }
+        if (!dahSetuju) { document.getElementById('modalTnC').style.display = 'flex'; } 
+        else { if (currentUser) window.semakStatusLangganan(currentUser.uid); }
     };
 
     document.getElementById('btnSetujuTnC').addEventListener('click', async () => {
         localStorage.setItem('ourmoney_tnc_agreed', 'true');
         document.getElementById('modalTnC').style.display = 'none';
-        
         if (currentUser) {
             try {
                 const userRef = doc(db, "mynasab_users", currentUser.uid);
                 const userSnap = await getDoc(userRef);
-                
                 if (userSnap.exists()) {
                     const data = userSnap.data();
                     if (!data.ourmoney_expiry_date) {
@@ -425,12 +429,7 @@
                 if (baki >= 20) {
                     const masaSekarang = new Date().getTime();
                     const tambah30Hari = masaSekarang + (30 * 24 * 60 * 60 * 1000);
-                    
-                    await setDoc(userRef, { 
-                        credit_balance: baki - 20,
-                        ourmoney_expiry_date: tambah30Hari 
-                    }, { merge: true });
-                    
+                    await setDoc(userRef, { credit_balance: baki - 20, ourmoney_expiry_date: tambah30Hari }, { merge: true });
                     alert("Pembaharuan berjaya! 20 Kredit telah dipotong dari akaun anda.");
                     document.getElementById('modalPaywall').style.display = 'none';
                 } else {
@@ -478,7 +477,10 @@
 
             if (targetPercutian > 0) {
                 document.getElementById('vac-saving').innerText = `RM ${targetPercutian.toFixed(2)} / bulan`;
-                document.getElementById('vacation-target').style.display = 'flex';
+                document.getElementById('btn-pautan-jombercuti').innerText = 'Urus Pelan ➔';
+            } else {
+                document.getElementById('vac-saving').innerText = `RM 0.00 / bulan`;
+                document.getElementById('btn-pautan-jombercuti').innerText = 'Rancang Sekarang ➔';
             }
         } catch(e) { console.error(e); }
     }
@@ -510,12 +512,11 @@
         if(!currentUser) return;
 
         const btn = document.getElementById('btn-save-txn');
-        btn.disabled = true; btn.innerText = "Menyimpan...";
+        btn.disabled = true; btn.innerText = "Memuat Naik & Menyimpan...";
 
         try {
             let imgUrl = "";
             if (selectedImageFile) {
-                btn.innerText = "Memuat Naik Resit...";
                 const storageRef = ref(storage, `ourmoney_receipts/${currentUser.uid}_${Date.now()}_${selectedImageFile.name}`);
                 await uploadBytes(storageRef, selectedImageFile);
                 imgUrl = await getDownloadURL(storageRef);
@@ -532,7 +533,6 @@
                 created_at: Date.now()
             };
 
-            // GUNA addDoc UNTUK DOKUMEN BARU
             await addDoc(collection(db, "ourmoney_transactions"), txnData);
             
             // Reset Borang
@@ -540,24 +540,43 @@
             document.getElementById('txnNote').value = '';
             window.buangGambar();
             
+            // Re-render
             muatDataOurMoney();
         } catch (err) { 
-            console.error(err);
-            // PAPARKAN RALAT JIKA KENA SEKAT DENGAN FIRESTORE RULES
             if(err.code === "permission-denied" || err.message.includes("permission")) {
-                alert("Ralat Firebase: Database menyekat penyimpanan rekod ini. Sila pastikan tetapan 'Rules' Firestore bos membenarkan tulis (write) ke modul 'ourmoney_transactions'.");
-            } else {
-                alert("Gagal menyimpan rekod: " + err.message); 
-            }
+                alert("Ralat Firebase: Database menyekat penyimpanan rekod ini. Sila semak Firestore Rules.");
+            } else { alert("Gagal menyimpan rekod: " + err.message); }
         }
-        
         btn.disabled = false; btn.innerText = "💾 Simpan Rekod";
     });
+
+    // --- FUNGSI FILTER (CLOSING / TAHUNAN) ---
+    window.tukarBulanPaparan = () => {
+        modPaparan = 'bulan';
+        muatDataOurMoney();
+    };
+
+    window.lihatTahunan = () => {
+        modPaparan = 'tahun';
+        muatDataOurMoney();
+    };
 
     // 4. Muat Data Transaksi & Analisis Kewangan
     async function muatDataOurMoney() {
         if(!currentUser) return;
         try {
+            const filterVal = document.getElementById('filterBulan').value || bulanIniStr; // Cth: '2026-10'
+            const tahunVal = filterVal.substring(0, 4); // Cth: '2026'
+
+            // Kemas kini tajuk ikut mod
+            if (modPaparan === 'bulan') {
+                document.getElementById('tajuk-transaksi').innerText = "📋 Transaksi Bulan " + filterVal;
+                document.getElementById('tajuk-dashboard').innerText = "📊 Aliran Tunai Bulan " + filterVal;
+            } else {
+                document.getElementById('tajuk-transaksi').innerText = "📋 Senarai Transaksi Tahun " + tahunVal;
+                document.getElementById('tajuk-dashboard').innerText = "📊 Aliran Tunai Tahun " + tahunVal;
+            }
+            
             const q = query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid));
             const snap = await getDocs(q);
 
@@ -567,8 +586,10 @@
 
             snap.forEach(d => {
                 const data = d.data();
-                // Tapis rekod supaya padan dengan rentetan YYYY-MM (strBulanIni)
-                if (data.date && data.date.startsWith(strBulanIni)) {
+                // Filter berdasarkan input pengguna (Bulan atau Tahun)
+                if (modPaparan === 'bulan' && data.date && data.date.startsWith(filterVal)) {
+                    listSemasa.push({ id: d.id, ...data });
+                } else if (modPaparan === 'tahun' && data.date && data.date.startsWith(tahunVal)) {
                     listSemasa.push({ id: d.id, ...data });
                 }
             });
@@ -605,7 +626,7 @@
             });
 
             if (listSemasa.length === 0) {
-                htmlTxn = "<div style='text-align:center; padding:20px; color:#aaa;'>Belum ada perbelanjaan atau pendapatan direkodkan untuk bulan ini.</div>";
+                htmlTxn = "<div style='text-align:center; padding:20px; color:#aaa;'>Belum ada perbelanjaan atau pendapatan direkodkan untuk tempoh ini.</div>";
             }
             document.getElementById('senarai-transaksi').innerHTML = htmlTxn;
 
@@ -614,7 +635,13 @@
             document.getElementById('dash-out').innerText = `RM ${totalOut.toFixed(2)}`;
             document.getElementById('dash-net').innerText = `RM ${netBalance.toFixed(2)}`;
 
-            renderAnalisisKesihatan(totalIn, totalOut, targetPercutian);
+            // Hanya tunjuk Kesihatan Kewangan untuk paparan Bulanan (kerana target JomBercuti adalah bulanan)
+            if (modPaparan === 'tahun') {
+                document.getElementById('health-card-section').style.display = 'none';
+            } else {
+                document.getElementById('health-card-section').style.display = 'block';
+                renderAnalisisKesihatan(totalIn, totalOut, targetPercutian);
+            }
 
         } catch(e) { console.error("Ralat muat transaksi:", e); }
     }
