@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>weCare - Jagaan Bersama</title>
-    <style>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+   <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
         :root {
             --bg-color: #f8fafc; --card-bg: #ffffff; --ink: #1e293b;
@@ -48,25 +48,28 @@
         .card { background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); position: relative; overflow: hidden; }
         .card.decedent { background: #f1f5f9; border-color: #cbd5e1; opacity: 0.85; }
 
-        /* SUSUNAN NOTA & WARIS (GUNA CSS GRID - LEBIH KUKUH) */
+        /* SUSUNAN NOTA & WARIS - FLEXBOX KEBAL */
         .susunan-nota-waris { 
-            display: grid; 
-            grid-template-columns: 1fr; /* Default Handphone: 1 kolum ke bawah */
+            display: flex; 
+            flex-direction: column; 
             gap: 20px; 
-            align-items: start;
+            align-items: flex-start;
+        }
+        .ruang-nota, .ruang-waris { 
+            width: 100%; 
         }
 
-        /* Padamkan kod .ruang-nota, .ruang-waris { width: 100%; } yang lama tu */
-        
         @media (min-width: 768px) { 
             .susunan-nota-waris { 
-                /* Gunakan 'fr' supaya browser tolak 'gap' secara automatik. 2fr = ~66%, 1fr = ~33% */
-                grid-template-columns: 2fr 1fr; 
-                gap: 25px;
+                flex-direction: row; 
+            }
+            .ruang-nota { 
+                width: calc(65% - 10px); 
             }
             .ruang-waris { 
+                width: calc(35% - 10px); 
                 position: sticky; 
-                top: 85px; /* Bagi dia melekat bila scroll bawah */
+                top: 85px; 
             } 
         }
         
