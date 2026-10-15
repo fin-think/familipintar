@@ -172,6 +172,20 @@
           
           const [appData, setAppData] = useState(defaultData);
 
+// State untuk Paywall Dashboard
+  const [isDashboardUnlocked, setIsDashboardUnlocked] = useState(false); 
+  const [showPaywall, setShowPaywall] = useState(false);
+
+  // Fungsi untuk memintas klik tab
+  const handleTabClick = (tabId) => {
+    // Jika tab Dashboard ditekan dan belum dibuka kuncinya
+    if (tabId === 'Dashboard' && !isDashboardUnlocked) {
+      setShowPaywall(true); // Keluarkan pop-up
+    } else {
+      setActiveTab(tabId); // Buka tab macam biasa
+    }
+  };
+            
           // PENGURUSAN AUTENTIKASI & PANGKALAN DATA
           useEffect(() => {
               const handleFbReady = () => setIsFirebaseReady(true);
@@ -814,21 +828,24 @@
   </div>
 </header>
               <main className="max-w-6xl mx-auto mt-8 px-4">
-                <div className="flex overflow-x-auto whitespace-nowrap gap-3 mb-8 pb-4 snap-x snap-mandatory hide-scrollbar">
-                  {tabs.map((tab) => (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                      className={`shrink-0 min-w-[140px] md:flex-1 md:min-w-0 flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-medium transition-all snap-center ${
-                        activeTab === tab.id ? 'bg-sky-600 text-white shadow-lg scale-105 transform border-sky-500' : 'bg-white text-slate-600 hover:bg-sky-50 border border-slate-200'
-                      }`}>
-                      <tab.icon size={28} className={activeTab === tab.id ? 'text-amber-300' : 'text-sky-600'} />
-                      <div className="text-center">
-                        <div className="font-bold text-sm md:text-base leading-tight">{tab.title}</div>
-                        <div className="text-xs opacity-80 mt-1 hidden md:block">{tab.desc}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
+    <div className="flex overflow-x-auto whitespace-nowrap gap-3 mb-8 pb-4 snap-x snap-mandatory hide-scrollbar">
+      {tabs.map((tab) => (
+        <button 
+          key={tab.id} 
+          // UBAH DI SINI: Gunakan fungsi handleTabClick
+          onClick={() => handleTabClick(tab.id)}
+          className={`shrink-0 min-w-[140px] md:flex-1 md:min-w-0 flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-medium transition-all snap-center ${
+            activeTab === tab.id ? 'bg-sky-600 text-white shadow-lg scale-105 transform border-sky-500' : 'bg-white text-slate-600 hover:bg-sky-50 border border-slate-200'
+          }`}
+        >
+          <tab.icon size={28} className={activeTab === tab.id ? 'text-amber-300' : 'text-sky-600'} />
+          <div className="text-center">
+            <div className="font-bold text-sm md:text-base leading-tight">{tab.title}</div>
+            <div className="text-xs opacity-80 mt-1 hidden md:block">{tab.desc}</div>
+          </div>
+        </button>
+      ))}
+    </div>
                 <div className="space-y-6">
                   
                   {activeTab === 1 && (
@@ -1544,6 +1561,44 @@
                   )}
                   
                 </div>
+
+{/* MODAL PAYWALL DASHBOARD */}
+      {showPaywall && (
+        <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">💎</div>
+            <h3 className="text-2xl font-bold text-slate-800 mb-2">Akses Analisis Penuh</h3>
+            
+            <p className="text-slate-500 text-sm mb-6">
+              Satu langkah terakhir! Gunakan <strong className="text-blue-600">10 Kredit</strong> untuk menjana laporan Net Worth, Unjuran Persaraan dan Analisis DSR anda.
+            </p>
+            
+            <button 
+              onClick={() => {
+                // Di sini bos letak fungsi tolak kredit Firebase.
+                // Contoh: prosesTolakKredit(10).then(() => {
+                
+                setIsDashboardUnlocked(true); // Buka kunci
+                setShowPaywall(false); // Tutup popup
+                setActiveTab('Dashboard'); // Terus bawa masuk ke tab Dashboard
+                
+                // });
+              }} 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mb-3 flex justify-center items-center gap-2"
+            >
+              Buka Analisis (10 Kredit)
+            </button>
+            
+            <button 
+              onClick={() => setShowPaywall(false)} 
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all"
+            >
+              Nanti Dulu
+            </button>
+          </div>
+        </div>
+      )}
+                  
               </main>
 
               {/* BUTANG CETAK LAPORAN JANGAN DIBUANG */}
