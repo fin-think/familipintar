@@ -303,7 +303,7 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
                         <a href="#mapa-parenting" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Keharmonian</a>
                         <a href="#mapa-legacy" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Legasi</a>
                         <a href="#anakku" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Zuriat</a>
-                        <a href="#akuan" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">myTADBIR</a>
+                        
 
                                                <button onclick="window.location.href='../index.html'" class="bg-sky-500 hover:bg-sky-600 px-4 py-1.5 rounded-full font-bold transition text-white text-sm shadow-sm">
                             <i class="fa-solid fa-arrow-left mr-1"></i> Kembali
@@ -333,7 +333,7 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
                 <a href="#mapa-parenting" onclick="toggleJournalMobileMenu(); hideProfile()">Keharmonian</a> 
                 <a href="#mapa-legacy" onclick="toggleJournalMobileMenu(); hideProfile()">Legasi</a> 
                 <a href="#anakku" onclick="toggleJournalMobileMenu(); hideProfile()">Zuriat</a> 
-                <a href="#akuan" onclick="toggleJournalMobileMenu(); hideProfile()">myTADBIR</a> 
+              
                 
                 <!-- Butang Kembali (Ganti Log Keluar di Mobile) -->
                 <div class="mt-4 pt-4 border-t border-slate-800">
@@ -419,16 +419,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                     <div class="relative timeline-container" id="anakku-timeline"></div>
                 </section>
 
-<section id="akuan" class="mb-24 relative scroll-mt-24">
-    <div class="text-center mb-12 px-4">
-        <h2 class="text-2xl font-bold text-emerald-500 mb-2">
-            <i class="fa-solid fa-file-signature mr-2"></i>
-            Anda baru nampak gambaran sebenar. Sekarang — nak buat apa dengan maklumat ni?
-        </h2>
-    </div>
 
-    <div class="relative timeline-container" id="akuan-timeline"></div>
-</section>
 
             </div>
         </main>
@@ -581,9 +572,8 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
             { id: 'mapa-finance', key: 'main', cost: 20 },
             { id: 'mapa-parenting', key: 'parenting', cost: 30 },
             { id: 'mapa-legacy', key: 'legacy', cost: 30 },
-            { id: 'anakku', key: 'kids', cost: 50 },
-            { id: 'akuan', key: 'akuan', cost: 20 }
-        ];
+            { id: 'anakku', key: 'kids', cost: 50 }
+            ];
         
         modules.forEach(mod => {
             const el = document.getElementById(mod.id);
@@ -733,27 +723,8 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                 { id: "dpsikoteens", title: "myPSIKOteens", icon: "fa-headphones", desc: "Ujian menilai aspek spiritual dan disiplin diri remaja.", reqs: ["adab", "genz"], githubLink: "/app/mypsikoteens.html", nextStep: "dpsikoteens2", nextMsg: "Langkah seterusnya: Menilai dan menangani kesan sosial media terhadap mereka." },
                 { id: "dpsikoteens2", title: "myPSIKOteens2.0", icon: "fa-vr-cardboard", desc: "Menilai dan menangani kesan sosial media pada anak remaja.", reqs: ["adab", "genz", "yolo", "tipsgenz"], githubLink: "/app/mypsikoteens2.0.html", nextStep: "dpsikoteens3", nextMsg: "Langkah terakhir, kita nilai sesuatu hal yang orang jarang bincang." },
                 { id: "dpsikoteens3", title: "myPSIKOteens3.0", icon: "fa-vr-cardboard", desc: "Menilai dan mengenalpasti kecenderungan kendiri anak remaja.", reqs: ["krisis", "qawwam"], githubLink: "/app/mypsikoteens3.0.html", isEndLevel: true, finishMsg: "Syabas! Anda telah melengkapkan seluruh Jurnal Famili Pintar. Semoga input ini membantu membina keluarga yang bahagia dan berjaya." }
-            ] } ],
-        akuan: [
-            {
-                fasa: "Masa untuk tadbir urusan dunia akhirat dengan sempurna",
-                icon: "fa-file-signature",
-                color: "emerald",
-                tools: [
-                    {
-                        id: "akuan1",
-                        title: "myTADBIR",
-                        icon: "fa-file-circle-check",
-                        desc: "Kalkulator pertama.",
-                        reqs: ["fin101"],
-                        githubLink: "/app/mytadbir.html",
-                        isEndLevel: true,
-                        finishMsg: "Tahniah, InsyaAllah anda pasti berjaya dunia akhirat."
-                    },
-
-                  ]
-            }
-        ]   // <- habis akuan
+            ] } ]
+        
 
     };
 
@@ -789,7 +760,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         window.renderTimeline(timelineData.parenting, 'parenting-timeline');
         window.renderTimeline(timelineData.legacy, 'legacy-timeline');
         window.renderTimeline(timelineData.kids, 'anakku-timeline');
-        window.renderTimeline(timelineData.akuan, 'akuan-timeline');
+       
     };
        
     window.openModal = (toolId, color, sectionId) => {
