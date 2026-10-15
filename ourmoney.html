@@ -25,12 +25,52 @@
 
   .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px; position: relative; z-index: 1; }
 
-  /* Pengepala */
-  .header { text-align: center; padding: 10px 0 20px; position: relative; }
-  .header h1 { font-size: 2rem; font-weight: 900; color: var(--primary); line-height: 1.1; margin-bottom: 4px; }
-  .header p { color: var(--muted); font-size: 0.95rem; font-weight: 700; }
-  .btn-kembali { position: absolute; right: 0; top: 10px; background: #0ea5e9; color: white; border: none; padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 6px rgba(14,165,233,0.3); transition: 0.2s; }
-  .btn-kembali:hover { background: #0284c7; }
+ /* Pengepala Penuh (Full Width) */
+  .top-nav {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      padding: 20px 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+  }
+  .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+  }
+  .nav-container h1 {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #34d399; /* Warna hijau premium */
+      line-height: 1.1;
+      margin-bottom: 2px;
+  }
+  .nav-container p {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      font-weight: 600;
+  }
+  .btn-kembali {
+      background: #0ea5e9;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 99px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(14,165,233,0.3);
+      transition: 0.2s;
+      white-space: nowrap;
+  }
+  .btn-kembali:hover {
+      background: #0284c7;
+      transform: translateY(-2px);
+  }
 
   /* Grid Utama */
   .layout-utama { display: flex; flex-direction: column; gap: 24px; align-items: stretch; }
@@ -152,17 +192,21 @@
     </div>
 </div>
 
-<div class="container" id="mainApp">
-  <!-- Pengepala Utama -->
-  <div class="header">
-    <button onclick="window.location.href='index.html'" class="btn-kembali">Kembali</button>
-    <div>
-      <h1>OurMoney</h1>
-      <p>Penjejak Aliran Tunai & Kesihatan Kewangan Keluarga</p>
+<div id="mainApp">
+  
+  <!-- Pengepala Utama (Melebar Penuh) -->
+  <header class="top-nav">
+    <div class="nav-container">
+      <div>
+        <h1>OurMoney</h1>
+        <p>Penjejak Aliran Tunai & Kesihatan Kewangan Keluarga</p>
+      </div>
+      <button onclick="window.location.href='index.html'" class="btn-kembali">🏠 myNasab</button>
     </div>
-  </div>
+  </header>
 
-  <div class="layout-utama">
+  <div class="container">
+    <div class="layout-utama">
     
     <!-- KOLUM KIRI (Kemasukan & Senarai) -->
     <div class="kolum-kiri">
