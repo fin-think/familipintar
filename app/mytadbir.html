@@ -185,7 +185,7 @@
                       mergedData = { ...mergedData, ...docSnap.data().raw_data };
                   }
 
-                  // 2. Tarik Data myNasab
+                  // Tarik Data myNasab
                   const q = window.fbQuery(window.fbCollection(window.fbDb, "mynasab_nodes"), window.fbWhere("owner_uid", "==", uid));
                   const nasabSnap = await window.fbGetDocs(q);
                   
@@ -196,12 +196,14 @@
 
                   nasabSnap.forEach(d => {
                       const data = d.data();
-                      const rel = (data.relationship || data.hubungan || '').toLowerCase();
-                      const status = (data.status || '').toLowerCase();
+                      const rel = (data.relationship || data.hubungan || '').toLowerCase().trim();
+                      const status = (data.status || '').toLowerCase().trim();
                       
-                      // LOGIK MENCARI JANTINA DIPERBAIKI (Tarik 'jantina' ATAU 'gender')
-                      const rawGender = (data.gender || data.jantina || '').toLowerCase();
+                      // 1. Kenal pasti jika sudah meninggal dunia / mertua
+                      const isMeninggal = status === 'meninggal' || status === 'meninggal dunia';
+                      const isMertua = rel.includes('mertua') || rel.includes('mentua');
                       
+                      // 2. Fungsi Kira Umur Tepat
                       const calcAge = (dobStr) => {
                           if (!dobStr) return 0;
                           const birthDate = new Date(dobStr);
@@ -214,27 +216,38 @@
                           return calc;
                       };
 
-                      if (status !== 'meninggal' && status !== 'meninggal dunia') {
-                          if (rel.includes('diri sendiri') || rel.includes('induk')) {
-                              selfAge = calcAge(data.dob) || selfAge;
-                              selfGender = rawGender === 'perempuan' ? 'perempuan' : 'lelaki';
-                          }
-                          if (rel.includes('anak') && !rel.includes('saudara')) {
-                              let cGender = rawGender;
-                              // Kadangkala hubungan ada tulis "Anak Perempuan"
-                              if (rel.includes('perempuan')) cGender = 'perempuan';
-                              else if (rel.includes('lelaki')) cGender = 'lelaki';
-                              
-                              childrenList.push({
-                                  id: d.id,
-                                  name: data.name || data.nama || `Anak ${childrenList.length + 1}`,
-                                  age: calcAge(data.dob) || 1,
-                                  gender: cGender === 'perempuan' ? 'perempuan' : 'lelaki'
-                              });
-                          }
-                          if (rel === 'suami' || rel === 'isteri' || rel === 'pasangan') spouse = true;
-                          if (rel === 'ibu' || rel === 'mak' || rel === 'mama') mother = true;
-                          if (rel === 'ayah' || rel === 'bapa' || rel === 'abah' || rel === 'papa') father = true;
+                      // 3. 🛡️ PENAPIS JANTINA KEBAL (Berdasarkan Database: "L" atau "P")
+                      let jantinaDikesan = 'lelaki'; // Default
+                      const gText = (data.gender || data.jantina || '').toString().toLowerCase().trim();
+                      const nText = (data.name || data.nama || '').toLowerCase();
+                      
+                      if (gText === 'p' || gText === 'perempuan' || gText === 'female' || gText === 'f') jantinaDikesan = 'perempuan';
+                      else if (gText === 'l' || gText === 'lelaki' || gText === 'male' || gText === 'm') jantinaDikesan = 'lelaki';
+                      else if (rel.includes('perempuan')) jantinaDikesan = 'perempuan';
+                      else if (rel.includes('lelaki')) jantinaDikesan = 'lelaki';
+                      else if (nText.includes('binti ')) jantinaDikesan = 'perempuan';
+
+                      // 4. Tangkap Maklumat Induk (Diri Sendiri)
+                      if (rel.includes('diri sendiri') || rel.includes('induk')) {
+                          selfAge = calcAge(data.dob) || selfAge;
+                          selfGender = jantinaDikesan;
+                      }
+                      
+                      // 5. Tangkap Maklumat Anak
+                      if (rel.includes('anak') && !rel.includes('saudara') && !isMeninggal) {
+                          childrenList.push({
+                              id: d.id,
+                              name: data.name || data.nama || `Anak ${childrenList.length + 1}`,
+                              age: calcAge(data.dob) || 1,
+                              gender: jantinaDikesan
+                          });
+                      }
+                      
+                      // 6. Tangkap Status Faraid (Pasangan & Ibu Bapa)
+                      if (!isMeninggal && !isMertua) {
+                          if (rel.includes('suami') || rel.includes('isteri') || rel.includes('pasangan')) spouse = true;
+                          if (rel.match(/ibu|mak|mama/)) mother = true;
+                          if (rel.match(/ayah|bapa|abah|papa/)) father = true;
                       }
                   });
 
@@ -258,7 +271,7 @@
               }
               setLoadingData(false);
           };
-
+            
           const handleLogin = async (e) => {
               e.preventDefault();
               try { await window.fbSignIn(window.fbAuth, e.target.email.value, e.target.password.value); } 
