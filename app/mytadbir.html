@@ -1246,7 +1246,7 @@
                         </div>
                       </Card>
 
-                      {/* --- BUTANG SIMPAN KE OURMONEY --- */}
+{/* --- BUTANG SIMPAN KE OURMONEY --- */}
                       <div className="mt-12 bg-sky-50 border border-sky-200 p-6 rounded-2xl text-center shadow-sm">
                           <CloudArrowUp size={48} className="mx-auto text-sky-500 mb-3" />
                           <h3 className="text-xl font-bold text-slate-800 mb-2">Simpan & Hubungkan ke OurMoney</h3>
@@ -1264,9 +1264,18 @@
 
                     </div>
                   )}
-                    
+
                 </div>
               </main>
+
+              {/* BUTANG CETAK LAPORAN JANGAN DIBUANG */}
+              {activeTab === 6 && (
+                <div className="max-w-6xl mx-auto px-4 mt-8 pb-12 flex justify-center">
+                  <button onClick={() => setShowReport(true)} className="px-8 py-4 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold shadow-lg transition-colors flex items-center gap-3 text-lg">
+                    <FileText size={24} /> Lihat / Cetak Laporan Penuh
+                  </button>
+                </div>
+              )}
             </div>
           );
         }
