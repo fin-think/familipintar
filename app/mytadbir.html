@@ -63,7 +63,6 @@
         window.fbWhere = where;
         window.fbGetDocs = getDocs;
 
-        // Beritahu React bahawa Firebase sedia digunakan
         window.dispatchEvent(new Event('firebaseLoaded'));
     </script>
 
@@ -178,7 +177,6 @@
           // ENJIN PENYEDUT DATA BERSEPADU (myNasab -> myTADBIR)
           const fetchEcosystemData = async (uid) => {
               try {
-                  // 1. Dapatkan Profil myTADBIR sedia ada (Jika dah pernah save)
                   const docRef = window.fbDoc(window.fbDb, "mytadbir_profiles", uid);
                   const docSnap = await window.fbGetDoc(docRef);
                   let mergedData = { ...defaultData };
@@ -187,7 +185,7 @@
                       mergedData = { ...mergedData, ...docSnap.data().raw_data };
                   }
 
-                  // 2. Tarik Data myNasab (Utamakan Data Pokok Terkini)
+                  // 2. Tarik Data myNasab
                   const q = window.fbQuery(window.fbCollection(window.fbDb, "mynasab_nodes"), window.fbWhere("owner_uid", "==", uid));
                   const nasabSnap = await window.fbGetDocs(q);
                   
@@ -198,40 +196,58 @@
 
                   nasabSnap.forEach(d => {
                       const data = d.data();
-                      const rel = (data.relationship || '').toLowerCase();
-                      const status = data.status || '';
+                      const rel = (data.relationship || data.hubungan || '').toLowerCase();
+                      const status = (data.status || '').toLowerCase();
+                      
+                      // LOGIK MENCARI JANTINA DIPERBAIKI (Tarik 'jantina' ATAU 'gender')
+                      const rawGender = (data.gender || data.jantina || '').toLowerCase();
                       
                       const calcAge = (dobStr) => {
                           if (!dobStr) return 0;
-                          return new Date().getFullYear() - new Date(dobStr).getFullYear();
+                          const birthDate = new Date(dobStr);
+                          const today = new Date();
+                          let calc = today.getFullYear() - birthDate.getFullYear();
+                          const m = today.getMonth() - birthDate.getMonth();
+                          if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                              calc--;
+                          }
+                          return calc;
                       };
 
-                      if (status !== 'meninggal') {
-                          if (rel.includes('diri sendiri')) {
+                      if (status !== 'meninggal' && status !== 'meninggal dunia') {
+                          if (rel.includes('diri sendiri') || rel.includes('induk')) {
                               selfAge = calcAge(data.dob) || selfAge;
-                              selfGender = (data.gender || '').toLowerCase() === 'perempuan' ? 'perempuan' : 'lelaki';
+                              selfGender = rawGender === 'perempuan' ? 'perempuan' : 'lelaki';
                           }
                           if (rel.includes('anak') && !rel.includes('saudara')) {
+                              let cGender = rawGender;
+                              // Kadangkala hubungan ada tulis "Anak Perempuan"
+                              if (rel.includes('perempuan')) cGender = 'perempuan';
+                              else if (rel.includes('lelaki')) cGender = 'lelaki';
+                              
                               childrenList.push({
                                   id: d.id,
+                                  name: data.name || data.nama || `Anak ${childrenList.length + 1}`,
                                   age: calcAge(data.dob) || 1,
-                                  gender: (data.gender || '').toLowerCase() === 'perempuan' ? 'perempuan' : 'lelaki'
+                                  gender: cGender === 'perempuan' ? 'perempuan' : 'lelaki'
                               });
                           }
-                          if (rel === 'suami' || rel === 'isteri') spouse = true;
-                          if (rel === 'ibu' || rel === 'mak') mother = true;
-                          if (rel === 'ayah' || rel === 'bapa' || rel === 'abah') father = true;
+                          if (rel === 'suami' || rel === 'isteri' || rel === 'pasangan') spouse = true;
+                          if (rel === 'ibu' || rel === 'mak' || rel === 'mama') mother = true;
+                          if (rel === 'ayah' || rel === 'bapa' || rel === 'abah' || rel === 'papa') father = true;
                       }
                   });
 
+                  // Susun anak ikut umur (paling tua ke paling muda)
+                  childrenList.sort((a, b) => b.age - a.age);
+
                   // Timpa data dengan maklumat real-time myNasab
-                  mergedData.age = selfAge;
+                  if(selfAge > 0) mergedData.age = selfAge;
                   mergedData.userGender = selfGender;
                   mergedData.hasSpouse = spouse;
                   mergedData.hasMother = mother;
                   mergedData.hasFather = father;
                   
-                  // Hanya timpa anak jika myNasab ada data anak, jika tak guna data asal
                   if (childrenList.length > 0) {
                       mergedData.childrenData = childrenList;
                   }
@@ -243,17 +259,12 @@
               setLoadingData(false);
           };
 
-          // LOGIN HANDLER
           const handleLogin = async (e) => {
               e.preventDefault();
-              try {
-                  await window.fbSignIn(window.fbAuth, e.target.email.value, e.target.password.value);
-              } catch (err) {
-                  alert("Log masuk gagal. Sila semak emel & kata laluan.");
-              }
+              try { await window.fbSignIn(window.fbAuth, e.target.email.value, e.target.password.value); } 
+              catch (err) { alert("Log masuk gagal. Sila semak emel & kata laluan."); }
           };
 
-          // Destructure state variables
           const {
             userGender, age, gajiHakiki, pendapatanSampingan, kwspPotongan, socsoPotongan,
             dapurExpenses, utilitiExpenses, transportExpenses, entertainmentExpenses, insuranceExpenses, childrenData,
@@ -262,17 +273,14 @@
             funeralCost, sepencarianPercent, wasiatPercent, hasSpouse, hasMother, hasFather, currentTakaful
           } = appData;
 
-          // Setters
           const updateApp = (key, val) => setAppData(p => ({...p, [key]: val}));
           const toNumber = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
 
-          // === DERIVED VARIABLES (PENGIRAAN AUTOMATIK KESELURUHAN) ===
           const numSons = childrenData.filter(c => c.gender === 'lelaki').length;
           const numDaughters = childrenData.filter(c => c.gender === 'perempuan').length;
           const spouseGender = userGender === 'lelaki' ? 'isteri' : 'suami';
           const annualIncome = (gajiHakiki + pendapatanSampingan) * 12;
 
-          // --- ANALISIS DSR & HUTANG ---
           const debtAnalysisResult = useMemo(() => {
               const totalIncome = gajiHakiki + pendapatanSampingan;
               const totalCommitment = debtsList.reduce((sum, d) => sum + d.minPayment, 0);
@@ -434,7 +442,6 @@
               setIsSaving(false);
           };
 
-          // --- UI PENGHALANG LOGIN ---
           if (!isFirebaseReady || loadingData) {
               return <div className="min-h-screen flex items-center justify-center font-bold text-sky-600 bg-slate-50">Memuatkan myTADBIR...</div>;
           }
@@ -466,7 +473,6 @@
                   <h1 className="text-3xl font-black text-sky-800 flex items-center justify-center gap-3 mb-2"><Landmark size={32} className="text-amber-500" /> myTADBIR</h1>
                   <p className="text-lg text-slate-600 font-semibold">Laporan Ringkasan Perancangan Kewangan</p>
                 </div>
-                {/* Ringkasan Cetakan - Padat & Ringkas */}
                 <div className="space-y-6">
                     <section><h2 className="text-xl font-bold border-b mb-3">Profil: Umur {age}, Gaji {formatRM(annualIncome)}/thn, Anak {childrenData.length}</h2></section>
                     <section><h2 className="text-xl font-bold border-b mb-3">DSR: {debtAnalysisResult.dsr.toFixed(1)}% ({debtAnalysisResult.dsr > 60 ? 'Kritikal' : 'Sihat'})</h2></section>
@@ -556,7 +562,7 @@
                             {childrenData.map((child, index) => (
                               <div key={child.id} className="flex items-end gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
                                 <div className="flex-1">
-                                  <Input label={`Umur Anak ${index + 1}`} value={child.age} onChange={e => updateApp('childrenData', childrenData.map(c => c.id === child.id ? { ...c, age: toNumber(e.target.value) } : c))} />
+                                  <Input label={child.name ? `Umur ${child.name}` : `Umur Anak ${index + 1}`} value={child.age} onChange={e => updateApp('childrenData', childrenData.map(c => c.id === child.id ? { ...c, age: toNumber(e.target.value) } : c))} />
                                 </div>
                                 <div className="flex-1">
                                   <label className="text-sm font-semibold text-slate-700 block mb-1">Jantina</label>
@@ -567,16 +573,14 @@
                                 <button onClick={() => updateApp('childrenData', childrenData.filter(c => c.id !== child.id))} className="mb-4 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg border border-red-200 font-bold">X</button>
                               </div>
                             ))}
-                            <button onClick={() => updateApp('childrenData', [...childrenData, { id: Date.now(), age: 1, gender: 'lelaki' }])} className="w-full py-2 border-2 border-dashed border-sky-300 text-sky-600 rounded-lg hover:bg-sky-50 font-medium text-sm transition-colors">+ Tambah Anak</button>
+                            <button onClick={() => updateApp('childrenData', [...childrenData, { id: Date.now(), name: '', age: 1, gender: 'lelaki' }])} className="w-full py-2 border-2 border-dashed border-sky-300 text-sky-600 rounded-lg hover:bg-sky-50 font-medium text-sm transition-colors">+ Tambah Anak</button>
                           </div>
                         </div>
                       </Card>
                     </div>
                   )}
 
-                  {/* --- TAHAP 2 TO 5: UI KEKAL SAMA SEPERTI ASAL --- */}
-                  {/* (Aset, Liabiliti, Unjuran, Faraid) */}
-                  {/* Memandangkan logic pembolehubah sama, form input tidak perlu diubah, cuma pakai updateApp() atau setAppData terus jika perlu */}
+                  {/* --- TAHAP 2 TO 5: UI KEKAL SAMA --- */}
                   
                   {activeTab === 2 && (
                     <div className="space-y-6 animate-fadeIn">
@@ -675,6 +679,7 @@
                             <Input label="Kos (Per Anak)" value={currentEduCost} onChange={e => updateApp('currentEduCost', toNumber(e.target.value))} prefix="RM" />
                           </div>
                           <Input label="Dana SSPN Semasa" value={sspnFund} onChange={e => updateApp('sspnFund', toNumber(e.target.value))} prefix="RM" />
+                          <Input label="Dana ASB Anak" value={asbAnakFund} onChange={e => updateApp('asbAnakFund', toNumber(e.target.value))} prefix="RM" />
                           <Input label="Inflasi Pendidikan (%)" value={educationInflation} onChange={e => updateApp('educationInflation', toNumber(e.target.value))} />
                           <div>
                             <label className="text-sm font-semibold text-slate-700 block mb-1">Jenis Universiti</label>
