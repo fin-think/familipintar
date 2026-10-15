@@ -387,20 +387,21 @@
     let targetPercutian = 0;
     let selectedImageFile = null;
 
-    // --- SETUP WAKTU MALAYSIA (ELAK ISU TIMEZONE) ---
     const todayLocal = new Date();
     const localOffset = todayLocal.getTimezoneOffset() * 60000;
-    const localDateStr = new Date(todayLocal.getTime() - localOffset).toISOString().split('T')[0]; // YYYY-MM-DD
-    const bulanIniStr = localDateStr.substring(0, 7); // YYYY-MM
+    const localDateStr = new Date(todayLocal.getTime() - localOffset).toISOString().split('T')[0]; 
+    const bulanIniStr = localDateStr.substring(0, 7); 
     
-    // Tetapan Mod Paparan
-    let modPaparan = 'bulan'; // 'bulan' atau 'tahun'
+    let modPaparan = 'bulan'; 
     
-    // Masukkan ke ruangan Filter
     document.getElementById('filterBulan').value = bulanIniStr;
     document.getElementById('txnDate').value = localDateStr;
 
-    // Kategori Pilihan
+    // FUNGSI HELPER UNTUK KOMA BERIBU
+    const formatRM = (val) => {
+        return (parseFloat(val) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
     const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Pakaian", "Lain-lain"];
     const catInflow = ["Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
 
@@ -480,7 +481,7 @@
         } catch (e) { alert("Gagal memproses langganan: " + e.message); }
     };
 
-    // Semakan Auth
+    // Semakan Auth Utama
     onAuthStateChanged(auth, async (user) => {
         const authScreen = document.getElementById('authScreen');
         const mainApp = document.getElementById('mainApp');
@@ -488,9 +489,10 @@
             currentUser = user;
             if (authScreen) authScreen.classList.add('hidden');
             if (mainApp) mainApp.classList.remove('hidden');
+            
             semakTnC();
+            await muatDataMyTadbir(); 
             await muatTargetPercutian();
-            await muatDataMyTadbir(); // Panggil data myTADBIR
             muatDataOurMoney();
         } else {
             currentUser = null;
@@ -517,7 +519,7 @@
             });
 
             if (targetPercutian > 0) {
-                document.getElementById('vac-saving').innerText = `RM ${targetPercutian.toFixed(2)} / bulan`;
+                document.getElementById('vac-saving').innerText = `RM ${formatRM(targetPercutian)} / bulan`;
                 document.getElementById('btn-pautan-jombercuti').innerText = 'Urus Pelan ➔';
             } else {
                 document.getElementById('vac-saving').innerText = `RM 0.00 / bulan`;
@@ -595,7 +597,7 @@ async function muatDataMyTadbir() {
         document.getElementById('imgPreview').src = '';
     };
 
-    // 3. Simpan Transaksi Baru & Upload Gambar Jika Ada
+    // 3. Simpan Transaksi Baru & Upload Gambar
     document.getElementById('form-transaksi').addEventListener('submit', async (e) => {
         e.preventDefault();
         if(!currentUser) return;
@@ -624,16 +626,14 @@ async function muatDataMyTadbir() {
 
             await addDoc(collection(db, "ourmoney_transactions"), txnData);
             
-            // Reset Borang
             document.getElementById('txnAmount').value = '';
             document.getElementById('txnNote').value = '';
             window.buangGambar();
             
-            // Re-render
             muatDataOurMoney();
         } catch (err) { 
             if(err.code === "permission-denied" || err.message.includes("permission")) {
-                alert("Ralat Firebase: Database menyekat penyimpanan rekod ini. Sila semak Firestore Rules.");
+                alert("Ralat Firebase: Database menyekat penyimpanan rekod ini.");
             } else { alert("Gagal menyimpan rekod: " + err.message); }
         }
         btn.disabled = false; btn.innerText = "💾 Simpan Rekod";
@@ -654,10 +654,9 @@ async function muatDataMyTadbir() {
     async function muatDataOurMoney() {
         if(!currentUser) return;
         try {
-            const filterVal = document.getElementById('filterBulan').value || bulanIniStr; // Cth: '2026-10'
-            const tahunVal = filterVal.substring(0, 4); // Cth: '2026'
+            const filterVal = document.getElementById('filterBulan').value || bulanIniStr; 
+            const tahunVal = filterVal.substring(0, 4); 
 
-            // Kemas kini tajuk ikut mod
             if (modPaparan === 'bulan') {
                 document.getElementById('tajuk-transaksi').innerText = "📋 Transaksi Bulan " + filterVal;
                 document.getElementById('tajuk-dashboard').innerText = "📊 Aliran Tunai Bulan " + filterVal;
@@ -675,7 +674,6 @@ async function muatDataMyTadbir() {
 
             snap.forEach(d => {
                 const data = d.data();
-                // Filter berdasarkan input pengguna (Bulan atau Tahun)
                 if (modPaparan === 'bulan' && data.date && data.date.startsWith(filterVal)) {
                     listSemasa.push({ id: d.id, ...data });
                 } else if (modPaparan === 'tahun' && data.date && data.date.startsWith(tahunVal)) {
@@ -708,7 +706,7 @@ async function muatDataMyTadbir() {
                         </div>
                     </div>
                     <div style="display:flex; align-items:center;">
-                        <span class="txn-amt ${amtClass}">${amtPrefix} ${t.amount.toFixed(2)}</span>
+                        <span class="txn-amt ${amtClass}">${amtPrefix} ${formatRM(t.amount)}</span>
                         <button class="btn-del-txn" onclick="padamRekod('${t.id}')">✕</button>
                     </div>
                 </div>`;
@@ -720,11 +718,10 @@ async function muatDataMyTadbir() {
             document.getElementById('senarai-transaksi').innerHTML = htmlTxn;
 
             const netBalance = totalIn - totalOut;
-            document.getElementById('dash-in').innerText = `RM ${totalIn.toFixed(2)}`;
-            document.getElementById('dash-out').innerText = `RM ${totalOut.toFixed(2)}`;
-            document.getElementById('dash-net').innerText = `RM ${netBalance.toFixed(2)}`;
+            document.getElementById('dash-in').innerText = `RM ${formatRM(totalIn)}`;
+            document.getElementById('dash-out').innerText = `RM ${formatRM(totalOut)}`;
+            document.getElementById('dash-net').innerText = `RM ${formatRM(netBalance)}`;
 
-            // Hanya tunjuk Kesihatan Kewangan untuk paparan Bulanan (kerana target JomBercuti adalah bulanan)
             if (modPaparan === 'tahun') {
                 document.getElementById('health-card-section').style.display = 'none';
             } else {
@@ -768,13 +765,13 @@ async function muatDataMyTadbir() {
 
         if (bakiTinggal < 0) {
             msgBox.className = 'health-msg msg-bad';
-            msgBox.innerHTML = `⚠️ <b>Kritikal!</b> Jumlah perbelanjaan dan komitmen percutian anda telah melebihi pendapatan bulan ini sebanyak <b>RM ${Math.abs(bakiTinggal).toFixed(2)}</b>. Anda berisiko menggunakan duit simpanan lama atau berhutang.`;
+            msgBox.innerHTML = `⚠️ <b>Kritikal!</b> Jumlah perbelanjaan dan komitmen percutian anda telah melebihi pendapatan bulan ini sebanyak <b>RM ${formatRM(Math.abs(bakiTinggal))}</b>. Anda berisiko menggunakan duit simpanan lama atau berhutang.`;
         } else if (bakiTinggal < (pendapatan * 0.1)) {
             msgBox.className = 'health-msg msg-bad';
-            msgBox.innerHTML = `⚠️ <b>Amaran:</b> Baki anda selepas ditolak belanja dan simpanan percutian hanya tinggal <b>RM ${bakiTinggal.toFixed(2)}</b>. Sila kurangkan perbelanjaan yang tidak perlu.`;
+            msgBox.innerHTML = `⚠️ <b>Amaran:</b> Baki anda selepas ditolak belanja dan simpanan percutian hanya tinggal <b>RM ${formatRM(bakiTinggal)}</b>. Sila kurangkan perbelanjaan yang tidak perlu.`;
         } else {
             msgBox.className = 'health-msg msg-good';
-            msgBox.innerHTML = `✅ <b>Kewangan Sihat!</b> Baki selamat bulan ini adalah <b>RM ${bakiTinggal.toFixed(2)}</b>. Anda berada di landasan yang betul untuk mencapai sasaran kewangan keluarga anda.`;
+            msgBox.innerHTML = `✅ <b>Kewangan Sihat!</b> Baki selamat bulan ini adalah <b>RM ${formatRM(bakiTinggal)}</b>. Anda berada di landasan yang betul untuk mencapai sasaran kewangan keluarga anda.`;
         }
     }
 
