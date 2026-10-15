@@ -262,7 +262,7 @@
 <div class="tadbir-card" id="mytadbir-target" style="border-left: 4px solid #3b82f6;">
     <h3 style="margin-bottom: 12px; color: #1e293b;">🏦 Ringkasan myTADBIR</h3>
     
-    <!-- Bahagian Nilai Kewangan (Akan dipaparkan jika data wujud) -->
+    <!-- Bahagian Nombor -->
     <div id="tadbir-content-wrapper">
         <div class="tadbir-row">
             <span class="tadbir-label">Harta Bersih (Net Worth)</span>
@@ -278,15 +278,15 @@
         </div>
     </div>
 
-    <!-- Bahagian Mesej Penerangan (Hook Profesional jika BELUM ADA data) -->
-    <div id="tadbir-empty-state" class="hidden" style="text-align: center; padding: 10px 0; background: #f8fafc; border-radius: 6px; margin-bottom: 10px;">
-        <p style="font-size: 13px; color: #475569; line-height: 1.5; margin: 0 10px;">
-            💡 <strong>optimumkan Perancangan Kewangan Anda!</strong><br>
+    <!-- Mesej Hook Kosong (Pastikan id ini ada!) -->
+    <div id="tadbir-empty-state" class="hidden" style="text-align: center; padding: 12px 5px; background: #f8fafc; border-radius: 6px; margin-bottom: 10px;">
+        <p style="font-size: 13px; color: #475569; line-height: 1.5; margin: 0;">
+            💡 <strong>Optimumkan Perancangan Kewangan!</strong><br>
             Profil myTADBIR anda masih kosong. Lengkapkan data harta dan liabiliti untuk merungkai unjuran masa depan keluarga dengan lebih komprehensif.
         </p>
     </div>
 
-    <a href="mytadbir.html" class="btn-tadbir" id="tadbir-btn-action" style="display: block; text-align: center; margin-top: 12px; text-decoration: none;">Urus Profil myTADBIR ➔</a>
+    <a href="myjurnal.html" class="btn-tadbir" id="tadbir-btn-action" style="display: block; text-align: center; margin-top: 12px; text-decoration: none;">Urus Profil myTADBIR ➔</a>
 </div>
 
         <!-- Kad Integrasi JomBercuti -->
@@ -547,16 +547,23 @@ async function muatDataMyTadbir() {
             const debts = data.summary.total_debts || 0;
             const eduDeficit = data.summary.education_fund_needed || 0;
 
-            document.getElementById('tadbir-networth').innerText = `RM ${netWorth.toFixed(2)}`;
-            document.getElementById('tadbir-debts').innerText = `RM ${debts.toFixed(2)}`;
-            document.getElementById('tadbir-edu').innerText = `RM ${eduDeficit.toFixed(2)}`;
+            // JIKA SEMUA NILAI SIFAR (0), anggap ia belum diisi
+            if (netWorth === 0 && debts === 0 && eduDeficit === 0) {
+                if (contentWrapper) contentWrapper.style.display = 'none';
+                if (emptyState) emptyState.classList.remove('hidden');
+                if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang 🚀';
+            } else {
+                // Jika ada data sebenar
+                document.getElementById('tadbir-networth').innerText = `RM ${netWorth.toFixed(2)}`;
+                document.getElementById('tadbir-debts').innerText = `RM ${debts.toFixed(2)}`;
+                document.getElementById('tadbir-edu').innerText = `RM ${eduDeficit.toFixed(2)}`;
 
-            // Jika ada data: Papar nilai angka, sembunyikan mesej kosong
-            if (contentWrapper) contentWrapper.style.display = 'block';
-            if (emptyState) emptyState.classList.add('hidden');
-            if (btnAction) btnAction.innerText = 'Urus Profil myTADBIR ➔';
+                if (contentWrapper) contentWrapper.style.display = 'block';
+                if (emptyState) emptyState.classList.add('hidden');
+                if (btnAction) btnAction.innerText = 'Urus Profil myTADBIR ➔';
+            }
         } else {
-            // Jika tiada data: Sembunyikan senarai nombor, papar mesej hook eksklusif
+            // Jika dokumen langsung tak wujud
             if (contentWrapper) contentWrapper.style.display = 'none';
             if (emptyState) emptyState.classList.remove('hidden');
             if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang 🚀';
