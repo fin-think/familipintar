@@ -427,7 +427,7 @@
             { id: 5, title: 'Faraid', icon: Calculator, desc: 'Wasiat' }, { id: 6, title: 'Dashboard', icon: Activity, desc: 'Analisis' }
           ];
 
-          const formatRM = (val) => new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR', maximumFractionDigits: 0 }).format(val);
+          const formatRM = (val) => "RM " + (parseFloat(val) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           const faraidColors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#f97316', '#64748b'];
 
           // --- ENJIN PENYIMPANAN KE OURMONEY ---
