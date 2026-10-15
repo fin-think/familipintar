@@ -557,10 +557,10 @@ async function muatDataMyTadbir() {
                 if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang 🚀';
             } else {
                 // Jika ada data sebenar, paparkan nilainya
-                document.getElementById('tadbir-networth').innerText = `RM ${netWorth.toFixed(2)}`;
-                document.getElementById('tadbir-debts').innerText = `RM ${debts.toFixed(2)}`;
-                document.getElementById('tadbir-edu').innerText = `RM ${eduDeficit.toFixed(2)}`;
-
+                document.getElementById('tadbir-networth').innerText = `RM ${formatRM(netWorth)}`;
+                    document.getElementById('tadbir-debts').innerText = `RM ${formatRM(debts)}`;
+                    document.getElementById('tadbir-edu').innerText = `RM ${formatRM(eduDeficit)}`;
+              
                 if (contentWrapper) contentWrapper.style.display = 'block';
                 if (emptyState) emptyState.classList.add('hidden');
                 if (btnAction) btnAction.innerText = 'Urus Profil myTADBIR ➔';
