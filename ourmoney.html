@@ -529,9 +529,10 @@
    // 1.5 Integrasi Profil myTADBIR (Sentiasa Papar dengan Status Dinamik)
 async function muatDataMyTadbir() {
     try {
-        if (!penggunaSemasa) return;
+        // Gunakan currentUser kerana itu nama variable yang aktif di ourmoney.html
+        if (!currentUser) return;
         
-        const docRef = doc(db, "mytadbir_profiles", penggunaSemasa.uid);
+        const docRef = doc(db, "mytadbir_profiles", currentUser.uid);
         const snap = await getDoc(docRef);
 
         const contentWrapper = document.getElementById('tadbir-content-wrapper');
@@ -547,13 +548,13 @@ async function muatDataMyTadbir() {
             const debts = data.summary.total_debts || 0;
             const eduDeficit = data.summary.education_fund_needed || 0;
 
-            // JIKA SEMUA NILAI SIFAR (0), anggap ia belum diisi
+            // Jika semua nilai sifar (0), papar mesej kosong
             if (netWorth === 0 && debts === 0 && eduDeficit === 0) {
                 if (contentWrapper) contentWrapper.style.display = 'none';
                 if (emptyState) emptyState.classList.remove('hidden');
                 if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang 🚀';
             } else {
-                // Jika ada data sebenar
+                // Jika ada data sebenar, paparkan nilainya
                 document.getElementById('tadbir-networth').innerText = `RM ${netWorth.toFixed(2)}`;
                 document.getElementById('tadbir-debts').innerText = `RM ${debts.toFixed(2)}`;
                 document.getElementById('tadbir-edu').innerText = `RM ${eduDeficit.toFixed(2)}`;
@@ -563,7 +564,7 @@ async function muatDataMyTadbir() {
                 if (btnAction) btnAction.innerText = 'Urus Profil myTADBIR ➔';
             }
         } else {
-            // Jika dokumen langsung tak wujud
+            // Jika dokumen profil tidak wujud langsung
             if (contentWrapper) contentWrapper.style.display = 'none';
             if (emptyState) emptyState.classList.remove('hidden');
             if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang 🚀';
