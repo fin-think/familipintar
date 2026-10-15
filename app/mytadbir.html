@@ -89,17 +89,38 @@
           <div className={`bg-white rounded-xl shadow-sm border border-slate-200 p-6 ${className}`}>{children}</div>
         );
 
-        const Input = ({ label, value, onChange, type = 'number', prefix = '', suffix = '', min = 0, max, disabled=false, step="1", className="" }) => (
-          <div className={`flex flex-col mb-4 ${className}`}>
-            <label className="text-sm font-semibold text-slate-700 mb-1">{label}</label>
-            <div className="relative flex items-center">
-              {prefix && <span className="absolute left-3 text-slate-500 font-semibold">{prefix}</span>}
-              <input type={type} value={value} onChange={onChange} min={min} max={max} step={step} disabled={disabled}
-                className={`w-full border border-slate-300 rounded-lg py-2 outline-none focus:ring-2 focus:ring-sky-500 transition-all ${prefix ? 'pl-9' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'} ${disabled ? 'bg-slate-100 text-slate-500' : 'bg-white'}`} />
-              {suffix && <span className="absolute right-3 text-slate-500 font-semibold">{suffix}</span>}
+       const Input = ({ label, value, onChange, prefix = '', suffix = '', disabled=false, className="" }) => {
+          const [isFocused, setIsFocused] = React.useState(false);
+
+          // Jika sedang ditaip, tunjuk nombor asal. Jika tidak, format ada koma.
+          const displayValue = isFocused 
+            ? (value === 0 ? '' : value) 
+            : (value === 0 ? '' : new Intl.NumberFormat('en-MY').format(value));
+
+          return (
+            <div className={`flex flex-col mb-4 ${className}`}>
+              <label className="text-sm font-semibold text-slate-700 mb-1">{label}</label>
+              <div className="relative flex items-center">
+                {prefix && <span className="absolute left-3 text-slate-500 font-semibold">{prefix}</span>}
+                <input
+                  type={isFocused ? 'number' : 'text'}
+                  value={displayValue}
+                  onChange={(e) => {
+                    // Buang koma jika ada sebelum diproses oleh sistem
+                    const raw = e.target.value.replace(/,/g, '');
+                    onChange({ target: { value: raw } });
+                  }}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  disabled={disabled}
+                  placeholder="0"
+                  className={`w-full border border-slate-300 rounded-lg py-2 outline-none focus:ring-2 focus:ring-sky-500 transition-all ${prefix ? 'pl-9' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'} ${disabled ? 'bg-slate-100 text-slate-500' : 'bg-white'}`}
+                />
+                {suffix && <span className="absolute right-3 text-slate-500 font-semibold">{suffix}</span>}
+              </div>
             </div>
-          </div>
-        );
+          );
+        };
 
         const SectionHeader = ({ title, icon: Icon, description }) => (
           <div className="mb-6 border-b border-sky-100 pb-4 flex items-center gap-3">
@@ -131,9 +152,9 @@
         };
 
         const defaultData = {
-          userGender: 'lelaki', age: 30, gajiHakiki: 4000, pendapatanSampingan: 500,
-          kwspPotongan: 11, socsoPotongan: 50, dapurExpenses: 800, utilitiExpenses: 300,
-          transportExpenses: 400, entertainmentExpenses: 300, insuranceExpenses: 250,
+          userGender: 'lelaki', age: 30, gajiHakiki: 0, pendapatanSampingan: 0,
+          kwspPotongan: 11, socsoPotongan: 0, dapurExpenses: 0, utilitiExpenses: 0,
+          transportExpenses: 0, entertainmentExpenses: 0, insuranceExpenses: 0,
           childrenData: [], asb: 0, th: 0, unitTrust: 0, tunai: 0, kwsp: 0, emas: 0,
           rumahValue: 0, keretaValue: 0, debtsList: [], extraBudget: 0, debtStrategy: 'snowball', consolRate: 4.5, consolYear: 7,
           retireAge: 60, lifeExpectancy: 80, inflationRate: 3, assetReturnRate: 5, uniAge: 18, currentEduCost: 50000,
