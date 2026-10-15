@@ -960,8 +960,10 @@ formTambah.onsubmit = function (e) {
         return;
     }
 
+    
     const dob = document.getElementById('tambahDob').value;
     const telefon = document.getElementById('tambahTelefon').value;
+    const email = document.getElementById('tambahEmail') ? document.getElementById('tambahEmail').value : '';
     const bandar = document.getElementById('tambahBandar').value;
     const negeri = document.getElementById('tambahNegeri').value;
 
@@ -972,7 +974,7 @@ formTambah.onsubmit = function (e) {
     const status = radioStatus ? radioStatus.value : 'hidup';
 
     if (window.tambahAhliBaru) {
-        window.tambahAhliBaru(nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukan, status);
+        window.tambahAhliBaru(nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukan, status, email);
     }
 };
 </script>
