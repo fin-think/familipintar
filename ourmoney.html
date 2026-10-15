@@ -40,7 +40,8 @@
     .container { padding-left: 32px; padding-right: 32px; }
     .layout-utama { flex-direction: row; align-items: flex-start; }
     .kolum-kiri { flex: 1 1 0; }
-    .kolum-kanan { flex: 0 0 400px; width: 400px; position: sticky; top: 20px; }
+    /* DIKEMAS KINI: Dilebarkan dari 400px ke 480px */
+    .kolum-kanan { flex: 0 0 480px; width: 480px; position: sticky; top: 20px; } 
   }
 
   /* Kad Komponen */
@@ -104,7 +105,18 @@
   .dash-balance .dash-label { color: #94a3b8; }
   .dash-balance .dash-val { color: white; font-size: 2rem; font-weight: 800; }
 
-  /* Peringatan JomBercuti & myTADBIR */
+  /* Kad myTADBIR & JomBercuti */
+  .tadbir-card { background: linear-gradient(135deg, #F0F9FF, #E0F2FE); border: 2px solid #BAE6FD; border-radius: 12px; padding: 16px; margin-top: 20px; }
+  .tadbir-card h3 { font-weight: 800; color: #0369A1; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  /* DIKEMAS KINI: Tambah 'gap' supaya teks tidak bertindih jika terlalu panjang */
+  .tadbir-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px dashed #7DD3FC; gap: 15px; }
+  .tadbir-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .tadbir-label { font-size: 0.85rem; font-weight: 700; color: #0284C7; line-height: 1.2; }
+  /* DIKEMAS KINI: Tambah 'white-space: nowrap' dan 'text-align: right' */
+  .tadbir-val { font-size: 1.1rem; font-weight: 800; color: #0C4A6E; text-align: right; white-space: nowrap; }
+  .btn-tadbir { font-size: 0.75rem; background: #fff; border: 1px solid #BAE6FD; border-radius: 6px; padding: 6px 10px; text-decoration: none; color: #0284C7; display: block; text-align: center; margin-top: 12px; font-weight: 800; box-shadow: 0 2px 4px rgba(2,132,199,0.1); transition: 0.2s; }
+  .btn-tadbir:hover { background: #F0F9FF; }
+
   .vacation-card { background: linear-gradient(135deg, #FFF9F0, #FFF4E5); border: 2px solid #FFECCC; border-radius: 12px; padding: 16px; margin-top: 20px; display: flex; align-items: center; gap: 15px; }
   .vac-icon { font-size: 2.2rem; }
   .vac-details { flex: 1; }
@@ -112,15 +124,6 @@
   .vac-amt { font-size: 1.2rem; font-weight: 800; color: #ea580c; line-height: 1.2; }
   .btn-rancang { font-size: 0.75rem; background: #fff; border: 1px solid #FFECCC; border-radius: 6px; padding: 4px 10px; text-decoration: none; color: #ea580c; display: inline-block; margin-top: 6px; font-weight: 800; box-shadow: 0 2px 4px rgba(234,88,12,0.1); }
   .btn-rancang:hover { background: #fff7ed; }
-
-  .tadbir-card { background: linear-gradient(135deg, #F0F9FF, #E0F2FE); border: 2px solid #BAE6FD; border-radius: 12px; padding: 16px; margin-top: 20px; }
-  .tadbir-card h3 { font-weight: 800; color: #0369A1; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-  .tadbir-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px dashed #7DD3FC; }
-  .tadbir-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-  .tadbir-label { font-size: 0.85rem; font-weight: 700; color: #0284C7; }
-  .tadbir-val { font-family: 'Baloo 2', cursive; font-size: 1.1rem; font-weight: 800; color: #0C4A6E; }
-  .btn-tadbir { font-size: 0.75rem; background: #fff; border: 1px solid #BAE6FD; border-radius: 6px; padding: 6px 10px; text-decoration: none; color: #0284C7; display: block; text-align: center; margin-top: 12px; font-weight: 800; box-shadow: 0 2px 4px rgba(2,132,199,0.1); }
-  .btn-tadbir:hover { background: #F0F9FF; }
 
   /* Analisis Hujung Bulan */
   .health-card { margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--line); }
