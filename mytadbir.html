@@ -178,8 +178,8 @@
 
   // Fungsi untuk memintas klik tab
   const handleTabClick = (tabId) => {
-    // Jika tab Dashboard ditekan dan belum dibuka kuncinya
-    if (tabId === 'Dashboard' && !isDashboardUnlocked) {
+    // Jika tab ke-6 (Dashboard) ditekan dan belum dibuka kuncinya
+    if (tabId === 6 && !isDashboardUnlocked) {
       setShowPaywall(true); // Keluarkan pop-up
     } else {
       setActiveTab(tabId); // Buka tab macam biasa
@@ -1580,7 +1580,7 @@
                 
                 setIsDashboardUnlocked(true); // Buka kunci
                 setShowPaywall(false); // Tutup popup
-                setActiveTab('Dashboard'); // Terus bawa masuk ke tab Dashboard
+                setActiveTab(6); // <-- TUKAR KE NOMBOR 6 DI SINI
                 
                 // });
               }} 
