@@ -407,7 +407,7 @@ window.padamAhli = async (idAhli) => {
 };
 
 // --- 5. TAMBAH AHLI BARU ---
-window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukanId, status = 'hidup') => {
+window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukanId, status = 'hidup', email = '') => {
     if (!penggunaSemasa) return;
 
     const sPautanSaya = await getDoc(doc(db, "mynasab_links", penggunaSemasa.uid));
