@@ -597,6 +597,24 @@ async function muatDataMyTadbir() {
         document.getElementById('imgPreview').src = '';
     };
 
+// FUNGSI KOTAK INPUT FORMAT KOMA AUTOMATIK (OURMONEY)
+    const amtInput = document.getElementById('txnAmount');
+    amtInput.addEventListener('blur', function() {
+        if (this.value) {
+            const val = parseFloat(this.value.replace(/,/g, ''));
+            this.type = 'text';
+            this.value = val.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+    });
+    amtInput.addEventListener('focus', function() {
+        if (this.value) {
+            const raw = this.value.replace(/,/g, '');
+            this.type = 'number';
+            this.value = raw;
+        }
+    });
+
+  
     // 3. Simpan Transaksi Baru & Upload Gambar
     document.getElementById('form-transaksi').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -618,7 +636,7 @@ async function muatDataMyTadbir() {
                 type: document.querySelector('input[name="txnType"]:checked').value,
                 category: document.getElementById('txnCat').value,
                 date: document.getElementById('txnDate').value,
-                amount: parseFloat(document.getElementById('txnAmount').value),
+                amount: parseFloat(document.getElementById('txnAmount').value.replace(/,/g, '')),
                 note: document.getElementById('txnNote').value.trim(),
                 receipt_url: imgUrl, 
                 created_at: Date.now()
