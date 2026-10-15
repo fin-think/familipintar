@@ -778,22 +778,61 @@
                   {/* --- TAHAP 6: DASHBOARD & BUTTON SIMPAN --- */}
                   {activeTab === 6 && (
                     <div className="space-y-6 animate-fadeIn">
-                      <div className="bg-slate-800 text-white p-6 rounded-xl shadow-md text-center mb-6">
+                      <div className="bg-slate-800 text-white p-6 rounded-xl shadow-md text-center mb-6 border border-slate-700">
                         <h2 className="text-2xl font-bold mb-2 flex justify-center items-center gap-2"><Activity className="text-sky-400" /> Dashboard Analisis Keseluruhan myTADBIR</h2>
+                        <p className="text-slate-300 text-sm">Di bawah merupakan hasil analisis kewangan, perlindungan dan faraid komprehensif anda.</p>
                       </div> 
 
-                      <Card className="bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800 text-white border-none shadow-xl">
+                      <Card className="bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800 text-white border-none shadow-2xl">
                         <h3 className="text-lg font-bold mb-6">Kedudukan Kewangan Bulanan</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-5 rounded-xl">
-                            <p className="text-sm text-slate-300">Pendapatan Bersih</p><p className="text-3xl font-black text-sky-400">{formatRM(netIncomeMonthly)}</p>
+                            <p className="text-sm text-slate-300">Pendapatan Bersih</p>
+                            <p className="text-3xl font-black text-sky-400">{formatRM(netIncomeMonthly)}</p>
                           </div>
                           <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-5 rounded-xl">
-                            <p className="text-sm text-slate-300">Baki Bulanan</p><p className={`text-3xl font-black ${monthlyBalance >= 0 ? 'text-sky-400' : 'text-red-400'}`}>{formatRM(monthlyBalance)}</p>
+                            <p className="text-sm text-slate-300">Baki Bulanan</p>
+                            <p className={`text-3xl font-black ${monthlyBalance >= 0 ? 'text-sky-400' : 'text-red-400'}`}>{formatRM(monthlyBalance)}</p>
                           </div>
                           <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-5 rounded-xl">
                             <p className="text-sm text-slate-300">Financial Score</p>
-                            <p className={`text-4xl font-black ${financialScore >= 80 ? 'text-sky-400' : financialScore >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>{financialScore}/100</p>
+                            <p className={`text-4xl font-black ${financialScore >= 80 ? 'text-sky-400' : financialScore >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                              {financialScore}/100
+                            </p>
+                            <p className="text-sm mt-2">{financialStatus}</p>
+                          </div>
+                        </div>
+                      </Card>
+
+                      <Card className="mt-6">
+                        <h3 className="text-lg font-bold mb-4">📊 Analisis Cashflow Bulanan</h3>
+                        <div className="space-y-4">
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Pendapatan Bersih</span>
+                              <span>{formatRM(netIncomeMonthly)}</span>
+                            </div>
+                            <div className="w-full bg-slate-200 rounded-full h-4">
+                              <div className="bg-emerald-500 h-4 rounded-full" style={{ width: '100%' }} />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Komitmen + Belanja</span>
+                              <span>{formatRM(totalMonthlyCommitments)}</span>
+                            </div>
+                            <div className="w-full bg-slate-200 rounded-full h-4">
+                              <div className="bg-rose-500 h-4 rounded-full" style={{ width: `${Math.min(100, (totalMonthlyCommitments / Math.max(netIncomeMonthly,1)) * 100)}%` }} />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Baki Bulanan</span>
+                              <span>{formatRM(monthlyBalance)}</span>
+                            </div>
+                            <div className="w-full bg-slate-200 rounded-full h-4">
+                              <div className={`h-4 rounded-full ${monthlyBalance >= 0 ? 'bg-sky-500' : 'bg-red-500'}`} style={{ width: `${Math.min(100, Math.abs(monthlyBalance) / Math.max(netIncomeMonthly,1) * 100)}%` }} />
+                            </div>
                           </div>
                         </div>
                       </Card>
@@ -803,13 +842,409 @@
                           <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center gap-2"><Landmark className="text-sky-600" /> Harta Bersih Semasa (Net Worth)</h3>
                           <div className="flex-1 flex flex-col justify-center mt-2">
                             <p className="text-4xl font-extrabold text-sky-700 mb-4">{formatRM(currentNetWorth)}</p>
+                            <div className="mt-2">
+                              <div className="flex justify-between text-xs mb-2">
+                                <span className="text-sky-600 font-bold">Aset: {formatRM(totalLiquidAssets + totalPhysicalAssets)}</span>
+                                <span className="text-red-500 font-bold">Hutang: {formatRM(totalDebts)}</span>
+                              </div>
+                              <div className="w-full bg-slate-200 rounded-full h-4 flex overflow-hidden">
+                                <div className="bg-sky-500 h-full transition-all duration-1000" style={{ width: `${asetWidth}%` }}></div>
+                                <div className="bg-red-500 h-full transition-all duration-1000" style={{ width: `${hutangWidth}%` }}></div>
+                              </div>
+                            </div>
                           </div>
                         </Card>
-                        <Card className="bg-amber-50 border-amber-200 shadow-sm text-center">
-                          <h3 className="text-lg font-bold text-amber-900 mb-4 border-b border-amber-200 pb-2"><HeartHandshake className="text-amber-600 inline mr-2" /> Zakat Wajib (Tunai/Emas)</h3>
-                          <p className="text-4xl font-extrabold text-emerald-600">{formatRM(zakatPayable)}</p>
+
+                        <Card className="flex flex-col bg-amber-50 border-amber-200 shadow-sm">
+                          <h3 className="text-lg font-bold text-amber-900 mb-4 border-b border-amber-200 pb-2 flex items-center gap-2"><HeartHandshake className="text-amber-600" /> Penyucian Harta (Zakat)</h3>
+                          <div className="flex-1 flex flex-col justify-center text-center">
+                            <p className="text-amber-800 font-medium mb-1">Jumlah Harta Simpanan Layak Zakat</p>
+                            <p className="text-xl font-bold text-slate-800 mb-4">{formatRM(totalZakatable)}</p>
+                            <p className="text-amber-800 font-medium mb-1">Zakat Wajib Ditunaikan (2.5%)</p>
+                            <p className="text-4xl font-extrabold text-emerald-600">{formatRM(zakatPayable)}</p>
+                          </div>
                         </Card>
                       </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch mb-6">
+                        <Card className={`lg:col-span-1 border ${s.border} ${s.bg} flex flex-col justify-center text-center shadow-sm relative overflow-hidden`}>
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Skor DSR Anda</p>
+                          <div className={`text-6xl font-black mb-3 tracking-tighter ${s.text}`}>{debtAnalysisResult.dsr.toFixed(1)}%</div>
+                          <div className={`inline-block px-5 py-1.5 mx-auto rounded-full text-xs font-extrabold uppercase tracking-widest mb-4 ${s.badgeBg} ${s.badgeText} border`}>{dsrStatusText}</div>
+                          <p className="text-slate-600 text-sm leading-relaxed">{dsrDesc}</p>
+                        </Card>
+
+                        <Card className="lg:col-span-2 h-full">
+                          <h2 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Tetapan Strategi Bebas Hutang</h2>
+                          <p className="text-slate-500 text-sm mb-6">Pilih strategi terbaik untuk langsaikan hutang dengan lebih cepat.</p>
+                          <div className="space-y-3">
+                            <button onClick={() => updateApp('debtStrategy', 'snowball')} className={`w-full px-4 py-4 rounded-xl text-left transition ${debtStrategy === 'snowball' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                              <div className="font-bold">Debt Snowball</div>
+                              <div className={`text-xs mt-1 ${debtStrategy === 'snowball' ? 'text-indigo-100' : 'text-slate-500'}`}>Selesai baki terkecil dahulu.</div>
+                            </button>
+                            <button onClick={() => updateApp('debtStrategy', 'avalanche')} className={`w-full px-4 py-4 rounded-xl text-left transition ${debtStrategy === 'avalanche' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                              <div className="font-bold">Debt Avalanche</div>
+                              <div className={`text-xs mt-1 ${debtStrategy === 'avalanche' ? 'text-indigo-100' : 'text-slate-500'}`}>Fokus hutang interest tertinggi dahulu.</div>
+                            </button>
+                            <button onClick={() => updateApp('debtStrategy', 'consolidation')} className={`w-full px-4 py-4 rounded-xl text-left transition ${debtStrategy === 'consolidation' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                              <div className="font-bold">Penyatuan Hutang</div>
+                              <div className={`text-xs mt-1 ${debtStrategy === 'consolidation' ? 'text-indigo-100' : 'text-slate-500'}`}>Gabungkan semua hutang kepada satu bayaran.</div>
+                            </button>
+                          </div>
+
+                          <div className="mt-6">
+                            {debtStrategy === 'consolidation' ? (
+                              <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                                <h3 className="text-sm font-bold text-slate-700 mb-4">Parameter Penyatuan Hutang</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Kadar Baru (%)</label>
+                                    <input type="number" step="0.1" value={consolRate} onChange={(e) => updateApp('consolRate', toNumber(e.target.value))} className="w-full mt-2 px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Tempoh (Tahun)</label>
+                                    <input type="number" value={consolYear} onChange={(e) => updateApp('consolYear', toNumber(e.target.value))} className="w-full mt-2 px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
+                                <h3 className="text-sm font-bold text-indigo-900 mb-2">Bajet Tambahan Bulanan</h3>
+                                <p className="text-xs text-indigo-700 mb-4">Lebihan bayaran untuk cepat selesaikan hutang.</p>
+                                <div className="relative">
+                                  <span className="absolute left-4 top-3 text-indigo-400 font-semibold">RM</span>
+                                  <input type="number" value={extraBudget} onChange={(e) => updateApp('extraBudget', toNumber(e.target.value))} className="w-full pl-12 pr-4 py-3 bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-indigo-900" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </Card>
+                      </div>
+
+                      <Card className="border-indigo-200 bg-white shadow-sm">
+                        <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center gap-2">
+                          <CreditCard className="text-indigo-600" /> Ringkasan Strategi Pelunasan:
+                          <span className="text-indigo-600 uppercase tracking-wide ml-1">{debtStrategy === 'consolidation' ? 'Penyatuan Hutang' : `Debt ${debtStrategy}`}</span>
+                        </h3>
+                        <div className="flex-1">
+                          {(debtStrategy === 'snowball' || debtStrategy === 'avalanche') ? (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-3 gap-4 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                                <div className="text-center border-r border-indigo-200">
+                                  <p className="text-xs font-bold text-slate-500">Tarikh Bebas Hutang</p>
+                                  <p className="text-lg sm:text-xl font-bold text-indigo-700 mt-1">{getTargetDateText(debtAnalysisResult.payoffMonths)}</p>
+                                </div>
+                                <div className="text-center border-r border-indigo-200">
+                                  <p className="text-xs font-bold text-slate-500">Tempoh</p>
+                                  <p className="text-lg font-semibold text-slate-800 mt-1">{getDurationText(debtAnalysisResult.payoffMonths)}</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs font-bold text-slate-500">Anggaran Faedah</p>
+                                  <p className="text-lg font-semibold text-rose-600 mt-1">{formatRM(debtAnalysisResult.payoffInterest)}</p>
+                                </div>
+                              </div>
+
+                              <div className="overflow-x-auto rounded-lg border border-slate-200">
+                                <table className="w-full text-left text-xs whitespace-nowrap">
+                                  <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                                    <tr>
+                                      <th className="px-4 py-3 font-bold">Prioriti Pembayaran</th>
+                                      <th className="px-4 py-3 font-bold text-right">Baki</th>
+                                      <th className="px-4 py-3 font-bold text-right">Bulan Selesai</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-100">
+                                    {debtAnalysisResult.payoffDetails.map((d, index) => (
+                                      <tr key={d.id} className={index === 0 ? 'bg-indigo-50/40' : ''}>
+                                        <td className="px-4 py-3 font-semibold text-slate-800">
+                                          {index + 1}. {d.name}
+                                          {index === 0 && <span className="ml-2 text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-bold">TARGET Utama</span>}
+                                        </td>
+                                        <td className="px-4 py-3 text-right font-medium">{formatRM(d.balance)}</td>
+                                        <td className="px-4 py-3 text-right font-bold text-indigo-600">Blk ke-{d.monthsToFinish}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full items-center">
+                              <div className="space-y-4">
+                                <div className="flex justify-between border-b pb-2">
+                                  <span className="text-sm font-semibold text-slate-600">Baki Hutang Digabung:</span>
+                                  <span className="font-bold">{formatRM(debtAnalysisResult.totalBalance)}</span>
+                                </div>
+                                <div className="flex justify-between border-b pb-2">
+                                  <span className="text-sm font-semibold text-slate-600">Kadar / Tempoh Baru:</span>
+                                  <span className="font-bold">{consolRate}% untuk {consolYear} Tahun</span>
+                                </div>
+                                <div className="flex justify-between border-b pb-2 text-rose-500">
+                                  <span className="text-sm font-semibold">Komitmen Bulanan Lama:</span>
+                                  <span className="font-bold line-through">{formatRM(debtAnalysisResult.totalCommitment)}</span>
+                                </div>
+                              </div>
+                              <div className="bg-slate-800 text-white p-6 rounded-xl text-center shadow-md">
+                                <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-1">Anggaran Komitmen Baru</p>
+                                <p className="text-3xl font-black mb-4">{formatRM(debtAnalysisResult.consolNewMonthly)}</p>
+                                <p className="text-sm font-medium text-slate-300 mb-1">Pelepasan Aliran Tunai Bulanan:</p>
+                                <p className={`text-2xl font-bold ${debtAnalysisResult.consolSavings > 0 ? 'text-sky-400' : 'text-rose-400'}`}>
+                                  {debtAnalysisResult.consolSavings > 0 ? '+' : '-'} {formatRM(Math.abs(debtAnalysisResult.consolSavings))}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+
+                      <Card className="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-800 text-white border-none shadow-xl">
+                        <h3 className="text-lg font-bold mb-5 flex items-center gap-2">🎓 Rumusan Dana Pendidikan Anak</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-white/5 p-4 rounded-xl">
+                            <p className="text-sm text-slate-400">Dana Pendidikan Semasa</p>
+                            <p className="text-2xl font-black text-sky-400">{formatRM(totalEducationFundNow)}</p>
+                          </div>
+                          <div className="bg-white/5 p-4 rounded-xl">
+                            <p className="text-sm text-slate-400">Jenis Universiti</p>
+                            <p className="text-xl font-bold text-white">{universityType === 'local' ? 'Tempatan' : 'Luar Negara'}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-6 mt-5">
+                          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+                            <div className="flex justify-between items-center mb-2">
+                              <p className="text-slate-300">Jumlah Kos Pendidikan Masa Hadapan</p>
+                              <p className="text-2xl font-black text-sky-400">{formatRM(futureEduCostTotal)}</p>
+                            </div>
+                            <p className="text-sm text-slate-400">Berdasarkan inflasi pendidikan & umur universiti anak.</p>
+                          </div>
+                        </div>
+                      </Card>
+
+                      <Card className="mt-6">
+                        <h3 className="text-lg font-bold mb-4">🎓 Unjuran Dana Pendidikan</h3>
+                        <div className="space-y-5">
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Nilai Masa Hadapan Dana Pendidikan</span>
+                              <span>{formatRM(futureEducationFund)}</span>
+                            </div>
+                            <div className="w-full bg-slate-200 rounded-full h-5">
+                              <div className="bg-sky-500 h-5 rounded-full" style={{ width: `${Math.min(100, (futureEducationFund / Math.max(futureEduCostTotal,1)) * 100)}%` }} />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Kos Pendidikan Masa Depan</span>
+                              <span>{formatRM(futureEduCostTotal)}</span>
+                            </div>
+                            <div className="w-full bg-slate-200 rounded-full h-5">
+                              <div className="bg-indigo-500 h-5 rounded-full" style={{ width: '100%' }} />
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+
+                      <Card className="border-blue-200 bg-blue-50/30">
+                        <h3 className="text-lg font-bold text-blue-900 mb-4 border-b border-blue-200 pb-2 flex items-center gap-2"><TrendingUp className="text-blue-600" /> Ketahanan Dana Masa Depan & Persaraan</h3>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                          <div className="lg:col-span-1 bg-white p-6 rounded-xl border border-blue-100 shadow-sm text-center h-full flex flex-col justify-center">
+                            <p className="text-slate-600 mb-2 text-sm">Dengan sasaran perbelanjaan <strong>{formatRM(futureMonthlyExpenses)}/bulan</strong>, dana persaraan anda mampu bertahan selama:</p>
+                            <p className={`font-extrabold text-5xl mb-2 ${exhaustAge >= lifeExpectancy ? 'text-sky-600' : 'text-red-500'}`}>
+                              {yearsItWillLast.toFixed(1)} Tahun
+                            </p>
+                            <p className="text-sm text-slate-500">Akan habis pada umur: <strong className={exhaustAge >= lifeExpectancy ? 'text-sky-600' : 'text-red-500'}>{Math.floor(exhaustAge)}</strong></p>
+                          </div>
+                          <div className="lg:col-span-2">
+                            {exhaustAge < lifeExpectancy ? (
+                              <div className="space-y-4">
+                                <div className="text-sm text-red-700 bg-red-50 p-3 rounded-lg border border-red-100 flex gap-2">
+                                  <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+                                  <span><strong>Defisit {Math.max(0, lifeExpectancy - exhaustAge).toFixed(1)} Tahun!</strong> Dana anda kekurangan <strong className="text-red-600">{formatRM(retirementShortfall)}</strong> untuk capai umur {lifeExpectancy} tahun. Berikut adalah pelan tindakan anda:</span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="p-4 bg-white border-l-4 border-sky-500 rounded-lg shadow-sm">
+                                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Opsyen A: Simpan Tambahan</p>
+                                    <p className="text-2xl font-bold text-sky-600">+{formatRM(extraSavingsNeeded)}<span className="text-sm">/bln</span></p>
+                                  </div>
+                                  <div className="p-4 bg-white border-l-4 border-amber-500 rounded-lg shadow-sm">
+                                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Opsyen B: Downsize Bajet</p>
+                                    <p className="text-2xl font-bold text-amber-600">{formatRM(sustainableMonthlyExpense)}<span className="text-sm">/bln</span></p>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-sky-700 bg-sky-50 p-6 rounded-xl border border-sky-100 flex gap-3 items-center h-full">
+                                <ShieldCheck size={32} className="shrink-0" />
+                                <span><strong>Tahniah!</strong> Baki dana anda dijangka mencukupi untuk membiayai persaraan anda (RM{formatRM(futureMonthlyExpenses)}/bulan) sehingga melepasi umur jangka hayat {lifeExpectancy} tahun.</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+
+                      <Card>
+                        <h3 className="text-lg font-bold text-slate-800 mb-6 border-b pb-2 flex items-center gap-2"><PieChart className="text-sky-600" /> Pengurusan Harta & Faraid Waris</h3>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                          <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                            <h4 className="font-semibold text-slate-700 mb-3 border-b pb-2">Aliran Harta Pusaka Bersih</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between"><span className="text-slate-600">Harta Kasar:</span> <span>{formatRM(grossEstate)}</span></div>
+                              <div className="flex justify-between text-red-600"><span>- Kos Jenazah:</span> <span>-{formatRM(funeralCost)}</span></div>
+                              <div className="flex justify-between text-blue-600"><span>- Harta Sepencarian:</span> <span>-{formatRM(sepencarianAmount)}</span></div>
+                              <div className="flex justify-between text-red-600"><span>- Hutang & Zakat:</span> <span>-{formatRM(totalDebts + zakatPayable)}</span></div>
+                              <div className="border-t pt-2 flex justify-between font-semibold"><span className="text-slate-700">Harta Bersih (Net Estate):</span> <span>{formatRM(actualNetEstate)}</span></div>
+                              <div className="flex justify-between text-sky-600"><span>- Wasiat / Wakaf:</span> <span>-{formatRM(wasiatAmount)}</span></div>
+                              <div className="border-t pt-2 flex justify-between font-bold text-lg"><span className="text-sky-800">BAKI UNTUK FARAID:</span> <span className="text-sky-600">{formatRM(faraidPool)}</span></div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col md:flex-row items-center gap-6 bg-white p-4 rounded-xl border border-slate-100">
+                            {actualNetEstate <= 0 ? (
+                              <div className="w-full text-center p-6 bg-red-50 rounded-xl border border-red-200">
+                                <AlertTriangle size={32} className="mx-auto text-red-500 mb-2" />
+                                <h3 className="font-bold text-red-800">Harta Pusaka Defisit!</h3>
+                                <p className="text-red-600 text-sm mt-1">Tiada sebarang harta yang tinggal untuk diagihkan secara Faraid.</p>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="w-40 h-40 shrink-0">
+                                  <SimplePieChart data={faraidDistribution} colors={faraidColors} />
+                                </div>
+                                <div className="flex-1 w-full space-y-3">
+                                  {faraidDistribution.map((item, index) => (
+                                    <div key={index} className="flex justify-between items-center text-sm border-b border-slate-50 pb-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: faraidColors[index % faraidColors.length] }}></span>
+                                        <span className="text-slate-700 font-medium leading-tight">{item.name}</span>
+                                      </div>
+                                      <div className="text-right">
+                                        <span className="text-xs text-slate-400 block">{item.percent.toFixed(1)}%</span>
+                                        <span className="font-bold text-sky-700">{formatRM(item.amount)}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                        <Card className="flex flex-col bg-slate-800 text-white border-none">
+                          <h3 className="font-bold text-amber-400 mb-4 text-lg border-b border-slate-700 pb-2 flex items-center gap-2"><ShieldCheck size={20} /> Analisis Jurang Pendapatan Waris</h3>
+                          <div className="space-y-4 flex-1 flex flex-col justify-center">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-slate-300">Dana Survival (Sepencarian + Faraid + Takaful):</span>
+                              <span className="font-semibold text-white">{formatRM(totalSpouseSurvivalFund)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm border-b border-slate-700 pb-4">
+                              <span className="text-slate-300">Keperluan Keluarga 10 Tahun (RM{formatRM(currentMonthlyExpenses)}/bln):</span>
+                              <span className="font-semibold text-white">{formatRM(familySurvivalNeeds)}</span>
+                            </div>
+                            <div className="pt-2 text-center bg-slate-700/50 p-4 rounded-xl">
+                              <span className="text-slate-300 text-sm block mb-1">Status Dana Waris (Jurang):</span>
+                              <span className={`font-black text-3xl ${incomeProtectionGap > 0 ? 'text-red-400' : 'text-sky-400'}`}>
+                                {incomeProtectionGap > 0 ? `Defisit ${formatRM(incomeProtectionGap)}` : 'Mencukupi'}
+                              </span>
+                            </div>
+                          </div>
+                        </Card>
+
+                        <Card className="flex flex-col border-sky-200 shadow-sm bg-white">
+                          <h3 className="font-bold text-slate-800 mb-4 text-lg border-b pb-2 flex items-center gap-2"><FileText className="text-sky-600" /> Checklist Solusi Pelindungan Segera</h3>
+                          <div className="space-y-3 flex-1 overflow-y-auto">
+                            {incomeProtectionGap > 0 && (
+                              <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
+                                <ShieldCheck size={20} className="text-red-500 shrink-0 mt-0.5" />
+                                <p className="text-sm text-slate-700"><strong className="text-red-700">Hibah Takaful:</strong> Sediakan minimum polisi <strong>{formatRM(incomeProtectionGap)}</strong> dengan segera sebagai penggantian pendapatan (Income Replacement).</p>
+                              </div>
+                            )}
+                            {totalLiquidAssets > 0 && (
+                              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                <Wallet size={20} className="text-blue-500 shrink-0 mt-0.5" />
+                                <p className="text-sm text-slate-700"><strong className="text-blue-700">Amanah Tunai:</strong> Cipta 'Cash Trust' dari <strong>{formatRM(totalLiquidAssets)}</strong> aset cair anda untuk elak akaun beku dan beri akses tunai pantas 7 hari.</p>
+                              </div>
+                            )}
+                            {hasSpouse && (
+                              <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                                <Heart size={20} className="text-amber-500 shrink-0 mt-0.5" />
+                                <p className="text-sm text-slate-700"><strong className="text-amber-700">Harta Sepencarian:</strong> Daftarkan deklarasi aset <strong>(cth: Rumah {formatRM(rumahValue)})</strong> untuk jamin 50%-100% hak milik mutlak pasangan anda.</p>
+                              </div>
+                            )}
+                            <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                              <BookOpen size={20} className="text-slate-500 shrink-0 mt-0.5" />
+                              <p className="text-sm text-slate-700"><strong className="text-slate-800">Wasiat Pentadbir:</strong> Lantik pentadbir profesional untuk pastikan hutang tertunggak (<strong>{formatRM(totalDebts)}</strong>) dilunaskan lancar tanpa bebankan waris.</p>
+                            </div>
+                          </div>
+                        </Card>
+                      </div>
+
+                      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-none shadow-2xl mt-8">
+                        <h3 className="text-xl font-black mb-6 flex items-center gap-2">🧠 Rumusan & Pelan Tindakan</h3>
+                        <div className="space-y-6">
+                          <div className="mt-6 bg-white/5 p-5 rounded-xl">
+                            <h4 className="font-bold mb-3">Pelan Tindakan</h4>
+                            <div className="space-y-3 text-sm">
+                              {monthlyBalance < 0 && (
+                                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
+                                  <p className="font-bold text-red-300 mb-1">🚨 Cashflow Negatif</p>
+                                  <p className="text-slate-300">Perbelanjaan melebihi pendapatan bersih bulanan. Fokus kurangkan lifestyle leakage dan hutang jangka pendek.</p>
+                                </div>
+                              )}
+                              {debtAnalysisResult.totalCommitment <= 0 ? (
+                                <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
+                                  <p className="font-bold text-emerald-300 mb-1">✅ Bebas Hutang</p>
+                                  <p className="text-slate-300">Anda tidak mempunyai komitmen hutang aktif. Fokus kepada wealth accumulation & asset growth.</p>
+                                </div>
+                              ) : debtAnalysisResult.dsr > 70 ? (
+                                <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl">
+                                  <p className="font-bold text-rose-300 mb-1">⚠️ DSR Kritikal</p>
+                                  <p className="text-slate-300">Nisbah hutang terlalu tinggi dan boleh menjejaskan kestabilan kewangan keluarga. Pertimbangkan debt restructuring/consolidation segera.</p>
+                                </div>
+                              ) : debtAnalysisResult.dsr > 55 ? (
+                                <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl">
+                                  <p className="font-bold text-orange-300 mb-1">⚠️ DSR Tinggi</p>
+                                  <p className="text-slate-300">Komitmen hutang masih berat. Kurangkan hutang tidak produktif sebelum fokus pelaburan agresif.</p>
+                                </div>
+                              ) : (
+                                <div className="bg-sky-500/10 border border-sky-500/20 p-4 rounded-xl">
+                                  <p className="font-bold text-sky-300 mb-1">✅ DSR Terkawal</p>
+                                  <p className="text-slate-300">Kedudukan hutang masih dalam julat sihat dan terkawal.</p>
+                                </div>
+                              )}
+                              {retirementShortfall > 0 ? (
+                                <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl">
+                                  <p className="font-bold text-amber-300 mb-1">🏖️ Persaraan Belum Kukuh</p>
+                                  <p className="text-slate-300">Simpanan persaraan dijangka tidak mencukupi. Tingkatkan simpanan pelaburan jangka panjang secara konsisten.</p>
+                                </div>
+                              ) : (
+                                <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
+                                  <p className="font-bold text-emerald-300 mb-1">✅ Persaraan Stabil</p>
+                                  <p className="text-slate-300">Unjuran menunjukkan simpanan persaraan berada pada tahap memuaskan.</p>
+                                </div>
+                              )}
+                              {educationShortfall > 50000 && (
+                                <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl">
+                                  <p className="font-bold text-indigo-300 mb-1">🎓 Risiko Konflik Dana Pendidikan</p>
+                                  <p className="text-slate-300">Dana pendidikan anak dijangka shortfall sebanyak <strong>{formatRM(educationShortfall)}</strong> dan boleh memberi tekanan kepada simpanan persaraan jika tiada pelan tambahan diwujudkan.</p>
+                                </div>
+                              )}
+                              {incomeProtectionGap > 0 && (
+                                <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl">
+                                  <p className="font-bold text-cyan-300 mb-1">🛡️ Protection Gap Tinggi</p>
+                                  <p className="text-slate-300">Perlindungan kewangan keluarga masih belum mencukupi. Pertimbangkan Hibah Takaful untuk kesinambungan hidup waris.</p>
+                                </div>
+                              )}
+                              {emergencyMonths < 3 && (
+                                <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl">
+                                  <p className="font-bold text-yellow-300 mb-1">💰 Dana Kecemasan Lemah</p>
+                                  <p className="text-slate-300">Simpanan kecemasan anda di bawah 3 bulan. Usahakan kumpul dana pantas untuk elakkan kebergantungan pada hutang.</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
 
                       {/* --- BUTANG SIMPAN KE OURMONEY --- */}
                       <div className="mt-12 bg-sky-50 border border-sky-200 p-6 rounded-2xl text-center shadow-sm">
@@ -829,7 +1264,7 @@
 
                     </div>
                   )}
-
+                    
                 </div>
               </main>
             </div>
