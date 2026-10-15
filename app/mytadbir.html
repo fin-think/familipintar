@@ -8,7 +8,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Phosphor Icons (Sebagai ganti Lucide untuk kestabilan tanpa bundler) -->
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <!-- React & ReactDOM -->
@@ -20,13 +20,12 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; background-color: #f8fafc; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .animate-fadeIn { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* d'DEBT utilities */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .smooth-transition { transition: all 0.3s ease-in-out; }
     </style>
@@ -35,37 +34,60 @@
     
     <div id="root"></div>
 
+    <!-- SUNTIKAN FIREBASE (MODULE) KE DALAM TETINGKAP GLOBAL -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+            authDomain: "familipintar.firebaseapp.com",
+            databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "familipintar",
+            storageBucket: "familipintar.firebasestorage.app",
+            messagingSenderId: "277029764059",
+            appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        window.fbAuth = getAuth(app);
+        window.fbDb = getFirestore(app);
+        window.fbSignIn = signInWithEmailAndPassword;
+        window.fbOnAuth = onAuthStateChanged;
+        window.fbDoc = doc;
+        window.fbSetDoc = setDoc;
+        window.fbGetDoc = getDoc;
+        window.fbCollection = collection;
+        window.fbQuery = query;
+        window.fbWhere = where;
+        window.fbGetDocs = getDocs;
+
+        // Beritahu React bahawa Firebase sedia digunakan
+        window.dispatchEvent(new Event('firebaseLoaded'));
+    </script>
+
+    <!-- LOGIK APLIKASI (REACT) -->
     <script type="text/babel">
         const { useState, useMemo, useEffect } = React;
         
-        // --- Komponen Ikon (Phosphor Icons Wrapper) ---
+        // --- Komponen Ikon ---
         const createIcon = (name) => ({ size = 24, className = '' }) => (
             <i className={`ph ${name} ${className} shrink-0`} style={{ fontSize: size }}></i>
         );
 
-        const User = createIcon('ph-user');
-        const Landmark = createIcon('ph-bank');
-        const Wallet = createIcon('ph-wallet');
-        const BookOpen = createIcon('ph-book-open');
-        const CreditCard = createIcon('ph-credit-card');
-        const Activity = createIcon('ph-activity');
-        const Printer = createIcon('ph-printer');
-        const MessageCircle = createIcon('ph-whatsapp-logo'); 
-        const Heart = createIcon('ph-heart');
-        const Users = createIcon('ph-users');
-        const TrendingUp = createIcon('ph-trend-up');
-        const Calculator = createIcon('ph-calculator');
-        const ShieldCheck = createIcon('ph-shield-check');
-        const PieChart = createIcon('ph-chart-pie');
-        const HeartHandshake = createIcon('ph-handshake');
-        const AlertTriangle = createIcon('ph-warning');
-        const FileText = createIcon('ph-file-text');
-        const ArrowRight = createIcon('ph-arrow-right');
+        const User = createIcon('ph-user'); const Landmark = createIcon('ph-bank');
+        const Wallet = createIcon('ph-wallet'); const BookOpen = createIcon('ph-book-open');
+        const CreditCard = createIcon('ph-credit-card'); const Activity = createIcon('ph-activity');
+        const Printer = createIcon('ph-printer'); const MessageCircle = createIcon('ph-whatsapp-logo'); 
+        const Heart = createIcon('ph-heart'); const Users = createIcon('ph-users');
+        const TrendingUp = createIcon('ph-trend-up'); const Calculator = createIcon('ph-calculator');
+        const ShieldCheck = createIcon('ph-shield-check'); const PieChart = createIcon('ph-chart-pie');
+        const HeartHandshake = createIcon('ph-handshake'); const AlertTriangle = createIcon('ph-warning');
+        const FileText = createIcon('ph-file-text'); const CloudArrowUp = createIcon('ph-cloud-arrow-up');
 
         const Card = ({ children, className = '' }) => (
-          <div className={`bg-white rounded-xl shadow-sm border border-slate-200 p-6 ${className}`}>
-            {children}
-          </div>
+          <div className={`bg-white rounded-xl shadow-sm border border-slate-200 p-6 ${className}`}>{children}</div>
         );
 
         const Input = ({ label, value, onChange, type = 'number', prefix = '', suffix = '', min = 0, max, disabled=false, step="1", className="" }) => (
@@ -73,62 +95,37 @@
             <label className="text-sm font-semibold text-slate-700 mb-1">{label}</label>
             <div className="relative flex items-center">
               {prefix && <span className="absolute left-3 text-slate-500 font-semibold">{prefix}</span>}
-              <input
-                type={type}
-                value={value}
-                onChange={onChange}
-                min={min}
-                max={max}
-                step={step}
-                disabled={disabled}
-                className={`w-full border border-slate-300 rounded-lg py-2 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all ${prefix ? 'pl-9' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'} ${disabled ? 'bg-slate-100 text-slate-500' : 'bg-white'}`}
-              />
+              <input type={type} value={value} onChange={onChange} min={min} max={max} step={step} disabled={disabled}
+                className={`w-full border border-slate-300 rounded-lg py-2 outline-none focus:ring-2 focus:ring-sky-500 transition-all ${prefix ? 'pl-9' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'} ${disabled ? 'bg-slate-100 text-slate-500' : 'bg-white'}`} />
               {suffix && <span className="absolute right-3 text-slate-500 font-semibold">{suffix}</span>}
             </div>
           </div>
         );
 
         const SectionHeader = ({ title, icon: Icon, description }) => (
-          <div className="mb-6 border-b border-sky-100 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-sky-100 text-sky-700 rounded-lg">
-                <Icon size={24} />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-slate-800">{title}</h2>
-                <p className="text-sm text-slate-500">{description}</p>
-              </div>
+          <div className="mb-6 border-b border-sky-100 pb-4 flex items-center gap-3">
+            <div className="p-2 bg-sky-100 text-sky-700 rounded-lg"><Icon size={24} /></div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+              <p className="text-sm text-slate-500">{description}</p>
             </div>
           </div>
         );
 
         const SimplePieChart = ({ data, colors }) => {
           let cumulativePercent = 0;
-          const getCoordinatesForPercent = (percent) => {
-            const x = Math.cos(2 * Math.PI * percent);
-            const y = Math.sin(2 * Math.PI * percent);
-            return [x, y];
-          };
-          
-          if (!data || data.length === 0 || data.every(d => d.percent <= 0)) {
-            return <div className="w-full h-full rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-500">Tiada Data</div>;
-          }
-
+          const getCoords = (p) => [Math.cos(2 * Math.PI * p), Math.sin(2 * Math.PI * p)];
+          if (!data || data.length === 0 || data.every(d => d.percent <= 0)) return <div className="w-full h-full rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-500">Tiada Data</div>;
           return (
             <svg viewBox="-1 -1 2 2" className="w-full h-full drop-shadow-md" style={{ transform: 'rotate(-90deg)' }}>
               {data.map((slice, i) => {
                 if (slice.percent <= 0) return null;
                 if (slice.percent >= 99.9) return <circle cx="0" cy="0" r="1" fill={colors[i % colors.length]} key={i} />;
-                const [startX, startY] = getCoordinatesForPercent(cumulativePercent / 100);
+                const [startX, startY] = getCoords(cumulativePercent / 100);
                 cumulativePercent += slice.percent;
-                const [endX, endY] = getCoordinatesForPercent(cumulativePercent / 100);
+                const [endX, endY] = getCoords(cumulativePercent / 100);
                 const largeArcFlag = slice.percent > 50 ? 1 : 0;
-                const pathData = [
-                  `M ${startX} ${startY}`,
-                  `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
-                  `L 0 0`,
-                ].join(' ');
-                return <path d={pathData} fill={colors[i % colors.length]} key={i} />
+                return <path d={`M ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} L 0 0`} fill={colors[i % colors.length]} key={i} />
               })}
             </svg>
           )
@@ -138,117 +135,144 @@
           userGender: 'lelaki', age: 30, gajiHakiki: 4000, pendapatanSampingan: 500,
           kwspPotongan: 11, socsoPotongan: 50, dapurExpenses: 800, utilitiExpenses: 300,
           transportExpenses: 400, entertainmentExpenses: 300, insuranceExpenses: 250,
-          childrenData: [{ id: 1, age: 1, gender: 'lelaki' }],
-          asb: 10000, th: 10000, unitTrust: 5000, tunai: 20000, kwsp: 80000, emas: 5000,
-          rumahValue: 350000, keretaValue: 60000,
-          debtsList: [
-            { id: 1, name: 'Kad Kredit', balance: 5000, interest: 15, minPayment: 250 },
-            { id: 2, name: 'Pinjaman Peribadi', balance: 15000, interest: 6.5, minPayment: 350 },
-            { id: 3, name: 'Kereta', balance: 45000, interest: 3.2, minPayment: 550 }
-          ],
-          extraBudget: 300, debtStrategy: 'snowball', consolRate: 4.5, consolYear: 7,
-          retireAge: 60, lifeExpectancy: 80, inflationRate: 3, assetReturnRate: 5,
-          uniAge: 18, currentEduCost: 50000, sspnFund: 5000, asbAnakFund: 5000,
-          educationInflation: 6, universityType: 'local',
-          funeralCost: 2000, sepencarianPercent: 50, wasiatPercent: 0,
-          hasSpouse: true, hasMother: false, hasFather: false, currentTakaful: 100000
+          childrenData: [], asb: 0, th: 0, unitTrust: 0, tunai: 0, kwsp: 0, emas: 0,
+          rumahValue: 0, keretaValue: 0, debtsList: [], extraBudget: 0, debtStrategy: 'snowball', consolRate: 4.5, consolYear: 7,
+          retireAge: 60, lifeExpectancy: 80, inflationRate: 3, assetReturnRate: 5, uniAge: 18, currentEduCost: 50000,
+          sspnFund: 0, asbAnakFund: 0, educationInflation: 6, universityType: 'local', funeralCost: 2000, sepencarianPercent: 50,
+          wasiatPercent: 0, hasSpouse: false, hasMother: false, hasFather: false, currentTakaful: 0
         };
 
         function App() {
+          const [isFirebaseReady, setIsFirebaseReady] = useState(!!window.fbAuth);
+          const [user, setUser] = useState(null);
+          const [loadingData, setLoadingData] = useState(true);
+          const [isSaving, setIsSaving] = useState(false);
+          
           const [activeTab, setActiveTab] = useState(1);
           const [showReport, setShowReport] = useState(false);
           
-          // --- PENGURUSAN DATA LOKAL (LOCALSTORAGE) ---
-          const [appData, setAppData] = useState(() => {
-            const savedData = localStorage.getItem('mytadbir_data');
-            if (savedData) {
-              try {
-                return { ...defaultData, ...JSON.parse(savedData) };
-              } catch (e) {
-                console.error("Gagal membaca data dari Local Storage", e);
-              }
-            }
-            return defaultData;
-          });
+          const [appData, setAppData] = useState(defaultData);
 
-          // Auto-save ke Local Storage apabila data berubah
+          // PENGURUSAN AUTENTIKASI & PANGKALAN DATA
           useEffect(() => {
-            localStorage.setItem('mytadbir_data', JSON.stringify(appData));
-          }, [appData]);
+              const handleFbReady = () => setIsFirebaseReady(true);
+              window.addEventListener('firebaseLoaded', handleFbReady);
+              if (window.fbAuth) setIsFirebaseReady(true);
+              return () => window.removeEventListener('firebaseLoaded', handleFbReady);
+          }, []);
 
-          // Memecah (destructure) semua pembolehubah untuk mengelakkan keperluan mengubah struktur JSX anda
+          useEffect(() => {
+              if (!isFirebaseReady) return;
+              const unsubscribe = window.fbOnAuth(window.fbAuth, async (u) => {
+                  if (u) {
+                      setUser(u);
+                      await fetchEcosystemData(u.uid);
+                  } else {
+                      setUser(null);
+                      setLoadingData(false);
+                  }
+              });
+              return () => unsubscribe();
+          }, [isFirebaseReady]);
+
+          // ENJIN PENYEDUT DATA BERSEPADU (myNasab -> myTADBIR)
+          const fetchEcosystemData = async (uid) => {
+              try {
+                  // 1. Dapatkan Profil myTADBIR sedia ada (Jika dah pernah save)
+                  const docRef = window.fbDoc(window.fbDb, "mytadbir_profiles", uid);
+                  const docSnap = await window.fbGetDoc(docRef);
+                  let mergedData = { ...defaultData };
+                  
+                  if (docSnap.exists()) {
+                      mergedData = { ...mergedData, ...docSnap.data().raw_data };
+                  }
+
+                  // 2. Tarik Data myNasab (Utamakan Data Pokok Terkini)
+                  const q = window.fbQuery(window.fbCollection(window.fbDb, "mynasab_nodes"), window.fbWhere("owner_uid", "==", uid));
+                  const nasabSnap = await window.fbGetDocs(q);
+                  
+                  let childrenList = [];
+                  let spouse = false, mother = false, father = false;
+                  let selfAge = mergedData.age;
+                  let selfGender = mergedData.userGender;
+
+                  nasabSnap.forEach(d => {
+                      const data = d.data();
+                      const rel = (data.relationship || '').toLowerCase();
+                      const status = data.status || '';
+                      
+                      const calcAge = (dobStr) => {
+                          if (!dobStr) return 0;
+                          return new Date().getFullYear() - new Date(dobStr).getFullYear();
+                      };
+
+                      if (status !== 'meninggal') {
+                          if (rel.includes('diri sendiri')) {
+                              selfAge = calcAge(data.dob) || selfAge;
+                              selfGender = (data.gender || '').toLowerCase() === 'perempuan' ? 'perempuan' : 'lelaki';
+                          }
+                          if (rel.includes('anak') && !rel.includes('saudara')) {
+                              childrenList.push({
+                                  id: d.id,
+                                  age: calcAge(data.dob) || 1,
+                                  gender: (data.gender || '').toLowerCase() === 'perempuan' ? 'perempuan' : 'lelaki'
+                              });
+                          }
+                          if (rel === 'suami' || rel === 'isteri') spouse = true;
+                          if (rel === 'ibu' || rel === 'mak') mother = true;
+                          if (rel === 'ayah' || rel === 'bapa' || rel === 'abah') father = true;
+                      }
+                  });
+
+                  // Timpa data dengan maklumat real-time myNasab
+                  mergedData.age = selfAge;
+                  mergedData.userGender = selfGender;
+                  mergedData.hasSpouse = spouse;
+                  mergedData.hasMother = mother;
+                  mergedData.hasFather = father;
+                  
+                  // Hanya timpa anak jika myNasab ada data anak, jika tak guna data asal
+                  if (childrenList.length > 0) {
+                      mergedData.childrenData = childrenList;
+                  }
+
+                  setAppData(mergedData);
+              } catch (e) {
+                  console.error("Ralat memuatkan ekosistem data:", e);
+              }
+              setLoadingData(false);
+          };
+
+          // LOGIN HANDLER
+          const handleLogin = async (e) => {
+              e.preventDefault();
+              try {
+                  await window.fbSignIn(window.fbAuth, e.target.email.value, e.target.password.value);
+              } catch (err) {
+                  alert("Log masuk gagal. Sila semak emel & kata laluan.");
+              }
+          };
+
+          // Destructure state variables
           const {
             userGender, age, gajiHakiki, pendapatanSampingan, kwspPotongan, socsoPotongan,
             dapurExpenses, utilitiExpenses, transportExpenses, entertainmentExpenses, insuranceExpenses, childrenData,
-            asb, th, unitTrust, tunai, kwsp, emas, rumahValue, keretaValue,
-            debtsList, extraBudget, debtStrategy, consolRate, consolYear,
-            retireAge, lifeExpectancy, inflationRate, assetReturnRate, uniAge, currentEduCost,
-            sspnFund, asbAnakFund, educationInflation, universityType,
+            asb, th, unitTrust, tunai, kwsp, emas, rumahValue, keretaValue, debtsList, extraBudget, debtStrategy, consolRate, consolYear,
+            retireAge, lifeExpectancy, inflationRate, assetReturnRate, uniAge, currentEduCost, sspnFund, asbAnakFund, educationInflation, universityType,
             funeralCost, sepencarianPercent, wasiatPercent, hasSpouse, hasMother, hasFather, currentTakaful
           } = appData;
 
-          // Setter yang disesuaikan supaya membolehkan fungsi auto-save dipanggil
-          const setUserGender = (val) => setAppData(p => ({...p, userGender: val}));
-          const setAge = (val) => setAppData(p => ({...p, age: val}));
-          const setGajiHakiki = (val) => setAppData(p => ({...p, gajiHakiki: val}));
-          const setPendapatanSampingan = (val) => setAppData(p => ({...p, pendapatanSampingan: val}));
-          const setKwspPotongan = (val) => setAppData(p => ({...p, kwspPotongan: val}));
-          const setSocsoPotongan = (val) => setAppData(p => ({...p, socsoPotongan: val}));
-          const setDapurExpenses = (val) => setAppData(p => ({...p, dapurExpenses: val}));
-          const setUtilitiExpenses = (val) => setAppData(p => ({...p, utilitiExpenses: val}));
-          const setTransportExpenses = (val) => setAppData(p => ({...p, transportExpenses: val}));
-          const setEntertainmentExpenses = (val) => setAppData(p => ({...p, entertainmentExpenses: val}));
-          const setInsuranceExpenses = (val) => setAppData(p => ({...p, insuranceExpenses: val}));
-          const setChildrenData = (val) => setAppData(p => ({...p, childrenData: val}));
-
-          const setAsb = (val) => setAppData(p => ({...p, asb: val}));
-          const setTh = (val) => setAppData(p => ({...p, th: val}));
-          const setUnitTrust = (val) => setAppData(p => ({...p, unitTrust: val}));
-          const setTunai = (val) => setAppData(p => ({...p, tunai: val}));
-          const setKwsp = (val) => setAppData(p => ({...p, kwsp: val}));
-          const setEmas = (val) => setAppData(p => ({...p, emas: val}));
-          const setRumahValue = (val) => setAppData(p => ({...p, rumahValue: val}));
-          const setKeretaValue = (val) => setAppData(p => ({...p, keretaValue: val}));
-
-          const setDebtsList = (val) => setAppData(p => ({...p, debtsList: val}));
-          const setExtraBudget = (val) => setAppData(p => ({...p, extraBudget: val}));
-          const setDebtStrategy = (val) => setAppData(p => ({...p, debtStrategy: val}));
-          const setConsolRate = (val) => setAppData(p => ({...p, consolRate: val}));
-          const setConsolYear = (val) => setAppData(p => ({...p, consolYear: val}));
-
-          const setRetireAge = (val) => setAppData(p => ({...p, retireAge: val}));
-          const setLifeExpectancy = (val) => setAppData(p => ({...p, lifeExpectancy: val}));
-          const setInflationRate = (val) => setAppData(p => ({...p, inflationRate: val}));
-          const setAssetReturnRate = (val) => setAppData(p => ({...p, assetReturnRate: val}));
-          const setUniAge = (val) => setAppData(p => ({...p, uniAge: val}));
-          const setCurrentEduCost = (val) => setAppData(p => ({...p, currentEduCost: val}));
-          const setSspnFund = (val) => setAppData(p => ({...p, sspnFund: val}));
-          const setAsbAnakFund = (val) => setAppData(p => ({...p, asbAnakFund: val}));
-          const setEducationInflation = (val) => setAppData(p => ({...p, educationInflation: val}));
-          const setUniversityType = (val) => setAppData(p => ({...p, universityType: val}));
-
-          const setFuneralCost = (val) => setAppData(p => ({...p, funeralCost: val}));
-          const setSepencarianPercent = (val) => setAppData(p => ({...p, sepencarianPercent: val}));
-          const setWasiatPercent = (val) => setAppData(p => ({...p, wasiatPercent: val}));
-          const setHasSpouse = (val) => setAppData(p => ({...p, hasSpouse: val}));
-          const setHasMother = (val) => setAppData(p => ({...p, hasMother: val}));
-          const setHasFather = (val) => setAppData(p => ({...p, hasFather: val}));
-          const setCurrentTakaful = (val) => setAppData(p => ({...p, currentTakaful: val}));
-
-          // === HELPER NUMBER SAFE ===
-          const toNumber = (v) => {
-            const n = parseFloat(v);
-            return Number.isFinite(n) ? n : 0;
-          };
+          // Setters
+          const updateApp = (key, val) => setAppData(p => ({...p, [key]: val}));
+          const toNumber = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
 
           // === DERIVED VARIABLES (PENGIRAAN AUTOMATIK KESELURUHAN) ===
           const numSons = childrenData.filter(c => c.gender === 'lelaki').length;
           const numDaughters = childrenData.filter(c => c.gender === 'perempuan').length;
           const spouseGender = userGender === 'lelaki' ? 'isteri' : 'suami';
-          
           const annualIncome = (gajiHakiki + pendapatanSampingan) * 12;
 
-          // --- ANALISIS DSR & HUTANG (d'DEBT Core Logic) ---
+          // --- ANALISIS DSR & HUTANG ---
           const debtAnalysisResult = useMemo(() => {
               const totalIncome = gajiHakiki + pendapatanSampingan;
               const totalCommitment = debtsList.reduce((sum, d) => sum + d.minPayment, 0);
@@ -259,485 +283,195 @@
               if (debtStrategy === 'snowball') sortedDebts.sort((a, b) => a.balance - b.balance);
               else if (debtStrategy === 'avalanche') sortedDebts.sort((a, b) => b.interest - a.interest);
 
-              let totalInterestPaid = 0;
-              let currentMonth = 0;
-              const MAX_MONTHS = 1200;
+              let totalInterestPaid = 0; let currentMonth = 0; const MAX_MONTHS = 1200;
               let simDebts = sortedDebts.map(d => ({ ...d, currentBalance: d.balance, monthsToFinish: 0 }));
-              
-              let balanceAtRetirement = 0;
-              const retirementMonth = Math.max(0, (retireAge - age) * 12);
+              let balanceAtRetirement = 0; const retirementMonth = Math.max(0, (retireAge - age) * 12);
 
               if (debtStrategy !== 'consolidation') {
                   while (simDebts.some(d => d.currentBalance > 0) && currentMonth < MAX_MONTHS) {
-                      if (currentMonth === retirementMonth) {
-                          balanceAtRetirement = simDebts.reduce((sum, d) => sum + Math.max(0, d.currentBalance), 0);
-                      }
-
-                      if (balanceAtRetirement === 0 && currentMonth >= retirementMonth) {
-                        balanceAtRetirement = simDebts.reduce((sum, d) => sum + Math.max(0, d.currentBalance), 0);
-                      }
-                      
+                      if (currentMonth === retirementMonth) balanceAtRetirement = simDebts.reduce((sum, d) => sum + Math.max(0, d.currentBalance), 0);
                       currentMonth++;
                       let monthlyExtraAvailable = extraBudget;
 
                       for (let d of simDebts) {
                           if (d.currentBalance <= 0) continue;
-                          let monthlyRate = (d.interest / 100) / 12;
-                          let interestCharged = d.currentBalance * monthlyRate;
-                          totalInterestPaid += interestCharged;
-                          d.currentBalance += interestCharged;
-
-                          let pay = Math.min(d.currentBalance, d.minPayment);
-                          d.currentBalance -= pay;
-
-                          if (d.currentBalance <= 0.01) {
-                              d.currentBalance = 0;
-                              if (d.monthsToFinish === 0) d.monthsToFinish = currentMonth;
-                          }
+                          let interestCharged = d.currentBalance * ((d.interest / 100) / 12);
+                          totalInterestPaid += interestCharged; d.currentBalance += interestCharged;
+                          d.currentBalance -= Math.min(d.currentBalance, d.minPayment);
+                          if (d.currentBalance <= 0.01) { d.currentBalance = 0; if (d.monthsToFinish === 0) d.monthsToFinish = currentMonth; }
                       }
 
-                      let freedUpMinPayments = simDebts.filter(d => d.currentBalance === 0).reduce((sum, d) => sum + d.minPayment, 0);
-                      monthlyExtraAvailable += freedUpMinPayments;
+                      monthlyExtraAvailable += simDebts.filter(d => d.currentBalance === 0).reduce((sum, d) => sum + d.minPayment, 0);
 
                       for (let d of simDebts) {
                           if (d.currentBalance > 0) {
                               let extraPay = Math.min(d.currentBalance, monthlyExtraAvailable);
-                              d.currentBalance -= extraPay;
-                              monthlyExtraAvailable -= extraPay;
-                              
-                              if (d.currentBalance <= 0.01) {
-                                  d.currentBalance = 0;
-                                  if (d.monthsToFinish === 0) d.monthsToFinish = currentMonth;
-                              }
+                              d.currentBalance -= extraPay; monthlyExtraAvailable -= extraPay;
+                              if (d.currentBalance <= 0.01) { d.currentBalance = 0; if (d.monthsToFinish === 0) d.monthsToFinish = currentMonth; }
                               if (monthlyExtraAvailable <= 0) break;
                           }
                       }
                   }
-                  
-                  if (currentMonth <= retirementMonth && balanceAtRetirement === 0 && simDebts.every(d => d.currentBalance === 0)) {
-                      balanceAtRetirement = 0; 
-                  } else if (currentMonth > retirementMonth && balanceAtRetirement === 0) {
-                      balanceAtRetirement = simDebts.reduce((sum, d) => sum + d.currentBalance, 0);
-                  }
+                  if (currentMonth > retirementMonth && balanceAtRetirement === 0) balanceAtRetirement = simDebts.reduce((sum, d) => sum + d.currentBalance, 0);
               } else {
                   const totalInterestConsol = totalBalance * (consolRate / 100) * consolYear;
-                  const totalLoanConsol = totalBalance + totalInterestConsol;
-                  const newMonthlyConsol = consolYear > 0 ? totalLoanConsol / (consolYear * 12) : 0;
-                  const savingsConsol = totalCommitment - newMonthlyConsol;
-                  
-                  if (retirementMonth >= consolYear * 12) {
-                      balanceAtRetirement = 0;
-                  } else {
-                      const remainingMonths = (consolYear * 12) - retirementMonth;
-                      balanceAtRetirement = (remainingMonths / (consolYear * 12)) * totalBalance; 
-                  }
-
-                  return {
-                      totalIncome, totalCommitment, totalBalance, dsr,
-                      payoffMonths: consolYear * 12,
-                      payoffInterest: totalInterestConsol,
-                      payoffDetails: [],
-                      consolNewMonthly: newMonthlyConsol,
-                      consolSavings: savingsConsol,
-                      balanceAtRetirement
-                  };
+                  const newMonthlyConsol = consolYear > 0 ? (totalBalance + totalInterestConsol) / (consolYear * 12) : 0;
+                  balanceAtRetirement = retirementMonth >= consolYear * 12 ? 0 : (((consolYear * 12) - retirementMonth) / (consolYear * 12)) * totalBalance; 
+                  return { totalIncome, totalCommitment, totalBalance, dsr, payoffMonths: consolYear * 12, payoffInterest: totalInterestConsol, payoffDetails: [], consolNewMonthly: newMonthlyConsol, consolSavings: totalCommitment - newMonthlyConsol, balanceAtRetirement };
               }
 
-              return {
-                  totalIncome, totalCommitment, totalBalance, dsr,
-                  payoffMonths: currentMonth,
-                  payoffInterest: totalInterestPaid,
-                  payoffDetails: simDebts,
-                  consolNewMonthly: 0,
-                  consolSavings: 0,
-                  balanceAtRetirement
-              };
+              return { totalIncome, totalCommitment, totalBalance, dsr, payoffMonths: currentMonth, payoffInterest: totalInterestPaid, payoffDetails: simDebts, consolNewMonthly: 0, consolSavings: 0, balanceAtRetirement };
           }, [debtsList, gajiHakiki, pendapatanSampingan, extraBudget, debtStrategy, consolRate, consolYear, retireAge, age]);
 
           const totalIncomeMonthly = gajiHakiki + pendapatanSampingan;
-          const kwspAmount = gajiHakiki * (kwspPotongan / 100);
-          const netIncomeMonthly = totalIncomeMonthly - kwspAmount - socsoPotongan;
+          const netIncomeMonthly = totalIncomeMonthly - (gajiHakiki * (kwspPotongan / 100)) - socsoPotongan;
           const currentMonthlyExpenses = dapurExpenses + utilitiExpenses + transportExpenses + entertainmentExpenses + insuranceExpenses;
           const totalMonthlyCommitments = debtAnalysisResult.totalCommitment + currentMonthlyExpenses;
           const monthlyBalance = netIncomeMonthly - totalMonthlyCommitments;
 
           const totalDebts = debtAnalysisResult.totalBalance;
           const unjuranTotalDebts = debtAnalysisResult.balanceAtRetirement;
-
           const totalLiquidAssets = asb + th + unitTrust + tunai + kwsp + emas;
           const totalPhysicalAssets = rumahValue + keretaValue;
           const currentNetWorth = (totalLiquidAssets + totalPhysicalAssets) - totalDebts;
 
           const yearsToRetire = Math.max(0, retireAge - age);
           const yearsInRetirement = Math.max(0, lifeExpectancy - retireAge);
-          
-          const futureMonthlyExpenses = currentMonthlyExpenses * Math.pow(1 + (inflationRate / 100), yearsToRetire);
-          const yearlyRetirementExpense = futureMonthlyExpenses * 12;
+          const yearlyRetirementExpense = currentMonthlyExpenses * Math.pow(1 + (inflationRate / 100), yearsToRetire) * 12;
           const netReturnRate = (assetReturnRate - inflationRate) / 100;
 
-          const retirementCorpusNeeded = netReturnRate === 0
-            ? yearlyRetirementExpense * yearsInRetirement
-            : yearlyRetirementExpense * (
-                (1 - Math.pow(1 + netReturnRate, -yearsInRetirement)) / netReturnRate
-              );
-          
-          const totalEducationFundNow = sspnFund + asbAnakFund;
-
-          const futureEduCostTotal = childrenData.reduce((total, child) => {
-            const yearsToUni = Math.max(0, uniAge - child.age);
-            const adjustedCost = universityType === 'overseas' ? currentEduCost * 5 : currentEduCost;
-            const futureCost = adjustedCost * Math.pow(1 + (educationInflation / 100), yearsToUni);
-            return total + futureCost;
-          }, 0);
-
-          const earliestChildYears = childrenData.length > 0 ? Math.min(...childrenData.map(child => Math.max(0, uniAge - child.age))) : 0;
-          const futureEducationFund = totalEducationFundNow * Math.pow(1 + (assetReturnRate / 100), earliestChildYears);
+          const retirementCorpusNeeded = netReturnRate === 0 ? yearlyRetirementExpense * yearsInRetirement : yearlyRetirementExpense * ((1 - Math.pow(1 + netReturnRate, -yearsInRetirement)) / netReturnRate);
+          const futureEduCostTotal = childrenData.reduce((total, child) => total + ((universityType === 'overseas' ? currentEduCost * 5 : currentEduCost) * Math.pow(1 + (educationInflation / 100), Math.max(0, uniAge - child.age))), 0);
+          const futureEducationFund = (sspnFund + asbAnakFund) * Math.pow(1 + (assetReturnRate / 100), childrenData.length > 0 ? Math.min(...childrenData.map(c => Math.max(0, uniAge - c.age))) : 0);
           const educationShortfall = Math.max(0, futureEduCostTotal - futureEducationFund);
-          const monthsToUniversity = Math.max(1, earliestChildYears * 12);
-          const educationCatchupMonthly = Number.isFinite(educationShortfall) ? educationShortfall / monthsToUniversity : 0;
 
           const futureLiquidAssets = totalLiquidAssets * Math.pow(1 + (assetReturnRate / 100), yearsToRetire);
-          const futureAssetsAfterEducation = Math.max(0, futureLiquidAssets - futureEduCostTotal);
-          const bakiUntukBersara = Math.max(0, futureAssetsAfterEducation - unjuranTotalDebts);
-          
+          const bakiUntukBersara = Math.max(0, Math.max(0, futureLiquidAssets - futureEduCostTotal) - unjuranTotalDebts);
           const yearsItWillLast = yearlyRetirementExpense > 0 ? bakiUntukBersara / yearlyRetirementExpense : 0;
           const exhaustAge = retireAge + yearsItWillLast;
+          const retirementShortfall = Math.max(0, (unjuranTotalDebts + retirementCorpusNeeded) - Math.max(0, futureLiquidAssets - futureEduCostTotal));
 
-          const totalFutureNeeds = unjuranTotalDebts + futureEduCostTotal + retirementCorpusNeeded;
-          const retirementShortfall = Math.max(0, (unjuranTotalDebts + retirementCorpusNeeded) - futureAssetsAfterEducation);
-
-          let financialScore = 0;
-
-          if (monthlyBalance >= 3000) financialScore += 25;
-          else if (monthlyBalance >= 1500) financialScore += 20;
-          else if (monthlyBalance >= 500) financialScore += 10;
-          else if (monthlyBalance >= 0) financialScore += 5;
-          else financialScore -= 20;
-
-          if (debtAnalysisResult.totalCommitment <= 0) financialScore += 25;
-          else if (debtAnalysisResult.dsr <= 35) financialScore += 20;
-          else if (debtAnalysisResult.dsr <= 55) financialScore += 10;
-          else if (debtAnalysisResult.dsr <= 70) financialScore -= 10;
-          else financialScore -= 25;
-
-          const emergencyMonths = currentMonthlyExpenses > 0 ? tunai / currentMonthlyExpenses : 0;
-          if (emergencyMonths >= 6) financialScore += 20;
-          else if (emergencyMonths >= 3) financialScore += 10;
-          else financialScore -= 10;
-
-          if (retirementShortfall <= 0) financialScore += 20;
-          else if (retirementShortfall <= 200000) financialScore += 10;
-          else financialScore -= 15;
-
+          let financialScore = 50;
+          if (monthlyBalance >= 1500) financialScore += 20; else if (monthlyBalance < 0) financialScore -= 20;
+          if (debtAnalysisResult.dsr <= 35) financialScore += 20; else if (debtAnalysisResult.dsr > 70) financialScore -= 25;
+          if ((currentMonthlyExpenses > 0 ? tunai / currentMonthlyExpenses : 0) >= 3) financialScore += 10;
           financialScore = Math.max(0, Math.min(100, financialScore));
+          const financialStatus = financialScore >= 80 ? 'Sangat Sihat' : financialScore >= 60 ? 'Sederhana' : financialScore >= 40 ? 'Berisiko' : 'Kritikal';
 
-          const financialStatus =
-            financialScore >= 80 ? 'Sangat Sihat' :
-            financialScore >= 60 ? 'Sederhana' :
-            financialScore >= 40 ? 'Berisiko' :
-            'Kritikal';
-
-          const monthsToRetire = Math.max(1, yearsToRetire * 12);
-          const extraSavingsNeeded = Number.isFinite(retirementShortfall) ? retirementShortfall / monthsToRetire : 0;
-          const sustainableMonthlyExpense = yearsInRetirement > 0 ? (bakiUntukBersara / (yearsInRetirement * 12)) : 0;
-
-          // --- PENGIRAAN FARAID & PENYUCIAN HARTA ---
           const totalZakatable = asb + th + unitTrust + tunai + emas; 
           const zakatPayable = totalZakatable * 0.025;
-
-          const grossEstate = totalLiquidAssets + totalPhysicalAssets;
-          const estateAfterFuneral = grossEstate - funeralCost;
-          const sepencarianAmount = hasSpouse ? (totalPhysicalAssets * (sepencarianPercent / 100)) : 0;
-          const estateAfterSepencarian = estateAfterFuneral - sepencarianAmount;
-          const estateAfterDebts = estateAfterSepencarian - totalDebts - zakatPayable; 
-          const actualNetEstate = Math.max(0, estateAfterDebts);
+          const actualNetEstate = Math.max(0, (totalLiquidAssets + totalPhysicalAssets) - funeralCost - (hasSpouse ? (totalPhysicalAssets * (sepencarianPercent / 100)) : 0) - totalDebts - zakatPayable);
           const wasiatAmount = actualNetEstate * (Math.min(wasiatPercent, 33.33) / 100);
           const faraidPool = actualNetEstate - wasiatAmount;
 
           const calculateFaraid = () => {
-            let distribution = [];
-            let pool = faraidPool;
-            if (pool <= 0) return [];
-
-            let spouseShare = 0; let motherShare = 0; let fatherShare = 0; let daughtersShare = 0;
+            let distribution = []; let pool = faraidPool; if (pool <= 0) return [];
+            let spouseShare = 0, motherShare = 0, fatherShare = 0, daughtersShare = 0;
             
             if (hasSpouse) {
-              if (spouseGender === 'isteri') {
-                spouseShare = (numSons > 0 || numDaughters > 0) ? 1/8 : 1/4;
-                distribution.push({ name: 'Isteri', amount: pool * spouseShare, percent: spouseShare * 100, isSpouse: true });
-              } else {
-                spouseShare = (numSons > 0 || numDaughters > 0) ? 1/4 : 1/2;
-                distribution.push({ name: 'Suami', amount: pool * spouseShare, percent: spouseShare * 100, isSpouse: true });
-              }
+              spouseShare = spouseGender === 'isteri' ? ((numSons > 0 || numDaughters > 0) ? 1/8 : 1/4) : ((numSons > 0 || numDaughters > 0) ? 1/4 : 1/2);
+              distribution.push({ name: spouseGender === 'isteri' ? 'Isteri' : 'Suami', amount: pool * spouseShare, percent: spouseShare * 100, isSpouse: true });
             }
-
-            if (hasMother) {
-              motherShare = (numSons > 0 || numDaughters > 0) ? 1/6 : 1/3;
-              distribution.push({ name: 'Ibu', amount: pool * motherShare, percent: motherShare * 100 });
-            }
-
-            if (hasFather) {
-              fatherShare = (numSons > 0 || numDaughters > 0) ? 1/6 : 0;
-              distribution.push({ name: 'Bapa', amount: pool * fatherShare, percent: fatherShare * 100 });
-            }
-
-            if (numSons === 0 && numDaughters > 0) {
-              daughtersShare = numDaughters === 1 ? 1/2 : 2/3;
-              distribution.push({ name: `Anak Perempuan (${numDaughters} orang)`, amount: pool * daughtersShare, percent: daughtersShare * 100 });
-            }
+            if (hasMother) { motherShare = (numSons > 0 || numDaughters > 0) ? 1/6 : 1/3; distribution.push({ name: 'Ibu', amount: pool * motherShare, percent: motherShare * 100 }); }
+            if (hasFather) { fatherShare = (numSons > 0 || numDaughters > 0) ? 1/6 : 0; distribution.push({ name: 'Bapa', amount: pool * fatherShare, percent: fatherShare * 100 }); }
+            if (numSons === 0 && numDaughters > 0) { daughtersShare = numDaughters === 1 ? 1/2 : 2/3; distribution.push({ name: `Anak Perempuan (${numDaughters})`, amount: pool * daughtersShare, percent: daughtersShare * 100 }); }
 
             let allocatedFraction = spouseShare + motherShare + fatherShare + daughtersShare;
-            
             if (allocatedFraction > 1) {
-              distribution = distribution.map(d => {
-                let newFraction = (d.percent / 100) / allocatedFraction;
-                return { ...d, amount: pool * newFraction, percent: newFraction * 100 };
-              });
+              distribution = distribution.map(d => ({ ...d, amount: pool * ((d.percent / 100) / allocatedFraction), percent: ((d.percent / 100) / allocatedFraction) * 100 }));
               allocatedFraction = 1;
             }
-
-            let remainingFraction = 1 - allocatedFraction;
-            let remainingAmount = pool * remainingFraction;
-
-            if (remainingFraction > 0.0001) {
+            let remFraction = 1 - allocatedFraction;
+            if (remFraction > 0.0001) {
               if (numSons > 0) {
-                const totalParts = (numSons * 2) + numDaughters;
-                const valuePerPart = remainingAmount / totalParts;
-                distribution.push({ name: `Anak Lelaki (${numSons} orang)`, amount: valuePerPart * 2 * numSons, percent: (valuePerPart * 2 * numSons / pool) * 100 });
-                if (numDaughters > 0) {
-                  distribution.push({ name: `Anak Perempuan (${numDaughters} orang)`, amount: valuePerPart * numDaughters, percent: (valuePerPart * numDaughters / pool) * 100 });
-                }
+                const valPerPart = (pool * remFraction) / ((numSons * 2) + numDaughters);
+                distribution.push({ name: `Anak Lelaki (${numSons})`, amount: valPerPart * 2 * numSons, percent: ((valPerPart * 2 * numSons) / pool) * 100 });
+                if (numDaughters > 0) distribution.push({ name: `Anak Perempuan (${numDaughters})`, amount: valPerPart * numDaughters, percent: ((valPerPart * numDaughters) / pool) * 100 });
               } else if (hasFather) {
-                let fatherIndex = distribution.findIndex(d => d.name === 'Bapa');
-                if(fatherIndex !== -1) {
-                    distribution[fatherIndex].amount += remainingAmount;
-                    distribution[fatherIndex].percent += (remainingFraction * 100);
-                    distribution[fatherIndex].name = 'Bapa (Fardu + Asabah)';
-                } else {
-                    distribution.push({ name: 'Bapa (Asabah)', amount: remainingAmount, percent: remainingFraction * 100 });
-                }
-              } else {
-                distribution.push({ name: 'Baitulmal / Waris Lain (Adik Beradik)', amount: remainingAmount, percent: remainingFraction * 100 });
-              }
+                let fIdx = distribution.findIndex(d => d.name === 'Bapa');
+                if(fIdx !== -1) { distribution[fIdx].amount += (pool * remFraction); distribution[fIdx].percent += (remFraction * 100); distribution[fIdx].name = 'Bapa (Fardu + Asabah)'; } 
+                else distribution.push({ name: 'Bapa (Asabah)', amount: pool * remFraction, percent: remFraction * 100 });
+              } else { distribution.push({ name: 'Baitulmal / Waris Lain', amount: pool * remFraction, percent: remFraction * 100 }); }
             }
-
             return distribution;
           };
 
           const faraidDistribution = calculateFaraid();
-          const spouseFaraidObj = faraidDistribution.find(d => d.isSpouse);
-          const spouseFaraidAmount = spouseFaraidObj ? spouseFaraidObj.amount : 0;
-          
-          const totalSpouseSurvivalFund = sepencarianAmount + spouseFaraidAmount + currentTakaful;
-          const familySurvivalNeeds = futureMonthlyExpenses * 12 * Math.min(10, Math.max(5, childrenData.length * 2));
-          const incomeProtectionGap = Math.max(0, familySurvivalNeeds - totalSpouseSurvivalFund);
+          const totalSpouseSurvivalFund = (hasSpouse ? (totalPhysicalAssets * (sepencarianPercent / 100)) : 0) + (faraidDistribution.find(d => d.isSpouse)?.amount || 0) + currentTakaful;
+          const incomeProtectionGap = Math.max(0, (yearlyRetirementExpense / 12) * 12 * Math.min(10, Math.max(5, childrenData.length * 2)) - totalSpouseSurvivalFund);
 
           const tabs = [
-            { id: 1, title: 'Profil', icon: User, desc: 'Diri & Keluarga' },
-            { id: 2, title: 'Aset', icon: Landmark, desc: 'Harta Semasa' },
-            { id: 3, title: 'Liabiliti', icon: CreditCard, desc: 'DSR & Input Hutang' },
-            { id: 4, title: 'Unjuran', icon: TrendingUp, desc: 'Persaraan & Masa Depan' },
-            { id: 5, title: 'Senario Mati', icon: Calculator, desc: 'Wasiat, Faraid & Takaful' },
-            { id: 6, title: 'Dashboard', icon: Activity, desc: 'Analisis Keseluruhan' },
+            { id: 1, title: 'Profil', icon: User, desc: 'Keluarga' }, { id: 2, title: 'Aset', icon: Landmark, desc: 'Harta Semasa' },
+            { id: 3, title: 'Liabiliti', icon: CreditCard, desc: 'Hutang' }, { id: 4, title: 'Unjuran', icon: TrendingUp, desc: 'Masa Depan' },
+            { id: 5, title: 'Faraid', icon: Calculator, desc: 'Wasiat' }, { id: 6, title: 'Dashboard', icon: Activity, desc: 'Analisis' }
           ];
 
           const formatRM = (val) => new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR', maximumFractionDigits: 0 }).format(val);
           const faraidColors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#f97316', '#64748b'];
 
-          const jumlahKeseluruhanAsetHutang = (totalLiquidAssets + totalPhysicalAssets) + totalDebts;
-          const asetWidth = jumlahKeseluruhanAsetHutang === 0 ? 50 : ((totalLiquidAssets + totalPhysicalAssets) / jumlahKeseluruhanAsetHutang) * 100;
-          const hutangWidth = jumlahKeseluruhanAsetHutang === 0 ? 50 : (totalDebts / jumlahKeseluruhanAsetHutang) * 100;
+          // --- ENJIN PENYIMPANAN KE OURMONEY ---
+          const simpanDanSyncKeOurMoney = async () => {
+              setIsSaving(true);
+              try {
+                  const payload = {
+                      owner_uid: user.uid,
+                      raw_data: appData,
+                      summary: {
+                          total_assets: totalLiquidAssets + totalPhysicalAssets,
+                          total_debts: totalDebts,
+                          net_worth: currentNetWorth,
+                          education_fund_needed: educationShortfall,
+                          zakat_payable: zakatPayable,
+                          last_updated: Date.now()
+                      }
+                  };
+                  await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), payload);
+                  alert("✅ Data berjaya disimpan!\n\nNilai Harta Bersih & Sasaran Kewangan anda kini telah disinkronisasi ke aplikasi OurMoney.");
+              } catch (e) {
+                  console.error(e);
+                  alert("Gagal menyimpan data ke pangkalan data. Sila pastikan sambungan internet anda stabil.");
+              }
+              setIsSaving(false);
+          };
 
-          let dsrColor = "sky", dsrStatusText = "Sangat Sihat", dsrDesc = "";
-          if (debtAnalysisResult.totalCommitment <= 0) {
-            dsrColor = "sky"; dsrStatusText = "Tiada Komitmen Hutang"; dsrDesc = "Anda tidak mempunyai komitmen hutang bulanan.";
-          } else if (debtAnalysisResult.dsr <= 35) {
-            dsrColor = "sky"; dsrStatusText = "Sangat Sihat"; dsrDesc = "Tahap hutang sangat terkawal.";
-          } else if (debtAnalysisResult.dsr <= 55) {
-            dsrColor = "amber"; dsrStatusText = "Sederhana"; dsrDesc = "Tahap hutang masih terkawal.";
-          } else if (debtAnalysisResult.dsr <= 70) {
-            dsrColor = "orange"; dsrStatusText = "Amaran"; dsrDesc = "Komitmen hutang agak tinggi.";
-          } else {
-            dsrColor = "rose"; dsrStatusText = "Kritikal"; dsrDesc = "Komitmen hutang terlalu tinggi.";
+          // --- UI PENGHALANG LOGIN ---
+          if (!isFirebaseReady || loadingData) {
+              return <div className="min-h-screen flex items-center justify-center font-bold text-sky-600 bg-slate-50">Memuatkan myTADBIR...</div>;
           }
 
-          const dsrStyles = {
-            sky: { bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-600', badgeBg: 'bg-sky-100', badgeText: 'text-sky-700' },
-            amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-500', badgeBg: 'bg-amber-100', badgeText: 'text-amber-700' },
-            orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-500', badgeBg: 'bg-orange-100', badgeText: 'text-orange-700' },
-            rose: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-600', badgeBg: 'bg-rose-100', badgeText: 'text-rose-700' }
-          };
-          const s = dsrStyles[dsrColor] || dsrStyles.sky;
-
-          // Fungsi diubahsuai sedikit bagi menyokong kemaskini objek "appData"
-          const updateDebt = (id, field, value) => {
-              setAppData(prev => ({
-                  ...prev,
-                  debtsList: prev.debtsList.map(d => {
-                      if (d.id === id) return { ...d, [field]: field === 'name' ? value : toNumber(value) };
-                      return d;
-                  })
-              }));
-          };
-          const addDebt = () => {
-              const id = Date.now();
-              setAppData(prev => ({
-                  ...prev,
-                  debtsList: [...prev.debtsList, { id, name: 'Hutang Baru', balance: 1000, interest: 5, minPayment: 100 }]
-              }));
-          };
-          const removeDebt = (id) => setAppData(prev => ({ ...prev, debtsList: prev.debtsList.filter(d => d.id !== id) }));
-
-          const getDurationText = (months) => {
-              if (months >= 1200) return "Lebih 100 Tahun (Bayaran Minima Tidak Cukup)";
-              const y = Math.floor(months / 12);
-              const m = months % 12;
-              let txt = y > 0 ? `${y} tahun ` : '';
-              txt += m > 0 ? `${m} bulan` : '';
-              return txt || "Selesai bulan pertama!";
-          };
-          const getTargetDateText = (months) => {
-              if (months >= 1200) return "-";
-              const targetDate = new Date();
-              targetDate.setMonth(targetDate.getMonth() + months);
-              const monthNames = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
-              return `${monthNames[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
-          };
+          if (!user) {
+              return (
+                  <div className="min-h-screen flex items-center justify-center p-5 bg-slate-50 relative z-50">
+                      <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-lg text-center border border-slate-200">
+                          <h1 className="font-extrabold text-3xl text-sky-600 mb-2">myTADBIR</h1>
+                          <p className="text-slate-500 text-sm mb-6">Log masuk menggunakan akaun myNasab anda untuk menyambung data keluarga secara automatik.</p>
+                          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                              <input name="email" type="email" required placeholder="E-mel Anda" className="p-3 border rounded-xl outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500" />
+                              <input name="password" type="password" required placeholder="Kata Laluan" className="p-3 border rounded-xl outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500" />
+                              <button type="submit" className="p-3 mt-2 bg-sky-600 text-white font-bold rounded-xl hover:bg-sky-700 transition">Log Masuk</button>
+                          </form>
+                      </div>
+                  </div>
+              );
+          }
 
           if (showReport) {
             return (
               <div className="min-h-screen bg-white text-slate-800 p-8 md:p-12 font-sans max-w-4xl mx-auto">
-                <div className="print:hidden flex flex-col md:flex-row justify-between items-center gap-4 mb-8 bg-slate-100 p-4 rounded-xl">
-                  <button onClick={() => setShowReport(false)} className="px-6 py-2 bg-slate-300 hover:bg-slate-400 text-slate-800 rounded-lg font-bold transition-colors w-full md:w-auto">
-                    Kembali Ke Aplikasi
-                  </button>
-                  <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-                    <button onClick={() => window.print()} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold flex justify-center items-center gap-2 transition-colors">
-                      <Printer size={18} /> Simpan / Cetak PDF
-                    </button>
-                    <a href="https://wa.me/60129443846?text=Salam,%20saya%20ingin%20berbincang%20berkenaan%20laporan%20myTADBIR%20saya." target="_blank" rel="noopener noreferrer" className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold flex justify-center items-center gap-2 transition-colors">
-                      <MessageCircle size={18} /> WhatsApp Perunding
-                    </a>
-                  </div>
+                <div className="print:hidden flex justify-between items-center mb-8 bg-slate-100 p-4 rounded-xl">
+                  <button onClick={() => setShowReport(false)} className="px-6 py-2 bg-slate-300 font-bold rounded-lg">Kembali</button>
+                  <button onClick={() => window.print()} className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg flex items-center gap-2"><Printer size={18} /> Cetak PDF</button>
                 </div>
-
                 <div className="border-b-2 border-sky-800 pb-6 mb-8 text-center">
-                  <h1 className="text-3xl font-black text-sky-800 flex items-center justify-center gap-3 mb-2">
-                    <Landmark size={32} className="text-amber-500" /> myTADBIR
-                  </h1>
-                  <p className="text-lg text-slate-600 font-semibold">Laporan Ringkasan Perancangan Kewangan & Harta Islam</p>
+                  <h1 className="text-3xl font-black text-sky-800 flex items-center justify-center gap-3 mb-2"><Landmark size={32} className="text-amber-500" /> myTADBIR</h1>
+                  <p className="text-lg text-slate-600 font-semibold">Laporan Ringkasan Perancangan Kewangan</p>
                 </div>
-
-                <div className="space-y-8">
-                  <section>
-                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">1. Profil & Kedudukan Kewangan</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div><span className="text-slate-500 block text-xs">Umur / Jantina:</span> <span className="font-semibold text-base">{age} Tahun ({userGender})</span></div>
-                      <div><span className="text-slate-500 block text-xs">Tanggungan Anak:</span> <span className="font-semibold text-base">{childrenData.length} Orang</span></div>
-                      <div><span className="text-slate-500 block text-xs">Pendapatan Tahunan:</span> <span className="font-semibold text-base">{formatRM(annualIncome)}</span></div>
-                      <div><span className="text-slate-500 block text-xs">Perbelanjaan Bulanan:</span> <span className="font-semibold text-base">{formatRM(currentMonthlyExpenses)}</span></div>
-                    </div>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">2. Kesihatan Kredit (DSR) & Strategi Hutang</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg">
-                        <p className="text-slate-500 mb-1">Kadar Khidmat Hutang (DSR)</p>
-                        <p className="font-bold text-2xl mb-1">{debtAnalysisResult.dsr.toFixed(1)}%</p>
-                        <p className={`font-semibold ${s.text}`}>Status: {dsrStatusText}</p>
-                      </div>
-                      <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg">
-                        <p className="text-slate-500 mb-1">Strategi Pelunasan Dipilih</p>
-                        <p className="font-bold text-lg mb-1 capitalize">{debtStrategy === 'consolidation' ? 'Penyatuan Hutang' : `Debt ${debtStrategy}`}</p>
-                        {debtStrategy !== 'consolidation' ? (
-                          <p className="font-semibold text-slate-700">Anggaran Bebas Hutang: {getTargetDateText(debtAnalysisResult.payoffMonths)}</p>
-                        ) : (
-                          <p className="font-semibold text-sky-600">Lebihan Cashflow: +{formatRM(Math.max(0, debtAnalysisResult.consolSavings))}</p>
-                        )}
-                      </div>
-                    </div>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">3. Ringkasan Harta Bersih (Net Worth)</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-center md:text-left">
-                        <p className="text-slate-500 mb-1">Jumlah Keseluruhan Aset</p>
-                        <p className="font-bold text-xl text-sky-600">{formatRM(totalLiquidAssets + totalPhysicalAssets)}</p>
-                      </div>
-                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-center md:text-left">
-                        <p className="text-slate-500 mb-1">Jumlah Hutang & Liabiliti</p>
-                        <p className="font-bold text-xl text-red-600">{formatRM(totalDebts)}</p>
-                      </div>
-                      <div className="bg-sky-50 p-4 rounded-lg border border-sky-200 text-center md:text-left">
-                        <p className="text-sky-800 font-semibold mb-1">Nilai Harta Bersih</p>
-                        <p className="font-black text-2xl text-sky-700">{formatRM(currentNetWorth)}</p>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">4. Unjuran Persaraan & Penyucian Harta</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                      <div className="bg-white border border-slate-200 rounded-lg p-4">
-                        <h3 className="font-bold text-slate-700 mb-3 border-b pb-2">Status Dana Persaraan</h3>
-                        <ul className="space-y-3">
-                          <li className="flex justify-between"><span className="text-slate-500">Umur Sasaran Bersara:</span> <span className="font-semibold">{retireAge} Tahun</span></li>
-                          <li className="flex justify-between"><span className="text-slate-500">Ketahanan Dana:</span> <span className="font-semibold">{yearsItWillLast.toFixed(1)} Tahun</span></li>
-                          <li className="flex justify-between"><span className="text-slate-500">Defisit Dana (Kekurangan):</span> <span className={`font-bold ${retirementShortfall > 0 ? 'text-red-600' : 'text-sky-600'}`}>{retirementShortfall > 0 ? formatRM(retirementShortfall) : 'Tiada'}</span></li>
-                        </ul>
-                      </div>
-                      <div className="bg-white border border-slate-200 rounded-lg p-4">
-                        <h3 className="font-bold text-slate-700 mb-3 border-b pb-2">Tanggungjawab Zakat Semasa</h3>
-                        <ul className="space-y-3">
-                          <li className="flex justify-between"><span className="text-slate-500">Harta Tunai Layak Zakat:</span> <span className="font-semibold">{formatRM(totalZakatable)}</span></li>
-                          <li className="flex justify-between"><span className="text-slate-500">Zakat Wajib Ditunaikan (2.5%):</span> <span className="font-bold text-sky-600">{formatRM(zakatPayable)}</span></li>
-                        </ul>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold text-slate-800 border-b pb-2 mb-4">5. Analisis Pusaka, Faraid & Pelindungan Waris</h2>
-                    
-                    <div className="bg-amber-50 p-5 rounded-lg border border-amber-200 text-sm mb-5">
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-2">
-                        <span className="text-amber-900 font-bold text-base">Jurang Penggantian Pendapatan Waris (10 Tahun):</span>
-                        <span className={`font-black text-xl ${incomeProtectionGap > 0 ? 'text-red-600' : 'text-sky-600'}`}>
-                          {incomeProtectionGap > 0 ? formatRM(incomeProtectionGap) + " (Defisit)" : "Mencukupi"}
-                        </span>
-                      </div>
-                      <p className="text-slate-600 text-xs mt-1">*(Dikira berdasarkan keperluan belanja keluarga untuk 10 tahun, ditolak dengan Tuntutan Harta Sepencarian, Faraid Pasangan & Pampasan Takaful Sedia Ada)*</p>
-                    </div>
-                    
-                    <div className="text-sm">
-                      <p className="font-bold text-slate-800 mb-3">Tindakan Mitigasi & Pengurusan Harta Islam Yang Disyorkan:</p>
-                      <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                        {incomeProtectionGap > 0 && <li>Sediakan dana pantas melalui pampasan <strong className="text-slate-900">Hibah Takaful</strong> bernilai minimum <strong>RM{formatRM(incomeProtectionGap)}</strong> untuk waris anda segera.</li>}
-                        {totalLiquidAssets > 0 && <li>Wujudkan <strong className="text-slate-900">Amanah Tunai (Cash Trust)</strong> bagi mengelakkan akaun bank dibekukan, dan memudahkan waris mengeluarkan tunai pantas.</li>}
-                        {hasSpouse && <li>Daftarkan <strong className="text-slate-900">Deklarasi Harta Sepencarian</strong> secara rasmi untuk menjamin pemilikan ({sepencarianPercent}%) aset fizikal oleh isteri/suami anda.</li>}
-                        {totalDebts > 0 ? (
-                            <li>Sediakan <strong>Wasiat Pentadbir</strong> untuk memastikan proses penyelesaian hutang tertunggak ({formatRM(totalDebts)}) berjalan lancar tanpa membebankan waris.</li>
-                        ) : (
-                            <li>Sediakan <strong>Wasiat Pentadbir</strong> bagi memudahkan pengurusan pusaka, hibah dan agihan harta kepada waris.</li>
-                        )}
-                      </ul>
-                    </div>
-                  </section>
-                </div>
-
-                <div className="mt-12 pt-8 border-t border-slate-200 text-center">
-                  <p className="text-sm font-semibold text-slate-800 mb-2">Hubungi Perunding Kewangan Anda</p>
-                  <p className="text-xs text-slate-500 mb-6 print:mb-2 max-w-2xl mx-auto">Laporan ini dijana oleh myTADBIR dan merupakan anggaran asas kedudukan perancangan harta anda. Sila berhubung dengan perunding yang sah untuk rundingan yang lebih komprehensif.</p>
-                  
-                  <a href="https://wa.me/60129443846?text=Salam,%20saya%20ingin%20berbincang%20berkenaan%20laporan%20myTADBIR%20saya." target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-green-500 hover:bg-green-600 transition-colors text-white font-bold rounded-full shadow-lg text-base decoration-transparent print:hidden">
-                    <MessageCircle size={22} /> WhatsApp Sekarang
-                  </a>
-                  
-                  <div className="hidden print:block text-slate-800 font-bold text-lg mt-4 p-4 border-2 border-slate-800 rounded-lg inline-block">
-                    No. Telefon Perunding: 012-9443846
-                  </div>
+                {/* Ringkasan Cetakan - Padat & Ringkas */}
+                <div className="space-y-6">
+                    <section><h2 className="text-xl font-bold border-b mb-3">Profil: Umur {age}, Gaji {formatRM(annualIncome)}/thn, Anak {childrenData.length}</h2></section>
+                    <section><h2 className="text-xl font-bold border-b mb-3">DSR: {debtAnalysisResult.dsr.toFixed(1)}% ({debtAnalysisResult.dsr > 60 ? 'Kritikal' : 'Sihat'})</h2></section>
+                    <section><h2 className="text-xl font-bold border-b mb-3">Harta Bersih: {formatRM(currentNetWorth)}</h2></section>
+                    <section><h2 className="text-xl font-bold border-b mb-3">Dana Bersara: {exhaustAge < lifeExpectancy ? `Defisit ${formatRM(retirementShortfall)}` : 'Mencukupi'}</h2></section>
                 </div>
               </div>
             );
@@ -749,10 +483,10 @@
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
                   <div className="flex items-center gap-3 w-full flex-wrap">
                     <Landmark size={32} className="text-cyan-300" />
-                    <div className="text-3xl font-extrabold tracking-tight">
-                      <span className="text-sky-300">my</span>
-                      <span className="text-white">TADBIR</span>
-                    </div>
+                    <div className="text-3xl font-extrabold tracking-tight"><span className="text-sky-300">my</span><span className="text-white">TADBIR</span></div>
+                  </div>
+                  <div className="text-sm font-semibold opacity-80 flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
+                      <User size={18} /> {user.email.split('@')[0]}
                   </div>
                 </div>
               </header>
@@ -760,15 +494,10 @@
               <main className="max-w-6xl mx-auto mt-8 px-4">
                 <div className="flex overflow-x-auto whitespace-nowrap gap-3 mb-8 pb-4 snap-x snap-mandatory hide-scrollbar">
                   {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                       className={`shrink-0 min-w-[140px] md:flex-1 md:min-w-0 flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-medium transition-all snap-center ${
-                        activeTab === tab.id 
-                          ? 'bg-sky-600 text-white shadow-lg scale-105 transform border-sky-500' 
-                          : 'bg-white text-slate-600 hover:bg-sky-50 border border-slate-200'
-                      }`}
-                    >
+                        activeTab === tab.id ? 'bg-sky-600 text-white shadow-lg scale-105 transform border-sky-500' : 'bg-white text-slate-600 hover:bg-sky-50 border border-slate-200'
+                      }`}>
                       <tab.icon size={28} className={activeTab === tab.id ? 'text-amber-300' : 'text-sky-600'} />
                       <div className="text-center">
                         <div className="font-bold text-sm md:text-base leading-tight">{tab.title}</div>
@@ -783,6 +512,10 @@
                   {/* --- TAHAP 1: PROFIL --- */}
                   {activeTab === 1 && (
                     <div className="space-y-6 animate-fadeIn">
+                      <div className="bg-sky-50 border border-sky-200 text-sky-800 p-4 rounded-xl text-sm font-semibold flex items-center gap-3">
+                          <CloudArrowUp size={24} className="text-sky-600 shrink-0" />
+                          Data anak dan status ibu bapa di bawah telah ditarik secara automatik dari myNasab anda.
+                      </div>
                       <Card>
                         <SectionHeader title="Profil Diri & Keluarga" icon={User} description="Maklumat asas untuk unjuran kewangan dan faraid." />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -791,35 +524,29 @@
                             <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <label className="text-sm font-semibold text-slate-700 block mb-2">Jantina</label>
-                                <select 
-                                  className="w-full border border-slate-300 rounded-lg py-2 px-3 focus:ring-sky-500 bg-white"
-                                  value={userGender}
-                                  onChange={(e) => setUserGender(e.target.value)}
-                                >
-                                  <option value="lelaki">Lelaki</option>
-                                  <option value="perempuan">Perempuan</option>
+                                <select className="w-full border border-slate-300 rounded-lg py-2 px-3 focus:ring-sky-500 bg-white" value={userGender} onChange={(e) => updateApp('userGender', e.target.value)}>
+                                  <option value="lelaki">Lelaki</option><option value="perempuan">Perempuan</option>
                                 </select>
                               </div>
-                              <Input label="Umur Semasa" value={age} onChange={e => setAge(toNumber(e.target.value))} />
+                              <Input label="Umur Semasa" value={age} onChange={e => updateApp('age', toNumber(e.target.value))} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                <Input label="Gaji Hakiki (Bln)" value={gajiHakiki} onChange={e => setGajiHakiki(toNumber(e.target.value))} prefix="RM" />
-                                <Input label="Sampingan (Bln)" value={pendapatanSampingan} onChange={e => setPendapatanSampingan(toNumber(e.target.value))} prefix="RM" />
+                                <Input label="Gaji Hakiki (Bln)" value={gajiHakiki} onChange={e => updateApp('gajiHakiki', toNumber(e.target.value))} prefix="RM" />
+                                <Input label="Sampingan (Bln)" value={pendapatanSampingan} onChange={e => updateApp('pendapatanSampingan', toNumber(e.target.value))} prefix="RM" />
                             </div>
-                                                      
+                                                                          
                             <div className="mt-6 border-t pt-4">
                               <h3 className="font-semibold text-slate-700 mb-4">Kedudukan Kewangan Bulanan</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Input label="Potongan KWSP (%)" value={kwspPotongan} onChange={e => setKwspPotongan(toNumber(e.target.value))} />
-                                <Input label="SOCSO / PCB" value={socsoPotongan} onChange={e => setSocsoPotongan(toNumber(e.target.value))} prefix="RM" />
-                                <Input label="Belanja Dapur" value={dapurExpenses} onChange={e => setDapurExpenses(toNumber(e.target.value))} prefix="RM" />
-                                <Input label="Utiliti" value={utilitiExpenses} onChange={e => setUtilitiExpenses(toNumber(e.target.value))} prefix="RM" />
-                                <Input label="Transport" value={transportExpenses} onChange={e => setTransportExpenses(toNumber(e.target.value))} prefix="RM" />
-                                <Input label="Entertainment" value={entertainmentExpenses} onChange={e => setEntertainmentExpenses(toNumber(e.target.value))} prefix="RM" />
-                                <Input label="Insurance/Takaful" value={insuranceExpenses} onChange={e => setInsuranceExpenses(toNumber(e.target.value))} prefix="RM" />
+                                <Input label="Potongan KWSP (%)" value={kwspPotongan} onChange={e => updateApp('kwspPotongan', toNumber(e.target.value))} />
+                                <Input label="SOCSO / PCB" value={socsoPotongan} onChange={e => updateApp('socsoPotongan', toNumber(e.target.value))} prefix="RM" />
+                                <Input label="Belanja Dapur" value={dapurExpenses} onChange={e => updateApp('dapurExpenses', toNumber(e.target.value))} prefix="RM" />
+                                <Input label="Utiliti" value={utilitiExpenses} onChange={e => updateApp('utilitiExpenses', toNumber(e.target.value))} prefix="RM" />
+                                <Input label="Transport" value={transportExpenses} onChange={e => updateApp('transportExpenses', toNumber(e.target.value))} prefix="RM" />
+                                <Input label="Entertainment" value={entertainmentExpenses} onChange={e => updateApp('entertainmentExpenses', toNumber(e.target.value))} prefix="RM" />
+                                <Input label="Insurance/Takaful" value={insuranceExpenses} onChange={e => updateApp('insuranceExpenses', toNumber(e.target.value))} prefix="RM" />
                               </div>
                             </div>
-
                           </div>
 
                           <div className="space-y-4">
@@ -829,35 +556,28 @@
                             {childrenData.map((child, index) => (
                               <div key={child.id} className="flex items-end gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
                                 <div className="flex-1">
-                                  <Input label={`Umur Anak ${index + 1}`} value={child.age} onChange={e => {
-                                    const newAge = toNumber(e.target.value);
-                                    setChildrenData(childrenData.map(c => c.id === child.id ? { ...c, age: newAge } : c));
-                                  }} />
+                                  <Input label={`Umur Anak ${index + 1}`} value={child.age} onChange={e => updateApp('childrenData', childrenData.map(c => c.id === child.id ? { ...c, age: toNumber(e.target.value) } : c))} />
                                 </div>
                                 <div className="flex-1">
                                   <label className="text-sm font-semibold text-slate-700 block mb-1">Jantina</label>
-                                  <select 
-                                    className="w-full border border-slate-300 rounded-lg py-2 px-3 focus:ring-sky-500 mb-4 bg-white"
-                                    value={child.gender}
-                                    onChange={(e) => setChildrenData(childrenData.map(c => c.id === child.id ? { ...c, gender: e.target.value } : c))}
-                                  >
-                                    <option value="lelaki">Lelaki</option>
-                                    <option value="perempuan">Perempuan</option>
+                                  <select className="w-full border border-slate-300 rounded-lg py-2 px-3 focus:ring-sky-500 mb-4 bg-white" value={child.gender} onChange={(e) => updateApp('childrenData', childrenData.map(c => c.id === child.id ? { ...c, gender: e.target.value } : c))}>
+                                    <option value="lelaki">Lelaki</option><option value="perempuan">Perempuan</option>
                                   </select>
                                 </div>
-                                <button onClick={() => setChildrenData(childrenData.filter(c => c.id !== child.id))} className="mb-4 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg border border-red-200 font-bold">X</button>
+                                <button onClick={() => updateApp('childrenData', childrenData.filter(c => c.id !== child.id))} className="mb-4 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg border border-red-200 font-bold">X</button>
                               </div>
                             ))}
-                            <button onClick={() => setChildrenData([...childrenData, { id: Date.now(), age: 1, gender: 'lelaki' }])} className="w-full py-2 border-2 border-dashed border-sky-300 text-sky-600 rounded-lg hover:bg-sky-50 font-medium text-sm transition-colors">
-                              + Tambah Anak
-                            </button>
+                            <button onClick={() => updateApp('childrenData', [...childrenData, { id: Date.now(), age: 1, gender: 'lelaki' }])} className="w-full py-2 border-2 border-dashed border-sky-300 text-sky-600 rounded-lg hover:bg-sky-50 font-medium text-sm transition-colors">+ Tambah Anak</button>
                           </div>
                         </div>
                       </Card>
                     </div>
                   )}
 
-                  {/* --- TAHAP 2: HARTA SEMASA (ASET SAHAJA) --- */}
+                  {/* --- TAHAP 2 TO 5: UI KEKAL SAMA SEPERTI ASAL --- */}
+                  {/* (Aset, Liabiliti, Unjuran, Faraid) */}
+                  {/* Memandangkan logic pembolehubah sama, form input tidak perlu diubah, cuma pakai updateApp() atau setAppData terus jika perlu */}
+                  
                   {activeTab === 2 && (
                     <div className="space-y-6 animate-fadeIn">
                       <Card>
@@ -866,19 +586,19 @@
                             <div>
                                 <h4 className="font-semibold text-slate-700 mb-4 border-b pb-2">Aset Tunai / Pelaburan</h4>
                                 <div className="grid grid-cols-2 gap-4">
-                                  <Input label="Amanah Saham (ASB)" value={asb} onChange={e => setAsb(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="Tabung Haji (TH)" value={th} onChange={e => setTh(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="Unit Trust / Saham" value={unitTrust} onChange={e => setUnitTrust(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="Tunai di Bank" value={tunai} onChange={e => setTunai(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="KWSP" value={kwsp} onChange={e => setKwsp(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="Emas Semasa" value={emas} onChange={e => setEmas(toNumber(e.target.value))} prefix="RM" />
+                                  <Input label="Amanah Saham (ASB)" value={asb} onChange={e => updateApp('asb', toNumber(e.target.value))} prefix="RM" />
+                                  <Input label="Tabung Haji (TH)" value={th} onChange={e => updateApp('th', toNumber(e.target.value))} prefix="RM" />
+                                  <Input label="Unit Trust / Saham" value={unitTrust} onChange={e => updateApp('unitTrust', toNumber(e.target.value))} prefix="RM" />
+                                  <Input label="Tunai di Bank" value={tunai} onChange={e => updateApp('tunai', toNumber(e.target.value))} prefix="RM" />
+                                  <Input label="KWSP" value={kwsp} onChange={e => updateApp('kwsp', toNumber(e.target.value))} prefix="RM" />
+                                  <Input label="Emas Semasa" value={emas} onChange={e => updateApp('emas', toNumber(e.target.value))} prefix="RM" />
                                 </div>
                             </div>
                             <div>
                                 <h4 className="font-semibold text-slate-700 mb-4 border-b pb-2">Harta Fizikal (Anggaran Jualan)</h4>
                                 <div className="grid grid-cols-1 gap-4">
-                                  <Input label="Nilai Rumah / Hartanah" value={rumahValue} onChange={e => setRumahValue(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="Nilai Kereta / Kenderaan" value={keretaValue} onChange={e => setKeretaValue(toNumber(e.target.value))} prefix="RM" />
+                                  <Input label="Nilai Rumah / Hartanah" value={rumahValue} onChange={e => updateApp('rumahValue', toNumber(e.target.value))} prefix="RM" />
+                                  <Input label="Nilai Kereta / Kenderaan" value={keretaValue} onChange={e => updateApp('keretaValue', toNumber(e.target.value))} prefix="RM" />
                                 </div>
                             </div>
                         </div>
@@ -892,49 +612,39 @@
                     </div>
                   )}
 
-                  {/* --- TAHAP 3: LIABILITI (INPUT SAHAJA) --- */}
                   {activeTab === 3 && (
                     <div className="space-y-6 animate-fadeIn">
                         <Card className="p-0 overflow-hidden border-slate-200">
                             <div className="p-5 sm:p-8 border-b border-slate-100 bg-indigo-50/30 flex items-center gap-3">
-                                <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg">
-                                    <CreditCard size={24} />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Senarai Komitmen (Liabiliti)</h2>
-                                    <p className="text-slate-500 text-sm">Analisis DSR & Strategi Bebas Hutang dikuasakan oleh <strong>d'DEBT</strong>.</p>
-                                </div>
+                                <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg"><CreditCard size={24} /></div>
+                                <div><h2 className="text-xl sm:text-2xl font-bold text-slate-800">Senarai Komitmen (Liabiliti)</h2><p className="text-slate-500 text-sm">Analisis DSR & Strategi Bebas Hutang dikuasakan oleh <strong>d'DEBT</strong>.</p></div>
                             </div>
-                            
                             <div className="p-5 sm:p-8 space-y-6">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                                     <h3 className="text-base font-bold text-slate-800">Urus Senarai Hutang</h3>
-                                    <button onClick={addDebt} className="text-sm bg-indigo-50 text-indigo-600 font-bold px-5 py-2.5 rounded-xl hover:bg-indigo-100 transition border border-indigo-100">
-                                        + Tambah Hutang Baru
-                                    </button>
+                                    <button onClick={() => updateApp('debtsList', [...debtsList, { id: Date.now(), name: 'Hutang Baru', balance: 1000, interest: 5, minPayment: 100 }])} className="text-sm bg-indigo-50 text-indigo-600 font-bold px-5 py-2.5 rounded-xl hover:bg-indigo-100 border border-indigo-100">+ Tambah Hutang Baru</button>
                                 </div>
-                                
                                 <div className="space-y-4">
                                     {debtsList.map((debt, index) => (
-                                        <div key={debt.id} className="p-4 sm:p-5 border border-slate-200 bg-white rounded-xl sm:rounded-2xl relative hover:border-indigo-300 transition-colors group shadow-sm">
-                                            <button onClick={() => removeDebt(debt.id)} title="Buang Hutang" className="absolute -top-3 -right-3 bg-white border border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-600 w-8 h-8 rounded-full text-sm flex items-center justify-center shadow-md transition sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 z-10">✕</button>
+                                        <div key={debt.id} className="p-4 sm:p-5 border border-slate-200 bg-white rounded-xl sm:rounded-2xl relative hover:border-indigo-300 group shadow-sm">
+                                            <button onClick={() => updateApp('debtsList', debtsList.filter(d => d.id !== debt.id))} className="absolute -top-3 -right-3 bg-white border border-rose-200 text-rose-500 hover:bg-rose-50 w-8 h-8 rounded-full text-sm shadow-md sm:opacity-0 sm:group-hover:opacity-100 z-10">✕</button>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                                 <div className="col-span-1 sm:col-span-2 md:col-span-1">
-                                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Nama Hutang</label>
-                                                    <input type="text" value={debt.name} onChange={(e) => updateDebt(debt.id, 'name', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base font-semibold text-slate-800 transition" />
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Nama Hutang</label>
+                                                    <input type="text" value={debt.name} onChange={(e) => updateApp('debtsList', debtsList.map(d => d.id === debt.id ? { ...d, name: e.target.value } : d))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 font-semibold" />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Baki (RM)</label>
-                                                    <input type="number" value={debt.balance} onChange={(e) => updateDebt(debt.id, 'balance', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base text-slate-800 transition" />
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Baki (RM)</label>
+                                                    <input type="number" value={debt.balance} onChange={(e) => updateApp('debtsList', debtsList.map(d => d.id === debt.id ? { ...d, balance: toNumber(e.target.value) } : d))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2" />
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-3 sm:col-span-2 md:col-span-2">
                                                     <div>
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Faedah (%)</label>
-                                                        <input type="number" step="0.1" value={debt.interest} onChange={(e) => updateDebt(debt.id, 'interest', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base text-slate-800 transition" />
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Faedah (%)</label>
+                                                        <input type="number" step="0.1" value={debt.interest} onChange={(e) => updateApp('debtsList', debtsList.map(d => d.id === debt.id ? { ...d, interest: toNumber(e.target.value) } : d))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2" />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Min. (RM)</label>
-                                                        <input type="number" value={debt.minPayment} onChange={(e) => updateDebt(debt.id, 'minPayment', e.target.value)} className="w-full bg-slate-50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-rose-500 focus:ring-2 focus:ring-rose-200 text-base text-slate-800 transition" />
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Min. (RM)</label>
+                                                        <input type="number" value={debt.minPayment} onChange={(e) => updateApp('debtsList', debtsList.map(d => d.id === debt.id ? { ...d, minPayment: toNumber(e.target.value) } : d))} className="w-full bg-slate-50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:border-rose-500 focus:ring-2" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -946,34 +656,30 @@
                     </div>
                   )}
 
-                  {/* --- TAHAP 4: UNJURAN MASA DEPAN (INPUT) --- */}
                   {activeTab === 4 && (
                     <div className="space-y-6 animate-fadeIn">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Card>
                           <SectionHeader title="Matlamat Persaraan" icon={Wallet} description="Tetapan sasaran kewangan masa depan anda." />
                           <div className="grid grid-cols-2 gap-4">
-                            <Input label="Umur Sasaran Bersara" value={retireAge} onChange={e => setRetireAge(toNumber(e.target.value))} />
-                            <Input label="Jangka Hayat" value={lifeExpectancy} onChange={e => setLifeExpectancy(toNumber(e.target.value))} />
-                            <Input label="Kadar Inflasi (%)" value={inflationRate} onChange={e => setInflationRate(toNumber(e.target.value))} />
-                            <Input label="Kadar Pulangan Aset (%)" value={assetReturnRate} onChange={e => setAssetReturnRate(toNumber(e.target.value))} />
+                            <Input label="Umur Sasaran Bersara" value={retireAge} onChange={e => updateApp('retireAge', toNumber(e.target.value))} />
+                            <Input label="Jangka Hayat" value={lifeExpectancy} onChange={e => updateApp('lifeExpectancy', toNumber(e.target.value))} />
+                            <Input label="Kadar Inflasi (%)" value={inflationRate} onChange={e => updateApp('inflationRate', toNumber(e.target.value))} />
+                            <Input label="Pulangan Aset (%)" value={assetReturnRate} onChange={e => updateApp('assetReturnRate', toNumber(e.target.value))} />
                           </div>
                         </Card>
-
                         <Card>
                           <SectionHeader title="Dana Pendidikan Anak" icon={BookOpen} description="Anggaran kos pendidikan masa depan anak." />
                           <div className="grid grid-cols-2 gap-4">
-                            <Input label="Umur Masuk Universiti" value={uniAge} onChange={e => setUniAge(toNumber(e.target.value))} />
-                            <Input label="Kos Semasa (Per Anak)" value={currentEduCost} onChange={e => setCurrentEduCost(toNumber(e.target.value))} prefix="RM" />
+                            <Input label="Umur Masuk Uni." value={uniAge} onChange={e => updateApp('uniAge', toNumber(e.target.value))} />
+                            <Input label="Kos (Per Anak)" value={currentEduCost} onChange={e => updateApp('currentEduCost', toNumber(e.target.value))} prefix="RM" />
                           </div>
-                          <Input label="Dana SSPN" value={sspnFund} onChange={e => setSspnFund(toNumber(e.target.value))} prefix="RM" />
-                          <Input label="Dana ASB Anak" value={asbAnakFund} onChange={e => setAsbAnakFund(toNumber(e.target.value))} prefix="RM" />
-                          <Input label="Inflasi Pendidikan (%)" value={educationInflation} onChange={e => setEducationInflation(toNumber(e.target.value))} />
+                          <Input label="Dana SSPN Semasa" value={sspnFund} onChange={e => updateApp('sspnFund', toNumber(e.target.value))} prefix="RM" />
+                          <Input label="Inflasi Pendidikan (%)" value={educationInflation} onChange={e => updateApp('educationInflation', toNumber(e.target.value))} />
                           <div>
                             <label className="text-sm font-semibold text-slate-700 block mb-1">Jenis Universiti</label>
-                            <select value={universityType} onChange={(e) => setUniversityType(e.target.value)} className="w-full border border-slate-300 rounded-lg py-2 px-3 bg-white">
-                              <option value="local">Universiti Tempatan</option>
-                              <option value="overseas">Universiti Luar Negara</option>
+                            <select value={universityType} onChange={(e) => updateApp('universityType', e.target.value)} className="w-full border border-slate-300 rounded-lg py-2 px-3 bg-white">
+                              <option value="local">Universiti Tempatan</option><option value="overseas">Universiti Luar Negara</option>
                             </select>
                           </div>
                         </Card>
@@ -981,72 +687,48 @@
                     </div>
                   )}
 
-                  {/* --- TAHAP 5: SENARIO MATI & PELINDUNG (GABUNGAN INPUT) --- */}
                   {activeTab === 5 && (
                     <div className="space-y-6 animate-fadeIn">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                         <Card>
                           <SectionHeader title="Hutang & Pengurusan Jenazah" icon={Calculator} description="Tolak kos liabiliti sebelum pengagihan pusaka." />
                           <div className="space-y-4">
-                            <Input label="Kos Pengurusan Jenazah" value={funeralCost} onChange={e => setFuneralCost(toNumber(e.target.value))} prefix="RM" />
+                            <Input label="Kos Pengurusan Jenazah" value={funeralCost} onChange={e => updateApp('funeralCost', toNumber(e.target.value))} prefix="RM" />
                             <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                              <p className="text-sm font-semibold text-red-800 mb-1">Hutang Tertunggak (Berdasarkan Tab Liabiliti)</p>
+                              <p className="text-sm font-semibold text-red-800 mb-1">Hutang Tertunggak</p>
                               <p className="text-xl font-bold text-red-600">{formatRM(totalDebts)}</p>
-                              <p className="text-xs text-red-500 mt-1">Kos hutang yang wajib dibayar waris menggunakan aset anda.</p>
                             </div>
                           </div>
                         </Card>
-
                         <Card>
-                          <SectionHeader title="Realiti Untuk Pasangan Anda" icon={Heart} description="Tuntutan sepencarian & persediaan hibah takaful." />
+                          <SectionHeader title="Realiti Untuk Pasangan" icon={Heart} description="Tuntutan sepencarian & persediaan hibah." />
                           <div className="space-y-4">
                             <div>
-                              <label className="text-sm font-semibold text-slate-700 mb-1 block">Tuntutan Harta Sepencarian (%)</label>
-                              <input 
-                                type="range" min="0" max="50" step="1" 
-                                value={sepencarianPercent} 
-                                onChange={e => setSepencarianPercent(toNumber(e.target.value))}
-                                className="w-full accent-blue-600"
-                                disabled={!hasSpouse}
-                              />
-                              <div className="flex justify-between text-xs text-slate-500 mt-1">
-                                <span>0%</span><span>{sepencarianPercent}% (Max 50%)</span>
-                              </div>
+                              <label className="text-sm font-semibold text-slate-700 mb-1 block">Tuntutan Sepencarian (%)</label>
+                              <input type="range" min="0" max="50" step="1" value={sepencarianPercent} onChange={e => updateApp('sepencarianPercent', toNumber(e.target.value))} className="w-full accent-blue-600" disabled={!hasSpouse} />
+                              <div className="flex justify-between text-xs text-slate-500 mt-1"><span>0%</span><span>{sepencarianPercent}% (Max 50%)</span></div>
                             </div>
-                            <Input label="Hibah / Takaful Semasa Anda" value={currentTakaful} onChange={e => setCurrentTakaful(toNumber(e.target.value))} prefix="RM" />
+                            <Input label="Hibah / Takaful Semasa" value={currentTakaful} onChange={e => updateApp('currentTakaful', toNumber(e.target.value))} prefix="RM" />
                           </div>
                         </Card>
-
                         <Card>
-                          <SectionHeader title="Konfigurasi Wasiat & Wakaf" icon={BookOpen} description="Peruntukkan bahagian harta untuk bukan waris/kebajikan." />
+                          <SectionHeader title="Konfigurasi Wasiat" icon={BookOpen} description="Peruntukkan bahagian harta untuk bukan waris." />
                           <div>
-                            <label className="text-sm font-semibold text-slate-700 mb-1 block">Wasiat / Wakaf / Sedekah (%)</label>
-                            <input 
-                              type="range" min="0" max="33.33" step="1"
-                              value={wasiatPercent} 
-                              onChange={e => setWasiatPercent(toNumber(e.target.value))}
-                              className="w-full accent-sky-600"
-                            />
-                            <div className="flex justify-between text-xs text-slate-500 mt-1">
-                              <span>0%</span><span>{wasiatPercent}% (Max 1/3)</span>
-                            </div>
+                            <label className="text-sm font-semibold text-slate-700 mb-1 block">Wasiat / Wakaf (%)</label>
+                            <input type="range" min="0" max="33.33" step="1" value={wasiatPercent} onChange={e => updateApp('wasiatPercent', toNumber(e.target.value))} className="w-full accent-sky-600" />
+                            <div className="flex justify-between text-xs text-slate-500 mt-1"><span>0%</span><span>{wasiatPercent}% (Max 1/3)</span></div>
                           </div>
                         </Card>
-
                         <Card>
-                          <SectionHeader title="Status Waris Faraid" icon={Users} description="Kemas kini status waris utama bagi pengiraan Faraid." />
+                          <SectionHeader title="Status Waris Faraid" icon={Users} description="Auto-sync dari myNasab (Boleh tukar jika perlu)." />
                           <div className="flex flex-col gap-4">
                             <label className="flex items-center gap-3 cursor-pointer p-3 bg-slate-50 rounded-lg border border-slate-200">
-                              <input type="checkbox" checked={hasSpouse} onChange={(e) => setHasSpouse(e.target.checked)} className="accent-sky-600 w-5 h-5" />
-                              <span className="font-semibold text-slate-700">Pasangan Masih Hidup</span>
+                              <input type="checkbox" checked={hasSpouse} onChange={(e) => updateApp('hasSpouse', e.target.checked)} className="accent-sky-600 w-5 h-5" />
+                              <span className="font-semibold text-slate-700">Pasangan Hidup</span>
                             </label>
                             <div className="space-y-3">
-                              <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
-                                <input type="checkbox" checked={hasMother} onChange={e => setHasMother(e.target.checked)} className="w-4 h-4" /> Ibu Masih Hidup
-                              </label>
-                              <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
-                                <input type="checkbox" checked={hasFather} onChange={e => setHasFather(e.target.checked)} className="w-4 h-4" /> Bapa Masih Hidup
-                              </label>
+                              <label className="flex items-center gap-3 text-sm font-medium text-slate-700"><input type="checkbox" checked={hasMother} onChange={e => updateApp('hasMother', e.target.checked)} className="w-4 h-4" /> Ibu Hidup</label>
+                              <label className="flex items-center gap-3 text-sm font-medium text-slate-700"><input type="checkbox" checked={hasFather} onChange={e => updateApp('hasFather', e.target.checked)} className="w-4 h-4" /> Bapa Hidup</label>
                             </div>
                           </div>
                         </Card>
@@ -1054,64 +736,25 @@
                     </div>
                   )}
 
-                  {/* --- TAHAP 6: DASHBOARD (SEMUA HASIL/OUTPUT) --- */}
+                  {/* --- TAHAP 6: DASHBOARD & BUTTON SIMPAN --- */}
                   {activeTab === 6 && (
                     <div className="space-y-6 animate-fadeIn">
-                      <div className="bg-slate-800 text-white p-6 rounded-xl shadow-md text-center mb-6 border border-slate-700">
+                      <div className="bg-slate-800 text-white p-6 rounded-xl shadow-md text-center mb-6">
                         <h2 className="text-2xl font-bold mb-2 flex justify-center items-center gap-2"><Activity className="text-sky-400" /> Dashboard Analisis Keseluruhan myTADBIR</h2>
-                        <p className="text-slate-300 text-sm">Di bawah merupakan hasil analisis kewangan, perlindungan dan faraid komprehensif anda.</p>
                       </div> 
 
-                      <Card className="bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800 text-white border-none shadow-2xl">
+                      <Card className="bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800 text-white border-none shadow-xl">
                         <h3 className="text-lg font-bold mb-6">Kedudukan Kewangan Bulanan</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-5 rounded-xl">
-                            <p className="text-sm text-slate-300">Pendapatan Bersih</p>
-                            <p className="text-3xl font-black text-sky-400">{formatRM(netIncomeMonthly)}</p>
+                            <p className="text-sm text-slate-300">Pendapatan Bersih</p><p className="text-3xl font-black text-sky-400">{formatRM(netIncomeMonthly)}</p>
                           </div>
                           <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-5 rounded-xl">
-                            <p className="text-sm text-slate-300">Baki Bulanan</p>
-                            <p className={`text-3xl font-black ${monthlyBalance >= 0 ? 'text-sky-400' : 'text-red-400'}`}>{formatRM(monthlyBalance)}</p>
+                            <p className="text-sm text-slate-300">Baki Bulanan</p><p className={`text-3xl font-black ${monthlyBalance >= 0 ? 'text-sky-400' : 'text-red-400'}`}>{formatRM(monthlyBalance)}</p>
                           </div>
                           <div className="bg-white/5 backdrop-blur-lg border border-white/10 p-5 rounded-xl">
                             <p className="text-sm text-slate-300">Financial Score</p>
-                            <p className={`text-4xl font-black ${financialScore >= 80 ? 'text-sky-400' : financialScore >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
-                              {financialScore}/100
-                            </p>
-                            <p className="text-sm mt-2">{financialStatus}</p>
-                          </div>
-                        </div>
-                      </Card>
-
-                      <Card className="mt-6">
-                        <h3 className="text-lg font-bold mb-4">📊 Analisis Cashflow Bulanan</h3>
-                        <div className="space-y-4">
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Pendapatan Bersih</span>
-                              <span>{formatRM(netIncomeMonthly)}</span>
-                            </div>
-                            <div className="w-full bg-slate-200 rounded-full h-4">
-                              <div className="bg-emerald-500 h-4 rounded-full" style={{ width: '100%' }} />
-                            </div>
-                          </div>
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Komitmen + Belanja</span>
-                              <span>{formatRM(totalMonthlyCommitments)}</span>
-                            </div>
-                            <div className="w-full bg-slate-200 rounded-full h-4">
-                              <div className="bg-rose-500 h-4 rounded-full" style={{ width: `${Math.min(100, (totalMonthlyCommitments / Math.max(netIncomeMonthly,1)) * 100)}%` }} />
-                            </div>
-                          </div>
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Baki Bulanan</span>
-                              <span>{formatRM(monthlyBalance)}</span>
-                            </div>
-                            <div className="w-full bg-slate-200 rounded-full h-4">
-                              <div className={`h-4 rounded-full ${monthlyBalance >= 0 ? 'bg-sky-500' : 'bg-red-500'}`} style={{ width: `${Math.min(100, Math.abs(monthlyBalance) / Math.max(netIncomeMonthly,1) * 100)}%` }} />
-                            </div>
+                            <p className={`text-4xl font-black ${financialScore >= 80 ? 'text-sky-400' : financialScore >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>{financialScore}/100</p>
                           </div>
                         </div>
                       </Card>
@@ -1121,447 +764,35 @@
                           <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center gap-2"><Landmark className="text-sky-600" /> Harta Bersih Semasa (Net Worth)</h3>
                           <div className="flex-1 flex flex-col justify-center mt-2">
                             <p className="text-4xl font-extrabold text-sky-700 mb-4">{formatRM(currentNetWorth)}</p>
-                            <div className="mt-2">
-                              <div className="flex justify-between text-xs mb-2">
-                                <span className="text-sky-600 font-bold">Aset: {formatRM(totalLiquidAssets + totalPhysicalAssets)}</span>
-                                <span className="text-red-500 font-bold">Hutang: {formatRM(totalDebts)}</span>
-                              </div>
-                              <div className="w-full bg-slate-200 rounded-full h-4 flex overflow-hidden">
-                                <div className="bg-sky-500 h-full transition-all duration-1000" style={{ width: `${asetWidth}%` }}></div>
-                                <div className="bg-red-500 h-full transition-all duration-1000" style={{ width: `${hutangWidth}%` }}></div>
-                              </div>
-                            </div>
                           </div>
                         </Card>
-
-                        <Card className="flex flex-col bg-amber-50 border-amber-200 shadow-sm">
-                          <h3 className="text-lg font-bold text-amber-900 mb-4 border-b border-amber-200 pb-2 flex items-center gap-2"><HeartHandshake className="text-amber-600" /> Penyucian Harta (Zakat)</h3>
-                          <div className="flex-1 flex flex-col justify-center text-center">
-                            <p className="text-amber-800 font-medium mb-1">Jumlah Harta Simpanan Layak Zakat</p>
-                            <p className="text-xl font-bold text-slate-800 mb-4">{formatRM(totalZakatable)}</p>
-                            <p className="text-amber-800 font-medium mb-1">Zakat Wajib Ditunaikan (2.5%)</p>
-                            <p className="text-4xl font-extrabold text-emerald-600">{formatRM(zakatPayable)}</p>
-                          </div>
+                        <Card className="bg-amber-50 border-amber-200 shadow-sm text-center">
+                          <h3 className="text-lg font-bold text-amber-900 mb-4 border-b border-amber-200 pb-2"><HeartHandshake className="text-amber-600 inline mr-2" /> Zakat Wajib (Tunai/Emas)</h3>
+                          <p className="text-4xl font-extrabold text-emerald-600">{formatRM(zakatPayable)}</p>
                         </Card>
                       </div>
 
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch mb-6">
-                        <Card className={`lg:col-span-1 border ${s.border} ${s.bg} flex flex-col justify-center text-center shadow-sm relative overflow-hidden`}>
-                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Skor DSR Anda</p>
-                          <div className={`text-6xl font-black mb-3 tracking-tighter ${s.text}`}>{debtAnalysisResult.dsr.toFixed(1)}%</div>
-                          <div className={`inline-block px-5 py-1.5 mx-auto rounded-full text-xs font-extrabold uppercase tracking-widest mb-4 ${s.badgeBg} ${s.badgeText} border`}>{dsrStatusText}</div>
-                          <p className="text-slate-600 text-sm leading-relaxed">{dsrDesc}</p>
-                        </Card>
-
-                        <Card className="lg:col-span-2 h-full">
-                          <h2 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Tetapan Strategi Bebas Hutang</h2>
-                          <p className="text-slate-500 text-sm mb-6">Pilih strategi terbaik untuk langsaikan hutang dengan lebih cepat.</p>
-                          <div className="space-y-3">
-                            <button onClick={() => setDebtStrategy('snowball')} className={`w-full px-4 py-4 rounded-xl text-left transition ${debtStrategy === 'snowball' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
-                              <div className="font-bold">Debt Snowball</div>
-                              <div className={`text-xs mt-1 ${debtStrategy === 'snowball' ? 'text-indigo-100' : 'text-slate-500'}`}>Selesai baki terkecil dahulu.</div>
-                            </button>
-                            <button onClick={() => setDebtStrategy('avalanche')} className={`w-full px-4 py-4 rounded-xl text-left transition ${debtStrategy === 'avalanche' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
-                              <div className="font-bold">Debt Avalanche</div>
-                              <div className={`text-xs mt-1 ${debtStrategy === 'avalanche' ? 'text-indigo-100' : 'text-slate-500'}`}>Fokus hutang interest tertinggi dahulu.</div>
-                            </button>
-                            <button onClick={() => setDebtStrategy('consolidation')} className={`w-full px-4 py-4 rounded-xl text-left transition ${debtStrategy === 'consolidation' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
-                              <div className="font-bold">Penyatuan Hutang</div>
-                              <div className={`text-xs mt-1 ${debtStrategy === 'consolidation' ? 'text-indigo-100' : 'text-slate-500'}`}>Gabungkan semua hutang kepada satu bayaran.</div>
-                            </button>
-                          </div>
-
-                          <div className="mt-6">
-                            {debtStrategy === 'consolidation' ? (
-                              <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
-                                <h3 className="text-sm font-bold text-slate-700 mb-4">Parameter Penyatuan Hutang</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Kadar Baru (%)</label>
-                                    <input type="number" step="0.1" value={consolRate} onChange={(e) => setConsolRate(toNumber(e.target.value))} className="w-full mt-2 px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
-                                  </div>
-                                  <div>
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Tempoh (Tahun)</label>
-                                    <input type="number" value={consolYear} onChange={(e) => setConsolYear(toNumber(e.target.value))} className="w-full mt-2 px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
-                                  </div>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
-                                <h3 className="text-sm font-bold text-indigo-900 mb-2">Bajet Tambahan Bulanan</h3>
-                                <p className="text-xs text-indigo-700 mb-4">Lebihan bayaran untuk cepat selesaikan hutang.</p>
-                                <div className="relative">
-                                  <span className="absolute left-4 top-3 text-indigo-400 font-semibold">RM</span>
-                                  <input type="number" value={extraBudget} onChange={(e) => setExtraBudget(toNumber(e.target.value))} className="w-full pl-12 pr-4 py-3 bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-indigo-900" />
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </Card>
+                      {/* --- BUTANG SIMPAN KE OURMONEY --- */}
+                      <div className="mt-12 bg-sky-50 border border-sky-200 p-6 rounded-2xl text-center shadow-sm">
+                          <CloudArrowUp size={48} className="mx-auto text-sky-500 mb-3" />
+                          <h3 className="text-xl font-bold text-slate-800 mb-2">Simpan & Hubungkan ke OurMoney</h3>
+                          <p className="text-slate-600 text-sm mb-6 max-w-lg mx-auto">
+                              Simpan profil perancangan myTADBIR anda. Nilai Harta Bersih (Net Worth) dan Unjuran Dana ini akan dipaparkan di aplikasi <strong>OurMoney</strong> secara automatik.
+                          </p>
+                          <button 
+                              onClick={simpanDanSyncKeOurMoney} 
+                              disabled={isSaving}
+                              className={`px-8 py-4 font-bold text-white rounded-xl shadow-md transition-all ${isSaving ? 'bg-slate-400 cursor-not-allowed' : 'bg-sky-600 hover:bg-sky-700 hover:-translate-y-1'}`}
+                          >
+                              {isSaving ? "Menyimpan Data..." : "💾 Simpan Profil myTADBIR"}
+                          </button>
                       </div>
 
-                      <Card className="border-indigo-200 bg-white shadow-sm">
-                        <h3 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center gap-2">
-                          <CreditCard className="text-indigo-600" /> Ringkasan Strategi Pelunasan:
-                          <span className="text-indigo-600 uppercase tracking-wide ml-1">{debtStrategy === 'consolidation' ? 'Penyatuan Hutang' : `Debt ${debtStrategy}`}</span>
-                        </h3>
-                        <div className="flex-1">
-                          {(debtStrategy === 'snowball' || debtStrategy === 'avalanche') ? (
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-3 gap-4 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
-                                <div className="text-center border-r border-indigo-200">
-                                  <p className="text-xs font-bold text-slate-500">Tarikh Bebas Hutang</p>
-                                  <p className="text-lg sm:text-xl font-bold text-indigo-700 mt-1">{getTargetDateText(debtAnalysisResult.payoffMonths)}</p>
-                                </div>
-                                <div className="text-center border-r border-indigo-200">
-                                  <p className="text-xs font-bold text-slate-500">Tempoh</p>
-                                  <p className="text-lg font-semibold text-slate-800 mt-1">{getDurationText(debtAnalysisResult.payoffMonths)}</p>
-                                </div>
-                                <div className="text-center">
-                                  <p className="text-xs font-bold text-slate-500">Anggaran Faedah</p>
-                                  <p className="text-lg font-semibold text-rose-600 mt-1">{formatRM(debtAnalysisResult.payoffInterest)}</p>
-                                </div>
-                              </div>
-
-                              <div className="overflow-x-auto rounded-lg border border-slate-200">
-                                <table className="w-full text-left text-xs whitespace-nowrap">
-                                  <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
-                                    <tr>
-                                      <th className="px-4 py-3 font-bold">Prioriti Pembayaran</th>
-                                      <th className="px-4 py-3 font-bold text-right">Baki</th>
-                                      <th className="px-4 py-3 font-bold text-right">Bulan Selesai</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-slate-100">
-                                    {debtAnalysisResult.payoffDetails.map((d, index) => (
-                                      <tr key={d.id} className={index === 0 ? 'bg-indigo-50/40' : ''}>
-                                        <td className="px-4 py-3 font-semibold text-slate-800">
-                                          {index + 1}. {d.name}
-                                          {index === 0 && <span className="ml-2 text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-bold">TARGET Utama</span>}
-                                        </td>
-                                        <td className="px-4 py-3 text-right font-medium">{formatRM(d.balance)}</td>
-                                        <td className="px-4 py-3 text-right font-bold text-indigo-600">Blk ke-{d.monthsToFinish}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full items-center">
-                              <div className="space-y-4">
-                                <div className="flex justify-between border-b pb-2">
-                                  <span className="text-sm font-semibold text-slate-600">Baki Hutang Digabung:</span>
-                                  <span className="font-bold">{formatRM(debtAnalysisResult.totalBalance)}</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2">
-                                  <span className="text-sm font-semibold text-slate-600">Kadar / Tempoh Baru:</span>
-                                  <span className="font-bold">{consolRate}% untuk {consolYear} Tahun</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2 text-rose-500">
-                                  <span className="text-sm font-semibold">Komitmen Bulanan Lama:</span>
-                                  <span className="font-bold line-through">{formatRM(debtAnalysisResult.totalCommitment)}</span>
-                                </div>
-                              </div>
-                              <div className="bg-slate-800 text-white p-6 rounded-xl text-center shadow-md">
-                                <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-1">Anggaran Komitmen Baru</p>
-                                <p className="text-3xl font-black mb-4">{formatRM(debtAnalysisResult.consolNewMonthly)}</p>
-                                <p className="text-sm font-medium text-slate-300 mb-1">Pelepasan Aliran Tunai Bulanan:</p>
-                                <p className={`text-2xl font-bold ${debtAnalysisResult.consolSavings > 0 ? 'text-sky-400' : 'text-rose-400'}`}>
-                                  {debtAnalysisResult.consolSavings > 0 ? '+' : '-'} {formatRM(Math.abs(debtAnalysisResult.consolSavings))}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </Card>
-
-                      <Card className="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-800 text-white border-none shadow-xl">
-                        <h3 className="text-lg font-bold mb-5 flex items-center gap-2">🎓 Rumusan Dana Pendidikan Anak</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white/5 p-4 rounded-xl">
-                            <p className="text-sm text-slate-400">Dana Pendidikan Semasa</p>
-                            <p className="text-2xl font-black text-sky-400">{formatRM(totalEducationFundNow)}</p>
-                          </div>
-                          <div className="bg-white/5 p-4 rounded-xl">
-                            <p className="text-sm text-slate-400">Jenis Universiti</p>
-                            <p className="text-xl font-bold text-white">{universityType === 'local' ? 'Tempatan' : 'Luar Negara'}</p>
-                          </div>
-                        </div>
-                        <div className="space-y-6 mt-5">
-                          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
-                            <div className="flex justify-between items-center mb-2">
-                              <p className="text-slate-300">Jumlah Kos Pendidikan Masa Hadapan</p>
-                              <p className="text-2xl font-black text-sky-400">{formatRM(futureEduCostTotal)}</p>
-                            </div>
-                            <p className="text-sm text-slate-400">Berdasarkan inflasi pendidikan & umur universiti anak.</p>
-                          </div>
-                        </div>
-                      </Card>
-
-                      <Card className="mt-6">
-                        <h3 className="text-lg font-bold mb-4">🎓 Unjuran Dana Pendidikan</h3>
-                        <div className="space-y-5">
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Nilai Masa Hadapan Dana Pendidikan</span>
-                              <span>{formatRM(futureEducationFund)}</span>
-                            </div>
-                            <div className="w-full bg-slate-200 rounded-full h-5">
-                              <div className="bg-sky-500 h-5 rounded-full" style={{ width: `${Math.min(100, (futureEducationFund / Math.max(futureEduCostTotal,1)) * 100)}%` }} />
-                            </div>
-                          </div>
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Kos Pendidikan Masa Depan</span>
-                              <span>{formatRM(futureEduCostTotal)}</span>
-                            </div>
-                            <div className="w-full bg-slate-200 rounded-full h-5">
-                              <div className="bg-indigo-500 h-5 rounded-full" style={{ width: '100%' }} />
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-
-                      <Card className="border-blue-200 bg-blue-50/30">
-                        <h3 className="text-lg font-bold text-blue-900 mb-4 border-b border-blue-200 pb-2 flex items-center gap-2"><TrendingUp className="text-blue-600" /> Ketahanan Dana Masa Depan & Persaraan</h3>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-                          <div className="lg:col-span-1 bg-white p-6 rounded-xl border border-blue-100 shadow-sm text-center h-full flex flex-col justify-center">
-                            <p className="text-slate-600 mb-2 text-sm">Dengan sasaran perbelanjaan <strong>{formatRM(futureMonthlyExpenses)}/bulan</strong>, dana persaraan anda mampu bertahan selama:</p>
-                            <p className={`font-extrabold text-5xl mb-2 ${exhaustAge >= lifeExpectancy ? 'text-sky-600' : 'text-red-500'}`}>
-                              {yearsItWillLast.toFixed(1)} Tahun
-                            </p>
-                            <p className="text-sm text-slate-500">Akan habis pada umur: <strong className={exhaustAge >= lifeExpectancy ? 'text-sky-600' : 'text-red-500'}>{Math.floor(exhaustAge)}</strong></p>
-                          </div>
-                          <div className="lg:col-span-2">
-                            {exhaustAge < lifeExpectancy ? (
-                              <div className="space-y-4">
-                                <div className="text-sm text-red-700 bg-red-50 p-3 rounded-lg border border-red-100 flex gap-2">
-                                  <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                                  <span><strong>Defisit {Math.max(0, lifeExpectancy - exhaustAge).toFixed(1)} Tahun!</strong> Dana anda kekurangan <strong className="text-red-600">{formatRM(retirementShortfall)}</strong> untuk capai umur {lifeExpectancy} tahun. Berikut adalah pelan tindakan anda:</span>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="p-4 bg-white border-l-4 border-sky-500 rounded-lg shadow-sm">
-                                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Opsyen A: Simpan Tambahan</p>
-                                    <p className="text-2xl font-bold text-sky-600">+{formatRM(extraSavingsNeeded)}<span className="text-sm">/bln</span></p>
-                                  </div>
-                                  <div className="p-4 bg-white border-l-4 border-amber-500 rounded-lg shadow-sm">
-                                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Opsyen B: Downsize Bajet</p>
-                                    <p className="text-2xl font-bold text-amber-600">{formatRM(sustainableMonthlyExpense)}<span className="text-sm">/bln</span></p>
-                                  </div>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="text-sm text-sky-700 bg-sky-50 p-6 rounded-xl border border-sky-100 flex gap-3 items-center h-full">
-                                <ShieldCheck size={32} className="shrink-0" />
-                                <span><strong>Tahniah!</strong> Baki dana anda dijangka mencukupi untuk membiayai persaraan anda (RM{formatRM(futureMonthlyExpenses)}/bulan) sehingga melepasi umur jangka hayat {lifeExpectancy} tahun.</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </Card>
-
-                      <Card className="mt-6">
-                        <h3 className="text-lg font-bold mb-4">📈 Simulasi Ketahanan Dana Persaraan</h3>
-                        <div className="space-y-5">
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Jangka Hayat Dana</span>
-                              <span>{yearsItWillLast.toFixed(1)} Tahun</span>
-                            </div>
-                            <div className="w-full bg-slate-200 rounded-full h-6">
-                              <div className={`h-6 rounded-full ${exhaustAge >= lifeExpectancy ? 'bg-sky-500' : 'bg-red-500'}`} style={{ width: `${Math.min(100, (yearsItWillLast / yearsInRetirement) * 100)}%` }} />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-center">
-                            <div className="bg-slate-100 p-4 rounded-xl">
-                              <p className="text-sm text-slate-500">Dana Bertahan Hingga</p>
-                              <p className="text-2xl font-bold">{Math.floor(exhaustAge)} Tahun</p>
-                            </div>
-                            <div className="bg-slate-100 p-4 rounded-xl">
-                              <p className="text-sm text-slate-500">Sasaran Hayat</p>
-                              <p className="text-2xl font-bold">{lifeExpectancy} Tahun</p>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-
-                      <Card>
-                        <h3 className="text-lg font-bold text-slate-800 mb-6 border-b pb-2 flex items-center gap-2"><PieChart className="text-sky-600" /> Pengurusan Harta & Faraid Waris</h3>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                          <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
-                            <h4 className="font-semibold text-slate-700 mb-3 border-b pb-2">Aliran Harta Pusaka Bersih</h4>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between"><span className="text-slate-600">Harta Kasar:</span> <span>{formatRM(grossEstate)}</span></div>
-                              <div className="flex justify-between text-red-600"><span>- Kos Jenazah:</span> <span>-{formatRM(funeralCost)}</span></div>
-                              <div className="flex justify-between text-blue-600"><span>- Harta Sepencarian:</span> <span>-{formatRM(sepencarianAmount)}</span></div>
-                              <div className="flex justify-between text-red-600"><span>- Hutang & Zakat:</span> <span>-{formatRM(totalDebts + zakatPayable)}</span></div>
-                              <div className="border-t pt-2 flex justify-between font-semibold"><span className="text-slate-700">Harta Bersih (Net Estate):</span> <span>{formatRM(actualNetEstate)}</span></div>
-                              <div className="flex justify-between text-sky-600"><span>- Wasiat / Wakaf:</span> <span>-{formatRM(wasiatAmount)}</span></div>
-                              <div className="border-t pt-2 flex justify-between font-bold text-lg"><span className="text-sky-800">BAKI UNTUK FARAID:</span> <span className="text-sky-600">{formatRM(faraidPool)}</span></div>
-                            </div>
-                          </div>
-                          <div className="flex flex-col md:flex-row items-center gap-6 bg-white p-4 rounded-xl border border-slate-100">
-                            {actualNetEstate <= 0 ? (
-                              <div className="w-full text-center p-6 bg-red-50 rounded-xl border border-red-200">
-                                <AlertTriangle size={32} className="mx-auto text-red-500 mb-2" />
-                                <h3 className="font-bold text-red-800">Harta Pusaka Defisit!</h3>
-                                <p className="text-red-600 text-sm mt-1">Tiada sebarang harta yang tinggal untuk diagihkan secara Faraid.</p>
-                              </div>
-                            ) : (
-                              <>
-                                <div className="w-40 h-40 shrink-0">
-                                  <SimplePieChart data={faraidDistribution} colors={faraidColors} />
-                                </div>
-                                <div className="flex-1 w-full space-y-3">
-                                  {faraidDistribution.map((item, index) => (
-                                    <div key={index} className="flex justify-between items-center text-sm border-b border-slate-50 pb-1">
-                                      <div className="flex items-center gap-2">
-                                        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: faraidColors[index % faraidColors.length] }}></span>
-                                        <span className="text-slate-700 font-medium leading-tight">{item.name}</span>
-                                      </div>
-                                      <div className="text-right">
-                                        <span className="text-xs text-slate-400 block">{item.percent.toFixed(1)}%</span>
-                                        <span className="font-bold text-sky-700">{formatRM(item.amount)}</span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </Card>
-
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                        <Card className="flex flex-col bg-slate-800 text-white border-none">
-                          <h3 className="font-bold text-amber-400 mb-4 text-lg border-b border-slate-700 pb-2 flex items-center gap-2"><ShieldCheck size={20} /> Analisis Jurang Pendapatan Waris</h3>
-                          <div className="space-y-4 flex-1 flex flex-col justify-center">
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-slate-300">Dana Survival (Sepencarian + Faraid + Takaful):</span>
-                              <span className="font-semibold text-white">{formatRM(totalSpouseSurvivalFund)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm border-b border-slate-700 pb-4">
-                              <span className="text-slate-300">Keperluan Keluarga 10 Tahun (RM{formatRM(currentMonthlyExpenses)}/bln):</span>
-                              <span className="font-semibold text-white">{formatRM(familySurvivalNeeds)}</span>
-                            </div>
-                            <div className="pt-2 text-center bg-slate-700/50 p-4 rounded-xl">
-                              <span className="text-slate-300 text-sm block mb-1">Status Dana Waris (Jurang):</span>
-                              <span className={`font-black text-3xl ${incomeProtectionGap > 0 ? 'text-red-400' : 'text-sky-400'}`}>
-                                {incomeProtectionGap > 0 ? `Defisit ${formatRM(incomeProtectionGap)}` : 'Mencukupi'}
-                              </span>
-                            </div>
-                          </div>
-                        </Card>
-
-                        <Card className="flex flex-col border-sky-200 shadow-sm bg-white">
-                          <h3 className="font-bold text-slate-800 mb-4 text-lg border-b pb-2 flex items-center gap-2"><FileText className="text-sky-600" /> Checklist Solusi Pelindungan Segera</h3>
-                          <div className="space-y-3 flex-1 overflow-y-auto">
-                            {incomeProtectionGap > 0 && (
-                              <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
-                                <ShieldCheck size={20} className="text-red-500 shrink-0 mt-0.5" />
-                                <p className="text-sm text-slate-700"><strong className="text-red-700">Hibah Takaful:</strong> Sediakan minimum polisi <strong>{formatRM(incomeProtectionGap)}</strong> dengan segera sebagai penggantian pendapatan (Income Replacement).</p>
-                              </div>
-                            )}
-                            {totalLiquidAssets > 0 && (
-                              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                <Wallet size={20} className="text-blue-500 shrink-0 mt-0.5" />
-                                <p className="text-sm text-slate-700"><strong className="text-blue-700">Amanah Tunai:</strong> Cipta 'Cash Trust' dari <strong>{formatRM(totalLiquidAssets)}</strong> aset cair anda untuk elak akaun beku dan beri akses tunai pantas 7 hari.</p>
-                              </div>
-                            )}
-                            {hasSpouse && (
-                              <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
-                                <Heart size={20} className="text-amber-500 shrink-0 mt-0.5" />
-                                <p className="text-sm text-slate-700"><strong className="text-amber-700">Harta Sepencarian:</strong> Daftarkan deklarasi aset <strong>(cth: Rumah {formatRM(rumahValue)})</strong> untuk jamin 50%-100% hak milik mutlak pasangan anda.</p>
-                              </div>
-                            )}
-                            <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                              <BookOpen size={20} className="text-slate-500 shrink-0 mt-0.5" />
-                              <p className="text-sm text-slate-700"><strong className="text-slate-800">Wasiat Pentadbir:</strong> Lantik pentadbir profesional untuk pastikan hutang tertunggak (<strong>{formatRM(totalDebts)}</strong>) dilunaskan lancar tanpa bebankan waris.</p>
-                            </div>
-                          </div>
-                        </Card>
-                      </div>
-
-                      <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-none shadow-2xl mt-8">
-                        <h3 className="text-xl font-black mb-6 flex items-center gap-2">🧠 Rumusan & Pelan Tindakan</h3>
-                        <div className="space-y-6">
-                          <div className="mt-6 bg-white/5 p-5 rounded-xl">
-                            <h4 className="font-bold mb-3">Pelan Tindakan</h4>
-                            <div className="space-y-3 text-sm">
-                              {monthlyBalance < 0 && (
-                                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
-                                  <p className="font-bold text-red-300 mb-1">🚨 Cashflow Negatif</p>
-                                  <p className="text-slate-300">Perbelanjaan melebihi pendapatan bersih bulanan. Fokus kurangkan lifestyle leakage dan hutang jangka pendek.</p>
-                                </div>
-                              )}
-                              {debtAnalysisResult.totalCommitment <= 0 ? (
-                                <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
-                                  <p className="font-bold text-emerald-300 mb-1">✅ Bebas Hutang</p>
-                                  <p className="text-slate-300">Anda tidak mempunyai komitmen hutang aktif. Fokus kepada wealth accumulation & asset growth.</p>
-                                </div>
-                              ) : debtAnalysisResult.dsr > 70 ? (
-                                <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl">
-                                  <p className="font-bold text-rose-300 mb-1">⚠️ DSR Kritikal</p>
-                                  <p className="text-slate-300">Nisbah hutang terlalu tinggi dan boleh menjejaskan kestabilan kewangan keluarga. Pertimbangkan debt restructuring/consolidation segera.</p>
-                                </div>
-                              ) : debtAnalysisResult.dsr > 55 ? (
-                                <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl">
-                                  <p className="font-bold text-orange-300 mb-1">⚠️ DSR Tinggi</p>
-                                  <p className="text-slate-300">Komitmen hutang masih berat. Kurangkan hutang tidak produktif sebelum fokus pelaburan agresif.</p>
-                                </div>
-                              ) : (
-                                <div className="bg-sky-500/10 border border-sky-500/20 p-4 rounded-xl">
-                                  <p className="font-bold text-sky-300 mb-1">✅ DSR Terkawal</p>
-                                  <p className="text-slate-300">Kedudukan hutang masih dalam julat sihat dan terkawal.</p>
-                                </div>
-                              )}
-                              {retirementShortfall > 0 ? (
-                                <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl">
-                                  <p className="font-bold text-amber-300 mb-1">🏖️ Persaraan Belum Kukuh</p>
-                                  <p className="text-slate-300">Simpanan persaraan dijangka tidak mencukupi. Tingkatkan simpanan pelaburan jangka panjang secara konsisten.</p>
-                                </div>
-                              ) : (
-                                <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
-                                  <p className="font-bold text-emerald-300 mb-1">✅ Persaraan Stabil</p>
-                                  <p className="text-slate-300">Unjuran menunjukkan simpanan persaraan berada pada tahap memuaskan.</p>
-                                </div>
-                              )}
-                              {educationShortfall > 50000 && (
-                                <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl">
-                                  <p className="font-bold text-indigo-300 mb-1">🎓 Risiko Konflik Dana Pendidikan</p>
-                                  <p className="text-slate-300">Dana pendidikan anak dijangka shortfall sebanyak <strong>{formatRM(educationShortfall)}</strong> dan boleh memberi tekanan kepada simpanan persaraan jika tiada pelan tambahan diwujudkan.</p>
-                                </div>
-                              )}
-                              {incomeProtectionGap > 0 && (
-                                <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl">
-                                  <p className="font-bold text-cyan-300 mb-1">🛡️ Protection Gap Tinggi</p>
-                                  <p className="text-slate-300">Perlindungan kewangan keluarga masih belum mencukupi. Pertimbangkan Hibah Takaful untuk kesinambungan hidup waris.</p>
-                                </div>
-                              )}
-                              {emergencyMonths < 3 && (
-                                <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl">
-                                  <p className="font-bold text-yellow-300 mb-1">💰 Dana Kecemasan Lemah</p>
-                                  <p className="text-slate-300">Simpanan kecemasan anda di bawah 3 bulan. Usahakan kumpul dana pantas untuk elakkan kebergantungan pada hutang.</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
                     </div>
                   )}
 
                 </div>
               </main>
-
-              {activeTab === 6 && (
-                <div className="max-w-6xl mx-auto px-4 mt-8 pb-12 flex justify-center">
-                  <button onClick={() => setShowReport(true)} className="px-8 py-4 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold shadow-lg transition-colors flex items-center gap-3 text-lg">
-                    <FileText size={24} /> Lihat / Cetak Laporan Penuh
-                  </button>
-                </div>
-              )}
             </div>
           );
         }
