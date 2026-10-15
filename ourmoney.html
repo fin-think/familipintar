@@ -104,7 +104,7 @@
   .dash-balance .dash-label { color: #94a3b8; }
   .dash-balance .dash-val { color: white; font-size: 2rem; font-weight: 800; }
 
-  /* Peringatan JomBercuti */
+  /* Peringatan JomBercuti & myTADBIR */
   .vacation-card { background: linear-gradient(135deg, #FFF9F0, #FFF4E5); border: 2px solid #FFECCC; border-radius: 12px; padding: 16px; margin-top: 20px; display: flex; align-items: center; gap: 15px; }
   .vac-icon { font-size: 2.2rem; }
   .vac-details { flex: 1; }
@@ -112,6 +112,15 @@
   .vac-amt { font-size: 1.2rem; font-weight: 800; color: #ea580c; line-height: 1.2; }
   .btn-rancang { font-size: 0.75rem; background: #fff; border: 1px solid #FFECCC; border-radius: 6px; padding: 4px 10px; text-decoration: none; color: #ea580c; display: inline-block; margin-top: 6px; font-weight: 800; box-shadow: 0 2px 4px rgba(234,88,12,0.1); }
   .btn-rancang:hover { background: #fff7ed; }
+
+  .tadbir-card { background: linear-gradient(135deg, #F0F9FF, #E0F2FE); border: 2px solid #BAE6FD; border-radius: 12px; padding: 16px; margin-top: 20px; }
+  .tadbir-card h3 { font-weight: 800; color: #0369A1; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .tadbir-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px dashed #7DD3FC; }
+  .tadbir-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .tadbir-label { font-size: 0.85rem; font-weight: 700; color: #0284C7; }
+  .tadbir-val { font-family: 'Baloo 2', cursive; font-size: 1.1rem; font-weight: 800; color: #0C4A6E; }
+  .btn-tadbir { font-size: 0.75rem; background: #fff; border: 1px solid #BAE6FD; border-radius: 6px; padding: 6px 10px; text-decoration: none; color: #0284C7; display: block; text-align: center; margin-top: 12px; font-weight: 800; box-shadow: 0 2px 4px rgba(2,132,199,0.1); }
+  .btn-tadbir:hover { background: #F0F9FF; }
 
   /* Analisis Hujung Bulan */
   .health-card { margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--line); }
@@ -249,7 +258,25 @@
           <div class="dash-val" id="dash-net">RM 0.00</div>
         </div>
 
-        <!-- Kad Integrasi JomBercuti (Sentiasa Ada, Link ke gotravel.html) -->
+        <!-- Kad Integrasi myTADBIR (BAHARU) -->
+        <div class="tadbir-card" id="mytadbir-target" style="display:none;">
+          <h3>🏦 Ringkasan myTADBIR</h3>
+          <div class="tadbir-row">
+            <span class="tadbir-label">Harta Bersih (Net Worth)</span>
+            <span class="tadbir-val" id="tadbir-networth">RM 0.00</span>
+          </div>
+          <div class="tadbir-row">
+            <span class="tadbir-label">Hutang Terkumpul</span>
+            <span class="tadbir-val" id="tadbir-debts" style="color:var(--danger);">RM 0.00</span>
+          </div>
+          <div class="tadbir-row">
+            <span class="tadbir-label">Defisit Pendidikan Anak</span>
+            <span class="tadbir-val" id="tadbir-edu" style="color:var(--warning);">RM 0.00</span>
+          </div>
+          <a href="mytadbir.html" class="btn-tadbir">Urus Profil myTADBIR ➔</a>
+        </div>
+
+        <!-- Kad Integrasi JomBercuti -->
         <div class="vacation-card" id="vacation-target">
           <div class="vac-icon">✈️</div>
           <div class="vac-details">
@@ -343,8 +370,6 @@
     const db = getFirestore(app);
     const storage = getStorage(app); 
 
-    localStorage.removeItem('ourmoney_tnc_agreed');
-  
     let currentUser = null;
     let targetPercutian = 0;
     let selectedImageFile = null;
@@ -452,6 +477,7 @@
             if (mainApp) mainApp.classList.remove('hidden');
             semakTnC();
             await muatTargetPercutian();
+            await muatDataMyTadbir(); // Panggil data myTADBIR
             muatDataOurMoney();
         } else {
             currentUser = null;
@@ -485,6 +511,29 @@
                 document.getElementById('btn-pautan-jombercuti').innerText = 'Rancang Sekarang ➔';
             }
         } catch(e) { console.error(e); }
+    }
+
+    // 1.5 Integrasi Profil myTADBIR
+    async function muatDataMyTadbir() {
+        try {
+            const docRef = doc(db, "mytadbir_profiles", currentUser.uid);
+            const snap = await getDoc(docRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.summary) {
+                    const netWorth = data.summary.net_worth || 0;
+                    const debts = data.summary.total_debts || 0;
+                    const eduDeficit = data.summary.education_fund_needed || 0;
+
+                    document.getElementById('tadbir-networth').innerText = `RM ${netWorth.toFixed(2)}`;
+                    document.getElementById('tadbir-debts').innerText = `RM ${debts.toFixed(2)}`;
+                    document.getElementById('tadbir-edu').innerText = `RM ${eduDeficit.toFixed(2)}`;
+                    document.getElementById('mytadbir-target').style.display = 'block';
+                }
+            }
+        } catch (e) {
+            console.error("Gagal muat data myTADBIR:", e);
+        }
     }
 
     // 2. FUNGSI GAMBAR (PREVIEW & CLEAR)
