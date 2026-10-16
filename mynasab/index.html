@@ -789,7 +789,12 @@
     <button class="btn-action" style="background:#3498db; color:white; display:flex; justify-content:center; align-items:center; gap:8px;" onclick="window.bukaCarianNasab()">
         <i class="fa-solid fa-magnifying-glass"></i> Cari Nasab (Global)
     </button>
-    
+
+<!-- Butang Peti Mesej -->
+    <button class="btn-action" style="background:#8e44ad; color:white; display:flex; justify-content:center; align-items:center; gap:8px; margin-top:8px;" onclick="window.bukaPetiMesej()">
+        <i class="fa-solid fa-envelope"></i> Peti Mesej Saya
+    </button>
+      
     <!-- DISEMBUNYIKAN UNTUK FASA 1 (Tambah class 'hidden') -->
     <button class="btn-action btn-transfer hidden">Pindah Kredit</button>
     <button class="btn-action hidden" style="background: #f39c12;">Kedai Tema & Visual</button>
@@ -1121,6 +1126,23 @@ window.hantarMesejUjian = () => {
                     <i class="fa-solid fa-paper-plane"></i> Hantar Mesej
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PETI MESEJ -->
+<div id="modalPetiMesej" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="carian-modal-box">
+        <div class="carian-header" style="background: #fdf4ff;">
+            <h3 style="margin:0; font-size:18px; color:#701a75; font-weight:bold;">
+                <i class="fa-solid fa-envelope-open-text"></i> Peti Mesej Keluarga
+            </h3>
+            <button onclick="window.tutupPetiMesej()" style="background:none; border:none; font-size:22px; color:#94a3b8; cursor:pointer;">&times;</button>
+        </div>
+        
+        <div class="carian-body" id="senaraiPetiMesej" style="max-height: 60vh; overflow-y: auto; background: #f8fafc;">
+            <!-- Mesej akan ditarik ke sini -->
+            <p style="text-align:center; color:#64748b;">Memuatkan mesej...</p>
         </div>
     </div>
 </div>
