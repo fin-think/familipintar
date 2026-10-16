@@ -512,15 +512,34 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
     window.prosesTolakKreditJurnal = async () => {
         if (bakiKredit < targetCost) return;
         try {
+            // Tukar butang jadi 'Sila tunggu...' (elak user double click)
+            const btn = document.getElementById('btn-unlock-jurnal');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Membuka Kunci...';
+            btn.disabled = true;
+
+            // Tolak kredit & update database
             await updateDoc(doc(db, "mynasab_users", penggunaSemasa.uid), {
                 credit_balance: increment(-targetCost),
                 jurnal_unlocked: arrayUnion(targetModul)
             });
+            
             alert("Berjaya! Modul telah dibuka.");
             window.tutupModalKredit();
+            
+            // Tarik baki kredit & senarai modul baru dari Firebase
             await muatDataPengguna(); 
+            
+            // INI KOD YANG HILANG: Arahkan skrin buang mangga kunci dan blur!
+            window.applyAccessControl(); 
+            
+            // Kembalikan butang ke bentuk asal jika modal dipanggil lagi nanti
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
         } catch (error) {
             alert("Ralat: " + error.message);
+            document.getElementById('btn-unlock-jurnal').disabled = false;
         }
     };
 
