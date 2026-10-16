@@ -1831,14 +1831,13 @@ window.bukaPetiMesej = async () => {
     const container = document.getElementById('senaraiPetiMesej');
     container.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">Menyemak peti mesej... <i class="fa-solid fa-spinner fa-spin"></i></p>';
 
-    const userAktif = auth.currentUser;
+    const userAktif = window.penggunaSemasa || (typeof auth !== 'undefined' ? auth.currentUser : null);
     if (!userAktif) {
         container.innerHTML = '<p style="text-align:center; color:#ef4444;">Sila log masuk untuk melihat mesej.</p>';
         return;
     }
 
     try {
-        // Cari mesej di mana penerima adalah kita, susun dari yang terbaru
         const q = query(
             collection(db, "mynasab_messages"), 
             where("penerima_uid", "==", userAktif.uid), 
@@ -1861,7 +1860,6 @@ window.bukaPetiMesej = async () => {
             const data = docSnap.data();
             const idMesej = docSnap.id;
             
-            // Design berbeza untuk mesej belum baca (Hijau) & dah baca (Kelabu)
             const statusDot = data.status_baca ? '' : '<span style="display:inline-block; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px;" title="Mesej Baru"></span>';
             const bgStyle = data.status_baca ? 'background:#ffffff; border:1px solid #e2e8f0;' : 'background:#f0fdf4; border:1px solid #86efac;';
             const formatTarikh = new Date(data.tarikh).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
@@ -1904,7 +1902,6 @@ window.tandakanMesejDibaca = async (docId) => {
         await updateDoc(doc(db, "mynasab_messages", docId), { 
             status_baca: true 
         });
-        // Refresh automatik untuk hilangkan butang hijau
         window.bukaPetiMesej(); 
     } catch (error) {
         console.error("Gagal update status:", error);
