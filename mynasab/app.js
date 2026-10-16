@@ -1820,3 +1820,93 @@ window.hantarMesejUjian = async () => {
         alert("Gagal: " + error.message);
     }
 };
+
+// =========================================================
+// ENJIN PETI MESEJ (INBOX)
+// =========================================================
+
+// Buka Peti Mesej & Tarik Data
+window.bukaPetiMesej = async () => {
+    document.getElementById('modalPetiMesej').style.display = 'flex';
+    const container = document.getElementById('senaraiPetiMesej');
+    container.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">Menyemak peti mesej... <i class="fa-solid fa-spinner fa-spin"></i></p>';
+
+    const userAktif = auth.currentUser;
+    if (!userAktif) {
+        container.innerHTML = '<p style="text-align:center; color:#ef4444;">Sila log masuk untuk melihat mesej.</p>';
+        return;
+    }
+
+    try {
+        // Cari mesej di mana penerima adalah kita, susun dari yang terbaru
+        const q = query(
+            collection(db, "mynasab_messages"), 
+            where("penerima_uid", "==", userAktif.uid), 
+            orderBy("tarikh", "desc")
+        );
+        
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:30px 10px;">
+                    <i class="fa-regular fa-folder-open" style="font-size:40px; color:#cbd5e1; margin-bottom:15px;"></i>
+                    <p style="color:#64748b; font-weight:bold; margin:0;">Tiada mesej diterima setakat ini.</p>
+                </div>`;
+            return;
+        }
+
+        let htmlContent = '';
+        snap.forEach(docSnap => {
+            const data = docSnap.data();
+            const idMesej = docSnap.id;
+            
+            // Design berbeza untuk mesej belum baca (Hijau) & dah baca (Kelabu)
+            const statusDot = data.status_baca ? '' : '<span style="display:inline-block; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px;" title="Mesej Baru"></span>';
+            const bgStyle = data.status_baca ? 'background:#ffffff; border:1px solid #e2e8f0;' : 'background:#f0fdf4; border:1px solid #86efac;';
+            const formatTarikh = new Date(data.tarikh).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+            
+            htmlContent += `
+                <div style="padding:15px; border-radius:12px; margin-bottom:12px; ${bgStyle} box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid ${data.status_baca ? '#f1f5f9' : '#dcfce3'}; padding-bottom:8px;">
+                        <strong style="color:#0f172a; font-size:14px;"><i class="fa-regular fa-user" style="color:#64748b; margin-right:5px;"></i> ${data.penghantar_nama} ${statusDot}</strong>
+                        <small style="color:#64748b; font-size:11px;">${formatTarikh}</small>
+                    </div>
+                    <p style="margin:0; font-size:13px; color:#334155; line-height:1.6;">${data.mesej}</p>
+                    
+                    ${!data.status_baca ? `
+                        <div style="margin-top:12px; text-align:right;">
+                            <button onclick="tandakanMesejDibaca('\${idMesej}')" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                                Tandakan Dibaca ✓
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+        
+        container.innerHTML = htmlContent;
+        
+    } catch (error) {
+        console.error("Ralat Tarik Mesej:", error);
+        container.innerHTML = `<p style="text-align:center; color:#ef4444; padding:20px;">Gagal memuatkan mesej. Ralat: ${error.message}</p>`;
+    }
+};
+
+// Tutup Peti Mesej
+window.tutupPetiMesej = () => {
+    document.getElementById('modalPetiMesej').style.display = 'none';
+};
+
+// Tandakan mesej sebagai 'Telah Dibaca' di Firebase
+window.tandakanMesejDibaca = async (docId) => {
+    try {
+        await updateDoc(doc(db, "mynasab_messages", docId), { 
+            status_baca: true 
+        });
+        // Refresh automatik untuk hilangkan butang hijau
+        window.bukaPetiMesej(); 
+    } catch (error) {
+        console.error("Gagal update status:", error);
+    }
+};
