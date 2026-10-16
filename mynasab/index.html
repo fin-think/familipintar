@@ -983,38 +983,33 @@ formTambah.onsubmit = function (e) {
     }
 };
 
-// --- FUNGSI UI CARIAN NASAB & MESEJ ---
-
+<!-- --- FUNGSI UI CARIAN NASAB & MESEJ --- -->
+<script>
 // Buka Modal Carian
 window.bukaCarianNasab = () => {
-    document.getElementById('modalCarianNasab').classList.remove('hidden');
-    document.getElementById('modalCarianNasab').classList.add('flex');
+    document.getElementById('modalCarianNasab').style.display = 'flex';
 };
 
 // Tutup Modal Carian
 window.tutupCarianNasab = () => {
-    document.getElementById('modalCarianNasab').classList.add('hidden');
-    document.getElementById('modalCarianNasab').classList.remove('flex');
-    tutupMesejNasab(); // Reset kotak mesej jika terbuka
+    document.getElementById('modalCarianNasab').style.display = 'none';
+    tutupMesejNasab(); // Reset kotak mesej
 };
 
-// Fungsi olok-olok (Mock-up) untuk pamerkan UI Carian sebelum sambung Firebase
+// Fungsi olok-olok (Mock-up)
 window.ujiCarianNasab = () => {
     const hasilContainer = document.getElementById('hasilCarianNasab');
     const namaCari = document.getElementById('inputCarianNama').value || 'Awi';
     
-    // Lukis hasil dummy untuk bos tengok design
     hasilContainer.innerHTML = `
-        <div class="border border-slate-200 bg-white p-4 rounded-xl hover:border-blue-300 hover:shadow-md transition-all animate-fade-in">
-             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                 <div>
-                     <h4 class="font-extrabold text-slate-800 text-lg">${namaCari} bin Che Harun bin Padang</h4>
-                     <p class="text-sm text-slate-500 mt-0.5"><i class="fa-solid fa-location-dot mr-1 text-red-400"></i> Kota Bharu, Kelantan</p>
-                 </div>
-                 <button onclick="bukaMesejNasab('uid_dummy', '${namaCari} bin Che Harun')" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0">
-                     <i class="fa-regular fa-paper-plane mr-1"></i> Sapa Waris
-                 </button>
-             </div>
+        <div class="hasil-card">
+            <div>
+                <h4 style="margin:0 0 5px 0; color:#1e293b; font-size:16px;">${namaCari} bin Che Harun bin Padang</h4>
+                <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> Kota Bharu, Kelantan</small>
+            </div>
+            <button onclick="bukaMesejNasab('uid_dummy', '${namaCari} bin Che Harun')" class="btn-sapa">
+                <i class="fa-regular fa-paper-plane"></i> Sapa Waris
+            </button>
         </div>
     `;
 };
@@ -1022,107 +1017,113 @@ window.ujiCarianNasab = () => {
 // Buka Kotak Tulis Mesej
 window.bukaMesejNasab = (uidPenerima, namaPenerima) => {
     document.getElementById('namaPenerimaMesej').innerText = namaPenerima;
-    document.getElementById('ruangMesejNasab').classList.remove('hidden');
-    // Scroll turun sikit supaya kotak mesej nampak jelas
-    document.getElementById('ruangMesejNasab').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById('ruangMesejNasab').style.display = 'block';
 };
 
 // Tutup Kotak Tulis Mesej
 window.tutupMesejNasab = () => {
-    document.getElementById('ruangMesejNasab').classList.add('hidden');
-    document.getElementById('teksMesejNasab').value = ''; // Kosongkan teks
+    document.getElementById('ruangMesejNasab').style.display = 'none';
+    document.getElementById('teksMesejNasab').value = ''; 
 };
 
-// Fungsi Ujian Hantar Mesej
+// Hantar Mesej
 window.hantarMesejUjian = () => {
     const teks = document.getElementById('teksMesejNasab').value;
     if(!teks.trim()) {
         alert("Sila taip sesuatu mesej sebelum hantar.");
         return;
     }
-    
     alert("Mesej anda telah berjaya dihantar ke Peti Mesej waris!");
     tutupMesejNasab();
 };
-        
 </script>
 
- <!-- MODAL CARIAN NASAB & MESEJ (GLOBAL) -->
-<div id="modalCarianNasab" class="fixed inset-0 bg-slate-900/80 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-    <div class="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-fade-in">
-        
-        <!-- Header Modal -->
-        <div class="p-5 sm:p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-blue-50 to-sky-50">
-            <h3 class="text-lg sm:text-xl font-extrabold text-blue-900 flex items-center gap-2">
-                <i class="fa-solid fa-magnifying-glass text-blue-500"></i> Carian Nasab Global
-            </h3>
-            <button onclick="tutupCarianNasab()" class="text-slate-400 hover:text-slate-600 text-xl transition-colors">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
+<!-- CSS KHAS UNTUK MODAL MYNASAB -->
+<style>
+    #modalCarianNasab {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.8); z-index: 2000;
+        display: none; align-items: center; justify-content: center;
+        backdrop-filter: blur(4px);
+    }
+    .carian-modal-box {
+        background: #fff; width: 90%; max-width: 600px; max-height: 90vh;
+        border-radius: 20px; display: flex; flex-direction: column;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden;
+    }
+    .carian-header {
+        padding: 20px; border-bottom: 1px solid #e2e8f0;
+        display: flex; justify-content: space-between; align-items: center;
+        background: #f0f9ff;
+    }
+    .carian-body { padding: 20px; overflow-y: auto; background: #f8fafc; }
+    .carian-filter { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+    .carian-input-group { margin-bottom: 15px; }
+    .carian-label { display: block; font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
+    .carian-input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; box-sizing: border-box; font-family: inherit;}
+    .carian-input:focus { border-color: #3b82f6; }
+    .carian-btn { width: 100%; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size:15px; }
+    .carian-btn:hover { background: #1d4ed8; }
+    .hasil-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .btn-sapa { background: #d1fae5; color: #047857; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .ruang-mesej { background: #ecfdf5; padding: 20px; border-radius: 12px; border: 1px solid #a7f3d0; margin-top: 20px; display: none; }
+</style>
 
-        <!-- Body Modal (Scrollable) -->
-        <div class="p-5 sm:p-6 overflow-y-auto flex-1 bg-slate-50/50">
-            
-            <!-- Bahagian Penapis (Filter) -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                    <div class="sm:col-span-3">
-                        <label class="text-xs font-bold text-slate-500 uppercase ml-1 mb-1 block">Nama Dicari</label>
-                        <input type="text" id="inputCarianNama" placeholder="Cth: Awi, atau Padang..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-medium">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase ml-1 mb-1 block">Negeri</label>
-                        <select id="inputCarianNegeri" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 bg-white">
+<!-- MODAL CARIAN NASAB & MESEJ (GLOBAL) -->
+<div id="modalCarianNasab">
+    <div class="carian-modal-box">
+        <div class="carian-header">
+            <h3 style="margin:0; font-size:18px; color:#1e3a8a; font-weight:bold;">
+                <i class="fa-solid fa-magnifying-glass"></i> Carian Nasab Global
+            </h3>
+            <button onclick="tutupCarianNasab()" style="background:none; border:none; font-size:22px; color:#94a3b8; cursor:pointer;">&times;</button>
+        </div>
+        
+        <div class="carian-body">
+            <!-- Penapis -->
+            <div class="carian-filter">
+                <div class="carian-input-group">
+                    <label class="carian-label">Nama Dicari</label>
+                    <input type="text" id="inputCarianNama" class="carian-input" placeholder="Cth: Awi, atau Padang...">
+                </div>
+                <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                    <div class="carian-input-group" style="flex:1; min-width:120px;">
+                        <label class="carian-label">Negeri</label>
+                        <select id="inputCarianNegeri" class="carian-input">
                             <option value="">Semua Negeri</option>
                             <option value="Kelantan">Kelantan</option>
                             <option value="Terengganu">Terengganu</option>
                             <option value="Pahang">Pahang</option>
                             <option value="Selangor">Selangor</option>
-                            <!-- Bos boleh tambah negeri lain nanti -->
                         </select>
                     </div>
-                    <div class="sm:col-span-2">
-                        <label class="text-xs font-bold text-slate-500 uppercase ml-1 mb-1 block">Bandar / Daerah</label>
-                        <input type="text" id="inputCarianBandar" placeholder="Cth: Kota Bharu" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 transition-all">
+                    <div class="carian-input-group" style="flex:2; min-width:150px;">
+                        <label class="carian-label">Bandar / Daerah</label>
+                        <input type="text" id="inputCarianBandar" class="carian-input" placeholder="Cth: Kota Bharu">
                     </div>
                 </div>
-                <button onclick="ujiCarianNasab()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition-all flex justify-center items-center gap-2">
+                <button onclick="ujiCarianNasab()" class="carian-btn">
                     <i class="fa-solid fa-search"></i> Cari Waris
                 </button>
             </div>
-            
-            <!-- Ruang Hasil Carian -->
-            <div id="hasilCarianNasab" class="space-y-3">
-                <!-- Data dari Firebase akan dilukis di sini nanti. Ini contoh paparan: -->
-                <div class="hidden border border-slate-200 bg-white p-4 rounded-xl hover:border-blue-300 hover:shadow-md transition-all relative overflow-hidden group">
-                     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                         <div>
-                             <h4 class="font-extrabold text-slate-800 text-lg">Awi bin Che Harun bin Padang</h4>
-                             <p class="text-sm text-slate-500 mt-0.5"><i class="fa-solid fa-location-dot mr-1 text-red-400"></i> Kota Bharu, Kelantan</p>
-                         </div>
-                         <button onclick="bukaMesejNasab('uid_awi', 'Awi bin Che Harun')" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0">
-                             <i class="fa-regular fa-paper-plane mr-1"></i> Sapa Waris
-                         </button>
-                     </div>
-                </div>
-            </div>
 
-            <!-- Ruang Hantar Mesej (Tersembunyi secara lalai) -->
-            <div id="ruangMesejNasab" class="hidden mt-6 bg-emerald-50 p-5 rounded-2xl border border-emerald-100 shadow-inner">
-                <div class="flex justify-between items-center mb-3 border-b border-emerald-200/50 pb-2">
-                    <h4 class="font-bold text-slate-800">Hantar Mesej Kepada: <span id="namaPenerimaMesej" class="text-emerald-700 font-extrabold"></span></h4>
-                    <button onclick="tutupMesejNasab()" class="text-slate-400 hover:text-rose-500 text-sm font-bold transition-colors">Batal ✕</button>
+            <!-- Hasil -->
+            <div id="hasilCarianNasab"></div>
+
+            <!-- Mesej -->
+            <div id="ruangMesejNasab" class="ruang-mesej">
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                    <h4 style="margin:0; color:#065f46; font-size:14px;">Mesej ke: <span id="namaPenerimaMesej" style="font-weight:bold;"></span></h4>
+                    <button onclick="tutupMesejNasab()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size:12px;">Batal X</button>
                 </div>
-                <textarea id="teksMesejNasab" rows="3" placeholder="Assalamualaikum, saya lihat nasab kita bersambung di pangkal nama Padang. Boleh kita berhubung?" class="w-full border border-emerald-200 rounded-xl px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 mb-3 text-sm bg-white"></textarea>
-                <button onclick="hantarMesejUjian()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl text-sm transition-all shadow-md w-full flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i> Hantar Mesej Selamat Berkenalan
+                <textarea id="teksMesejNasab" rows="3" class="carian-input" placeholder="Assalamualaikum, saya lihat nasab kita bersambung..."></textarea>
+                <button onclick="hantarMesejUjian()" class="carian-btn" style="background:#059669; margin-top:12px;">
+                    <i class="fa-solid fa-paper-plane"></i> Hantar Mesej
                 </button>
             </div>
-
         </div>
     </div>
-</div>   
+</div>
     
 </body>
 </html>
