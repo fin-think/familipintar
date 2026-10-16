@@ -189,6 +189,12 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         <a href="index.html" class="flex items-center">
             <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="h-10 w-auto object-contain">
         </a>
+
+<div id="userGreetingBox" class="hidden flex-col justify-center border-l-2 border-slate-200 pl-4 ml-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Selamat Kembali,</span>
+                <span id="headerNamaPengguna" class="text-sm font-extrabold text-sky-600 leading-none truncate max-w-[120px] md:max-w-[200px]">Memuatkan...</span>
+            </div>
+        </div>
         
         <!-- Ruang Menu Kanan (Desktop / Tablet) -->
         <div id="ruangAuthHeader" class="hidden md:flex items-center gap-3">
@@ -566,12 +572,22 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 
     window.penggunaSemasa = null;
 
-    // ==========================================
-    // 4C: KEMAS KINI UI APABILA LOG MASUK (HEADER & WALLET)
+   // ==========================================
+    // 4C: KEMAS KINI UI APABILA LOG MASUK (HEADER, WALLET & NAMA)
     // ==========================================
     onAuthStateChanged(auth, async (user) => {
+        // Ambil ID div sapaan nama
+        const greetingBox = document.getElementById('userGreetingBox');
+        const namaDisplay = document.getElementById('headerNamaPengguna');
+
         if (user) {
             window.penggunaSemasa = user; 
+
+            // -- KOD BARU: Tunjuk kotak sapaan nama --
+            if(greetingBox) {
+                greetingBox.classList.remove('hidden');
+                greetingBox.classList.add('flex');
+            }
 
             // 1. Paparan Menu Desktop
             document.getElementById('menuBelumLogMasuk').style.display = 'none';
@@ -595,12 +611,17 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                 if (btnAffiliate) btnAffiliate.style.display = 'inline-flex';
             }
             
-            // Ambil data dari database (Wallet & Status Affiliate)
+            // Ambil data dari database (Nama, Wallet & Status Affiliate)
             const snapPengguna = await getDoc(doc(db, "mynasab_users", user.uid));
             if (snapPengguna.exists()) {
                 const userData = snapPengguna.data();
                 const baki = userData.credit_balance || 0;
                 
+                // -- KOD BARU: Masukkan Nama Pengguna --
+                if (namaDisplay) {
+                    namaDisplay.innerText = userData.name || user.email.split('@')[0];
+                }
+
                 // 1. Update baki wallet (Desktop & Mobile)
                 const elKredit = document.getElementById('bakiKreditHeader');
                 const elKreditMob = document.getElementById('bakiKreditHeaderMobile');
@@ -616,10 +637,19 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                         btnAffiliate.innerHTML = 'Jana Pendapatan (Affiliate)';
                     }
                 }
+            } else {
+                // -- KOD BARU: Jika nama tiada dalam db, guna depan email --
+                if (namaDisplay) namaDisplay.innerText = user.email.split('@')[0];
             }
         } else {
             window.penggunaSemasa = null;
             
+            // -- KOD BARU: Sorok kotak sapaan nama --
+            if(greetingBox) {
+                greetingBox.classList.add('hidden');
+                greetingBox.classList.remove('flex');
+            }
+
             // Paparan Belum Log Masuk (Desktop & Mobile)
             document.getElementById('menuBelumLogMasuk').style.display = 'flex';
             document.getElementById('menuSudahLogMasuk').style.display = 'none';
@@ -639,6 +669,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             }
         }
     });
+      
     
 // ==========================================
     // 4A: FUNGSI TAPIS PINTU & POP-UP
