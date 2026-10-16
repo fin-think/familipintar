@@ -445,11 +445,49 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         }
     };
 
-    // --- 2. SISTEM TOLAK KREDIT DINAMIK ---
+   // --- 2. SISTEM TOLAK KREDIT DINAMIK & KIRA VALUE ---
     window.bukaModalKredit = (modulKey, cost) => {
         targetModul = modulKey;
         targetCost = cost;
         
+        // Enjin Kiraan Dinamik Tools & E-books
+        let totalTools = 0;
+        let ebooksSet = new Set();
+        let moduleName = "Modul Premium";
+
+        const countItems = (stages) => {
+            stages.forEach(stage => {
+                stage.tools.forEach(t => {
+                    totalTools++;
+                    if(t.reqs && t.reqs.length > 0) {
+                        t.reqs.forEach(r => { 
+                            if(r && r !== "") ebooksSet.add(r); 
+                        });
+                    }
+                });
+            });
+        };
+
+        if (modulKey === 'main') {
+            moduleName = "Modul Kewangan";
+            countItems(timelineData.finance);
+        } else if (modulKey === 'parenting') {
+            moduleName = "Modul Keharmonian";
+            countItems(timelineData.parenting);
+        } else if (modulKey === 'legacy') {
+            moduleName = "Modul Legasi";
+            countItems(timelineData.legacy);
+        } else if (modulKey === 'kids') {
+            moduleName = "Modul Zuriat";
+            countItems(timelineData.kids);
+        }
+
+        // Kemaskini teks Value dalam Modal
+        document.getElementById('modal-module-name').innerText = moduleName;
+        document.getElementById('modal-tool-count').innerText = totalTools;
+        document.getElementById('modal-ebook-count').innerText = ebooksSet.size;
+        
+        // Kemaskini teks Baki & Kos
         document.getElementById('modal-baki-jurnal').innerText = bakiKredit;
         document.getElementById('modal-cost-text').innerText = cost; 
         document.getElementById('btn-cost-text').innerText = cost;   
@@ -868,26 +906,47 @@ window.toggleJournalMobileMenu = () => {
 
 <!-- MODAL TOLAK KREDIT JURNAL -->
 <div id="kreditModal" class="fixed inset-0 bg-slate-900/80 z-[9999] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-    <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
-        <div class="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">💎</div>
-        <h3 class="text-2xl font-bold text-slate-800 mb-2">Buka Modul</h3>
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
         
-        <!-- Tambah ID modal-cost-text -->
-        <p class="text-slate-500 text-sm mb-6">Anda memerlukan <strong class="text-blue-600"><span id="modal-cost-text">0</span> Kredit</strong> untuk membuka kunci akses kekal bagi modul ini.</p>
+        <!-- Hiasan Background -->
+        <div class="absolute -right-8 -top-8 text-sky-50 opacity-50 text-[10rem] pointer-events-none"><i class="fa-solid fa-gem"></i></div>
+
+        <div class="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl relative z-10">💎</div>
+        <h3 class="text-2xl font-bold text-slate-800 mb-2 relative z-10">Buka <span id="modal-module-name">Modul</span></h3>
         
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
-            <p class="text-sm text-slate-500 font-semibold">Baki Kredit Semasa:</p>
-            <p class="text-2xl font-bold text-slate-800"><span id="modal-baki-jurnal">0</span> 💰</p>
+        <p class="text-slate-500 text-sm mb-4 relative z-10">Gunakan <strong class="text-blue-600"><span id="modal-cost-text">0</span> Kredit</strong> untuk akses penuh.</p>
+        
+        <!-- KOTAK VALUE BERBALOI (BARU) -->
+        <div class="bg-gradient-to-br from-sky-50 to-blue-50 border border-blue-100 rounded-xl p-4 mb-5 text-left shadow-sm relative z-10">
+            <h4 class="font-bold text-blue-900 text-sm mb-3 border-b border-blue-200/50 pb-2">Apa yang anda akan dapat:</h4>
+            <ul class="text-sm text-slate-700 space-y-2.5 font-medium">
+                <li class="flex items-start gap-3">
+                    <i class="fa-solid fa-laptop-code text-blue-500 mt-0.5"></i> 
+                    <span><strong id="modal-tool-count" class="text-blue-700">0</strong> Kalkulator & Sistem Ujian</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <i class="fa-solid fa-book-open text-emerald-500 mt-0.5"></i> 
+                    <span><strong id="modal-ebook-count" class="text-emerald-700">0</strong> E-book Panduan Premium</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <i class="fa-solid fa-unlock-keyhole text-amber-500 mt-0.5"></i> 
+                    <span>Akses tanpa had selamanya</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-5 relative z-10 flex justify-between items-center">
+            <p class="text-sm text-slate-500 font-semibold">Baki Kredit:</p>
+            <p class="text-xl font-bold text-slate-800"><span id="modal-baki-jurnal">0</span> 💰</p>
         </div>
 
-        <!-- Tambah ID btn-cost-text -->
-        <button onclick="prosesTolakKreditJurnal()" id="btn-unlock-jurnal" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mb-3">
-            Buka Kunci (Tolak <span id="btn-cost-text">0</span> Kredit)
+        <button onclick="prosesTolakKreditJurnal()" id="btn-unlock-jurnal" class="relative z-10 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mb-3 flex justify-center items-center gap-2">
+            Buka Sekarang (Tolak <span id="btn-cost-text">0</span> Kredit)
         </button>
-        <button onclick="window.location.href='../topup.html'" id="btn-topup-jurnal" class="hidden w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mb-3">
+        <button onclick="window.location.href='../topup.html'" id="btn-topup-jurnal" class="hidden relative z-10 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mb-3 flex justify-center items-center gap-2">
             Kredit Tak Cukup - Top Up
         </button>
-        <button onclick="tutupModalKredit()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all">
+        <button onclick="tutupModalKredit()" class="relative z-10 w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all">
             Batal
         </button>
     </div>
