@@ -1795,10 +1795,18 @@ window.hantarMesejUjian = async () => {
         return;
     }
 
+    // Guna auth.currentUser dari Firebase (Cara paling selamat)
+    const userAktif = auth.currentUser;
+
+    if (!userAktif) {
+        alert("Ralat: Sistem gagal mengesan sesi log masuk anda. Sila log masuk semula.");
+        return;
+    }
+
     try {
         await addDoc(collection(db, "mynasab_messages"), {
-            penghantar_uid: window.penggunaSemasa.uid,
-            penghantar_nama: window.penggunaSemasa.email.split('@')[0], 
+            penghantar_uid: userAktif.uid,
+            penghantar_nama: userAktif.email.split('@')[0], 
             penerima_uid: penerimaUid,
             mesej: teks,
             tarikh: new Date().toISOString(),
@@ -1809,7 +1817,6 @@ window.hantarMesejUjian = async () => {
         window.tutupMesejNasab();
     } catch (error) {
         console.error("Ralat Hantar Mesej:", error);
-        // TUKAR ALERT INI SUPAYA IA TUNJUK PUNCA SEBENAR
-        alert("Gagal: " + error.message); 
+        alert("Gagal: " + error.message);
     }
 };
