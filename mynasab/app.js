@@ -1809,6 +1809,7 @@ window.hantarMesejUjian = async () => {
         window.tutupMesejNasab();
     } catch (error) {
         console.error("Ralat Hantar Mesej:", error);
-        alert("Gagal menghantar mesej. Sila cuba lagi.");
+        // TUKAR ALERT INI SUPAYA IA TUNJUK PUNCA SEBENAR
+        alert("Gagal: " + error.message); 
     }
 };
