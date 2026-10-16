@@ -4,7 +4,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, collection, addDoc, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, collection, addDoc, query, where, getDocs, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
 const firebaseConfig = {
@@ -1678,4 +1678,134 @@ window.renderFaraidHtml = (results) => {
     });
     html += `</div>`;
     box.innerHTML = html;
+};
+
+// =========================================================
+// ENJIN CARIAN NASAB GLOBAL & MESEJ
+// =========================================================
+
+// 1. Fungsi Utama Carian Nasab
+window.ujiCarianNasab = async () => {
+    const hasilContainer = document.getElementById('hasilCarianNasab');
+    const namaCari = document.getElementById('inputCarianNama').value.trim().toLowerCase();
+    const negeriCari = document.getElementById('inputCarianNegeri').value;
+    const bandarCari = document.getElementById('inputCarianBandar').value.trim().toLowerCase();
+
+    if (!namaCari) {
+        alert("Sila taip sekurang-kurangnya nama untuk mula mencari.");
+        return;
+    }
+
+    hasilContainer.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">Memeriksa salasilah seluruh negara... <i class="fa-solid fa-spinner fa-spin"></i></p>';
+
+    try {
+        const usersRef = collection(db, "mynasab_users");
+        const q = query(usersRef);
+        const querySnapshot = await getDocs(q);
+
+        let htmlHasil = '';
+        let jumlahJumpa = 0;
+
+        for (const userDoc of querySnapshot.docs) {
+            const userData = userDoc.data();
+            const userName = (userData.name || '').toLowerCase();
+            const userNegeri = userData.negeri || '';
+            const userBandar = (userData.bandar || '').toLowerCase();
+
+            const padanNama = userName.includes(namaCari);
+            const padanNegeri = negeriCari === "" || userNegeri === negeriCari;
+            const padanBandar = bandarCari === "" || userBandar.includes(bandarCari);
+
+            // Jangan tunjuk diri sendiri dalam carian
+            if (userDoc.id !== window.penggunaSemasa.uid && padanNama && padanNegeri && padanBandar) {
+                
+                const nasabPenuh = await binaRantaianNasab(userDoc.id, userData.name);
+
+                htmlHasil += `
+                    <div class="hasil-card">
+                        <div>
+                            <h4 style="margin:0 0 5px 0; color:#1e293b; font-size:16px; font-weight:bold;">${nasabPenuh}</h4>
+                            <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> ${userData.bandar || 'Tidak dinyatakan'}, ${userData.negeri || 'Tidak dinyatakan'}</small>
+                        </div>
+                        <button onclick="bukaMesejNasab('${userDoc.id}', '${nasabPenuh}')" class="btn-sapa">
+                            <i class="fa-regular fa-paper-plane"></i> Sapa Waris
+                        </button>
+                    </div>
+                `;
+                jumlahJumpa++;
+            }
+        }
+
+        if (jumlahJumpa === 0) {
+            hasilContainer.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px; font-weight:bold;">Tiada rekod waris ditemui yang sepadan dengan carian ini.</p>';
+        } else {
+            hasilContainer.innerHTML = htmlHasil;
+        }
+
+    } catch (error) {
+        console.error("Ralat Carian:", error);
+        hasilContainer.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">Gagal menarik data. Sila semak sambungan internet anda.</p>';
+    }
+};
+
+// 2. Menyusun Nama Keturunan ke Atas
+async function binaRantaianNasab(uidPemilik, namaAsal) {
+    try {
+        const nodesRef = collection(db, "mynasab_nodes");
+        const q = query(nodesRef, where("owner_uid", "==", uidPemilik));
+        const snap = await getDocs(q);
+        
+        let senaraiNodes = [];
+        snap.forEach(doc => senaraiNodes.push(doc.data()));
+
+        const ayah = senaraiNodes.find(n => n.hubungan === "Ayah");
+        const datuk = senaraiNodes.find(n => n.hubungan === "Datuk" && n.jantina === "Lelaki"); 
+        const moyang = senaraiNodes.find(n => n.hubungan === "Moyang" && n.jantina === "Lelaki"); 
+
+        let rantaian = namaAsal || "Hamba Allah";
+        
+        if (ayah && ayah.nama) rantaian += ` bin/binti ${ayah.nama}`;
+        if (datuk && datuk.nama) rantaian += ` bin ${datuk.nama}`;
+        if (moyang && moyang.nama) rantaian += ` bin ${moyang.nama}`;
+
+        return rantaian;
+    } catch (e) {
+        return namaAsal; 
+    }
+}
+
+// 3. Simpan UID Penerima ke Memori
+window.bukaMesejNasab = (uidPenerima, namaPenerima) => {
+    window.uidPenerimaSemasa = uidPenerima; 
+    document.getElementById('namaPenerimaMesej').innerText = namaPenerima;
+    document.getElementById('ruangMesejNasab').style.display = 'block';
+    document.getElementById('ruangMesejNasab').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+
+// 4. Hantar Mesej ke Firebase
+window.hantarMesejUjian = async () => {
+    const teks = document.getElementById('teksMesejNasab').value;
+    const penerimaUid = window.uidPenerimaSemasa; 
+    
+    if(!teks.trim()) {
+        alert("Sila taip sesuatu mesej sebelum hantar.");
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "mynasab_messages"), {
+            penghantar_uid: window.penggunaSemasa.uid,
+            penghantar_nama: window.penggunaSemasa.email.split('@')[0], 
+            penerima_uid: penerimaUid,
+            mesej: teks,
+            tarikh: new Date().toISOString(),
+            status_baca: false
+        });
+
+        alert("Mesej anda telah berjaya dihantar ke Peti Mesej waris!");
+        window.tutupMesejNasab();
+    } catch (error) {
+        console.error("Ralat Hantar Mesej:", error);
+        alert("Gagal menghantar mesej. Sila cuba lagi.");
+    }
 };
