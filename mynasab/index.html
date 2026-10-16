@@ -982,6 +982,147 @@ formTambah.onsubmit = function (e) {
         window.tambahAhliBaru(nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukan, status, email);
     }
 };
+
+// --- FUNGSI UI CARIAN NASAB & MESEJ ---
+
+// Buka Modal Carian
+window.bukaCarianNasab = () => {
+    document.getElementById('modalCarianNasab').classList.remove('hidden');
+    document.getElementById('modalCarianNasab').classList.add('flex');
+};
+
+// Tutup Modal Carian
+window.tutupCarianNasab = () => {
+    document.getElementById('modalCarianNasab').classList.add('hidden');
+    document.getElementById('modalCarianNasab').classList.remove('flex');
+    tutupMesejNasab(); // Reset kotak mesej jika terbuka
+};
+
+// Fungsi olok-olok (Mock-up) untuk pamerkan UI Carian sebelum sambung Firebase
+window.ujiCarianNasab = () => {
+    const hasilContainer = document.getElementById('hasilCarianNasab');
+    const namaCari = document.getElementById('inputCarianNama').value || 'Awi';
+    
+    // Lukis hasil dummy untuk bos tengok design
+    hasilContainer.innerHTML = `
+        <div class="border border-slate-200 bg-white p-4 rounded-xl hover:border-blue-300 hover:shadow-md transition-all animate-fade-in">
+             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                 <div>
+                     <h4 class="font-extrabold text-slate-800 text-lg">${namaCari} bin Che Harun bin Padang</h4>
+                     <p class="text-sm text-slate-500 mt-0.5"><i class="fa-solid fa-location-dot mr-1 text-red-400"></i> Kota Bharu, Kelantan</p>
+                 </div>
+                 <button onclick="bukaMesejNasab('uid_dummy', '${namaCari} bin Che Harun')" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0">
+                     <i class="fa-regular fa-paper-plane mr-1"></i> Sapa Waris
+                 </button>
+             </div>
+        </div>
+    `;
+};
+
+// Buka Kotak Tulis Mesej
+window.bukaMesejNasab = (uidPenerima, namaPenerima) => {
+    document.getElementById('namaPenerimaMesej').innerText = namaPenerima;
+    document.getElementById('ruangMesejNasab').classList.remove('hidden');
+    // Scroll turun sikit supaya kotak mesej nampak jelas
+    document.getElementById('ruangMesejNasab').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+
+// Tutup Kotak Tulis Mesej
+window.tutupMesejNasab = () => {
+    document.getElementById('ruangMesejNasab').classList.add('hidden');
+    document.getElementById('teksMesejNasab').value = ''; // Kosongkan teks
+};
+
+// Fungsi Ujian Hantar Mesej
+window.hantarMesejUjian = () => {
+    const teks = document.getElementById('teksMesejNasab').value;
+    if(!teks.trim()) {
+        alert("Sila taip sesuatu mesej sebelum hantar.");
+        return;
+    }
+    
+    alert("Mesej anda telah berjaya dihantar ke Peti Mesej waris!");
+    tutupMesejNasab();
+};
+        
 </script>
+
+ <!-- MODAL CARIAN NASAB & MESEJ (GLOBAL) -->
+<div id="modalCarianNasab" class="fixed inset-0 bg-slate-900/80 z-[200] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-fade-in">
+        
+        <!-- Header Modal -->
+        <div class="p-5 sm:p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-blue-50 to-sky-50">
+            <h3 class="text-lg sm:text-xl font-extrabold text-blue-900 flex items-center gap-2">
+                <i class="fa-solid fa-magnifying-glass text-blue-500"></i> Carian Nasab Global
+            </h3>
+            <button onclick="tutupCarianNasab()" class="text-slate-400 hover:text-slate-600 text-xl transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Body Modal (Scrollable) -->
+        <div class="p-5 sm:p-6 overflow-y-auto flex-1 bg-slate-50/50">
+            
+            <!-- Bahagian Penapis (Filter) -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                    <div class="sm:col-span-3">
+                        <label class="text-xs font-bold text-slate-500 uppercase ml-1 mb-1 block">Nama Dicari</label>
+                        <input type="text" id="inputCarianNama" placeholder="Cth: Awi, atau Padang..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-medium">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase ml-1 mb-1 block">Negeri</label>
+                        <select id="inputCarianNegeri" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 bg-white">
+                            <option value="">Semua Negeri</option>
+                            <option value="Kelantan">Kelantan</option>
+                            <option value="Terengganu">Terengganu</option>
+                            <option value="Pahang">Pahang</option>
+                            <option value="Selangor">Selangor</option>
+                            <!-- Bos boleh tambah negeri lain nanti -->
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="text-xs font-bold text-slate-500 uppercase ml-1 mb-1 block">Bandar / Daerah</label>
+                        <input type="text" id="inputCarianBandar" placeholder="Cth: Kota Bharu" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 transition-all">
+                    </div>
+                </div>
+                <button onclick="ujiCarianNasab()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition-all flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-search"></i> Cari Waris
+                </button>
+            </div>
+            
+            <!-- Ruang Hasil Carian -->
+            <div id="hasilCarianNasab" class="space-y-3">
+                <!-- Data dari Firebase akan dilukis di sini nanti. Ini contoh paparan: -->
+                <div class="hidden border border-slate-200 bg-white p-4 rounded-xl hover:border-blue-300 hover:shadow-md transition-all relative overflow-hidden group">
+                     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                         <div>
+                             <h4 class="font-extrabold text-slate-800 text-lg">Awi bin Che Harun bin Padang</h4>
+                             <p class="text-sm text-slate-500 mt-0.5"><i class="fa-solid fa-location-dot mr-1 text-red-400"></i> Kota Bharu, Kelantan</p>
+                         </div>
+                         <button onclick="bukaMesejNasab('uid_awi', 'Awi bin Che Harun')" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0">
+                             <i class="fa-regular fa-paper-plane mr-1"></i> Sapa Waris
+                         </button>
+                     </div>
+                </div>
+            </div>
+
+            <!-- Ruang Hantar Mesej (Tersembunyi secara lalai) -->
+            <div id="ruangMesejNasab" class="hidden mt-6 bg-emerald-50 p-5 rounded-2xl border border-emerald-100 shadow-inner">
+                <div class="flex justify-between items-center mb-3 border-b border-emerald-200/50 pb-2">
+                    <h4 class="font-bold text-slate-800">Hantar Mesej Kepada: <span id="namaPenerimaMesej" class="text-emerald-700 font-extrabold"></span></h4>
+                    <button onclick="tutupMesejNasab()" class="text-slate-400 hover:text-rose-500 text-sm font-bold transition-colors">Batal ✕</button>
+                </div>
+                <textarea id="teksMesejNasab" rows="3" placeholder="Assalamualaikum, saya lihat nasab kita bersambung di pangkal nama Padang. Boleh kita berhubung?" class="w-full border border-emerald-200 rounded-xl px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 mb-3 text-sm bg-white"></textarea>
+                <button onclick="hantarMesejUjian()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl text-sm transition-all shadow-md w-full flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Hantar Mesej Selamat Berkenalan
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>   
+    
 </body>
 </html>
