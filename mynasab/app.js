@@ -1716,8 +1716,11 @@ window.ujiCarianNasab = async () => {
             const padanNegeri = negeriCari === "" || userNegeri === negeriCari;
             const padanBandar = bandarCari === "" || userBandar.includes(bandarCari);
 
+            // TUKAR DI SINI: Pastikan penggunaSemasa wujud sebelum baca UID
+            const myUid = window.penggunaSemasa ? window.penggunaSemasa.uid : "tiada_uid";
+
             // Jangan tunjuk diri sendiri dalam carian
-            if (userDoc.id !== window.penggunaSemasa.uid && padanNama && padanNegeri && padanBandar) {
+            if (userDoc.id !== myUid && padanNama && padanNegeri && padanBandar) {
                 
                 const nasabPenuh = await binaRantaianNasab(userDoc.id, userData.name);
 
