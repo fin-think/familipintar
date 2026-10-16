@@ -213,63 +213,6 @@
 </div>
 
 
-<!-- MODAL ARAHAN AKSES -->
-<div id="accessInfoModal"
-class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-center p-4">
-
-    <div class="bg-yellow-100 border border-yellow-300 rounded-3xl shadow-2xl max-w-xl w-full p-8 relative animate-fade-in">
-
-        <button onclick="closeAccessInfo()"
-        class="absolute top-4 right-4 text-slate-500 hover:text-slate-700 text-xl">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-
-        <div class="flex items-start gap-4">
-
-            <div class="text-4xl text-sky-600">
-                <i class="fa-solid fa-circle-info"></i>
-            </div>
-
-            <div>
-
-                <h3 class="text-2xl font-extrabold text-sky-700 mb-4">
-                    Maklumat Akses
-                </h3>
-
-                <p class="text-slate-700 leading-relaxed text-sm md:text-base">
-
-                    Untuk akses penuh semua modul, sila gunakan butang 
-                    <span class="font-bold text-sky-700">Login Akses</span> 
-                    di menu utama Jurnal Famili Pintar untuk membuat pembelian Full Package.
-
-                    <br><br>
-
-                    Jika anda ingin membuka modul secara berperingkat, tekan butang 
-                    <span class="font-bold text-sky-700">Dapatkan Akses</span> 
-                    pada setiap bahagian yang ingin diterokai.
-
-                    <br><br>
-
-                    Untuk akses seterusnya, anda hanya perlu log in melalui 
-                    <span class="font-bold text-sky-700">Login Akses</span> 
-                    dengan nombor telefon yang digunakan semasa pembayaran.
-
-                </p>
-
-                <button onclick="continueEnter()"
-                class="mt-6 bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 rounded-xl font-bold shadow">
-                    Faham & Teruskan
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
     <div id="workflowModal" class="fixed inset-0 bg-slate-900/90 z-[120] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl modal-enter">
             <div id="workflowIcon" class="w-20 h-20 rounded-full flex items-center justify-center text-3xl mx-auto mb-6">
@@ -289,7 +232,7 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
         <nav class="bg-white-400 text-blue shadow-lg sticky top-0 z-40">
     <div class="w-full px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
-                    <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo(0,0); hideProfile();">
+                    <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo(0,0);">
                         <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo" class="logo-nav">
                         <span class="font-bold text-xl tracking-wide">JurnalFamiliPintar</span>
                     </div>
@@ -299,10 +242,10 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
                             <span id="userDisplay" class="text-sky-700">Pengguna</span> | 💰 Kredit: <span id="displayKredit" class="text-yellow-800 text-base">0</span>
                         </div>
                         
-                        <a href="#mapa-finance" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Kewangan</a>
-                        <a href="#mapa-parenting" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Keharmonian</a>
-                        <a href="#mapa-legacy" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Legasi</a>
-                        <a href="#anakku" onclick="hideProfile()" class="hover:text-sky-200 transition mt-1">Zuriat</a>
+                        <a href="#mapa-finance" class="hover:text-sky-200 transition mt-1">Kewangan</a>
+<a href="#mapa-parenting" class="hover:text-sky-200 transition mt-1">Keharmonian</a>
+<a href="#mapa-legacy" class="hover:text-sky-200 transition mt-1">Legasi</a>
+<a href="#anakku" class="hover:text-sky-200 transition mt-1">Zuriat</a>
                         
 
                                                <button onclick="window.location.href='../index.html'" class="bg-sky-500 hover:bg-sky-600 px-4 py-1.5 rounded-full font-bold transition text-white text-sm shadow-sm">
@@ -329,10 +272,10 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
             </div> 
             
             <div class="flex flex-col gap-5 text-lg font-semibold"> 
-                <a href="#mapa-finance" onclick="toggleJournalMobileMenu(); hideProfile()">Kewangan</a> 
-                <a href="#mapa-parenting" onclick="toggleJournalMobileMenu(); hideProfile()">Keharmonian</a> 
-                <a href="#mapa-legacy" onclick="toggleJournalMobileMenu(); hideProfile()">Legasi</a> 
-                <a href="#anakku" onclick="toggleJournalMobileMenu(); hideProfile()">Zuriat</a> 
+                <a href="#mapa-finance" onclick="toggleJournalMobileMenu()">Kewangan</a>
+<a href="#mapa-parenting" onclick="toggleJournalMobileMenu()">Keharmonian</a>
+<a href="#mapa-legacy" onclick="toggleJournalMobileMenu()">Legasi</a>
+<a href="#anakku" onclick="toggleJournalMobileMenu()">Zuriat</a>
               
                 
                 <!-- Butang Kembali (Ganti Log Keluar di Mobile) -->
@@ -358,38 +301,7 @@ class="fixed inset-0 bg-slate-900/70 z-[150] hidden flex items-center justify-ce
         </header>
 
         <main id="appBody" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <!-- SECTION PROFAIL -->
-          <section id="profileSection" class="hidden mb-24 animate-fade-in">
-    <div class="max-w-3xl mx-auto bg-white rounded-3xl shadow-2xl border border-slate-100 p-10 text-center">
-
-        <!-- Nama -->
-        <h3 class="text-3xl font-extrabold text-slate-800 mb-1">
-            Hasnawi C. Harun
-        </h3>
-
-        <!-- Role -->
-        <p class="text-sky-500 font-semibold mb-6">
-            Founder, FinEdu Platform 
-        </p>
-
-        <!-- Biodata Title -->
-        <h4 class="text-xl font-bold text-slate-700 mb-3">
-            Biodata
-        </h4>
-
-        <!-- Biodata Content -->
-        <p class="text-slate-500 leading-relaxed text-sm mb-8 max-w-2xl mx-auto">
-            Berpengalaman lebih 20 tahun berkhidmat dalam sektor awam, khususnya dalam bidang kewangan, perakaunan dan pengurusan sumber manusia. Kini aktif sebagai perunding bebas dalam perancangan pelaburan patuh Syariah, pengurusan pewarisan Islam serta pembiayaan kewangan. Turut mempunyai minat mendalam dalam teknologi kecerdasan buatan (AI), dengan aspirasi membangunkan platform interaktif bagi membantu ibu bapa merancang kewangan dan pembangunan keluarga secara lebih sistematik, demi masa depan anak-anak yang lebih terarah dan terjamin.
-        </p>
-
-        <!-- Button -->
-        <button onclick="contactWhatsApp('Konsultasi')" 
-            class="bg-sky-500 hover:bg-sky-600 transition text-white px-8 py-3 rounded-xl font-bold shadow-md">
-            Tanya & Dapatkan Panduan
-        </button>
-
-    </div>
-</section>
+                     
 
             <div id="timelineContent">
                 <section id="mapa-intro" class="mb-24 relative scroll-mt-24"> 
@@ -670,8 +582,8 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         "siri25#1": { title: "Siri 25 Soalan 1", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1OOCd0r3NYH24jz2YRL0TEiHNe_da3V1s/view?usp=sharing" },
         "siri25#2": { title: "Siri 25 Soalan 2", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1AU6l-Z-Fdsomjwm_SHz1bMLB-o9hsVV1/view?usp=sharing" },
         "siri25#3": { title: "Siri 25 Soalan 3", coverImage: "https://i.postimg.cc/cLTSXCtj/Screenshot_2025_02_24_182043.png", gdriveLink: "https://drive.google.com/file/d/1jpahNSGQyiHk2IdxXdTWWUSEuhp-nPFq/view?usp=sharing" },
-        "tata": { title: "Minggu Bersama Tata", coverImage: "https://i.postimg.cc/gkGKy2V1/Screenshot_2025_02_03_150820.png", gdriveLink: "https://drive.google.com/file/d/1mcp5p6-pLh1EmRdoLw3vLKz4Acl0DGcY/view?usp=sharing" },
-        "fin101": { title: "Survival Finance", coverImage: "https://i.postimg.cc/26jzMX0r/Untitled-design-(1).png", gdriveLink: "/app/finance.html" }
+        "tata": { title: "Minggu Bersama Tata", coverImage: "https://i.postimg.cc/gkGKy2V1/Screenshot_2025_02_03_150820.png", gdriveLink: "https://drive.google.com/file/d/1mcp5p6-pLh1EmRdoLw3vLKz4Acl0DGcY/view?usp=sharing" }
+        
         
     };
 
@@ -819,9 +731,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
     };
     
     window.closeModal = () => { document.getElementById('toolModal').classList.add('hidden'); };
-    window.showProfile = () => { document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('timelineContent').classList.add('hidden'); document.getElementById('heroSection').classList.add('hidden'); };
-    window.hideProfile = () => { document.getElementById('profileSection').classList.add('hidden'); document.getElementById('timelineContent').classList.remove('hidden'); document.getElementById('heroSection').classList.remove('hidden'); };
-
+   
     // --- FUNGSI WORKFLOW (Telah dipindahkan ke dalam modul) ---
     window.showCongratsModal = (msg, color, currentToolId) => {
         const iconBox = document.getElementById('workflowIcon');
