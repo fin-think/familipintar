@@ -1907,3 +1907,46 @@ window.tandakanMesejDibaca = async (docId) => {
         console.error("Gagal update status:", error);
     }
 };
+
+// KOD BARU: Buka tutup kotak balas
+window.paparKotakBalas = (idMesej) => {
+    const kotak = document.getElementById('kotakBalas_' + idMesej);
+    if(kotak.style.display === 'none') {
+        kotak.style.display = 'block';
+    } else {
+        kotak.style.display = 'none';
+    }
+};
+
+// KOD BARU: Hantar mesej balasan ke Firebase
+window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
+    const teks = document.getElementById('teksBalas_' + idMesej).value;
+    if(!teks.trim()) {
+        alert("Sila taip sesuatu sebelum hantar balasan.");
+        return;
+    }
+
+    const userAktif = window.penggunaSemasa || (typeof auth !== 'undefined' ? auth.currentUser : null);
+    
+    try {
+        // 1. Masukkan mesej balasan sebagai mesej baru kepada waris
+        await addDoc(collection(db, "mynasab_messages"), {
+            penghantar_uid: userAktif.uid,
+            penghantar_nama: userAktif.email.split('@')[0], 
+            penerima_uid: uidPenerima,
+            mesej: teks,
+            tarikh: new Date().toISOString(),
+            status_baca: false
+        });
+        
+        // 2. Tandakan mesej asal sebagai dah dibaca (alang-alang dah balas)
+        await updateDoc(doc(db, "mynasab_messages", idMesej), { status_baca: true });
+
+        alert("Mesej balasan anda telah berjaya dihantar!");
+        window.bukaPetiMesej(); // Refresh peti mesej supaya mesej asal bertukar kelabu
+        
+    } catch (error) {
+        console.error("Gagal balas mesej:", error);
+        alert("Gagal menghantar balasan: " + error.message);
+    }
+};
