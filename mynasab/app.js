@@ -1822,7 +1822,7 @@ window.hantarMesejUjian = async () => {
 };
 
 // =========================================================
-// ENJIN PETI MESEJ (INBOX)
+// ENJIN PETI MESEJ (INBOX) & BALASAN
 // =========================================================
 
 // Buka Peti Mesej & Tarik Data
@@ -1858,12 +1858,13 @@ window.bukaPetiMesej = async () => {
         let htmlContent = '';
         snap.forEach(docSnap => {
             const data = docSnap.data();
-            const idMesej = docSnap.id;
+            const idMesej = docSnap.id; // Ini ID sebenar dari Firebase
             
             const statusDot = data.status_baca ? '' : '<span style="display:inline-block; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px;" title="Mesej Baru"></span>';
             const bgStyle = data.status_baca ? 'background:#ffffff; border:1px solid #e2e8f0;' : 'background:#f0fdf4; border:1px solid #86efac;';
             const formatTarikh = new Date(data.tarikh).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
             
+            // KAWASAN BUTANG YANG TELAH DIBETULKAN
             htmlContent += `
                 <div style="padding:15px; border-radius:12px; margin-bottom:12px; ${bgStyle} box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid ${data.status_baca ? '#f1f5f9' : '#dcfce3'}; padding-bottom:8px;">
@@ -1872,13 +1873,26 @@ window.bukaPetiMesej = async () => {
                     </div>
                     <p style="margin:0; font-size:13px; color:#334155; line-height:1.6;">${data.mesej}</p>
                     
-                    ${!data.status_baca ? `
-                        <div style="margin-top:12px; text-align:right;">
+                    <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:8px;">
+                        <button onclick="paparKotakBalas('${idMesej}')" style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                            <i class="fa-solid fa-reply"></i> Balas
+                        </button>
+                        
+                        ${!data.status_baca ? `
                             <button onclick="tandakanMesejDibaca('\${idMesej}')" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
                                 Tandakan Dibaca ✓
                             </button>
+                        ` : ''}
+                    </div>
+
+                    <div id="kotakBalas_${idMesej}" style="display:none; margin-top:15px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+                        <textarea id="teksBalas_${idMesej}" rows="2" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-size:12px; margin-bottom:8px; outline:none; box-sizing:border-box; font-family:inherit;" placeholder="Taip balasan kepada ${data.penghantar_nama}..."></textarea>
+                        <div style="text-align:right;">
+                            <button onclick="hantarBalasanMesej('${idMesej}', '${data.penghantar_uid}')" style="background:#059669; color:white; border:none; padding:6px 15px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">
+                                Hantar Balasan <i class="fa-solid fa-paper-plane ml-1"></i>
+                            </button>
                         </div>
-                    ` : ''}
+                    </div>
                 </div>
             `;
         });
@@ -1899,16 +1913,15 @@ window.tutupPetiMesej = () => {
 // Tandakan mesej sebagai 'Telah Dibaca' di Firebase
 window.tandakanMesejDibaca = async (docId) => {
     try {
-        // PASTIKAN GUNA docId SEPERTI DI BAWAH, BUKAN '${idMesej}'
         await updateDoc(doc(db, "mynasab_messages", docId), { status_baca: true });
         window.bukaPetiMesej(); // Refresh 
     } catch (error) { 
         console.error("Gagal update status:", error);
-        alert("Ralat Firebase: " + error.message); 
+        alert("Ralat Firebase: " + error.message);
     }
 };
 
-// KOD BARU: Buka tutup kotak balas
+// Buka tutup kotak balas
 window.paparKotakBalas = (idMesej) => {
     const kotak = document.getElementById('kotakBalas_' + idMesej);
     if(kotak.style.display === 'none') {
@@ -1918,7 +1931,7 @@ window.paparKotakBalas = (idMesej) => {
     }
 };
 
-// KOD BARU: Hantar mesej balasan ke Firebase
+// Hantar mesej balasan ke Firebase
 window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
     const teks = document.getElementById('teksBalas_' + idMesej).value;
     if(!teks.trim()) {
@@ -1929,7 +1942,6 @@ window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
     const userAktif = window.penggunaSemasa || (typeof auth !== 'undefined' ? auth.currentUser : null);
     
     try {
-        // 1. Masukkan mesej balasan sebagai mesej baru kepada waris
         await addDoc(collection(db, "mynasab_messages"), {
             penghantar_uid: userAktif.uid,
             penghantar_nama: userAktif.email.split('@')[0], 
@@ -1939,11 +1951,9 @@ window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
             status_baca: false
         });
         
-        // 2. Tandakan mesej asal sebagai dah dibaca (alang-alang dah balas)
         await updateDoc(doc(db, "mynasab_messages", idMesej), { status_baca: true });
-
         alert("Mesej balasan anda telah berjaya dihantar!");
-        window.bukaPetiMesej(); // Refresh peti mesej supaya mesej asal bertukar kelabu
+        window.bukaPetiMesej(); 
         
     } catch (error) {
         console.error("Gagal balas mesej:", error);
