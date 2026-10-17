@@ -1688,6 +1688,10 @@ window.renderFaraidHtml = (results) => {
 // ENJIN CARIAN NASAB GLOBAL & MESEJ
 // =========================================================
 
+// =========================================================
+// ENJIN CARIAN NASAB GLOBAL & MESEJ (VERSI CARI SEMUA AHLI)
+// =========================================================
+
 // 1. Fungsi Utama Carian Nasab
 window.ujiCarianNasab = async () => {
     const hasilContainer = document.getElementById('hasilCarianNasab');
@@ -1703,48 +1707,66 @@ window.ujiCarianNasab = async () => {
     hasilContainer.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">Memeriksa salasilah seluruh negara... <i class="fa-solid fa-spinner fa-spin"></i></p>';
 
     try {
-        const usersRef = collection(db, "mynasab_users");
-        const q = query(usersRef);
-        const querySnapshot = await getDocs(q);
+        // LANGKAH 1: Selongkar SEMUA nama ahli keluarga dalam mynasab_nodes
+        const nodesRef = collection(db, "mynasab_nodes");
+        const snapNodes = await getDocs(query(nodesRef));
+        
+        const myUid = window.penggunaSemasa ? window.penggunaSemasa.uid : "tiada_uid";
+        let senaraiOwnerTerlibat = new Set(); // Guna Set supaya owner ID tak berulang
+        
+        snapNodes.forEach(doc => {
+            const data = doc.data();
+            const namaNode = (data.name || '').toLowerCase();
+            
+            // Jika nama ahli padan & bukan diri sendiri, simpan ID Pemilik (owner_uid)
+            if (data.owner_uid !== myUid && namaNode.includes(namaCari)) {
+                senaraiOwnerTerlibat.add(data.owner_uid);
+            }
+        });
 
+        if (senaraiOwnerTerlibat.size === 0) {
+            hasilContainer.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px; font-weight:bold;">Tiada rekod waris ditemui yang sepadan dengan carian ini.</p>';
+            return;
+        }
+
+        // LANGKAH 2: Tarik maklumat lokasi Pemilik & paparkan butang Sapa Waris
         let htmlHasil = '';
         let jumlahJumpa = 0;
 
-        for (const userDoc of querySnapshot.docs) {
-            const userData = userDoc.data();
-            const userName = (userData.name || '').toLowerCase();
-            const userNegeri = userData.negeri || '';
-            const userBandar = (userData.bandar || '').toLowerCase();
+        for (const ownerUid of senaraiOwnerTerlibat) {
+            const userRef = doc(db, "mynasab_users", ownerUid);
+            const userSnap = await getDoc(userRef);
+            
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                const userNegeri = userData.negeri || '';
+                const userBandar = (userData.bandar || '').toLowerCase();
 
-            const padanNama = userName.includes(namaCari);
-            const padanNegeri = negeriCari === "" || userNegeri === negeriCari;
-            const padanBandar = bandarCari === "" || userBandar.includes(bandarCari);
+                // Tapisan lokasi (jika pengguna masukkan)
+                const padanNegeri = negeriCari === "" || userNegeri === negeriCari;
+                const padanBandar = bandarCari === "" || userBandar.includes(bandarCari);
 
-            // TUKAR DI SINI: Pastikan penggunaSemasa wujud sebelum baca UID
-            const myUid = window.penggunaSemasa ? window.penggunaSemasa.uid : "tiada_uid";
-
-            // Jangan tunjuk diri sendiri dalam carian
-            if (userDoc.id !== myUid && padanNama && padanNegeri && padanBandar) {
-                
-                const nasabPenuh = await binaRantaianNasab(userDoc.id, userData.name);
-
-                htmlHasil += `
-                    <div class="hasil-card">
-                        <div>
-                            <h4 style="margin:0 0 5px 0; color:#1e293b; font-size:16px; font-weight:bold;">${nasabPenuh}</h4>
-                            <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> ${userData.bandar || 'Tidak dinyatakan'}, ${userData.negeri || 'Tidak dinyatakan'}</small>
+                if (padanNegeri && padanBandar) {
+                    const nasabPenuh = await binaRantaianNasab(ownerUid, userData.name);
+                    
+                    htmlHasil += `
+                        <div class="hasil-card" style="background:#fff; border:1px solid #e2e8f0; padding:15px; border-radius:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <h4 style="margin:0 0 5px 0; color:#1e293b; font-size:16px; font-weight:bold;">${nasabPenuh}</h4>
+                                <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> ${userData.bandar || 'Tidak dinyatakan'}, ${userData.negeri || 'Tidak dinyatakan'}</small>
+                            </div>
+                            <button onclick="bukaMesejNasab('${ownerUid}', '${nasabPenuh}')" class="btn-action" style="background:#3b82f6; color:white; padding:8px 15px; font-size:12px; border-radius:6px; cursor:pointer; border:none; display:flex; gap:5px; align-items:center;">
+                                <i class="fa-regular fa-paper-plane"></i> Sapa Waris
+                            </button>
                         </div>
-                        <button onclick="bukaMesejNasab('${userDoc.id}', '${nasabPenuh}')" class="btn-sapa">
-                            <i class="fa-regular fa-paper-plane"></i> Sapa Waris
-                        </button>
-                    </div>
-                `;
-                jumlahJumpa++;
+                    `;
+                    jumlahJumpa++;
+                }
             }
         }
 
         if (jumlahJumpa === 0) {
-            hasilContainer.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px; font-weight:bold;">Tiada rekod waris ditemui yang sepadan dengan carian ini.</p>';
+            hasilContainer.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px; font-weight:bold;">Terdapat padanan nama, tetapi tidak melepasi tapisan negeri/daerah.</p>';
         } else {
             hasilContainer.innerHTML = htmlHasil;
         }
