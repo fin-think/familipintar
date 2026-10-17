@@ -4,7 +4,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, collection, addDoc, query, where, getDocs, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, collection, addDoc, query, where, getDocs, deleteDoc, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
 const firebaseConfig = {
@@ -117,6 +117,10 @@ onAuthStateChanged(auth, async (user) => {
 
             window.muatTurunSalasilah();
             window.muatMenunggu();
+
+            if (window.pantauMesejBaru) {
+                window.pantauMesejBaru(user.uid);
+            }
         }
     } else {
         penggunaSemasa = null;
@@ -1959,4 +1963,30 @@ window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
         console.error("Gagal balas mesej:", error);
         alert("Gagal menghantar balasan: " + error.message);
     }
+};
+
+// =========================================================
+// SISTEM NOTIFIKASI MESEJ (REAL-TIME)
+// =========================================================
+window.pantauMesejBaru = (uid) => {
+    const q = query(
+        collection(db, "mynasab_messages"),
+        where("penerima_uid", "==", uid),
+        where("status_baca", "==", false)
+    );
+
+    // onSnapshot akan memantau database secara live (24 jam)
+    onSnapshot(q, (snapshot) => {
+        const jumlahBaru = snapshot.docs.length;
+        const lencana = document.getElementById('lencanaMesejBaru');
+        
+        if (lencana) {
+            if (jumlahBaru > 0) {
+                lencana.style.display = 'inline-block';
+                lencana.innerText = jumlahBaru;
+            } else {
+                lencana.style.display = 'none';
+            }
+        }
+    });
 };
