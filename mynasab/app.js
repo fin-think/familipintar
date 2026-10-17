@@ -1864,7 +1864,7 @@ window.bukaPetiMesej = async () => {
             const bgStyle = data.status_baca ? 'background:#ffffff; border:1px solid #e2e8f0;' : 'background:#f0fdf4; border:1px solid #86efac;';
             const formatTarikh = new Date(data.tarikh).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
             
-            // KAWASAN BUTANG YANG TELAH DIBETULKAN
+            // KITA GUNA CANTUMAN (+) SUPAYA SISTEM TAK KELIRU LAGI
             htmlContent += `
                 <div style="padding:15px; border-radius:12px; margin-bottom:12px; ${bgStyle} box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid ${data.status_baca ? '#f1f5f9' : '#dcfce3'}; padding-bottom:8px;">
@@ -1874,21 +1874,21 @@ window.bukaPetiMesej = async () => {
                     <p style="margin:0; font-size:13px; color:#334155; line-height:1.6;">${data.mesej}</p>
                     
                     <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:8px;">
-                        <button onclick="paparKotakBalas('${idMesej}')" style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                        <button onclick="paparKotakBalas('` + idMesej + `')" style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
                             <i class="fa-solid fa-reply"></i> Balas
                         </button>
                         
                         ${!data.status_baca ? `
-                            <button onclick="tandakanMesejDibaca('\${idMesej}')" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                            <button onclick="tandakanMesejDibaca('` + idMesej + `')" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
                                 Tandakan Dibaca ✓
                             </button>
                         ` : ''}
                     </div>
 
-                    <div id="kotakBalas_${idMesej}" style="display:none; margin-top:15px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
-                        <textarea id="teksBalas_${idMesej}" rows="2" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-size:12px; margin-bottom:8px; outline:none; box-sizing:border-box; font-family:inherit;" placeholder="Taip balasan kepada ${data.penghantar_nama}..."></textarea>
+                    <div id="kotakBalas_` + idMesej + `" style="display:none; margin-top:15px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+                        <textarea id="teksBalas_` + idMesej + `" rows="2" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-size:12px; margin-bottom:8px; outline:none; box-sizing:border-box; font-family:inherit;" placeholder="Taip balasan..."></textarea>
                         <div style="text-align:right;">
-                            <button onclick="hantarBalasanMesej('${idMesej}', '${data.penghantar_uid}')" style="background:#059669; color:white; border:none; padding:6px 15px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">
+                            <button onclick="hantarBalasanMesej('` + idMesej + `', '` + data.penghantar_uid + `')" style="background:#059669; color:white; border:none; padding:6px 15px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">
                                 Hantar Balasan <i class="fa-solid fa-paper-plane ml-1"></i>
                             </button>
                         </div>
