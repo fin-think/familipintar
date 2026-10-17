@@ -1899,12 +1899,13 @@ window.tutupPetiMesej = () => {
 // Tandakan mesej sebagai 'Telah Dibaca' di Firebase
 window.tandakanMesejDibaca = async (docId) => {
     try {
-        await updateDoc(doc(db, "mynasab_messages", docId), { 
-            status_baca: true 
-        });
-        window.bukaPetiMesej(); 
-    } catch (error) {
+        // Kita tambah updateDoc ni
+        await updateDoc(doc(db, "mynasab_messages", docId), { status_baca: true });
+        window.bukaPetiMesej(); // Refresh supaya status bertukar
+    } catch (error) { 
         console.error("Gagal update status:", error);
+        // KITA TAMBAH ALERT SUPAYA DIA BAGITAHU ERROR APA
+        alert("Ralat Firebase: " + error.message); 
     }
 };
 
