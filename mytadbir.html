@@ -175,6 +175,7 @@
 // State untuk Paywall Dashboard
   const [isDashboardUnlocked, setIsDashboardUnlocked] = useState(false); 
   const [showPaywall, setShowPaywall] = useState(false);
+  const [dariMyDebt, setDariMyDebt] = useState(false);
 
   // Fungsi untuk memintas klik tab
   const handleTabClick = (tabId) => {
@@ -304,6 +305,30 @@
                       mergedData.childrenData = childrenList;
                   }
 
+ try {
+                      const dSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "mydebt_plans", uid));
+                      if (dSnap.exists()) {
+                          const dd = dSnap.data();
+                          const lastTadbir = docSnap.exists() ? ((docSnap.data().summary || {}).last_updated || 0) : 0;
+                          if ((dd.updated_at || 0) > lastTadbir && Array.isArray(dd.debts)) {
+                              mergedData.gajiHakiki = dd.gaji || 0;
+                              mergedData.pendapatanSampingan = dd.sampingan || 0;
+                              mergedData.extraBudget = dd.extra_budget || 0;
+                              if (dd.strategy) mergedData.debtStrategy = dd.strategy;
+                              if (dd.consol_rate) mergedData.consolRate = dd.consol_rate;
+                              if (dd.consol_year) mergedData.consolYear = dd.consol_year;
+                              mergedData.debtsList = dd.debts.map((d, i) => ({
+                                  id: d.id || (Date.now() + i),
+                                  name: d.name || 'Hutang',
+                                  balance: parseFloat(d.balance) || 0,
+                                  interest: parseFloat(d.interest) || 0,
+                                  minPayment: parseFloat(d.minPayment) || 0
+                              }));
+                              setDariMyDebt(true);
+                          }
+                      }
+                  } catch (e) { console.warn("Gagal baca data myDEBT:", e.message); }
+                  
                   setAppData(mergedData);
               } catch (e) { console.error("Ralat memuatkan ekosistem data:", e); }
               setLoadingData(false);
@@ -973,7 +998,16 @@
                                 <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg"><CreditCard size={24} /></div>
                                 <div><h2 className="text-xl sm:text-2xl font-bold text-slate-800">Senarai Komitmen (Liabiliti)</h2><p className="text-slate-500 text-sm">Analisis DSR & Strategi Bebas Hutang dikuasakan oleh <strong>d'DEBT</strong>.</p></div>
                             </div>
-                            <div className="p-5 sm:p-8 space-y-6">
+                             <div className="p-5 sm:p-8 space-y-6">
+                                {dariMyDebt ? (
+                                  <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-800">
+                                    Pendapatan dan senarai hutang diimport daripada myDEBT. Anda boleh ubah di sini.
+                                  </div>
+                                ) : debtsList.length === 0 && (
+                                  <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-100 text-sm text-indigo-800">
+                                    Belum ada hutang? Isi terus di bawah, atau guna <a href="app/mydebt.html" className="font-bold underline">myDEBT</a> untuk analisis dan strategi dahulu.
+                                  </div>
+                                )}
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                                     <h3 className="text-base font-bold text-slate-800">Urus Senarai Hutang</h3>
                                     <button onClick={addDebt} className="text-sm bg-indigo-50 text-indigo-600 font-bold px-5 py-2.5 rounded-xl hover:bg-indigo-100 border border-indigo-100">+ Tambah Hutang Baru</button>
