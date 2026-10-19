@@ -349,6 +349,8 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                 <i class="fa-solid fa-sitemap"></i>
             </div>
             <h3 class="text-xl font-extrabold text-emerald-900">myNasab</h3>
+            <span id="lencanaLuarNasab" style="display:none; background:#ef4444; color:white; border-radius:10px; padding:2px 6px; font-size:11px; position:absolute; top:-10px; right:-25px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">0</span>
+</h3>
             <p class="text-emerald-700 text-sm font-semibold mb-3">Salasilah keluarga digital</p>
             <p class="text-emerald-800/70 text-sm leading-relaxed mb-5 flex-grow">Bina pokok keluarga anda daripada moyang hingga cucu cicit, jemput adik-beradik, dan cetak pokok keluarga besar.</p>
             <span class="inline-flex items-center gap-2 font-bold text-emerald-700 group-hover:gap-3 transition-all">
@@ -564,7 +566,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     // Import modul Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // Gunakan config yang sama dengan myNasab supaya database selari
     const firebaseConfig = {
@@ -653,6 +655,27 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                 // -- KOD BARU: Jika nama tiada dalam db, guna depan email --
                 if (namaDisplay) namaDisplay.innerText = user.email.split('@')[0];
             }
+
+const qLuar = query(
+                collection(db, "mynasab_messages"),
+                where("penerima_uid", "==", user.uid),
+                where("status_baca", "==", false)
+            );
+
+            onSnapshot(qLuar, (snapshot) => {
+                const jumlahBaru = snapshot.docs.length;
+                const lencanaLuar = document.getElementById('lencanaLuarNasab');
+                
+                if (lencanaLuar) {
+                    if (jumlahBaru > 0) {
+                        lencanaLuar.style.display = 'inline-block';
+                        lencanaLuar.innerText = jumlahBaru;
+                    } else {
+                        lencanaLuar.style.display = 'none';
+                    }
+                }
+            });
+            
         } else {
             window.penggunaSemasa = null;
             
