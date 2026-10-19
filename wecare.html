@@ -781,7 +781,7 @@ async function muatNotaKeluarga() {
 }
 
 // ==========================================
-// FUNGSI NOTIFIKASI LENCANA (APP BADGE)
+// FUNGSI NOTIFIKASI LENCANA (APP BADGE & UI)
 // ==========================================
 window.kemaskiniNotifikasiPWA = () => {
     const kini = new Date();
@@ -801,7 +801,18 @@ window.kemaskiniNotifikasiPWA = () => {
 
     const jumlahBaru = notaHarini + birthdayHarini;
 
-    // 3. Tolak ke Ikon App & Tajuk Pelayar
+    // 3. KEMAS KINI LENCANA DALAM APLIKASI (UI)
+    const lencanaLuar = document.getElementById('lencanaLuarWeCare');
+    if (lencanaLuar) {
+        if (jumlahBaru > 0) {
+            lencanaLuar.style.display = 'inline-block';
+            lencanaLuar.innerText = jumlahBaru;
+        } else {
+            lencanaLuar.style.display = 'none';
+        }
+    }
+
+    // 4. Tolak ke Ikon App Telefon & Tajuk Pelayar
     if (jumlahBaru > 0) {
         if (navigator.setAppBadge && window.matchMedia('(display-mode: standalone)').matches) {
             navigator.setAppBadge(jumlahBaru).catch(e => console.log(e));
@@ -814,7 +825,7 @@ window.kemaskiniNotifikasiPWA = () => {
         document.title = `weCare - Jagaan Bersama`;
     }
 };
-
+  
 // Tugas ikut belah semasa (tugas lama tanpa medan "belah" dianggap belah induk)
 const tugasHari = (kunci) => {
   const j = jangkarBelah();
