@@ -731,31 +731,7 @@ if ('Notification' in window) {
         }
     });
             
-            // -- KOD BARU: Sorok kotak sapaan nama --
-            if(greetingBox) {
-                greetingBox.classList.add('hidden');
-                greetingBox.classList.remove('flex');
-            }
-
-            // Paparan Belum Log Masuk (Desktop & Mobile)
-            document.getElementById('menuBelumLogMasuk').style.display = 'flex';
-            document.getElementById('menuSudahLogMasuk').style.display = 'none';
-            
-            const mobBelum = document.getElementById('mobileMenuBelumLogMasuk');
-            const mobSudah = document.getElementById('mobileMenuSudahLogMasuk');
-            if (mobBelum) mobBelum.style.display = 'flex';
-            if (mobSudah) mobSudah.style.display = 'none';
-            
-            const btnAdmin = document.getElementById('btnAdmin');
-            const btnAffiliate = document.getElementById('btnAffiliate');
-            
-            if (btnAdmin) btnAdmin.style.display = 'none';
-            if (btnAffiliate) {
-                btnAffiliate.style.display = 'inline-flex';
-                btnAffiliate.innerHTML = 'Jana Pendapatan (Affiliate)'; // Reset balik nama butang
-            }
-        }
-    });
+       
       
     
 // ==========================================
