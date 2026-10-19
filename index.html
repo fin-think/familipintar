@@ -581,7 +581,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     // Import modul Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, onSnapshot, getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 
 // KOD MEMINTA IZIN NOTIFIKASI DARI TELEFON
@@ -631,6 +631,22 @@ if ('Notification' in window) {
                 greetingBox.classList.add('flex');
             }
 
+try {
+    const messaging = getMessaging();
+    // MASUKKAN KUNCI VAPID DARI FASA 1 DI SINI
+    const currentToken = await getToken(messaging, { vapidKey: 'BC-vntpi-9WxGGKUPeGopgcykMKc87MODe1aEpwieX096IQ8Hzu3Mh89SI8YxuvvOvPSqhW7Eu2Ziqn4ZjwBugs'});
+    
+    if (currentToken) {
+        // Simpan token unik ini ke dalam profil pengguna (mynasab_users)
+        await setDoc(doc(db, "mynasab_users", user.uid), {
+            fcm_token: currentToken
+        }, { merge: true });
+        console.log("Token FCM berjaya dikemaskini.");
+    }
+} catch (err) {
+    console.log("Gagal mendapatkan token FCM:", err);
+}
+            
             // 1. Paparan Menu Desktop
             document.getElementById('menuBelumLogMasuk').style.display = 'none';
             document.getElementById('menuSudahLogMasuk').style.display = 'flex';
