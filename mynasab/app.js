@@ -1689,13 +1689,16 @@ window.renderFaraidHtml = (results) => {
 // =========================================================
 
 // =========================================================
-// ENJIN CARIAN NASAB GLOBAL & MESEJ (VERSI CARI SEMUA AHLI)
+// ENJIN CARIAN NASAB GLOBAL & MESEJ (VERSI PAPARAN JELAS)
 // =========================================================
 
-// 1. Fungsi Utama Carian Nasab
 window.ujiCarianNasab = async () => {
     const hasilContainer = document.getElementById('hasilCarianNasab');
-    const namaCari = document.getElementById('inputCarianNama').value.trim().toLowerCase();
+    
+    // Ambil ejaan asal yang pengguna taip untuk dipaparkan semula
+    const carianAsal = document.getElementById('inputCarianNama').value.trim();
+    const namaCari = carianAsal.toLowerCase();
+    
     const negeriCari = document.getElementById('inputCarianNegeri').value;
     const bandarCari = document.getElementById('inputCarianBandar').value.trim().toLowerCase();
 
@@ -1707,18 +1710,16 @@ window.ujiCarianNasab = async () => {
     hasilContainer.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">Memeriksa salasilah seluruh negara... <i class="fa-solid fa-spinner fa-spin"></i></p>';
 
     try {
-        // LANGKAH 1: Selongkar SEMUA nama ahli keluarga dalam mynasab_nodes
         const nodesRef = collection(db, "mynasab_nodes");
         const snapNodes = await getDocs(query(nodesRef));
         
         const myUid = window.penggunaSemasa ? window.penggunaSemasa.uid : "tiada_uid";
-        let senaraiOwnerTerlibat = new Set(); // Guna Set supaya owner ID tak berulang
+        let senaraiOwnerTerlibat = new Set(); 
         
         snapNodes.forEach(doc => {
             const data = doc.data();
             const namaNode = (data.name || '').toLowerCase();
             
-            // Jika nama ahli padan & bukan diri sendiri, simpan ID Pemilik (owner_uid)
             if (data.owner_uid !== myUid && namaNode.includes(namaCari)) {
                 senaraiOwnerTerlibat.add(data.owner_uid);
             }
@@ -1729,7 +1730,6 @@ window.ujiCarianNasab = async () => {
             return;
         }
 
-        // LANGKAH 2: Tarik maklumat lokasi Pemilik & paparkan butang Sapa Waris
         let htmlHasil = '';
         let jumlahJumpa = 0;
 
@@ -1741,21 +1741,24 @@ window.ujiCarianNasab = async () => {
                 const userData = userSnap.data();
                 const userNegeri = userData.negeri || '';
                 const userBandar = (userData.bandar || '').toLowerCase();
+                const namaAkaun = userData.name || 'Pengguna Tanpa Nama';
 
-                // Tapisan lokasi (jika pengguna masukkan)
                 const padanNegeri = negeriCari === "" || userNegeri === negeriCari;
                 const padanBandar = bandarCari === "" || userBandar.includes(bandarCari);
 
                 if (padanNegeri && padanBandar) {
-                    const nasabPenuh = await binaRantaianNasab(ownerUid, userData.name);
                     
+                    // KOD BARU: Ayat paparan yang lebih jelas seperti diminta
                     htmlHasil += `
                         <div class="hasil-card" style="background:#fff; border:1px solid #e2e8f0; padding:15px; border-radius:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <h4 style="margin:0 0 5px 0; color:#1e293b; font-size:16px; font-weight:bold;">${nasabPenuh}</h4>
+                            <div style="flex:1; padding-right:10px;">
+                                <h4 style="margin:0 0 5px 0; color:#334155; font-size:14px; line-height:1.4;">
+                                    Nama "<strong style="color:#0f172a;">${carianAsal}</strong>" dijumpai dalam akaun myNasab <br>
+                                    <strong style="font-size:16px; color:#8e44ad;">${namaAkaun}</strong>
+                                </h4>
                                 <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> ${userData.bandar || 'Tidak dinyatakan'}, ${userData.negeri || 'Tidak dinyatakan'}</small>
                             </div>
-                            <button onclick="bukaMesejNasab('${ownerUid}', '${nasabPenuh}')" class="btn-action" style="background:#3b82f6; color:white; padding:8px 15px; font-size:12px; border-radius:6px; cursor:pointer; border:none; display:flex; gap:5px; align-items:center;">
+                            <button onclick="bukaMesejNasab('${ownerUid}', '${namaAkaun}')" class="btn-action" style="background:#3b82f6; color:white; padding:8px 15px; font-size:12px; border-radius:6px; cursor:pointer; border:none; display:flex; gap:5px; align-items:center; white-space:nowrap; height:fit-content;">
                                 <i class="fa-regular fa-paper-plane"></i> Sapa Waris
                             </button>
                         </div>
