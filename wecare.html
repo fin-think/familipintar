@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>weCare - Jagaan Bersama</title>
+ 
+  <link rel="manifest" href="manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('firebase-messaging-sw.js');
+    });
+  }
+</script>
+  
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{--bg-color:#f8fafc;--card-bg:#fff;--ink:#1e293b;--primary:#27ae60;--primary-hover:#219a52;--secondary:#3b82f6;--line:#e2e8f0;--muted:#64748b;--radius:12px;--ayah-color:#3b82f6;--ibu-color:#ec4899;--umum-color:#10b981}
