@@ -221,8 +221,7 @@ function dunia(a,u,tk) {
   h += kosBox(K);
   const td = K.t[tk];
   if (td) h += `<div class="box"><h2>Yang perlu dibuat sekarang</h2>${td.map((t,i)=>ck('k:'+S.plan.ker+':'+tk+':'+i,t)).join('')}</div>`;
-  h += `<div class="box"><h2>Bidang dalam ${esc(K.n)}</h2>${K.bidang.map(b=>`<span class="pil">${esc(b)}</span>`).join('')}<p class="s" style="margin-top:8px">Universiti: ${esc(K.uni)}</p>
-    <a class="btn" href="${URL_MYTADBIR}?kerjaya=${S.plan.ker}&anak=${encodeURIComponent(a.name)}&mula=${lahir+18}">Kira kos pengajian di myTADBIR</a></div>`;
+    h += `<div class="box"><h2>Bidang dalam ${esc(K.n)}</h2>${K.bidang.map(b=>`<span class="pil">${esc(b)}</span>`).join('')}<p class="s" style="margin-top:8px">Universiti: ${esc(K.uni)}</p></div>`;
   return h;
 }
 
