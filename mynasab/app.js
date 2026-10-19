@@ -2161,7 +2161,7 @@ window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
 };
 
 // =========================================================
-// SISTEM NOTIFIKASI MESEJ (REAL-TIME)
+// SISTEM NOTIFIKASI MESEJ (REAL-TIME & APP BADGE)
 // =========================================================
 window.pantauMesejBaru = (uid) => {
     const q = query(
@@ -2170,11 +2170,11 @@ window.pantauMesejBaru = (uid) => {
         where("status_baca", "==", false)
     );
 
-    // onSnapshot akan memantau database secara live (24 jam)
     onSnapshot(q, (snapshot) => {
         const jumlahBaru = snapshot.docs.length;
-        const lencana = document.getElementById('lencanaMesejBaru');
         
+        // 1. Kemas kini Lencana pada Butang Dalam Aplikasi
+        const lencana = document.getElementById('lencanaMesejBaru');
         if (lencana) {
             if (jumlahBaru > 0) {
                 lencana.style.display = 'inline-block';
@@ -2182,6 +2182,22 @@ window.pantauMesejBaru = (uid) => {
             } else {
                 lencana.style.display = 'none';
             }
+        }
+
+        // 2. Kemas kini Ikon di Telefon (App Badging API) & Tab Browser
+        if (jumlahBaru > 0) {
+            // Tolak nombor ke ikon Home Screen telefon (jika disokong)
+            if (navigator.setAppBadge) {
+                navigator.setAppBadge(jumlahBaru).catch(e => console.log("Badging API tidak disokong", e));
+            }
+            // Letak nombor di tab/favicon browser (Cth: "(2) myNasab")
+            document.title = `(${jumlahBaru}) myNasab - Famili Pintar`;
+        } else {
+            // Buang nombor jika tiada mesej
+            if (navigator.clearAppBadge) {
+                navigator.clearAppBadge().catch(e => console.log("Badging API tidak disokong", e));
+            }
+            document.title = `myNasab - Famili Pintar`; 
         }
     });
 };
