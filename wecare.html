@@ -204,7 +204,7 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -458,9 +458,22 @@ window.renderKalendar = () => {
 
   const hariIni = new Date();
   for (let i = 1; i <= jumlahHari; i++) {
-    const tarikhKunci = `${tahunSemasa}-${(bulanSemasa + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
+    const bulanStr = (bulanSemasa + 1).toString().padStart(2, '0');
+    const hariStr = i.toString().padStart(2, '0');
+    const tarikhKunci = `${tahunSemasa}-${bulanStr}-${hariStr}`;
+    const mmdd = `${bulanStr}-${hariStr}`; // Cek bulan-hari untuk Hari Jadi
+    
     const kelasToday = (i === hariIni.getDate() && bulanSemasa === hariIni.getMonth() && tahunSemasa === hariIni.getFullYear()) ? "today" : "";
     const tugasanHariIni = tugasHari(tarikhKunci);
+    
+    // SEMAKAN HARI JADI
+    let htmlBirthday = "";
+    window.globalTeamMap.forEach(v => {
+        if (v.dob && v.dob.substring(5) === mmdd) {
+            htmlBirthday += `<div class="cal-event" style="background:#f43f5e;color:#fff;">🎂 H.Jadi ${esc(v.name.split(' ')[0])}</div>`;
+        }
+    });
+
     let htmlTugas = "";
     tugasanHariIni.forEach(t => {
       let warnaKelas = "evt-umum";
@@ -469,7 +482,9 @@ window.renderKalendar = () => {
       const shiftLabel = (t.shift_siapa && t.shift_siapa !== 'Umum') ? `[${t.shift_siapa}] ` : '';
       htmlTugas += `<div class="cal-event ${warnaKelas}" onclick="event.stopPropagation();lihatTugas('${t.id}')">${isUbat(t) ? '💊 ' : ''}${t.time ? t.time + ' ' : ''}${esc(shiftLabel)}${esc(t.title)}</div>`;
     });
-    htmlGrid += `<div class="cal-date ${kelasToday}" onclick="bukaModalTarikh('${tarikhKunci}')"><div class="dt-num">${i}</div>${chipNota(tarikhKunci)}${htmlTugas}</div>`;
+    
+    // Masukkan htmlBirthday di atas tugasan biasa
+    htmlGrid += `<div class="cal-date ${kelasToday}" onclick="bukaModalTarikh('${tarikhKunci}')"><div class="dt-num">${i}</div>${chipNota(tarikhKunci)}${htmlBirthday}${htmlTugas}</div>`;
   }
   document.getElementById('gridKalendar').innerHTML = htmlGrid;
   window.renderAktivitiHariIni();
@@ -646,10 +661,11 @@ async function muatKeluargaDanNota(groupId) {
       try { const s = await getDoc(doc(db, "mynasab_users", uid)); return (s.exists() && s.data().email) || 'Tiada E-mel'; }
       catch (e) { return 'Tiada E-mel'; }
     };
-    const tambah = (kunci, nama, email, role) => {
+   // KEMAS KINI: Tambah parameter 'dob'
+    const tambah = (kunci, nama, email, role, dob) => {
       const key = (nama || '').toLowerCase().trim();
       if (!key || teamListMap.has(key)) return;
-      teamListMap.set(key, { uidKunci: kunci, name: nama, email: email || 'Tiada E-mel', role });
+      teamListMap.set(key, { uidKunci: kunci, name: nama, email: email || 'Tiada E-mel', role, dob: dob });
     };
 
     const tambahAdikBeradik = async (sasaranId, role, termasukManual) => {
@@ -658,31 +674,32 @@ async function muatKeluargaDanNota(groupId) {
         if (a.sasaran !== sasaranId || a.uid === saya || sembunyi.includes(a.uid)) return;
         const k = kelompok(a.nod);
         if (!k.diri) return;
-        calon.push({ t: tarikh(k.diri), kunci: a.uid, nama: k.diri.name, akaunUid: a.uid });
+        // KEMAS KINI: Tarik dob
+        calon.push({ t: tarikh(k.diri), kunci: a.uid, nama: k.diri.name, akaunUid: a.uid, dob: k.diri.dob });
       });
       if (termasukManual) {
-        kPusat.adikBeradik.forEach(n => calon.push({ t: tarikh(n), kunci: n.id, nama: n.name, email: n.email }));
+        kPusat.adikBeradik.forEach(n => calon.push({ t: tarikh(n), kunci: n.id, nama: n.name, email: n.email, dob: n.dob }));
       }
       calon.sort(banding);
       for (const c of calon) {
-        tambah(c.kunci, c.nama, c.akaunUid ? await emelAkaun(c.akaunUid) : c.email, role);
+        tambah(c.kunci, c.nama, c.akaunUid ? await emelAkaun(c.akaunUid) : c.email, role, c.dob);
       }
     };
 
     if (pilihanBelah === 'induk') {
-      tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa');
-      kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan'));
+      tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa', kPusat.diri.dob);
+      kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan', p.dob));
       await tambahAdikBeradik(sayaInduk ? kPusat.diri.id : sasaranIdPusat, 'Adik-beradik', true);
 
       if (!sayaInduk && !sembunyi.includes(indukUid)) {
         const kInduk = kelompok(nodInduk);
         const sasaranNode = nodInduk.find(n => n.id === sasaranIdPusat);
-        if (sasaranNode) tambah(sasaranNode.id, sasaranNode.name, sasaranNode.email, 'Adik-beradik');
-        if (kInduk.diri) tambah(kInduk.diri.id, kInduk.diri.name, await emelAkaun(indukUid), 'Ipar');
+        if (sasaranNode) tambah(sasaranNode.id, sasaranNode.name, sasaranNode.email, 'Adik-beradik', sasaranNode.dob);
+        if (kInduk.diri) tambah(kInduk.diri.id, kInduk.diri.name, await emelAkaun(indukUid), 'Ipar', kInduk.diri.dob);
       }
     } else {
-      kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan'));
-      tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa');
+      kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan', p.dob));
+      tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa', kPusat.diri.dob);
       for (const p of kPusat.pasangan) await tambahAdikBeradik(p.id, 'Ipar', false);
     }
 
@@ -741,14 +758,58 @@ window.simpanNotaKeluarga = async () => {
   muatNotaKeluarga();
 };
 
+let unsubscribeNota = null;
 async function muatNotaKeluarga() {
-  const snap = await getDocs(query(collection(db, "wecare_notes"), where("group_id", "==", currentGroup)));
-  dataNotaGlobal = snap.docs.map(d => d.data());
-  const tkh = document.getElementById('teamNoteDate');
-  if (tkh && !tkh.value) tkh.value = kunciTarikh(Date.now());
-    document.getElementById('notaHint').innerText = 'Nota muncul di kalendar (🗒️) untuk ' + labelBelah() + ' sahaja.';
-  window.renderKalendar();
+    if (unsubscribeNota) unsubscribeNota(); // Buang pemantau lama jika tukar belah keluarga
+
+    const q = query(collection(db, "wecare_notes"), where("group_id", "==", currentGroup));
+    
+    // Guna onSnapshot untuk Live Update!
+    unsubscribeNota = onSnapshot(q, (snapshot) => {
+        dataNotaGlobal = snapshot.docs.map(d => d.data());
+        const tkh = document.getElementById('teamNoteDate');
+        if (tkh && !tkh.value) tkh.value = kunciTarikh(Date.now());
+        document.getElementById('notaHint').innerText = 'Nota muncul di kalendar (🗒️) untuk ' + labelBelah() + ' sahaja.';
+        
+        window.renderKalendar();
+        window.kemaskiniNotifikasiPWA(); // Cetuskan kemas kini lencana (Badge)
+    });
 }
+
+// ==========================================
+// FUNGSI NOTIFIKASI LENCANA (APP BADGE)
+// ==========================================
+window.kemaskiniNotifikasiPWA = () => {
+    const kini = new Date();
+    const kunciHariIni = kunciTarikh(kini.getTime());
+    const mmddHariIni = kunciHariIni.substring(5); // Format: MM-DD
+
+    // 1. Kira jumlah nota untuk HARI INI
+    const notaHarini = notaHari(kunciHariIni).length;
+
+    // 2. Kira jumlah Hari Jadi untuk HARI INI
+    let birthdayHarini = 0;
+    window.globalTeamMap.forEach(v => {
+        if (v.dob && v.dob.substring(5) === mmddHariIni) {
+            birthdayHarini++;
+        }
+    });
+
+    const jumlahBaru = notaHarini + birthdayHarini;
+
+    // 3. Tolak ke Ikon App & Tajuk Pelayar
+    if (jumlahBaru > 0) {
+        if (navigator.setAppBadge && window.matchMedia('(display-mode: standalone)').matches) {
+            navigator.setAppBadge(jumlahBaru).catch(e => console.log(e));
+        }
+        document.title = `(${jumlahBaru}) weCare - Jagaan Bersama`;
+    } else {
+        if (navigator.clearAppBadge && window.matchMedia('(display-mode: standalone)').matches) {
+            navigator.clearAppBadge().catch(e => console.log(e));
+        }
+        document.title = `weCare - Jagaan Bersama`;
+    }
+};
 
 // Tugas ikut belah semasa (tugas lama tanpa medan "belah" dianggap belah induk)
 const tugasHari = (kunci) => {
