@@ -1685,13 +1685,10 @@ window.renderFaraidHtml = (results) => {
 };
 
 // =========================================================
-// ENJIN CARIAN NASAB GLOBAL & MESEJ (VERSI PAPARAN JELAS)
+// 1. Fungsi Utama Carian Nasab (VERSI GABUNG NAMA & LENGKAP)
 // =========================================================
-
 window.ujiCarianNasab = async () => {
     const hasilContainer = document.getElementById('hasilCarianNasab');
-    
-    // Ambil ejaan asal yang pengguna taip untuk dipaparkan semula
     const carianAsal = document.getElementById('inputCarianNama').value.trim();
     const namaCari = carianAsal.toLowerCase();
     
@@ -1715,7 +1712,6 @@ window.ujiCarianNasab = async () => {
         snapNodes.forEach(doc => {
             const data = doc.data();
             const namaNode = (data.name || '').toLowerCase();
-            
             if (data.owner_uid !== myUid && namaNode.includes(namaCari)) {
                 senaraiOwnerTerlibat.add(data.owner_uid);
             }
@@ -1735,26 +1731,52 @@ window.ujiCarianNasab = async () => {
             
             if (userSnap.exists()) {
                 const userData = userSnap.data();
-                const userNegeri = userData.negeri || '';
-                const userBandar = (userData.bandar || '').toLowerCase();
-                const namaAkaun = userData.name || 'Pengguna Tanpa Nama';
+                const namaAkaunKhas = userData.name || 'Akaun Tanpa Nama';
 
-                const padanNegeri = negeriCari === "" || userNegeri === negeriCari;
-                const padanBandar = bandarCari === "" || userBandar.includes(bandarCari);
+                // KOD BARU: Tarik nama individu (Diri Sendiri) dari jadual pokok
+                const rootQ = query(nodesRef, where("owner_uid", "==", ownerUid), where("is_root", "==", true));
+                const rootSnap = await getDocs(rootQ);
+                
+                let namaIndividu = "";
+                if (!rootSnap.empty) {
+                    namaIndividu = rootSnap.docs[0].data().name;
+                } else {
+                    // Backup jika is_root gagal dikesan
+                    const rootQ2 = query(nodesRef, where("owner_uid", "==", ownerUid), where("relationship", "==", "Diri Sendiri (Induk)"));
+                    const rootSnap2 = await getDocs(rootQ2);
+                    if (!rootSnap2.empty) namaIndividu = rootSnap2.docs[0].data().name;
+                }
+
+                // GABUNGKAN NAMA (Cth: Dahanis Famili (Hasnawi Bin Che Harun))
+                let paparanAkaun = namaAkaunKhas;
+                if (namaIndividu && namaIndividu.toLowerCase() !== namaAkaunKhas.toLowerCase()) {
+                    paparanAkaun = `${namaAkaunKhas} (${namaIndividu})`;
+                }
+
+                const padanNegeri = negeriCari === "" || (userData.negeri === negeriCari);
+                const padanBandar = bandarCari === "" || (userData.bandar || '').toLowerCase().includes(bandarCari);
 
                 if (padanNegeri && padanBandar) {
                     
-                    // KOD BARU: Ayat paparan yang lebih jelas seperti diminta
+                    // Panggil rantaian nasab tanpa perlukan nama dari userDoc
+                    const nasabPenuh = await binaRantaianNasab(ownerUid);
+                    
                     htmlHasil += `
                         <div class="hasil-card" style="background:#fff; border:1px solid #e2e8f0; padding:15px; border-radius:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
                             <div style="flex:1; padding-right:10px;">
                                 <h4 style="margin:0 0 5px 0; color:#334155; font-size:14px; line-height:1.4;">
                                     Nama "<strong style="color:#0f172a;">${carianAsal}</strong>" dijumpai dalam akaun myNasab <br>
-                                    <strong style="font-size:16px; color:#8e44ad;">${namaAkaun}</strong>
+                                    <strong style="font-size:16px; color:#8e44ad;">${paparanAkaun}</strong>
                                 </h4>
+                                
+                                <!-- KOD BARU: Tunjuk rantaian keturunan kat sini -->
+                                <p style="margin:8px 0; font-size:13px; color:#059669; font-weight:600; background:#f0fdf4; padding:6px 10px; border-radius:6px; display:inline-block;">
+                                    <i class="fa-solid fa-link"></i> ${nasabPenuh}
+                                </p>
+                                <br>
                                 <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> ${userData.bandar || 'Tidak dinyatakan'}, ${userData.negeri || 'Tidak dinyatakan'}</small>
                             </div>
-                            <button onclick="bukaMesejNasab('${ownerUid}', '${namaAkaun}')" class="btn-action" style="background:#3b82f6; color:white; padding:8px 15px; font-size:12px; border-radius:6px; cursor:pointer; border:none; display:flex; gap:5px; align-items:center; white-space:nowrap; height:fit-content;">
+                            <button onclick="bukaMesejNasab('${ownerUid}', '${paparanAkaun.replace(/'/g, "\\'")}')" class="btn-action" style="background:#3b82f6; color:white; padding:8px 15px; font-size:12px; border-radius:6px; cursor:pointer; border:none; display:flex; gap:5px; align-items:center; white-space:nowrap; height:fit-content;">
                                 <i class="fa-regular fa-paper-plane"></i> Sapa Waris
                             </button>
                         </div>
@@ -1776,8 +1798,10 @@ window.ujiCarianNasab = async () => {
     }
 };
 
-// 2. Menyusun Nama Keturunan ke Atas (DIBETULKAN)
-async function binaRantaianNasab(uidPemilik, namaAsal) {
+// =========================================================
+// 2. Menyusun Nama Keturunan ke Atas (DIBETULKAN JANTINA & INDUK)
+// =========================================================
+async function binaRantaianNasab(uidPemilik) {
     try {
         const nodesRef = collection(db, "mynasab_nodes");
         const q = query(nodesRef, where("owner_uid", "==", uidPemilik));
@@ -1786,19 +1810,21 @@ async function binaRantaianNasab(uidPemilik, namaAsal) {
         let senaraiNodes = [];
         snap.forEach(doc => senaraiNodes.push(doc.data()));
 
-        // Guna kata kunci sebenar dalam database: relationship, gender ('L'), name
-        const ayah = senaraiNodes.find(n => n.relationship === "Ayah");
-        const datuk = senaraiNodes.find(n => n.relationship === "Datuk" && n.gender === "L"); 
-        const moyang = senaraiNodes.find(n => n.relationship === "Moyang" && n.gender === "L"); 
+        // Cari siapa "Diri Sendiri (Induk)" untuk dijadikan tapak permulaan Bin
+        const rootNode = senaraiNodes.find(n => n.is_root === true || n.relationship === "Diri Sendiri (Induk)");
+        let rantaian = rootNode ? rootNode.name : "Pemilik Akaun";
 
-        let rantaian = namaAsal || "Hamba Allah";
+        // KOD BARU: Menyokong jantina ejaan "L" atau "Lelaki"
+        const ayah = senaraiNodes.find(n => n.relationship === "Ayah" || n.relationship === "Bapa");
+        const datuk = senaraiNodes.find(n => n.relationship === "Datuk" && (n.gender === "L" || n.gender === "Lelaki")); 
+        const moyang = senaraiNodes.find(n => n.relationship === "Moyang" && (n.gender === "L" || n.gender === "Lelaki")); 
         
         // Cantum rantaian keturunan ke atas
         if (ayah && ayah.name) rantaian += ` bin/binti ${ayah.name}`;
         if (datuk && datuk.name) rantaian += ` bin ${datuk.name}`;
         if (moyang && moyang.name) rantaian += ` bin ${moyang.name}`;
 
-        // Masukkan sekali maklumat pasangan di hujung (cth: Zainab binti Yatim)
+        // Masukkan sekali maklumat pasangan
         const pasangan = senaraiNodes.filter(n => n.relationship === "Isteri" || n.relationship === "Suami");
         if (pasangan.length > 0) {
             let namaPasangan = pasangan.map(p => p.name).join(' & ');
@@ -1807,7 +1833,7 @@ async function binaRantaianNasab(uidPemilik, namaAsal) {
 
         return rantaian;
     } catch (e) {
-        return namaAsal; 
+        return "Rantaian Keluarga"; 
     }
 }
 
