@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>myKids | Famili Pintar</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+:root{--bg:#f6f9fc;--ink:#1e293b;--mut:#64748b;--line:#e2e8f0;--dunia:#0ea5e9;--akh:#0f766e;--kuning:#f5b82e;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Nunito',sans-serif;line-height:1.55}
+.hidden{display:none!important}
+header{background:#fff;border-bottom:1px solid var(--line);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5}
+.brand{font-weight:800;font-size:22px}.brand b{color:var(--kuning)}.brand i{color:var(--dunia);font-style:normal}
+header a{color:var(--mut);font-size:13px;text-decoration:none;font-weight:700}
+main{max-width:760px;margin:0 auto;padding:18px 16px 60px}
+.anak{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.anak button{border:2px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;font:700 14px inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
+.anak button.on{border-color:var(--dunia);background:#e0f2fe;color:#075985}
+.ringkas{margin:14px 0;padding:16px;background:#fff;border:1px solid var(--line);border-radius:14px}
+.ringkas h1{margin:0;font-size:22px}.ringkas p{margin:4px 0 0;color:var(--mut);font-size:14px}
+.tab{display:grid;grid-template-columns:1fr 1fr;border-radius:12px;overflow:hidden;border:2px solid var(--line);background:#fff;margin-bottom:14px}
+.tab button{border:0;background:none;padding:12px;font:800 15px inherit;font-family:inherit;cursor:pointer;color:var(--mut)}
+.tab button.on.d{background:var(--dunia);color:#fff}.tab button.on.a{background:var(--akh);color:#fff}
+.box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.box h2{margin:0 0 4px;font-size:17px}.box .s{margin:0 0 10px;color:var(--mut);font-size:13px}
+.ck{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid #f1f5f9;font-size:14px;cursor:pointer}
+.ck:first-of-type{border-top:0}.ck input{margin-top:4px;width:17px;height:17px;accent-color:var(--akh);flex:none}
+select{width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;font:700 15px inherit;font-family:inherit;background:#fff}
+.tl{list-style:none;margin:0;padding:0 0 0 18px;border-left:3px solid var(--line)}
+.tl li{position:relative;padding:0 0 14px 14px;font-size:14px}
+.tl li::before{content:"";position:absolute;left:-26px;top:3px;width:13px;height:13px;border-radius:50%;background:#cbd5e1;border:3px solid #fff}
+.tl li.lepas{opacity:.55}.tl li.lepas::before{background:#22c55e}
+.tl li.kini::before{background:var(--dunia);box-shadow:0 0 0 4px #bae6fd}
+.tl small{display:block;color:var(--mut);font-weight:700}
+.pil{display:inline-block;background:#f1f5f9;border-radius:8px;padding:3px 9px;margin:0 6px 6px 0;font-size:13px;font-weight:700}
+.btn{display:block;text-align:center;background:var(--dunia);color:#fff;text-decoration:none;font-weight:800;padding:13px;border-radius:12px;margin-top:10px}
+.fasa{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:14px}
+.fasa b{color:var(--akh)}
+.ayat{font-size:22px;text-align:right;direction:rtl;line-height:2;margin:6px 0 2px}
+.nota{font-size:12px;color:var(--mut);margin-top:8px}
+.kosong{text-align:center;color:var(--mut);padding:30px 10px}
+#auth{text-align:center;padding:60px 20px;color:var(--mut)}
+</style>
+</head>
+<body>
+<header><div class="brand"><b>my</b><i>Kids</i></div><a href="#" id="kembali">Kembali</a></header>
+<main>
+  <div id="auth">Memuatkan data anak daripada myNasab...</div>
+  <div id="app" class="hidden">
+    <div class="anak" id="anak"></div>
+    <div class="ringkas" id="ringkas"></div>
+    <div class="tab"><button class="d on" id="tD">🌍 Dunia</button><button class="a" id="tA">🌙 Akhirat</button></div>
+    <div id="isi"></div>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const URL_UTAMA = "../index.html", URL_MYNASAB = "../index.html", URL_MYTADBIR = "mytadbir.html";
+const app = initializeApp({ apiKey:"AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg", authDomain:"familipintar.firebaseapp.com", projectId:"familipintar", storageBucket:"familipintar.firebasestorage.app" });
+const auth = getAuth(app), db = getFirestore(app);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+document.getElementById('kembali').href = URL_UTAMA;
+
+// ---------- KANDUNGAN (edit di sini) ----------
+// Tahap persekolahan ikut selisih tahun (tahun semasa - tahun lahir): 7 = Tahun 1, 13 = Tingkatan 1, 17 = Tingkatan 5 (SPM)
+const GENERIK = {
+  bayi:["Daftar sijil lahir dan buka akaun SSPN (PTPTN) untuk simpanan pendidikan","Rancang tabung pendidikan bulanan","Banyakkan bercakap, bernyanyi dan membaca bersama"],
+  pra:["Daftar tadika / prasekolah","Kenal huruf, nombor dan warna melalui permainan","Mula tabiat menyimpan (tabung)"],
+  rendah:["Bacaan BM dan BI lancar menjelang Tahun 3","Kenal minat dan bakat (sukan, seni, sains, bahasa)","Duit poket: ajar membezakan perlu dan mahu","Tahun 5-6: semak pilihan sekolah menengah (harian, SBP, MRSM, SMKA, tahfiz) dan syarat tahun semasa"],
+  menengah:["Tingkatan 3: pilih aliran Tingkatan 4 (Sains, Sastera, Teknikal/Vokasional, Agama)","Kukuhkan Matematik, BM dan BI","Kenal pasti beberapa kerjaya yang diminati","Tingkatan 4-5: tetapkan sasaran SPM dan semak jadual kelas tambahan"],
+  prau:["Mohon IPT melalui UPU dan semak syarat merit tahun semasa","Rancang pembiayaan: PTPTN, biasiswa, SSPN","Latihan temuduga dan penulisan esei"],
+  ipt:["Sertai persatuan, praktikal dan sukarelawan","Bina CV dan jaringan profesional","Mula simpanan dan perlindungan (takaful) sendiri"]
+};
+const KERJAYA = {
+  undang:{n:"Undang-undang",i:"⚖️",
+    spm:"Kredit BM, BI dan Sejarah (sasaran A- dan ke atas); Matematik dan Pendidikan Islam kukuh. Sasaran umum: majoriti subjek A-/A.",
+    laluan:[[17,"SPM"],[18,"Pra-U: STPM / Matrikulasi / Asasi / Diploma (1-2 tahun)"],[19,"Ijazah LLB (kira-kira 4 tahun)"],[23,"Sijil Amalan Guaman (CLP) di bawah LPQB, kira-kira 1 tahun"],[24,"Chambering 9 bulan, kemudian dipanggil ke Bar sebagai Peguam"]],
+    bidang:["Peguam (litigasi / korporat)","Pendakwa Raya: LLB + kelayakan Bar, mohon melalui SPA","Peguam Syarie: LLB Syariah / Syariah dan Undang-undang + pensijilan negeri","Hakim / Pegawai Undang-undang Kerajaan"],
+    uni:"UM, UKM, UIAM (AIKOL), UiTM, USM, UUM. Swasta: Taylor's, Sunway, HELP, MMU.",
+    t:{menengah:["Sertai debat, pidato atau kelab undang-undang","Baca akhbar dan kes ringkas; asah BM dan BI","Hadiri perbicaraan terbuka di mahkamah"],prau:["Semak syarat UPU dan markah merit","Minta lawatan / mentor di firma guaman","Mohon PTPTN / biasiswa"],ipt:["Sertai moot court","Praktikal di firma atau AGC","Daftar CLP dan cari chambering lebih awal"]}},
+  perubatan:{n:"Perubatan",i:"🩺",
+    spm:"Biologi, Kimia, Fizik, Matematik dan Matematik Tambahan; sasaran A/A+. Kemasukan sangat kompetitif.",
+    laluan:[[17,"SPM"],[18,"Pra-U: Matrikulasi / STPM / Asasi / A-Level (1-2 tahun)"],[19,"MBBS (5 tahun)"],[24,"Latihan siswazah (houseman) 2 tahun"],[26,"Pegawai Perubatan; daftar dengan MMC"]],
+    bidang:["Doktor / pakar (sarjana lanjutan)","Pergigian (BDS)","Farmasi","Sains kesihatan bersekutu"],
+    uni:"UM, UKM, UPM, USM, UiTM, UIAM, UNIMAS, UMS, USIM.",
+    t:{menengah:["Kukuhkan Sains dan Matematik","Sukarelawan di klinik / program kesihatan","Jaga disiplin belajar jangka panjang"],prau:["Semak syarat dan kuota kemasukan","Cari biasiswa (JPA, MARA dan lain-lain)","Latihan temuduga MMI"],ipt:["Fokus kelulusan setiap tahun klinikal","Rancang pilihan pengkhususan"]}},
+  jurutera:{n:"Kejuruteraan",i:"🏗️",
+    spm:"Matematik, Matematik Tambahan, Fizik dan Kimia; sasaran A-/A.",
+    laluan:[[17,"SPM"],[18,"Matrikulasi / STPM / Asasi / Diploma"],[19,"BEng (4 tahun, program berakreditasi EAC)"],[23,"Jurutera siswazah: daftar BEM dan kumpul pengalaman"],[26,"Jurutera Profesional (Ir.) selepas pengalaman dan penilaian"]],
+    bidang:["Awam","Elektrik / Elektronik","Mekanikal","Kimia / Petroleum","Perisian"],
+    uni:"UTM, UM, UPM, UKM, USM, UiTM, UTP, UNITEN.",
+    t:{menengah:["Kukuhkan Matematik dan Fizik","Sertai kelab robotik / sains","Cuba projek kecil (litar, binaan)"],prau:["Pastikan program berakreditasi EAC","Rancang kemasukan Matrikulasi / Asasi","Mohon biasiswa"],ipt:["Praktikal industri","Sertai pertandingan reka bentuk","Daftar BEM selepas bergraduat"]}},
+  akaun:{n:"Perakaunan",i:"📊",
+    spm:"Matematik, Prinsip Akaun dan BI; sasaran A-/A.",
+    laluan:[[17,"SPM"],[18,"Diploma Perakaunan / Matrikulasi / Pra-U"],[19,"Ijazah Perakaunan (3-4 tahun) atau ACCA / ICAEW"],[23,"Latihan berkaitan kira-kira 3 tahun"],[26,"Ahli MIA, Akauntan Bertauliah"]],
+    bidang:["Audit","Cukai","Kewangan korporat","Perbankan dan takaful"],
+    uni:"UM, UKM, UUM, UiTM, UIAM, UPM. Profesional: ACCA, CPA Australia, ICAEW.",
+    t:{menengah:["Kukuhkan Matematik dan Prinsip Akaun","Belajar urus wang sendiri (bajet bulanan)"],prau:["Bandingkan laluan ijazah vs ACCA","Semak yuran dan biasiswa"],ipt:["Internship firma audit / syarikat","Mula peperiksaan profesional"]}},
+  it:{n:"IT dan Perisian",i:"💻",
+    spm:"Matematik dan Sains / Sains Komputer; sasaran B+ ke atas.",
+    laluan:[[17,"SPM"],[18,"Diploma / Asasi / Matrikulasi"],[19,"Ijazah Sains Komputer / IT / Kejuruteraan Perisian (3-4 tahun)"],[22,"Portfolio projek dan internship"],[23,"Jurutera perisian, data atau keselamatan siber"]],
+    bidang:["Pembangunan perisian / web","Sains data / AI","Keselamatan siber","Pengurusan produk"],
+    uni:"UM, UTM, UKM, UPM, USM, UTeM, MMU, APU.",
+    t:{menengah:["Belajar kod asas (Scratch, Python)","Bina projek kecil dan simpan dalam portfolio","Jaga keselamatan dan etika digital"],prau:["Pilih antara diploma dan ijazah terus","Sertai hackathon"],ipt:["Internship dan sumbangan projek terbuka","Ambil sijil industri"]}},
+  islam:{n:"Pengajian Islam dan Tahfiz",i:"🕌",
+    spm:"BM, BI, Pendidikan Islam dan Bahasa Arab; hafazan dan bacaan Al-Quran perlu bermula lebih awal.",
+    laluan:[[13,"Sekolah agama / SMKA / maahad tahfiz (pilihan)"],[17,"SPM / SMA"],[18,"STAM / Matrikulasi UIAM / Diploma"],[19,"Ijazah Syariah / Usuluddin / Tahfiz (UIAM, USIM, UM-APIUM, UKM, Al-Azhar, Madinah)"],[23,"Ustaz, pendakwah, hakim / peguam syarie, pensyarah"]],
+    bidang:["Guru agama dan pensyarah","Hafiz / qari","Hakim atau peguam syarie","Perancang harta Islam (wasiat, hibah, faraid)"],
+    uni:"UIAM, USIM, UM (Akademi Pengajian Islam), UKM, UniSZA; luar negara: Al-Azhar, Madinah.",
+    t:{menengah:["Lancarkan bacaan dan hafazan; belajar Bahasa Arab","Sertai program tahfiz / ceramah ilmu"],prau:["Bandingkan laluan STAM dan Matrikulasi","Cari biasiswa pengajian Islam"],ipt:["Praktikal di masjid / jabatan agama","Ambil sijil pengkhususan"]}}
+};
+// 3 fasa 7 tahun dikaitkan dengan Saidina Ali; sandaran sanad tidak dapat dipastikan, jadi digunakan sebagai pendekatan, bukan hukum.
+const FASA = [[0,6,"Fasa 1 (0-7 tahun): kasih sayang dan teladan","Anak dibentuk melalui kasih sayang, permainan dan contoh ibu bapa."],[7,13,"Fasa 2 (7-14 tahun): disiplin dan adab","Latihan ibadah, adab dan tanggungjawab dengan tegas tetapi berhikmah."],[14,21,"Fasa 3 (14-21 tahun): rakan dan amanah","Berbincang, mendengar dan memberi amanah seperti rakan yang dipercayai."]];
+const AKHIRAT = [
+ [0,3,["Azan di telinga bayi, nama yang baik, aqiqah (sunat)","Perdengarkan Al-Quran, selawat dan doa harian","Kenalkan nama Allah dan kalimah tauhid dengan lembut","Solat dan mengaji di hadapan anak"]],
+ [4,6,["Rukun Iman dan Rukun Islam melalui cerita ringkas","Doa harian (makan, tidur, tandas) dan adab memberi salam","Mula Iqra' / huruf hijaiyah","Latihan wuduk dan solat bersama ibu bapa"]],
+ [7,9,["Perintah solat lima waktu (hadis: umur tujuh tahun)","Umur 8: Iqra' tamat dan mula Al-Quran. Khatam dijangka sekitar 10-12 tahun, lebih awal bagi yang mampu (setiap anak berbeza)","Hafazan surah pendek dan doa","Adab: ibu bapa, guru, bercakap benar; beri amanah kecil","Puasa latihan separuh hari"]],
+ [10,12,["Solat konsisten; tegur dengan hikmah jika tinggal (hadis: umur sepuluh tahun)","Pisahkan tempat tidur (hadis)","Khatam Al-Quran; mula sirah dan tafsir ringkas","Puasa penuh Ramadan; fiqh asas dan bersuci (KAFA)","Persediaan baligh: terangkan haid / ihtilam, aurat dan hukum"]],
+ [13,15,["Anak mukallaf: tanggungjawab solat, puasa dan aurat","Jadi rakan: berbincang dan mendengar, bukan arahan sahaja","Akidah: jawab keraguan; media sosial dan rakan sebaya","Solat berjemaah dan hafazan berterusan"]],
+ [16,18,["Kukuhkan akidah dan cara fikir Islam; rujuk sumber ilmu sahih","Amanah dan kepimpinan (usrah, sukarelawan)","Wang secara Islam: zakat, sedekah, hutang","Bimbing memilih kerjaya halal dan bermanfaat"]],
+ [19,99,["Berdikari dan terus belajar fardu ain","Persediaan nikah dan rumah tangga bila sesuai","Kenal wasiat dan wasi; amal jariah bersama keluarga"]]
+];
+
+// ---------- LOGIK ----------
+const S = { anak:[], i:0, tab:'dunia', plan:{ker:'',tick:{}} };
+const tahun = new Date().getFullYear();
+const tahap = u => u<4?['bayi','Bayi / kanak-kanak']:u<7?['pra','Prasekolah']:u<=12?['rendah','Tahun '+(u-6)]:u<=17?['menengah','Tingkatan '+(u-12)]:u<=19?['prau','Pra-U / Diploma']:['ipt','IPT / bekerja'];
+const umurSebenar = d => { const n=new Date(),b=new Date(d); let u=n.getFullYear()-b.getFullYear(); if(n<new Date(n.getFullYear(),b.getMonth(),b.getDate())) u--; return u; };
+const ck = (k,t) => `<label class="ck"><input type="checkbox" data-k="${k}" ${S.plan.tick[k]?'checked':''}><span>${esc(t)}</span></label>`;
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { location.href = URL_UTAMA; return; }
+  const s = await getDocs(query(collection(db,"mynasab_nodes"), where("owner_uid","==",user.uid)));
+  S.uid = user.uid;
+  S.anak = s.docs.map(d=>({...d.data(),id:d.id})).filter(n=>n.relationship==='Anak' && n.status!=='meninggal')
+    .sort((a,b)=>(a.dob||'9').localeCompare(b.dob||'9'));
+  if (!S.anak.length) { document.getElementById('auth').innerHTML = `Belum ada anak dalam <b>myNasab</b>.<br>Tambah anak dan tarikh lahir mereka dahulu.<br><a class="btn" href="${URL_MYNASAB}">Buka myNasab</a>`; return; }
+  document.getElementById('auth').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  await pilih(0);
+});
+
+async function pilih(i) {
+  S.i = i;
+  const a = S.anak[i];
+  const p = await getDoc(doc(db,"mykids_plans",a.id));
+  S.plan = p.exists() ? { ker:p.data().kerjaya||'', tick:p.data().tick||{} } : { ker:'', tick:{} };
+  render();
+}
+const simpan = () => setDoc(doc(db,"mykids_plans",S.anak[S.i].id), { owner_uid:S.uid, kerjaya:S.plan.ker, tick:S.plan.tick, updated_at:Date.now() }, { merge:true });
+
+function render() {
+  const a = S.anak[S.i];
+  document.getElementById('anak').innerHTML = S.anak.map((x,i)=>`<button class="${i===S.i?'on':''}" data-i="${i}">${esc(x.name)}</button>`).join('');
+  if (!a.dob) {
+    document.getElementById('ringkas').innerHTML = `<h1>${esc(a.name)}</h1><p>Tarikh lahir belum diisi. Kemas kini di myNasab (Edit) untuk melihat pelan mengikut umur.</p>`;
+    document.getElementById('isi').innerHTML = `<a class="btn" href="${URL_MYNASAB}">Buka myNasab</a>`; return;
+  }
+  const u = tahun - new Date(a.dob).getFullYear(), tp = tahap(u);
+  document.getElementById('ringkas').innerHTML = `<h1>${esc(a.name)}</h1><p>${umurSebenar(a.dob)} tahun · ${tp[1]} · ${S.anak.length} anak dalam senarai</p>`;
+  document.getElementById('tD').className = 'd' + (S.tab==='dunia'?' on':'');
+  document.getElementById('tA').className = 'a' + (S.tab==='akhirat'?' on':'');
+  document.getElementById('isi').innerHTML = S.tab==='dunia' ? dunia(a,u,tp[0]) : akhirat(u);
+}
+
+function dunia(a,u,tk) {
+  const lahir = new Date(a.dob).getFullYear();
+  let h = `<div class="box"><h2>Fokus umur ini</h2><p class="s">${tahap(u)[1]}</p>${GENERIK[tk].map((t,i)=>ck('g:'+tk+':'+i,t)).join('')}</div>`;
+  h += `<div class="box"><h2>Kerjaya yang dipilih</h2><p class="s">Tidak perlu muktamad. Boleh ditukar bila-bila masa.</p><select id="ker"><option value="">-- Belum pilih --</option>${Object.entries(KERJAYA).map(([k,v])=>`<option value="${k}" ${S.plan.ker===k?'selected':''}>${v.i} ${v.n}</option>`).join('')}</select></div>`;
+  const K = KERJAYA[S.plan.ker];
+  if (!K) return h;
+  h += `<div class="box"><h2>Sasaran SPM (${lahir+17})</h2><p class="s">Anggaran umum. Semak syarat UPU dan institusi bagi tahun kemasukan.</p><p style="margin:0;font-size:14px">${esc(K.spm)}</p></div>`;
+  h += `<div class="box"><h2>Peta jalan ${esc(K.n)}</h2><p class="s">Tahun berdasarkan umur ${esc(a.name)}.</p><ul class="tl">${K.laluan.map((l,i)=>{
+    const n = K.laluan[i+1]; const c = n && u>=n[0] ? 'lepas' : u>=l[0] ? 'kini' : '';
+    return `<li class="${c}">${esc(l[1])}<small>Umur ${l[0]} · kira-kira ${lahir+l[0]}${c==='kini'?' · peringkat semasa':''}</small></li>`; }).join('')}</ul></div>`;
+  const td = K.t[tk];
+  if (td) h += `<div class="box"><h2>Yang perlu dibuat sekarang</h2>${td.map((t,i)=>ck('k:'+S.plan.ker+':'+tk+':'+i,t)).join('')}</div>`;
+  h += `<div class="box"><h2>Bidang dalam ${esc(K.n)}</h2>${K.bidang.map(b=>`<span class="pil">${esc(b)}</span>`).join('')}<p class="s" style="margin-top:8px">Universiti: ${esc(K.uni)}</p>
+    <a class="btn" href="${URL_MYTADBIR}?kerjaya=${S.plan.ker}&anak=${encodeURIComponent(a.name)}&mula=${lahir+18}">Kira kos pengajian di myTADBIR</a></div>`;
+  return h;
+}
+
+function akhirat(u) {
+  const f = FASA.find(x=>u>=x[0]&&u<=x[1]) || FASA[2];
+  const band = AKHIRAT.find(x=>u>=x[0]&&u<=x[1]) || AKHIRAT[AKHIRAT.length-1];
+  const idx = AKHIRAT.indexOf(band), seterus = AKHIRAT[idx+1];
+  let h = `<div class="fasa"><b>${esc(f[2])}</b><br>${esc(f[3])}<div class="nota">Pembahagian tiga fasa tujuh tahun dikaitkan dengan Saidina Ali, tetapi sandarannya tidak dapat dipastikan. Gunakan sebagai pendekatan, bukan hukum. Hadis solat (7 tahun), teguran (10 tahun) dan pisah tempat tidur ialah sandaran yang sabit.</div></div>`;
+  h += `<div class="box"><h2>Umur ${band[0]}-${band[1]>90?'ke atas':band[1]} tahun: yang patut diajar</h2><p class="s">Sasaran amalan biasa, bukan syarat. Setiap anak berbeza.</p>${band[2].map((t,i)=>ck('a:'+band[0]+':'+i,t)).join('')}</div>`;
+  if (seterus) h += `<div class="box"><h2>Peringkat seterusnya (umur ${seterus[0]})</h2>${seterus[2].map(t=>`<div class="ck" style="cursor:default">• ${esc(t)}</div>`).join('')}</div>`;
+  h += `<div class="box"><h2>Doa dan ketabahan ibu bapa</h2><p class="s">Daripada kisah keluarga Imran dalam Surah Ali Imran.</p>
+    <div class="ayat">رَبِّ هَبْ لِي مِن لَّدُنكَ ذُرِّيَّةً طَيِّبَةً ۖ إِنَّكَ سَمِيعُ الدُّعَاءِ</div><div class="nota">Ali Imran: 38. Doa memohon zuriat yang baik.</div>
+    <div class="ayat">وَإِنِّي أُعِيذُهَا بِكَ وَذُرِّيَّتَهَا مِنَ الشَّيْطَانِ الرَّجِيمِ</div><div class="nota">Ali Imran: 36. Doa memohon perlindungan untuk anak.</div>
+    <div class="ayat">اصْبِرُوا وَصَابِرُوا وَرَابِطُوا وَاتَّقُوا اللَّهَ</div><div class="nota">Ali Imran: 200. Sabar, teguh dan bertakwa dalam mendidik.</div></div>
+    <div class="nota">Kandungan ini ialah panduan umum. Sila rujuk asatizah untuk perkara hukum.</div>`;
+  return h;
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-i]'); if (b) pilih(+b.dataset.i);
+});
+document.getElementById('tD').onclick = () => { S.tab='dunia'; render(); };
+document.getElementById('tA').onclick = () => { S.tab='akhirat'; render(); };
+document.addEventListener('change', e => {
+  if (e.target.id==='ker') { S.plan.ker = e.target.value; simpan(); render(); }
+  else if (e.target.dataset.k) { S.plan.tick[e.target.dataset.k] = e.target.checked; simpan(); }
+});
+</script>
+</body>
+</html>
