@@ -62,7 +62,16 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const URL_UTAMA = "../index.html", URL_MYNASAB = "../index.html", URL_MYTADBIR = "mytadbir.html";
-const app = initializeApp({ apiKey:"AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg", authDomain:"familipintar.firebaseapp.com", projectId:"familipintar", storageBucket:"familipintar.firebasestorage.app" });
+const firebaseConfig = {
+    apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+    authDomain: "familipintar.firebaseapp.com",
+    databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "familipintar",
+    storageBucket: "familipintar.firebasestorage.app",
+    messagingSenderId: "277029764059",
+    appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+};
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app), db = getFirestore(app);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 document.getElementById('kembali').href = URL_UTAMA;
