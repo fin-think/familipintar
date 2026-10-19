@@ -218,10 +218,10 @@ function dunia(a,u,tk) {
   h += `<div class="box"><h2>Peta jalan ${esc(K.n)}</h2><p class="s">Tahun berdasarkan umur ${esc(a.name)}.</p><ul class="tl">${K.laluan.map((l,i)=>{
     const n = K.laluan[i+1]; const c = n && u>=n[0] ? 'lepas' : u>=l[0] ? 'kini' : '';
     return `<li class="${c}">${esc(l[1])}<small>Umur ${l[0]} · kira-kira ${lahir+l[0]}${c==='kini'?' · peringkat semasa':''}</small></li>`; }).join('')}</ul></div>`;
-  h += kosBox(K);
-  const td = K.t[tk];
+    const td = K.t[tk];
   if (td) h += `<div class="box"><h2>Yang perlu dibuat sekarang</h2>${td.map((t,i)=>ck('k:'+S.plan.ker+':'+tk+':'+i,t)).join('')}</div>`;
     h += `<div class="box"><h2>Bidang dalam ${esc(K.n)}</h2>${K.bidang.map(b=>`<span class="pil">${esc(b)}</span>`).join('')}<p class="s" style="margin-top:8px">Universiti: ${esc(K.uni)}</p></div>`;
+  h += kosBox(K);
   return h;
 }
 
