@@ -1825,7 +1825,6 @@ const binaRantaianNasabFokus = (focusNode, senaraiNodes, rootNode) => {
             let bapa, ibu;
             
             if (cNode.is_root || rel.includes("diri sendiri")) {
-                // DIBETULKAN: Guna padanan tepat supaya tak terambil "Ibu/Bapa Mertua"
                 bapa = senaraiNodes.find(n => {
                     const r = (n.relationship || "").toLowerCase();
                     return (r === "ayah" || r === "bapa") && (n.ref_id === cNode.id || !n.ref_id || n.ref_id === "");
@@ -1840,17 +1839,18 @@ const binaRantaianNasabFokus = (focusNode, senaraiNodes, rootNode) => {
                 ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "ibu mertua" && (n.ref_id === cNode.id || (rootNode && n.ref_id === rootNode.id) || !n.ref_id || n.ref_id === ""));
             
             } else if (rel === "ayah" || rel === "bapa" || rel === "ibu" || rel === "emak") {
-                // DIBETULKAN: Tukar kepada padanan tepat untuk elak ralat silang
-                bapa = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "datuk" && cekLelaki(n) === true && n.ref_id === cNode.id);
-                ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "nenek" && cekLelaki(n) === false && n.ref_id === cNode.id);
+                // DILONGGARKAN: Cari Datuk/Nenek walaupun ref_id terikat pada Induk atau kosong
+                bapa = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "datuk" && cekLelaki(n) === true && (n.ref_id === cNode.id || (rootNode && n.ref_id === rootNode.id) || !n.ref_id || n.ref_id === ""));
+                ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "nenek" && cekLelaki(n) === false && (n.ref_id === cNode.id || (rootNode && n.ref_id === rootNode.id) || !n.ref_id || n.ref_id === ""));
             
             } else if (rel === "datuk" || rel === "nenek") {
-                bapa = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "moyang" && cekLelaki(n) === true && n.ref_id === cNode.id);
-                ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "moyang" && cekLelaki(n) === false && n.ref_id === cNode.id);
+                // DILONGGARKAN: Cari Moyang walaupun ref_id terikat pada Induk atau kosong
+                bapa = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "moyang" && cekLelaki(n) === true && (n.ref_id === cNode.id || (rootNode && n.ref_id === rootNode.id) || !n.ref_id || n.ref_id === ""));
+                ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "moyang" && cekLelaki(n) === false && (n.ref_id === cNode.id || (rootNode && n.ref_id === rootNode.id) || !n.ref_id || n.ref_id === ""));
             
             } else if (rel === "moyang") {
-                bapa = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "buyut" && cekLelaki(n) === true && n.ref_id === cNode.id);
-                ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "buyut" && cekLelaki(n) === false && n.ref_id === cNode.id);
+                bapa = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "buyut" && cekLelaki(n) === true && (n.ref_id === cNode.id || (rootNode && n.ref_id === rootNode.id) || !n.ref_id || n.ref_id === ""));
+                ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "buyut" && cekLelaki(n) === false && (n.ref_id === cNode.id || (rootNode && n.ref_id === rootNode.id) || !n.ref_id || n.ref_id === ""));
             
             } else if (rel === "anak") {
                 let parent1 = senaraiNodes.find(n => n.id === cNode.ref_id);
