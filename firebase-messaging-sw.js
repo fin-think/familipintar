@@ -55,3 +55,8 @@ self.addEventListener('notificationclick', (event) => {
         })
     );
 });
+
+// Syarat wajib WebAPK Android agar aplikasi memiliki identitas mandiri
+self.addEventListener('fetch', (event) => {
+    // Tidak perlu diisi apa-apa, cukup ada agar Chrome mengenalinya sebagai PWA penuh
+});
