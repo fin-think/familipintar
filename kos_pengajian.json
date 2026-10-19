@@ -1,0 +1,56 @@
+{
+  "versi": "2026-10-19",
+  "catatan": "KOS ANGGARAN dalam harga semasa (RM). Setiap sel guna nilai TERTINGGI daripada sumber yang ada supaya ibu bapa bersedia awal. Semak yuran rasmi universiti. anggaran_dalaman=true bermaksud tiada sumber khusus program itu; angka proksi digunakan.",
+  "kadar_gbp_myr": 5.75,
+  "kadar_catatan": "GBP/MYR dibundarkan ke 5.75 (paras tertinggi 52 minggu ~5.74; kadar Ogos 2026 ~5.5). Kemas kini bila perlu.",
+  "kerjaya": {
+    "undang": {
+      "awam": { "tempoh": 4, "yuran": [24900, 24900], "hidup_setahun": [20000, 20000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus LLB awam. Yuran guna siling yuran awam tempatan yang ada (MBBS UM RM24,900, blog). Sara hidup RM20,000/thn (blog UM)." },
+      "swasta": { "tempoh": 3, "yuran": [153326, 153326], "hidup_setahun": [48000, 48000],
+        "sumber": "Taylor's LLB 3 tahun, jumlah yuran RM153,326 (globalassistant.info; laman lain RM131,990). Sara hidup RM4,000/bln (had atas anggaran Taylor's, collegedunia)." },
+      "luar": { "tempoh": 3, "yuran": [752100, 752100], "hidup_setahun": [103500, 103500],
+        "sumber": "UK: Oxford Jurisprudence £43,600/thn x3 (uniadmissions.co.uk 2026-27) x RM5.75. Sara hidup £18,000/thn (had atas £12,000-18,000) x RM5.75. Julat UK biasa lebih rendah (£18,000-32,000/thn)." }
+    },
+    "perubatan": {
+      "awam": { "tempoh": 5, "yuran": [24900, 24900], "hidup_setahun": [20000, 20000],
+        "sumber": "Blog takafulpendidikanterbaik.com memetik laman UM 2025/26: yuran MBBS RM24,900, sara hidup ~RM100,000 untuk 5 tahun." },
+      "swasta": { "tempoh": 5, "yuran": [615690, 615690], "hidup_setahun": [48000, 48000],
+        "sumber": "IMU MBBS 5 tahun RM615,690 (rumc.edu.my, eduadvisor.my); universiti swasta lain bermula ~RM325,000. Sara hidup RM4,000/bln (had atas anggaran Taylor's)." },
+      "luar": { "tempoh": 6, "yuran": [2434113, 2434113], "hidup_setahun": [103500, 103500],
+        "sumber": "UK: Cambridge Medicine £70,554/thn x6 (uniadmissions.co.uk 2026-27) x RM5.75. Sara hidup £18,000/thn x RM5.75. UK MBBS biasa £30,000-62,730/thn selama 5 tahun, jauh lebih rendah daripada angka tertinggi ini." }
+    },
+    "jurutera": {
+      "awam": { "tempoh": 4, "yuran": [20400, 20400], "hidup_setahun": [20000, 20000],
+        "sumber": "Blog takafulpendidikanterbaik.com memetik laman UM 2025/26: yuran Kejuruteraan RM20,400; sara hidup ~RM80,000 untuk 4 tahun." },
+      "swasta": { "tempoh": 4, "yuran": [142240, 142240], "hidup_setahun": [48000, 48000],
+        "sumber": "eduadvisor.my: BEng (Mechanical) Swinburne Sarawak RM142,240 (julat swasta RM81,270-142,240). Sara hidup RM4,000/bln (had atas anggaran Taylor's)." },
+      "luar": { "tempoh": 4, "yuran": [1444860, 1444860], "hidup_setahun": [103500, 103500],
+        "sumber": "UK: Oxford Engineering Science £62,820/thn x4 (uniadmissions.co.uk 2026-27) x RM5.75. Sara hidup £18,000/thn x RM5.75. Kejuruteraan UK biasa £19,000-36,000/thn." }
+    },
+    "akaun": {
+      "awam": { "tempoh": 4, "yuran": [24900, 24900], "hidup_setahun": [20000, 20000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus akaun awam. Yuran guna siling yuran awam tempatan yang ada (RM24,900). Sara hidup RM20,000/thn (blog UM)." },
+      "swasta": { "tempoh": 3, "yuran": [54250, 54250], "hidup_setahun": [48000, 48000],
+        "sumber": "Berita Harian (Okt 2024): ijazah perakaunan MMU RM54,250 (tempoh tidak dinyatakan; 3 tahun diandaikan). Sara hidup RM4,000/bln (had atas anggaran Taylor's)." },
+      "luar": { "tempoh": 3, "yuran": [655500, 655500], "hidup_setahun": [103500, 103500], "anggaran_dalaman": true,
+        "sumber": "UK: yuran subjek bilik kuliah boleh melebihi £38,000/thn (statementory.com 2026) x3 x RM5.75. Tiada angka khusus perakaunan. Sara hidup £18,000/thn x RM5.75." }
+    },
+    "it": {
+      "awam": { "tempoh": 4, "yuran": [17400, 17400], "hidup_setahun": [20000, 20000],
+        "sumber": "Blog takafulpendidikanterbaik.com memetik laman UM: Sains Komputer RM17,400. (Berita Harian Okt 2024: UKM Kej. Perisian pelajar bayar RM7,520.) Sara hidup RM20,000/thn." },
+      "swasta": { "tempoh": 3, "yuran": [104600, 104600], "hidup_setahun": [48000, 48000],
+        "sumber": "eduadvisor.my: BSc (Hons) Software Engineering APU RM104,600 (tempoh 3 tahun diandaikan). Sara hidup RM4,000/bln (had atas anggaran Taylor's)." },
+      "luar": { "tempoh": 3, "yuran": [784875, 784875], "hidup_setahun": [103500, 103500], "anggaran_dalaman": true,
+        "sumber": "UK: Fakulti Kejuruteraan Imperial £45,500/thn x3 (studyu.org 2026-27; Computing di bawah fakulti ini) x RM5.75. Sara hidup £18,000/thn x RM5.75. Sains/komputer UK biasa £22,000-35,000/thn." }
+    },
+    "islam": {
+      "awam": { "tempoh": 4, "yuran": [24900, 24900], "hidup_setahun": [20000, 20000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus pengajian Islam awam (UIAM/USIM). Yuran guna siling yuran awam tempatan yang ada (RM24,900). Sara hidup RM20,000/thn." },
+      "swasta": { "tempoh": 4, "yuran": [54250, 54250], "hidup_setahun": [48000, 48000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus. Proksi: bidang bukan-STEM swasta (MMU perakaunan RM54,250, Berita Harian 2024). Sara hidup RM4,000/bln (had atas anggaran Taylor's)." },
+      "luar": { "tempoh": 4, "yuran": [141736, 141736], "hidup_setahun": [20000, 20000], "anggaran_dalaman": true,
+        "sumber": "Mesir (Al-Azhar): yuran sehingga ~US$8,000 (~RM32,934)/thn x4 + tambang pulang ~RM10,000. Angka yuran 2016 untuk sains kesihatan (Berita Harian), kos sara hidup di Mesir dilaporkan naik ~50%; RM20,000/thn ialah andaian." }
+    }
+  }
+}
