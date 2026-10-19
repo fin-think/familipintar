@@ -1819,25 +1819,32 @@ const binaRantaianNasabFokus = (focusNode, senaraiNodes, rootNode) => {
         const isLelaki = cekLelaki(focusNode);
         const gelaranIbuBapa = (isLelaki === false) ? "Ibu" : "Ayah";
 
-        // Fungsi cari Ibu & Bapa kepada sebarang Node
+       // Fungsi cari Ibu & Bapa kepada sebarang Node
         const cariIbuBapaNode = (cNode) => {
             const rel = (cNode.relationship || "").toLowerCase();
             let bapa, ibu;
+            
             if (cNode.is_root || rel.includes("diri sendiri")) {
-                bapa = senaraiNodes.find(n => (n.relationship === "Ayah" || n.relationship === "Bapa") && (n.ref_id === cNode.id || !n.ref_id || n.ref_id === ""));
-                ibu = senaraiNodes.find(n => (n.relationship === "Ibu" || n.relationship === "Emak") && (n.ref_id === cNode.id || !n.ref_id || n.ref_id === ""));
+                bapa = senaraiNodes.find(n => (n.relationship || "").toLowerCase().match(/ayah|bapa/) && (n.ref_id === cNode.id || !n.ref_id || n.ref_id === ""));
+                ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase().match(/ibu|emak/) && (n.ref_id === cNode.id || !n.ref_id || n.ref_id === ""));
+            
             } else if (rel === "isteri" || rel === "suami") {
-                bapa = senaraiNodes.find(n => n.relationship === "Bapa Mertua" && n.ref_id === cNode.id);
-                ibu = senaraiNodes.find(n => n.relationship === "Ibu Mertua" && n.ref_id === cNode.id);
-            } else if (rel === "ayah" || rel === "ibu" || rel === "bapa" || rel === "emak") {
-                bapa = senaraiNodes.find(n => n.relationship === "Datuk" && cekLelaki(n) === true && n.ref_id === cNode.id);
-                ibu = senaraiNodes.find(n => n.relationship === "Nenek" && cekLelaki(n) === false && n.ref_id === cNode.id);
+                // KOD DIBETULKAN: Longgarkan tapisan supaya ia jumpa Bapa Mertua walaupun ref_id tak padan 100%
+                bapa = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "bapa mertua" && (n.ref_id === cNode.id || (rootNode && n.ref_id === rootNode.id) || !n.ref_id || n.ref_id === ""));
+                ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "ibu mertua" && (n.ref_id === cNode.id || (rootNode && n.ref_id === rootNode.id) || !n.ref_id || n.ref_id === ""));
+            
+            } else if (rel.match(/ayah|ibu|bapa|emak/)) {
+                bapa = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "datuk" && cekLelaki(n) === true && n.ref_id === cNode.id);
+                ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "nenek" && cekLelaki(n) === false && n.ref_id === cNode.id);
+            
             } else if (rel.includes("datuk") || rel.includes("nenek")) {
-                bapa = senaraiNodes.find(n => n.relationship === "Moyang" && cekLelaki(n) === true && n.ref_id === cNode.id);
-                ibu = senaraiNodes.find(n => n.relationship === "Moyang" && cekLelaki(n) === false && n.ref_id === cNode.id);
+                bapa = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "moyang" && cekLelaki(n) === true && n.ref_id === cNode.id);
+                ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "moyang" && cekLelaki(n) === false && n.ref_id === cNode.id);
+            
             } else if (rel.includes("moyang")) {
-                bapa = senaraiNodes.find(n => n.relationship === "Buyut" && cekLelaki(n) === true && n.ref_id === cNode.id);
-                ibu = senaraiNodes.find(n => n.relationship === "Buyut" && cekLelaki(n) === false && n.ref_id === cNode.id);
+                bapa = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "buyut" && cekLelaki(n) === true && n.ref_id === cNode.id);
+                ibu = senaraiNodes.find(n => (n.relationship || "").toLowerCase() === "buyut" && cekLelaki(n) === false && n.ref_id === cNode.id);
+            
             } else if (rel === "anak") {
                 let parent1 = senaraiNodes.find(n => n.id === cNode.ref_id);
                 if (!parent1 && rootNode) parent1 = rootNode; 
@@ -1846,7 +1853,7 @@ const binaRantaianNasabFokus = (focusNode, senaraiNodes, rootNode) => {
                     if (cekLelaki(parent1) === true) bapa = parent1;
                     else ibu = parent1;
                     
-                    let spouse = senaraiNodes.find(n => (n.relationship === "Isteri" || n.relationship === "Suami") && (n.ref_id === parent1.id || parent1.ref_id === n.id || n.is_root || parent1.is_root));
+                    let spouse = senaraiNodes.find(n => (n.relationship || "").toLowerCase().match(/isteri|suami/) && (n.ref_id === parent1.id || parent1.ref_id === n.id || n.is_root || parent1.is_root));
                     if (spouse) {
                         if (cekLelaki(spouse) === true) bapa = spouse;
                         else ibu = spouse;
@@ -1855,7 +1862,7 @@ const binaRantaianNasabFokus = (focusNode, senaraiNodes, rootNode) => {
             }
             return { bapa, ibu };
         };
-
+        
         // Fungsi Jejak Susur Galur ke Atas
         const traceNasab = (isBelahIbu) => {
             let rantaian = focusNode.name;
