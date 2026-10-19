@@ -18,20 +18,20 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
     console.log('[firebase-messaging-sw.js] Mesej Diterima: ', payload);
     
-    // 1. Tarik nombor lencana dari data server
-    const jumlahLencana = parseInt(payload.data?.badgeCount || 1);
+    const jumlahLencana = parseInt(payload.data.badgeCount || 1);
     
-    // 2. Naikkan App Badge
+    // 1. Naikkan App Badge
     if (navigator.setAppBadge) {
         navigator.setAppBadge(jumlahLencana);
     }
 
-    // 3. PENTING: Keluarkan Notifikasi supaya Android tahu ia milik Famili Pintar, bukan Chrome
-    const notificationTitle = payload.notification?.title || "Mesej Baharu";
-    const notificationOptions = {
-        body: payload.notification?.body || "Anda mempunyai mesej di Famili Pintar.",
-        icon: '/logo.png' // Gantikan dengan nama fail logo aplikasi bos jika berbeza
+    // 2. KELUARKAN KOTAK NOTIFIKASI (Sangat penting supaya OS tak hantar badge ke Chrome)
+    const tajuk = payload.notification?.title || "Famili Pintar";
+    const pilihan = {
+        body: payload.notification?.body || "Anda ada mesej baharu.",
+        icon: '/logo.png', // Pastikan bos ada fail logo.png dalam root folder
+        badge: '/logo.png'
     };
 
-    return self.registration.showNotification(notificationTitle, notificationOptions);
+    return self.registration.showNotification(tajuk, pilihan);
 });
