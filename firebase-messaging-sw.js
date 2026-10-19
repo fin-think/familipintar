@@ -35,3 +35,23 @@ messaging.onBackgroundMessage((payload) => {
 
     return self.registration.showNotification(tajuk, pilihan);
 });
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close(); // Tutup kotak notifikasi bila ditekan
+    
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            // Jika aplikasi dah sedia terbuka di latar belakang, fokuskan saja
+            for (let i = 0; i < clientList.length; i++) {
+                let client = clientList[i];
+                if (client.url.includes('familipintar') && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // Jika aplikasi tertutup penuh, buka aplikasi sebagai PWA
+            if (clients.openWindow) {
+                return clients.openWindow('/');
+            }
+        })
+    );
+});
