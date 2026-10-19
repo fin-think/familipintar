@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>weCare - Jagaan Bersama</title>
  
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="/manifest.json">
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -763,10 +763,13 @@ window.simpanNotaKeluarga = async () => {
   const jb = jangkarBelah();
   if (!jb) { alert('Belah ini belum ada pasangan dalam myNasab.'); return; }
   const date = document.getElementById('teamNoteDate').value || kunciTarikh(Date.now());
+  
   await setDoc(doc(collection(db, "wecare_notes")), {
     note, date, anchor_id: jb,
-    author: currentUser.email.split('@')[0], group_id: currentGroup, created_at: Date.now()
+    author: currentUser.email.split('@')[0], group_id: currentGroup, created_at: Date.now(),
+    status_baca: false // <--- TAMBAH BARIS INI
   });
+  
   document.getElementById('teamNote').value = '';
   document.getElementById('teamNoteDate').value = kunciTarikh(Date.now());
   muatNotaKeluarga();
@@ -780,7 +783,7 @@ async function muatNotaKeluarga() {
     
     // Guna onSnapshot untuk Live Update!
     unsubscribeNota = onSnapshot(q, (snapshot) => {
-        dataNotaGlobal = snapshot.docs.map(d => d.data());
+        dataNotaGlobal = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
         const tkh = document.getElementById('teamNoteDate');
         if (tkh && !tkh.value) tkh.value = kunciTarikh(Date.now());
         document.getElementById('notaHint').innerText = 'Nota muncul di kalendar (🗒️) untuk ' + labelBelah() + ' sahaja.';
@@ -796,10 +799,10 @@ async function muatNotaKeluarga() {
 window.kemaskiniNotifikasiPWA = () => {
     const kini = new Date();
     const kunciHariIni = kunciTarikh(kini.getTime());
-    const mmddHariIni = kunciHariIni.substring(5); // Format: MM-DD
-
-    // 1. Kira jumlah nota untuk HARI INI
-    const notaHarini = notaHari(kunciHariIni).length;
+    const mmddHariIni = kunciHariIni.substring(5); // Format: MM-DD-YYYY
+ 
+    // 1. Kira jumlah nota HARI INI yang BELUM DIBACA
+    const notaHarini = notaHari(kunciHariIni).filter(n => n.status_baca !== true).length;
 
     // 2. Kira jumlah Hari Jadi untuk HARI INI
     let birthdayHarini = 0;
@@ -870,18 +873,57 @@ window.renderAktivitiHariIni = () => {
 window.lihatNota = (kunci) => {
   const senarai = notaHari(kunci).sort((a, b) => b.created_at - a.created_at);
   document.getElementById('tajukNota').innerText = '🗒️ Nota · ' + kunci;
+  
   document.getElementById('isiNota').innerHTML = senarai.map(n => `
-    <div class="card" style="background:#fffbeb;border-color:#fde68a;margin-bottom:8px;">
-      <div style="font-size:13.5px;line-height:1.4;white-space:pre-wrap;">${esc(n.note)}</div>
+    <div class="card" style="background:${n.status_baca ? '#f8fafc' : '#fffbeb'};border-color:${n.status_baca ? '#e2e8f0' : '#fde68a'};margin-bottom:8px;">
+      <div style="font-size:13.5px;line-height:1.4;white-space:pre-wrap;color:${n.status_baca ? '#64748b' : '#000'};">${esc(n.note)}</div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:8px;border-top:1px solid var(--line);padding-top:5px;">
         <span>Oleh: <b>${esc(n.author)}</b></span>
         <span>${new Date(n.created_at).toLocaleString('ms-MY', { dateStyle: 'medium', timeStyle: 'short' })}</span>
       </div>
+      
+      <!-- BUTANG TINDAKAN KEMAS KINI -->
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+          ${!n.status_baca ? `<button onclick="tandakanNotaDibaca('${n.id}', '${kunci}')" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">Tandakan Dibaca ✓</button>` : ''}
+          <button onclick="padamNota('${n.id}', '${kunci}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">Padam 🗑️</button>
+      </div>
     </div>`).join('');
+    
   document.getElementById('modalNota').style.display = 'flex';
 };
+ 
 window.tutupNota = () => { document.getElementById('modalNota').style.display = 'none'; };
 
+window.tandakanNotaDibaca = async (id, kunci) => {
+    try {
+        await updateDoc(doc(db, "wecare_notes", id), { status_baca: true });
+        // Refresh paparan modal perlahan sedikit supaya tak nampak kelip
+        setTimeout(() => window.lihatNota(kunci), 300); 
+    } catch (e) {
+        console.error("Gagal update status:", e);
+    }
+};
+
+window.padamNota = async (id, kunci) => {
+    const sahkan = confirm("Adakah anda pasti mahu memadam pesanan ini?");
+    if(sahkan) {
+        try {
+            await deleteDoc(doc(db, "wecare_notes", id));
+            setTimeout(() => {
+                const bakiNota = notaHari(kunci);
+                if(bakiNota.length > 0) {
+                    window.lihatNota(kunci); // Jika ada nota lain, refresh
+                } else {
+                    window.tutupNota(); // Jika ini nota terakhir, tutup modal
+                }
+            }, 300);
+        } catch (e) {
+            console.error("Gagal padam:", e);
+        }
+    }
+};
+
+ 
 // MODAL KESIHATAN
 window.bukaModalKesihatan = async (idNod, nama) => {
   document.getElementById('tajukModalKesihatan').innerText = "Kesihatan: " + nama;
