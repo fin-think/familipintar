@@ -2082,6 +2082,11 @@ window.bukaPetiMesej = async () => {
                                 Tandakan Dibaca ✓
                             </button>
                         ` : ''}
+
+<button onclick="padamMesej('${doc.id}')" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded shadow-sm">
+  Padam 🗑️
+</button>
+                        
                     </div>
 
                     <div id="kotakBalas_` + idMesej + `" style="display:none; margin-top:15px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
@@ -2159,6 +2164,23 @@ window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
         alert("Gagal menghantar balasan: " + error.message);
     }
 };
+
+window.padamMesej = async (mesejId) => {
+    // Memunculkan popup konfirmasi (dalam bahasa Melayu agar sesuai dengan aplikasi Anda)
+    const sahkan = confirm("Adakah anda pasti mahu memadam mesej ini?"); 
+    
+    if (sahkan) {
+        try {
+            // Mengarahkan Firebase untuk menghapus dokumen berdasarkan ID unik pesan
+            await deleteDoc(doc(db, "mynasab_messages", mesejId));
+            console.log("Mesej berjaya dipadam.");
+        } catch (error) {
+            console.error("Gagal memadam mesej:", error);
+            alert("Ralat: Tidak dapat memadam mesej.");
+        }
+    }
+};
+
 
 // =========================================================
 // SISTEM NOTIFIKASI MESEJ (REAL-TIME & APP BADGE)
