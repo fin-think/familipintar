@@ -278,6 +278,22 @@
 
                   childrenList.sort((a, b) => b.age - a.age);
 
+ // Gabung anggaran kos pengajian daripada myKids (ID anak sama dengan ID dokumen mykids_plans)
+                  try {
+                      const planSnap = await window.fbGetDocs(window.fbQuery(window.fbCollection(window.fbDb, "mykids_plans"), window.fbWhere("owner_uid", "==", uid)));
+                      const planMap = {};
+                      planSnap.forEach(p => { planMap[p.id] = p.data(); });
+                      childrenList.forEach(c => {
+                          const p = planMap[c.id];
+                          if (p && p.kos_semasa > 0) {
+                              c.eduCost = p.kos_semasa;            // harga hari ini, sudah termasuk destinasi
+                              c.eduUniAge = p.umur_masuk || 0;
+                              c.eduType = p.jenis_uni || 'local';
+                          }
+                      });
+                  } catch (e) { console.warn("Gagal baca anggaran myKids:", e.message); }
+
+                  
                   if(selfAge > 0) mergedData.age = selfAge;
                   mergedData.userGender = selfGender;
                   mergedData.hasSpouse = spouse;
@@ -535,15 +551,19 @@
           
           const totalEducationFundNow = sspnFund + asbAnakFund;
 
+         // Anak yang ada anggaran myKids guna kos & umur masuk uni sendiri (tiada darab x5).
+          // Anak lain guna Kos Umum (Per Anak), dengan darab x5 jika jenis Luar Negara (seperti asal).
+          const kosAnak = (child) => child.eduCost > 0
+            ? child.eduCost
+            : (universityType === 'overseas' ? currentEduCost * 5 : currentEduCost);
+          const umurUniAnak = (child) => child.eduUniAge > 0 ? child.eduUniAge : uniAge;
+ 
           const futureEduCostTotal = childrenData.reduce((total, child) => {
-            const yearsToUni = Math.max(0, uniAge - child.age);
-            const adjustedCost = universityType === 'overseas' ? currentEduCost * 5 : currentEduCost;
-            const futureCost = adjustedCost * Math.pow(1 + (educationInflation / 100), yearsToUni);
-            return total + futureCost;
+            const yearsToUni = Math.max(0, umurUniAnak(child) - child.age);
+            return total + kosAnak(child) * Math.pow(1 + (educationInflation / 100), yearsToUni);
           }, 0);
-
-          const earliestChildYears = childrenData.length > 0 ? Math.min(...childrenData.map(child => Math.max(0, uniAge - child.age))) : 0;
-          const futureEducationFund = totalEducationFundNow * Math.pow(1 + (assetReturnRate / 100), earliestChildYears);
+ 
+          const earliestChildYears = childrenData.length > 0 ? Math.min(...childrenData.map(child => Math.max(0, umurUniAnak(child) - child.age))) : 0;          const futureEducationFund = totalEducationFundNow * Math.pow(1 + (assetReturnRate / 100), earliestChildYears);
           const educationShortfall = Math.max(0, futureEduCostTotal - futureEducationFund);
           const monthsToUniversity = Math.max(1, earliestChildYears * 12);
           const educationCatchupMonthly = Number.isFinite(educationShortfall) ? educationShortfall / monthsToUniversity : 0;
@@ -1004,7 +1024,25 @@
                         </Card>
                         <Card>
                           <SectionHeader title="Dana Pendidikan Anak" icon={BookOpen} description="Anggaran kos pendidikan masa depan anak." />
-                          <div className="grid grid-cols-2 gap-4">
+                          {childrenData.some(c => c.eduCost > 0) && (
+  <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm">
+    <div className="font-semibold text-emerald-800 mb-2">Kos anggaran daripada myKids (harga hari ini)</div>
+    {childrenData.map(c => (
+      <div key={c.id} className="flex justify-between gap-3 text-slate-700 py-0.5">
+        <span>
+          {c.name || 'Anak'} · umur {c.age}
+          {c.eduCost > 0 ? ` · masuk uni umur ${c.eduUniAge || uniAge} · ${c.eduType === 'overseas' ? 'Luar negara' : 'Tempatan'}` : ''}
+        </span>
+        <span className="font-semibold shrink-0">{c.eduCost > 0 ? formatRM(c.eduCost) : 'Guna kos umum'}</span>
+      </div>
+    ))}
+    <p className="text-xs text-slate-500 mt-2">Kos anggaran, nilai tertinggi. Anak tanpa anggaran myKids guna Kos (Per Anak) di bawah. Inflasi pendidikan dikira ke atas semua.</p>
+  </div>
+)}
+ 
+(Pilihan) tukar label  label="Kos (Per Anak)"  kepada  label="Kos Umum (Per Anak)"
+)}
+                            <div className="grid grid-cols-2 gap-4">
                             <Input label="Umur Masuk Uni." value={uniAge} onChange={e => setUniAge(toNumber(e.target.value))} />
                             <Input label="Kos (Per Anak)" value={currentEduCost} onChange={e => setCurrentEduCost(toNumber(e.target.value))} prefix="RM" />
                           </div>
@@ -1301,7 +1339,7 @@
                           </div>
                           <div className="bg-white/5 p-4 rounded-xl">
                             <p className="text-sm text-slate-400">Jenis Universiti</p>
-                            <p className="text-xl font-bold text-white">{universityType === 'local' ? 'Tempatan' : 'Luar Negara'}</p>
+                            <p className="text-xl font-bold text-white">{childrenData.some(c => c.eduCost > 0) ? 'Ikut anggaran myKids' : (universityType === 'local' ? 'Tempatan' : 'Luar Negara')}</p>
                           </div>
                         </div>
                         <div className="space-y-6 mt-5">
