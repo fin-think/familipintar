@@ -1685,7 +1685,7 @@ window.renderFaraidHtml = (results) => {
 };
 
 // =========================================================
-// 1. Fungsi Utama Carian Nasab (VERSI GABUNG NAMA & LENGKAP)
+// 1. Fungsi Utama Carian Nasab (VERSI GABUNG NAMA & KOTAK NASAB)
 // =========================================================
 window.ujiCarianNasab = async () => {
     const hasilContainer = document.getElementById('hasilCarianNasab');
@@ -1733,7 +1733,6 @@ window.ujiCarianNasab = async () => {
                 const userData = userSnap.data();
                 const namaAkaunKhas = userData.name || 'Akaun Tanpa Nama';
 
-                // KOD BARU: Tarik nama individu (Diri Sendiri) dari jadual pokok
                 const rootQ = query(nodesRef, where("owner_uid", "==", ownerUid), where("is_root", "==", true));
                 const rootSnap = await getDocs(rootQ);
                 
@@ -1741,13 +1740,11 @@ window.ujiCarianNasab = async () => {
                 if (!rootSnap.empty) {
                     namaIndividu = rootSnap.docs[0].data().name;
                 } else {
-                    // Backup jika is_root gagal dikesan
                     const rootQ2 = query(nodesRef, where("owner_uid", "==", ownerUid), where("relationship", "==", "Diri Sendiri (Induk)"));
                     const rootSnap2 = await getDocs(rootQ2);
                     if (!rootSnap2.empty) namaIndividu = rootSnap2.docs[0].data().name;
                 }
 
-                // GABUNGKAN NAMA (Cth: Dahanis Famili (Hasnawi Bin Che Harun))
                 let paparanAkaun = namaAkaunKhas;
                 if (namaIndividu && namaIndividu.toLowerCase() !== namaAkaunKhas.toLowerCase()) {
                     paparanAkaun = `${namaAkaunKhas} (${namaIndividu})`;
@@ -1758,8 +1755,8 @@ window.ujiCarianNasab = async () => {
 
                 if (padanNegeri && padanBandar) {
                     
-                    // Panggil rantaian nasab tanpa perlukan nama dari userDoc
-                    const nasabPenuh = await binaRantaianNasab(ownerUid);
+                    // Panggil rantaian nasab (Ia akan pulangkan kotak HTML yang diasingkan Bapa & Ibu)
+                    const kotakNasabPenuh = await binaRantaianNasab(ownerUid);
                     
                     htmlHasil += `
                         <div class="hasil-card" style="background:#fff; border:1px solid #e2e8f0; padding:15px; border-radius:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
@@ -1769,11 +1766,8 @@ window.ujiCarianNasab = async () => {
                                     <strong style="font-size:16px; color:#8e44ad;">${paparanAkaun}</strong>
                                 </h4>
                                 
-                                <!-- KOD BARU: Tunjuk rantaian keturunan kat sini -->
-                                <p style="margin:8px 0; font-size:13px; color:#059669; font-weight:600; background:#f0fdf4; padding:6px 10px; border-radius:6px; display:inline-block;">
-                                    <i class="fa-solid fa-link"></i> ${nasabPenuh}
-                                </p>
-                                <br>
+                                ${kotakNasabPenuh}
+                                
                                 <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> ${userData.bandar || 'Tidak dinyatakan'}, ${userData.negeri || 'Tidak dinyatakan'}</small>
                             </div>
                             <button onclick="bukaMesejNasab('${ownerUid}', '${paparanAkaun.replace(/'/g, "\\'")}')" class="btn-action" style="background:#3b82f6; color:white; padding:8px 15px; font-size:12px; border-radius:6px; cursor:pointer; border:none; display:flex; gap:5px; align-items:center; white-space:nowrap; height:fit-content;">
@@ -1799,7 +1793,7 @@ window.ujiCarianNasab = async () => {
 };
 
 // =========================================================
-// 2. Menyusun Nama Keturunan ke Atas (DIBETULKAN JANTINA & INDUK)
+// 2. Menyusun Nama Keturunan ke Atas (Pecahan Lengkap 4 Tahap)
 // =========================================================
 async function binaRantaianNasab(uidPemilik) {
     try {
@@ -1808,32 +1802,90 @@ async function binaRantaianNasab(uidPemilik) {
         const snap = await getDocs(q);
         
         let senaraiNodes = [];
-        snap.forEach(doc => senaraiNodes.push(doc.data()));
+        snap.forEach(doc => {
+            senaraiNodes.push({ ...doc.data(), id: doc.id });
+        });
 
-        // Cari siapa "Diri Sendiri (Induk)" untuk dijadikan tapak permulaan Bin
+        // Cari siapa "Diri Sendiri (Induk)"
         const rootNode = senaraiNodes.find(n => n.is_root === true || n.relationship === "Diri Sendiri (Induk)");
-        let rantaian = rootNode ? rootNode.name : "Pemilik Akaun";
+        if (!rootNode) return "Pemilik Akaun";
 
-        // KOD BARU: Menyokong jantina ejaan "L" atau "Lelaki"
-        const ayah = senaraiNodes.find(n => n.relationship === "Ayah" || n.relationship === "Bapa");
-        const datuk = senaraiNodes.find(n => n.relationship === "Datuk" && (n.gender === "L" || n.gender === "Lelaki")); 
-        const moyang = senaraiNodes.find(n => n.relationship === "Moyang" && (n.gender === "L" || n.gender === "Lelaki")); 
-        
-        // Cantum rantaian keturunan ke atas
-        if (ayah && ayah.name) rantaian += ` bin/binti ${ayah.name}`;
-        if (datuk && datuk.name) rantaian += ` bin ${datuk.name}`;
-        if (moyang && moyang.name) rantaian += ` bin ${moyang.name}`;
+        // Tarik nama pendek & jantina Induk untuk paparan pintar
+        const namaPendekInduk = rootNode.name.split(' ')[0]; // Ambil perkataan pertama
+        const isLelaki = (rootNode.gender === "L" || rootNode.gender === "Lelaki");
+        const gelaranIbuBapa = isLelaki ? "Ayah" : "Ibu";
 
-        // Masukkan sekali maklumat pasangan
+        // Enjin "Tracer" Pintar - Menjejak keturunan mengikut ikatan
+        const traceNasab = (isBelahIbu) => {
+            let rantaian = rootNode.name;
+            let currentChild = rootNode;
+            let currentParentId = rootNode.id;
+
+            let parent1;
+            if (isBelahIbu) {
+                parent1 = senaraiNodes.find(n => (n.relationship === "Ibu" || n.relationship === "Emak") && n.ref_id === currentParentId);
+                if (!parent1) parent1 = senaraiNodes.find(n => n.relationship === "Ibu" || n.relationship === "Emak");
+            } else {
+                parent1 = senaraiNodes.find(n => (n.relationship === "Ayah" || n.relationship === "Bapa") && n.ref_id === currentParentId);
+                if (!parent1) parent1 = senaraiNodes.find(n => n.relationship === "Ayah" || n.relationship === "Bapa");
+            }
+
+            if (parent1 && parent1.name) {
+                let connector1 = (currentChild.gender === "L" || currentChild.gender === "Lelaki") ? " bin " : " binti ";
+                rantaian += connector1 + parent1.name;
+                
+                currentChild = parent1;
+                currentParentId = parent1.id;
+
+                let failsafe = 0;
+                while(currentParentId && failsafe < 5) {
+                    failsafe++;
+                    let bapaSeterusnya = senaraiNodes.find(n => n.ref_id === currentParentId && (n.gender === "L" || n.gender === "Lelaki" || n.relationship === "Datuk" || n.relationship === "Moyang"));
+                    
+                    if (bapaSeterusnya && bapaSeterusnya.name) {
+                        let connectorNext = (currentChild.gender === "L" || currentChild.gender === "Lelaki") ? " bin " : " binti ";
+                        rantaian += connectorNext + bapaSeterusnya.name;
+                        
+                        currentChild = bapaSeterusnya;
+                        currentParentId = bapaSeterusnya.id;
+                    } else {
+                        break;
+                    }
+                }
+            } else {
+                rantaian += " (Tiada Maklumat)";
+            }
+            return rantaian;
+        };
+
+        let nasabBapa = traceNasab(false);
+        let nasabIbu = traceNasab(true);
+
+        // 3. Maklumat Pasangan
         const pasangan = senaraiNodes.filter(n => n.relationship === "Isteri" || n.relationship === "Suami");
+        let teksPasangan = "Tiada Maklumat";
         if (pasangan.length > 0) {
-            let namaPasangan = pasangan.map(p => p.name).join(' & ');
-            rantaian += ` (Pasangan: ${namaPasangan})`;
+            teksPasangan = pasangan.map(p => p.name).join(', ');
         }
 
-        return rantaian;
+        // 4. Maklumat Anak-anak
+        const anakAnak = senaraiNodes.filter(n => n.relationship === "Anak");
+        let teksAnak = "Tiada Maklumat";
+        if (anakAnak.length > 0) {
+            teksAnak = anakAnak.map(a => a.name).join(', ');
+        }
+
+        // Pulangkan kotak HTML berserta senarai 1-4
+        return `
+            <div style="margin:10px 0; font-size:12px; color:#064e3b; background:#ecfdf5; padding:12px; border-radius:8px; border:1px solid #a7f3d0; line-height:1.7;">
+                <div style="margin-bottom:2px;"><strong style="color:#047857;">1. Nasab Bapa:</strong> ${nasabBapa}</div>
+                <div style="margin-bottom:2px;"><strong style="color:#047857;">2. Nasab Ibu:</strong> ${nasabIbu}</div>
+                <div style="margin-bottom:2px;"><strong style="color:#047857;">3. Pasangan ${namaPendekInduk}:</strong> ${teksPasangan}</div>
+                <div><strong style="color:#047857;">4. ${gelaranIbuBapa} Kepada:</strong> ${teksAnak}</div>
+            </div>
+        `;
     } catch (e) {
-        return "Rantaian Keluarga"; 
+        return `<div style="color:red; font-size:12px;">Gagal memuatkan profil keluarga</div>`; 
     }
 }
 
