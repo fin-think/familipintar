@@ -2186,15 +2186,15 @@ window.pantauMesejBaru = (uid) => {
 
         // 2. Kemas kini Ikon di Telefon (App Badging API) & Tab Browser
         if (jumlahBaru > 0) {
-            // Tolak nombor ke ikon Home Screen telefon (jika disokong)
-            if (navigator.setAppBadge) {
+            // Hanya tolak nombor ke ikon Home Screen JIKA dibuka sebagai Aplikasi (PWA)
+            if (navigator.setAppBadge && window.matchMedia('(display-mode: standalone)').matches) {
                 navigator.setAppBadge(jumlahBaru).catch(e => console.log("Badging API tidak disokong", e));
             }
             // Letak nombor di tab/favicon browser (Cth: "(2) myNasab")
             document.title = `(${jumlahBaru}) myNasab - Famili Pintar`;
         } else {
             // Buang nombor jika tiada mesej
-            if (navigator.clearAppBadge) {
+            if (navigator.clearAppBadge && window.matchMedia('(display-mode: standalone)').matches) {
                 navigator.clearAppBadge().catch(e => console.log("Badging API tidak disokong", e));
             }
             document.title = `myNasab - Famili Pintar`; 
