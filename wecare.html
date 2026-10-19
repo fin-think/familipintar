@@ -302,15 +302,66 @@ onAuthStateChanged(auth, async (user) => {
     }
     const uData = userDoc.data();
 
-    // KONGSI KALENDAR & NOTA: group_id = UID induk (pengundang), bukan UID sendiri
+    // KONGSI KALENDAR & NOTA: group_id = UID induk (pengundang)
     currentGroup = user.uid;
     try {
       const sLink = await getDoc(doc(db, "mynasab_links", user.uid));
       if (sLink.exists() && sLink.data().status === 'aktif') currentGroup = sLink.data().owner_uid;
     } catch (e) { console.warn("Gagal baca pautan:", e.message); }
 
-    await siapkanJangkar(user, currentGroup);
+    // ==========================================
+    // KOD NOTIFIKASI WECARE (TIRU SEBIJI MYNASAB)
+    // ==========================================
+    const lencanaLuar = document.getElementById('lencanaLuarWeCare');
     
+    const sNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentGroup)));
+    const kini = new Date();
+    const mmddHariIni = String(kini.getMonth() + 1).padStart(2, '0') + '-' + String(kini.getDate()).padStart(2, '0');
+
+    let jumlahBirthday = 0;
+    sNodes.forEach(d => {
+        const dob = d.data().dob;
+        if (dob && dob.substring(5) === mmddHariIni) {
+            jumlahBirthday++;
+        }
+    });
+
+    const qNotifikasi = query(collection(db, "wecare_notes"), where("group_id", "==", currentGroup));
+
+    onSnapshot(qNotifikasi, (snapshot) => {
+        let notaBelumBaca = 0;
+        snapshot.forEach(docSnap => {
+            // Tapis nota belum baca di sini
+            if (docSnap.data().status_baca !== true) {
+                notaBelumBaca++;
+            }
+        });
+
+        const jumlahBaru = notaBelumBaca + jumlahBirthday;
+
+        // 1. Update Badge UI (Merah Atas)
+        if (lencanaLuar) {
+            if (jumlahBaru > 0) {
+                lencanaLuar.style.display = 'inline-block';
+                lencanaLuar.innerText = jumlahBaru;
+            } else {
+                lencanaLuar.style.display = 'none';
+            }
+        }
+
+        // 2. Update Badge App PWA (Ikon Telefon)
+        if (navigator.setAppBadge && window.matchMedia('(display-mode: standalone)').matches) {
+            if (jumlahBaru > 0) navigator.setAppBadge(jumlahBaru).catch(e=>{});
+            else navigator.clearAppBadge().catch(e=>{});
+        }
+        
+        // 3. Update Tajuk Tab
+        if (jumlahBaru > 0) document.title = `(${jumlahBaru}) weCare - Jagaan Bersama`;
+        else document.title = `weCare - Jagaan Bersama`;
+    });
+    // ==========================================
+
+    await siapkanJangkar(user, currentGroup);
     await migrasiDataLama(user.uid, currentGroup);
 
     document.getElementById('displayUserName').innerText = uData.name || user.email.split('@')[0];
