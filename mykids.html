@@ -159,10 +159,11 @@ async function pilih(i) {
   S.i = i;
   const a = S.anak[i];
   const p = await getDoc(doc(db,"mykids_plans",a.id));
-  S.plan = p.exists() ? { ker:p.data().kerjaya||'', tick:p.data().tick||{} } : { ker:'', tick:{} };
+  S.plan = p.exists() ? { ker:p.data().kerjaya||'', tick:p.data().tick||{}, tier:p.data().tier||'awam' } : { ker:'', tick:{}, tier:'awam' };
   render();
 }
-const simpan = () => setDoc(doc(db,"mykids_plans",S.anak[S.i].id), { owner_uid:S.uid, kerjaya:S.plan.ker, tick:S.plan.tick, updated_at:Date.now() }, { merge:true });
+const simpan = () => setDoc(doc(db,"mykids_plans",S.anak[S.i].id), { owner_uid:S.uid, kerjaya:S.plan.ker, tier:S.plan.tier||'awam', tick:S.plan.tick, updated_at:Date.now() }, { merge:true });
+
 
 function render() {
   const a = S.anak[S.i];
@@ -188,6 +189,7 @@ function dunia(a,u,tk) {
   h += `<div class="box"><h2>Peta jalan ${esc(K.n)}</h2><p class="s">Tahun berdasarkan umur ${esc(a.name)}.</p><ul class="tl">${K.laluan.map((l,i)=>{
     const n = K.laluan[i+1]; const c = n && u>=n[0] ? 'lepas' : u>=l[0] ? 'kini' : '';
     return `<li class="${c}">${esc(l[1])}<small>Umur ${l[0]} · kira-kira ${lahir+l[0]}${c==='kini'?' · peringkat semasa':''}</small></li>`; }).join('')}</ul></div>`;
+  h += kosBox(K);
   const td = K.t[tk];
   if (td) h += `<div class="box"><h2>Yang perlu dibuat sekarang</h2>${td.map((t,i)=>ck('k:'+S.plan.ker+':'+tk+':'+i,t)).join('')}</div>`;
   h += `<div class="box"><h2>Bidang dalam ${esc(K.n)}</h2>${K.bidang.map(b=>`<span class="pil">${esc(b)}</span>`).join('')}<p class="s" style="margin-top:8px">Universiti: ${esc(K.uni)}</p>
@@ -210,6 +212,48 @@ function akhirat(u) {
   return h;
 }
 
+// ===== KOS PENGAJIAN =====
+let KOS = null;
+fetch('kos_pengajian.json').then(r => r.json()).then(j => { KOS = j; render(); }).catch(e => console.warn('kos_pengajian.json tidak dimuat', e));
+const TIER = { awam:'Universiti awam (tempatan)', swasta:'Universiti swasta (tempatan)', luar:'Luar negara' };
+const RM = n => 'RM' + Math.round(n).toLocaleString('en-MY');
+
+function kosBox(K) {
+  if (!KOS) return '';
+  const t = S.plan.tier || 'awam';
+  const d = (KOS.kerjaya[S.plan.ker] || {})[t];
+  S.kos = null;
+  let h = `<div class="box"><h2>Kos anggaran pengajian</h2><p class="s"><b>Kos anggaran, nilai tertinggi.</b> Diambil daripada angka tertinggi sumber yang ada supaya ibu bapa bersedia awal. Kos sebenar bergantung pada universiti dan program. Harga semasa, bukan harga tahun masuk; inflasi dikira di myTADBIR.</p>
+    <select id="tier">${Object.entries(TIER).map(([k,v]) => `<option value="${k}" ${t===k?'selected':''}>${v}</option>`).join('')}</select>`;
+  if (!d) return h + `<p class="nota">Data kos belum tersedia untuk pilihan ini.</p></div>`;
+
+  const hidup = d.hidup_setahun ? d.hidup_setahun.map(x => x * d.tempoh) : null;
+  const min = d.yuran[0] + (hidup ? hidup[0] : 0), max = d.yuran[1] + (hidup ? hidup[1] : 0);
+  const tengah = Math.round((min + max) / 2 / 1000) * 1000;
+  const umur = (K.laluan.find(l => /ijazah|mbbs|beng|llb/i.test(l[1])) || [19])[0];
+  S.kos = { jumlah: tengah, jenis: t === 'luar' ? 'overseas' : 'local', umur, t };
+
+  const julat = (a, b) => a === b ? RM(a) : RM(a) + ' hingga ' + RM(b);
+  h += `<p style="margin:12px 0 2px;font-size:22px;font-weight:800">${julat(min, max)}</p>
+    <p class="s" style="margin:0">Untuk ${d.tempoh} tahun · ${hidup ? 'yuran + sara hidup' : 'yuran sahaja'}</p>
+    <p class="nota">Yuran: ${julat(d.yuran[0], d.yuran[1])}${hidup ? ' · Sara hidup: ' + julat(hidup[0], hidup[1]) : ''}</p>
+    <p class="nota"><b>Kos anggaran.</b> Semak yuran rasmi universiti sebelum membuat keputusan.${d.anggaran_dalaman ? ' Tiada angka khusus program ini, angka proksi digunakan.' : ''}</p>
+    <p class="nota">Sumber: ${esc(d.sumber)}</p>
+    <button class="btn" id="btnKos" style="width:100%;border:0;cursor:pointer;font:800 15px inherit;font-family:inherit">💾 Simpan ke myTADBIR (${RM(tengah)})</button>
+    <a class="btn" style="background:#fff;color:var(--dunia);border:2px solid var(--dunia)" href="${URL_MYTADBIR}">Buka myTADBIR</a></div>`;
+  return h;
+}
+
+document.addEventListener('click', async e => {
+  if (e.target.id !== 'btnKos' || !S.kos) return;
+  const a = S.anak[S.i];
+  try {
+    await setDoc(doc(db,"mykids_plans",a.id), { owner_uid:S.uid, nama_anak:a.name, kerjaya:S.plan.ker, tier:S.kos.t,
+      kos_semasa:S.kos.jumlah, jenis_uni:S.kos.jenis, umur_masuk:S.kos.umur, kos_dikemas:Date.now() }, { merge:true });
+    e.target.textContent = '✔ Disimpan. Buka myTADBIR > Unjuran untuk guna anggaran ini';
+  } catch (err) { alert('Gagal menyimpan: ' + err.message); }
+});
+  
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-i]'); if (b) pilih(+b.dataset.i);
 });
@@ -217,6 +261,7 @@ document.getElementById('tD').onclick = () => { S.tab='dunia'; render(); };
 document.getElementById('tA').onclick = () => { S.tab='akhirat'; render(); };
 document.addEventListener('change', e => {
   if (e.target.id==='ker') { S.plan.ker = e.target.value; simpan(); render(); }
+  else if (e.target.id==='tier') { S.plan.tier = e.target.value; simpan(); render(); }
   else if (e.target.dataset.k) { S.plan.tick[e.target.dataset.k] = e.target.checked; simpan(); }
 });
 </script>
