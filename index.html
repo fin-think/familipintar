@@ -701,6 +701,14 @@ if ('Notification' in window) {
                 }
             });
 
+            // ==========================================
+            // KOD BARU: PANGGIL LENCANA WECARE DI SINI
+            // ==========================================
+            if (typeof pantauLencanaWeCareUtama === 'function') {
+                pantauLencanaWeCareUtama(user);
+            }
+
+            
             // --- 3. MINTA TOKEN FCM SECARA LATAR BELAKANG (Biar ia berjalan senyap lepas 3 saat) ---
             setTimeout(async () => {
                 try {
