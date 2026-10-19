@@ -892,20 +892,18 @@ window.pantauLencanaWeCareUtama = async (user) => {
     const lencana = document.getElementById('lencanaLuarWeCareUtama');
     if (!lencana) return;
 
-    // 1. Kenal pasti Kumpulan Induk
     let groupUid = user.uid;
     try {
         const sLink = await getDoc(doc(db, "mynasab_links", user.uid));
         if (sLink.exists() && sLink.data().status === 'aktif') {
             groupUid = sLink.data().owner_uid;
         }
-    } catch (e) { console.warn("Ralat pautan:", e); }
+    } catch (e) {}
 
     const kini = new Date();
     const mmddHariIni = String(kini.getMonth() + 1).padStart(2, '0') + '-' + String(kini.getDate()).padStart(2, '0');
-    const kunciHariIni = kini.getFullYear() + '-' + mmddHariIni;
 
-    // 2. Semak Hari Jadi (Kiraan dibuat sekali semasa halaman dimuatkan)
+    // 1. Kira Hari Jadi
     let jumlahBirthday = 0;
     try {
         const sNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", groupUid)));
@@ -915,24 +913,21 @@ window.pantauLencanaWeCareUtama = async (user) => {
                 jumlahBirthday++;
             }
         });
-    } catch (err) { console.log(err); }
+    } catch (err) {}
 
-    // 3. Pantau Nota Hari Ini (Secara Real-Time)
+    // 2. Pantau Nota (Live) - Tiru logik myNasab (Elak ralat Index)
     const qNota = query(collection(db, "wecare_notes"), where("group_id", "==", groupUid));
     
     onSnapshot(qNota, (snapshot) => {
-        let notaHarini = 0;
+        let notaBelumBaca = 0;
         snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            const tarikhNota = data.date || (data.created_at ? new Date(data.created_at).toISOString().split('T')[0] : '');
-            if (tarikhNota === kunciHariIni) {
-                notaHarini++;
+            // Kira JIKA status_baca bukan true (merangkumi false atau nota lama yg tiada status)
+            if (docSnap.data().status_baca !== true) {
+                notaBelumBaca++;
             }
         });
 
-        // Cantumkan jumlah Hari Jadi + Nota Hari Ini
-        const jumlahKeseluruhan = notaHarini + jumlahBirthday;
-
+        const jumlahKeseluruhan = notaBelumBaca + jumlahBirthday;
         if (jumlahKeseluruhan > 0) {
             lencana.style.display = 'inline-block';
             lencana.innerText = jumlahKeseluruhan;
@@ -940,7 +935,7 @@ window.pantauLencanaWeCareUtama = async (user) => {
             lencana.style.display = 'none';
         }
     });
-};    
+};  
     
 </script>
 </body>
