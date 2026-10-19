@@ -614,93 +614,71 @@ if ('Notification' in window) {
 
     window.penggunaSemasa = null;
 
-   // ==========================================
+  // ==========================================
     // 4C: KEMAS KINI UI APABILA LOG MASUK (HEADER, WALLET & NAMA)
     // ==========================================
     onAuthStateChanged(auth, async (user) => {
-        // Ambil ID div sapaan nama
         const greetingBox = document.getElementById('userGreetingBox');
         const namaDisplay = document.getElementById('headerNamaPengguna');
+        const menuBelum = document.getElementById('menuBelumLogMasuk');
+        const menuSudah = document.getElementById('menuSudahLogMasuk');
+        const mobBelum = document.getElementById('mobileMenuBelumLogMasuk');
+        const mobSudah = document.getElementById('mobileMenuSudahLogMasuk');
+        const btnAdmin = document.getElementById('btnAdmin');
+        const btnAffiliate = document.getElementById('btnAffiliate');
+        const lencanaLuar = document.getElementById('lencanaLuarNasab');
 
         if (user) {
             window.penggunaSemasa = user; 
 
-            // -- KOD BARU: Tunjuk kotak sapaan nama --
+            // --- 1. TUKAR PAPARAN UI KEPADA LOG MASUK DAHULU ---
             if(greetingBox) {
                 greetingBox.classList.remove('hidden');
                 greetingBox.classList.add('flex');
             }
-
-try {
-    const messaging = getMessaging();
-    // MASUKKAN KUNCI VAPID DARI FASA 1 DI SINI
-    const currentToken = await getToken(messaging, { vapidKey: 'BC-vntpi-9WxGGKUPeGopgcykMKc87MODe1aEpwieX096IQ8Hzu3Mh89SI8YxuvvOvPSqhW7Eu2Ziqn4ZjwBugs'});
-    
-    if (currentToken) {
-        // Simpan token unik ini ke dalam profil pengguna (mynasab_users)
-        await setDoc(doc(db, "mynasab_users", user.uid), {
-            fcm_token: currentToken
-        }, { merge: true });
-        console.log("Token FCM berjaya dikemaskini.");
-    }
-} catch (err) {
-    console.log("Gagal mendapatkan token FCM:", err);
-}
-            
-            // 1. Paparan Menu Desktop
-            document.getElementById('menuBelumLogMasuk').style.display = 'none';
-            document.getElementById('menuSudahLogMasuk').style.display = 'flex';
-            
-            // 2. Paparan Menu Mobile (Tambahan selamat)
-            const mobBelum = document.getElementById('mobileMenuBelumLogMasuk');
-            const mobSudah = document.getElementById('mobileMenuSudahLogMasuk');
+            if(menuBelum) menuBelum.style.display = 'none';
+            if(menuSudah) menuSudah.style.display = 'flex';
             if (mobBelum) mobBelum.style.display = 'none';
             if (mobSudah) mobSudah.style.display = 'flex';
-            
-            const btnAdmin = document.getElementById('btnAdmin');
-            const btnAffiliate = document.getElementById('btnAffiliate');
             
             // Logik Tampilkan Butang Admin & Affiliate
             if (user.email === 'dae.book89@gmail.com') {
                 if (btnAdmin) btnAdmin.style.display = 'inline-flex';
-                if (btnAffiliate) btnAffiliate.style.display = 'none'; // Sembunyikan dari Admin
+                if (btnAffiliate) btnAffiliate.style.display = 'none'; 
             } else {
                 if (btnAdmin) btnAdmin.style.display = 'none';
                 if (btnAffiliate) btnAffiliate.style.display = 'inline-flex';
             }
             
-            // Ambil data dari database (Nama, Wallet & Status Affiliate)
+            // --- 2. AMBIL DATA DARI FIRESTORE (NAMA, WALLET, LENCANA MESEJ) ---
             const snapPengguna = await getDoc(doc(db, "mynasab_users", user.uid));
             if (snapPengguna.exists()) {
                 const userData = snapPengguna.data();
                 const baki = userData.credit_balance || 0;
                 
-                // -- KOD BARU: Masukkan Nama Pengguna --
                 if (namaDisplay) {
                     namaDisplay.innerText = userData.name || user.email.split('@')[0];
                 }
 
-                // 1. Update baki wallet (Desktop & Mobile)
                 const elKredit = document.getElementById('bakiKreditHeader');
                 const elKreditMob = document.getElementById('bakiKreditHeaderMobile');
                 if (elKredit) elKredit.innerText = baki;
                 if (elKreditMob) elKreditMob.innerText = baki;
 
-                // 2. TUKAR TEKS BUTANG AFFILIATE JIKA DAH BERDAFTAR
                 if (btnAffiliate && user.email !== 'dae.book89@gmail.com') {
                     if (userData.is_affiliate) {
                         btnAffiliate.innerHTML = 'Dashboard Ejen (Affiliate)'; 
-                        btnAffiliate.classList.replace('bg-indigo-500', 'bg-slate-800'); // Tukar warna sikit supaya nampak eksklusif
+                        btnAffiliate.classList.replace('bg-indigo-500', 'bg-slate-800'); 
                     } else {
                         btnAffiliate.innerHTML = 'Jana Pendapatan (Affiliate)';
+                        btnAffiliate.classList.replace('bg-slate-800', 'bg-indigo-500');
                     }
                 }
             } else {
-                // -- KOD BARU: Jika nama tiada dalam db, guna depan email --
                 if (namaDisplay) namaDisplay.innerText = user.email.split('@')[0];
             }
 
-const qLuar = query(
+            const qLuar = query(
                 collection(db, "mynasab_messages"),
                 where("penerima_uid", "==", user.uid),
                 where("status_baca", "==", false)
@@ -708,8 +686,6 @@ const qLuar = query(
 
             onSnapshot(qLuar, (snapshot) => {
                 const jumlahBaru = snapshot.docs.length;
-                const lencanaLuar = document.getElementById('lencanaLuarNasab');
-                
                 if (lencanaLuar) {
                     if (jumlahBaru > 0) {
                         lencanaLuar.style.display = 'inline-block';
@@ -719,9 +695,41 @@ const qLuar = query(
                     }
                 }
             });
+
+            // --- 3. MINTA TOKEN FCM SECARA LATAR BELAKANG (Biar ia berjalan senyap lepas 3 saat) ---
+            setTimeout(async () => {
+                try {
+                    const messaging = getMessaging();
+                    const currentToken = await getToken(messaging, { vapidKey: 'BC-vntpi-9WxGGKUPeGopgcykMKc87MODe1aEpwieX096IQ8Hzu3Mh89SI8YxuvvOvPSqhW7Eu2Ziqn4ZjwBugs'});
+                    
+                    if (currentToken) {
+                        await setDoc(doc(db, "mynasab_users", user.uid), {
+                            fcm_token: currentToken
+                        }, { merge: true });
+                        console.log("Token FCM berjaya dikemaskini.");
+                    }
+                } catch (err) {
+                    console.log("Gagal mendapatkan token FCM:", err);
+                }
+            }, 3000);
             
         } else {
+            // --- 4. KEMAS KINI UI JIKA LOG KELUAR (SIGN OUT) ---
             window.penggunaSemasa = null;
+            
+            if(greetingBox) {
+                greetingBox.classList.add('hidden');
+                greetingBox.classList.remove('flex');
+            }
+            if(menuBelum) menuBelum.style.display = 'flex';
+            if(menuSudah) menuSudah.style.display = 'none';
+            if(mobBelum) mobBelum.style.display = 'flex';
+            if(mobSudah) mobSudah.style.display = 'none';
+            if(btnAdmin) btnAdmin.style.display = 'none';
+            if(btnAffiliate) btnAffiliate.style.display = 'none';
+            if(lencanaLuar) lencanaLuar.style.display = 'none';
+        }
+    });
             
             // -- KOD BARU: Sorok kotak sapaan nama --
             if(greetingBox) {
