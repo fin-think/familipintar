@@ -1685,10 +1685,6 @@ window.renderFaraidHtml = (results) => {
 };
 
 // =========================================================
-// ENJIN CARIAN NASAB GLOBAL & MESEJ
-// =========================================================
-
-// =========================================================
 // ENJIN CARIAN NASAB GLOBAL & MESEJ (VERSI PAPARAN JELAS)
 // =========================================================
 
@@ -1780,7 +1776,7 @@ window.ujiCarianNasab = async () => {
     }
 };
 
-// 2. Menyusun Nama Keturunan ke Atas
+// 2. Menyusun Nama Keturunan ke Atas (DIBETULKAN)
 async function binaRantaianNasab(uidPemilik, namaAsal) {
     try {
         const nodesRef = collection(db, "mynasab_nodes");
@@ -1790,15 +1786,24 @@ async function binaRantaianNasab(uidPemilik, namaAsal) {
         let senaraiNodes = [];
         snap.forEach(doc => senaraiNodes.push(doc.data()));
 
-        const ayah = senaraiNodes.find(n => n.hubungan === "Ayah");
-        const datuk = senaraiNodes.find(n => n.hubungan === "Datuk" && n.jantina === "Lelaki"); 
-        const moyang = senaraiNodes.find(n => n.hubungan === "Moyang" && n.jantina === "Lelaki"); 
+        // Guna kata kunci sebenar dalam database: relationship, gender ('L'), name
+        const ayah = senaraiNodes.find(n => n.relationship === "Ayah");
+        const datuk = senaraiNodes.find(n => n.relationship === "Datuk" && n.gender === "L"); 
+        const moyang = senaraiNodes.find(n => n.relationship === "Moyang" && n.gender === "L"); 
 
         let rantaian = namaAsal || "Hamba Allah";
         
-        if (ayah && ayah.nama) rantaian += ` bin/binti ${ayah.nama}`;
-        if (datuk && datuk.nama) rantaian += ` bin ${datuk.nama}`;
-        if (moyang && moyang.nama) rantaian += ` bin ${moyang.nama}`;
+        // Cantum rantaian keturunan ke atas
+        if (ayah && ayah.name) rantaian += ` bin/binti ${ayah.name}`;
+        if (datuk && datuk.name) rantaian += ` bin ${datuk.name}`;
+        if (moyang && moyang.name) rantaian += ` bin ${moyang.name}`;
+
+        // Masukkan sekali maklumat pasangan di hujung (cth: Zainab binti Yatim)
+        const pasangan = senaraiNodes.filter(n => n.relationship === "Isteri" || n.relationship === "Suami");
+        if (pasangan.length > 0) {
+            let namaPasangan = pasangan.map(p => p.name).join(' & ');
+            rantaian += ` (Pasangan: ${namaPasangan})`;
+        }
 
         return rantaian;
     } catch (e) {
