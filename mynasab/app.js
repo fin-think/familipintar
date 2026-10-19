@@ -1685,8 +1685,9 @@ window.renderFaraidHtml = (results) => {
 };
 
 // =========================================================
-// 1. Fungsi Utama Carian Nasab (VERSI GABUNG NAMA & KOTAK NASAB)
+// ENJIN CARIAN NASAB GLOBAL & MESEJ (VERSI PUSAT FOKUS DINAMIK)
 // =========================================================
+
 window.ujiCarianNasab = async () => {
     const hasilContainer = document.getElementById('hasilCarianNasab');
     const carianAsal = document.getElementById('inputCarianNama').value.trim();
@@ -1703,21 +1704,28 @@ window.ujiCarianNasab = async () => {
     hasilContainer.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">Memeriksa salasilah seluruh negara... <i class="fa-solid fa-spinner fa-spin"></i></p>';
 
     try {
+        // 1. Tarik semua data dari database (Sekali Sahaja)
         const nodesRef = collection(db, "mynasab_nodes");
         const snapNodes = await getDocs(query(nodesRef));
         
-        const myUid = window.penggunaSemasa ? window.penggunaSemasa.uid : "tiada_uid";
-        let senaraiOwnerTerlibat = new Set(); 
-        
+        let semuaNodesGlobal = [];
         snapNodes.forEach(doc => {
-            const data = doc.data();
-            const namaNode = (data.name || '').toLowerCase();
-            if (data.owner_uid !== myUid && namaNode.includes(namaCari)) {
-                senaraiOwnerTerlibat.add(data.owner_uid);
+            semuaNodesGlobal.push({ ...doc.data(), id: doc.id });
+        });
+
+        const myUid = window.penggunaSemasa ? window.penggunaSemasa.uid : "tiada_uid";
+        
+        // 2. Tapis dan cari Node individu yang namanya sepadan
+        let senaraiMatch = [];
+        semuaNodesGlobal.forEach(node => {
+            const namaNode = (node.name || '').toLowerCase();
+            // Halang carian diri sendiri dan pastikan nama padan
+            if (node.owner_uid !== myUid && namaNode.includes(namaCari)) {
+                senaraiMatch.push(node);
             }
         });
 
-        if (senaraiOwnerTerlibat.size === 0) {
+        if (senaraiMatch.length === 0) {
             hasilContainer.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px; font-weight:bold;">Tiada rekod waris ditemui yang sepadan dengan carian ini.</p>';
             return;
         }
@@ -1725,7 +1733,11 @@ window.ujiCarianNasab = async () => {
         let htmlHasil = '';
         let jumlahJumpa = 0;
 
-        for (const ownerUid of senaraiOwnerTerlibat) {
+        // 3. Proses setiap ahli yang dijumpai (Fokus Node)
+        for (const focusNode of senaraiMatch) {
+            const ownerUid = focusNode.owner_uid;
+            
+            // Dapatkan akaun tuan rumah yang pegang data ini
             const userRef = doc(db, "mynasab_users", ownerUid);
             const userSnap = await getDoc(userRef);
             
@@ -1733,18 +1745,13 @@ window.ujiCarianNasab = async () => {
                 const userData = userSnap.data();
                 const namaAkaunKhas = userData.name || 'Akaun Tanpa Nama';
 
-                const rootQ = query(nodesRef, where("owner_uid", "==", ownerUid), where("is_root", "==", true));
-                const rootSnap = await getDocs(rootQ);
+                // Asingkan senarai ahli khusus untuk keluarga akaun ini sahaja
+                const senaraiKeluargaIni = semuaNodesGlobal.filter(n => n.owner_uid === ownerUid);
+                const rootNode = senaraiKeluargaIni.find(n => n.is_root === true || n.relationship === "Diri Sendiri (Induk)");
                 
-                let namaIndividu = "";
-                if (!rootSnap.empty) {
-                    namaIndividu = rootSnap.docs[0].data().name;
-                } else {
-                    const rootQ2 = query(nodesRef, where("owner_uid", "==", ownerUid), where("relationship", "==", "Diri Sendiri (Induk)"));
-                    const rootSnap2 = await getDocs(rootQ2);
-                    if (!rootSnap2.empty) namaIndividu = rootSnap2.docs[0].data().name;
-                }
-
+                let namaIndividu = rootNode ? rootNode.name : "";
+                
+                // Paparan Nama Akaun (Cth: Dahanis Famili (Hasnawi Bin Che Harun))
                 let paparanAkaun = namaAkaunKhas;
                 if (namaIndividu && namaIndividu.toLowerCase() !== namaAkaunKhas.toLowerCase()) {
                     paparanAkaun = `${namaAkaunKhas} (${namaIndividu})`;
@@ -1755,15 +1762,15 @@ window.ujiCarianNasab = async () => {
 
                 if (padanNegeri && padanBandar) {
                     
-                    // Panggil rantaian nasab (Ia akan pulangkan kotak HTML yang diasingkan Bapa & Ibu)
-                    const kotakNasabPenuh = await binaRantaianNasab(ownerUid);
+                    // Panggil fungsi penjana Nasab berpusatkan ahli yang dicari (focusNode)
+                    const kotakNasabPenuh = binaRantaianNasabFokus(focusNode, senaraiKeluargaIni, rootNode);
                     
                     htmlHasil += `
                         <div class="hasil-card" style="background:#fff; border:1px solid #e2e8f0; padding:15px; border-radius:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
                             <div style="flex:1; padding-right:10px;">
                                 <h4 style="margin:0 0 5px 0; color:#334155; font-size:14px; line-height:1.4;">
-                                    Nama "<strong style="color:#0f172a;">${carianAsal}</strong>" dijumpai dalam akaun myNasab <br>
-                                    <strong style="font-size:16px; color:#8e44ad;">${paparanAkaun}</strong>
+                                    Akaun myNasab: <strong style="color:#8e44ad;">${paparanAkaun}</strong><br>
+                                    Individu Dijumpai: <strong style="font-size:16px; color:#0f172a;">${focusNode.name}</strong>
                                 </h4>
                                 
                                 ${kotakNasabPenuh}
@@ -1771,7 +1778,7 @@ window.ujiCarianNasab = async () => {
                                 <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> ${userData.bandar || 'Tidak dinyatakan'}, ${userData.negeri || 'Tidak dinyatakan'}</small>
                             </div>
                             <button onclick="bukaMesejNasab('${ownerUid}', '${paparanAkaun.replace(/'/g, "\\'")}')" class="btn-action" style="background:#3b82f6; color:white; padding:8px 15px; font-size:12px; border-radius:6px; cursor:pointer; border:none; display:flex; gap:5px; align-items:center; white-space:nowrap; height:fit-content;">
-                                <i class="fa-regular fa-paper-plane"></i> Sapa Waris
+                                <i class="fa-regular fa-paper-plane"></i> Hantar Mesej
                             </button>
                         </div>
                     `;
@@ -1793,61 +1800,88 @@ window.ujiCarianNasab = async () => {
 };
 
 // =========================================================
-// 2. Menyusun Nama Keturunan ke Atas (Pecahan Lengkap 4 Tahap)
+// 2. Fungsi Pembantu: Jejak Nasab Berpusatkan Individu Dicari
 // =========================================================
-async function binaRantaianNasab(uidPemilik) {
+const binaRantaianNasabFokus = (focusNode, senaraiNodes, rootNode) => {
     try {
-        const nodesRef = collection(db, "mynasab_nodes");
-        const q = query(nodesRef, where("owner_uid", "==", uidPemilik));
-        const snap = await getDocs(q);
-        
-        let senaraiNodes = [];
-        snap.forEach(doc => {
-            senaraiNodes.push({ ...doc.data(), id: doc.id });
-        });
+        if (!focusNode) return "Tiada Maklumat";
 
-        // Cari siapa "Diri Sendiri (Induk)"
-        const rootNode = senaraiNodes.find(n => n.is_root === true || n.relationship === "Diri Sendiri (Induk)");
-        if (!rootNode) return "Pemilik Akaun";
+        // Tentukan jantina individu yang dicari secara pintar
+        const cekLelaki = (n) => {
+            if (n.gender === "L" || n.gender === "Lelaki") return true;
+            if (n.gender === "P" || n.gender === "Perempuan") return false;
+            const rel = (n.relationship || "").toLowerCase();
+            if (rel.match(/ayah|suami|bapa|datuk|moyang|buyut|cakawari|cilawagi|abang/)) return true;
+            if (rel.match(/ibu|isteri|emak|nenek|kakak/)) return false;
+            return null; // Tidak diketahui
+        };
 
-        // Tarik nama pendek & jantina Induk untuk paparan pintar
-        const namaPendekInduk = rootNode.name.split(' ')[0]; // Ambil perkataan pertama
-        const isLelaki = (rootNode.gender === "L" || rootNode.gender === "Lelaki");
-        const gelaranIbuBapa = isLelaki ? "Ayah" : "Ibu";
+        const isLelaki = cekLelaki(focusNode);
+        const gelaranIbuBapa = (isLelaki === false) ? "Ibu" : "Ayah";
 
-        // Enjin "Tracer" Pintar - Menjejak keturunan mengikut ikatan
-        const traceNasab = (isBelahIbu) => {
-            let rantaian = rootNode.name;
-            let currentChild = rootNode;
-            let currentParentId = rootNode.id;
-
-            let parent1;
-            if (isBelahIbu) {
-                parent1 = senaraiNodes.find(n => (n.relationship === "Ibu" || n.relationship === "Emak") && n.ref_id === currentParentId);
-                if (!parent1) parent1 = senaraiNodes.find(n => n.relationship === "Ibu" || n.relationship === "Emak");
-            } else {
-                parent1 = senaraiNodes.find(n => (n.relationship === "Ayah" || n.relationship === "Bapa") && n.ref_id === currentParentId);
-                if (!parent1) parent1 = senaraiNodes.find(n => n.relationship === "Ayah" || n.relationship === "Bapa");
+        // Fungsi cari Ibu & Bapa kepada sebarang Node
+        const cariIbuBapaNode = (cNode) => {
+            const rel = (cNode.relationship || "").toLowerCase();
+            let bapa, ibu;
+            if (cNode.is_root || rel.includes("diri sendiri")) {
+                bapa = senaraiNodes.find(n => (n.relationship === "Ayah" || n.relationship === "Bapa") && (n.ref_id === cNode.id || !n.ref_id || n.ref_id === ""));
+                ibu = senaraiNodes.find(n => (n.relationship === "Ibu" || n.relationship === "Emak") && (n.ref_id === cNode.id || !n.ref_id || n.ref_id === ""));
+            } else if (rel === "isteri" || rel === "suami") {
+                bapa = senaraiNodes.find(n => n.relationship === "Bapa Mertua" && n.ref_id === cNode.id);
+                ibu = senaraiNodes.find(n => n.relationship === "Ibu Mertua" && n.ref_id === cNode.id);
+            } else if (rel === "ayah" || rel === "ibu" || rel === "bapa" || rel === "emak") {
+                bapa = senaraiNodes.find(n => n.relationship === "Datuk" && cekLelaki(n) === true && n.ref_id === cNode.id);
+                ibu = senaraiNodes.find(n => n.relationship === "Nenek" && cekLelaki(n) === false && n.ref_id === cNode.id);
+            } else if (rel.includes("datuk") || rel.includes("nenek")) {
+                bapa = senaraiNodes.find(n => n.relationship === "Moyang" && cekLelaki(n) === true && n.ref_id === cNode.id);
+                ibu = senaraiNodes.find(n => n.relationship === "Moyang" && cekLelaki(n) === false && n.ref_id === cNode.id);
+            } else if (rel.includes("moyang")) {
+                bapa = senaraiNodes.find(n => n.relationship === "Buyut" && cekLelaki(n) === true && n.ref_id === cNode.id);
+                ibu = senaraiNodes.find(n => n.relationship === "Buyut" && cekLelaki(n) === false && n.ref_id === cNode.id);
+            } else if (rel === "anak") {
+                let parent1 = senaraiNodes.find(n => n.id === cNode.ref_id);
+                if (!parent1 && rootNode) parent1 = rootNode; 
+                
+                if (parent1) {
+                    if (cekLelaki(parent1) === true) bapa = parent1;
+                    else ibu = parent1;
+                    
+                    let spouse = senaraiNodes.find(n => (n.relationship === "Isteri" || n.relationship === "Suami") && (n.ref_id === parent1.id || parent1.ref_id === n.id || n.is_root || parent1.is_root));
+                    if (spouse) {
+                        if (cekLelaki(spouse) === true) bapa = spouse;
+                        else ibu = spouse;
+                    }
+                }
             }
+            return { bapa, ibu };
+        };
+
+        // Fungsi Jejak Susur Galur ke Atas
+        const traceNasab = (isBelahIbu) => {
+            let rantaian = focusNode.name;
+            let currentChild = focusNode;
+            
+            let parents = cariIbuBapaNode(currentChild);
+            let parent1 = isBelahIbu ? parents.ibu : parents.bapa;
 
             if (parent1 && parent1.name) {
-                let connector1 = (currentChild.gender === "L" || currentChild.gender === "Lelaki") ? " bin " : " binti ";
+                let statusLelaki = cekLelaki(currentChild);
+                let connector1 = (statusLelaki === true) ? " bin " : ((statusLelaki === false) ? " binti " : " bin/binti ");
                 rantaian += connector1 + parent1.name;
                 
                 currentChild = parent1;
-                currentParentId = parent1.id;
-
+                
                 let failsafe = 0;
-                while(currentParentId && failsafe < 5) {
+                while(currentChild && failsafe < 5) {
                     failsafe++;
-                    let bapaSeterusnya = senaraiNodes.find(n => n.ref_id === currentParentId && (n.gender === "L" || n.gender === "Lelaki" || n.relationship === "Datuk" || n.relationship === "Moyang"));
+                    let nextParents = cariIbuBapaNode(currentChild);
+                    let bapaSeterusnya = nextParents.bapa; 
                     
                     if (bapaSeterusnya && bapaSeterusnya.name) {
-                        let connectorNext = (currentChild.gender === "L" || currentChild.gender === "Lelaki") ? " bin " : " binti ";
+                        let statNext = cekLelaki(currentChild);
+                        let connectorNext = (statNext === true) ? " bin " : ((statNext === false) ? " binti " : " bin/binti ");
                         rantaian += connectorNext + bapaSeterusnya.name;
-                        
                         currentChild = bapaSeterusnya;
-                        currentParentId = bapaSeterusnya.id;
                     } else {
                         break;
                     }
@@ -1861,33 +1895,69 @@ async function binaRantaianNasab(uidPemilik) {
         let nasabBapa = traceNasab(false);
         let nasabIbu = traceNasab(true);
 
-        // 3. Maklumat Pasangan
-        const pasangan = senaraiNodes.filter(n => n.relationship === "Isteri" || n.relationship === "Suami");
+        // Cari Pasangan kepada Fokus Node
+        const cariPasanganNode = (cNode) => {
+            const rel = (cNode.relationship || "").toLowerCase();
+            if (cNode.is_root || rel.includes("diri sendiri")) {
+                return senaraiNodes.filter(n => n.relationship === "Isteri" || n.relationship === "Suami");
+            } else if (rel === "isteri" || rel === "suami") {
+                return senaraiNodes.filter(n => n.is_root || (n.relationship || "").toLowerCase().includes("diri sendiri"));
+            } else if (rel === "ayah" || rel === "bapa") {
+                return senaraiNodes.filter(n => n.relationship === "Ibu" || n.relationship === "Emak");
+            } else if (rel === "ibu" || rel === "emak") {
+                return senaraiNodes.filter(n => n.relationship === "Ayah" || n.relationship === "Bapa");
+            } else if (rel.includes("datuk")) {
+                return senaraiNodes.filter(n => n.relationship === "Nenek" && n.ref_id === cNode.ref_id);
+            } else if (rel.includes("nenek")) {
+                return senaraiNodes.filter(n => n.relationship === "Datuk" && n.ref_id === cNode.ref_id);
+            } else if (rel === "anak") {
+                return senaraiNodes.filter(n => n.relationship === "Menantu" && n.ref_id === cNode.id);
+            }
+            return [];
+        };
+
+        const pasangan = cariPasanganNode(focusNode);
         let teksPasangan = "Tiada Maklumat";
         if (pasangan.length > 0) {
             teksPasangan = pasangan.map(p => p.name).join(', ');
         }
 
-        // 4. Maklumat Anak-anak
-        const anakAnak = senaraiNodes.filter(n => n.relationship === "Anak");
+        // Cari Anak-anak kepada Fokus Node
+        const cariAnakNode = (cNode) => {
+            const rel = (cNode.relationship || "").toLowerCase();
+            if (cNode.is_root || rel.includes("diri sendiri")) {
+                return senaraiNodes.filter(n => n.relationship === "Anak");
+            } else if (rel === "isteri" || rel === "suami") {
+                return senaraiNodes.filter(n => n.relationship === "Anak" && (n.ref_id === cNode.id || n.ref_id === (rootNode?rootNode.id:"") || !n.ref_id));
+            } else if (rel === "ayah" || rel === "ibu" || rel === "bapa" || rel === "emak") {
+                return senaraiNodes.filter(n => n.is_root || (n.relationship || "").toLowerCase().includes("diri sendiri") || n.relationship === "Adik-beradik" || n.relationship === "Abang" || n.relationship === "Kakak" || n.relationship === "Adik");
+            } else if (rel.includes("datuk") || rel.includes("nenek")) {
+                return senaraiNodes.filter(n => n.relationship === "Ayah" || n.relationship === "Ibu" || n.relationship === "Bapa Saudara" || n.relationship === "Ibu Saudara"); 
+            } else if (rel === "anak") {
+                return senaraiNodes.filter(n => n.relationship === "Cucu" && n.ref_id === cNode.id);
+            }
+            return [];
+        };
+
+        const anakAnak = cariAnakNode(focusNode);
         let teksAnak = "Tiada Maklumat";
         if (anakAnak.length > 0) {
             teksAnak = anakAnak.map(a => a.name).join(', ');
         }
 
-        // Pulangkan kotak HTML berserta senarai 1-4
         return `
             <div style="margin:10px 0; font-size:12px; color:#064e3b; background:#ecfdf5; padding:12px; border-radius:8px; border:1px solid #a7f3d0; line-height:1.7;">
                 <div style="margin-bottom:2px;"><strong style="color:#047857;">1. Nasab Bapa:</strong> ${nasabBapa}</div>
                 <div style="margin-bottom:2px;"><strong style="color:#047857;">2. Nasab Ibu:</strong> ${nasabIbu}</div>
-                <div style="margin-bottom:2px;"><strong style="color:#047857;">3. Pasangan ${namaPendekInduk}:</strong> ${teksPasangan}</div>
+                <div style="margin-bottom:2px;"><strong style="color:#047857;">3. Pasangan:</strong> ${teksPasangan}</div>
                 <div><strong style="color:#047857;">4. ${gelaranIbuBapa} Kepada:</strong> ${teksAnak}</div>
             </div>
         `;
     } catch (e) {
+        console.error("Ralat bina nasab fokus", e);
         return `<div style="color:red; font-size:12px;">Gagal memuatkan profil keluarga</div>`; 
     }
-}
+};
 
 // 3. Simpan UID Penerima ke Memori
 window.bukaMesejNasab = (uidPenerima, namaPenerima) => {
