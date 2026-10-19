@@ -1,8 +1,6 @@
-// 1. Import modul Firebase serasi latar belakang
 importScripts('https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js');
 
-// 2. Masukkan konfigurasi Firebase bos
 const firebaseConfig = {
     apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
     authDomain: "familipintar.firebaseapp.com",
@@ -17,15 +15,23 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
-// 3. Tangkap mesej masa aplikasi di belakang & naikkan lencana
 messaging.onBackgroundMessage((payload) => {
     console.log('[firebase-messaging-sw.js] Mesej Diterima: ', payload);
     
-    // Tarik nombor lencana dari data server
-    const jumlahLencana = parseInt(payload.data.badgeCount || 1);
+    // 1. Tarik nombor lencana dari data server
+    const jumlahLencana = parseInt(payload.data?.badgeCount || 1);
     
-    // Naikkan App Badge di telefon
+    // 2. Naikkan App Badge
     if (navigator.setAppBadge) {
         navigator.setAppBadge(jumlahLencana);
     }
+
+    // 3. PENTING: Keluarkan Notifikasi supaya Android tahu ia milik Famili Pintar, bukan Chrome
+    const notificationTitle = payload.notification?.title || "Mesej Baharu";
+    const notificationOptions = {
+        body: payload.notification?.body || "Anda mempunyai mesej di Famili Pintar.",
+        icon: '/logo.png' // Gantikan dengan nama fail logo aplikasi bos jika berbeza
+    };
+
+    return self.registration.showNotification(notificationTitle, notificationOptions);
 });
