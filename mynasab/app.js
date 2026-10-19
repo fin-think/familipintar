@@ -2083,9 +2083,9 @@ window.bukaPetiMesej = async () => {
                             </button>
                         ` : ''}
 
-<button onclick="padamMesej('${doc.id}')" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded shadow-sm">
-  Padam 🗑️
-</button>
+<button onclick="padamMesej('` + idMesej + `')" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                            Padam 🗑️
+                        </button>
                         
                     </div>
 
@@ -2166,14 +2166,18 @@ window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
 };
 
 window.padamMesej = async (mesejId) => {
-    // Memunculkan popup konfirmasi (dalam bahasa Melayu agar sesuai dengan aplikasi Anda)
+    // Memunculkan popup konfirmasi
     const sahkan = confirm("Adakah anda pasti mahu memadam mesej ini?"); 
     
     if (sahkan) {
         try {
-            // Mengarahkan Firebase untuk menghapus dokumen berdasarkan ID unik pesan
+            // Memadam dokumen di Firebase
             await deleteDoc(doc(db, "mynasab_messages", mesejId));
             console.log("Mesej berjaya dipadam.");
+            
+            // KEMAS KINI PAPARAN: Panggil semula fungsi buka peti supaya mesej tadi ghaib dari skrin
+            window.bukaPetiMesej(); 
+            
         } catch (error) {
             console.error("Gagal memadam mesej:", error);
             alert("Ralat: Tidak dapat memadam mesej.");
