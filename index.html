@@ -570,6 +570,19 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+
+// KOD MEMINTA IZIN NOTIFIKASI DARI TELEFON
+if ('Notification' in window) {
+    Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+            console.log("Kebenaran notifikasi telah diberikan oleh pengguna.");
+        } else {
+            console.log("Pengguna tidak membenarkan notifikasi.");
+        }
+    });
+}
+    
+    
     // Gunakan config yang sama dengan myNasab supaya database selari
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
