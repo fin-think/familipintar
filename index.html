@@ -892,42 +892,51 @@ window.pantauLencanaWeCareUtama = async (user) => {
     const lencana = document.getElementById('lencanaLuarWeCareUtama');
     if (!lencana) return;
 
+    // 1. Kenal pasti Kumpulan Induk
     let groupUid = user.uid;
     try {
         const sLink = await getDoc(doc(db, "mynasab_links", user.uid));
         if (sLink.exists() && sLink.data().status === 'aktif') {
             groupUid = sLink.data().owner_uid;
         }
-    } catch (e) {}
+    } catch (e) { console.warn("Ralat pautan:", e); }
 
-    const kini = new Date();
-    const mmddHariIni = String(kini.getMonth() + 1).padStart(2, '0') + '-' + String(kini.getDate()).padStart(2, '0');
-
-    // 1. Kira Hari Jadi
-    let jumlahBirthday = 0;
+    // 2. Kira Hari Jadi (Tidak termasuk yang telah meninggal dunia)
+    let jumlahHariJadi = 0;
     try {
         const sNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", groupUid)));
+        const kini = new Date();
+        const mmddHariIni = String(kini.getMonth() + 1).padStart(2, '0') + '-' + String(kini.getDate()).padStart(2, '0');
+        
         sNodes.forEach(d => {
-            const dob = d.data().dob;
-            if (dob && dob.substring(5) === mmddHariIni) {
-                jumlahBirthday++;
+            const x = d.data();
+            if (x.status !== 'meninggal' && x.dob && x.dob.substring(5) === mmddHariIni) {
+                jumlahHariJadi++;
             }
         });
-    } catch (err) {}
+    } catch (err) { console.warn("Ralat Hari Jadi:", err); }
 
-    // 2. Pantau Nota (Live) - Tiru logik myNasab (Elak ralat Index)
+    // 3. Pantau Nota (Live) - Selari dengan weCare
     const qNota = query(collection(db, "wecare_notes"), where("group_id", "==", groupUid));
-    
+    const namaPengguna = user.email.split('@')[0];
+
     onSnapshot(qNota, (snapshot) => {
         let notaBelumBaca = 0;
         snapshot.forEach(docSnap => {
-            // Kira JIKA status_baca bukan true (merangkumi false atau nota lama yg tiada status)
-            if (docSnap.data().status_baca !== true) {
+            const data = docSnap.data();
+            // Semak jika belum dibaca
+            if (data.status_baca !== true) {
+                // (Opsyenal): Jika bos TAK NAK nota yang bos tulis sendiri naik lencana, 
+                // buang komen (//) pada kod di bawah:
+                // if (data.author !== namaPengguna) { notaBelumBaca++; }
+                // else { return; }
+                
                 notaBelumBaca++;
             }
         });
 
-        const jumlahKeseluruhan = notaBelumBaca + jumlahBirthday;
+        const jumlahKeseluruhan = notaBelumBaca + jumlahHariJadi;
+        
         if (jumlahKeseluruhan > 0) {
             lencana.style.display = 'inline-block';
             lencana.innerText = jumlahKeseluruhan;
@@ -935,7 +944,7 @@ window.pantauLencanaWeCareUtama = async (user) => {
             lencana.style.display = 'none';
         }
     });
-};  
+};
     
 </script>
 </body>
