@@ -1654,20 +1654,44 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
             <button 
               onClick={async () => {
                 try {
-                  // 1. (Opsyenal) Di sini bos boleh selitkan fungsi tolak 10 kredit dari koleksi mynasab_users
+                  // 1. Rujuk akaun pengguna untuk semak baki kredit
+                  const userRef = window.fbDoc(window.fbDb, "mynasab_users", user.uid);
+                  const userSnap = await window.fbGetDoc(userRef);
                   
-                  // 2. Simpan status unlock ke Firebase supaya kekal dan tak ditanya lagi
-                  await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), {
-                      is_dashboard_unlocked: true
-                  }, { merge: true });
+                  if (userSnap.exists()) {
+                      const bakiSemasa = parseInt(userSnap.data().credit_balance) || 0;
+                      
+                      // 2. Semak jika kredit mencukupi (>= 10)
+                      if (bakiSemasa >= 10) {
+                          // Tolak 10 kredit dan kemas kini baki
+                          await window.fbSetDoc(userRef, {
+                              credit_balance: bakiSemasa - 10
+                          }, { merge: true });
+                          
+                          // Simpan status unlock ke myTADBIR profile supaya kekal
+                          await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), {
+                              is_dashboard_unlocked: true
+                          }, { merge: true });
 
-                  setIsDashboardUnlocked(true); // Buka kunci di skrin
-                  setShowPaywall(false); // Tutup popup
-                  setActiveTab(6); // Tukar ke tab Dashboard
+                          alert("Buka kunci berjaya! 10 Kredit telah ditolak.\nBaki terkini: " + (bakiSemasa - 10) + " Kredit.");
+
+                          setIsDashboardUnlocked(true); // Buka kunci di skrin
+                          setShowPaywall(false); // Tutup popup
+                          setActiveTab(6); // Tukar ke tab Dashboard
+                          
+                      } else {
+                          // 3. Halang jika kredit tak cukup
+                          alert("Kredit tidak mencukupi!\nBaki semasa anda: " + bakiSemasa + " Kredit.\n\nSila tambah nilai (Top Up) terlebih dahulu.");
+                          // Opsyenal: Bos boleh buang palang (//) di bawah jika nak ia terus lompat ke page topup
+                          // window.location.href = '../topup.html';
+                      }
+                  } else {
+                      alert("Rekod akaun pengguna tidak dijumpai.");
+                  }
                   
                 } catch (error) {
                   console.error(error);
-                  alert("Ralat ketika merekod pembayaran. Sila cuba lagi.");
+                  alert("Ralat ketika memproses potongan kredit. Sila pastikan capaian internet anda stabil.");
                 }
               }}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mb-3 flex justify-center items-center gap-2"
