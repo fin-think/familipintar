@@ -100,6 +100,12 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
   </div>
 
   <div class="content">
+
+ <div id="barNotif" class="hidden" style="display:flex;gap:10px;align-items:center;justify-content:space-between;background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#3730a3;">
+      <span>🔔 Hidupkan notifikasi supaya ikon aplikasi di telefon menunjukkan pesanan baharu.</span>
+      <button class="ghost" style="width:auto;white-space:nowrap;" onclick="aktifkanNotifikasi()">Hidupkan</button>
+    </div>
+   
     <h2 class="section-title">Profil & Kesihatan Ibu Bapa</h2>
     <p class="section-sub">Kemaskini maklumat ubat, jenis darah dan rujukan hospital.</p>
     <div id="ruangProfilIbuBapa" class="grid-2">Memuatkan data...</div>
@@ -218,7 +224,7 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, arrayUnion, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -309,57 +315,7 @@ onAuthStateChanged(auth, async (user) => {
       if (sLink.exists() && sLink.data().status === 'aktif') currentGroup = sLink.data().owner_uid;
     } catch (e) { console.warn("Gagal baca pautan:", e.message); }
 
-    // ==========================================
-    // KOD NOTIFIKASI WECARE (TIRU SEBIJI MYNASAB)
-    // ==========================================
-    const lencanaLuar = document.getElementById('lencanaLuarWeCare');
     
-    const sNodes = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentGroup)));
-    const kini = new Date();
-    const mmddHariIni = String(kini.getMonth() + 1).padStart(2, '0') + '-' + String(kini.getDate()).padStart(2, '0');
-
-    let jumlahBirthday = 0;
-    sNodes.forEach(d => {
-        const dob = d.data().dob;
-        if (dob && dob.substring(5) === mmddHariIni) {
-            jumlahBirthday++;
-        }
-    });
-
-    const qNotifikasi = query(collection(db, "wecare_notes"), where("group_id", "==", currentGroup));
-
-    onSnapshot(qNotifikasi, (snapshot) => {
-        let notaBelumBaca = 0;
-        snapshot.forEach(docSnap => {
-            // Tapis nota belum baca di sini
-            if (docSnap.data().status_baca !== true) {
-                notaBelumBaca++;
-            }
-        });
-
-        const jumlahBaru = notaBelumBaca + jumlahBirthday;
-
-        // 1. Update Badge UI (Merah Atas)
-        if (lencanaLuar) {
-            if (jumlahBaru > 0) {
-                lencanaLuar.style.display = 'inline-block';
-                lencanaLuar.innerText = jumlahBaru;
-            } else {
-                lencanaLuar.style.display = 'none';
-            }
-        }
-
-        // 2. Update Badge App PWA (Ikon Telefon)
-        if (navigator.setAppBadge && window.matchMedia('(display-mode: standalone)').matches) {
-            if (jumlahBaru > 0) navigator.setAppBadge(jumlahBaru).catch(e=>{});
-            else navigator.clearAppBadge().catch(e=>{});
-        }
-        
-        // 3. Update Tajuk Tab
-        if (jumlahBaru > 0) document.title = `(${jumlahBaru}) weCare - Jagaan Bersama`;
-        else document.title = `weCare - Jagaan Bersama`;
-    });
-    // ==========================================
 
     await siapkanJangkar(user, currentGroup);
     await migrasiDataLama(user.uid, currentGroup);
@@ -720,6 +676,13 @@ async function muatKeluargaDanNota(groupId) {
       return;
     }
 
+// Hari jadi untuk lencana: semua ahli kedua-dua belah, tidak bergantung pada dropdown
+    window._hariJadiSemua = [];
+    const masukHJ = (n) => { if (n && n.dob && n.status !== 'meninggal') window._hariJadiSemua.push({ name: n.name, dob: n.dob }); };
+    masukHJ(kPusat.diri); kPusat.pasangan.forEach(masukHJ); kPusat.adikBeradik.forEach(masukHJ);
+    akaun.forEach(a => { if (a.uid === saya || sembunyi.includes(a.uid)) return; masukHJ(kelompok(a.nod).diri); });
+    if (!sayaInduk) { const kI = kelompok(nodInduk); masukHJ(kI.diri); kI.pasangan.forEach(masukHJ); }
+   
     const tarikh = (n) => (n && n.dob) ? new Date(n.dob).getTime() : Infinity;
     const banding = (x, y) => x.t < y.t ? -1 : (x.t > y.t ? 1 : 0);
     const emelAkaun = async (uid) => {
@@ -808,42 +771,112 @@ const notaHari = (kunci) => {
 };
 const chipNota = (kunci) => { const n = notaHari(kunci); return n.length ? `<div class="cal-event cal-note" onclick="event.stopPropagation();lihatNota('${kunci}')">🗒️ ${n.length}</div>` : ''; };
 
+// ===== NOTA KELUARGA: bacaan PER PENGGUNA =====
+// dibaca_oleh = array UID. Nota lama (tiada dibaca_oleh) guna status_baca lama. Penulis tak dimaklumkan nota sendiri.
+const emelPrefix = () => currentUser.email.split('@')[0];
+const notaSaya = (n) => n.author_uid ? n.author_uid === currentUser.uid : n.author === emelPrefix();
+const adaBaca = (n) => Array.isArray(n.dibaca_oleh) ? n.dibaca_oleh.includes(currentUser.uid) : n.status_baca === true;
+const belumBaca = (n) => !notaSaya(n) && !adaBaca(n);
+const jangkarSaya = () => [jangkar.induk, jangkar.pasangan].filter(Boolean);
+const notaUntukSaya = (n) => jangkarSaya().includes(jangkarItem(n));
+ 
 window.simpanNotaKeluarga = async () => {
   const note = document.getElementById('teamNote').value.trim();
   if (!note) { alert('Sila tulis nota dahulu!'); return; }
   const jb = jangkarBelah();
   if (!jb) { alert('Belah ini belum ada pasangan dalam myNasab.'); return; }
   const date = document.getElementById('teamNoteDate').value || kunciTarikh(Date.now());
-  
+ 
   await setDoc(doc(collection(db, "wecare_notes")), {
     note, date, anchor_id: jb,
-    author: currentUser.email.split('@')[0], group_id: currentGroup, created_at: Date.now(),
-    status_baca: false // <--- TAMBAH BARIS INI
+    author: emelPrefix(), author_uid: currentUser.uid,
+    group_id: currentGroup, created_at: Date.now(),
+    dibaca_oleh: [currentUser.uid],   // penulis dianggap sudah baca
+    status_baca: false                // dikekalkan supaya kiraan lama di muka depan tidak pecah
   });
-  
+ 
   document.getElementById('teamNote').value = '';
   document.getElementById('teamNoteDate').value = kunciTarikh(Date.now());
-  muatNotaKeluarga();
 };
-
+ 
 let unsubscribeNota = null;
+const idNotaDilihat = new Set();
+let notaAwalSiap = false;
 async function muatNotaKeluarga() {
-    if (unsubscribeNota) unsubscribeNota(); // Buang pemantau lama jika tukar belah keluarga
-
-    const q = query(collection(db, "wecare_notes"), where("group_id", "==", currentGroup));
-    
-    // Guna onSnapshot untuk Live Update!
-    unsubscribeNota = onSnapshot(q, (snapshot) => {
-        dataNotaGlobal = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
-        const tkh = document.getElementById('teamNoteDate');
-        if (tkh && !tkh.value) tkh.value = kunciTarikh(Date.now());
-        document.getElementById('notaHint').innerText = 'Nota muncul di kalendar (🗒️) untuk ' + labelBelah() + ' sahaja.';
-        
-        window.renderKalendar();
-        window.kemaskiniNotifikasiPWA(); // Cetuskan kemas kini lencana (Badge)
-    });
+  if (unsubscribeNota) unsubscribeNota();   // buang pemantau lama bila tukar belah
+  const q = query(collection(db, "wecare_notes"), where("group_id", "==", currentGroup));
+  unsubscribeNota = onSnapshot(q, (snapshot) => {
+    dataNotaGlobal = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+    const tkh = document.getElementById('teamNoteDate');
+    if (tkh && !tkh.value) tkh.value = kunciTarikh(Date.now());
+    document.getElementById('notaHint').innerText = 'Nota muncul di kalendar (🗒️) untuk ' + labelBelah() + ' sahaja.';
+ 
+    // Nota baharu daripada orang lain -> notifikasi tempatan (selepas muatan pertama sahaja)
+    const baru = dataNotaGlobal.filter(n => !idNotaDilihat.has(n.id));
+    dataNotaGlobal.forEach(n => idNotaDilihat.add(n.id));
+    if (notaAwalSiap) {
+      baru.filter(n => notaUntukSaya(n) && belumBaca(n))
+          .forEach(n => window.notifTempatan('Pesanan baharu weCare', `${n.author}: ${n.note}`));
+    }
+    notaAwalSiap = true;
+ 
+    window.renderKalendar();
+    window.kemaskiniNotifikasiPWA();
+  });
 }
-
+ 
+// ===== NOTIFIKASI =====
+const semakBarNotif = () => {
+  const b = document.getElementById('barNotif');
+  if (b) b.classList.toggle('hidden', !('Notification' in window) || Notification.permission !== 'default');
+};
+ 
+window.aktifkanNotifikasi = async () => {
+  if (!('Notification' in window)) { alert('Pelayar ini tidak menyokong notifikasi.'); return; }
+  const p = await Notification.requestPermission();
+  semakBarNotif();
+  if (p === 'granted') window.notifTempatan('Notifikasi weCare dihidupkan', 'Anda akan dimaklumkan bila ada pesanan baharu.');
+};
+ 
+// Notifikasi sebenar. Pada Android, notifikasi inilah yang memunculkan titik pada ikon app.
+window.notifTempatan = async (tajuk, isi) => {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const reg = ('serviceWorker' in navigator) ? await navigator.serviceWorker.getRegistration() : null;
+    const pilihan = { body: String(isi).slice(0, 120), tag: 'wecare-nota', renotify: true };
+    if (reg) await reg.showNotification(tajuk, pilihan); else new Notification(tajuk, pilihan);
+  } catch (e) { console.warn('Notifikasi gagal:', e); }
+};
+ 
+// SATU-SATUNYA tempat yang mengira dan memaparkan lencana
+window.kemaskiniNotifikasiPWA = () => {
+  if (!currentUser) return;
+  semakBarNotif();
+  const mmdd = kunciTarikh(Date.now()).substring(5);
+  const notaBelum = dataNotaGlobal.filter(n => notaUntukSaya(n) && belumBaca(n)).length;
+  const hariJadi = (window._hariJadiSemua || []).filter(v => (v.dob || '').substring(5) === mmdd).length;
+  const jumlah = notaBelum + hariJadi;
+ 
+  // 1. Lencana dalam apl
+  const lencana = document.getElementById('lencanaLuarWeCare');
+  if (lencana) { lencana.style.display = jumlah > 0 ? 'inline-block' : 'none'; lencana.innerText = jumlah; }
+ 
+  // 2. Ikon app (desktop sahaja; Android tidak menyokong setAppBadge)
+  if (navigator.setAppBadge) {
+    try { (jumlah > 0 ? navigator.setAppBadge(jumlah) : navigator.clearAppBadge()).catch(() => {}); } catch (e) {}
+  }
+ 
+  // 3. Tajuk tab
+  document.title = jumlah > 0 ? `(${jumlah}) weCare - Jagaan Bersama` : 'weCare - Jagaan Bersama';
+ 
+  // 4. Semua sudah dibaca: buang notifikasi yang tinggal supaya titik pada ikon telefon hilang
+  if (jumlah === 0 && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration()
+      .then(reg => reg && reg.getNotifications({ tag: 'wecare-nota' }).then(l => l.forEach(n => n.close())))
+      .catch(() => {});
+  }
+};
+ 
 // ==========================================
 // FUNGSI NOTIFIKASI LENCANA (APP BADGE & UI)
 // ==========================================
@@ -924,35 +957,33 @@ window.renderAktivitiHariIni = () => {
 window.lihatNota = (kunci) => {
   const senarai = notaHari(kunci).sort((a, b) => b.created_at - a.created_at);
   document.getElementById('tajukNota').innerText = '🗒️ Nota · ' + kunci;
-  
-  document.getElementById('isiNota').innerHTML = senarai.map(n => `
-    <div class="card" style="background:${n.status_baca ? '#f8fafc' : '#fffbeb'};border-color:${n.status_baca ? '#e2e8f0' : '#fde68a'};margin-bottom:8px;">
-      <div style="font-size:13.5px;line-height:1.4;white-space:pre-wrap;color:${n.status_baca ? '#64748b' : '#000'};">${esc(n.note)}</div>
+ 
+  document.getElementById('isiNota').innerHTML = senarai.map(n => {
+    const baca = notaSaya(n) || adaBaca(n);
+    return `
+    <div class="card" style="background:${baca ? '#f8fafc' : '#fffbeb'};border-color:${baca ? '#e2e8f0' : '#fde68a'};margin-bottom:8px;">
+      <div style="font-size:13.5px;line-height:1.4;white-space:pre-wrap;color:${baca ? '#64748b' : '#000'};">${esc(n.note)}</div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:8px;border-top:1px solid var(--line);padding-top:5px;">
         <span>Oleh: <b>${esc(n.author)}</b></span>
         <span>${new Date(n.created_at).toLocaleString('ms-MY', { dateStyle: 'medium', timeStyle: 'short' })}</span>
       </div>
-      
-      <!-- BUTANG TINDAKAN KEMAS KINI -->
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
-          ${!n.status_baca ? `<button onclick="tandakanNotaDibaca('${n.id}', '${kunci}')" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">Tandakan Dibaca ✓</button>` : ''}
-          <button onclick="padamNota('${n.id}', '${kunci}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">Padam 🗑️</button>
+        ${!baca ? `<button onclick="tandakanNotaDibaca('${n.id}', '${kunci}')" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">Tandakan Dibaca ✓</button>` : ''}
+        <button onclick="padamNota('${n.id}', '${kunci}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">Padam 🗑️</button>
       </div>
-    </div>`).join('');
-    
+    </div>`;
+  }).join('');
+ 
   document.getElementById('modalNota').style.display = 'flex';
 };
  
 window.tutupNota = () => { document.getElementById('modalNota').style.display = 'none'; };
 
 window.tandakanNotaDibaca = async (id, kunci) => {
-    try {
-        await updateDoc(doc(db, "wecare_notes", id), { status_baca: true });
-        // Refresh paparan modal perlahan sedikit supaya tak nampak kelip
-        setTimeout(() => window.lihatNota(kunci), 300); 
-    } catch (e) {
-        console.error("Gagal update status:", e);
-    }
+  try {
+    await updateDoc(doc(db, "wecare_notes", id), { dibaca_oleh: arrayUnion(currentUser.uid) });
+    setTimeout(() => window.lihatNota(kunci), 300);
+  } catch (e) { console.error("Gagal update status:", e); }
 };
 
 window.padamNota = async (id, kunci) => {
