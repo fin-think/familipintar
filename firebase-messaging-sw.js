@@ -25,15 +25,7 @@ messaging.onBackgroundMessage((payload) => {
         navigator.setAppBadge(jumlahLencana);
     }
 
-    // 2. KELUARKAN KOTAK NOTIFIKASI (Sangat penting supaya OS tak hantar badge ke Chrome)
-    const tajuk = payload.notification?.title || "Famili Pintar";
-    const pilihan = {
-        body: payload.notification?.body || "Anda ada mesej baharu.",
-        icon: '/logo.png', // Pastikan bos ada fail logo.png dalam root folder
-        badge: '/logo.png'
-    };
-
-    return self.registration.showNotification(tajuk, pilihan);
+    
 });
 
 self.addEventListener('notificationclick', (event) => {
