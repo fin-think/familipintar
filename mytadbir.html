@@ -176,7 +176,8 @@
   const [isDashboardUnlocked, setIsDashboardUnlocked] = useState(false); 
   const [showPaywall, setShowPaywall] = useState(false);
   const [dariMyDebt, setDariMyDebt] = useState(false);
-
+  const [dariFinplan, setDariFinplan] = useState(null);
+            
   // Fungsi untuk memintas klik tab
   const handleTabClick = (tabId) => {
     // Jika tab ke-6 (Dashboard) ditekan dan belum dibuka kuncinya
@@ -334,6 +335,38 @@
                           }
                       }
                   } catch (e) { console.warn("Gagal baca data myDEBT:", e.message); }
+
+// Gabung instrumen daripada myFINPLAN jika lebih baharu daripada simpanan myTADBIR terakhir
+                  try {
+                      const fSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "myfinplan_plans", uid));
+                      if (fSnap.exists()) {
+                          const ff = fSnap.data();
+                          const lastTadbirF = docSnap.exists() ? ((docSnap.data().summary || {}).last_updated || 0) : 0;
+                          if ((ff.updated_at || 0) > lastTadbirF && Array.isArray(ff.instruments)) {
+                              const peta = (nama) => {
+                                  const n = (nama || '').toLowerCase();
+                                  if (/kwsp|epf/.test(n)) return 'kwsp';
+                                  if (/asb/.test(n)) return 'asb';
+                                  if (/tabung haji|\bth\b/.test(n)) return 'th';
+                                  if (/emas|gold/.test(n)) return 'emas';
+                                  if (/bank|tunai|cash|simpanan tetap|\bfd\b/.test(n)) return 'tunai';
+                                  return 'unitTrust';
+                              };
+                              const label = { kwsp: 'KWSP', asb: 'Amanah Saham (ASB)', th: 'Tabung Haji (TH)', emas: 'Emas Semasa', tunai: 'Tunai di Bank', unitTrust: 'Unit Trust / Saham' };
+                              const jumlah = {};
+                              const senarai = [];
+                              ff.instruments.forEach(x => {
+                                  const k = peta(x.name);
+                                  const v = parseFloat(x.value) || 0;
+                                  jumlah[k] = (jumlah[k] || 0) + v;
+                                  senarai.push({ name: x.name || 'Instrumen', value: v, sasaran: label[k] });
+                              });
+                              Object.keys(jumlah).forEach(k => { mergedData[k] = jumlah[k]; });
+                              setDariFinplan(senarai);
+                          }
+                      }
+                  } catch (e) { console.warn("Gagal baca data myFINPLAN:", e.message); }
+
                   
                   setAppData(mergedData);
               } catch (e) { console.error("Ralat memuatkan ekosistem data:", e); }
@@ -965,12 +998,28 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                   )}
 
                   {activeTab === 2 && (
-                    <div className="space-y-6 animate-fadeIn">
+                   <div className="space-y-6 animate-fadeIn">
                       <Card>
                         <SectionHeader title="Aset Semasa" icon={Landmark} description="Senaraikan semua jenis simpanan dan harta fizikal." />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
                                 <h4 className="font-semibold text-slate-700 mb-4 border-b pb-2">Aset Tunai / Pelaburan</h4>
+                                {dariFinplan ? (
+                                  <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm">
+                                    <div className="font-semibold text-emerald-800 mb-1">Diimport daripada myFINPLAN</div>
+                                    {dariFinplan.map((x, i) => (
+                                      <div key={i} className="flex justify-between gap-3 text-slate-700 py-0.5">
+                                        <span>{x.name} <span className="text-xs text-slate-400">→ {x.sasaran}</span></span>
+                                        <span className="font-semibold shrink-0">{formatRM(x.value)}</span>
+                                      </div>
+                                    ))}
+                                    <p className="text-xs text-slate-500 mt-2">Anda boleh ubah nilai di bawah. Simpan di myTADBIR untuk mengekalkan perubahan.</p>
+                                  </div>
+                                ) : (
+                                  <div className="mb-4 p-3 rounded-lg bg-indigo-50 border border-indigo-100 text-sm text-indigo-800">
+                                    Ada KWSP, ASB, Tabung Haji atau pelaburan lain? Isi terus di bawah, atau guna <a href="app/myfinplan.html" className="font-bold underline">myFINPLAN</a> untuk merancang persaraan dan menghantar bakinya ke sini.
+                                  </div>
+                                )}
                                 <div className="grid grid-cols-2 gap-4">
                                   <Input label="Amanah Saham (ASB)" value={asb} onChange={e => setAsb(toNumber(e.target.value))} prefix="RM" />
                                   <Input label="Tabung Haji (TH)" value={th} onChange={e => setTh(toNumber(e.target.value))} prefix="RM" />
