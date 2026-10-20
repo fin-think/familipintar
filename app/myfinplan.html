@@ -21,6 +21,7 @@
         .asset-entry { border: 1px solid #f1f5f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; position: relative; background: #fdfdfd; }
         .remove-btn { color: #ef4444; font-size: 0.75rem; font-weight: 700; cursor: pointer; float: right; margin-bottom: 5px; }
         .remove-btn:hover { text-decoration: underline; }
+        .hint { display: block; font-size: 11px; color: #94a3b8; margin-top: 2px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -38,6 +39,7 @@
                     <div>
                         <label>Umur Sekarang</label>
                         <input type="number" id="currentAge" value="30">
+                        <span id="hintUmur" class="hint"></span>
                     </div>
                     <div>
                         <label>Umur Bersara</label>
@@ -46,6 +48,7 @@
                     <div>
                         <label>Pendapatan Bulanan Semasa (RM)</label>
                         <input type="number" id="currentIncome" value="5000">
+                        <span id="hintPendapatan" class="hint"></span>
                     </div>
                     <div>
                         <label>Jangkaan Kenaikan Gaji Tahunan (%)</label>
@@ -76,13 +79,20 @@
                     <h2 class="section-title text-xl mb-0">2. Kewangan & Instrumen Sedia Ada</h2>
                     <button onclick="addAssetPrompt()" class="btn-outline text-blue-600">+ Tambah Instrumen</button>
                 </div>
-                
+
                 <div id="assetsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Ditambah melalui JS -->
                 </div>
 
                 <div class="mt-8 flex justify-center">
                     <button onclick="calculateAll()" class="btn-primary w-full md:w-1/2 shadow-lg shadow-blue-200">Kira & Jana Laporan</button>
+                </div>
+
+                <!-- HUBUNGKAN KE myTADBIR -->
+                <div class="mt-6 rounded-xl border border-blue-100 bg-blue-50/60 p-5">
+                    <h3 class="font-bold text-blue-900">Hubungkan ke myTADBIR</h3>
+                    <p class="text-sm text-blue-800/80 mt-1">Simpan instrumen di atas, dan baki setiap instrumen akan terisi sendiri di myTADBIR (tab Aset Semasa, bawah Aset Tunai / Pelaburan). Umur anda diambil daripada myNasab dan pendapatan daripada myDEBT.</p>
+                    <div id="kad-isi" class="mt-4 text-sm text-slate-500">Menyemak akaun...</div>
                 </div>
             </div>
         </div>
@@ -91,7 +101,7 @@
         <div id="results" class="mt-10 space-y-8 hidden">
             <div class="card bg-slate-50 border-2 border-blue-100">
                 <h2 class="text-2xl font-bold text-blue-800 mb-4 text-center">Keputusan Analisis & Laporan</h2>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="result-box text-center">
                         <h3 class="font-bold text-sm mb-2 text-slate-600">Lebihan Tunai (FV)</h3>
@@ -161,13 +171,49 @@
     </div>
 
     <script>
-        window.onload = function() {
+        const ASET_ASAS = ['KWSP', 'ASB', 'Tabung Haji', 'Simpanan Bank', 'Simpanan Emas'];
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+        function isiAsetAsas() {
             addAsset('KWSP', 50000, 1000, 5.5, false);
             addAsset('ASB', 10000, 200, 5.0, false);
             addAsset('Tabung Haji', 5000, 100, 3.5, false);
             addAsset('Simpanan Bank', 2000, 50, 2.0, false);
             addAsset('Simpanan Emas', 0, 100, 9.0, false);
+        }
+
+        window.onload = function() {
+            isiAsetAsas();
         };
+
+        // --- SAMBUNGAN KE myTADBIR: baca / isi keadaan borang ---
+        function getState() {
+            const v = id => parseFloat(document.getElementById(id).value) || 0;
+            return {
+                retireAge: v('retireAge'), incomeGrowth: v('incomeGrowth'), monthlyExpense: v('monthlyExpense'),
+                inflationRetire: v('inflationRetire'), lifeExpectancy: v('lifeExpectancy'), swrRate: v('swrRate'),
+                instruments: [...document.querySelectorAll('.asset-entry')].map(e => ({
+                    name: (e.querySelector('.font-bold') || {}).textContent || 'Instrumen',
+                    value: parseFloat(e.querySelector('.assetValue').value) || 0,
+                    monthly: parseFloat(e.querySelector('.assetMonthly').value) || 0,
+                    rate: parseFloat(e.querySelector('.assetReturn').value) || 0
+                }))
+            };
+        }
+
+        function loadState(s) {
+            ['retireAge','incomeGrowth','monthlyExpense','inflationRetire','lifeExpectancy','swrRate']
+                .forEach(id => { if (s[id] !== undefined && s[id] !== null) document.getElementById(id).value = s[id]; });
+
+            if (Array.isArray(s.instruments)) {
+                document.getElementById('assetsContainer').innerHTML = '';
+                if (s.instruments.length) {
+                    s.instruments.forEach(x => addAsset(x.name, x.value, x.monthly, x.rate, !ASET_ASAS.includes(x.name)));
+                } else {
+                    isiAsetAsas();
+                }
+            }
+        }
 
         function formatRM(val) {
             if (isNaN(val)) return "RM 0.00";
@@ -203,7 +249,7 @@
                 if (surplus > 0) {
                     totalSurplus += surplus;
                 }
-                
+
                 // Kemas kini gaji dan perbelanjaan setiap tahun
                 if ((i + 1) % 12 === 0) {
                     currentMonthlyIncome *= (1 + (incGrowth / 100));
@@ -234,7 +280,7 @@
             div.className = 'asset-entry';
             div.innerHTML = `
                 ${removable ? '<span class="remove-btn" onclick="this.parentElement.remove()">Padam</span>' : ''}
-                <div class="font-bold text-sm text-blue-600 mb-2">${labelName}</div>
+                <div class="font-bold text-sm text-blue-600 mb-2">${esc(labelName)}</div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label>Baki Semasa (RM)</label>
@@ -263,7 +309,7 @@
                 const infRetire = parseFloat(document.getElementById('inflationRetire').value) || 0;
                 const lifeExp = parseFloat(document.getElementById('lifeExpectancy').value) || 0;
                 const swrRate = parseFloat(document.getElementById('swrRate').value) || 5;
-                
+
                 const yearsToRetire = Math.max(0, retAge - curAge);
 
                 // Pengiraan Lebihan Tunai (Tanpa Kompaun Pelaburan)
@@ -275,7 +321,7 @@
                     const val = parseFloat(entry.querySelector('.assetValue').value) || 0;
                     const monthly = parseFloat(entry.querySelector('.assetMonthly').value) || 0;
                     const rate = parseFloat(entry.querySelector('.assetReturn').value) || 0;
-                    
+
                     const grownLump = calculateFV(val, rate, yearsToRetire);
                     const grownAnnuity = calculateAnnuityFV(monthly, rate, yearsToRetire);
                     totalAssetsAtRetire += (grownLump + grownAnnuity);
@@ -284,9 +330,9 @@
                 const totalWealthAtRetire = totalAssetsAtRetire + simpleSurplus;
                 const retirementFund = Math.max(0, totalWealthAtRetire);
                 const monthlyExpAtRetire = calculateFV(monthlyExp, infRetire, yearsToRetire);
-                
+
                 const totalAnnualExpenseAtRetire = monthlyExpAtRetire * 12;
-                
+
                 let totalRetireNeeded = 0;
                 if (swrRate > 0) {
                     totalRetireNeeded = totalAnnualExpenseAtRetire / (swrRate / 100);
@@ -355,6 +401,141 @@
                 `;
             });
         }
+    </script>
+
+    <!-- SAMBUNGAN FIREBASE: umur (myNasab), pendapatan (myDEBT), simpan instrumen untuk myTADBIR -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // myfinplan.html berada dalam /app/, mytadbir.html di akar tapak. Laraskan jika berbeza.
+        const URL_MYTADBIR = "../mytadbir.html";
+        const URL_MYNASAB = "../index.html";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+            authDomain: "familipintar.firebaseapp.com",
+            databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "familipintar",
+            storageBucket: "familipintar.firebasestorage.app",
+            messagingSenderId: "277029764059",
+            appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app), db = getFirestore(app);
+
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const RM = n => 'RM ' + Math.round(n).toLocaleString('en-MY');
+        const kad = document.getElementById('kad-isi');
+        const hint = (id, teks) => { const e = document.getElementById(id); if (e) e.textContent = teks; };
+        let user = null;
+
+        const umurDariDob = (dobStr) => {
+            const lahir = new Date(dobStr), kini = new Date();
+            if (isNaN(lahir)) return 0;
+            let u = kini.getFullYear() - lahir.getFullYear();
+            const m = kini.getMonth() - lahir.getMonth();
+            if (m < 0 || (m === 0 && kini.getDate() < lahir.getDate())) u--;
+            return u;
+        };
+
+        // 1. Pulihkan pelan myFINPLAN yang pernah disimpan
+        async function muatSimpanan(uid) {
+            try {
+                const s = await getDoc(doc(db, "myfinplan_plans", uid));
+                if (s.exists()) window.loadState(s.data());
+            } catch (e) { console.warn('Gagal muat pelan myFINPLAN:', e.message); }
+        }
+
+        // 2. Umur daripada myNasab (nod "Diri Sendiri")
+        async function tarikUmur(uid) {
+            try {
+                const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
+                const nod = s.docs.map(d => d.data());
+                const diri = nod.find(n => n.is_root) || nod.find(n => (n.relationship || '').toLowerCase().includes('diri sendiri'));
+                if (diri && diri.dob) {
+                    const umur = umurDariDob(diri.dob);
+                    if (umur > 0) {
+                        document.getElementById('currentAge').value = umur;
+                        hint('hintUmur', 'Diambil daripada myNasab');
+                        return;
+                    }
+                }
+                hint('hintUmur', 'Tarikh lahir belum diisi di myNasab');
+            } catch (e) { console.warn('Gagal tarik umur:', e.message); }
+        }
+
+        // 3. Pendapatan daripada myDEBT (jika myTADBIR disimpan lebih baharu, guna yang itu)
+        async function tarikPendapatan(uid) {
+            try {
+                const [a, b] = await Promise.all([getDoc(doc(db, "mydebt_plans", uid)), getDoc(doc(db, "mytadbir_profiles", uid))]);
+                let jumlah = 0, sumber = '', t = 0;
+                if (a.exists()) {
+                    jumlah = (a.data().gaji || 0) + (a.data().sampingan || 0);
+                    sumber = 'myDEBT';
+                    t = a.data().updated_at || 0;
+                }
+                if (b.exists()) {
+                    const r = b.data().raw_data || {};
+                    const tb = (b.data().summary || {}).last_updated || 0;
+                    const j = (r.gajiHakiki || 0) + (r.pendapatanSampingan || 0);
+                    if (j > 0 && tb > t) { jumlah = j; sumber = 'myTADBIR'; }
+                }
+                if (jumlah > 0) {
+                    document.getElementById('currentIncome').value = jumlah;
+                    hint('hintPendapatan', 'Diambil daripada ' + sumber + ' (pendapatan kasar, sebelum KWSP/PCB). Laraskan jika mahu pendapatan bersih.');
+                } else {
+                    hint('hintPendapatan', 'Belum ada data pendapatan di myDEBT. Isi di sini atau di myDEBT.');
+                }
+            } catch (e) { console.warn('Gagal tarik pendapatan:', e.message); }
+        }
+
+        function papar(mesejBerjaya = '') {
+            if (!user) {
+                kad.innerHTML = `
+                  <form id="fLog" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input name="e" type="email" required placeholder="E-mel myNasab" class="px-4 py-3 border border-blue-200 rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-400">
+                    <input name="p" type="password" required placeholder="Kata laluan" class="px-4 py-3 border border-blue-200 rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-400">
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-4 py-3">Log masuk untuk simpan</button>
+                  </form>
+                  <p class="text-xs text-slate-500 mt-2">Data yang anda isi kekal dalam halaman ini selepas log masuk. Belum ada akaun? <a class="underline font-semibold" href="${URL_MYNASAB}">Daftar di myNasab</a>. Tanpa akaun, kalkulator ini masih boleh digunakan seperti biasa.</p>`;
+                document.getElementById('fLog').onsubmit = async ev => {
+                    ev.preventDefault();
+                    try { await signInWithEmailAndPassword(auth, ev.target.e.value, ev.target.p.value); }
+                    catch (err) { alert('Log masuk gagal. Sila semak e-mel dan kata laluan.'); }
+                };
+                return;
+            }
+            kad.innerHTML = `
+              <p class="text-xs text-slate-500 mb-3">Log masuk sebagai <b>${esc(user.email)}</b></p>
+              <button id="btnSimpan" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-3">💾 Simpan ke myTADBIR</button>
+              <a href="${URL_MYTADBIR}" class="inline-block mt-3 sm:mt-0 sm:ml-3 font-bold text-blue-700 underline">Buka myTADBIR</a>
+              ${mesejBerjaya ? `<p class="text-sm font-semibold text-emerald-700 mt-3">${mesejBerjaya}</p>` : ''}`;
+            document.getElementById('btnSimpan').onclick = simpan;
+        }
+
+        async function simpan() {
+            const s = window.getState();
+            if (!s.instruments.length) { alert('Tambah sekurang-kurangnya satu instrumen dahulu.'); return; }
+            const jumlah = s.instruments.reduce((a, x) => a + x.value, 0);
+            if (!confirm(`Simpan ${s.instruments.length} instrumen (jumlah baki ${RM(jumlah)}) ke myTADBIR?\n\nBaki ini akan mengisi Aset Tunai / Pelaburan di tab Aset Semasa myTADBIR sehingga anda menyimpan semula di sana.`)) return;
+            try {
+                await setDoc(doc(db, "myfinplan_plans", user.uid), { owner_uid: user.uid, ...s, updated_at: Date.now() });
+                papar('✔ Disimpan. Buka myTADBIR dan lihat tab Aset Semasa.');
+            } catch (e) { alert('Gagal menyimpan: ' + e.message); }
+        }
+
+        onAuthStateChanged(auth, async u => {
+            user = u;
+            if (u) {
+                // tunggu halaman siap supaya instrumen asas tidak menimpa data yang dimuat
+                if (document.readyState !== 'complete') await new Promise(r => window.addEventListener('load', r, { once: true }));
+                await muatSimpanan(u.uid);
+                await Promise.all([tarikUmur(u.uid), tarikPendapatan(u.uid)]);
+            }
+            papar();
+        });
     </script>
 </body>
 </html>
