@@ -916,21 +916,24 @@ window.pantauLencanaWeCareUtama = async (user) => {
         });
     } catch (err) { console.warn("Ralat Hari Jadi:", err); }
 
-    // 3. Pantau Nota (Live) - Selari dengan weCare
+    // 3. Pantau Nota (Live) - LOGIK PER-PENGGUNA TERKINI
     const qNota = query(collection(db, "wecare_notes"), where("group_id", "==", groupUid));
-    const namaPengguna = user.email.split('@')[0];
+    const emelPrefix = user.email.split('@')[0];
 
     onSnapshot(qNota, (snapshot) => {
         let notaBelumBaca = 0;
+        
         snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            // Semak jika belum dibaca
-            if (data.status_baca !== true) {
-                // (Opsyenal): Jika bos TAK NAK nota yang bos tulis sendiri naik lencana, 
-                // buang komen (//) pada kod di bawah:
-                // if (data.author !== namaPengguna) { notaBelumBaca++; }
-                // else { return; }
-                
+            const n = docSnap.data();
+            
+            // Kenal pasti jika nota ini ditulis oleh pengguna yang sedang log masuk
+            const notaSaya = n.author_uid ? n.author_uid === user.uid : n.author === emelPrefix;
+            
+            // Kenal pasti jika pengguna ini sudah membacanya (semak dalam array dibaca_oleh)
+            const adaBaca = Array.isArray(n.dibaca_oleh) ? n.dibaca_oleh.includes(user.uid) : n.status_baca === true;
+
+            // Tambah kiraan lencana HANYA jika ia nota orang lain DAN belum dibaca
+            if (!notaSaya && !adaBaca) {
                 notaBelumBaca++;
             }
         });
