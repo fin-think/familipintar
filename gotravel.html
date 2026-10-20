@@ -62,23 +62,35 @@
 
   @media (min-width: 1024px) { .container { padding-left: 32px; padding-right: 32px; } }
   
-  /* Pengepala */
-  .header { text-align: center; padding: 10px 0 20px; position: relative; }
-  .header h1 {
-    font-family: 'Baloo 2', cursive; font-size: 2.2rem; font-weight: 800;
-    background: linear-gradient(135deg, var(--coral), var(--peach));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; margin-bottom: 4px;
+  /* Pengepala Standard myNasab */
+  .top-navbar {
+    background: linear-gradient(to right, #1e1b4b, #0f172a, #172554);
+    color: white; padding: 16px 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    position: sticky; top: 0; z-index: 100; width: 100vw; margin-left: calc(50% - 50vw);
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;
+    margin-bottom: 24px;
   }
-  .header p { color: #888; font-size: 0.95rem; font-weight: 700; }
-
-  .btn-kembali {
-    position: absolute; right: 0; top: 10px;
-    background: #0ea5e9; color: white; border: none;
-    padding: 8px 16px; border-radius: 99px; font-weight: 700; font-size: 0.85rem;
-    cursor: pointer; display: flex; align-items: center; gap: 6px;
-    box-shadow: 0 2px 6px rgba(14,165,233,0.3); transition: 0.2s;
+  .top-navbar-left { display: flex; align-items: center; gap: 12px; }
+  .top-navbar-left .icon { font-size: 1.8rem; }
+  .top-navbar-left .brand-name { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.025em; font-family: 'Nunito', sans-serif; line-height: 1; }
+  .top-navbar-left .brand-name .highlight { color: #7dd3fc; }
+  
+  .top-navbar-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .btn-kembali-nav {
+    background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white; padding: 8px 20px; border-radius: 9999px; font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;
   }
-  .btn-kembali:hover { background: #0284c7; }
+  .btn-kembali-nav:hover { background: rgba(255, 255, 255, 0.2); transform: translateX(-4px); }
+  .user-badge {
+    font-size: 0.85rem; font-weight: 600; background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 16px; border-radius: 9999px;
+    display: flex; align-items: center; gap: 8px; color: #fff;
+  }
+  @media (max-width: 768px) {
+    .top-navbar { flex-direction: column; text-align: center; justify-content: center; }
+    .top-navbar-left, .top-navbar-right { justify-content: center; width: 100%; }
+  }
 
   /* Dropdown Filter */
   .filter-section { background: var(--card); padding: 15px 20px; border-radius:16px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow); }
@@ -247,17 +259,24 @@
 
 <div class="container" id="mainApp">
 
-  <!-- Pengepala Utama -->
-  <div class="header">
-    <button onclick="window.location.href='index.html'" class="btn-kembali">
-      🏠 Kembali
-    </button>
-    <div>
-      <h1>✈️ JomBercuti</h1>
-      <p>Perancang Kewangan & Acara Keluarga</p>
+  <!-- Pengepala Utama (Standard) -->
+  <header class="top-navbar">
+    <div class="top-navbar-left">
+      <div class="icon">✈️</div>
+      <div class="brand-name">
+        <span class="highlight">Jom</span><span style="color:white">Bercuti</span>
+      </div>
     </div>
-  </div>
-
+    <div class="top-navbar-right">
+      <button onclick="window.location.href='index.html'" class="btn-kembali-nav">
+        &#8592; Kembali
+      </button>
+      <div class="user-badge" id="displayUserName">
+        👤 Pengguna
+      </div>
+    </div>
+  </header>
+  
   <!-- Undur Detik (Kelebaran Penuh) -->
   <div class="countdown-banner">
     <div class="cd-header-wrap">
@@ -470,6 +489,10 @@
 
         if (user) {
             currentUser = user;
+          
+            const userNameEl = document.getElementById('displayUserName');
+            if (userNameEl) userNameEl.innerHTML = `👤 ${user.email.split('@')[0]}`;
+          
             if (authScreen) authScreen.classList.add('hidden');
             if (mainApp) mainApp.classList.remove('hidden');
 
