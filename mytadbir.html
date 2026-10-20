@@ -217,7 +217,13 @@
                   let mergedData = { ...defaultData };
                   
                   if (docSnap.exists()) {
-                      mergedData = { ...mergedData, ...docSnap.data().raw_data };
+                      const dbData = docSnap.data();
+                      mergedData = { ...mergedData, ...dbData.raw_data };
+                      
+                      // SEMAK REKOD BAYARAN: Jika sudah bayar, terus buka kunci
+                      if (dbData.is_dashboard_unlocked === true) {
+                          setIsDashboardUnlocked(true);
+                      }
                   }
 
                   const q = window.fbQuery(window.fbCollection(window.fbDb, "mynasab_nodes"), window.fbWhere("owner_uid", "==", uid));
@@ -789,7 +795,8 @@
                           last_updated: Date.now()
                       }
                   };
-                  await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), payload);
+                  // Kod Baru (Tambah { merge: true })
+await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), payload, { merge: true });
                   alert("✅ Data berjaya disimpan!\n\nNilai Harta Bersih & Sasaran Kewangan anda kini telah disinkronisasi ke aplikasi OurMoney.");
               } catch (e) {
                   console.error(e);
@@ -1645,16 +1652,24 @@
             </p>
             
             <button 
-              onClick={() => {
-                // Di sini bos letak fungsi tolak kredit Firebase.
-                // Contoh: prosesTolakKredit(10).then(() => {
-                
-                setIsDashboardUnlocked(true); // Buka kunci
-                setShowPaywall(false); // Tutup popup
-                setActiveTab(6); // <-- TUKAR KE NOMBOR 6 DI SINI
-                
-                // });
-              }} 
+              onClick={async () => {
+                try {
+                  // 1. (Opsyenal) Di sini bos boleh selitkan fungsi tolak 10 kredit dari koleksi mynasab_users
+                  
+                  // 2. Simpan status unlock ke Firebase supaya kekal dan tak ditanya lagi
+                  await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), {
+                      is_dashboard_unlocked: true
+                  }, { merge: true });
+
+                  setIsDashboardUnlocked(true); // Buka kunci di skrin
+                  setShowPaywall(false); // Tutup popup
+                  setActiveTab(6); // Tukar ke tab Dashboard
+                  
+                } catch (error) {
+                  console.error(error);
+                  alert("Ralat ketika merekod pembayaran. Sila cuba lagi.");
+                }
+              }}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all mb-3 flex justify-center items-center gap-2"
             >
               Buka Analisis (10 Kredit)
