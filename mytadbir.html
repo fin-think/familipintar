@@ -154,7 +154,7 @@
           userGender: 'lelaki', age: 30, gajiHakiki: 0, pendapatanSampingan: 0,
           kwspPotongan: 11, socsoPotongan: 0, dapurExpenses: 0, utilitiExpenses: 0,
           transportExpenses: 0, entertainmentExpenses: 0, insuranceExpenses: 0,
-          childrenData: [], asb: 0, th: 0, unitTrust: 0, tunai: 0, kwsp: 0, emas: 0,
+          childrenData: [], asetList: [],
           rumahValue: 0, keretaValue: 0, debtsList: [], extraBudget: 0, debtStrategy: 'snowball', consolRate: 4.5, consolYear: 7,
           retireAge: 60, lifeExpectancy: 80, inflationRate: 3, assetReturnRate: 5, uniAge: 18, currentEduCost: 50000,
           sspnFund: 0, asbAnakFund: 0, educationInflation: 6, universityType: 'local', funeralCost: 2000, sepencarianPercent: 50,
@@ -220,6 +220,14 @@
                   if (docSnap.exists()) {
                       const dbData = docSnap.data();
                       mergedData = { ...mergedData, ...dbData.raw_data };
+
+                      // Pindah data lama (kotak tetap) kepada senarai aset
+                      const rd = dbData.raw_data || {};
+                      if (!Array.isArray(rd.asetList)) {
+                          const lama = [['Amanah Saham (ASB)', rd.asb], ['Tabung Haji (TH)', rd.th], ['Unit Trust / Saham', rd.unitTrust], ['Tunai di Bank', rd.tunai], ['KWSP', rd.kwsp], ['Emas Semasa', rd.emas]];
+                          mergedData.asetList = lama.filter(x => (parseFloat(x[1]) || 0) > 0)
+                              .map((x, i) => ({ id: Date.now() + i, name: x[0], value: parseFloat(x[1]) }));
+                      }
                       
                       // SEMAK REKOD BAYARAN: Jika sudah bayar, terus buka kunci
                       if (dbData.is_dashboard_unlocked === true) {
@@ -228,6 +236,7 @@
                   }
 
                   const q = window.fbQuery(window.fbCollection(window.fbDb, "mynasab_nodes"), window.fbWhere("owner_uid", "==", uid));
+                                    ['asb', 'th', 'unitTrust', 'tunai', 'kwsp', 'emas'].forEach(k => delete mergedData[k]);
                   const nasabSnap = await window.fbGetDocs(q);
                   
                   let childrenList = [];
@@ -337,36 +346,21 @@
                   } catch (e) { console.warn("Gagal baca data myDEBT:", e.message); }
 
 // Gabung instrumen daripada myFINPLAN jika lebih baharu daripada simpanan myTADBIR terakhir
-                  try {
+                                   try {
                       const fSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "myfinplan_plans", uid));
                       if (fSnap.exists()) {
                           const ff = fSnap.data();
                           const lastTadbirF = docSnap.exists() ? ((docSnap.data().summary || {}).last_updated || 0) : 0;
                           if ((ff.updated_at || 0) > lastTadbirF && Array.isArray(ff.instruments)) {
-                              const peta = (nama) => {
-                                  const n = (nama || '').toLowerCase();
-                                  if (/kwsp|epf/.test(n)) return 'kwsp';
-                                  if (/asb/.test(n)) return 'asb';
-                                  if (/tabung haji|\bth\b/.test(n)) return 'th';
-                                  if (/emas|gold/.test(n)) return 'emas';
-                                  if (/bank|tunai|cash|simpanan tetap|\bfd\b/.test(n)) return 'tunai';
-                                  return 'unitTrust';
-                              };
-                              const label = { kwsp: 'KWSP', asb: 'Amanah Saham (ASB)', th: 'Tabung Haji (TH)', emas: 'Emas Semasa', tunai: 'Tunai di Bank', unitTrust: 'Unit Trust / Saham' };
-                              const jumlah = {};
-                              const senarai = [];
-                              ff.instruments.forEach(x => {
-                                  const k = peta(x.name);
-                                  const v = parseFloat(x.value) || 0;
-                                  jumlah[k] = (jumlah[k] || 0) + v;
-                                  senarai.push({ name: x.name || 'Instrumen', value: v, sasaran: label[k] });
-                              });
-                              Object.keys(jumlah).forEach(k => { mergedData[k] = jumlah[k]; });
-                              setDariFinplan(senarai);
+                              mergedData.asetList = ff.instruments.map((x, i) => ({
+                                  id: Date.now() + 1000 + i,
+                                  name: x.name || 'Instrumen',
+                                  value: parseFloat(x.value) || 0
+                              }));
+                              setDariFinplan(true);
                           }
                       }
                   } catch (e) { console.warn("Gagal baca data myFINPLAN:", e.message); }
-
                   
                   setAppData(mergedData);
               } catch (e) { console.error("Ralat memuatkan ekosistem data:", e); }
@@ -385,7 +379,7 @@
           const {
             userGender, age, gajiHakiki, pendapatanSampingan, kwspPotongan, socsoPotongan,
             dapurExpenses, utilitiExpenses, transportExpenses, entertainmentExpenses, insuranceExpenses, childrenData,
-            asb, th, unitTrust, tunai, kwsp, emas, rumahValue, keretaValue,
+            asetList, rumahValue, keretaValue,
             debtsList, extraBudget, debtStrategy, consolRate, consolYear,
             retireAge, lifeExpectancy, inflationRate, assetReturnRate, uniAge, currentEduCost,
             sspnFund, asbAnakFund, educationInflation, universityType,
@@ -406,12 +400,7 @@
           const setInsuranceExpenses = (val) => setAppData(p => ({...p, insuranceExpenses: val}));
           const setChildrenData = (val) => setAppData(p => ({...p, childrenData: val}));
 
-          const setAsb = (val) => setAppData(p => ({...p, asb: val}));
-          const setTh = (val) => setAppData(p => ({...p, th: val}));
-          const setUnitTrust = (val) => setAppData(p => ({...p, unitTrust: val}));
-          const setTunai = (val) => setAppData(p => ({...p, tunai: val}));
-          const setKwsp = (val) => setAppData(p => ({...p, kwsp: val}));
-          const setEmas = (val) => setAppData(p => ({...p, emas: val}));
+          
           const setRumahValue = (val) => setAppData(p => ({...p, rumahValue: val}));
           const setKeretaValue = (val) => setAppData(p => ({...p, keretaValue: val}));
 
@@ -570,7 +559,17 @@
           const totalDebts = debtAnalysisResult.totalBalance;
           const unjuranTotalDebts = debtAnalysisResult.balanceAtRetirement;
 
-          const totalLiquidAssets = asb + th + unitTrust + tunai + kwsp + emas;
+                    // Jenis dikenal daripada nama yang ditaip pengguna
+          const kategoriAset = (nama) => {
+              const n = (nama || '').toLowerCase();
+              if (/kwsp|epf/.test(n)) return 'kwsp';
+              if (/emas|gold/.test(n)) return 'emas';
+              if (/bank|tunai|cash|simpanan tetap|\bfd\b/.test(n)) return 'tunai';
+              return 'lain';
+          };
+          const jumlahAset = (arr) => arr.reduce((t, a) => t + (parseFloat(a.value) || 0), 0);
+          const totalLiquidAssets = jumlahAset(asetList);
+          const tunai = jumlahAset(asetList.filter(a => kategoriAset(a.name) === 'tunai'));   // untuk dana kecemasan
           const totalPhysicalAssets = rumahValue + keretaValue;
           const currentNetWorth = (totalLiquidAssets + totalPhysicalAssets) - totalDebts;
 
@@ -678,7 +677,7 @@
           const sustainableMonthlyExpense = yearsInRetirement > 0 ? (bakiUntukBersara / (yearsInRetirement * 12)) : 0;
 
           // --- PENGIRAAN FARAID & PENYUCIAN HARTA ---
-          const totalZakatable = asb + th + unitTrust + tunai + emas; 
+          const totalZakatable = jumlahAset(asetList.filter(a => kategoriAset(a.name) !== 'kwsp'));
           const zakatPayable = totalZakatable * 0.025;
 
           const grossEstate = totalLiquidAssets + totalPhysicalAssets;
@@ -771,7 +770,17 @@
           const formatRM = (val) => "RM " + (parseFloat(val) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           const faraidColors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#f97316', '#64748b'];
 
-          // Fungsi Hutang
+          // Fungsi Aset & Hutang
+
+          const updateAset = (id, field, value) => {
+              setAppData(prev => ({
+                  ...prev,
+                  asetList: prev.asetList.map(a => a.id === id ? { ...a, [field]: field === 'name' ? value : toNumber(value) } : a)
+              }));
+          };
+          const addAset = () => setAppData(prev => ({ ...prev, asetList: [...prev.asetList, { id: Date.now(), name: 'Aset Baru', value: 0 }] }));
+          const removeAset = (id) => setAppData(prev => ({ ...prev, asetList: prev.asetList.filter(a => a.id !== id) }));
+            
           const updateDebt = (id, field, value) => {
               setAppData(prev => ({
                   ...prev,
@@ -997,51 +1006,61 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                     </div>
                   )}
 
-                  {activeTab === 2 && (
+                                    {activeTab === 2 && (
                    <div className="space-y-6 animate-fadeIn">
+                      <Card className="p-0 overflow-hidden border-slate-200">
+                        <div className="p-5 sm:p-8 border-b border-slate-100 bg-sky-50/40 flex items-center gap-3">
+                          <div className="p-2 bg-sky-100 text-sky-700 rounded-lg"><Landmark size={24} /></div>
+                          <div>
+                            <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Aset Tunai / Pelaburan</h2>
+                            <p className="text-slate-500 text-sm">Senarai simpanan dan pelaburan anda, selaras dengan instrumen di <strong>myFINPLAN</strong>.</p>
+                          </div>
+                        </div>
+                        <div className="p-5 sm:p-8 space-y-6">
+                          {dariFinplan ? (
+                            <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-800">
+                              Senarai aset diimport daripada myFINPLAN. Anda boleh ubah di sini, kemudian simpan di myTADBIR.
+                            </div>
+                          ) : asetList.length === 0 && (
+                            <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-100 text-sm text-indigo-800">
+                              Belum ada aset? Tambah di bawah (cth: ASB, Tabung Haji, KWSP), atau guna <a href="app/myfinplan.html" className="font-bold underline">myFINPLAN</a> untuk merancang persaraan dan menghantar instrumen ke sini.
+                            </div>
+                          )}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+                            <h3 className="text-base font-bold text-slate-800">Urus Senarai Aset</h3>
+                            <button onClick={addAset} className="text-sm bg-sky-50 text-sky-600 font-bold px-5 py-2.5 rounded-xl hover:bg-sky-100 border border-sky-100">+ Tambah Aset Baru</button>
+                          </div>
+                          <div className="space-y-4">
+                            {asetList.map((aset) => (
+                              <div key={aset.id} className="p-4 sm:p-5 border border-slate-200 bg-white rounded-xl sm:rounded-2xl relative hover:border-sky-300 group shadow-sm">
+                                <button onClick={() => removeAset(aset.id)} className="absolute -top-3 -right-3 bg-white border border-rose-200 text-rose-500 hover:bg-rose-50 w-8 h-8 rounded-full text-sm shadow-md sm:opacity-0 sm:group-hover:opacity-100 z-10">✕</button>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Nama Aset</label>
+                                    <input type="text" value={aset.name} onChange={(e) => updateAset(aset.id, 'name', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-sky-500 focus:ring-2 font-semibold" />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Baki (RM)</label>
+                                    <input type="number" value={aset.value} onChange={(e) => updateAset(aset.id, 'value', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-sky-500 focus:ring-2" />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </Card>
+
                       <Card>
-                        <SectionHeader title="Aset Semasa" icon={Landmark} description="Senaraikan semua jenis simpanan dan harta fizikal." />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <h4 className="font-semibold text-slate-700 mb-4 border-b pb-2">Aset Tunai / Pelaburan</h4>
-                                {dariFinplan ? (
-                                  <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm">
-                                    <div className="font-semibold text-emerald-800 mb-1">Diimport daripada myFINPLAN</div>
-                                    {dariFinplan.map((x, i) => (
-                                      <div key={i} className="flex justify-between gap-3 text-slate-700 py-0.5">
-                                        <span>{x.name} <span className="text-xs text-slate-400">→ {x.sasaran}</span></span>
-                                        <span className="font-semibold shrink-0">{formatRM(x.value)}</span>
-                                      </div>
-                                    ))}
-                                    <p className="text-xs text-slate-500 mt-2">Anda boleh ubah nilai di bawah. Simpan di myTADBIR untuk mengekalkan perubahan.</p>
-                                  </div>
-                                ) : (
-                                  <div className="mb-4 p-3 rounded-lg bg-indigo-50 border border-indigo-100 text-sm text-indigo-800">
-                                    Ada KWSP, ASB, Tabung Haji atau pelaburan lain? Isi terus di bawah, atau guna <a href="app/myfinplan.html" className="font-bold underline">myFINPLAN</a> untuk merancang persaraan dan menghantar bakinya ke sini.
-                                  </div>
-                                )}
-                                <div className="grid grid-cols-2 gap-4">
-                                  <Input label="Amanah Saham (ASB)" value={asb} onChange={e => setAsb(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="Tabung Haji (TH)" value={th} onChange={e => setTh(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="Unit Trust / Saham" value={unitTrust} onChange={e => setUnitTrust(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="Tunai di Bank" value={tunai} onChange={e => setTunai(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="KWSP" value={kwsp} onChange={e => setKwsp(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="Emas Semasa" value={emas} onChange={e => setEmas(toNumber(e.target.value))} prefix="RM" />
-                                </div>
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-slate-700 mb-4 border-b pb-2">Harta Fizikal (Anggaran Jualan)</h4>
-                                <div className="grid grid-cols-1 gap-4">
-                                  <Input label="Nilai Rumah / Hartanah" value={rumahValue} onChange={e => setRumahValue(toNumber(e.target.value))} prefix="RM" />
-                                  <Input label="Nilai Kereta / Kenderaan" value={keretaValue} onChange={e => setKeretaValue(toNumber(e.target.value))} prefix="RM" />
-                                </div>
-                            </div>
+                        <SectionHeader title="Harta Fizikal" icon={Landmark} description="Anggaran nilai jualan rumah dan kenderaan." />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Input label="Nilai Rumah / Hartanah" value={rumahValue} onChange={e => setRumahValue(toNumber(e.target.value))} prefix="RM" />
+                          <Input label="Nilai Kereta / Kenderaan" value={keretaValue} onChange={e => setKeretaValue(toNumber(e.target.value))} prefix="RM" />
                         </div>
                         <div className="mt-6 pt-4 border-t border-sky-100 flex justify-end">
-                            <div className="bg-sky-50 px-6 py-3 rounded-xl border border-sky-200">
-                                <span className="text-sky-700 font-semibold mr-4">Jumlah Aset:</span>
-                                <span className="text-2xl font-bold text-sky-600">{formatRM(totalLiquidAssets + totalPhysicalAssets)}</span>
-                            </div>
+                          <div className="bg-sky-50 px-6 py-3 rounded-xl border border-sky-200">
+                            <span className="text-sky-700 font-semibold mr-4">Jumlah Aset:</span>
+                            <span className="text-2xl font-bold text-sky-600">{formatRM(totalLiquidAssets + totalPhysicalAssets)}</span>
+                          </div>
                         </div>
                       </Card>
                     </div>
