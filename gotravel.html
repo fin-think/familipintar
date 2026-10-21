@@ -1399,23 +1399,30 @@ function renderItinSlots() {
         .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
     if (slotsHariIni.length === 0) {
-        box.innerHTML = `<div style="text-align:center; padding:24px; color:#94a3b8; font-size:0.85rem; border:1.5px dashed #e2e8f0; border-radius:12px; margin-bottom:12px;">
-            Belum ada aktiviti untuk hari ini. Klik butang di bawah untuk tambah jadual ikut jam!
-        </div>`;
+        box.innerHTML = '<div style="text-align:center; padding:24px; color:#94a3b8; font-size:0.85rem; border:1.5px dashed #e2e8f0; border-radius:12px; margin-bottom:12px;">Belum ada aktiviti untuk hari ini. Klik butang di bawah untuk tambah jadual ikut jam!</div>';
         return;
     }
 
     const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-    box.innerHTML = slotsHariIni.map(s => {
+    let htmlContent = '';
+    slotsHariIni.forEach(s => {
         const isTrans = s.cat === 'transport';
         const isAccom = s.cat === 'accom';
         const isAutoCar = isTrans && s.mode === 'car' && s.autoCalc;
         const subKos = isAccom ? ((parseFloat(s.cost)||0) * (parseInt(s.nights)||1)) : (parseFloat(s.cost)||0);
+        
+        let extraClass = 'bg-lavender-light';
+        if (isTrans) extraClass = 'bg-peach-light';
+        if (isAccom) extraClass = '';
 
-        return `
+        let footerColor = 'color-lavender';
+        if (isTrans) footerColor = 'color-peach';
+        if (isAccom) footerColor = 'color-sky';
+
+        htmlContent += `
         <div class="itin-slot">
-          <div class="item-card ${isTrans ? 'bg-peach-light' : isAccom ? '' : 'bg-lavender-light'}" style="margin-bottom:0;">
+          <div class="item-card ${extraClass}" style="margin-bottom:0;">
             <div class="item-header">
               <div class="field" style="width:110px;">
                 <label>Masa</label>
@@ -1455,7 +1462,7 @@ function renderItinSlots() {
                   <label>Jarak (KM) & Peta</label>
                   <div style="display:flex; gap:6px;">
                     <input type="number" placeholder="0" value="${esc(s.km)}" oninput="updateItinKM(${s.id}, this.value)" style="flex:1;">
-                    <button type="button" class="search-dist-btn" title="Kira KM automatik / Buka Google Maps" onclick="calculateItinDistance(\${s.id})">🔍</button>
+                    <button type="button" class="search-dist-btn" title="Kira KM / Peta" onclick="calculateItinDistance(\${s.id})">🔍</button>
                   </div>
                 </div>
               </div>
@@ -1466,13 +1473,13 @@ function renderItinSlots() {
             ` : ''}
 
             ${isAccom ? `
-              <div style="display:flex; gap:8px;">
+              <div style="display:flex; gap:8px; margin-bottom:4px;">
                 <button type="button" class="btn-book agoda" style="padding:8px; font-size:0.8rem;" onclick="openBooking('agoda')">🔍 Cari di Agoda</button>
                 <button type="button" class="btn-book booking" style="padding:8px; font-size:0.8rem;" onclick="openBooking('booking')">🔍 Cari di Booking.com</button>
               </div>
             ` : ''}
 
-            <div class="\${isAccom ? 'grid-2-col' : ''}">
+            <div class="${isAccom ? 'grid-2-col' : ''}">
               <div class="field">
                 <label>${isAccom ? 'Kos Semalam (RM)' : 'Anggaran Kos (RM)'} ${isAutoCar ? '<span class="auto-calc-badge">AUTO KM</span>' : ''}</label>
                 <div class="input-prefix">
@@ -1480,20 +1487,22 @@ function renderItinSlots() {
                   <input type="number" id="itin-cost-${s.id}" placeholder="0.00" value="${esc(s.cost)}" ${isAutoCar ? 'readonly style="background:#E8F5E9"' : ''} oninput="updateItinCost(${s.id}, this.value)">
                 </div>
               </div>
-              \${isAccom ? `
+              ${isAccom ? `
                 <div class="field">
                   <label>Bil. Malam</label>
-                  <input type="number" placeholder="1" value="${esc(s.nights || 1)}" oninput="updateItinField(${s.id}, 'nights', this.value, false)">
+                  <input type="number" placeholder="1" value="${esc(s.nights \vert{}\vert{} 1)}" oninput="updateItinField(${s.id}, 'nights', this.value, false)">
                 </div>
               ` : ''}
             </div>
 
-            <div class="item-footer ${isTrans ? 'color-peach' : isAccom ? 'color-sky' : 'color-lavender'}">
+            <div class="item-footer ${footerColor}">
               Jumlah Slot: <span id="itin-sub-${s.id}">RM ${subKos.toFixed(2)}</span>
             </div>
           </div>
         </div>`;
-    }).join('');
+    });
+
+    box.innerHTML = htmlContent;
 }
 
 window.updateItinField = (id, field, val, perluRender) => {
