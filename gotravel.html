@@ -12,6 +12,7 @@
     --sun: #FFD93D; --sky: #6BCFEF; --coral: #FF6B6B; --mint: #6BCB77;
     --peach: #FFB347; --lavender: #C084FC; --cream: #FFFDF0; --dark: #2D2D2D;
     --card: #FFFFFF; --shadow: 0 4px 20px rgba(255,107,107,0.1);
+    --primary:#27ae60; --muted:#64748b; --ink:#1e293b; --bg-color:#f8fafc;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -155,7 +156,8 @@
   .family-item div { flex: 1; }
   .family-item .f-name { font-weight: 700; font-size: 0.95rem; color: var(--ink); }
   .family-item .f-role { font-size: 0.75rem; color: var(--muted); }
-
+  .fam-group{font-size:.7rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 2px}
+  
   /* Butang Interaksi */
   .add-row-btn {
     display: flex; align-items: center; justify-content: center; gap: 8px; background: none; border: 2px dashed #DDD;
@@ -556,6 +558,19 @@
         <button class="add-row-btn" onclick="addMisc()">➕ Tambah Item Bajet</button>
       </div>
 
+      <div class="card" id="itin-card">
+        <div class="card-header">
+          <div class="card-title-wrap">
+            <div class="card-icon bg-mint">🗺️</div>
+            <h2>Jadual Itinerari</h2>
+          </div>
+        </div>
+        <p style="font-size:0.8rem; color:#777; margin-bottom:10px;">Isi aktiviti ikut hari dan masa. Jadual ini digunakan untuk PDF itinerari.</p>
+        <div id="itin-list"></div>
+        <button class="add-row-btn" onclick="addItinSlot()">➕ Tambah Aktiviti</button>
+      </div>
+
+      
 <!-- KAD JANA PDF ITINERARI EKSKLUSIF (1 KREDIT) -->
       <div class="card" style="background: linear-gradient(135deg, #0f172a, #1e3a8a); border:none; margin-top:10px; text-align:center; padding: 24px;">
         <h3 style="color:#7dd3fc; font-family:'Baloo 2', cursive; font-size:1.4rem; margin-bottom:8px;">Jana PDF Itinerari Percutian!</h3>
@@ -914,7 +929,8 @@ function init() {
 }
 
 window.toggleSettings = () => { document.getElementById('settings-panel').classList.toggle('show'); }
-
+window.updateSummary = updateSummary;
+  
 // =================== PENGINAPAN ===================
 window.addAccom = (silent) => {
   accomList.push({ id: Date.now(), name: '', cost: '', nights: '' });
@@ -1220,7 +1236,8 @@ window.pilihPelan = (id) => {
     accomList = Array.isArray(trip.accommodation) && trip.accommodation.length ? trip.accommodation : [{ id: Date.now(), name: '', cost: '', nights: '' }];
     transportList = Array.isArray(trip.transportation) && trip.transportation.length ? trip.transportation : [{ id: Date.now()+1, mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true }];
     miscList = Array.isArray(trip.miscellaneous) && trip.miscellaneous.length ? trip.miscellaneous : [{ id: Date.now()+2, name: '', cost: '' }];
-
+    itineraryList = Array.isArray(trip.itinerary) ? trip.itinerary : []; renderItin();
+  
     renderAccom();
     renderTransport();
     renderMisc();
@@ -1243,6 +1260,7 @@ window.buatPelanBaru = () => {
     document.getElementById('trip-name').value = '';
     document.getElementById('destination').value = '';
     accomList = []; transportList = []; miscList = [];
+    itineraryList = []; renderItin();
     init();
     showToast('✨ Borang dikosongkan untuk pelan baharu!');
 };
@@ -1269,6 +1287,7 @@ window.simpanPelanKeDatabase = async () => {
         accommodation: accomList,
         transportation: transportList,
         miscellaneous: miscList,
+        itinerary: itineraryList,
         team_members: senaraiAhli,
         owner_uid: currentUser.uid,
         created_at: Date.now()
@@ -1397,10 +1416,41 @@ window.renderKalendarWeCare = () => {
     grid.innerHTML = html;
 };
 
-<div class="field" style="grid-column: 1 / -1; margin:8px 0;">
-              <label>Nota Tambahan (Untuk cetakan PDF)</label>
-              <input type="text" placeholder="cth. Baju Tema Merah / Tempahan nama Ali" value="${esc(s.note)}" oninput="updateItinField('${s.id}', 'note', this.value, false)" style="background:#f8fafc;">
-            </div>
+// =================== JADUAL ITINERARI (untuk PDF) ===================
+let itineraryList = [];
+const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PDF_PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#cbd5e1"/></svg>');
+
+window.addItinSlot = () => {
+  itineraryList.push({ id: 'i' + Date.now() + Math.floor(Math.random() * 1000), date: document.getElementById('date-go').value || '', time: '', cat: 'activity', title: '', from: '', to: '', note: '' });
+  renderItin();
+};
+window.removeItin = (id) => { itineraryList = itineraryList.filter(s => s.id !== id); renderItin(); };
+window.updateItinField = (id, f, v, rerender = false) => {
+  const s = itineraryList.find(x => x.id === id);
+  if (s) { s[f] = v; if (rerender) renderItin(); }
+};
+function renderItin() {
+  const el = document.getElementById('itin-list'); if (!el) return;
+  el.innerHTML = itineraryList.map(s => `
+    <div class="item-card bg-lavender-light">
+      <div class="item-header">
+        <div class="field" style="flex:1"><label>Aktiviti</label><input type="text" placeholder="cth. Check-in hotel" value="${escH(s.title)}" oninput="updateItinField('${s.id}','title',this.value)"></div>
+        <button class="del-btn" onclick="removeItin('${s.id}')">✕</button>
+      </div>
+      <div class="grid-2-col">
+        <div class="field"><label>Tarikh</label><input type="date" value="${escH(s.date)}" onchange="updateItinField('${s.id}','date',this.value)"></div>
+        <div class="field"><label>Masa</label><input type="time" value="${escH(s.time)}" onchange="updateItinField('${s.id}','time',this.value)"></div>
+      </div>
+      <div class="grid-2-col">
+        <div class="field"><label>Dari (pilihan)</label><input type="text" value="${escH(s.from)}" oninput="updateItinField('${s.id}','from',this.value)"></div>
+        <div class="field"><label>Ke (pilihan)</label><input type="text" value="${escH(s.to)}" oninput="updateItinField('${s.id}','to',this.value)"></div>
+      </div>
+      <div class="field"><label>Nota Tambahan (untuk cetakan PDF)</label>
+        <input type="text" placeholder="cth. Baju tema merah / tempahan nama Ali" value="${escH(s.note)}" oninput="updateItinField('${s.id}','note',this.value)">
+      </div>
+    </div>`).join('');
+}
 
 // =================== ENJIN PENJANA ITINERARI PDF (1 KREDIT) ===================
 
@@ -1408,9 +1458,9 @@ window.janaItinerariPDF = async () => {
     if (!currentUser) return;
 
     // 1. Pastikan pengguna dah masukkan jadual dalam Mod Itinerari
-    if (itineraryList.length === 0) {
-        alert("⚠️ Sila isi jadual perjalanan (Masuk ke 'Mod Itinerari Terperinci') terlebih dahulu sebelum menjana PDF.");
-        setBudgetMode('itinerary'); 
+       if (itineraryList.length === 0 || itineraryList.some(s => !s.date)) {
+        alert("⚠️ Sila isi Jadual Itinerari (tarikh setiap aktiviti) terlebih dahulu sebelum menjana PDF.");
+        document.getElementById('itin-card').scrollIntoView({ behavior: 'smooth' });
         return;
     }
 
@@ -1460,7 +1510,7 @@ window.binaPaparanPDF = () => {
             <div class="itin-pdf-header">
                 <label title="Klik untuk tukar gambar sampul">
                     <input type="file" accept="image/*" class="hidden" onchange="previewImgPDF(this, 'img-header')">
-                    <img id="img-header" src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=200&auto=format&fit=crop" class="itin-pdf-img-header" title="Klik untuk tukar gambar">
+                    <img id="img-header" src="${PDF_PLACEHOLDER}" class="itin-pdf-img-header" title="Klik untuk tukar gambar">
                 </label>
                 <div class="itin-pdf-title">
                     <h1>TRAVEL ITINERARY</h1>
@@ -1483,7 +1533,7 @@ window.binaPaparanPDF = () => {
         `).join('');
 
         // Gambar rawak berbeza untuk placeholder setiap hari
-        const randomPic = `https://images.unsplash.com/photo-${1506012787146 + idx}?q=80&w=300&auto=format&fit=crop`;
+        const randomPic = PDF_PLACEHOLDER;
 
         html += `
             <!-- DAY CARD -->
