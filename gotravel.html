@@ -238,6 +238,56 @@
   .color-peach { color: var(--peach); }
   .color-lavender { color: var(--lavender); }
   .hidden { display: none !important; }
+
+/* --- KALENDAR INTEGRASI WECARE --- */
+  .cal-toggle-btn {
+    width: 100%; background: #ffffff; color: #4f46e5; border: 2px dashed #c7d2fe;
+    padding: 12px; border-radius: 14px; font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 0.95rem; cursor: pointer; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: 0.2s; box-shadow: var(--shadow);
+  }
+  .cal-toggle-btn:hover { background: #eef2ff; border-color: #818cf8; }
+  .cal-wrapper {
+    background: var(--card); border-radius: 16px; padding: 20px;
+    margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid #e2e8f0;
+  }
+  .cal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; background: #f8fafc; padding: 10px 15px;
+    border-radius: 10px; border: 1px solid #e2e8f0;
+  }
+  .cal-header button {
+    background: none; border: none; font-size: 1.1rem; cursor: pointer;
+    color: #4f46e5; font-weight: 800; padding: 4px 10px;
+  }
+  .cal-header h3 { margin: 0; font-size: 1rem; font-weight: 800; color: var(--dark); font-family: 'Baloo 2', cursive; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+  .cal-day-name { text-align: center; font-weight: 800; font-size: 0.7rem; color: #64748b; padding-bottom: 5px; text-transform: uppercase; }
+  .cal-date {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+    min-height: 75px; padding: 5px; display: flex; flex-direction: column;
+    transition: 0.2s; position: relative; overflow: hidden;
+  }
+  .cal-date.empty-slot { background: transparent; border: none; }
+  .cal-date.today { border: 2px solid var(--mint); background: #f0fdf4; }
+  .cal-date.trip-range { background: #fffbeb; border-color: #fde68a; }
+  .dt-num { font-weight: 800; font-size: 0.75rem; color: #334155; margin-bottom: 3px; text-align: right; }
+  .cal-event {
+    font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; color: #fff;
+    margin-bottom: 2px; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; font-weight: 700; cursor: pointer;
+  }
+  .evt-ayah { background: #3b82f6; }
+  .evt-ibu { background: #ec4899; }
+  .evt-umum { background: #10b981; }
+  .evt-bday { background: #f43f5e; }
+  .evt-trip { background: #f59e0b; color: #fff; }
+  .cal-legend {
+    display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem;
+    font-weight: 700; color: #64748b; margin-bottom: 12px; justify-content: center;
+  }
+  
 </style>
 </head>
 <body>
@@ -304,6 +354,41 @@
       </select>
   </div>
 
+<!-- BUTANG TOGGLE & KALENDAR SEMAKAN WECARE (DEFAULT: HIDE) -->
+  <button id="btnToggleCal" class="cal-toggle-btn" onclick="toggleKalendarWeCare()">
+    📅 Papar Kalendar Semakan (weCare & Hari Jadi) ▼
+  </button>
+
+  <div id="ruangKalendarWeCare" class="cal-wrapper hidden">
+    <div style="text-align:center; margin-bottom:10px;">
+      <h2 style="font-family:'Baloo 2',cursive; font-size:1.3rem; color:var(--dark);">Kalendar Semakan Keluarga</h2>
+      <p style="font-size:0.8rem; color:#64748b;">Semak jadual giliran jaga ibu bapa (weCare) & hari jadi sebelum menetapkan tarikh percutian.</p>
+    </div>
+
+    <div class="cal-legend">
+      <span><b style="color:#3b82f6;">🔵 Bapa</b></span>
+      <span><b style="color:#ec4899;">🔴 Ibu</b></span>
+      <span><b style="color:#10b981;">🟢 Umum</b></span>
+      <span><b style="color:#f43f5e;">🎂 Hari Jadi</b></span>
+      <span><b style="color:#f59e0b;">🏖️ Tarikh Cuti</b></span>
+    </div>
+
+    <div class="cal-header">
+      <button onclick="tukarBulanCal(-1)">❮</button>
+      <h3 id="paparanBulanTahunCal">Bulan Tahun</h3>
+      <button onclick="tukarBulanCal(1)">❯</button>
+    </div>
+
+    <div class="cal-grid">
+      <div class="cal-day-name">Aha</div><div class="cal-day-name">Isn</div>
+      <div class="cal-day-name">Sel</div><div class="cal-day-name">Rab</div>
+      <div class="cal-day-name">Kha</div><div class="cal-day-name">Jum</div>
+      <div class="cal-day-name">Sab</div>
+    </div>
+    <div class="cal-grid" id="gridKalendarWeCare"></div>
+    <p style="font-size:0.7rem; color:#94a3b8; text-align:center; margin-top:10px;">💡 Tip: Klik pada tugasan di dalam kalendar untuk melihat butiran penuh.</p>
+  </div>
+  
   <!-- CONTAINER GRID UTAMA -->
   <div class="main-grid-layout">
     
@@ -670,15 +755,17 @@ window.muatKeluargaRombongan = async () => {
         // 4. Himpun ahli (tiada yang meninggal, tiada nama berulang)
         const kumpulan = { rumah: [], atas: [], sisi: [] };
         const dilihat = new Set();
-        const tambah = (n, jenis) => {
+       const tambah = (n, jenis) => {
             if (!n || n.status === 'meninggal') return;
             const key = (n.name || '').toLowerCase().trim();
             if (!key || dilihat.has(key)) return;
             dilihat.add(key);
-            const rekod = { uid: (n.is_root && n.owner_uid !== saya) ? n.owner_uid : n.id, name: n.name, role: peranKad(n) };
+            // KEMAS KINI: Tambah dob: n.dob untuk kalendar hari jadi
+            const rekod = { uid: (n.is_root && n.owner_uid !== saya) ? n.owner_uid : n.id, name: n.name, role: peranKad(n), dob: n.dob };
             kumpulan[jenis].push(rekod);
             globalTeamMap.set(key, rekod);
         };
+      
         const tambahRumah = (k, orang, jenis) => {
             orang.forEach(p => tambah(p, jenis));
             k.turun.forEach(arr => arr.forEach(c => tambah(c, jenis)));
@@ -740,6 +827,11 @@ window.muatKeluargaRombongan = async () => {
         }
         if (!htmlList) htmlList = "<div style='color:#888; font-size:0.9rem; text-align:center;'>Tiada rekod keluarga dijumpai.</div>";
         kotakSenarai.innerHTML = htmlList;
+        
+        // TAMBAH BARIS INI: Muat data kalendar weCare setiap kali rangkaian keluarga ditukar
+        if (typeof window.muatKalendarIntegrasi === 'function') {
+            await window.muatKalendarIntegrasi(indukUid, nodSaya, nodInduk, sayaInduk, sasaranIdPusat);
+        }
 
     } catch (e) { console.error("Ralat muat Keluarga:", e); }
 }
@@ -928,6 +1020,7 @@ window.updateAll = () => {
     document.getElementById('cd-title-label').textContent = "Kiraan Detik: " + tripName;
     updateCountdown(); 
     updateSummary(); 
+    if (typeof window.renderKalendarWeCare === 'function') window.renderKalendarWeCare();
 }
 
 function updateSummary() {
@@ -1041,6 +1134,113 @@ function showToast(msg) {
     const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); 
     clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2500); 
 }
+
+// =================== ENJIN KALENDAR INTEGRASI WECARE ===================
+let calBulan = new Date().getMonth();
+let calTahun = new Date().getFullYear();
+let dataWeCareCal = [];
+let jangkarCal = { induk: null, pasangan: null, lamaInduk: null, lamaPasangan: null };
+let tarikhGoTerakhir = '';
+
+window.toggleKalendarWeCare = () => {
+    const box = document.getElementById('ruangKalendarWeCare');
+    const btn = document.getElementById('btnToggleCal');
+    const isHidden = box.classList.toggle('hidden');
+    btn.innerHTML = isHidden 
+        ? '📅 Papar Kalendar Semakan (weCare & Hari Jadi) ▼' 
+        : '📅 Sembunyikan Kalendar Semakan ▲';
+    if (!isHidden) window.renderKalendarWeCare();
+};
+
+window.tukarBulanCal = (arah) => {
+    calBulan += arah;
+    if (calBulan < 0) { calBulan = 11; calTahun--; }
+    else if (calBulan > 11) { calBulan = 0; calTahun++; }
+    window.renderKalendarWeCare();
+};
+
+window.muatKalendarIntegrasi = async (groupUid, nodSaya, nodInduk, sayaInduk, sasaranIdPusat) => {
+    try {
+        const idDiri = (nod) => (nod.find(n => n.is_root) || {}).id || null;
+        const idPasangan = (nod) => (nod.find(n => /suami|isteri/i.test(n.relationship || '')) || {}).id || null;
+
+        jangkarCal.pasangan = idPasangan(nodSaya);
+        jangkarCal.induk = !sayaInduk ? (sasaranIdPusat || idDiri(nodSaya)) : idDiri(nodSaya);
+        jangkarCal.lamaInduk = idDiri(nodInduk);
+        jangkarCal.lamaPasangan = idPasangan(nodInduk);
+
+        const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", groupUid)));
+        dataWeCareCal = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+        window.renderKalendarWeCare();
+    } catch (e) { console.warn("Gagal muat kalendar weCare:", e); }
+};
+
+window.renderKalendarWeCare = () => {
+    const grid = document.getElementById('gridKalendarWeCare');
+    if (!grid) return;
+
+    // Jika pengguna baru tukar Tarikh Pergi, lompat ke bulan tersebut secara automatik
+    const goVal = document.getElementById('date-go')?.value || '';
+    const backVal = document.getElementById('date-back')?.value || goVal;
+    if (goVal && goVal !== tarikhGoTerakhir) {
+        tarikhGoTerakhir = goVal;
+        const dGo = new Date(goVal);
+        if (!isNaN(dGo)) { calBulan = dGo.getMonth(); calTahun = dGo.getFullYear(); }
+    }
+
+    const senaraiBulan = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
+    document.getElementById('paparanBulanTahunCal').innerText = `${senaraiBulan[calBulan]} ${calTahun}`;
+
+    const hariMula = new Date(calTahun, calBulan, 1).getDay();
+    const jumlahHari = new Date(calTahun, calBulan + 1, 0).getDate();
+    const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
+    const jSemasa = pilihanBelah === 'pasangan' ? jangkarCal.pasangan : jangkarCal.induk;
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    let html = '';
+    for (let i = 0; i < hariMula; i++) html += `<div class="cal-date empty-slot"></div>`;
+
+    const hariIni = new Date();
+    for (let i = 1; i <= jumlahHari; i++) {
+        const bulanStr = String(calBulan + 1).padStart(2, '0');
+        const hariStr = String(i).padStart(2, '0');
+        const tkhKunci = `${calTahun}-${bulanStr}-${hariStr}`;
+        const mmdd = `${bulanStr}-${hariStr}`;
+
+        const isToday = (i === hariIni.getDate() && calBulan === hariIni.getMonth() && calTahun === hariIni.getFullYear());
+        const isTrip = (goVal && tkhKunci >= goVal && tkhKunci <= (backVal || goVal));
+
+        // 1. Semak Hari Jadi Ahli Rombongan / Keluarga
+        let htmlEvents = '';
+        if ( isTrip && (tkhKunci === goVal || tkhKunci === backVal) ) {
+            htmlEvents += `<div class="cal-event evt-trip">🏖️ ${tkhKunci === goVal ? 'Pergi' : 'Balik'}</div>`;
+        }
+        globalTeamMap.forEach(v => {
+            if (v.dob && v.dob.substring(5) === mmdd) {
+                htmlEvents += `<div class="cal-event evt-bday" title="Hari Jadi ${esc(v.name)}">🎂 ${esc(v.name.split(' ')[0])}</div>`;
+            }
+        });
+
+        // 2. Semak Tugasan & Giliran Jaga weCare
+        const tugasan = dataWeCareCal.filter(t => {
+            const jItem = t.anchor_id || (t.belah === 'pasangan' ? jangkarCal.lamaPasangan : jangkarCal.lamaInduk);
+            return jSemasa && jItem === jSemasa && tkhKunci >= t.date && tkhKunci <= (t.end_date || t.date);
+        });
+
+        tugasan.forEach(t => {
+            let warna = 'evt-umum';
+            if (t.for_whom === 'ayah') warna = 'evt-ayah';
+            if (t.for_whom === 'ibu') warna = 'evt-ibu';
+            const shift = (t.shift_siapa && t.shift_siapa !== 'Umum') ? `[${t.shift_siapa}] ` : '';
+            const infoPenuh = `weCare (${t.for_whom.toUpperCase()})\nPerkara: ${t.title}\nGiliran/Shift: ${t.shift_siapa || 'Umum'}\nMasa: ${t.time || 'Sepanjang hari'}\nNota: ${t.note || '-'}`;
+            htmlEvents += `<div class="cal-event ${warna}" onclick="alert(${esc(JSON.stringify(infoPenuh))})">${t.time ? t.time + ' ' : ''}${esc(shift)}${esc(t.title)}</div>`;
+        });
+
+        html += `<div class="cal-date ${isToday ? 'today' : ''} ${isTrip ? 'trip-range' : ''}"><div class="dt-num">${i}</div>${htmlEvents}</div>`;
+    }
+    grid.innerHTML = html;
+};
+  
 </script>
 </body>
 </html>
