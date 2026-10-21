@@ -35,36 +35,21 @@
     max-width: 1280px; margin: 0 auto; padding: 24px 16px 80px; position: relative; z-index: 1; 
   }
 
-  /* --- SUSUNAN GRID & FLEXBOX UTK KAD SAMA TINGGI --- */
-  .left-column, .right-column {
-    display: flex; flex-direction: column; 
-    gap: 20px; /* Jarak tetap 20px antara setiap kad atas dan bawah */
-  }
+  .left-column, .right-column { display: flex; flex-direction: column; gap: 20px; }
 
-  /* Kad Utama */
   .card {
     background: var(--card); border-radius: 16px; padding: 20px; 
     box-shadow: var(--shadow); border: 1px solid #F5F5F5;
-    /* margin-bottom dibuang sepenuhnya supaya tak clash dengan gap */
   }
 
   @media (min-width: 768px) {
     .container { padding-left: 24px; padding-right: 24px; }
-    .main-grid-layout { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 20px; /* Jarak tetap 20px antara kolum kiri dan kanan */
-      align-items: stretch; /* Memastikan kolum kiri & kanan sama tinggi */
-    }
+    .main-grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
     .header, .countdown-banner, .budget-summary { grid-column: 1 / -1; }
-    
-    /* Kad Rombongan meregang untuk penuhi ruang kosong di bawahnya */
     .card-rombongan { flex: 1; display: flex; flex-direction: column; }
     .family-check-list { flex: 1; max-height: none !important; }
   }
 
-  @media (min-width: 1024px) { .container { padding-left: 32px; padding-right: 32px; } }
-  
   /* Pengepala Standard myNasab */
   .top-navbar {
     background: linear-gradient(to right, #1e1b4b, #0f172a, #172554);
@@ -90,65 +75,40 @@
     border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 16px; border-radius: 9999px;
     display: flex; align-items: center; gap: 8px; color: #fff;
   }
-  @media (max-width: 768px) {
-    .top-navbar { flex-direction: column; text-align: center; justify-content: center; }
-    .top-navbar-left, .top-navbar-right { justify-content: center; width: 100%; }
-  }
 
-  /* Dropdown Filter */
   .filter-section { background: var(--card); padding: 15px 20px; border-radius:16px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow); }
   .filter-section select { width: 100%; padding: 12px; border-radius: 8px; background: #eef2ff; border: 1px solid #c7d2fe; color: #4f46e5; font-weight: 800; font-size: 15px; text-align: center; cursor: pointer; outline: none; }
 
-  /* Kain Rentang Undur Detik */
   .countdown-banner {
-    background: linear-gradient(135deg, var(--coral), var(--peach));
-    border-radius: 16px; padding: 20px; color: white; margin-bottom: 20px;
-    box-shadow: 0 8px 24px rgba(255,107,107,0.3); display: flex; flex-direction: column; gap: 16px;
+    background: linear-gradient(135deg, var(--coral), var(--peach)); border-radius: 16px; padding: 20px; color: white; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(255,107,107,0.3); display: flex; flex-direction: column; gap: 16px;
   }
   .cd-header-wrap { display: flex; align-items: center; gap: 16px; }
   .cd-icon { font-size: 2.5rem; line-height: 1; }
   .cd-label { font-size: 0.75rem; opacity: 0.9; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
   .cd-main { font-family: 'Baloo 2', cursive; font-size: 1.5rem; font-weight: 800; line-height: 1.1; }
-  
   .cd-boxes { display: flex; gap: 8px; justify-content: space-between; }
   .cd-box { background: rgba(255,255,255,0.2); border-radius: 12px; padding: 8px 4px; text-align: center; flex: 1; }
   .cd-box .num { font-family: 'Baloo 2', cursive; font-size: 1.4rem; font-weight: 800; line-height: 1; }
   .cd-box .lbl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; margin-top: 4px; font-weight: 700; }
 
-  .alarm-btn {
-    background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5);
-    color: white; border-radius: 10px; padding: 10px; font-family: 'Nunito', sans-serif;
-    font-weight: 800; font-size: 0.85rem; cursor: pointer; text-align: center; width: 100%; transition: 0.2s;
-  }
+  .alarm-btn { background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5); color: white; border-radius: 10px; padding: 10px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; cursor: pointer; text-align: center; width: 100%; transition: 0.2s; }
   .alarm-btn.active { background: white; color: var(--coral); border-color: white; }
 
-  /* Kad Utama */
-  .card {
-    background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 16px;
-    box-shadow: var(--shadow); border: 1px solid #F5F5F5;
-  }
   .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
   .card-title-wrap { display: flex; align-items: center; gap: 10px; }
   .card-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
   .card-header h2 { font-family: 'Baloo 2', cursive; font-size: 1.2rem; font-weight: 700; color: var(--dark); }
 
-  /* Elemen Borang */
   .form-grid { display: flex; flex-direction: column; gap: 12px; }
   .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  
   .field { display: flex; flex-direction: column; gap: 4px; }
   .field label { font-size: 0.75rem; font-weight: 800; color: #777; text-transform: uppercase; letter-spacing: 0.5px; }
-  .field input, .field select {
-    border: 1.5px solid #E8E8E8; border-radius: 10px; padding: 12px;
-    font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 600;
-    color: var(--dark); background: #FAFAFA; width: 100%; outline: none;
-  }
+  .field input, .field select { border: 1.5px solid #E8E8E8; border-radius: 10px; padding: 12px; font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--dark); background: #FAFAFA; width: 100%; outline: none; }
   .field input:focus, .field select:focus { border-color: var(--sky); background: white; }
   .input-prefix { position: relative; width: 100%; }
   .input-prefix span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: 800; color: #999; font-size: 0.9rem; }
   .input-prefix input { padding-left: 36px; }
 
-  /* Checkbox Keluarga */
   .family-check-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
   .family-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: 0.2s; }
   .family-item:hover { background: #e0f2fe; border-color: #7dd3fc; }
@@ -157,31 +117,15 @@
   .family-item .f-name { font-weight: 700; font-size: 0.95rem; color: var(--ink); }
   .family-item .f-role { font-size: 0.75rem; color: var(--muted); }
   .fam-group{font-size:.7rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 2px}
-  
-  /* Butang Interaksi */
-  .add-row-btn {
-    display: flex; align-items: center; justify-content: center; gap: 8px; background: none; border: 2px dashed #DDD;
-    border-radius: 12px; padding: 12px; width: 100%; font-family: 'Nunito', sans-serif; font-weight: 800;
-    font-size: 0.9rem; color: #AAA; cursor: pointer; margin-top: 8px;
-  }
-  .btn-cal {
-    width: 100%; background: #E8F0FE; color: #1967D2; border: none; border-radius: 10px; padding: 12px;
-    font-weight: 800; font-family: 'Nunito', sans-serif; font-size: 0.95rem; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; transition: 0.2s;
-  }
-  .btn-cal:hover { background: #d2e3fc; }
-  
+
+  .add-row-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: none; border: 2px dashed #DDD; border-radius: 12px; padding: 12px; width: 100%; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.9rem; color: #AAA; cursor: pointer; margin-top: 8px; }
+  .btn-cal { width: 100%; background: #E8F0FE; color: #1967D2; border: none; border-radius: 10px; padding: 12px; font-weight: 800; font-family: 'Nunito', sans-serif; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; transition: 0.2s; }
   .action-buttons { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-  .btn-book {
-    width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 800; font-size: 0.9rem;
-    color: white; cursor: pointer; font-family: 'Nunito', sans-serif; text-align: center;
-  }
+  .btn-book { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 800; font-size: 0.9rem; color: white; cursor: pointer; font-family: 'Nunito', sans-serif; text-align: center; }
   .btn-book.agoda { background: #E50027; }
   .btn-book.booking { background: #003580; }
-
   .btn-save-trip { background: var(--primary); color: #fff; width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 800; font-size: 1rem; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 12px rgba(39,174,96,0.3); }
 
-  /* Item Cards */
   .item-card { background: #F9FBFF; border: 1.5px solid #E6F0FF; border-radius: 14px; padding: 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 12px; position: relative; }
   .item-card.bg-peach-light { background: #FFF9F0; border-color: #FFECCC; }
   .item-card.bg-lavender-light { background: #FCF9FF; border-color: #EFE6FF; }
@@ -195,27 +139,17 @@
   .search-dist-btn { background: var(--sky); color: white; border: none; border-radius: 8px; padding: 0 16px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 44px; }
   .auto-calc-badge { font-size: 0.65rem; background: #6BCB77; color: white; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 4px; }
 
-  /* Settings Panel Minyak */
   .settings-panel { display: none; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-top: 10px; }
   .settings-panel.show { display: block; }
 
-  /* Ringkasan Bajet & Kewangan */
-  .budget-summary {
-    background: linear-gradient(135deg, #F8FAFC, #F1F5F9); border: 2px solid #E2E8F0;
-    border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow);
-  }
+  .budget-summary { background: linear-gradient(135deg, #F8FAFC, #F1F5F9); border: 2px solid #E2E8F0; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
   .budget-summary h2 { font-family: 'Baloo 2', cursive; font-size: 1.4rem; color: var(--dark); margin-bottom: 16px; border-bottom: 2px dashed #cbd5e1; padding-bottom: 10px;}
   .budget-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
   .budget-row { display: flex; justify-content: space-between; align-items: center; font-size: 1rem; font-weight: 700; color: #475569; }
-  
-  .budget-total {
-    background: linear-gradient(135deg, var(--coral), var(--peach)); color: white; border-radius: 12px;
-    padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 16px rgba(255,107,107,0.3); margin-bottom: 20px;
-  }
+  .budget-total { background: linear-gradient(135deg, var(--coral), var(--peach)); color: white; border-radius: 12px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 16px rgba(255,107,107,0.3); margin-bottom: 20px; }
   .budget-total .label { font-weight: 800; font-size: 1.1rem; }
   .budget-total .amount { font-family: 'Baloo 2', cursive; font-size: 1.8rem; font-weight: 800; line-height: 1; }
 
-  /* Pelan Kewangan (Financial Planner) */
   .financial-planner { background: #fff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; }
   .financial-planner h3 { font-size: 1rem; color: var(--sky); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
   .fin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -225,124 +159,66 @@
   .fin-box.highlight { background: #e0f2fe; border-color: #bae6fd; }
   .fin-box.highlight .fin-val { color: #0284c7; font-size: 1.4rem; }
 
-  #toast {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
-    background: #333; color: white; padding: 12px 24px; border-radius: 99px; font-weight: 800; font-size: 0.85rem;
-    z-index: 9999; transition: transform 0.3s; white-space: nowrap;
-  }
+  #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #333; color: white; padding: 12px 24px; border-radius: 99px; font-weight: 800; font-size: 0.85rem; z-index: 9999; transition: transform 0.3s; white-space: nowrap; }
   #toast.show { transform: translateX(-50%) translateY(0); }
 
-  .bg-coral { background: #FF6B6B22; color: var(--coral); }
-  .bg-sky { background: #6BCFEF22; color: var(--sky); }
-  .bg-peach { background: #FFB34722; color: var(--peach); }
-  .bg-lavender { background: #C084FC22; color: var(--lavender); }
-  .bg-mint { background: #6BCB7722; color: var(--mint); }
-  
-  .color-sky { color: var(--sky); }
-  .color-peach { color: var(--peach); }
-  .color-lavender { color: var(--lavender); }
-  .hidden { display: none !important; }
+  .color-sky { color: var(--sky); } .color-peach { color: var(--peach); } .color-lavender { color: var(--lavender); } .hidden { display: none !important; }
 
-/* --- KALENDAR INTEGRASI WECARE --- */
-  .cal-toggle-btn {
-    width: 100%; background: #ffffff; color: #4f46e5; border: 2px dashed #c7d2fe;
-    padding: 12px; border-radius: 14px; font-family: 'Nunito', sans-serif;
-    font-weight: 800; font-size: 0.95rem; cursor: pointer; margin-bottom: 20px;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: 0.2s; box-shadow: var(--shadow);
-  }
-  .cal-toggle-btn:hover { background: #eef2ff; border-color: #818cf8; }
-  .cal-wrapper {
-    background: var(--card); border-radius: 16px; padding: 20px;
-    margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid #e2e8f0;
-  }
-  .cal-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 12px; background: #f8fafc; padding: 10px 15px;
-    border-radius: 10px; border: 1px solid #e2e8f0;
-  }
-  .cal-header button {
-    background: none; border: none; font-size: 1.1rem; cursor: pointer;
-    color: #4f46e5; font-weight: 800; padding: 4px 10px;
-  }
+  /* --- KALENDAR INTEGRASI WECARE --- */
+  .cal-toggle-btn { width: 100%; background: #ffffff; color: #4f46e5; border: 2px dashed #c7d2fe; padding: 12px; border-radius: 14px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.95rem; cursor: pointer; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; box-shadow: var(--shadow); }
+  .cal-wrapper { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid #e2e8f0; }
+  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #f8fafc; padding: 10px 15px; border-radius: 10px; border: 1px solid #e2e8f0; }
+  .cal-header button { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: #4f46e5; font-weight: 800; padding: 4px 10px; }
   .cal-header h3 { margin: 0; font-size: 1rem; font-weight: 800; color: var(--dark); font-family: 'Baloo 2', cursive; }
   .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
   .cal-day-name { text-align: center; font-weight: 800; font-size: 0.7rem; color: #64748b; padding-bottom: 5px; text-transform: uppercase; }
-  .cal-date {
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
-    min-height: 75px; padding: 5px; display: flex; flex-direction: column;
-    transition: 0.2s; position: relative; overflow: hidden;
-  }
+  .cal-date { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; min-height: 75px; padding: 5px; display: flex; flex-direction: column; transition: 0.2s; position: relative; overflow: hidden; }
   .cal-date.empty-slot { background: transparent; border: none; }
   .cal-date.today { border: 2px solid var(--mint); background: #f0fdf4; }
   .cal-date.trip-range { background: #fffbeb; border-color: #fde68a; }
   .dt-num { font-weight: 800; font-size: 0.75rem; color: #334155; margin-bottom: 3px; text-align: right; }
-  .cal-event {
-    font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; color: #fff;
-    margin-bottom: 2px; white-space: nowrap; overflow: hidden;
-    text-overflow: ellipsis; font-weight: 700; cursor: pointer;
-  }
-  .evt-ayah { background: #3b82f6; }
-  .evt-ibu { background: #ec4899; }
-  .evt-umum { background: #10b981; }
-  .evt-bday { background: #f43f5e; }
-  .evt-trip { background: #f59e0b; color: #fff; }
-  .cal-legend {
-    display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem;
-    font-weight: 700; color: #64748b; margin-bottom: 12px; justify-content: center;
-  }
+  .cal-event { font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; color: #fff; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; cursor: pointer; }
+  .evt-ayah { background: #3b82f6; } .evt-ibu { background: #ec4899; } .evt-umum { background: #10b981; } .evt-bday { background: #f43f5e; } .evt-trip { background: #f59e0b; color: #fff; }
+  .cal-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 12px; justify-content: center; }
 
-/* --- TEMPLAT ITINERARI PDF (MODAL) --- */
+  /* --- TEMPLAT ITINERARI PDF (MODAL A4) --- */
   #itinPreviewModal {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100000;
-    display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto;
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 100000;
+    display: flex; flex-direction: column; align-items: center; padding: 40px 20px; overflow-y: auto;
   }
   .pdf-canvas-wrapper {
-    background: #0B1E4A; width: 100%; max-width: 800px; padding: 40px; 
+    background: #0B1E4A; 
+    width: 210mm; /* SKALA A4 SEBENAR */
+    min-height: 297mm; 
+    padding: 12mm; 
     position: relative; overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 0 auto;
   }
-  /* Corak ombak merah/biru cair di penjuru */
-  .pdf-canvas-wrapper::before {
-    content: ''; position: absolute; top: -50px; left: -50px; width: 150px; height: 150px;
-    background: #FF6B6B; border-radius: 50%; opacity: 0.9;
-  }
-  .pdf-canvas-wrapper::after {
-    content: ''; position: absolute; top: 10%; right: -20px; width: 80px; height: 200px;
-    background: #6BCFEF; border-radius: 99px; opacity: 0.2; transform: rotate(45deg);
-  }
-  .itin-pdf-header {
-    background: #ffffff; border-radius: 16px; padding: 24px; display: flex; gap: 24px; align-items: center;
-    position: relative; z-index: 10; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  }
-  .itin-pdf-img-header {
-    width: 110px; height: 110px; border-radius: 12px; object-fit: cover; background: #e2e8f0; cursor: pointer; border: 2px dashed #cbd5e1;
-  }
+  /* Responsif jika skrin kecil */
+  @media (max-width: 850px) { .pdf-canvas-wrapper { transform: scale(0.8); transform-origin: top center; margin-bottom: -15%; } }
+  @media (max-width: 600px) { .pdf-canvas-wrapper { transform: scale(0.48); transform-origin: top center; margin-bottom: -45%; } }
+  
+  .pdf-canvas-wrapper::before { content: ''; position: absolute; top: -50px; left: -50px; width: 150px; height: 150px; background: #FF6B6B; border-radius: 50%; opacity: 0.9; }
+  .pdf-canvas-wrapper::after { content: ''; position: absolute; top: 10%; right: -20px; width: 80px; height: 200px; background: #6BCFEF; border-radius: 99px; opacity: 0.2; transform: rotate(45deg); }
+  .itin-pdf-header { background: #ffffff; border-radius: 16px; padding: 24px; display: flex; gap: 24px; align-items: center; position: relative; z-index: 10; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+  .itin-pdf-img-header { width: 110px; height: 110px; border-radius: 12px; object-fit: cover; background: #e2e8f0; cursor: pointer; border: 2px dashed #cbd5e1; }
   .itin-pdf-title h1 { color: #0B1E4A; font-weight: 900; font-size: 2.2rem; text-transform: uppercase; margin-bottom: 4px; line-height: 1; font-family: 'Baloo 2', cursive;}
   .itin-pdf-title h2 { color: #64748b; font-weight: 800; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
   .itin-pdf-title p { color: #E50027; font-weight: 800; font-size: 0.85rem; }
   
-  .itin-pdf-day {
-    background: #ffffff; border-radius: 16px; padding: 20px; margin-bottom: 24px; display: flex; gap: 20px;
-    position: relative; z-index: 10; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-  }
-  .itin-pdf-day-img {
-    width: 150px; height: 150px; border-radius: 12px; overflow: hidden; position: relative; flex-shrink: 0; background: #f1f5f9; cursor: pointer; border: 2px dashed #cbd5e1;
-  }
+  .itin-pdf-day { background: #ffffff; border-radius: 16px; padding: 20px; margin-bottom: 24px; display: flex; gap: 20px; position: relative; z-index: 10; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+  .itin-pdf-day-img { width: 150px; height: 150px; border-radius: 12px; overflow: hidden; position: relative; flex-shrink: 0; background: #f1f5f9; cursor: pointer; border: 2px dashed #cbd5e1; }
   .itin-pdf-day-img img { width: 100%; height: 100%; object-fit: cover; }
-  .itin-pdf-badge {
-    position: absolute; bottom: 0; right: 0; background: rgba(11, 30, 74, 0.85); color: white; padding: 8px 12px; border-top-left-radius: 12px; font-weight: 900; font-size: 1.1rem; line-height: 1; text-align: center;
-  }
+  .itin-pdf-badge { position: absolute; bottom: 0; right: 0; background: rgba(11, 30, 74, 0.85); color: white; padding: 8px 12px; border-top-left-radius: 12px; font-weight: 900; font-size: 1.1rem; line-height: 1; text-align: center; }
   .itin-pdf-table { flex: 1; width: 100%; border-collapse: collapse; }
   .itin-pdf-table th { text-align: left; color: #E50027; font-weight: 900; font-size: 0.8rem; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; text-transform: uppercase; }
   .itin-pdf-table td { padding: 10px 0; border-bottom: 1px solid #f8fafc; font-size: 0.85rem; color: #334155; font-weight: 700; vertical-align: top;}
   .itin-pdf-table td:nth-child(1) { width: 85px; font-weight: 900; color: #0B1E4A; }
   .itin-pdf-table td:nth-child(2) { padding-right: 15px; }
 
-  .btn-download-pdf {
-    background: #10b981; color: white; border: none; padding: 14px 24px; font-size: 1.1rem; font-weight: 800; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); position: sticky; bottom: 20px; margin-top: 20px; z-index: 100;
-  }
-  .btn-download-pdf:hover { background: #059669; transform: translateY(-2px); }
-  
+  .pdf-print-controls { position: sticky; bottom: 20px; z-index: 100001; display: flex; gap: 12px; margin-top: 20px; }
+  .btn-download-pdf { background: #10b981; color: white; border: none; padding: 14px 24px; font-size: 1rem; font-weight: 800; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+  .btn-download-pdf:hover { background: #059669; }
 </style>
 </head>
 <body>
@@ -364,25 +240,18 @@
 
 <div class="container" id="mainApp">
 
-  <!-- Pengepala Utama (Standard) -->
+  <!-- Pengepala -->
   <header class="top-navbar">
     <div class="top-navbar-left">
       <div class="icon">✈️</div>
-      <div class="brand-name">
-        <span class="highlight">Jom</span><span style="color:white">Bercuti</span>
-      </div>
+      <div class="brand-name"><span class="highlight">Jom</span><span style="color:white">Bercuti</span></div>
     </div>
     <div class="top-navbar-right">
-      <button onclick="window.location.href='index.html'" class="btn-kembali-nav">
-        &#8592; Kembali
-      </button>
-      <div class="user-badge" id="displayUserName">
-        👤 Pengguna
-      </div>
+      <button onclick="window.location.href='index.html'" class="btn-kembali-nav">&#8592; Kembali</button>
+      <div class="user-badge" id="displayUserName">👤 Pengguna</div>
     </div>
   </header>
   
-  <!-- Undur Detik (Kelebaran Penuh) -->
   <div class="countdown-banner">
     <div class="cd-header-wrap">
       <div class="cd-icon">🗓️</div>
@@ -400,7 +269,6 @@
     <button class="alarm-btn" id="alarm-toggle-btn" onclick="toggleAlarm()">🔔 Tetapkan Penggera Berlepas</button>
   </div>
 
-  <!-- DROPDOWN FILTER KELUARGA -->
   <div class="filter-section">
       <label style="font-size:0.8rem; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:5px; display:block;">Pilih Rangkaian Keluarga</label>
       <select id="filterBelah" onchange="muatKeluargaRombongan()">
@@ -409,17 +277,13 @@
       </select>
   </div>
 
-<!-- BUTANG TOGGLE & KALENDAR SEMAKAN WECARE (DEFAULT: HIDE) -->
-  <button id="btnToggleCal" class="cal-toggle-btn" onclick="toggleKalendarWeCare()">
-    📅 Papar Kalendar Semakan (weCare) ▼
-  </button>
+  <button id="btnToggleCal" class="cal-toggle-btn" onclick="toggleKalendarWeCare()">📅 Papar Kalendar Semakan (weCare) ▼</button>
 
   <div id="ruangKalendarWeCare" class="cal-wrapper hidden">
     <div style="text-align:center; margin-bottom:10px;">
       <h2 style="font-family:'Baloo 2',cursive; font-size:1.3rem; color:var(--dark);">Kalendar Semakan Keluarga</h2>
       <p style="font-size:0.8rem; color:#64748b;">Semak jadual giliran jaga ibu bapa (weCare) & hari jadi sebelum menetapkan tarikh percutian.</p>
     </div>
-
     <div class="cal-legend">
       <span><b style="color:#3b82f6;">🔵 Bapa</b></span>
       <span><b style="color:#ec4899;">🔴 Ibu</b></span>
@@ -427,13 +291,11 @@
       <span><b style="color:#f43f5e;">🎂 Hari Jadi</b></span>
       <span><b style="color:#f59e0b;">🏖️ Tarikh Cuti</b></span>
     </div>
-
     <div class="cal-header">
       <button onclick="tukarBulanCal(-1)">❮</button>
       <h3 id="paparanBulanTahunCal">Bulan Tahun</h3>
       <button onclick="tukarBulanCal(1)">❯</button>
     </div>
-
     <div class="cal-grid">
       <div class="cal-day-name">Aha</div><div class="cal-day-name">Isn</div>
       <div class="cal-day-name">Sel</div><div class="cal-day-name">Rab</div>
@@ -444,78 +306,40 @@
     <p style="font-size:0.7rem; color:#94a3b8; text-align:center; margin-top:10px;">💡 Tip: Klik pada tugasan di dalam kalendar untuk melihat butiran penuh.</p>
   </div>
   
-  <!-- CONTAINER GRID UTAMA -->
   <div class="main-grid-layout">
-    
     <!-- KOLUM KIRI -->
     <div class="left-column">
-      
-      <!-- Maklumat Trip -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title-wrap">
-            <div class="card-icon bg-coral">🏖️</div>
-            <h2>Maklumat Perjalanan</h2>
-          </div>
+          <div class="card-title-wrap"><div class="card-icon bg-coral">🏖️</div><h2>Maklumat Perjalanan</h2></div>
         </div>
         <div class="form-grid">
-          <div class="field">
-            <label>Nama Program / Percutian</label>
-            <input type="text" id="trip-name" placeholder="cth. Family Day 2028 🌺" oninput="updateAll()">
-          </div>
-          <div class="field">
-            <label>Destinasi Utama</label>
-            <input type="text" id="destination" placeholder="cth. Paris / Bali ✈️" oninput="updateAll()">
-          </div>
+          <div class="field"><label>Nama Program / Percutian</label><input type="text" id="trip-name" placeholder="cth. Family Day 2028 🌺" oninput="updateAll()"></div>
+          <div class="field"><label>Destinasi Utama</label><input type="text" id="destination" placeholder="cth. Paris / Bali ✈️" oninput="updateAll()"></div>
           <div class="grid-2-col">
-            <div class="field">
-              <label>Tarikh Pergi</label>
-              <input type="date" id="date-go" onchange="updateAll()">
-            </div>
-            <div class="field">
-              <label>Tarikh Balik</label>
-              <input type="date" id="date-back" onchange="updateAll()">
-            </div>
+            <div class="field"><label>Tarikh Pergi</label><input type="date" id="date-go" onchange="updateAll()"></div>
+            <div class="field"><label>Tarikh Balik</label><input type="date" id="date-back" onchange="updateAll()"></div>
           </div>
         </div>
-        <button class="btn-cal" onclick="syncCalendar()">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" width="18" alt="Google Calendar">
-          Simpan Tarikh ke Google Calendar
-        </button>
+        <button class="btn-cal" onclick="syncCalendar()"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" width="18" alt="Google Calendar">Simpan Tarikh ke Google Calendar</button>
       </div>
 
-      <!-- Ahli Rombongan (Involvement) -->
       <div class="card card-rombongan">
         <div class="card-header">
-          <div class="card-title-wrap">
-            <div class="card-icon bg-mint">👥</div>
-            <h2>Ahli Rombongan / Jemputan</h2>
-          </div>
+          <div class="card-title-wrap"><div class="card-icon bg-mint">👥</div><h2>Ahli Rombongan / Jemputan</h2></div>
         </div>
-        <p style="font-size:0.85rem; color:var(--muted); margin-bottom:10px; line-height:1.4;">
-            Pilih ahli keluarga yang akan menyertai (atau berkongsi kos) program ini.
-        </p>
-        <div class="family-check-list" id="family-invite-list">
-            <div style="text-align:center; padding:20px; font-size:0.9rem; color:#aaa;">Memuatkan data myNasab...</div>
-        </div>
+        <p style="font-size:0.85rem; color:var(--muted); margin-bottom:10px; line-height:1.4;">Pilih ahli keluarga yang akan menyertai (atau berkongsi kos) program ini.</p>
+        <div class="family-check-list" id="family-invite-list"><div style="text-align:center; padding:20px; font-size:0.9rem; color:#aaa;">Memuatkan data myNasab...</div></div>
       </div>
-
-    </div> <!-- PENATAP KOLUM KIRI -->
+    </div> 
 
     <!-- KOLUM KANAN -->
     <div class="right-column">
-
-      <!-- Pengangkutan -->
       <div class="card">
         <div class="card-header" style="margin-bottom:5px;">
-          <div class="card-title-wrap">
-            <div class="card-icon bg-peach">🚗</div>
-            <h2>Pengangkutan / Tiket</h2>
-          </div>
+          <div class="card-title-wrap"><div class="card-icon bg-peach">🚗</div><h2>Pengangkutan / Tiket</h2></div>
           <button onclick="toggleSettings()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">⚙️</button>
         </div>
-
-        <!-- Panel Tetapan Kos Minyak -->
         <div id="settings-panel" class="settings-panel">
           <div class="field">
             <label>Kadar Kos Minyak + Tol (RM per KM)</label>
@@ -523,36 +347,25 @@
             <p style="font-size:0.65rem; color:#888; margin-top:4px;">*Auto-kira kos berdasarkan jarak KM jika mod Kereta dipilih.</p>
           </div>
         </div>
-
         <div id="transport-list"></div>
         <button class="add-row-btn" onclick="addTransport()">➕ Tambah Laluan / Tiket</button>
       </div>
       
-      <!-- Penginapan -->
       <div class="card">
         <div class="card-header" style="margin-bottom:5px;">
-          <div class="card-title-wrap">
-            <div class="card-icon bg-sky">🏨</div>
-            <h2>Penginapan</h2>
-          </div>
+          <div class="card-title-wrap"><div class="card-icon bg-sky">🏨</div><h2>Penginapan</h2></div>
         </div>
-
         <div class="action-buttons">
           <button class="btn-book agoda" onclick="openBooking('agoda')">Cari Hotel di Agoda</button>
           <button class="btn-book booking" onclick="openBooking('booking')">Cari di Booking.com</button>
         </div>
-
         <div id="accom-list"></div>
         <button class="add-row-btn" onclick="addAccom()">➕ Tambah Hotel / Homestay</button>
       </div>
 
-      <!-- Lain-lain -->
       <div class="card">
         <div class="card-header" style="margin-bottom:5px;">
-          <div class="card-title-wrap">
-            <div class="card-icon bg-lavender">🎒</div>
-            <h2>Makan & Lain-lain</h2>
-          </div>
+          <div class="card-title-wrap"><div class="card-icon bg-lavender">🎒</div><h2>Makan & Lain-lain</h2></div>
         </div>
         <div id="misc-list"></div>
         <button class="add-row-btn" onclick="addMisc()">➕ Tambah Item Bajet</button>
@@ -560,18 +373,14 @@
 
       <div class="card" id="itin-card">
         <div class="card-header">
-          <div class="card-title-wrap">
-            <div class="card-icon bg-mint">🗺️</div>
-            <h2>Jadual Itinerari</h2>
-          </div>
+          <div class="card-title-wrap"><div class="card-icon bg-mint">🗺️</div><h2>Jadual Itinerari</h2></div>
         </div>
         <p style="font-size:0.8rem; color:#777; margin-bottom:10px;">Isi aktiviti ikut hari dan masa. Jadual ini digunakan untuk PDF itinerari.</p>
         <div id="itin-list"></div>
         <button class="add-row-btn" onclick="addItinSlot()">➕ Tambah Aktiviti</button>
       </div>
-
       
-<!-- KAD JANA PDF ITINERARI EKSKLUSIF (1 KREDIT) -->
+      <!-- KAD JANA PDF ITINERARI EKSKLUSIF (1 KREDIT) -->
       <div class="card" style="background: linear-gradient(135deg, #0f172a, #1e3a8a); border:none; margin-top:10px; text-align:center; padding: 24px;">
         <h3 style="color:#7dd3fc; font-family:'Baloo 2', cursive; font-size:1.4rem; margin-bottom:8px;">Jana PDF Itinerari Percutian!</h3>
         <p style="color:#bfdbfe; font-size:0.85rem; margin-bottom:16px;">Hasilkan jadual perjalanan rasmi bertaraf agensi pelancongan. Boleh muat naik gambar sendiri & kongsikan PDF kepada keluarga.</p>
@@ -580,52 +389,40 @@
         </button>
       </div>
       
-    </div> <!-- PENATAP KOLUM KANAN -->
-   
-  </div> <!-- PENATAP BEKAS GRID UTAMA -->
+    </div> <!-- TAMAT KOLUM KANAN -->
+  </div> <!-- TAMAT BEKAS GRID UTAMA -->
 
   <!-- Ringkasan Bajet & Financial Planner -->
   <div class="budget-summary">
     <h2>💰 Ringkasan & Pelan Kewangan</h2>
-    
     <div class="budget-rows">
       <div class="budget-row"><span>🏨 Penginapan</span><span class="color-sky" id="sum-accom">RM 0.00</span></div>
       <div class="budget-row"><span>🚗 Pengangkutan</span><span class="color-peach" id="sum-transport">RM 0.00</span></div>
       <div class="budget-row"><span>🎒 Lain-lain / Makan</span><span class="color-lavender" id="sum-misc">RM 0.00</span></div>
     </div>
-    
     <div class="budget-total">
       <span class="label">Jumlah Anggaran Kos</span>
       <span class="amount" id="sum-total">RM 0.00</span>
     </div>
 
-    <!-- Modul Pelan Kewangan (Financial Planner) -->
     <div class="financial-planner">
         <h3>📈 Kalkulator Simpanan JomBercuti</h3>
         <p style="font-size:0.85rem; color:var(--muted); margin-bottom:15px; line-height:1.4;">
             Berdasarkan tarikh berlepas anda, ini adalah sasaran simpanan yang perlu diasingkan setiap bulan bermula <strong>hari ini</strong>.
         </p>
         <div class="fin-grid">
-            <div class="fin-box">
-                <div class="fin-label">Masa Berbaki</div>
-                <div class="fin-val" id="plan-months">- Bulan</div>
-            </div>
-            <div class="fin-box highlight">
-                <div class="fin-label">Simpanan Bulanan</div>
-                <div class="fin-val" id="plan-monthly">RM 0.00</div>
-            </div>
+            <div class="fin-box"><div class="fin-label">Masa Berbaki</div><div class="fin-val" id="plan-months">- Bulan</div></div>
+            <div class="fin-box highlight"><div class="fin-label">Simpanan Bulanan</div><div class="fin-val" id="plan-monthly">RM 0.00</div></div>
         </div>
     </div>
-
     <button class="btn-save-trip" onclick="simpanPelanKeDatabase()">💾 Simpan Pelan Percutian Ini</button>
   </div>
-
 </div>
 
 <!-- SCRIPT FIREBASE & LOGIK -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -651,10 +448,9 @@
 
         if (user) {
             currentUser = user;
-          
             const userNameEl = document.getElementById('displayUserName');
             if (userNameEl) userNameEl.innerHTML = `👤 ${user.email.split('@')[0]}`;
-          
+            
             if (authScreen) authScreen.classList.add('hidden');
             if (mainApp) mainApp.classList.remove('hidden');
 
@@ -679,14 +475,9 @@
         });
     }
 
-// =================== AHLI ROMBONGAN: TARIK IKUT BELAH (SAMA MACAM PREVIEW FAMILI TREE myNasab) ===================
-// Belah Keluarga Induk   -> Isi rumah, Ibu bapa & leluhur, Adik-beradik + keluarga mereka
-// Belah Keluarga Pasangan -> Isi rumah, Mertua & leluhur, Adik-beradik pasangan + keluarga mereka
-// Ahli yang berstatus "meninggal" TIDAK dipaparkan. Akaun yang disembunyikan dalam pokok juga dilangkau.
 window.muatKeluargaRombongan = async () => {
     if (!currentUser) return;
     const kotakSenarai = document.getElementById('family-invite-list');
-
     const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
     try {
@@ -694,7 +485,6 @@ window.muatKeluargaRombongan = async () => {
         const saya = currentUser.uid;
         globalTeamMap.clear();
 
-        // 1. Siapa saya? Induk (pengundang) atau akaun adik-beradik yang berpaut
         let indukUid = saya, sasaranIdPusat = null, sayaInduk = true;
         const sLinkSaya = await getDoc(doc(db, "mynasab_links", saya));
         if (sLinkSaya.exists() && sLinkSaya.data().status === 'aktif') {
@@ -705,22 +495,18 @@ window.muatKeluargaRombongan = async () => {
 
         const sPautan = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", indukUid), where("status", "==", "aktif")));
         const pautan = sPautan.docs.map(d => d.data());
-
         const sUser = await getDoc(doc(db, "mynasab_users", saya));
         const sembunyi = (sUser.exists() && sUser.data().sembunyi) || [];
 
-        // 2. Muat nod (pokok sendiri, pokok induk, pokok adik-beradik berpaut)
         const ambil = async (uid) => {
             try {
                 const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
                 return s.docs.map(d => ({ ...d.data(), id: d.id }));
-            } catch (e) { console.warn("Tak dapat baca nod", uid, e.message); return []; }
+            } catch (e) { return []; }
         };
         const nodSaya = await ambil(saya);
         const nodInduk = sayaInduk ? nodSaya : await ambil(indukUid);
-        const akaun = await Promise.all(pautan.map(async p => ({
-            uid: p.uid, sasaran: p.sasaran_id, nod: p.uid === saya ? nodSaya : await ambil(p.uid)
-        })));
+        const akaun = await Promise.all(pautan.map(async p => ({ uid: p.uid, sasaran: p.sasaran_id, nod: p.uid === saya ? nodSaya : await ambil(p.uid) })));
 
         const kelompok = (nod) => {
             const k = { diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], turun: [[], [], [], [], []], adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [] };
@@ -751,148 +537,91 @@ window.muatKeluargaRombongan = async () => {
 
         const kSaya = kelompok(nodSaya);
         const kInduk = sayaInduk ? kSaya : kelompok(nodInduk);
-        if (!kSaya.diri) {
-            kotakSenarai.innerHTML = "<div style='color:#888; font-size:0.9rem; text-align:center;'>Data akaun tidak dijumpai.</div>";
-            return;
-        }
+        if (!kSaya.diri) { kotakSenarai.innerHTML = "<div style='color:#888; font-size:0.9rem; text-align:center;'>Data akaun tidak dijumpai.</div>"; return; }
 
-        // 3. Pusat pandangan: kalau saya akaun berpaut, ibu bapa diambil daripada pokok induk (pivot)
-        let ibuBapaPusat = kSaya.ibuBapa;
-        let sisaLeluhurPusat = [kSaya.datukNenek, kSaya.moyang, kSaya.buyut, kSaya.cakawari, kSaya.cilawagi];
-        let sasaranIsPasangan = false;
-        if (sayaInduk) {
-            sasaranIdPusat = kSaya.diri.id;
-        } else {
+        let ibuBapaPusat = kSaya.ibuBapa; let sisaLeluhurPusat = [kSaya.datukNenek, kSaya.moyang, kSaya.buyut, kSaya.cakawari, kSaya.cilawagi]; let sasaranIsPasangan = false;
+        if (sayaInduk) { sasaranIdPusat = kSaya.diri.id; } 
+        else {
             const sasaranNode = nodInduk.find(n => n.id === sasaranIdPusat);
             sasaranIsPasangan = !!sasaranNode && /suami|isteri/.test((sasaranNode.relationship || '').toLowerCase());
-            if (sasaranNode && sasaranIsPasangan) {
-                ibuBapaPusat = kInduk.mertua;               // Mertua induk = ibu bapa saya
-                sisaLeluhurPusat = [[], [], [], [], []];
-            } else if (sasaranNode) {
-                ibuBapaPusat = kInduk.ibuBapa;
-                sisaLeluhurPusat = [kInduk.datukNenek, kInduk.moyang, kInduk.buyut, kInduk.cakawari, kInduk.cilawagi];
-            }
-            // sandaran: salinan leluhur dalam akaun sendiri
-            if (!ibuBapaPusat.length) {
-                ibuBapaPusat = kSaya.ibuBapa;
-                sisaLeluhurPusat = [kSaya.datukNenek, kSaya.moyang, kSaya.buyut, kSaya.cakawari, kSaya.cilawagi];
-            }
+            if (sasaranNode && sasaranIsPasangan) { ibuBapaPusat = kInduk.mertua; sisaLeluhurPusat = [[], [], [], [], []]; } 
+            else if (sasaranNode) { ibuBapaPusat = kInduk.ibuBapa; sisaLeluhurPusat = [kInduk.datukNenek, kInduk.moyang, kInduk.buyut, kInduk.cakawari, kInduk.cilawagi]; }
+            if (!ibuBapaPusat.length) { ibuBapaPusat = kSaya.ibuBapa; sisaLeluhurPusat = [kSaya.datukNenek, kSaya.moyang, kSaya.buyut, kSaya.cakawari, kSaya.cilawagi]; }
         }
 
-        const semuaId = new Set();
-        [nodSaya, nodInduk, ...akaun.map(a => a.nod)].forEach(arr => arr.forEach(n => semuaId.add(n.id)));
-        const sasaranUid = {};
-        akaun.forEach(a => { sasaranUid[a.uid] = a.sasaran; });
+        const semuaId = new Set(); [nodSaya, nodInduk, ...akaun.map(a => a.nod)].forEach(arr => arr.forEach(n => semuaId.add(n.id)));
+        const sasaranUid = {}; akaun.forEach(a => { sasaranUid[a.uid] = a.sasaran; });
 
         const lelaki = x => x.gender ? x.gender === 'L' : /ayah|bapa|datuk|suami|moyang|buyut|cakawari|cilawagi/.test((x.relationship || '').toLowerCase());
         const jantinaL = x => x.gender ? x.gender === 'L' : /suami|ayah|bapa/.test((x.relationship || '').toLowerCase());
         const susunKiri = (arr) => [...arr].sort((a, b) => (jantinaL(b) ? 1 : 0) - (jantinaL(a) ? 1 : 0));
+        const cariIbuBapa = (matchId, levels, utama) => { const idx = levels.findIndex(arr => arr.length > 0); if (idx === -1) return { senarai: [], sisa: [] }; const senarai = levels[idx].filter(x => (x.ref_id && semuaId.has(x.ref_id)) ? x.ref_id === matchId : utama); return { senarai, sisa: levels.slice(idx + 1) }; };
 
-        const cariIbuBapa = (matchId, levels, utama) => {
-            const idx = levels.findIndex(arr => arr.length > 0);
-            if (idx === -1) return { senarai: [], sisa: [] };
-            const senarai = levels[idx].filter(x => (x.ref_id && semuaId.has(x.ref_id)) ? x.ref_id === matchId : utama);
-            return { senarai, sisa: levels.slice(idx + 1) };
-        };
-
-        // Kumpul leluhur ke atas (bapa + ibu, kemudian datuk nenek dan seterusnya) - sama seperti pokok
         const kumpulAtasan = (matchId, levels, utama, hasil = []) => {
             const { senarai, sisa } = cariIbuBapa(matchId, levels, utama);
             if (!senarai.length) return hasil;
-            const bapa = senarai.find(lelaki) || senarai[0];
-            const ibu = senarai.find(x => x !== bapa);
-            hasil.push(bapa);
-            if (ibu) hasil.push(ibu);
-            kumpulAtasan(bapa.id, sisa, true, hasil);
-            if (ibu) kumpulAtasan(ibu.id, sisa, false, hasil);
+            const bapa = senarai.find(lelaki) || senarai[0]; const ibu = senarai.find(x => x !== bapa);
+            hasil.push(bapa); if (ibu) hasil.push(ibu);
+            kumpulAtasan(bapa.id, sisa, true, hasil); if (ibu) kumpulAtasan(ibu.id, sisa, false, hasil);
             return hasil;
         };
 
-        // Peranan ikut sudut pandang saya (sama logik dengan label() pokok besar)
         const peranKad = (n) => {
-            const h = n.relationship || '';
-            const hl = h.toLowerCase();
+            const h = n.relationship || ''; const hl = h.toLowerCase();
             if (n.is_root) {
                 if (n.owner_uid === saya) return 'Anda';
                 if (n.owner_uid === indukUid) return sasaranIsPasangan ? 'Ipar' : 'Adik-beradik';
                 return sasaranUid[n.owner_uid] === sasaranIdPusat ? 'Adik-beradik' : 'Ipar';
             }
-            if (n.owner_uid === saya) {
-                if (/suami|isteri/.test(hl)) return 'Pasangan';
-                return h;
-            }
+            if (n.owner_uid === saya) { if (/suami|isteri/.test(hl)) return 'Pasangan'; return h; }
             if (!sayaInduk && n.id === sasaranIdPusat) return 'Adik-beradik';
             if (!sayaInduk && sasaranIsPasangan && hl.includes('mertua') && n.owner_uid === indukUid) return hl.includes('bapa') ? 'Ayah' : 'Ibu';
             if (/suami|isteri/.test(hl) || h === 'Menantu') return 'Ipar';
-            if (h === 'Anak') return 'Anak saudara';
-            if (h === 'Cucu') return 'Cucu saudara';
-            if (h === 'Cicit') return 'Cicit saudara';
+            if (h === 'Anak') return 'Anak saudara'; if (h === 'Cucu') return 'Cucu saudara'; if (h === 'Cicit') return 'Cicit saudara';
             return h;
         };
 
-        // 4. Himpun ahli (tiada yang meninggal, tiada nama berulang)
         const kumpulan = { rumah: [], atas: [], sisi: [] };
         const dilihat = new Set();
-       const tambah = (n, jenis) => {
+        const tambah = (n, jenis) => {
             if (!n || n.status === 'meninggal') return;
             const key = (n.name || '').toLowerCase().trim();
             if (!key || dilihat.has(key)) return;
             dilihat.add(key);
-            // KEMAS KINI: Tambah dob: n.dob untuk kalendar hari jadi
             const rekod = { uid: (n.is_root && n.owner_uid !== saya) ? n.owner_uid : n.id, name: n.name, role: peranKad(n), dob: n.dob };
-            kumpulan[jenis].push(rekod);
-            globalTeamMap.set(key, rekod);
+            kumpulan[jenis].push(rekod); globalTeamMap.set(key, rekod);
         };
-      
-        const tambahRumah = (k, orang, jenis) => {
-            orang.forEach(p => tambah(p, jenis));
-            k.turun.forEach(arr => arr.forEach(c => tambah(c, jenis)));
-            k.menantu.forEach(m => tambah(m, jenis));
-        };
-        const tambahAtasan = (matchId, levels, utama) => {
-            kumpulAtasan(matchId, levels, utama).forEach(p => tambah(p, 'atas'));
-        };
+        
+        const tambahRumah = (k, orang, jenis) => { orang.forEach(p => tambah(p, jenis)); k.turun.forEach(arr => arr.forEach(c => tambah(c, jenis))); k.menantu.forEach(m => tambah(m, jenis)); };
+        const tambahAtasan = (matchId, levels, utama) => { kumpulAtasan(matchId, levels, utama).forEach(p => tambah(p, 'atas')); };
         const tambahAdikManual = () => {
             kSaya.adikBeradik.forEach(adik => {
-                tambah(adik, 'sisi');
-                kSaya.ipar.filter(i => i.ref_id === adik.id).forEach(i => tambah(i, 'sisi'));
+                tambah(adik, 'sisi'); kSaya.ipar.filter(i => i.ref_id === adik.id).forEach(i => tambah(i, 'sisi'));
                 const anakSini = kSaya.anakSaudara.filter(c => c.ref_id === adik.id);
-                anakSini.forEach(c => tambah(c, 'sisi'));
-                kSaya.cucuSaudara.filter(c => anakSini.some(a => a.id === c.ref_id)).forEach(c => tambah(c, 'sisi'));
+                anakSini.forEach(c => tambah(c, 'sisi')); kSaya.cucuSaudara.filter(c => anakSini.some(a => a.id === c.ref_id)).forEach(c => tambah(c, 'sisi'));
             });
         };
         const tambahAdikBerpaut = (sasaranId) => {
             akaun.filter(a => a.sasaran === sasaranId && a.uid !== saya && !sembunyi.includes(a.uid)).forEach(a => {
-                const k = kelompok(a.nod);
-                if (k.diri) tambahRumah(k, [k.diri, ...k.pasangan], 'sisi');
+                const k = kelompok(a.nod); if (k.diri) tambahRumah(k, [k.diri, ...k.pasangan], 'sisi');
             });
         };
 
-        // Isi rumah saya sentiasa ada (Anda, pasangan, anak dan seterusnya)
         tambahRumah(kSaya, susunKiri([kSaya.diri, ...kSaya.pasangan]), 'rumah');
 
         if (pilihanBelah === 'induk') {
             tambahAtasan(sayaInduk ? kSaya.diri.id : sasaranIdPusat, [ibuBapaPusat, ...sisaLeluhurPusat], true);
             tambahAdikBerpaut(sasaranIdPusat);
-            if (!sayaInduk && kInduk.diri && !sembunyi.includes(indukUid)) {
-                tambahRumah(kInduk, [kInduk.diri, ...kInduk.pasangan], 'sisi');   // keluarga induk (pengundang)
-            }
+            if (!sayaInduk && kInduk.diri && !sembunyi.includes(indukUid)) { tambahRumah(kInduk, [kInduk.diri, ...kInduk.pasangan], 'sisi'); }
             tambahAdikManual();
         } else {
-            kSaya.pasangan.forEach((p, i) => {
-                tambahAtasan(p.id, [kSaya.mertua], i === 0);
-                tambahAdikBerpaut(p.id);
-            });
+            kSaya.pasangan.forEach((p, i) => { tambahAtasan(p.id, [kSaya.mertua], i === 0); tambahAdikBerpaut(p.id); });
         }
 
-        // 5. Paparkan (dikelompokkan)
         const kad = (r) => `
             <label class="family-item">
                 <input type="checkbox" class="fam-check" value="${esc(r.name)}" data-uid="${esc(r.uid)}" ${(r.role === 'Anda' || r.role === 'Pasangan') ? 'checked' : ''}>
-                <div>
-                    <div class="f-name">${esc(r.name)}</div>
-                    <div class="f-role">${esc(r.role)}</div>
-                </div>
+                <div><div class="f-name">${esc(r.name)}</div><div class="f-role">${esc(r.role)}</div></div>
             </label>`;
         const bahagian = (tajuk, arr) => arr.length ? `<div class="fam-group">${tajuk}</div>` + arr.map(kad).join('') : '';
 
@@ -900,24 +629,20 @@ window.muatKeluargaRombongan = async () => {
         const tajukSisi = pilihanBelah === 'induk' ? 'Adik-beradik & Keluarga' : 'Adik-beradik Pasangan & Keluarga';
 
         let htmlList = bahagian('Isi Rumah', kumpulan.rumah) + bahagian(tajukAtas, kumpulan.atas) + bahagian(tajukSisi, kumpulan.sisi);
-        if (pilihanBelah === 'pasangan' && kSaya.pasangan.length === 0) {
-            htmlList += "<div style='color:#888; font-size:0.8rem; text-align:center; padding:8px;'>Belum ada pasangan dalam myNasab, jadi belah pasangan belum dapat dipaparkan.</div>";
-        }
+        if (pilihanBelah === 'pasangan' && kSaya.pasangan.length === 0) { htmlList += "<div style='color:#888; font-size:0.8rem; text-align:center; padding:8px;'>Belum ada pasangan dalam myNasab, jadi belah pasangan belum dapat dipaparkan.</div>"; }
         if (!htmlList) htmlList = "<div style='color:#888; font-size:0.9rem; text-align:center;'>Tiada rekod keluarga dijumpai.</div>";
         kotakSenarai.innerHTML = htmlList;
         
-        // TAMBAH BARIS INI: Muat data kalendar weCare setiap kali rangkaian keluarga ditukar
         if (typeof window.muatKalendarIntegrasi === 'function') {
             await window.muatKalendarIntegrasi(indukUid, nodSaya, nodInduk, sayaInduk, sasaranIdPusat);
         }
 
     } catch (e) { console.error("Ralat muat Keluarga:", e); }
 }
-  
-// =================== VARIABEL & INIT KALKULATOR ===================
+
+// =================== VARIABEL & INIT ===================
 let accomList = []; let transportList = []; let miscList = [];
-let countdownInterval = null; let toastTimer = null;
-let alarmActive = false;
+let countdownInterval = null; let toastTimer = null; let alarmActive = false;
 
 function init() {
   addAccom(true); addTransport(true); addMisc(true);
@@ -929,32 +654,18 @@ function init() {
 }
 
 window.toggleSettings = () => { document.getElementById('settings-panel').classList.toggle('show'); }
-window.updateSummary = updateSummary;
-  
-// =================== PENGINAPAN ===================
-window.addAccom = (silent) => {
-  accomList.push({ id: Date.now(), name: '', cost: '', nights: '' });
-  renderAccom(); if(!silent) showToast('🏨 Penginapan ditambah!');
-}
+
+window.addAccom = (silent) => { accomList.push({ id: Date.now(), name: '', cost: '', nights: '' }); renderAccom(); if(!silent) showToast('🏨 Penginapan ditambah!'); }
 window.removeAccom = (id) => { accomList = accomList.filter(a => a.id !== id); renderAccom(); window.updateAll(); }
 function renderAccom() {
   const el = document.getElementById('accom-list'); el.innerHTML = '';
   accomList.forEach(a => {
     const div = document.createElement('div'); div.className = 'item-card';
     div.innerHTML = `
-      <div class="item-header">
-        <div class="field" style="flex:1"><label>Nama Penginapan</label><input type="text" placeholder="Hotel XYZ" value="${a.name}" oninput="updateAccom(${a.id},'name',this.value)"></div>
-        <button class="del-btn" onclick="removeAccom(${a.id})">✕</button>
-      </div>
+      <div class="item-header"><div class="field" style="flex:1"><label>Nama Penginapan</label><input type="text" placeholder="Hotel XYZ" value="${a.name}" oninput="updateAccom(${a.id},'name',this.value)"></div><button class="del-btn" onclick="removeAccom(${a.id})">✕</button></div>
       <div class="grid-2-col">
-        <div class="field">
-          <label>RM/Malam</label>
-          <div class="input-prefix"><span>RM</span><input type="number" placeholder="0" value="${a.cost}" oninput="updateAccom(${a.id},'cost',this.value)"></div>
-        </div>
-        <div class="field">
-          <label>Bil. Malam</label>
-          <input type="number" placeholder="1" value="${a.nights}" oninput="updateAccom(${a.id},'nights',this.value)">
-        </div>
+        <div class="field"><label>RM/Malam</label><div class="input-prefix"><span>RM</span><input type="number" placeholder="0" value="${a.cost}" oninput="updateAccom(${a.id},'cost',this.value)"></div></div>
+        <div class="field"><label>Bil. Malam</label><input type="number" placeholder="1" value="${a.nights}" oninput="updateAccom(${a.id},'nights',this.value)"></div>
       </div>
       <div class="item-footer color-sky">Subjumlah: <span id="accom-sub-${a.id}">RM 0.00</span></div>
     `;
@@ -967,51 +678,23 @@ function updateAccomSub(id) {
   if(item && el) el.textContent = 'RM ' + ((parseFloat(item.cost)||0) * (parseInt(item.nights)||0)).toFixed(2);
 }
 
-// =================== PENGANGKUTAN ===================
-window.addTransport = (silent) => {
-  transportList.push({ id: Date.now(), mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true });
-  renderTransport(); if(!silent) showToast('🚗 Laluan ditambah!');
-}
+window.addTransport = (silent) => { transportList.push({ id: Date.now(), mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true }); renderTransport(); if(!silent) showToast('🚗 Laluan ditambah!'); }
 window.removeTransport = (id) => { transportList = transportList.filter(t => t.id !== id); renderTransport(); window.updateAll(); }
 function renderTransport() {
   const el = document.getElementById('transport-list'); el.innerHTML = '';
   transportList.forEach(t => {
-    const div = document.createElement('div'); div.className = 'item-card bg-peach-light';
-    const isAuto = t.mode === 'car' && t.autoCalc;
+    const div = document.createElement('div'); div.className = 'item-card bg-peach-light'; const isAuto = t.mode === 'car' && t.autoCalc;
     div.innerHTML = `
       <div class="item-header">
-        <div class="field" style="flex:1">
-          <label>Mod Kenderaan</label>
-          <select onchange="updateTransportMode(${t.id}, this.value)">
-            <option value="car" ${t.mode==='car'?'selected':''}>🚗 Kereta (Minyak/Tol)</option>
-            <option value="flight" ${t.mode==='flight'?'selected':''}>✈️ Kapal Terbang</option>
-            <option value="bus" ${t.mode==='bus'?'selected':''}>🚌 Bas Ekspres</option>
-            <option value="train" ${t.mode==='train'?'selected':''}>🚆 Keretapi</option>
-            <option value="grab" ${t.mode==='grab'?'selected':''}>📱 Grab / Taxi</option>
-          </select>
-        </div>
-        <button class="del-btn" onclick="removeTransport(${t.id})">✕</button>
+        <div class="field" style="flex:1"><label>Mod Kenderaan</label><select onchange="updateTransportMode(${t.id}, this.value)"><option value="car" ${t.mode==='car'?'selected':''}>🚗 Kereta (Minyak/Tol)</option><option value="flight" ${t.mode==='flight'?'selected':''}>✈️ Kapal Terbang</option><option value="bus" ${t.mode==='bus'?'selected':''}>🚌 Bas Ekspres</option><option value="train" ${t.mode==='train'?'selected':''}>🚆 Keretapi</option><option value="grab" ${t.mode==='grab'?'selected':''}>📱 Grab / Teksi</option></select></div><button class="del-btn" onclick="removeTransport(${t.id})">✕</button>
       </div>
       <div class="grid-2-col">
-        <div class="field"><label>Dari</label><input type="text" placeholder="Mula" value="${t.from}" oninput="updateTransport(${t.id},'from',this.value)"></div>
-        <div class="field"><label>Ke</label><input type="text" placeholder="Tuju" value="${t.to}" oninput="updateTransport(${t.id},'to',this.value)"></div>
+        <div class="field"><label>Dari</label><input type="text" placeholder="Mula" value="${t.from || ''}" oninput="updateTransport(${t.id},'from',this.value)"></div>
+        <div class="field"><label>Ke</label><input type="text" placeholder="Tuju" value="${t.to || ''}" oninput="updateTransport(${t.id},'to',this.value)"></div>
       </div>
       <div class="grid-2-col" style="align-items:end;">
-        <div class="field">
-          <label>Jarak (KM)</label>
-          <div style="display:flex; gap:6px;">
-            <input type="number" placeholder="0" value="${t.km}" oninput="updateTransportKM(${t.id},this.value)" style="flex:1;">
-            <button class="search-dist-btn" onclick="calculateDistance(${t.id})">🔍</button>
-          </div>
-        </div>
-        <div class="field">
-          <label>Kos (RM) ${isAuto ? '<span class="auto-calc-badge">AUTO</span>' : ''}</label>
-          <div class="input-prefix">
-            <span>RM</span><input type="number" placeholder="0.00" value="${t.cost}" id="trans-input-${t.id}" 
-            ${isAuto ? 'readonly style="background:#E8F5E9"' : ''} 
-            oninput="updateTransportCost(${t.id},this.value)">
-          </div>
-        </div>
+        <div class="field"><label>Jarak (KM)</label><div style="display:flex; gap:6px;"><input type="number" placeholder="0" value="${t.km || ''}" oninput="updateTransportKM(${t.id},this.value)" style="flex:1;"><button class="search-dist-btn" onclick="calculateDistance(${t.id})">🔍</button></div></div>
+        <div class="field"><label>Kos (RM) ${isAuto ? '<span class="auto-calc-badge">AUTO</span>' : ''}</label><div class="input-prefix"><span>RM</span><input type="number" placeholder="0.00" value="${t.cost || ''}" id="trans-input-${t.id}" ${isAuto ? 'readonly style="background:#E8F5E9"' : ''} oninput="updateTransportCost(${t.id},this.value)"></div></div>
       </div>
       <div class="item-footer color-peach">Kos Laluan: <span id="trans-cost-text-${t.id}">RM 0.00</span></div>
     `;
@@ -1019,73 +702,43 @@ function renderTransport() {
   });
 }
 window.updateTransport = (id, f, v) => { const item = transportList.find(t => t.id === id); if (item) { item[f] = v; window.updateAll(); } }
-window.updateTransportMode = (id, mode) => {
-  const item = transportList.find(t => t.id === id);
-  if (item) { item.mode = mode; item.autoCalc = (mode === 'car'); recalculateTransportCost(item); renderTransport(); window.updateAll(); }
-}
-window.updateTransportKM = (id, km) => {
-  const item = transportList.find(t => t.id === id);
-  if (item) { item.km = km; recalculateTransportCost(item); updateTransportSubDisplay(id); window.updateAll(); }
-}
-window.updateTransportCost = (id, cost) => {
-  const item = transportList.find(t => t.id === id);
-  if (item) { item.cost = cost; item.autoCalc = false; updateTransportSubDisplay(id); window.updateAll(); }
-}
+window.updateTransportMode = (id, mode) => { const item = transportList.find(t => t.id === id); if (item) { item.mode = mode; item.autoCalc = (mode === 'car'); recalculateTransportCost(item); renderTransport(); window.updateAll(); } }
+window.updateTransportKM = (id, km) => { const item = transportList.find(t => t.id === id); if (item) { item.km = km; recalculateTransportCost(item); updateTransportSubDisplay(id); window.updateAll(); } }
+window.updateTransportCost = (id, cost) => { const item = transportList.find(t => t.id === id); if (item) { item.cost = cost; item.autoCalc = false; updateTransportSubDisplay(id); window.updateAll(); } }
 function recalculateTransportCost(item) {
   if (item.mode === 'car' && item.autoCalc && item.km) {
-    const rate = parseFloat(document.getElementById('fuel-rate').value) || 0;
-    item.cost = (parseFloat(item.km) * rate).toFixed(2);
-    const input = document.getElementById(`trans-input-${item.id}`);
-    if(input) input.value = item.cost;
+    const rate = parseFloat(document.getElementById('fuel-rate').value) || 0; item.cost = (parseFloat(item.km) * rate).toFixed(2);
+    const input = document.getElementById(`trans-input-${item.id}`); if(input) input.value = item.cost;
   }
 }
 function updateTransportSubDisplay(id) {
   const item = transportList.find(t => t.id === id); const el = document.getElementById('trans-cost-text-' + id);
   if(item && el) el.textContent = 'RM ' + (parseFloat(item.cost)||0).toFixed(2);
 }
-
-// OSRM
 window.calculateDistance = async (id) => {
-  const item = transportList.find(t => t.id === id);
-  if (!item || !item.from || !item.to) { showToast('⚠️ Isi Mula & Tuju!'); return; }
+  const item = transportList.find(t => t.id === id); if (!item || !item.from || !item.to) { showToast('⚠️ Isi Mula & Tuju!'); return; }
   showToast('⏳ Mencari laluan pantas...');
   try {
-    const [resF, resT] = await Promise.all([
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.from)}`),
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.to)}`)
-    ]);
+    const [resF, resT] = await Promise.all([ fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.from)}`), fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.to)}`) ]);
     const [dF, dT] = await Promise.all([resF.json(), resT.json()]);
     if(!dF.length || !dT.length) throw new Error('Lokasi tidak ditemui');
-
     const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${dF[0].lon},${dF[0].lat};${dT[0].lon},${dT[0].lat}?overview=false`);
     const dataRoute = await resRoute.json();
     if (dataRoute.code !== 'Ok') throw new Error('Laluan tidak ditemui');
-
-    const distanceKm = (dataRoute.routes[0].distance / 1000).toFixed(1);
-    item.km = distanceKm;
-    recalculateTransportCost(item); renderTransport(); window.updateAll();
-    showToast(`✅ Jarak dikesan: ${distanceKm} km`);
+    item.km = (dataRoute.routes[0].distance / 1000).toFixed(1); recalculateTransportCost(item); renderTransport(); window.updateAll(); showToast(`✅ Jarak dikesan: ${item.km} km`);
   } catch (e) {
-    showToast('❌ Gagal. Membuka Google Maps...');
-    setTimeout(() => { window.open(`https://www.google.com/maps/dir/${encodeURIComponent(item.from)}/${encodeURIComponent(item.to)}`, '_blank'); }, 800);
+    showToast('❌ Gagal. Membuka Google Maps...'); setTimeout(() => { window.open(`https://www.google.com/maps/dir/${encodeURIComponent(item.from)}/${encodeURIComponent(item.to)}`, '_blank'); }, 800);
   }
 }
 
-// =================== LAIN-LAIN ===================
-window.addMisc = (silent) => {
-  miscList.push({ id: Date.now(), name: '', cost: '' });
-  renderMisc(); if(!silent) showToast('🎒 Item ditambah!');
-}
+window.addMisc = (silent) => { miscList.push({ id: Date.now(), name: '', cost: '' }); renderMisc(); if(!silent) showToast('🎒 Item ditambah!'); }
 window.removeMisc = (id) => { miscList = miscList.filter(m => m.id !== id); renderMisc(); window.updateAll(); }
 function renderMisc() {
   const el = document.getElementById('misc-list'); el.innerHTML = '';
   miscList.forEach(m => {
     const div = document.createElement('div'); div.className = 'item-card bg-lavender-light';
     div.innerHTML = `
-      <div class="item-header">
-        <div class="field" style="flex:1"><label>Perkara</label><input type="text" placeholder="Makan / Cenderamata" value="${m.name}" oninput="updateMisc(${m.id},'name',this.value)"></div>
-        <button class="del-btn" onclick="removeMisc(${m.id})">✕</button>
-      </div>
+      <div class="item-header"><div class="field" style="flex:1"><label>Perkara</label><input type="text" placeholder="Makan / Cenderamata" value="${m.name}" oninput="updateMisc(${m.id},'name',this.value)"></div><button class="del-btn" onclick="removeMisc(${m.id})">✕</button></div>
       <div class="field"><label>Anggaran Kos (RM)</label><div class="input-prefix"><span>RM</span><input type="number" placeholder="0.00" value="${m.cost}" oninput="updateMisc(${m.id},'cost',this.value)"></div></div>
     `;
     el.appendChild(div);
@@ -1093,18 +746,15 @@ function renderMisc() {
 }
 window.updateMisc = (id, f, v) => { const item = miscList.find(m => m.id === id); if (item) { item[f] = v; window.updateAll(); } }
 
-// =================== LOGIK UTAMA & FINANCIAL PLANNER ===================
 window.updateAll = () => { 
     const tripName = document.getElementById('trip-name').value || 'Percutian';
     document.getElementById('cd-title-label').textContent = "Kiraan Detik: " + tripName;
-    updateCountdown(); 
-    updateSummary(); 
+    updateCountdown(); updateSummary(); 
     if (typeof window.renderKalendarWeCare === 'function') window.renderKalendarWeCare();
 }
 
 function updateSummary() {
   transportList.forEach(t => recalculateTransportCost(t));
-
   const aTot = accomList.reduce((s, a) => s + (parseFloat(a.cost)||0)*(parseInt(a.nights)||0), 0);
   const tTot = transportList.reduce((s, t) => s + (parseFloat(t.cost)||0), 0);
   const mTot = miscList.reduce((s, m) => s + (parseFloat(m.cost)||0), 0);
@@ -1117,17 +767,13 @@ function updateSummary() {
 
   const goDateStr = document.getElementById('date-go').value;
   if(goDateStr && grand > 0) {
-      const goDate = new Date(goDateStr);
-      const today = new Date();
-      
+      const goDate = new Date(goDateStr); const today = new Date();
       let monthsLeft = (goDate.getFullYear() - today.getFullYear()) * 12 + (goDate.getMonth() - today.getMonth());
       if (goDate.getDate() < today.getDate()) monthsLeft--; 
       if (monthsLeft <= 0) monthsLeft = 1; 
 
-      const monthlySavings = grand / monthsLeft;
-
       document.getElementById('plan-months').innerText = monthsLeft + ' Bulan';
-      document.getElementById('plan-monthly').innerText = 'RM ' + monthlySavings.toFixed(2);
+      document.getElementById('plan-monthly').innerText = 'RM ' + (grand / monthsLeft).toFixed(2);
   } else {
       document.getElementById('plan-months').innerText = '- Bulan';
       document.getElementById('plan-monthly').innerText = 'RM 0.00';
@@ -1173,136 +819,107 @@ window.toggleAlarm = () => {
   else { btn.textContent = '🔔 Tetapkan Penggera Berlepas'; btn.classList.remove('active'); showToast('🔕 Ditutup'); }
 }
 
-// SIMPAN KE FIREBASE (DATABASE)
+// SIMPAN & MUAT DARI FIREBASE (DATABASE)
 let currentTripId = null;
 let senaraiPelanTersimpan = [];
 
-// TARIK SEMULA DATA LAMA DARI FIREBASE
 window.muatPelanTersimpan = async () => {
     if (!currentUser) return;
     try {
         const q = query(collection(db, "jombercuti_trips"), where("owner_uid", "==", currentUser.uid));
         const snap = await getDocs(q);
-        if (snap.empty) return; // Tiada data lama, kekalkan borang kosong
+        if (snap.empty) return; 
 
-        // Susun ikut yang paling terkini disimpan
         senaraiPelanTersimpan = snap.docs
             .map(d => ({ ...d.data(), id: d.id }))
             .sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
 
-        // Terus muatkan pelan yang paling terkini ke dalam borang
         window.pilihPelan(senaraiPelanTersimpan[0].id);
         renderDropdownPelan();
-    } catch (e) {
-        console.error("Gagal memuatkan pelan lama:", e);
-    }
+    } catch (e) { console.error("Gagal memuatkan pelan lama:", e); }
 };
 
-// PAPAR DROPDOWN JIKA ADA PELAN TERSIMPAN
 function renderDropdownPelan() {
     let bekas = document.getElementById('saved-trips-bar');
     if (!bekas) {
         const kadTrip = document.getElementById('trip-name')?.closest('.card');
         if (!kadTrip) return;
-        bekas = document.createElement('div');
-        bekas.id = 'saved-trips-bar';
+        bekas = document.createElement('div'); bekas.id = 'saved-trips-bar';
         bekas.style.cssText = 'margin-bottom:14px; padding-bottom:12px; border-bottom:1px dashed #e2e8f0; display:flex; gap:8px; align-items:center;';
         kadTrip.insertBefore(bekas, kadTrip.firstChild.nextSibling);
     }
-
-    const pilihanHtml = senaraiPelanTersimpan.map(t => 
-        `<option value="${t.id}" ${t.id === currentTripId ? 'selected' : ''}>📂 ${t.title} (${t.destination || 'Tiada destinasi'})</option>`
-    ).join('');
-
-    bekas.innerHTML = `
-        <select onchange="pilihPelan(this.value)" style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1; font-family:'Nunito'; font-weight:700; font-size:0.85rem; background:#f8fafc;">
-            ${pilihanHtml}
-        </select>
-        <button onclick="buatPelanBaru()" style="padding:8px 12px; border-radius:8px; background:#e0f2fe; color:#0284c7; border:none; font-weight:800; font-size:0.8rem; cursor:pointer; white-space:nowrap;">+ Pelan Baru</button>
-    `;
+    const pilihanHtml = senaraiPelanTersimpan.map(t => `<option value="${t.id}" ${t.id === currentTripId ? 'selected' : ''}>📂 ${t.title} (${t.destination || 'Tiada destinasi'})</option>`).join('');
+    bekas.innerHTML = `<select onchange="pilihPelan(this.value)" style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1; font-family:'Nunito'; font-weight:700; font-size:0.85rem; background:#f8fafc;">${pilihanHtml}</select><button onclick="buatPelanBaru()" style="padding:8px 12px; border-radius:8px; background:#e0f2fe; color:#0284c7; border:none; font-weight:800; font-size:0.8rem; cursor:pointer; white-space:nowrap;">+ Pelan Baru</button>`;
 }
 
-// ISI SEMULA BORANG DENGAN DATA LAMA
 window.pilihPelan = (id) => {
-    const trip = senaraiPelanTersimpan.find(t => t.id === id);
-    if (!trip) return;
-
+    const trip = senaraiPelanTersimpan.find(t => t.id === id); if (!trip) return;
     currentTripId = trip.id;
-    document.getElementById('trip-name').value = trip.title || '';
-    document.getElementById('destination').value = trip.destination || '';
-    if (trip.date_go) document.getElementById('date-go').value = trip.date_go;
-    if (trip.date_back) document.getElementById('date-back').value = trip.date_back;
+    document.getElementById('trip-name').value = trip.title || ''; document.getElementById('destination').value = trip.destination || '';
+    if (trip.date_go) document.getElementById('date-go').value = trip.date_go; if (trip.date_back) document.getElementById('date-back').value = trip.date_back;
 
     accomList = Array.isArray(trip.accommodation) && trip.accommodation.length ? trip.accommodation : [{ id: Date.now(), name: '', cost: '', nights: '' }];
     transportList = Array.isArray(trip.transportation) && trip.transportation.length ? trip.transportation : [{ id: Date.now()+1, mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true }];
     miscList = Array.isArray(trip.miscellaneous) && trip.miscellaneous.length ? trip.miscellaneous : [{ id: Date.now()+2, name: '', cost: '' }];
     itineraryList = Array.isArray(trip.itinerary) ? trip.itinerary : []; renderItin();
-  
-    renderAccom();
-    renderTransport();
-    renderMisc();
+    
+    renderAccom(); renderTransport(); renderMisc();
 
-    // Tandakan semula ahli rombongan yang disimpan
     if (Array.isArray(trip.team_members)) {
         const namaAhli = new Set(trip.team_members.map(m => m.nama));
-        document.querySelectorAll('.fam-check').forEach(cb => {
-            cb.checked = namaAhli.has(cb.value);
-        });
+        document.querySelectorAll('.fam-check').forEach(cb => { cb.checked = namaAhli.has(cb.value); });
     }
-
-    window.updateAll();
-    showToast(`📂 Pelan "${trip.title}" dimuatkan!`);
+    window.updateAll(); showToast(`📂 Pelan "${trip.title}" dimuatkan!`);
 };
 
-// KOSONGKAN BORANG UNTUK BUAT TRIP BARU
 window.buatPelanBaru = () => {
-    currentTripId = null;
-    document.getElementById('trip-name').value = '';
-    document.getElementById('destination').value = '';
-    accomList = []; transportList = []; miscList = [];
-    itineraryList = []; renderItin();
-    init();
+    currentTripId = null; document.getElementById('trip-name').value = ''; document.getElementById('destination').value = '';
+    accomList = []; transportList = []; miscList = []; itineraryList = []; renderItin(); init();
     showToast('✨ Borang dikosongkan untuk pelan baharu!');
 };
 
-// SIMPAN / KEMAS KINI KE FIREBASE
 window.simpanPelanKeDatabase = async () => {
     if (!currentUser) return;
     const title = document.getElementById('trip-name').value;
     if (!title) { alert("Sila masukkan Nama Program / Percutian terlebih dahulu."); return; }
 
-    let senaraiAhli = [];
-    document.querySelectorAll('.fam-check:checked').forEach(cb => {
-        senaraiAhli.push({ nama: cb.value, uid: cb.dataset.uid });
+    // RAGUT/PAKSA AMBIL NILAI ITINERARI TERKINI SEBELUM SAVE SUPAYA TAK HILANG
+    itineraryList.forEach(s => {
+        const tEl = document.getElementById(`itin-title-${s.id}`);
+        const dEl = document.getElementById(`itin-date-${s.id}`);
+        const mEl = document.getElementById(`itin-time-${s.id}`);
+        const fEl = document.getElementById(`itin-from-${s.id}`);
+        const kEl = document.getElementById(`itin-to-${s.id}`);
+        const nEl = document.getElementById(`itin-note-${s.id}`);
+        
+        if (tEl) s.title = tEl.value;
+        if (dEl) s.date = dEl.value;
+        if (mEl) s.time = mEl.value;
+        if (fEl) s.from = fEl.value;
+        if (kEl) s.to = kEl.value;
+        if (nEl) s.note = nEl.value;
     });
 
+    let senaraiAhli = [];
+    document.querySelectorAll('.fam-check:checked').forEach(cb => { senaraiAhli.push({ nama: cb.value, uid: cb.dataset.uid }); });
+
     const tripData = {
-        title: title,
-        destination: document.getElementById('destination').value,
-        date_go: document.getElementById('date-go').value,
-        date_back: document.getElementById('date-back').value,
+        title: title, destination: document.getElementById('destination').value,
+        date_go: document.getElementById('date-go').value, date_back: document.getElementById('date-back').value,
         total_budget: parseFloat(document.getElementById('sum-total').textContent.replace('RM ', '')) || 0,
         monthly_saving: parseFloat(document.getElementById('plan-monthly').textContent.replace('RM ', '')) || 0,
         months_left: parseInt(document.getElementById('plan-months').textContent) || 0,
-        accommodation: accomList,
-        transportation: transportList,
-        miscellaneous: miscList,
-        itinerary: itineraryList,
-        team_members: senaraiAhli,
-        owner_uid: currentUser.uid,
-        created_at: Date.now()
+        accommodation: accomList, transportation: transportList, miscellaneous: miscList, itinerary: itineraryList,
+        team_members: senaraiAhli, owner_uid: currentUser.uid, created_at: Date.now()
     };
 
     try {
-        // Jika sedang sunting pelan lama, guna ID lama. Jika pelan baru, cipta ID baru.
         const idUnik = currentTripId || ("TRIP_" + Date.now());
         await setDoc(doc(db, "jombercuti_trips", idUnik), tripData);
         currentTripId = idUnik;
         await window.muatPelanTersimpan();
         showToast("💾 Pelan Percutian Berjaya Disimpan!");
-    } catch (e) {
-        alert("Gagal menyimpan pelan: " + e.message);
-    }
+    } catch (e) { alert("Gagal menyimpan pelan: " + e.message); }
 };
   
 function showToast(msg) { 
@@ -1311,113 +928,66 @@ function showToast(msg) {
 }
 
 // =================== ENJIN KALENDAR INTEGRASI WECARE ===================
-let calBulan = new Date().getMonth();
-let calTahun = new Date().getFullYear();
-let dataWeCareCal = [];
-let jangkarCal = { induk: null, pasangan: null, lamaInduk: null, lamaPasangan: null };
-let tarikhGoTerakhir = '';
+let calBulan = new Date().getMonth(); let calTahun = new Date().getFullYear();
+let dataWeCareCal = []; let jangkarCal = { induk: null, pasangan: null, lamaInduk: null, lamaPasangan: null }; let tarikhGoTerakhir = '';
 
 window.toggleKalendarWeCare = () => {
-    const box = document.getElementById('ruangKalendarWeCare');
-    const btn = document.getElementById('btnToggleCal');
+    const box = document.getElementById('ruangKalendarWeCare'); const btn = document.getElementById('btnToggleCal');
     const isHidden = box.classList.toggle('hidden');
-    btn.innerHTML = isHidden 
-        ? '📅 Papar Kalendar Semakan (weCare & Hari Jadi) ▼' 
-        : '📅 Sembunyikan Kalendar Semakan ▲';
+    btn.innerHTML = isHidden ? '📅 Papar Kalendar Semakan (weCare) ▼' : '📅 Sembunyikan Kalendar Semakan ▲';
     if (!isHidden) window.renderKalendarWeCare();
 };
 
-window.tukarBulanCal = (arah) => {
-    calBulan += arah;
-    if (calBulan < 0) { calBulan = 11; calTahun--; }
-    else if (calBulan > 11) { calBulan = 0; calTahun++; }
-    window.renderKalendarWeCare();
-};
+window.tukarBulanCal = (arah) => { calBulan += arah; if (calBulan < 0) { calBulan = 11; calTahun--; } else if (calBulan > 11) { calBulan = 0; calTahun++; } window.renderKalendarWeCare(); };
 
 window.muatKalendarIntegrasi = async (groupUid, nodSaya, nodInduk, sayaInduk, sasaranIdPusat) => {
     try {
         const idDiri = (nod) => (nod.find(n => n.is_root) || {}).id || null;
         const idPasangan = (nod) => (nod.find(n => /suami|isteri/i.test(n.relationship || '')) || {}).id || null;
-
-        jangkarCal.pasangan = idPasangan(nodSaya);
-        jangkarCal.induk = !sayaInduk ? (sasaranIdPusat || idDiri(nodSaya)) : idDiri(nodSaya);
-        jangkarCal.lamaInduk = idDiri(nodInduk);
-        jangkarCal.lamaPasangan = idPasangan(nodInduk);
+        jangkarCal.pasangan = idPasangan(nodSaya); jangkarCal.induk = !sayaInduk ? (sasaranIdPusat || idDiri(nodSaya)) : idDiri(nodSaya);
+        jangkarCal.lamaInduk = idDiri(nodInduk); jangkarCal.lamaPasangan = idPasangan(nodInduk);
 
         const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", groupUid)));
-        dataWeCareCal = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-        window.renderKalendarWeCare();
+        dataWeCareCal = snap.docs.map(d => ({ ...d.data(), id: d.id })); window.renderKalendarWeCare();
     } catch (e) { console.warn("Gagal muat kalendar weCare:", e); }
 };
 
 window.renderKalendarWeCare = () => {
-    const grid = document.getElementById('gridKalendarWeCare');
-    if (!grid) return;
-
-    // Jika pengguna baru tukar Tarikh Pergi, lompat ke bulan tersebut secara automatik
-    const goVal = document.getElementById('date-go')?.value || '';
-    const backVal = document.getElementById('date-back')?.value || goVal;
-    if (goVal && goVal !== tarikhGoTerakhir) {
-        tarikhGoTerakhir = goVal;
-        const dGo = new Date(goVal);
-        if (!isNaN(dGo)) { calBulan = dGo.getMonth(); calTahun = dGo.getFullYear(); }
-    }
-
+    const grid = document.getElementById('gridKalendarWeCare'); if (!grid) return;
+    const goVal = document.getElementById('date-go')?.value || ''; const backVal = document.getElementById('date-back')?.value || goVal;
+    if (goVal && goVal !== tarikhGoTerakhir) { tarikhGoTerakhir = goVal; const dGo = new Date(goVal); if (!isNaN(dGo)) { calBulan = dGo.getMonth(); calTahun = dGo.getFullYear(); } }
     const senaraiBulan = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
     document.getElementById('paparanBulanTahunCal').innerText = `${senaraiBulan[calBulan]} ${calTahun}`;
-
-    const hariMula = new Date(calTahun, calBulan, 1).getDay();
-    const jumlahHari = new Date(calTahun, calBulan + 1, 0).getDate();
-    const pilihanBelah = document.getElementById('filterBelah').value || 'induk';
-    const jSemasa = pilihanBelah === 'pasangan' ? jangkarCal.pasangan : jangkarCal.induk;
+    const hariMula = new Date(calTahun, calBulan, 1).getDay(); const jumlahHari = new Date(calTahun, calBulan + 1, 0).getDate();
+    const pilihanBelah = document.getElementById('filterBelah').value || 'induk'; const jSemasa = pilihanBelah === 'pasangan' ? jangkarCal.pasangan : jangkarCal.induk;
 
     const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    let html = '';
-    for (let i = 0; i < hariMula; i++) html += `<div class="cal-date empty-slot"></div>`;
+    let html = ''; for (let i = 0; i < hariMula; i++) html += `<div class="cal-date empty-slot"></div>`;
 
     const hariIni = new Date();
     for (let i = 1; i <= jumlahHari; i++) {
-        const bulanStr = String(calBulan + 1).padStart(2, '0');
-        const hariStr = String(i).padStart(2, '0');
-        const tkhKunci = `${calTahun}-${bulanStr}-${hariStr}`;
-        const mmdd = `${bulanStr}-${hariStr}`;
-
+        const bulanStr = String(calBulan + 1).padStart(2, '0'); const hariStr = String(i).padStart(2, '0');
+        const tkhKunci = `${calTahun}-${bulanStr}-${hariStr}`; const mmdd = `${bulanStr}-${hariStr}`;
         const isToday = (i === hariIni.getDate() && calBulan === hariIni.getMonth() && calTahun === hariIni.getFullYear());
         const isTrip = (goVal && tkhKunci >= goVal && tkhKunci <= (backVal || goVal));
 
-        // 1. Semak Hari Jadi Ahli Rombongan / Keluarga
         let htmlEvents = '';
-        if ( isTrip && (tkhKunci === goVal || tkhKunci === backVal) ) {
-            htmlEvents += `<div class="cal-event evt-trip">🏖️ ${tkhKunci === goVal ? 'Pergi' : 'Balik'}</div>`;
-        }
-        globalTeamMap.forEach(v => {
-            if (v.dob && v.dob.substring(5) === mmdd) {
-                htmlEvents += `<div class="cal-event evt-bday" title="Hari Jadi ${esc(v.name)}">🎂 ${esc(v.name.split(' ')[0])}</div>`;
-            }
-        });
+        if ( isTrip && (tkhKunci === goVal || tkhKunci === backVal) ) { htmlEvents += `<div class="cal-event evt-trip">🏖️ ${tkhKunci === goVal ? 'Pergi' : 'Balik'}</div>`; }
+        globalTeamMap.forEach(v => { if (v.dob && v.dob.substring(5) === mmdd) { htmlEvents += `<div class="cal-event evt-bday" title="Hari Jadi ${esc(v.name)}">🎂 ${esc(v.name.split(' ')[0])}</div>`; } });
 
-        // 2. Semak Tugasan & Giliran Jaga weCare
-        const tugasan = dataWeCareCal.filter(t => {
-            const jItem = t.anchor_id || (t.belah === 'pasangan' ? jangkarCal.lamaPasangan : jangkarCal.lamaInduk);
-            return jSemasa && jItem === jSemasa && tkhKunci >= t.date && tkhKunci <= (t.end_date || t.date);
-        });
-
+        const tugasan = dataWeCareCal.filter(t => { const jItem = t.anchor_id || (t.belah === 'pasangan' ? jangkarCal.lamaPasangan : jangkarCal.lamaInduk); return jSemasa && jItem === jSemasa && tkhKunci >= t.date && tkhKunci <= (t.end_date || t.date); });
         tugasan.forEach(t => {
-            let warna = 'evt-umum';
-            if (t.for_whom === 'ayah') warna = 'evt-ayah';
-            if (t.for_whom === 'ibu') warna = 'evt-ibu';
+            let warna = 'evt-umum'; if (t.for_whom === 'ayah') warna = 'evt-ayah'; if (t.for_whom === 'ibu') warna = 'evt-ibu';
             const shift = (t.shift_siapa && t.shift_siapa !== 'Umum') ? `[${t.shift_siapa}] ` : '';
-            const infoPenuh = `weCare (${t.for_whom.toUpperCase()})\nPerkara: ${t.title}\nGiliran/Shift: ${t.shift_siapa || 'Umum'}\nMasa: ${t.time || 'Sepanjang hari'}\nNota: ${t.note || '-'}`;
-            htmlEvents += `<div class="cal-event ${warna}" onclick="alert(${esc(JSON.stringify(infoPenuh))})">${t.time ? t.time + ' ' : ''}${esc(shift)}${esc(t.title)}</div>`;
+            const infoPenuh = `weCare (${t.for_whom.toUpperCase()}) - ${t.title} (Masa: ${t.time || 'Sepanjang hari'})`;
+            htmlEvents += `<div class="cal-event ${warna}" onclick="alert('${esc(infoPenuh).replace(/'/g, "\\'")}')">${t.time ? t.time + ' ' : ''}${esc(shift)}${esc(t.title)}</div>`;
         });
-
         html += `<div class="cal-date ${isToday ? 'today' : ''} ${isTrip ? 'trip-range' : ''}"><div class="dt-num">${i}</div>${htmlEvents}</div>`;
     }
     grid.innerHTML = html;
 };
 
-// =================== JADUAL ITINERARI (untuk PDF) ===================
-let itineraryList = [];
+// =================== JADUAL ITINERARI (Untuk PDF) ===================
 const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const PDF_PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#cbd5e1"/></svg>');
 
@@ -1426,187 +996,134 @@ window.addItinSlot = () => {
   renderItin();
 };
 window.removeItin = (id) => { itineraryList = itineraryList.filter(s => s.id !== id); renderItin(); };
-window.updateItinField = (id, f, v, rerender = false) => {
-  const s = itineraryList.find(x => x.id === id);
-  if (s) { s[f] = v; if (rerender) renderItin(); }
-};
+window.updateItinField = (id, f, v, rerender = false) => { const s = itineraryList.find(x => x.id === id); if (s) { s[f] = v; if (rerender) renderItin(); } };
+
 function renderItin() {
   const el = document.getElementById('itin-list'); if (!el) return;
   el.innerHTML = itineraryList.map(s => `
     <div class="item-card bg-lavender-light">
       <div class="item-header">
-        <div class="field" style="flex:1"><label>Aktiviti</label><input type="text" placeholder="cth. Check-in hotel" value="${escH(s.title)}" oninput="updateItinField('${s.id}','title',this.value)"></div>
+        <div class="field" style="flex:1"><label>Aktiviti</label><input type="text" id="itin-title-${s.id}" placeholder="cth. Check-in hotel" value="${escH(s.title)}" oninput="updateItinField('${s.id}','title',this.value)"></div>
         <button class="del-btn" onclick="removeItin('${s.id}')">✕</button>
       </div>
       <div class="grid-2-col">
-        <div class="field"><label>Tarikh</label><input type="date" value="${escH(s.date)}" onchange="updateItinField('${s.id}','date',this.value)"></div>
-        <div class="field"><label>Masa</label><input type="time" value="${escH(s.time)}" onchange="updateItinField('${s.id}','time',this.value)"></div>
+        <div class="field"><label>Tarikh</label><input type="date" id="itin-date-${s.id}" value="${escH(s.date)}" onchange="updateItinField('${s.id}','date',this.value)"></div>
+        <div class="field"><label>Masa</label><input type="time" id="itin-time-${s.id}" value="${escH(s.time)}" onchange="updateItinField('${s.id}','time',this.value)"></div>
       </div>
       <div class="grid-2-col">
-        <div class="field"><label>Dari (pilihan)</label><input type="text" value="${escH(s.from)}" oninput="updateItinField('${s.id}','from',this.value)"></div>
-        <div class="field"><label>Ke (pilihan)</label><input type="text" value="${escH(s.to)}" oninput="updateItinField('${s.id}','to',this.value)"></div>
+        <div class="field"><label>Dari (pilihan)</label><input type="text" id="itin-from-${s.id}" value="${escH(s.from)}" oninput="updateItinField('${s.id}','from',this.value)"></div>
+        <div class="field"><label>Ke (pilihan)</label><input type="text" id="itin-to-${s.id}" value="${escH(s.to)}" oninput="updateItinField('${s.id}','to',this.value)"></div>
       </div>
       <div class="field"><label>Nota Tambahan (untuk cetakan PDF)</label>
-        <input type="text" placeholder="cth. Baju tema merah / tempahan nama Ali" value="${escH(s.note)}" oninput="updateItinField('${s.id}','note',this.value)">
+        <input type="text" id="itin-note-${s.id}" placeholder="cth. Baju tema merah / tempahan nama Ali" value="${escH(s.note)}" oninput="updateItinField('${s.id}','note',this.value)">
       </div>
     </div>`).join('');
 }
 
 // =================== ENJIN PENJANA ITINERARI PDF (1 KREDIT) ===================
-
 window.janaItinerariPDF = async () => {
     if (!currentUser) return;
-
-    // 1. Pastikan pengguna dah masukkan jadual dalam Mod Itinerari
-       if (itineraryList.length === 0 || itineraryList.some(s => !s.date)) {
+    if (itineraryList.length === 0 || itineraryList.some(s => !s.date)) {
         alert("⚠️ Sila isi Jadual Itinerari (tarikh setiap aktiviti) terlebih dahulu sebelum menjana PDF.");
         document.getElementById('itin-card').scrollIntoView({ behavior: 'smooth' });
         return;
     }
 
-    // 2. Potong kredit Firebase
     try {
         const userRef = doc(db, "mynasab_users", currentUser.uid);
         const userSnap = await getDoc(userRef);
         
         if (userSnap.exists()) {
             let bakiSemasa = parseInt(userSnap.data().credit_balance) || 0;
-            if (bakiSemasa < 1) {
-                alert("Kredit tidak mencukupi!\nBaki semasa anda: " + bakiSemasa + " Kredit.\n\nSila tambah nilai (Top Up) terlebih dahulu.");
-                return;
-            }
-            
-            // Tolak 1 kredit
+            if (bakiSemasa < 1) { alert("Kredit tidak mencukupi!\nBaki semasa anda: " + bakiSemasa + " Kredit.\n\nSila tambah nilai (Top Up) terlebih dahulu."); return; }
             await setDoc(userRef, { credit_balance: bakiSemasa - 1 }, { merge: true });
             showToast("💎 1 Kredit ditolak. Menjana Templat PDF...");
-            
-            // 3. Bina Modal Paparan PDF
             binaPaparanPDF();
-        } else {
-            alert("Ralat: Akaun pengguna tidak dijumpai.");
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Ralat menyemak kredit. Pastikan internet anda stabil.");
-    }
+        } else { alert("Ralat: Akaun pengguna tidak dijumpai."); }
+    } catch (e) { console.error(e); alert("Ralat menyemak kredit. Pastikan internet anda stabil."); }
 };
 
 window.binaPaparanPDF = () => {
-    const days = [...new Set(itineraryList.map(s => s.date))].sort();
+    const days = [...new Set(itineraryList.map(s => s.date).filter(Boolean))].sort();
     const dest = document.getElementById('destination').value || 'Destinasi';
-    const go = document.getElementById('date-go').value;
-    const back = document.getElementById('date-back').value || go;
-    
-    const ms = new Date(back) - new Date(go);
-    const daysCount = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1);
+    const go = document.getElementById('date-go').value; const back = document.getElementById('date-back').value || go;
+    const ms = new Date(back) - new Date(go); const daysCount = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1);
     const durText = `${daysCount} DAYS - TRIP TO ${dest.toUpperCase()}`;
 
     let html = `
     <div id="itinPreviewModal">
-        <button onclick="document.getElementById('itinPreviewModal').remove()" style="position:absolute; top:20px; right:20px; background:#ef4444; color:white; font-weight:bold; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; z-index:100001;">Tutup ✕</button>
+        <div class="pdf-print-controls" style="position:fixed; top:20px; right:20px; margin:0;">
+            <button onclick="document.getElementById('itinPreviewModal').remove()" style="background:#ef4444; color:white; font-weight:bold; border:none; padding:10px 16px; border-radius:8px; cursor:pointer;">Tutup ✕</button>
+        </div>
         
         <div class="pdf-canvas-wrapper" id="pdfCaptureArea">
-            <!-- HEADER -->
             <div class="itin-pdf-header">
                 <label title="Klik untuk tukar gambar sampul">
                     <input type="file" accept="image/*" class="hidden" onchange="previewImgPDF(this, 'img-header')">
                     <img id="img-header" src="${PDF_PLACEHOLDER}" class="itin-pdf-img-header" title="Klik untuk tukar gambar">
                 </label>
                 <div class="itin-pdf-title">
-                    <h1>TRAVEL ITINERARY</h1>
-                    <h2>${durText}</h2>
-                    <p>Departure: ${formatTkhPDF(go)} &nbsp;|&nbsp; Return: ${formatTkhPDF(back)}</p>
+                    <h1>TRAVEL ITINERARY</h1><h2>${durText}</h2><p>Departure: ${formatTkhPDF(go)} &nbsp;|&nbsp; Return: ${formatTkhPDF(back)}</p>
                 </div>
-            </div>
-    `;
+            </div>`;
 
-    // LOOP BAGI SETIAP HARI
     days.forEach((d, idx) => {
         const slots = itineraryList.filter(s => s.date === d).sort((a,b) => (a.time||'').localeCompare(b.time||''));
-        
-        let rows = slots.map(s => `
-            <tr>
-                <td>${formatMasaPDF(s.time)}</td>
-                <td>${s.title || (s.cat==='transport'?'Perjalanan':s.cat==='accom'?'Check-in':'-')}<br><span style="font-size:0.75rem; color:#94a3b8;">${s.from ? s.from + ' ➔ ' + s.to : ''}</span></td>
-                <td>${s.note || '-'}</td>
-            </tr>
-        `).join('');
-
-        // Gambar rawak berbeza untuk placeholder setiap hari
-        const randomPic = PDF_PLACEHOLDER;
-
+        let rows = slots.map(s => `<tr><td>${formatMasaPDF(s.time)}</td><td>${s.title || '-'}<br><span style="font-size:0.75rem; color:#94a3b8;">${s.from ? s.from + ' ➔ ' + s.to : ''}</span></td><td>${s.note || '-'}</td></tr>`).join('');
         html += `
-            <!-- DAY CARD -->
             <div class="itin-pdf-day">
                 <label class="itin-pdf-day-img" title="Klik untuk tukar gambar hari ini">
                     <input type="file" accept="image/*" class="hidden" onchange="previewImgPDF(this, 'img-day-${idx}')">
-                    <img id="img-day-${idx}" src="${randomPic}">
+                    <img id="img-day-${idx}" src="${PDF_PLACEHOLDER}">
                     <div class="itin-pdf-badge">DAY<br>0${idx+1}</div>
                 </label>
                 <table class="itin-pdf-table">
-                    <thead>
-                        <tr><th>TIME:</th><th>ACTIVITY:</th><th>NOTES:</th></tr>
-                    </thead>
-                    <tbody>
-                        ${rows}
-                    </tbody>
+                    <thead><tr><th>TIME:</th><th>ACTIVITY:</th><th>NOTES:</th></tr></thead>
+                    <tbody>${rows}</tbody>
                 </table>
-            </div>
-        `;
+            </div>`;
     });
 
     html += `
         </div>
-        <button class="btn-download-pdf" onclick="muatTurunPDFSebenar()">
-            📥 Muat Turun Itinerari (PDF)
-        </button>
-        <p style="color:white; font-size:0.8rem; margin-top:8px;">*Klik pada mana-mana gambar di atas untuk muat naik gambar sendiri sebelum memuat turun.</p>
-    </div>
-    `;
+        <div class="pdf-print-controls">
+            <button class="btn-download-pdf" onclick="muatTurunPDFSebenar()">📥 Muat Turun Itinerari (PDF)</button>
+        </div>
+        <p style="color:#cbd5e1; font-size:0.8rem; margin-top:8px;">*Klik pada mana-mana gambar di atas untuk muat naik gambar sendiri sebelum memuat turun.</p>
+    </div>`;
 
     document.body.insertAdjacentHTML('beforeend', html);
 };
 
-// Fungsi Tukar Gambar (Pratonton)
 window.previewImgPDF = (input, imgId) => {
     if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) { document.getElementById(imgId).src = e.target.result; }
+        const reader = new FileReader(); reader.onload = function(e) { document.getElementById(imgId).src = e.target.result; }
         reader.readAsDataURL(input.files[0]);
     }
 };
 
 window.formatTkhPDF = (tkh) => {
-    if(!tkh) return '-';
-    return new Date(tkh).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    if(!tkh) return '-'; return new Date(tkh).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
 window.formatMasaPDF = (time24) => {
-    if(!time24) return '-';
-    let [h, m] = time24.split(':');
-    let ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
+    if(!time24) return '-'; let [h, m] = time24.split(':'); let ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
     return `${String(h).padStart(2,'0')}:${m} ${ampm}`;
 };
 
-// Cetak ke PDF
 window.muatTurunPDFSebenar = () => {
     const element = document.getElementById('pdfCaptureArea');
     const tripName = document.getElementById('trip-name').value || 'Itinerari_Keluarga';
     const opt = {
-      margin:       0,
-      filename:     `${tripName.replace(/\s+/g, '_')}.pdf`,
+      margin:       0, filename: `${tripName.replace(/\s+/g, '_')}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#0B1E4A' },
       jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
     };
     
     showToast("⏳ Sedang memproses PDF...");
-    html2pdf().set(opt).from(element).save().then(() => {
-        showToast("✅ PDF berjaya dimuat turun!");
-    });
+    html2pdf().set(opt).from(element).save().then(() => { showToast("✅ PDF berjaya dimuat turun!"); });
 };  
-  
 </script>
 </body>
 </html>
