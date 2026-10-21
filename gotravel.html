@@ -380,13 +380,26 @@
         <button class="add-row-btn" onclick="addItinSlot()">➕ Tambah Aktiviti</button>
       </div>
       
-      <!-- KAD JANA PDF ITINERARI EKSKLUSIF (1 KREDIT) -->
-      <div class="card" style="background: linear-gradient(135deg, #0f172a, #1e3a8a); border:none; margin-top:10px; text-align:center; padding: 24px;">
-        <h3 style="color:#7dd3fc; font-family:'Baloo 2', cursive; font-size:1.4rem; margin-bottom:8px;">Jana PDF Itinerari Percutian!</h3>
-        <p style="color:#bfdbfe; font-size:0.85rem; margin-bottom:16px;">Hasilkan jadual perjalanan rasmi bertaraf agensi pelancongan. Boleh muat naik gambar sendiri & kongsikan PDF kepada keluarga.</p>
-        <button onclick="janaItinerariPDF()" style="background:#f59e0b; color:white; border:none; padding:12px 24px; border-radius:12px; font-weight:800; font-family:'Nunito'; font-size:1rem; cursor:pointer; box-shadow:0 4px 15px rgba(245, 158, 11, 0.3); width:100%; transition: 0.2s;">
-            📄 Cipta Itinerari PDF (1 Kredit)
-        </button>
+      <!-- KAD SENARAI PELAN & CETAKAN PDF -->
+      <div class="card" style="border: 2px solid #e2e8f0; margin-top:10px;">
+        <div class="card-header" style="margin-bottom:10px;">
+          <div class="card-title-wrap">
+            <div class="card-icon" style="background:#0f172a; color:white;">📂</div>
+            <div>
+              <h2 style="font-size:1.1rem;">Senarai Pelan Percutian</h2>
+              <p style="font-size:0.75rem; color:#64748b;">Pilih pelan untuk diedit atau dicetak.</p>
+            </div>
+          </div>
+          <button onclick="buatPelanBaru()" style="background:#e0f2fe; color:#0284c7; border:none; padding:6px 12px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">
+            + Pelan Baru
+          </button>
+        </div>
+        
+        <div id="senarai-pelan-list" style="display:flex; flex-direction:column; gap:10px;">
+           <div style="text-align:center; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; color:#94a3b8; font-size:0.85rem;">
+               Memuatkan senarai pelan...
+           </div>
+        </div>
       </div>
       
     </div> <!-- TAMAT KOLUM KANAN -->
@@ -819,7 +832,9 @@ window.toggleAlarm = () => {
   else { btn.textContent = '🔔 Tetapkan Penggera Berlepas'; btn.classList.remove('active'); showToast('🔕 Ditutup'); }
 }
 
-// SIMPAN & MUAT DARI FIREBASE (DATABASE)
+// =========================================================================
+// PENGURUSAN DATA: SIMPAN, MUAT & SENARAI PELAN
+// =========================================================================
 let currentTripId = null;
 let senaraiPelanTersimpan = [];
 
@@ -828,53 +843,82 @@ window.muatPelanTersimpan = async () => {
     try {
         const q = query(collection(db, "jombercuti_trips"), where("owner_uid", "==", currentUser.uid));
         const snap = await getDocs(q);
-        if (snap.empty) return; 
+        if (snap.empty) {
+            renderSenaraiPelan(); 
+            return;
+        }
 
         senaraiPelanTersimpan = snap.docs
             .map(d => ({ ...d.data(), id: d.id }))
             .sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
 
         window.pilihPelan(senaraiPelanTersimpan[0].id);
-        renderDropdownPelan();
+        renderSenaraiPelan();
     } catch (e) { console.error("Gagal memuatkan pelan lama:", e); }
 };
 
-function renderDropdownPelan() {
-    let bekas = document.getElementById('saved-trips-bar');
-    if (!bekas) {
-        const kadTrip = document.getElementById('trip-name')?.closest('.card');
-        if (!kadTrip) return;
-        bekas = document.createElement('div'); bekas.id = 'saved-trips-bar';
-        bekas.style.cssText = 'margin-bottom:14px; padding-bottom:12px; border-bottom:1px dashed #e2e8f0; display:flex; gap:8px; align-items:center;';
-        kadTrip.insertBefore(bekas, kadTrip.firstChild.nextSibling);
+// PAPAR SENARAI PELAN DENGAN BUTANG EDIT & CETAK
+window.renderSenaraiPelan = () => {
+    const bekas = document.getElementById('senarai-pelan-list');
+    if (!bekas) return;
+
+    if (senaraiPelanTersimpan.length === 0) {
+        bekas.innerHTML = `<div style="text-align:center; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; color:#94a3b8; font-size:0.85rem;">Belum ada pelan disimpan. Sila isi jadual dan klik butang Simpan di bawah.</div>`;
+        return;
     }
-    const pilihanHtml = senaraiPelanTersimpan.map(t => `<option value="${t.id}" ${t.id === currentTripId ? 'selected' : ''}>📂 ${t.title} (${t.destination || 'Tiada destinasi'})</option>`).join('');
-    bekas.innerHTML = `<select onchange="pilihPelan(this.value)" style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1; font-family:'Nunito'; font-weight:700; font-size:0.85rem; background:#f8fafc;">${pilihanHtml}</select><button onclick="buatPelanBaru()" style="padding:8px 12px; border-radius:8px; background:#e0f2fe; color:#0284c7; border:none; font-weight:800; font-size:0.8rem; cursor:pointer; white-space:nowrap;">+ Pelan Baru</button>`;
-}
+
+    bekas.innerHTML = senaraiPelanTersimpan.map(t => {
+        const isAktif = t.id === currentTripId;
+        return `
+        <div style="border: 1px solid ${isAktif ? '#3b82f6' : '#e2e8f0'}; background: ${isAktif ? '#eff6ff' : '#ffffff'}; border-radius: 12px; padding: 12px; transition: 0.2s;">
+            <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; margin-bottom: 2px;">${t.title}</div>
+            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 10px;">📍 ${t.destination || 'Tiada Destinasi'} &nbsp;|&nbsp; 🗓️ ${t.date_go || '-'}</div>
+            
+            <div style="display:flex; gap:8px;">
+                <button onclick="pilihPelan('${t.id}')" style="flex:1; background: ${isAktif ? '#3b82f6' : '#f1f5f9'}; color: ${isAktif ? 'white' : '#475569'}; border:none; padding:8px; border-radius:8px; font-weight:700; font-size:0.8rem; cursor:pointer;">
+                    ${isAktif ? 'Sedang Diedit ✏️' : 'Edit Pelan ✏️'}
+                </button>
+                <button onclick="janaItinerariPDF('${t.id}')" style="flex:1.5; background: #f59e0b; color: white; border:none; padding:8px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer; box-shadow:0 2px 8px rgba(245, 158, 11, 0.3);">
+                    🖨️ Preview & Cetak (1 Kredit)
+                </button>
+            </div>
+        </div>
+        `;
+    }).join('');
+};
 
 window.pilihPelan = (id) => {
     const trip = senaraiPelanTersimpan.find(t => t.id === id); if (!trip) return;
     currentTripId = trip.id;
-    document.getElementById('trip-name').value = trip.title || ''; document.getElementById('destination').value = trip.destination || '';
-    if (trip.date_go) document.getElementById('date-go').value = trip.date_go; if (trip.date_back) document.getElementById('date-back').value = trip.date_back;
+    
+    document.getElementById('trip-name').value = trip.title || ''; 
+    document.getElementById('destination').value = trip.destination || '';
+    if (trip.date_go) document.getElementById('date-go').value = trip.date_go; 
+    if (trip.date_back) document.getElementById('date-back').value = trip.date_back;
 
     accomList = Array.isArray(trip.accommodation) && trip.accommodation.length ? trip.accommodation : [{ id: Date.now(), name: '', cost: '', nights: '' }];
     transportList = Array.isArray(trip.transportation) && trip.transportation.length ? trip.transportation : [{ id: Date.now()+1, mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true }];
     miscList = Array.isArray(trip.miscellaneous) && trip.miscellaneous.length ? trip.miscellaneous : [{ id: Date.now()+2, name: '', cost: '' }];
     itineraryList = Array.isArray(trip.itinerary) ? trip.itinerary : []; renderItin();
     
+    window.setBudgetMode(trip.budget_mode || 'simple');
     renderAccom(); renderTransport(); renderMisc();
 
     if (Array.isArray(trip.team_members)) {
         const namaAhli = new Set(trip.team_members.map(m => m.nama));
         document.querySelectorAll('.fam-check').forEach(cb => { cb.checked = namaAhli.has(cb.value); });
     }
-    window.updateAll(); showToast(`📂 Pelan "${trip.title}" dimuatkan!`);
+    window.updateAll(); 
+    renderSenaraiPelan(); // Kemas kini butang aktif
+    showToast(`📂 Pelan "${trip.title}" dimuatkan!`);
 };
 
 window.buatPelanBaru = () => {
-    currentTripId = null; document.getElementById('trip-name').value = ''; document.getElementById('destination').value = '';
+    currentTripId = null; 
+    document.getElementById('trip-name').value = ''; 
+    document.getElementById('destination').value = '';
     accomList = []; transportList = []; miscList = []; itineraryList = []; renderItin(); init();
+    renderSenaraiPelan();
     showToast('✨ Borang dikosongkan untuk pelan baharu!');
 };
 
@@ -909,7 +953,8 @@ window.simpanPelanKeDatabase = async () => {
         total_budget: parseFloat(document.getElementById('sum-total').textContent.replace('RM ', '')) || 0,
         monthly_saving: parseFloat(document.getElementById('plan-monthly').textContent.replace('RM ', '')) || 0,
         months_left: parseInt(document.getElementById('plan-months').textContent) || 0,
-        accommodation: accomList, transportation: transportList, miscellaneous: miscList, itinerary: itineraryList,
+        accommodation: accomList, transportation: transportList, miscellaneous: miscList,
+        budget_mode: budgetMode, itinerary: itineraryList,
         team_members: senaraiAhli, owner_uid: currentUser.uid, created_at: Date.now()
     };
 
@@ -917,7 +962,7 @@ window.simpanPelanKeDatabase = async () => {
         const idUnik = currentTripId || ("TRIP_" + Date.now());
         await setDoc(doc(db, "jombercuti_trips", idUnik), tripData);
         currentTripId = idUnik;
-        await window.muatPelanTersimpan();
+        await window.muatPelanTersimpan(); // Akan kemas kini list dan UI
         showToast("💾 Pelan Percutian Berjaya Disimpan!");
     } catch (e) { alert("Gagal menyimpan pelan: " + e.message); }
 };
@@ -1020,12 +1065,20 @@ function renderItin() {
     </div>`).join('');
 }
 
-// =================== ENJIN PENJANA ITINERARI PDF (1 KREDIT) ===================
-window.janaItinerariPDF = async () => {
+// =========================================================================
+// ENJIN CETAK ITINERARI (GAYA MYNASAB - 1 KREDIT)
+// =========================================================================
+
+window.janaItinerariPDF = async (tripId) => {
     if (!currentUser) return;
-    if (itineraryList.length === 0 || itineraryList.some(s => !s.date)) {
-        alert("⚠️ Sila isi Jadual Itinerari (tarikh setiap aktiviti) terlebih dahulu sebelum menjana PDF.");
-        document.getElementById('itin-card').scrollIntoView({ behavior: 'smooth' });
+    
+    // Cari data trip dari memori (berdasarkan butang yang ditekan pada senarai)
+    const trip = senaraiPelanTersimpan.find(t => t.id === tripId);
+    if (!trip) { alert("Ralat: Pelan tidak dijumpai."); return; }
+
+    const itinList = Array.isArray(trip.itinerary) ? trip.itinerary : [];
+    if (itinList.length === 0 || itinList.some(s => !s.date)) {
+        alert("⚠️ Tiada jadual itinerari jam-ke-jam disimpan dalam pelan ini.\n\nSila klik 'Edit Pelan', masuk ke 'Mod Itinerari Terperinci', isi jadual, dan klik 'Simpan Pelan' di bawah dahulu.");
         return;
     }
 
@@ -1035,66 +1088,94 @@ window.janaItinerariPDF = async () => {
         
         if (userSnap.exists()) {
             let bakiSemasa = parseInt(userSnap.data().credit_balance) || 0;
-            if (bakiSemasa < 1) { alert("Kredit tidak mencukupi!\nBaki semasa anda: " + bakiSemasa + " Kredit.\n\nSila tambah nilai (Top Up) terlebih dahulu."); return; }
+            if (bakiSemasa < 1) { 
+                alert("Kredit tidak mencukupi!\nBaki semasa anda: " + bakiSemasa + " Kredit.\n\nSila tambah nilai (Top Up) terlebih dahulu."); 
+                return; 
+            }
+            
+            // Tolak 1 kredit
             await setDoc(userRef, { credit_balance: bakiSemasa - 1 }, { merge: true });
-            showToast("💎 1 Kredit ditolak. Menjana Templat PDF...");
-            binaPaparanPDF();
+            showToast("💎 1 Kredit ditolak. Membuka paparan cetakan...");
+            
+            // Bina paparan cetakan
+            binaPaparanCetak(trip, itinList);
+            
+            // Panggil fungsi print browser (Sama macam myNasab)
+            setTimeout(() => {
+                window.print();
+                
+                // Lepas print/save, buang balik area tu supaya tak kacau page
+                setTimeout(() => {
+                    const printArea = document.getElementById('itinPrintArea');
+                    if(printArea) printArea.remove();
+                }, 1000);
+                
+            }, 500);
+
         } else { alert("Ralat: Akaun pengguna tidak dijumpai."); }
     } catch (e) { console.error(e); alert("Ralat menyemak kredit. Pastikan internet anda stabil."); }
 };
 
-window.binaPaparanPDF = () => {
-    const days = [...new Set(itineraryList.map(s => s.date).filter(Boolean))].sort();
-    const dest = document.getElementById('destination').value || 'Destinasi';
-    const go = document.getElementById('date-go').value; const back = document.getElementById('date-back').value || go;
-    const ms = new Date(back) - new Date(go); const daysCount = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1);
-    const durText = `${daysCount} DAYS - TRIP TO ${dest.toUpperCase()}`;
+window.binaPaparanCetak = (trip, itinList) => {
+    const oldArea = document.getElementById('itinPrintArea');
+    if (oldArea) oldArea.remove();
+
+    const days = [...new Set(itinList.map(s => s.date).filter(Boolean))].sort();
+    const dest = trip.destination || 'Destinasi';
+    const go = trip.date_go || ''; 
+    const back = trip.date_back || go;
+    
+    let daysCount = 1;
+    if(go && back) {
+        const ms = new Date(back) - new Date(go); 
+        daysCount = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1);
+    }
+    
+    const formatTkh = (tkh) => tkh ? new Date(tkh).toLocaleDateString('en-MY', { year: 'numeric', month: 'short', day: 'numeric' }) : '-';
+    const formatMasa = (time24) => {
+        if(!time24) return '-'; 
+        let [h, m] = time24.split(':'); let ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
+        return `${String(h).padStart(2,'0')}:${m} ${ampm}`;
+    };
 
     let html = `
-    <div id="itinPreviewModal">
-        <div class="pdf-print-controls" style="position:fixed; top:20px; right:20px; margin:0;">
-            <button onclick="document.getElementById('itinPreviewModal').remove()" style="background:#ef4444; color:white; font-weight:bold; border:none; padding:10px 16px; border-radius:8px; cursor:pointer;">Tutup ✕</button>
+    <div id="itinPrintArea">
+        <div class="print-header">
+            <h1>TRAVEL ITINERARY</h1>
+            <h2>${daysCount} DAYS - TRIP TO ${dest.toUpperCase()}</h2>
+            <p>Departure: ${formatTkh(go)} &nbsp;|&nbsp; Return: ${formatTkh(back)}</p>
         </div>
-        
-        <div class="pdf-canvas-wrapper" id="pdfCaptureArea">
-            <div class="itin-pdf-header">
-                <label title="Klik untuk tukar gambar sampul">
-                    <input type="file" accept="image/*" class="hidden" onchange="previewImgPDF(this, 'img-header')">
-                    <img id="img-header" src="${PDF_PLACEHOLDER}" class="itin-pdf-img-header" title="Klik untuk tukar gambar">
-                </label>
-                <div class="itin-pdf-title">
-                    <h1>TRAVEL ITINERARY</h1><h2>${durText}</h2><p>Departure: ${formatTkhPDF(go)} &nbsp;|&nbsp; Return: ${formatTkhPDF(back)}</p>
-                </div>
-            </div>`;
+    `;
 
     days.forEach((d, idx) => {
-        const slots = itineraryList.filter(s => s.date === d).sort((a,b) => (a.time||'').localeCompare(b.time||''));
-        let rows = slots.map(s => `<tr><td>${formatMasaPDF(s.time)}</td><td>${s.title || '-'}<br><span style="font-size:0.75rem; color:#94a3b8;">${s.from ? s.from + ' ➔ ' + s.to : ''}</span></td><td>${s.note || '-'}</td></tr>`).join('');
+        const slots = itinList.filter(s => s.date === d).sort((a,b) => (a.time||'').localeCompare(b.time||''));
+        
+        let rows = slots.map(s => `
+            <tr>
+                <td>${formatMasa(s.time)}</td>
+                <td>
+                    ${s.title || '-'}
+                    ${s.from ? `<span class="subtitle">${s.from} ➔${s.to}</span>` : ''}
+                </td>
+                <td>${s.note || '-'}</td>
+            </tr>
+        `).join('');
+
         html += `
-            <div class="itin-pdf-day">
-                <label class="itin-pdf-day-img" title="Klik untuk tukar gambar hari ini">
-                    <input type="file" accept="image/*" class="hidden" onchange="previewImgPDF(this, 'img-day-${idx}')">
-                    <img id="img-day-${idx}" src="${PDF_PLACEHOLDER}">
-                    <div class="itin-pdf-badge">DAY<br>0${idx+1}</div>
-                </label>
-                <table class="itin-pdf-table">
-                    <thead><tr><th>TIME:</th><th>ACTIVITY:</th><th>NOTES:</th></tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>`;
+        <div class="print-day">
+            <h3>DAY ${idx + 1} &nbsp;|&nbsp; ${formatTkh(d)}</h3>
+            <table class="print-table">
+                <thead><tr><th>TIME</th><th>ACTIVITY / LOCATION</th><th>NOTES</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+        `;
     });
 
-    html += `
-        </div>
-        <div class="pdf-print-controls">
-            <button class="btn-download-pdf" onclick="muatTurunPDFSebenar()">📥 Muat Turun Itinerari (PDF)</button>
-        </div>
-        <p style="color:#cbd5e1; font-size:0.8rem; margin-top:8px;">*Klik pada mana-mana gambar di atas untuk muat naik gambar sendiri sebelum memuat turun.</p>
-    </div>`;
-
+    html += `</div>`;
     document.body.insertAdjacentHTML('beforeend', html);
 };
-
+  
 window.previewImgPDF = (input, imgId) => {
     if (input.files && input.files[0]) {
         const reader = new FileReader(); reader.onload = function(e) { document.getElementById(imgId).src = e.target.result; }
