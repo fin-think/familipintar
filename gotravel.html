@@ -581,8 +581,9 @@
             if (authScreen) authScreen.classList.add('hidden');
             if (mainApp) mainApp.classList.remove('hidden');
 
-            window.muatKeluargaRombongan(); 
             init(); 
+            await window.muatKeluargaRombongan(); 
+            await window.muatPelanTersimpan();
         } else {
             currentUser = null;
             if (authScreen) authScreen.classList.remove('hidden');
@@ -1095,6 +1096,96 @@ window.toggleAlarm = () => {
 }
 
 // SIMPAN KE FIREBASE (DATABASE)
+let currentTripId = null;
+let senaraiPelanTersimpan = [];
+
+// TARIK SEMULA DATA LAMA DARI FIREBASE
+window.muatPelanTersimpan = async () => {
+    if (!currentUser) return;
+    try {
+        const q = query(collection(db, "jombercuti_trips"), where("owner_uid", "==", currentUser.uid));
+        const snap = await getDocs(q);
+        if (snap.empty) return; // Tiada data lama, kekalkan borang kosong
+
+        // Susun ikut yang paling terkini disimpan
+        senaraiPelanTersimpan = snap.docs
+            .map(d => ({ ...d.data(), id: d.id }))
+            .sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+
+        // Terus muatkan pelan yang paling terkini ke dalam borang
+        window.pilihPelan(senaraiPelanTersimpan[0].id);
+        renderDropdownPelan();
+    } catch (e) {
+        console.error("Gagal memuatkan pelan lama:", e);
+    }
+};
+
+// PAPAR DROPDOWN JIKA ADA PELAN TERSIMPAN
+function renderDropdownPelan() {
+    let bekas = document.getElementById('saved-trips-bar');
+    if (!bekas) {
+        const kadTrip = document.getElementById('trip-name')?.closest('.card');
+        if (!kadTrip) return;
+        bekas = document.createElement('div');
+        bekas.id = 'saved-trips-bar';
+        bekas.style.cssText = 'margin-bottom:14px; padding-bottom:12px; border-bottom:1px dashed #e2e8f0; display:flex; gap:8px; align-items:center;';
+        kadTrip.insertBefore(bekas, kadTrip.firstChild.nextSibling);
+    }
+
+    const pilihanHtml = senaraiPelanTersimpan.map(t => 
+        `<option value="${t.id}" ${t.id === currentTripId ? 'selected' : ''}>📂 ${t.title} (${t.destination || 'Tiada destinasi'})</option>`
+    ).join('');
+
+    bekas.innerHTML = `
+        <select onchange="pilihPelan(this.value)" style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1; font-family:'Nunito'; font-weight:700; font-size:0.85rem; background:#f8fafc;">
+            ${pilihanHtml}
+        </select>
+        <button onclick="buatPelanBaru()" style="padding:8px 12px; border-radius:8px; background:#e0f2fe; color:#0284c7; border:none; font-weight:800; font-size:0.8rem; cursor:pointer; white-space:nowrap;">+ Pelan Baru</button>
+    `;
+}
+
+// ISI SEMULA BORANG DENGAN DATA LAMA
+window.pilihPelan = (id) => {
+    const trip = senaraiPelanTersimpan.find(t => t.id === id);
+    if (!trip) return;
+
+    currentTripId = trip.id;
+    document.getElementById('trip-name').value = trip.title || '';
+    document.getElementById('destination').value = trip.destination || '';
+    if (trip.date_go) document.getElementById('date-go').value = trip.date_go;
+    if (trip.date_back) document.getElementById('date-back').value = trip.date_back;
+
+    accomList = Array.isArray(trip.accommodation) && trip.accommodation.length ? trip.accommodation : [{ id: Date.now(), name: '', cost: '', nights: '' }];
+    transportList = Array.isArray(trip.transportation) && trip.transportation.length ? trip.transportation : [{ id: Date.now()+1, mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true }];
+    miscList = Array.isArray(trip.miscellaneous) && trip.miscellaneous.length ? trip.miscellaneous : [{ id: Date.now()+2, name: '', cost: '' }];
+
+    renderAccom();
+    renderTransport();
+    renderMisc();
+
+    // Tandakan semula ahli rombongan yang disimpan
+    if (Array.isArray(trip.team_members)) {
+        const namaAhli = new Set(trip.team_members.map(m => m.nama));
+        document.querySelectorAll('.fam-check').forEach(cb => {
+            cb.checked = namaAhli.has(cb.value);
+        });
+    }
+
+    window.updateAll();
+    showToast(`📂 Pelan "${trip.title}" dimuatkan!`);
+};
+
+// KOSONGKAN BORANG UNTUK BUAT TRIP BARU
+window.buatPelanBaru = () => {
+    currentTripId = null;
+    document.getElementById('trip-name').value = '';
+    document.getElementById('destination').value = '';
+    accomList = []; transportList = []; miscList = [];
+    init();
+    showToast('✨ Borang dikosongkan untuk pelan baharu!');
+};
+
+// SIMPAN / KEMAS KINI KE FIREBASE
 window.simpanPelanKeDatabase = async () => {
     if (!currentUser) return;
     const title = document.getElementById('trip-name').value;
@@ -1122,14 +1213,17 @@ window.simpanPelanKeDatabase = async () => {
     };
 
     try {
-        const idUnik = "TRIP_" + Date.now();
+        // Jika sedang sunting pelan lama, guna ID lama. Jika pelan baru, cipta ID baru.
+        const idUnik = currentTripId || ("TRIP_" + Date.now());
         await setDoc(doc(db, "jombercuti_trips", idUnik), tripData);
+        currentTripId = idUnik;
+        await window.muatPelanTersimpan();
         showToast("💾 Pelan Percutian Berjaya Disimpan!");
     } catch (e) {
         alert("Gagal menyimpan pelan: " + e.message);
     }
-}
-
+};
+  
 function showToast(msg) { 
     const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); 
     clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2500); 
