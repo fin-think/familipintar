@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>JomBercuti - Perancang & Kewangan</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- Enjin Penjana PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   :root {
     --sun: #FFD93D; --sky: #6BCFEF; --coral: #FF6B6B; --mint: #6BCB77;
@@ -287,6 +289,57 @@
     display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem;
     font-weight: 700; color: #64748b; margin-bottom: 12px; justify-content: center;
   }
+
+/* --- TEMPLAT ITINERARI PDF (MODAL) --- */
+  #itinPreviewModal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100000;
+    display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto;
+  }
+  .pdf-canvas-wrapper {
+    background: #0B1E4A; width: 100%; max-width: 800px; padding: 40px; 
+    position: relative; overflow: hidden;
+  }
+  /* Corak ombak merah/biru cair di penjuru */
+  .pdf-canvas-wrapper::before {
+    content: ''; position: absolute; top: -50px; left: -50px; width: 150px; height: 150px;
+    background: #FF6B6B; border-radius: 50%; opacity: 0.9;
+  }
+  .pdf-canvas-wrapper::after {
+    content: ''; position: absolute; top: 10%; right: -20px; width: 80px; height: 200px;
+    background: #6BCFEF; border-radius: 99px; opacity: 0.2; transform: rotate(45deg);
+  }
+  .itin-pdf-header {
+    background: #ffffff; border-radius: 16px; padding: 24px; display: flex; gap: 24px; align-items: center;
+    position: relative; z-index: 10; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  }
+  .itin-pdf-img-header {
+    width: 110px; height: 110px; border-radius: 12px; object-fit: cover; background: #e2e8f0; cursor: pointer; border: 2px dashed #cbd5e1;
+  }
+  .itin-pdf-title h1 { color: #0B1E4A; font-weight: 900; font-size: 2.2rem; text-transform: uppercase; margin-bottom: 4px; line-height: 1; font-family: 'Baloo 2', cursive;}
+  .itin-pdf-title h2 { color: #64748b; font-weight: 800; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+  .itin-pdf-title p { color: #E50027; font-weight: 800; font-size: 0.85rem; }
+  
+  .itin-pdf-day {
+    background: #ffffff; border-radius: 16px; padding: 20px; margin-bottom: 24px; display: flex; gap: 20px;
+    position: relative; z-index: 10; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  }
+  .itin-pdf-day-img {
+    width: 150px; height: 150px; border-radius: 12px; overflow: hidden; position: relative; flex-shrink: 0; background: #f1f5f9; cursor: pointer; border: 2px dashed #cbd5e1;
+  }
+  .itin-pdf-day-img img { width: 100%; height: 100%; object-fit: cover; }
+  .itin-pdf-badge {
+    position: absolute; bottom: 0; right: 0; background: rgba(11, 30, 74, 0.85); color: white; padding: 8px 12px; border-top-left-radius: 12px; font-weight: 900; font-size: 1.1rem; line-height: 1; text-align: center;
+  }
+  .itin-pdf-table { flex: 1; width: 100%; border-collapse: collapse; }
+  .itin-pdf-table th { text-align: left; color: #E50027; font-weight: 900; font-size: 0.8rem; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; text-transform: uppercase; }
+  .itin-pdf-table td { padding: 10px 0; border-bottom: 1px solid #f8fafc; font-size: 0.85rem; color: #334155; font-weight: 700; vertical-align: top;}
+  .itin-pdf-table td:nth-child(1) { width: 85px; font-weight: 900; color: #0B1E4A; }
+  .itin-pdf-table td:nth-child(2) { padding-right: 15px; }
+
+  .btn-download-pdf {
+    background: #10b981; color: white; border: none; padding: 14px 24px; font-size: 1.1rem; font-weight: 800; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); position: sticky; bottom: 20px; margin-top: 20px; z-index: 100;
+  }
+  .btn-download-pdf:hover { background: #059669; transform: translateY(-2px); }
   
 </style>
 </head>
@@ -503,8 +556,17 @@
         <button class="add-row-btn" onclick="addMisc()">➕ Tambah Item Bajet</button>
       </div>
 
+<!-- KAD JANA PDF ITINERARI EKSKLUSIF (1 KREDIT) -->
+      <div class="card" style="background: linear-gradient(135deg, #0f172a, #1e3a8a); border:none; margin-top:10px; text-align:center; padding: 24px;">
+        <h3 style="color:#7dd3fc; font-family:'Baloo 2', cursive; font-size:1.4rem; margin-bottom:8px;">Jana PDF Itinerari Percutian!</h3>
+        <p style="color:#bfdbfe; font-size:0.85rem; margin-bottom:16px;">Hasilkan jadual perjalanan rasmi bertaraf agensi pelancongan. Boleh muat naik gambar sendiri & kongsikan PDF kepada keluarga.</p>
+        <button onclick="janaItinerariPDF()" style="background:#f59e0b; color:white; border:none; padding:12px 24px; border-radius:12px; font-weight:800; font-family:'Nunito'; font-size:1rem; cursor:pointer; box-shadow:0 4px 15px rgba(245, 158, 11, 0.3); width:100%; transition: 0.2s;">
+            📄 Cipta Itinerari PDF (1 Kredit)
+        </button>
+      </div>
+      
     </div> <!-- PENATAP KOLUM KANAN -->
-
+   
   </div> <!-- PENATAP BEKAS GRID UTAMA -->
 
   <!-- Ringkasan Bajet & Financial Planner -->
@@ -1334,6 +1396,166 @@ window.renderKalendarWeCare = () => {
     }
     grid.innerHTML = html;
 };
+
+<div class="field" style="grid-column: 1 / -1; margin:8px 0;">
+              <label>Nota Tambahan (Untuk cetakan PDF)</label>
+              <input type="text" placeholder="cth. Baju Tema Merah / Tempahan nama Ali" value="${esc(s.note)}" oninput="updateItinField('${s.id}', 'note', this.value, false)" style="background:#f8fafc;">
+            </div>
+
+// =================== ENJIN PENJANA ITINERARI PDF (1 KREDIT) ===================
+
+window.janaItinerariPDF = async () => {
+    if (!currentUser) return;
+
+    // 1. Pastikan pengguna dah masukkan jadual dalam Mod Itinerari
+    if (itineraryList.length === 0) {
+        alert("⚠️ Sila isi jadual perjalanan (Masuk ke 'Mod Itinerari Terperinci') terlebih dahulu sebelum menjana PDF.");
+        setBudgetMode('itinerary'); 
+        return;
+    }
+
+    // 2. Potong kredit Firebase
+    try {
+        const userRef = doc(db, "mynasab_users", currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+            let bakiSemasa = parseInt(userSnap.data().credit_balance) || 0;
+            if (bakiSemasa < 1) {
+                alert("Kredit tidak mencukupi!\nBaki semasa anda: " + bakiSemasa + " Kredit.\n\nSila tambah nilai (Top Up) terlebih dahulu.");
+                return;
+            }
+            
+            // Tolak 1 kredit
+            await setDoc(userRef, { credit_balance: bakiSemasa - 1 }, { merge: true });
+            showToast("💎 1 Kredit ditolak. Menjana Templat PDF...");
+            
+            // 3. Bina Modal Paparan PDF
+            binaPaparanPDF();
+        } else {
+            alert("Ralat: Akaun pengguna tidak dijumpai.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Ralat menyemak kredit. Pastikan internet anda stabil.");
+    }
+};
+
+window.binaPaparanPDF = () => {
+    const days = [...new Set(itineraryList.map(s => s.date))].sort();
+    const dest = document.getElementById('destination').value || 'Destinasi';
+    const go = document.getElementById('date-go').value;
+    const back = document.getElementById('date-back').value || go;
+    
+    const ms = new Date(back) - new Date(go);
+    const daysCount = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1);
+    const durText = `${daysCount} DAYS - TRIP TO ${dest.toUpperCase()}`;
+
+    let html = `
+    <div id="itinPreviewModal">
+        <button onclick="document.getElementById('itinPreviewModal').remove()" style="position:absolute; top:20px; right:20px; background:#ef4444; color:white; font-weight:bold; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; z-index:100001;">Tutup ✕</button>
+        
+        <div class="pdf-canvas-wrapper" id="pdfCaptureArea">
+            <!-- HEADER -->
+            <div class="itin-pdf-header">
+                <label title="Klik untuk tukar gambar sampul">
+                    <input type="file" accept="image/*" class="hidden" onchange="previewImgPDF(this, 'img-header')">
+                    <img id="img-header" src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=200&auto=format&fit=crop" class="itin-pdf-img-header" title="Klik untuk tukar gambar">
+                </label>
+                <div class="itin-pdf-title">
+                    <h1>TRAVEL ITINERARY</h1>
+                    <h2>${durText}</h2>
+                    <p>Departure: ${formatTkhPDF(go)} &nbsp;|&nbsp; Return: ${formatTkhPDF(back)}</p>
+                </div>
+            </div>
+    `;
+
+    // LOOP BAGI SETIAP HARI
+    days.forEach((d, idx) => {
+        const slots = itineraryList.filter(s => s.date === d).sort((a,b) => (a.time||'').localeCompare(b.time||''));
+        
+        let rows = slots.map(s => `
+            <tr>
+                <td>${formatMasaPDF(s.time)}</td>
+                <td>${s.title || (s.cat==='transport'?'Perjalanan':s.cat==='accom'?'Check-in':'-')}<br><span style="font-size:0.75rem; color:#94a3b8;">${s.from ? s.from + ' ➔ ' + s.to : ''}</span></td>
+                <td>${s.note || '-'}</td>
+            </tr>
+        `).join('');
+
+        // Gambar rawak berbeza untuk placeholder setiap hari
+        const randomPic = `https://images.unsplash.com/photo-${1506012787146 + idx}?q=80&w=300&auto=format&fit=crop`;
+
+        html += `
+            <!-- DAY CARD -->
+            <div class="itin-pdf-day">
+                <label class="itin-pdf-day-img" title="Klik untuk tukar gambar hari ini">
+                    <input type="file" accept="image/*" class="hidden" onchange="previewImgPDF(this, 'img-day-${idx}')">
+                    <img id="img-day-${idx}" src="${randomPic}">
+                    <div class="itin-pdf-badge">DAY<br>0${idx+1}</div>
+                </label>
+                <table class="itin-pdf-table">
+                    <thead>
+                        <tr><th>TIME:</th><th>ACTIVITY:</th><th>NOTES:</th></tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    });
+
+    html += `
+        </div>
+        <button class="btn-download-pdf" onclick="muatTurunPDFSebenar()">
+            📥 Muat Turun Itinerari (PDF)
+        </button>
+        <p style="color:white; font-size:0.8rem; margin-top:8px;">*Klik pada mana-mana gambar di atas untuk muat naik gambar sendiri sebelum memuat turun.</p>
+    </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', html);
+};
+
+// Fungsi Tukar Gambar (Pratonton)
+window.previewImgPDF = (input, imgId) => {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) { document.getElementById(imgId).src = e.target.result; }
+        reader.readAsDataURL(input.files[0]);
+    }
+};
+
+window.formatTkhPDF = (tkh) => {
+    if(!tkh) return '-';
+    return new Date(tkh).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+window.formatMasaPDF = (time24) => {
+    if(!time24) return '-';
+    let [h, m] = time24.split(':');
+    let ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${String(h).padStart(2,'0')}:${m} ${ampm}`;
+};
+
+// Cetak ke PDF
+window.muatTurunPDFSebenar = () => {
+    const element = document.getElementById('pdfCaptureArea');
+    const tripName = document.getElementById('trip-name').value || 'Itinerari_Keluarga';
+    const opt = {
+      margin:       0,
+      filename:     `${tripName.replace(/\s+/g, '_')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#0B1E4A' },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    
+    showToast("⏳ Sedang memproses PDF...");
+    html2pdf().set(opt).from(element).save().then(() => {
+        showToast("✅ PDF berjaya dimuat turun!");
+    });
+};  
   
 </script>
 </body>
