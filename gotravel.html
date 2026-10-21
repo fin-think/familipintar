@@ -287,6 +287,44 @@
     display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem;
     font-weight: 700; color: #64748b; margin-bottom: 12px; justify-content: center;
   }
+
+/* --- SUIS DWI-MOD & ITINERARI --- */
+  .mode-switch-wrap {
+    background: #f1f5f9; padding: 6px; border-radius: 14px;
+    display: flex; gap: 6px; border: 1px solid #e2e8f0;
+  }
+  .mode-btn {
+    flex: 1; padding: 10px 12px; border: none; border-radius: 10px;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem;
+    cursor: pointer; transition: 0.2s; background: transparent; color: #64748b;
+  }
+  .mode-btn.active {
+    background: white; color: var(--coral);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .day-tabs {
+    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px;
+    margin-bottom: 16px; border-bottom: 2px dashed #e2e8f0;
+  }
+  .day-tab {
+    padding: 8px 14px; border-radius: 10px; background: #f8fafc;
+    border: 1.5px solid #e2e8f0; font-weight: 800; font-size: 0.8rem;
+    color: #475569; cursor: pointer; white-space: nowrap; transition: 0.2s;
+  }
+  .day-tab.active {
+    background: linear-gradient(135deg, var(--coral), var(--peach));
+    color: white; border-color: transparent;
+    box-shadow: 0 3px 10px rgba(255,107,107,0.25);
+  }
+  .itin-slot {
+    position: relative; padding-left: 18px; border-left: 3px solid #cbd5e1;
+    margin-bottom: 14px;
+  }
+  .itin-slot::before {
+    content: ''; position: absolute; left: -7.5px; top: 16px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--coral); border: 2px solid white;
+  }
   
 </style>
 </head>
@@ -447,63 +485,109 @@
 
     </div> <!-- PENATAP KOLUM KIRI -->
 
-    <!-- KOLUM KANAN -->
+<!-- KOLUM KANAN -->
     <div class="right-column">
 
-      <!-- Pengangkutan -->
-      <div class="card">
-        <div class="card-header" style="margin-bottom:5px;">
-          <div class="card-title-wrap">
-            <div class="card-icon bg-peach">🚗</div>
-            <h2>Pengangkutan / Tiket</h2>
-          </div>
-          <button onclick="toggleSettings()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">⚙️</button>
+      <!-- SUIS PILIHAN MOD BAJET -->
+      <div class="card" style="padding: 14px;">
+        <div style="font-size:0.75rem; font-weight:800; color:#64748b; text-transform:uppercase; margin-bottom:8px; text-align:center;">
+          Pilih Gaya Perancangan & Bajet Anda
         </div>
-
-        <!-- Panel Tetapan Kos Minyak -->
-        <div id="settings-panel" class="settings-panel">
-          <div class="field">
-            <label>Kadar Kos Minyak + Tol (RM per KM)</label>
-            <div class="input-prefix"><span>RM</span><input type="number" id="fuel-rate" value="0.35" step="0.05" oninput="updateSummary()"></div>
-            <p style="font-size:0.65rem; color:#888; margin-top:4px;">*Auto-kira kos berdasarkan jarak KM jika mod Kereta dipilih.</p>
-          </div>
+        <div class="mode-switch-wrap">
+          <button type="button" id="btnModeSimple" class="mode-btn active" onclick="setBudgetMode('simple')">
+            ⚡ Anggaran Ringkas
+          </button>
+          <button type="button" id="btnModeItin" class="mode-btn" onclick="setBudgetMode('itinerary')">
+            🗓️ Itinerari Terperinci (Jam ke Jam)
+          </button>
         </div>
-
-        <div id="transport-list"></div>
-        <button class="add-row-btn" onclick="addTransport()">➕ Tambah Laluan / Tiket</button>
-      </div>
-      
-      <!-- Penginapan -->
-      <div class="card">
-        <div class="card-header" style="margin-bottom:5px;">
-          <div class="card-title-wrap">
-            <div class="card-icon bg-sky">🏨</div>
-            <h2>Penginapan</h2>
-          </div>
-        </div>
-
-        <div class="action-buttons">
-          <button class="btn-book agoda" onclick="openBooking('agoda')">Cari Hotel di Agoda</button>
-          <button class="btn-book booking" onclick="openBooking('booking')">Cari di Booking.com</button>
-        </div>
-
-        <div id="accom-list"></div>
-        <button class="add-row-btn" onclick="addAccom()">➕ Tambah Hotel / Homestay</button>
       </div>
 
-      <!-- Lain-lain -->
-      <div class="card">
-        <div class="card-header" style="margin-bottom:5px;">
-          <div class="card-title-wrap">
-            <div class="card-icon bg-lavender">🎒</div>
-            <h2>Makan & Lain-lain</h2>
+      <!-- ================= MOD 1: ANGGARAN RINGKAS (ASAL) ================= -->
+      <div id="simple-mode-box" style="display:flex; flex-direction:column; gap:20px;">
+        
+        <!-- Pengangkutan -->
+        <div class="card">
+          <div class="card-header" style="margin-bottom:5px;">
+            <div class="card-title-wrap">
+              <div class="card-icon bg-peach">🚗</div>
+              <h2>Pengangkutan / Tiket</h2>
+            </div>
+            <button onclick="toggleSettings()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">⚙️</button>
           </div>
-        </div>
-        <div id="misc-list"></div>
-        <button class="add-row-btn" onclick="addMisc()">➕ Tambah Item Bajet</button>
-      </div>
 
-    </div> <!-- PENATAP KOLUM KANAN -->
+          <!-- Panel Tetapan Kos Minyak -->
+          <div id="settings-panel" class="settings-panel">
+            <div class="field">
+              <label>Kadar Kos Minyak + Tol (RM per KM)</label>
+              <div class="input-prefix"><span>RM</span><input type="number" id="fuel-rate" value="0.35" step="0.05" oninput="updateSummary()"></div>
+              <p style="font-size:0.65rem; color:#888; margin-top:4px;">*Auto-kira kos berdasarkan jarak KM jika mod Kereta dipilih.</p>
+            </div>
+          </div>
+
+          <div id="transport-list"></div>
+          <button class="add-row-btn" onclick="addTransport()">➕ Tambah Laluan / Tiket</button>
+        </div>
+        
+        <!-- Penginapan -->
+        <div class="card">
+          <div class="card-header" style="margin-bottom:5px;">
+            <div class="card-title-wrap">
+              <div class="card-icon bg-sky">🏨</div>
+              <h2>Penginapan</h2>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn-book agoda" onclick="openBooking('agoda')">Cari Hotel di Agoda</button>
+            <button class="btn-book booking" onclick="openBooking('booking')">Cari di Booking.com</button>
+          </div>
+
+          <div id="accom-list"></div>
+          <button class="add-row-btn" onclick="addAccom()">➕ Tambah Hotel / Homestay</button>
+        </div>
+
+        <!-- Lain-lain -->
+        <div class="card">
+          <div class="card-header" style="margin-bottom:5px;">
+            <div class="card-title-wrap">
+              <div class="card-icon bg-lavender">🎒</div>
+              <h2>Makan & Lain-lain</h2>
+            </div>
+          </div>
+          <div id="misc-list"></div>
+          <button class="add-row-btn" onclick="addMisc()">➕ Tambah Item Bajet</button>
+        </div>
+
+      </div> <!-- PENUTUP MOD RINGKAS -->
+
+      <!-- ================= MOD 2: ITINERARI JAM KE JAM (BARU) ================= -->
+      <div id="itinerary-mode-box" class="hidden">
+        <div class="card">
+          <div class="card-header" style="margin-bottom:10px;">
+            <div class="card-title-wrap">
+              <div class="card-icon bg-mint">🗺️</div>
+              <div>
+                <h2>Itinerari & Kos Jam-ke-Jam</h2>
+                <p style="font-size:0.75rem; color:#888; font-weight:600;">Susun jadual dari Hari 1 hingga Hari Balik siap dengan kos, peta KM & pautan hotel.</p>
+              </div>
+            </div>
+            <button onclick="importSimpleKeItinerari()" title="Salin item dari Mod Ringkas" style="background:#eef2ff; color:#4f46e5; border:1px solid #c7d2fe; padding:6px 10px; border-radius:8px; font-size:0.75rem; font-weight:800; cursor:pointer; white-space:nowrap;">
+              📥 Import Ringkas
+            </button>
+          </div>
+
+          <!-- Bar Tab Hari (Hari 1, Hari 2, ...) -->
+          <div id="itin-day-tabs" class="day-tabs"></div>
+
+          <!-- Senarai Aktiviti Mengikut Jam -->
+          <div id="itin-slots-list"></div>
+
+          <button class="add-row-btn" onclick="addItinSlot()">➕ Tambah Slot Masa / Aktiviti Pada Hari Ini</button>
+        </div>
+      </div> <!-- PENUTUP MOD ITINERARI -->
+
+    </div> <!-- PENUTUP KOLUM KANAN -->
 
   </div> <!-- PENATAP BEKAS GRID UTAMA -->
 
@@ -1016,20 +1100,40 @@ function renderMisc() {
 window.updateMisc = (id, f, v) => { const item = miscList.find(m => m.id === id); if (item) { item[f] = v; window.updateAll(); } }
 
 // =================== LOGIK UTAMA & FINANCIAL PLANNER ===================
+let budgetMode = 'simple'; // 'simple' atau 'itinerary'
+let itineraryList = [];    // Simpan semua slot mengikut tarikh & masa
+let activeItinDate = '';   // Tarikh tab hari yang sedang dibuka
+
 window.updateAll = () => { 
     const tripName = document.getElementById('trip-name').value || 'Percutian';
     document.getElementById('cd-title-label').textContent = "Kiraan Detik: " + tripName;
     updateCountdown(); 
+    if (typeof window.syncItinDays === 'function') window.syncItinDays();
     updateSummary(); 
     if (typeof window.renderKalendarWeCare === 'function') window.renderKalendarWeCare();
 }
 
 function updateSummary() {
   transportList.forEach(t => recalculateTransportCost(t));
+  itineraryList.forEach(s => recalculateItinSlotCost(s));
 
-  const aTot = accomList.reduce((s, a) => s + (parseFloat(a.cost)||0)*(parseInt(a.nights)||0), 0);
-  const tTot = transportList.reduce((s, t) => s + (parseFloat(t.cost)||0), 0);
-  const mTot = miscList.reduce((s, m) => s + (parseFloat(m.cost)||0), 0);
+  let aTot = 0, tTot = 0, mTot = 0;
+
+  if (budgetMode === 'itinerary') {
+      // Kira kos terus daripada jadual Itinerari Jam-ke-Jam
+      itineraryList.forEach(s => {
+          const c = parseFloat(s.cost) || 0;
+          if (s.cat === 'accom') aTot += c * (parseInt(s.nights) || 1);
+          else if (s.cat === 'transport') tTot += c;
+          else mTot += c;
+      });
+  } else {
+      // Kira kos daripada kad Mod Ringkas (Asal)
+      aTot = accomList.reduce((s, a) => s + (parseFloat(a.cost)||0)*(parseInt(a.nights)||0), 0);
+      tTot = transportList.reduce((s, t) => s + (parseFloat(t.cost)||0), 0);
+      mTot = miscList.reduce((s, m) => s + (parseFloat(m.cost)||0), 0);
+  }
+
   const grand = aTot + tTot + mTot;
 
   document.getElementById('sum-accom').textContent = 'RM ' + aTot.toFixed(2);
@@ -1171,6 +1275,10 @@ window.pilihPelan = (id) => {
         });
     }
 
+itineraryList = Array.isArray(trip.itinerary) ? trip.itinerary : [];
+    window.setBudgetMode(trip.budget_mode || 'simple');
+
+  
     window.updateAll();
     showToast(`📂 Pelan "${trip.title}" dimuatkan!`);
 };
@@ -1185,6 +1293,324 @@ window.buatPelanBaru = () => {
     showToast('✨ Borang dikosongkan untuk pelan baharu!');
 };
 
+// =================== ENJIN MOD ITINERARI (JAM KE JAM) ===================
+window.setBudgetMode = (mode) => {
+    budgetMode = mode;
+    document.getElementById('btnModeSimple').classList.toggle('active', mode === 'simple');
+    document.getElementById('btnModeItin').classList.toggle('active', mode === 'itinerary');
+    document.getElementById('simple-mode-box').classList.toggle('hidden', mode !== 'simple');
+    document.getElementById('itinerary-mode-box').classList.toggle('hidden', mode !== 'itinerary');
+    if (mode === 'itinerary') {
+        window.syncItinDays();
+        renderItinSlots();
+    }
+    updateSummary();
+};
+
+// Jana senarai tarikh dari Hari 1 (Tarikh Pergi) hingga Hari Balik
+function getSenaraiTarikhTrip() {
+    const go = document.getElementById('date-go').value;
+    const back = document.getElementById('date-back').value || go;
+    if (!go) return [];
+    const mula = new Date(go);
+    const tamat = new Date(back >= go ? back : go);
+    const hari = [];
+    // Hadkan maksimum 30 hari supaya tak hang jika tersalah pilih tahun
+    for (let d = new Date(mula), i = 0; d <= tamat && i < 30; d.setDate(d.getDate() + 1), i++) {
+        hari.push(d.toISOString().split('T')[0]);
+    }
+    return hari;
+}
+
+window.syncItinDays = () => {
+    const senaraiHari = getSenaraiTarikhTrip();
+    const tabsEl = document.getElementById('itin-day-tabs');
+    if (!tabsEl) return;
+
+    if (!senaraiHari.length) {
+        tabsEl.innerHTML = `<div style="color:#888; font-size:0.8rem;">Sila pilih Tarikh Pergi & Balik dahulu.</div>`;
+        return;
+    }
+
+    if (!activeItinDate || !senaraiHari.includes(activeItinDate)) {
+        activeItinDate = senaraiHari[0];
+    }
+
+    // Jika belum ada apa-apa slot pada hari pertama, buat 1 slot permulaan
+    if (itineraryList.length === 0) {
+        itineraryList.push({
+            id: Date.now(), date: activeItinDate, time: '08:00',
+            cat: 'transport', mode: 'car', title: 'Bertolak dari rumah',
+            from: '', to: '', km: '', cost: '', nights: 1, autoCalc: true, note: ''
+        });
+    }
+
+    tabsEl.innerHTML = senaraiHari.map((tkh, idx) => {
+        const dObj = new Date(tkh);
+        const labelTkh = dObj.toLocaleDateString('ms-MY', { day: 'numeric', month: 'short' });
+        const bilSlot = itineraryList.filter(s => s.date === tkh).length;
+        return `<button type="button" class="day-tab ${tkh === activeItinDate ? 'active' : ''}" onclick="pilihHariItin('${tkh}')">
+            Hari ${idx + 1} (${labelTkh}) ${bilSlot > 0 ? `· \${bilSlot}` : ''}
+        </button>`;
+    }).join('');
+};
+
+window.pilihHariItin = (tkh) => {
+    activeItinDate = tkh;
+    window.syncItinDays();
+    renderItinSlots();
+};
+
+window.addItinSlot = () => {
+    if (!activeItinDate) {
+        const h = getSenaraiTarikhTrip();
+        activeItinDate = h[0] || new Date().toISOString().split('T')[0];
+    }
+    itineraryList.push({
+        id: Date.now(), date: activeItinDate, time: '12:00',
+        cat: 'food', mode: 'car', title: '',
+        from: '', to: '', km: '', cost: '', nights: 1, autoCalc: true, note: ''
+    });
+    window.syncItinDays();
+    renderItinSlots();
+    showToast('🗓️ Slot masa ditambah!');
+};
+
+window.removeItinSlot = (id) => {
+    itineraryList = itineraryList.filter(s => s.id !== id);
+    window.syncItinDays();
+    renderItinSlots();
+    updateSummary();
+};
+
+function recalculateItinSlotCost(slot) {
+    if (slot.cat === 'transport' && slot.mode === 'car' && slot.autoCalc && slot.km) {
+        const rate = parseFloat(document.getElementById('fuel-rate')?.value) || 0.35;
+        slot.cost = (parseFloat(slot.km) * rate).toFixed(2);
+    }
+}
+
+function renderItinSlots() {
+    const box = document.getElementById('itin-slots-list');
+    if (!box) return;
+
+    const slotsHariIni = itineraryList
+        .filter(s => s.date === activeItinDate)
+        .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+    if (slotsHariIni.length === 0) {
+        box.innerHTML = `<div style="text-align:center; padding:24px; color:#94a3b8; font-size:0.85rem; border:1.5px dashed #e2e8f0; border-radius:12px; margin-bottom:12px;">
+            Belum ada aktiviti untuk hari ini. Klik butang di bawah untuk tambah jadual ikut jam!
+        </div>`;
+        return;
+    }
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    box.innerHTML = slotsHariIni.map(s => {
+        const isTrans = s.cat === 'transport';
+        const isAccom = s.cat === 'accom';
+        const isAutoCar = isTrans && s.mode === 'car' && s.autoCalc;
+        const subKos = isAccom ? ((parseFloat(s.cost)||0) * (parseInt(s.nights)||1)) : (parseFloat(s.cost)||0);
+
+        return `
+        <div class="itin-slot">
+          <div class="item-card ${isTrans ? 'bg-peach-light' : isAccom ? '' : 'bg-lavender-light'}" style="margin-bottom:0;">
+            <div class="item-header">
+              <div class="field" style="width:110px;">
+                <label>Masa</label>
+                <input type="time" value="${esc(s.time)}" onchange="updateItinField(${s.id}, 'time', this.value, true)">
+              </div>
+              <div class="field" style="flex:1;">
+                <label>Kategori</label>
+                <select onchange="updateItinField(${s.id}, 'cat', this.value, true)">
+                  <option value="transport" ${s.cat==='transport'?'selected':''}>🚗 Pengangkutan / Perjalanan</option>
+                  <option value="accom" ${s.cat==='accom'?'selected':''}>🏨 Penginapan (Check-in/Hotel)</option>
+                  <option value="food" ${s.cat==='food'?'selected':''}>🍽️ Makan & Minum</option>
+                  <option value="activity" ${s.cat==='activity'?'selected':''}>🎡 Aktiviti / Tiket Lawatan</option>
+                  <option value="misc" ${s.cat==='misc'?'selected':''}>🛍️ Beli-belah / Lain-lain</option>
+                </select>
+              </div>
+              <button class="del-btn" onclick="removeItinSlot(${s.id})">✕</button>
+            </div>
+
+            <div class="field">
+              <label>Nama Aktiviti / Tempat</label>
+              <input type="text" placeholder="cth. Makan Tengahari Nasi Kandar / Check-in Hotel" value="${esc(s.title)}" oninput="updateItinField(${s.id}, 'title', this.value, false)">
+            </div>
+
+            ${isTrans ? `
+              <div class="grid-2-col">
+                <div class="field">
+                  <label>Mod Kenderaan</label>
+                  <select onchange="updateItinField(\${s.id}, 'mode', this.value, true)">
+                    <option value="car" \${s.mode==='car'?'selected':''}>🚗 Kereta (Minyak/Tol)</option>
+                    <option value="flight" \${s.mode==='flight'?'selected':''}>✈️ Kapal Terbang</option>
+                    <option value="bus" \${s.mode==='bus'?'selected':''}>🚌 Bas Ekspres</option>
+                    <option value="train" \${s.mode==='train'?'selected':''}>🚆 Keretapi</option>
+                    <option value="grab" \${s.mode==='grab'?'selected':''}>📱 Grab / Teksi</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Jarak (KM) & Peta</label>
+                  <div style="display:flex; gap:6px;">
+                    <input type="number" placeholder="0" value="${esc(s.km)}" oninput="updateItinKM(${s.id}, this.value)" style="flex:1;">
+                    <button type="button" class="search-dist-btn" title="Kira KM automatik / Buka Google Maps" onclick="calculateItinDistance(\${s.id})">🔍</button>
+                  </div>
+                </div>
+              </div>
+              <div class="grid-2-col">
+                <div class="field"><label>Dari Lokasi</label><input type="text" placeholder="Mula" value="${esc(s.from)}" oninput="updateItinField(${s.id}, 'from', this.value, false)"></div>
+                <div class="field"><label>Ke Lokasi</label><input type="text" placeholder="Destinasi" value="${esc(s.to)}" oninput="updateItinField(${s.id}, 'to', this.value, false)"></div>
+              </div>
+            ` : ''}
+
+            ${isAccom ? `
+              <div style="display:flex; gap:8px;">
+                <button type="button" class="btn-book agoda" style="padding:8px; font-size:0.8rem;" onclick="openBooking('agoda')">🔍 Cari di Agoda</button>
+                <button type="button" class="btn-book booking" style="padding:8px; font-size:0.8rem;" onclick="openBooking('booking')">🔍 Cari di Booking.com</button>
+              </div>
+            ` : ''}
+
+            <div class="${isAccom ? 'grid-2-col' : ''}">
+              <div class="field">
+                <label>${isAccom ? 'Kos Semalam (RM)' : 'Anggaran Kos (RM)'} ${isAutoCar ? '<span class="auto-calc-badge">AUTO KM</span>' : ''}</label>
+                <div class="input-prefix">
+                  <span>RM</span>
+                  <input type="number" id="itin-cost-${s.id}" placeholder="0.00" value="${esc(s.cost)}" ${isAutoCar ? 'readonly style="background:#E8F5E9"' : ''} oninput="updateItinCost(${s.id}, this.value)">
+                </div>
+              </div>
+              ${isAccom ? `
+                <div class="field">
+                  <label>Bil. Malam</label>
+                  <input type="number" placeholder="1" value="${esc(s.nights \vert{}\vert{} 1)}" oninput="updateItinField(${s.id}, 'nights', this.value, false)">
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="item-footer ${isTrans ? 'color-peach' : isAccom ? 'color-sky' : 'color-lavender'}">
+              Jumlah Slot: <span id="itin-sub-${s.id}">RM ${subKos.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+}
+
+window.updateItinField = (id, field, val, perluRender) => {
+    const s = itineraryList.find(x => x.id === id);
+    if (!s) return;
+    s[field] = val;
+    if (field === 'mode') {
+        s.autoCalc = (val === 'car');
+        recalculateItinSlotCost(s);
+    }
+    if (field === 'nights') {
+        const subEl = document.getElementById(`itin-sub-${id}`);
+        if (subEl) subEl.textContent = 'RM ' + ((parseFloat(s.cost)||0) * (parseInt(s.nights)||1)).toFixed(2);
+    }
+    if (perluRender) renderItinSlots();
+    updateSummary();
+};
+
+window.updateItinKM = (id, km) => {
+    const s = itineraryList.find(x => x.id === id);
+    if (!s) return;
+    s.km = km;
+    s.autoCalc = (s.mode === 'car');
+    recalculateItinSlotCost(s);
+    const costInput = document.getElementById(`itin-cost-${id}`);
+    if (costInput) costInput.value = s.cost;
+    const subEl = document.getElementById(`itin-sub-${id}`);
+    if (subEl) subEl.textContent = 'RM ' + (parseFloat(s.cost)||0).toFixed(2);
+    updateSummary();
+};
+
+window.updateItinCost = (id, cost) => {
+    const s = itineraryList.find(x => x.id === id);
+    if (!s) return;
+    s.cost = cost;
+    s.autoCalc = false;
+    const subKos = s.cat === 'accom' ? ((parseFloat(s.cost)||0) * (parseInt(s.nights)||1)) : (parseFloat(s.cost)||0);
+    const subEl = document.getElementById(`itin-sub-${id}`);
+    if (subEl) subEl.textContent = 'RM ' + subKos.toFixed(2);
+    updateSummary();
+};
+
+// Kira jarak KM OSRM / Google Maps terus dari dalam slot Itinerari
+window.calculateItinDistance = async (id) => {
+    const item = itineraryList.find(t => t.id === id);
+    if (!item || !item.from || !item.to) { showToast('⚠️ Isi lokasi Dari & Ke dahulu!'); return; }
+    showToast('⏳ Mencari jarak laluan...');
+    try {
+        const [resF, resT] = await Promise.all([
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.from)}`),
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.to)}`)
+        ]);
+        const [dF, dT] = await Promise.all([resF.json(), resF.json()]);
+        if(!dF.length || !dT.length) throw new Error('Lokasi tidak ditemui');
+
+        const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${dF[0].lon},${dF[0].lat};${dT[0].lon},${dT[0].lat}?overview=false`);
+        const dataRoute = await resRoute.json();
+        if (dataRoute.code !== 'Ok') throw new Error('Laluan tidak ditemui');
+
+        item.km = (dataRoute.routes[0].distance / 1000).toFixed(1);
+        recalculateItinSlotCost(item);
+        renderItinSlots();
+        updateSummary();
+        showToast(`✅ Jarak dikesan: ${item.km} km`);
+    } catch (e) {
+        showToast('❌ Membuka Google Maps...');
+        setTimeout(() => { window.open(`https://www.google.com/maps/dir/${encodeURIComponent(item.from)}/${encodeURIComponent(item.to)}`, '_blank'); }, 800);
+    }
+};
+
+// Butang Pintar: Salin data dari Mod Ringkas masuk ke Hari 1 Itinerari
+window.importSimpleKeItinerari = () => {
+    const h = getSenaraiTarikhTrip();
+    const tkhMula = activeItinDate || h[0] || new Date().toISOString().split('T')[0];
+    let ditambah = 0;
+
+    transportList.forEach(t => {
+        if (t.from || t.to || parseFloat(t.cost) > 0) {
+            itineraryList.push({
+                id: Date.now() + Math.random(), date: tkhMula, time: '09:00',
+                cat: 'transport', mode: t.mode || 'car', title: `Perjalanan: ${t.from || ''} ke ${t.to || ''}`.trim(),
+                from: t.from || '', to: t.to || '', km: t.km || '', cost: t.cost || '', nights: 1, autoCalc: !!t.autoCalc
+            });
+            ditambah++;
+        }
+    });
+    accomList.forEach(a => {
+        if (a.name || parseFloat(a.cost) > 0) {
+            itineraryList.push({
+                id: Date.now() + Math.random(), date: tkhMula, time: '15:00',
+                cat: 'accom', mode: 'car', title: a.name || 'Check-in Penginapan',
+                from: '', to: '', km: '', cost: a.cost || '', nights: a.nights || 1, autoCalc: false
+            });
+            ditambah++;
+        }
+    });
+    miscList.forEach(m => {
+        if (m.name || parseFloat(m.cost) > 0) {
+            itineraryList.push({
+                id: Date.now() + Math.random(), date: tkhMula, time: '19:00',
+                cat: 'food', mode: 'car', title: m.name || 'Makan / Aktiviti',
+                from: '', to: '', km: '', cost: m.cost || '', nights: 1, autoCalc: false
+            });
+            ditambah++;
+        }
+    });
+
+    if (ditambah > 0) {
+        window.syncItinDays();
+        renderItinSlots();
+        updateSummary();
+        showToast(`📥 ${ditambah} item dibawa ke Itinerari!`);
+    } else {
+        showToast('⚠️ Tiada item berisi dalam Mod Ringkas.');
+    }
+};
+  
 // SIMPAN / KEMAS KINI KE FIREBASE
 window.simpanPelanKeDatabase = async () => {
     if (!currentUser) return;
@@ -1208,6 +1634,8 @@ window.simpanPelanKeDatabase = async () => {
         transportation: transportList,
         miscellaneous: miscList,
         team_members: senaraiAhli,
+        budget_mode: budgetMode,
+        itinerary: itineraryList,
         owner_uid: currentUser.uid,
         created_at: Date.now()
     };
