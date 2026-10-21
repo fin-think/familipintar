@@ -999,9 +999,9 @@ function renderTransport() {
         <button class="del-btn" onclick="removeTransport(${t.id})">✕</button>
       </div>
       <div class="grid-2-col">
-        <div class="field"><label>Dari</label><input type="text" placeholder="Mula" value="${t.from}" oninput="updateTransport(${t.id},'from',this.value)"></div>
-        <div class="field"><label>Ke</label><input type="text" placeholder="Tuju" value="${t.to}" oninput="updateTransport(${t.id},'to',this.value)"></div>
-      </div>
+                <div class="field"><label>Dari Lokasi</label><input type="text" id="itin-from-${s.id}" placeholder="cth. Jitra" value="${esc(s.from)}" onchange="updateItinField('${s.id}', 'from', this.value, false)"></div>
+                <div class="field"><label>Ke Lokasi</label><input type="text" id="itin-to-${s.id}" placeholder="cth. KLIA" value="${esc(s.to)}" onchange="updateItinField('${s.id}', 'to', this.value, false)"></div>
+              </div>
       <div class="grid-2-col" style="align-items:end;">
         <div class="field">
           <label>Jarak (KM)</label>
@@ -1051,31 +1051,45 @@ function updateTransportSubDisplay(id) {
 }
 
 // OSRM
-window.calculateDistance = async (id) => {
-  const item = transportList.find(t => t.id === id);
-  if (!item || !item.from || !item.to) { showToast('⚠️ Isi Mula & Tuju!'); return; }
-  showToast('⏳ Mencari laluan pantas...');
-  try {
-    const [resF, resT] = await Promise.all([
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.from)}`),
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.to)}`)
-    ]);
-    const [dF, dT] = await Promise.all([resF.json(), resT.json()]);
-    if(!dF.length || !dT.length) throw new Error('Lokasi tidak ditemui');
+window.calculateItinDistance = async (id) => {
+    const item = itineraryList.find(t => t.id == id);
+    if (!item) return;
 
-    const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${dF[0].lon},${dF[0].lat};${dT[0].lon},${dT[0].lat}?overview=false`);
-    const dataRoute = await resRoute.json();
-    if (dataRoute.code !== 'Ok') throw new Error('Laluan tidak ditemui');
+    // BACA TERUS DARI KOTAK INPUT (Paling Kebal)
+    const boxFrom = document.getElementById(`itin-from-${id}`);
+    const boxTo = document.getElementById(`itin-to-${id}`);
+    
+    if (boxFrom) item.from = boxFrom.value.trim();
+    if (boxTo) item.to = boxTo.value.trim();
 
-    const distanceKm = (dataRoute.routes[0].distance / 1000).toFixed(1);
-    item.km = distanceKm;
-    recalculateTransportCost(item); renderTransport(); window.updateAll();
-    showToast(`✅ Jarak dikesan: ${distanceKm} km`);
-  } catch (e) {
-    showToast('❌ Gagal. Membuka Google Maps...');
-    setTimeout(() => { window.open(`https://www.google.com/maps/dir/${encodeURIComponent(item.from)}/${encodeURIComponent(item.to)}`, '_blank'); }, 800);
-  }
-}
+    if (!item.from || !item.to) { 
+        showToast('⚠️ Sila taip nama lokasi Dari & Ke dalam kotak dahulu!'); 
+        return; 
+    }
+
+    showToast('⏳ Mencari jarak laluan...');
+    try {
+        const [resF, resT] = await Promise.all([
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.from)}`),
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.to)}`)
+        ]);
+        const [dF, dT] = await Promise.all([resF.json(), resT.json()]);
+        if(!dF.length || !dT.length) throw new Error('Lokasi tidak ditemui');
+
+        const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${dF[0].lon},${dF[0].lat};${dT[0].lon},${dT[0].lat}?overview=false`);
+        const dataRoute = await resRoute.json();
+        if (dataRoute.code !== 'Ok') throw new Error('Laluan tidak ditemui');
+
+        item.km = (dataRoute.routes[0].distance / 1000).toFixed(1);
+        recalculateItinSlotCost(item);
+        renderItinSlots();
+        updateSummary();
+        showToast(`✅ Jarak dikesan: ${item.km} km`);
+    } catch (e) {
+        showToast('❌ Membuka Google Maps...');
+        setTimeout(() => { window.open(`https://www.google.com/maps/dir/${encodeURIComponent(item.from)}/${encodeURIComponent(item.to)}`, '_blank'); }, 800);
+    }
+};
 
 // =================== LAIN-LAIN ===================
 window.addMisc = (silent) => {
