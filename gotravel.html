@@ -1472,7 +1472,7 @@ function renderItinSlots() {
               </div>
             ` : ''}
 
-            <div class="${isAccom ? 'grid-2-col' : ''}">
+            <div class="\${isAccom ? 'grid-2-col' : ''}">
               <div class="field">
                 <label>${isAccom ? 'Kos Semalam (RM)' : 'Anggaran Kos (RM)'} ${isAutoCar ? '<span class="auto-calc-badge">AUTO KM</span>' : ''}</label>
                 <div class="input-prefix">
@@ -1480,10 +1480,10 @@ function renderItinSlots() {
                   <input type="number" id="itin-cost-${s.id}" placeholder="0.00" value="${esc(s.cost)}" ${isAutoCar ? 'readonly style="background:#E8F5E9"' : ''} oninput="updateItinCost(${s.id}, this.value)">
                 </div>
               </div>
-              ${isAccom ? `
+              \${isAccom ? `
                 <div class="field">
                   <label>Bil. Malam</label>
-                  <input type="number" placeholder="1" value="${esc(s.nights \vert{}\vert{} 1)}" oninput="updateItinField(${s.id}, 'nights', this.value, false)">
+                  <input type="number" placeholder="1" value="${esc(s.nights || 1)}" oninput="updateItinField(${s.id}, 'nights', this.value, false)">
                 </div>
               ` : ''}
             </div>
