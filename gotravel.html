@@ -1504,7 +1504,8 @@ function renderItinSlots() {
 }
 
 window.updateItinField = (id, field, val, perluRender) => {
-    const s = itineraryList.find(x => String(x.id) === String(id));
+    // Tukar dari === kepada == supaya sistem tak cerewet dengan format ID
+    const s = itineraryList.find(x => x.id == id);
     if (!s) return;
     s[field] = val;
     if (field === 'mode') {
@@ -1520,7 +1521,7 @@ window.updateItinField = (id, field, val, perluRender) => {
 };
 
 window.updateItinKM = (id, km) => {
-    const s = itineraryList.find(x => String(x.id) === String(id));
+    const s = itineraryList.find(x => x.id == id);
     if (!s) return;
     s.km = km;
     s.autoCalc = (s.mode === 'car');
@@ -1533,7 +1534,7 @@ window.updateItinKM = (id, km) => {
 };
 
 window.updateItinCost = (id, cost) => {
-    const s = itineraryList.find(x => String(x.id) === String(id));
+    const s = itineraryList.find(x => x.id == id);
     if (!s) return;
     s.cost = cost;
     s.autoCalc = false;
@@ -1544,14 +1545,14 @@ window.updateItinCost = (id, cost) => {
 };
 
 window.removeItinSlot = (id) => {
-    itineraryList = itineraryList.filter(s => String(s.id) !== String(id));
+    itineraryList = itineraryList.filter(s => s.id != id);
     window.syncItinDays();
     renderItinSlots();
     updateSummary();
 };
 
 window.calculateItinDistance = async (id) => {
-    const item = itineraryList.find(t => String(t.id) === String(id));
+    const item = itineraryList.find(t => t.id == id);
     if (!item || !item.from || !item.to) { showToast('⚠️ Isi lokasi Dari & Ke dahulu!'); return; }
     showToast('⏳ Mencari jarak laluan...');
     try {
@@ -1559,7 +1560,6 @@ window.calculateItinDistance = async (id) => {
             fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.from)}`),
             fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.to)}`)
         ]);
-        // TYPO TELAH DIBETULKAN DI SINI (resF dan resT):
         const [dF, dT] = await Promise.all([resF.json(), resT.json()]);
         if(!dF.length || !dT.length) throw new Error('Lokasi tidak ditemui');
 
