@@ -1328,7 +1328,7 @@ window.syncItinDays = () => {
     if (!tabsEl) return;
 
     if (!senaraiHari.length) {
-        tabsEl.innerHTML = `<div style="color:#888; font-size:0.8rem;">Sila pilih Tarikh Pergi & Balik dahulu.</div>`;
+        tabsEl.innerHTML = '<div style="color:#888; font-size:0.8rem;">Sila pilih Tarikh Pergi & Balik dahulu.</div>';
         return;
     }
 
@@ -1336,7 +1336,6 @@ window.syncItinDays = () => {
         activeItinDate = senaraiHari[0];
     }
 
-    // Jika belum ada apa-apa slot pada hari pertama, buat 1 slot permulaan
     if (itineraryList.length === 0) {
         itineraryList.push({
             id: Date.now(), date: activeItinDate, time: '08:00',
@@ -1349,9 +1348,8 @@ window.syncItinDays = () => {
         const dObj = new Date(tkh);
         const labelTkh = dObj.toLocaleDateString('ms-MY', { day: 'numeric', month: 'short' });
         const bilSlot = itineraryList.filter(s => s.date === tkh).length;
-        return `<button type="button" class="day-tab ${tkh === activeItinDate ? 'active' : ''}" onclick="pilihHariItin('${tkh}')">
-            Hari ${idx + 1} (${labelTkh}) ${bilSlot > 0 ? `· \${bilSlot}` : ''}
-        </button>`;
+        const teksSlot = bilSlot > 0 ? (' · ' + bilSlot) : '';
+        return `<button type="button" class="day-tab ${tkh === activeItinDate ? 'active' : ''}" onclick="pilihHariItin('${tkh}')">Hari ${idx + 1} (${labelTkh})${teksSlot}</button>`;
     }).join('');
 };
 
@@ -1426,11 +1424,11 @@ function renderItinSlots() {
             <div class="item-header">
               <div class="field" style="width:110px;">
                 <label>Masa</label>
-                <input type="time" value="${esc(s.time)}" onchange="updateItinField(${s.id}, 'time', this.value, true)">
+                <input type="time" value="${esc(s.time)}" onchange="updateItinField('${s.id}', 'time', this.value, true)">
               </div>
               <div class="field" style="flex:1;">
                 <label>Kategori</label>
-                <select onchange="updateItinField(${s.id}, 'cat', this.value, true)">
+                <select onchange="updateItinField('${s.id}', 'cat', this.value, true)">
                   <option value="transport" ${s.cat==='transport'?'selected':''}>🚗 Pengangkutan / Perjalanan</option>
                   <option value="accom" ${s.cat==='accom'?'selected':''}>🏨 Penginapan (Check-in/Hotel)</option>
                   <option value="food" ${s.cat==='food'?'selected':''}>🍽️ Makan & Minum</option>
@@ -1438,19 +1436,19 @@ function renderItinSlots() {
                   <option value="misc" ${s.cat==='misc'?'selected':''}>🛍️ Beli-belah / Lain-lain</option>
                 </select>
               </div>
-              <button class="del-btn" onclick="removeItinSlot(${s.id})">✕</button>
+              <button class="del-btn" onclick="removeItinSlot('${s.id}')">✕</button>
             </div>
 
             <div class="field">
               <label>Nama Aktiviti / Tempat</label>
-              <input type="text" placeholder="cth. Makan Tengahari Nasi Kandar / Check-in Hotel" value="${esc(s.title)}" oninput="updateItinField(${s.id}, 'title', this.value, false)">
+              <input type="text" placeholder="cth. Makan Tengahari Nasi Kandar / Check-in Hotel" value="${esc(s.title)}" oninput="updateItinField('${s.id}', 'title', this.value, false)">
             </div>
 
             ${isTrans ? `
               <div class="grid-2-col">
                 <div class="field">
                   <label>Mod Kenderaan</label>
-                  <select onchange="updateItinField(\${s.id}, 'mode', this.value, true)">
+                  <select onchange="updateItinField('\${s.id}', 'mode', this.value, true)">
                     <option value="car" \${s.mode==='car'?'selected':''}>🚗 Kereta (Minyak/Tol)</option>
                     <option value="flight" \${s.mode==='flight'?'selected':''}>✈️ Kapal Terbang</option>
                     <option value="bus" \${s.mode==='bus'?'selected':''}>🚌 Bas Ekspres</option>
@@ -1461,14 +1459,14 @@ function renderItinSlots() {
                 <div class="field">
                   <label>Jarak (KM) & Peta</label>
                   <div style="display:flex; gap:6px;">
-                    <input type="number" placeholder="0" value="${esc(s.km)}" oninput="updateItinKM(${s.id}, this.value)" style="flex:1;">
-                    <button type="button" class="search-dist-btn" title="Kira KM / Peta" onclick="calculateItinDistance(\${s.id})">🔍</button>
+                    <input type="number" placeholder="0" value="${esc(s.km)}" oninput="updateItinKM('${s.id}', this.value)" style="flex:1;">
+                    <button type="button" class="search-dist-btn" title="Kira KM / Peta" onclick="calculateItinDistance('\${s.id}')">🔍</button>
                   </div>
                 </div>
               </div>
               <div class="grid-2-col">
-                <div class="field"><label>Dari Lokasi</label><input type="text" placeholder="Mula" value="${esc(s.from)}" oninput="updateItinField(${s.id}, 'from', this.value, false)"></div>
-                <div class="field"><label>Ke Lokasi</label><input type="text" placeholder="Destinasi" value="${esc(s.to)}" oninput="updateItinField(${s.id}, 'to', this.value, false)"></div>
+                <div class="field"><label>Dari Lokasi</label><input type="text" placeholder="Mula" value="${esc(s.from)}" oninput="updateItinField('${s.id}', 'from', this.value, false)"></div>
+                <div class="field"><label>Ke Lokasi</label><input type="text" placeholder="Destinasi" value="${esc(s.to)}" oninput="updateItinField('${s.id}', 'to', this.value, false)"></div>
               </div>
             ` : ''}
 
@@ -1484,13 +1482,13 @@ function renderItinSlots() {
                 <label>${isAccom ? 'Kos Semalam (RM)' : 'Anggaran Kos (RM)'} ${isAutoCar ? '<span class="auto-calc-badge">AUTO KM</span>' : ''}</label>
                 <div class="input-prefix">
                   <span>RM</span>
-                  <input type="number" id="itin-cost-${s.id}" placeholder="0.00" value="${esc(s.cost)}" ${isAutoCar ? 'readonly style="background:#E8F5E9"' : ''} oninput="updateItinCost(${s.id}, this.value)">
+                  <input type="number" id="itin-cost-${s.id}" placeholder="0.00" value="${esc(s.cost)}" ${isAutoCar ? 'readonly style="background:#E8F5E9"' : ''} oninput="updateItinCost('${s.id}', this.value)">
                 </div>
               </div>
               ${isAccom ? `
                 <div class="field">
                   <label>Bil. Malam</label>
-                  <input type="number" placeholder="1" value="${esc(s.nights || 1)}" oninput="updateItinField(${s.id}, 'nights', this.value, false)">
+                  <input type="number" placeholder="1" value="${esc(s.nights \vert{}\vert{} 1)}" oninput="updateItinField('${s.id}', 'nights', this.value, false)">
                 </div>
               ` : ''}
             </div>
@@ -1506,7 +1504,7 @@ function renderItinSlots() {
 }
 
 window.updateItinField = (id, field, val, perluRender) => {
-    const s = itineraryList.find(x => x.id === id);
+    const s = itineraryList.find(x => String(x.id) === String(id));
     if (!s) return;
     s[field] = val;
     if (field === 'mode') {
@@ -1522,7 +1520,7 @@ window.updateItinField = (id, field, val, perluRender) => {
 };
 
 window.updateItinKM = (id, km) => {
-    const s = itineraryList.find(x => x.id === id);
+    const s = itineraryList.find(x => String(x.id) === String(id));
     if (!s) return;
     s.km = km;
     s.autoCalc = (s.mode === 'car');
@@ -1535,7 +1533,7 @@ window.updateItinKM = (id, km) => {
 };
 
 window.updateItinCost = (id, cost) => {
-    const s = itineraryList.find(x => x.id === id);
+    const s = itineraryList.find(x => String(x.id) === String(id));
     if (!s) return;
     s.cost = cost;
     s.autoCalc = false;
@@ -1545,9 +1543,15 @@ window.updateItinCost = (id, cost) => {
     updateSummary();
 };
 
-// Kira jarak KM OSRM / Google Maps terus dari dalam slot Itinerari
+window.removeItinSlot = (id) => {
+    itineraryList = itineraryList.filter(s => String(s.id) !== String(id));
+    window.syncItinDays();
+    renderItinSlots();
+    updateSummary();
+};
+
 window.calculateItinDistance = async (id) => {
-    const item = itineraryList.find(t => t.id === id);
+    const item = itineraryList.find(t => String(t.id) === String(id));
     if (!item || !item.from || !item.to) { showToast('⚠️ Isi lokasi Dari & Ke dahulu!'); return; }
     showToast('⏳ Mencari jarak laluan...');
     try {
@@ -1555,7 +1559,8 @@ window.calculateItinDistance = async (id) => {
             fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.from)}`),
             fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.to)}`)
         ]);
-        const [dF, dT] = await Promise.all([resF.json(), resF.json()]);
+        // TYPO TELAH DIBETULKAN DI SINI (resF dan resT):
+        const [dF, dT] = await Promise.all([resF.json(), resT.json()]);
         if(!dF.length || !dT.length) throw new Error('Lokasi tidak ditemui');
 
         const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${dF[0].lon},${dF[0].lat};${dT[0].lon},${dT[0].lat}?overview=false`);
