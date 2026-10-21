@@ -993,27 +993,27 @@ function renderTransport() {
             <option value="flight" ${t.mode==='flight'?'selected':''}>✈️ Kapal Terbang</option>
             <option value="bus" ${t.mode==='bus'?'selected':''}>🚌 Bas Ekspres</option>
             <option value="train" ${t.mode==='train'?'selected':''}>🚆 Keretapi</option>
-            <option value="grab" ${t.mode==='grab'?'selected':''}>📱 Grab / Taxi</option>
+            <option value="grab" ${t.mode==='grab'?'selected':''}>📱 Grab / Teksi</option>
           </select>
         </div>
         <button class="del-btn" onclick="removeTransport(${t.id})">✕</button>
       </div>
       <div class="grid-2-col">
-                <div class="field"><label>Dari Lokasi</label><input type="text" id="itin-from-${s.id}" placeholder="cth. Jitra" value="${esc(s.from)}" onchange="updateItinField('${s.id}', 'from', this.value, false)"></div>
-                <div class="field"><label>Ke Lokasi</label><input type="text" id="itin-to-${s.id}" placeholder="cth. KLIA" value="${esc(s.to)}" onchange="updateItinField('${s.id}', 'to', this.value, false)"></div>
-              </div>
+        <div class="field"><label>Dari</label><input type="text" placeholder="Mula" value="${t.from || ''}" oninput="updateTransport(${t.id},'from',this.value)"></div>
+        <div class="field"><label>Ke</label><input type="text" placeholder="Tuju" value="${t.to || ''}" oninput="updateTransport(${t.id},'to',this.value)"></div>
+      </div>
       <div class="grid-2-col" style="align-items:end;">
         <div class="field">
           <label>Jarak (KM)</label>
           <div style="display:flex; gap:6px;">
-            <input type="number" placeholder="0" value="${t.km}" oninput="updateTransportKM(${t.id},this.value)" style="flex:1;">
+            <input type="number" placeholder="0" value="${t.km || ''}" oninput="updateTransportKM(${t.id},this.value)" style="flex:1;">
             <button class="search-dist-btn" onclick="calculateDistance(${t.id})">🔍</button>
           </div>
         </div>
         <div class="field">
           <label>Kos (RM) ${isAuto ? '<span class="auto-calc-badge">AUTO</span>' : ''}</label>
           <div class="input-prefix">
-            <span>RM</span><input type="number" placeholder="0.00" value="${t.cost}" id="trans-input-${t.id}" 
+            <span>RM</span><input type="number" placeholder="0.00" value="${t.cost || ''}" id="trans-input-${t.id}" 
             ${isAuto ? 'readonly style="background:#E8F5E9"' : ''} 
             oninput="updateTransportCost(${t.id},this.value)">
           </div>
