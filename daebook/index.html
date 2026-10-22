@@ -311,10 +311,23 @@
                 
                 const gridContainer = document.getElementById(`grid-${index}`);
 
-               // Masukkan buku-buku ke dalam grid kategori
+             // Masukkan buku-buku ke dalam grid kategori
                 section.data.forEach(book => {
-                    // LOGIK PENENTUAN HARGA & BUTANG
-                    let hargaKredit = book.harga || 0;
+                    // LOGIK PENENTUAN HARGA & BUTANG (KINI KEBAL)
+                    let hargaKredit = 0;
+                    
+                    // Semak jika bos guna format baru (contoh: harga: 20)
+                    if (book.harga !== undefined) {
+                        hargaKredit = parseInt(book.harga) || 0;
+                    } 
+                    // Semak jika bos masih guna format lama (contoh: author: "RM20")
+                    else if (book.author) {
+                        const hargaStr = String(book.author).toLowerCase().trim();
+                        if (hargaStr.includes('rm')) {
+                            hargaKredit = parseInt(hargaStr.replace(/[^0-9]/g, '')) || 0;
+                        }
+                    }
+
                     let teksHarga = hargaKredit > 0 ? `${hargaKredit} KREDIT` : "PERCUMA";
                     
                     let warnaButang = hargaKredit > 0 
