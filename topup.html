@@ -156,6 +156,64 @@
             document.body.style.cursor = 'default';
         }
     };
+
+let currentUser = null;
+    let namaPelanggan = "Pengguna Famili Pintar"; // Tambah pembolehubah nama
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            const snap = await getDoc(doc(db, "mynasab_users", user.uid));
+            if (snap.exists()) {
+                document.getElementById('bakiSemasa').innerText = snap.data().credit_balance || 0;
+                // Tarik nama dari database, jika tiada guna depan e-mel
+                namaPelanggan = snap.data().name || user.email.split('@')[0]; 
+            }
+        } else {
+            alert("Sila log masuk dahulu untuk top up kredit.");
+            window.location.href = "index.html"; 
+        }
+    });
+
+    window.beliKredit = async (hargaRM, jumlahKredit) => {
+        if (!currentUser) return;
+        
+        const nama = "Kredit Famili Pintar (" + jumlahKredit + ")";
+        const emel = currentUser.email;
+        const uid = currentUser.uid;
+
+        const SERVER_API_URL = "https://us-central1-familipintar.cloudfunctions.net/createBill";
+
+        try {
+            document.body.style.cursor = 'wait';
+            
+            const respon = await fetch(SERVER_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    uid: uid,
+                    emel: emel,
+                    namaPengguna: namaPelanggan, // <--- HANTAR NAMA KE SERVER
+                    hargaRM: hargaRM,
+                    jumlahKredit: jumlahKredit,
+                    namaPakej: nama
+                })
+            });
+
+            const data = await respon.json();
+            if (data.billUrl) {
+                window.location.href = data.billUrl;
+            } else {
+                alert("Gagal menjana bil pembayaran: " + (data.error || "Ralat tidak diketahui"));
+            }
+        } catch (error) {
+            alert("Sistem sedang diselenggara atau pelayan tergendala. Sila cuba sebentar lagi.");
+            console.error(error);
+        } finally {
+            document.body.style.cursor = 'default';
+        }
+    };
+    
 </script>
 </body>
 </html>
