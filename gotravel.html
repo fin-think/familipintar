@@ -395,14 +395,24 @@
         <button class="add-row-btn" onclick="addMisc()">➕ Tambah Item Bajet</button>
       </div>
 
-      <div class="card" id="itin-card">
-        <div class="card-header">
-          <div class="card-title-wrap"><div class="card-icon bg-mint">🗺️</div><h2>Jadual Itinerari</h2></div>
-        </div>
-        <p style="font-size:0.8rem; color:#777; margin-bottom:10px;">Isi aktiviti ikut hari dan masa. Jadual ini digunakan untuk PDF itinerari.</p>
-        <div id="itin-list"></div>
-        <button class="add-row-btn" onclick="addItinSlot()">➕ Tambah Aktiviti</button>
+      <div id="modalJadual" class="hidden" style="position:fixed; inset:0; background:rgba(15,23,42,.75); z-index:5000; display:flex; align-items:flex-start; justify-content:center; padding:16px; overflow-y:auto;">
+  <div style="background:#fff; width:100%; max-width:560px; border-radius:16px; padding:20px; margin:auto;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px;">
+      <div>
+        <h2 style="font-family:'Baloo 2',cursive; font-size:1.2rem;">🗓️ Jadual Itinerari</h2>
+        <div id="jadual-tajuk" style="font-weight:800; color:#1e293b;"></div>
+        <div id="jadual-sub" style="font-size:0.75rem; color:#64748b;"></div>
       </div>
+      <button onclick="tutupJadual()" style="background:#f1f5f9; border:none; border-radius:8px; width:36px; height:36px; font-size:1rem; cursor:pointer;">✕</button>
+    </div>
+    <div id="jadual-list"></div>
+    <button class="add-row-btn" onclick="tambahJadual()">➕ Tambah Aktiviti</button>
+    <div style="display:flex; gap:8px; margin-top:14px;">
+      <button onclick="simpanJadual()" style="flex:2; background:#27ae60; color:#fff; border:none; padding:13px; border-radius:10px; font-weight:800; cursor:pointer;">💾 Simpan Jadual</button>
+      <button onclick="tutupJadual()" style="flex:1; background:#f1f5f9; color:#475569; border:none; padding:13px; border-radius:10px; font-weight:800; cursor:pointer;">Batal</button>
+    </div>
+  </div>
+</div>
       
       <!-- KAD SENARAI PELAN & CETAKAN PDF -->
       <div class="card" style="border: 2px solid #e2e8f0; margin-top:10px;">
@@ -460,7 +470,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -905,13 +915,12 @@ window.renderSenaraiPelan = () => {
         <div style="border: 1px solid ${isAktif ? '#3b82f6' : '#e2e8f0'}; background: ${isAktif ? '#eff6ff' : '#ffffff'}; border-radius: 12px; padding: 12px;">
             <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; margin-bottom: 2px;">${escH(t.title)}${lama}</div>
             <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 10px;">📍 ${escH(t.destination || 'Tiada Destinasi')} &nbsp;|&nbsp; 🗓️ ${escH(t.date_go || '-')}</div>
-            <div style="display:flex; gap:8px;">
-                <button onclick="pilihPelan('${t.id}', true)" style="flex:1; background: ${isAktif ? '#3b82f6' : '#f1f5f9'}; color: ${isAktif ? 'white' : '#475569'}; border:none; padding:8px; border-radius:8px; font-weight:700; font-size:0.8rem; cursor:pointer;">
-                    ${isAktif ? 'Sedang Diedit ↑' : 'Edit Pelan ✏️'}
-                </button>
-                <button onclick="janaItinerariPDF('${t.id}')" style="flex:1.5; background: #f59e0b; color: white; border:none; padding:8px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">
-                    🖨️ Preview & Cetak (1 Kredit)
-                </button>
+                        <div style="display:flex; gap:8px;">
+                <button onclick="bukaJadual('${t.id}')" style="flex:1.3; background:#3b82f6; color:white; border:none; padding:8px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">🗓️ Edit Jadual</button>
+                <button onclick="janaItinerariPDF('${t.id}')" style="flex:1.5; background:#f59e0b; color:white; border:none; padding:8px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">🖨️ Preview & Cetak (1 Kredit)</button>
+            </div>
+            <div style="text-align:right; margin-top:6px;">
+                <a href="#" onclick="pilihPelan('${t.id}', true); return false;" style="font-size:0.72rem; color:#64748b; font-weight:700;">${isAktif ? 'Pelan ini sedang dalam borang' : 'Buka maklumat pelan dalam borang ↑'}</a>
             </div>
         </div>`;
     }).join('');
@@ -929,7 +938,7 @@ window.pilihPelan = (id, scroll = false) => {
     accomList = Array.isArray(trip.accommodation) && trip.accommodation.length ? trip.accommodation : [{ id: Date.now(), name: '', cost: '', nights: '' }];
     transportList = Array.isArray(trip.transportation) && trip.transportation.length ? trip.transportation : [{ id: Date.now()+1, mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true }];
     miscList = Array.isArray(trip.miscellaneous) && trip.miscellaneous.length ? trip.miscellaneous : [{ id: Date.now()+2, name: '', cost: '' }];
-    itineraryList = Array.isArray(trip.itinerary) ? trip.itinerary : []; renderItin();
+    
     
     
     renderAccom(); renderTransport(); renderMisc();
@@ -948,7 +957,7 @@ window.buatPelanBaru = () => {
     currentTripId = null; 
     document.getElementById('trip-name').value = ''; 
     document.getElementById('destination').value = '';
-    accomList = []; transportList = []; miscList = []; itineraryList = []; renderItin(); init();
+    accomList = []; transportList = []; miscList = []; init();
     renderSenaraiPelan();
     showToast('✨ Borang dikosongkan untuk pelan baharu!');
 };
@@ -958,23 +967,7 @@ window.simpanPelanKeDatabase = async () => {
     const title = document.getElementById('trip-name').value;
     if (!title) { alert("Sila masukkan Nama Program / Percutian terlebih dahulu."); return; }
 
-    // RAGUT/PAKSA AMBIL NILAI ITINERARI TERKINI SEBELUM SAVE SUPAYA TAK HILANG
-    itineraryList.forEach(s => {
-        const tEl = document.getElementById(`itin-title-${s.id}`);
-        const dEl = document.getElementById(`itin-date-${s.id}`);
-        const mEl = document.getElementById(`itin-time-${s.id}`);
-        const fEl = document.getElementById(`itin-from-${s.id}`);
-        const kEl = document.getElementById(`itin-to-${s.id}`);
-        const nEl = document.getElementById(`itin-note-${s.id}`);
-        
-        if (tEl) s.title = tEl.value;
-        if (dEl) s.date = dEl.value;
-        if (mEl) s.time = mEl.value;
-        if (fEl) s.from = fEl.value;
-        if (kEl) s.to = kEl.value;
-        if (nEl) s.note = nEl.value;
-    });
-
+   
     let senaraiAhli = [];
     document.querySelectorAll('.fam-check:checked').forEach(cb => { senaraiAhli.push({ nama: cb.value, uid: cb.dataset.uid }); });
 
@@ -989,15 +982,15 @@ window.simpanPelanKeDatabase = async () => {
         monthly_saving: parseFloat(document.getElementById('plan-monthly').textContent.replace('RM ', '')) || 0,
         months_left: parseInt(document.getElementById('plan-months').textContent) || 0,
         accommodation: accomList, transportation: transportList, miscellaneous: miscList,
-        itinerary: itineraryList,
-                team_members: senaraiAhli, owner_uid: currentUser.uid,
+        
+        team_members: senaraiAhli, owner_uid: currentUser.uid,
         anchor_id: jb, belah: document.getElementById('filterBelah').value,
         created_at: (lama && lama.created_at) || Date.now(), updated_at: Date.now()
     };
 
     try {
         const idUnik = currentTripId || ("TRIP_" + Date.now());
-        await setDoc(doc(db, "jombercuti_trips", idUnik), tripData);
+                await setDoc(doc(db, "jombercuti_trips", idUnik), tripData, { merge: true });
         currentTripId = idUnik;
         await window.muatPelanTersimpan(); // Akan kemas kini list dan UI
         showToast("💾 Pelan Percutian Berjaya Disimpan!");
@@ -1069,38 +1062,65 @@ window.renderKalendarWeCare = () => {
     grid.innerHTML = html;
 };
 
-// =================== JADUAL ITINERARI (Untuk PDF) ===================
+// =================== EDITOR JADUAL ITINERARI (tetingkap) ===================
 const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const PDF_PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#cbd5e1"/></svg>');
+let jadualKerja = [], jadualTripId = null;
 
-window.addItinSlot = () => {
-  itineraryList.push({ id: 'i' + Date.now() + Math.floor(Math.random() * 1000), date: document.getElementById('date-go').value || '', time: '', cat: 'activity', title: '', from: '', to: '', note: '' });
-  renderItin();
+window.bukaJadual = (id) => {
+  const t = senaraiPelanTersimpan.find(x => x.id === id); if (!t) return;
+  jadualTripId = id;
+  jadualKerja = (Array.isArray(t.itinerary) ? t.itinerary : []).map(s => ({ ...s }));   // salinan kerja
+  document.getElementById('jadual-tajuk').textContent = t.title || '';
+  document.getElementById('jadual-sub').textContent = `📍 ${t.destination || '-'}  |  ${t.date_go || '-'} → ${t.date_back || '-'}`;
+  renderJadual();
+  document.getElementById('modalJadual').classList.remove('hidden');
 };
-window.removeItin = (id) => { itineraryList = itineraryList.filter(s => s.id !== id); renderItin(); };
-window.updateItinField = (id, f, v, rerender = false) => { const s = itineraryList.find(x => x.id === id); if (s) { s[f] = v; if (rerender) renderItin(); } };
+window.tutupJadual = () => {
+  document.getElementById('modalJadual').classList.add('hidden');
+  jadualKerja = []; jadualTripId = null;
+};
+window.tambahJadual = () => {
+  const t = senaraiPelanTersimpan.find(x => x.id === jadualTripId);
+  jadualKerja.push({ id: 'i' + Date.now() + Math.floor(Math.random() * 1000), date: (t && t.date_go) || '', time: '', title: '', from: '', to: '', note: '' });
+  renderJadual();
+};
+window.padamJadual = (id) => { jadualKerja = jadualKerja.filter(s => s.id !== id); renderJadual(); };
+window.ubahJadual = (id, f, v) => { const s = jadualKerja.find(x => x.id === id); if (s) s[f] = v; };
 
-function renderItin() {
-  const el = document.getElementById('itin-list'); if (!el) return;
-  el.innerHTML = itineraryList.map(s => `
+function renderJadual() {
+  const el = document.getElementById('jadual-list');
+  if (!jadualKerja.length) { el.innerHTML = `<div style="text-align:center; padding:14px; color:#94a3b8; font-size:0.85rem;">Belum ada aktiviti. Tekan "Tambah Aktiviti".</div>`; return; }
+  el.innerHTML = jadualKerja.map(s => `
     <div class="item-card bg-lavender-light">
       <div class="item-header">
-        <div class="field" style="flex:1"><label>Aktiviti</label><input type="text" id="itin-title-${s.id}" placeholder="cth. Check-in hotel" value="${escH(s.title)}" oninput="updateItinField('${s.id}','title',this.value)"></div>
-        <button class="del-btn" onclick="removeItin('${s.id}')">✕</button>
+        <div class="field" style="flex:1"><label>Aktiviti</label><input type="text" placeholder="cth. Check-in hotel" value="${escH(s.title)}" oninput="ubahJadual('${s.id}','title',this.value)"></div>
+        <button class="del-btn" onclick="padamJadual('${s.id}')">✕</button>
       </div>
       <div class="grid-2-col">
-        <div class="field"><label>Tarikh</label><input type="date" id="itin-date-${s.id}" value="${escH(s.date)}" onchange="updateItinField('${s.id}','date',this.value)"></div>
-        <div class="field"><label>Masa</label><input type="time" id="itin-time-${s.id}" value="${escH(s.time)}" onchange="updateItinField('${s.id}','time',this.value)"></div>
+        <div class="field"><label>Tarikh</label><input type="date" value="${escH(s.date)}" onchange="ubahJadual('${s.id}','date',this.value)"></div>
+        <div class="field"><label>Masa</label><input type="time" value="${escH(s.time)}" onchange="ubahJadual('${s.id}','time',this.value)"></div>
       </div>
       <div class="grid-2-col">
-        <div class="field"><label>Dari (pilihan)</label><input type="text" id="itin-from-${s.id}" value="${escH(s.from)}" oninput="updateItinField('${s.id}','from',this.value)"></div>
-        <div class="field"><label>Ke (pilihan)</label><input type="text" id="itin-to-${s.id}" value="${escH(s.to)}" oninput="updateItinField('${s.id}','to',this.value)"></div>
+        <div class="field"><label>Dari (pilihan)</label><input type="text" value="${escH(s.from)}" oninput="ubahJadual('${s.id}','from',this.value)"></div>
+        <div class="field"><label>Ke (pilihan)</label><input type="text" value="${escH(s.to)}" oninput="ubahJadual('${s.id}','to',this.value)"></div>
       </div>
-      <div class="field"><label>Nota Tambahan (untuk cetakan PDF)</label>
-        <input type="text" id="itin-note-${s.id}" placeholder="cth. Baju tema merah / tempahan nama Ali" value="${escH(s.note)}" oninput="updateItinField('${s.id}','note',this.value)">
-      </div>
+      <div class="field"><label>Nota (untuk cetakan)</label><input type="text" placeholder="cth. Baju tema merah" value="${escH(s.note)}" oninput="ubahJadual('${s.id}','note',this.value)"></div>
     </div>`).join('');
 }
+
+window.simpanJadual = async () => {
+  const baris = jadualKerja.filter(s => (s.title || '').trim() || (s.note || '').trim() || (s.from || '').trim());
+  if (baris.some(s => !s.date)) { alert('Sila isi tarikh bagi setiap aktiviti.'); return; }
+  baris.sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')));
+  try {
+    await updateDoc(doc(db, "jombercuti_trips", jadualTripId), { itinerary: baris, updated_at: Date.now() });
+    const t = senaraiPelanTersimpan.find(x => x.id === jadualTripId);
+    if (t) { t.itinerary = baris; t.updated_at = Date.now(); }
+    showToast('💾 Jadual itinerari disimpan!');
+    window.tutupJadual();
+    renderSenaraiPelan();
+  } catch (e) { alert('Gagal menyimpan jadual: ' + e.message); }
+};
 
 // =========================================================================
 // ENJIN CETAK ITINERARI (GAYA MYNASAB - 1 KREDIT)
@@ -1115,7 +1135,7 @@ window.janaItinerariPDF = async (tripId) => {
 
     const itinList = Array.isArray(trip.itinerary) ? trip.itinerary : [];
     if (itinList.length === 0 || itinList.some(s => !s.date)) {
-        alert("⚠️ Tiada jadual itinerari jam-ke-jam disimpan dalam pelan ini.\n\nSila klik 'Edit Pelan', masuk ke 'Mod Itinerari Terperinci', isi jadual, dan klik 'Simpan Pelan' di bawah dahulu.");
+                alert("⚠️ Pelan ini belum ada jadual itinerari.\n\nTekan 'Edit Jadual' pada pelan ini, isi aktiviti, dan Simpan Jadual dahulu.");
         return;
     }
 
