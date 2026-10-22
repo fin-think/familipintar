@@ -42,14 +42,7 @@
     box-shadow: var(--shadow); border: 1px solid #F5F5F5;
   }
 
-  @media (min-width: 768px) {
-    .container { padding-left: 24px; padding-right: 24px; }
-    .main-grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
-    .header, .countdown-banner, .budget-summary { grid-column: 1 / -1; }
-    .card-rombongan { flex: 1; display: flex; flex-direction: column; }
-    .family-check-list { flex: 1; max-height: none !important; }
-  }
-
+ 
   /* Pengepala Standard myNasab */
   .top-navbar {
     background: linear-gradient(to right, #1e1b4b, #0f172a, #172554);
@@ -239,9 +232,29 @@
     .print-table td { padding: 8px 10px; border-top: 1px solid #e2e8f0; font-size: 12px; font-weight: 700; vertical-align: top; }
     .print-table td:nth-child(1) { width: 80px; color: #0B1E4A; font-weight: 900; }
     .print-table .subtitle { display: block; font-size: 10.5px; color: #64748b; font-weight: 600; }
+    .print-header .kicker { font-size: 11px; letter-spacing: 3px; color: #7dd3fc; font-weight: 800; margin-bottom: 4px; }
+    .print-header h1 { font-size: 28px; }
+    .print-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
+    .print-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; break-inside: avoid; }
+    .print-box.full { grid-column: 1 / -1; }
+    .print-box h4 { font-size: 11px; letter-spacing: 1px; color: #E50027; margin-bottom: 6px; }
+    .print-box li { list-style: none; font-size: 12px; font-weight: 700; padding: 2px 0; }
+    .print-box li span { color: #64748b; font-weight: 600; }
+    .print-chip { display: inline-block; background: #eef2ff; color: #0B1E4A; border-radius: 99px; padding: 3px 10px; margin: 0 6px 6px 0; font-size: 11.5px; font-weight: 800; }
+    .print-foot { margin-top: 14px; text-align: center; font-size: 10px; color: #94a3b8; }
   }
   
     .card { scroll-margin-top: 90px; }
+
+  .main-grid-layout { display: flex; flex-direction: column; gap: 20px; margin-bottom: 20px; }
+  .family-check-list { max-height: 320px; overflow-y: auto; }
+  @media (min-width: 768px) {
+    .container { padding-left: 24px; padding-right: 24px; }
+    .main-grid-layout { display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; }
+    .left-column { contain: size; min-height: 520px; }   /* ketinggian kolum kiri ikut kolum kanan */
+    .card-rombongan { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .family-check-list { flex: 1 1 0; min-height: 0; max-height: none; }
+  }
   
 </style>
 </head>
@@ -914,7 +927,7 @@ window.renderSenaraiPelan = () => {
         return `
         <div style="border: 1px solid ${isAktif ? '#3b82f6' : '#e2e8f0'}; background: ${isAktif ? '#eff6ff' : '#ffffff'}; border-radius: 12px; padding: 12px;">
             <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; margin-bottom: 2px;">${escH(t.title)}${lama}</div>
-            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 10px;">📍 ${escH(t.destination || 'Tiada Destinasi')} &nbsp;|&nbsp; 🗓️ ${escH(t.date_go || '-')}</div>
+            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 10px;">📍 ${escH(t.destination || 'Tiada Destinasi')} &nbsp;|&nbsp; 🗓️ ${escH(t.date_go || '-')} &nbsp;|&nbsp; 📋 ${(t.itinerary || []).length} aktiviti</div>
                         <div style="display:flex; gap:8px;">
                 <button onclick="bukaJadual('${t.id}')" style="flex:1.3; background:#3b82f6; color:white; border:none; padding:8px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">🗓️ Edit Jadual</button>
                 <button onclick="janaItinerariPDF('${t.id}')" style="flex:1.5; background:#f59e0b; color:white; border:none; padding:8px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">🖨️ Preview & Cetak (1 Kredit)</button>
@@ -990,6 +1003,7 @@ window.simpanPelanKeDatabase = async () => {
 
     try {
         const idUnik = currentTripId || ("TRIP_" + Date.now());
+              delete tripData.itinerary;   // jadual hanya diubah melalui "Edit Jadual"
                 await setDoc(doc(db, "jombercuti_trips", idUnik), tripData, { merge: true });
         currentTripId = idUnik;
         await window.muatPelanTersimpan(); // Akan kemas kini list dan UI
@@ -1128,104 +1142,76 @@ window.simpanJadual = async () => {
 
 window.janaItinerariPDF = async (tripId) => {
     if (!currentUser) return;
-    
-    // Cari data trip dari memori (berdasarkan butang yang ditekan pada senarai)
-    const trip = senaraiPelanTersimpan.find(t => t.id === tripId);
-    if (!trip) { alert("Ralat: Pelan tidak dijumpai."); return; }
+    let trip = senaraiPelanTersimpan.find(t => t.id === tripId);
+    try {
+        const s = await getDoc(doc(db, "jombercuti_trips", tripId));
+        if (s.exists()) trip = { ...s.data(), id: s.id };
+    } catch (e) { console.warn("Guna salinan memori:", e.message); }
+    if (!trip) { alert("Pelan tidak dijumpai."); return; }
 
     const itinList = Array.isArray(trip.itinerary) ? trip.itinerary : [];
-    if (itinList.length === 0 || itinList.some(s => !s.date)) {
-                alert("⚠️ Pelan ini belum ada jadual itinerari.\n\nTekan 'Edit Jadual' pada pelan ini, isi aktiviti, dan Simpan Jadual dahulu.");
-        return;
-    }
+    if (!itinList.length) { alert("Pelan ini belum ada aktiviti dalam jadual.\n\nTekan 'Edit Jadual', tambah aktiviti, dan 'Simpan Jadual' dahulu."); return; }
+    if (itinList.some(s => !s.date)) { alert("Ada aktiviti tanpa tarikh. Buka 'Edit Jadual' dan lengkapkan tarikh."); return; }
 
     try {
+        binaPaparanCetak(trip, itinList);
         const userRef = doc(db, "mynasab_users", currentUser.uid);
         const userSnap = await getDoc(userRef);
-        
-        if (userSnap.exists()) {
-            let bakiSemasa = parseInt(userSnap.data().credit_balance) || 0;
-            if (bakiSemasa < 1) { 
-                alert("Kredit tidak mencukupi!\nBaki semasa anda: " + bakiSemasa + " Kredit.\n\nSila tambah nilai (Top Up) terlebih dahulu."); 
-                return; 
-            }
-            
-            // Tolak 1 kredit
-            await setDoc(userRef, { credit_balance: bakiSemasa - 1 }, { merge: true });
-            showToast("💎 1 Kredit ditolak. Membuka paparan cetakan...");
-            
-            // Bina paparan cetakan
-            binaPaparanCetak(trip, itinList);
-            
-            // Panggil fungsi print browser (Sama macam myNasab)
-                        window.addEventListener('afterprint', () => {
-                const pa = document.getElementById('itinPrintArea'); if (pa) pa.remove();
-            }, { once: true });
-            setTimeout(() => window.print(), 300);
-
-        } else { alert("Ralat: Akaun pengguna tidak dijumpai."); }
-        alert("⚠️ Pelan ini belum ada jadual itinerari.\n\nKlik 'Edit Pelan', isi Jadual Itinerari (tarikh setiap aktiviti), kemudian tekan 'Simpan Pelan Percutian Ini' dahulu.");
-        } catch (e) { console.error(e); alert("Ralat semasa menyemak kredit atau membuka cetakan. Sila cuba lagi."); }
-  return;
+        const baki = userSnap.exists() ? (parseInt(userSnap.data().credit_balance) || 0) : 0;
+        if (baki < 1) {
+            document.getElementById('itinPrintArea')?.remove();
+            alert("Kredit tidak mencukupi!\nBaki semasa anda: " + baki + " Kredit.\n\nSila tambah nilai (Top Up) terlebih dahulu.");
+            return;
+        }
+        await setDoc(userRef, { credit_balance: baki - 1 }, { merge: true });
+        showToast("💎 1 Kredit ditolak. Membuka paparan cetakan...");
+        window.addEventListener('afterprint', () => { document.getElementById('itinPrintArea')?.remove(); }, { once: true });
+        setTimeout(() => window.print(), 300);
+    } catch (e) {
+        console.error(e);
+        document.getElementById('itinPrintArea')?.remove();
+        alert("Gagal menyediakan cetakan: " + (e.code || '') + " " + (e.message || e));
     }
+};
 
 window.binaPaparanCetak = (trip, itinList) => {
-    const oldArea = document.getElementById('itinPrintArea');
-    if (oldArea) oldArea.remove();
-
+    document.getElementById('itinPrintArea')?.remove();
     const days = [...new Set(itinList.map(s => s.date).filter(Boolean))].sort();
     const dest = trip.destination || 'Destinasi';
-    const go = trip.date_go || ''; 
-    const back = trip.date_back || go;
-    
-    let daysCount = 1;
-    if(go && back) {
-        const ms = new Date(back) - new Date(go); 
-        daysCount = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1);
-    }
-    
-    const formatTkh = (tkh) => tkh ? new Date(tkh).toLocaleDateString('en-MY', { year: 'numeric', month: 'short', day: 'numeric' }) : '-';
-    const formatMasa = (time24) => {
-        if(!time24) return '-'; 
-        let [h, m] = time24.split(':'); let ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
-        return `${String(h).padStart(2,'0')}:${m} ${ampm}`;
-    };
+    const go = trip.date_go || '', back = trip.date_back || go;
+    const daysCount = (go && back) ? Math.max(1, Math.round((new Date(back) - new Date(go)) / 86400000) + 1) : (days.length || 1);
+    const tkh = t => t ? new Date(t).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+    const masa = t => { if (!t) return '-'; let [h, m] = t.split(':'); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${String(h).padStart(2, '0')}:${m} ${ap}`; };
+    const MOD = { car: 'Car', flight: 'Flight', bus: 'Bus', train: 'Train', grab: 'Grab / Taxi' };
 
-    let html = `
-    <div id="itinPrintArea">
-        <div class="print-header">
-            <h1>TRAVEL ITINERARY</h1>
-            <h2>${daysCount} DAYS - TRIP TO ${dest.toUpperCase()}</h2>
-            <p>Departure: ${formatTkh(go)} &nbsp;|&nbsp; Return: ${formatTkh(back)}</p>
-        </div>
-    `;
+    const ahliArr = trip.team_members || [];
+    const ahli = ahliArr.map(m => `<span class="print-chip">${escH(m.nama)}</span>`).join('');
+    const hotel = (trip.accommodation || []).filter(a => a.name).map(a => `<li>${escH(a.name)} <span>· ${escH(a.nights || '-')} nights</span></li>`).join('');
+    const trans = (trip.transportation || []).filter(t => t.from || t.to).map(t => `<li>${MOD[t.mode] || 'Transport'} <span>· ${escH(t.from || '')} ➔ ${escH(t.to || '')}</span></li>`).join('');
+
+        let html = `<div id="itinPrintArea">
+      <div class="print-header">
+        <div class="kicker">TRAVEL ITINERARY</div>
+        <h1>${escH(trip.title || 'Percutian')}</h1>
+        <h2>${daysCount} DAYS · ${escH(dest.toUpperCase())}</h2>
+        <p>Departure: ${tkh(go)} &nbsp;|&nbsp; Return: ${tkh(back)}</p>
+      </div>`;
 
     days.forEach((d, idx) => {
-        const slots = itinList.filter(s => s.date === d).sort((a,b) => (a.time||'').localeCompare(b.time||''));
-        
-        let rows = slots.map(s => `
-            <tr>
-                <td>${formatMasa(s.time)}</td>
-                <td>
-                    ${s.title || '-'}
-                    ${s.from ? `<span class="subtitle">${s.from} ➔${s.to}</span>` : ''}
-                </td>
-                <td>${s.note || '-'}</td>
-            </tr>
-        `).join('');
-
-        html += `
-        <div class="print-day">
-            <h3>DAY ${idx + 1} &nbsp;|&nbsp; ${formatTkh(d)}</h3>
-            <table class="print-table">
-                <thead><tr><th>TIME</th><th>ACTIVITY / LOCATION</th><th>NOTES</th></tr></thead>
-                <tbody>${rows}</tbody>
-            </table>
-        </div>
-        `;
+        const slots = itinList.filter(s => s.date === d).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+        const rows = slots.map(s => `<tr>
+            <td>${masa(s.time)}</td>
+            <td>${escH(s.title || '-')}${s.from ? `<span class="subtitle">${escH(s.from)} ➔ ${escH(s.to || '')}</span>` : ''}</td>
+            <td>${escH(s.note || '-')}</td></tr>`).join('');
+        html += `<div class="print-day"><h3>DAY ${idx + 1} &nbsp;|&nbsp; ${tkh(d)}</h3>
+          <table class="print-table"><thead><tr><th>TIME</th><th>ACTIVITY / LOCATION</th><th>NOTES</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     });
 
-    html += `</div>`;
+    html += `<div class="print-info">` +
+        (ahli ? `<div class="print-box full"><h4>TRAVELLERS (${ahliArr.length})</h4>${ahli}</div>` : '') +
+        (hotel ? `<div class="print-box"><h4>ACCOMMODATION</h4><ul>${hotel}</ul></div>` : '') +
+        (trans ? `<div class="print-box"><h4>TRANSPORT</h4><ul>${trans}</ul></div>` : '') +
+        `</div><div class="print-foot">Generated by JomBercuti · Famili Pintar</div></div>`;
     document.body.insertAdjacentHTML('beforeend', html);
 };
   
