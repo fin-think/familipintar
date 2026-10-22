@@ -300,12 +300,25 @@
                       const planSnap = await window.fbGetDocs(window.fbQuery(window.fbCollection(window.fbDb, "mykids_plans"), window.fbWhere("owner_uid", "==", uid)));
                       const planMap = {};
                       planSnap.forEach(p => { planMap[p.id] = p.data(); });
+                      const lastTadbirK = docSnap.exists() ? ((docSnap.data().summary || {}).last_updated || 0) : 0;
+                      const anakLama = {};
+                      ((docSnap.exists() && (docSnap.data().raw_data || {}).childrenData) || []).forEach(c => { anakLama[c.id] = c; });
                       childrenList.forEach(c => {
                           const p = planMap[c.id];
-                          if (p && p.kos_semasa > 0) {
+                          const lama = anakLama[c.id];
+                          const dariKids = !!(p && p.kos_semasa > 0);
+                          const kidsBaru = dariKids && (p.kos_dikemas || 0) > lastTadbirK;
+                          const adaLama = !!(lama && lama.eduCost > 0);
+                          if (kidsBaru || (dariKids && !adaLama)) {
                               c.eduCost = p.kos_semasa;            // harga hari ini, sudah termasuk destinasi
                               c.eduUniAge = p.umur_masuk || 0;
                               c.eduType = p.jenis_uni || 'local';
+                              c.eduSumber = 'mykids';
+                          } else if (adaLama) {
+                              c.eduCost = lama.eduCost;
+                              c.eduUniAge = lama.eduUniAge || 0;
+                              c.eduType = lama.eduType || 'local';
+                              c.eduSumber = lama.eduSumber || '';
                           }
                       });
                   } catch (e) { console.warn("Gagal baca anggaran myKids:", e.message); }
@@ -616,9 +629,11 @@
 
          // Anak yang ada anggaran myKids guna kos & umur masuk uni sendiri (tiada darab x5).
           // Anak lain guna Kos Umum (Per Anak), dengan darab x5 jika jenis Luar Negara (seperti asal).
-          const kosAnak = (child) => child.eduCost > 0
-            ? child.eduCost
-            : (universityType === 'overseas' ? currentEduCost * 5 : currentEduCost);
+          const kosAnak = (child) => child.eduCost > 0 ? child.eduCost : currentEduCost;
+          const jenisUniRingkas = childrenData.length === 0 ? '-'
+            : childrenData.every(c => (c.eduType || universityType) === 'overseas') ? 'Luar Negara'
+            : childrenData.every(c => (c.eduType || universityType) !== 'overseas') ? 'Tempatan'
+            : 'Campuran';
           const umurUniAnak = (child) => child.eduUniAge > 0 ? child.eduUniAge : uniAge;
  
           const futureEduCostTotal = childrenData.reduce((total, child) => {
@@ -770,7 +785,7 @@
           const formatRM = (val) => "RM " + (parseFloat(val) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           const faraidColors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#f97316', '#64748b'];
 
-          // Fungsi Aset & Hutang
+          // Fungsi Aset & Hutang & Anak
 
           const updateAset = (id, field, value) => {
               setAppData(prev => ({
@@ -799,6 +814,10 @@
           };
           const removeDebt = (id) => setAppData(prev => ({ ...prev, debtsList: prev.debtsList.filter(d => d.id !== id) }));
 
+          const kemaskiniEduAnak = (id, field, value) => {
+              setChildrenData(childrenData.map(c => c.id === id ? { ...c, [field]: field === 'eduType' ? value : toNumber(value) } : c));
+          };
+            
           const getDurationText = (months) => {
               if (months >= 1200) return "Lebih 100 Tahun (Bayaran Minima Tidak Cukup)";
               const y = Math.floor(months / 12);
@@ -817,7 +836,7 @@
 
           const tabs = [
             { id: 1, title: 'Profil', icon: User, desc: 'Keluarga' }, { id: 2, title: 'Aset', icon: Landmark, desc: 'Harta Semasa' },
-            { id: 3, title: 'Liabiliti', icon: CreditCard, desc: 'Hutang' }, { id: 4, title: 'Unjuran', icon: TrendingUp, desc: 'Masa Depan' },
+            { id: 3, title: 'Liabiliti', icon: CreditCard, desc: 'Hutang' }, { id: 4, title: 'Anak', icon: BookOpen, desc: 'Dana Pendidikan' },
             { id: 5, title: 'Faraid', icon: Calculator, desc: 'Wasiat' }, { id: 6, title: 'Dashboard', icon: Activity, desc: 'Analisis' }
           ];
 
@@ -1003,6 +1022,16 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                           </div>
                         </div>
                       </Card>
+
+                        <Card>
+                        <SectionHeader title="Matlamat Persaraan" icon={Wallet} description="Tetapan sasaran kewangan masa depan anda." />
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <Input label="Umur Sasaran Bersara" value={retireAge} onChange={e => setRetireAge(toNumber(e.target.value))} />
+                          <Input label="Jangka Hayat" value={lifeExpectancy} onChange={e => setLifeExpectancy(toNumber(e.target.value))} />
+                          <Input label="Kadar Inflasi (%)" value={inflationRate} onChange={e => setInflationRate(toNumber(e.target.value))} />
+                          <Input label="Pulangan Aset (%)" value={assetReturnRate} onChange={e => setAssetReturnRate(toNumber(e.target.value))} />
+                        </div>
+                      </Card>
                     </div>
                   )}
 
@@ -1119,55 +1148,78 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                     </div>
                   )}
 
-                  {activeTab === 4 && (
+                   {activeTab === 4 && (
                     <div className="space-y-6 animate-fadeIn">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card>
-                          <SectionHeader title="Matlamat Persaraan" icon={Wallet} description="Tetapan sasaran kewangan masa depan anda." />
-                          <div className="grid grid-cols-2 gap-4">
-                            <Input label="Umur Sasaran Bersara" value={retireAge} onChange={e => setRetireAge(toNumber(e.target.value))} />
-                            <Input label="Jangka Hayat" value={lifeExpectancy} onChange={e => setLifeExpectancy(toNumber(e.target.value))} />
-                            <Input label="Kadar Inflasi (%)" value={inflationRate} onChange={e => setInflationRate(toNumber(e.target.value))} />
-                            <Input label="Pulangan Aset (%)" value={assetReturnRate} onChange={e => setAssetReturnRate(toNumber(e.target.value))} />
-                          </div>
-                        </Card>
-                        <Card>
-                          <SectionHeader title="Dana Pendidikan Anak" icon={BookOpen} description="Anggaran kos pendidikan masa depan anak." />
-                          {childrenData.some(c => c.eduCost > 0) && (
-  <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm">
-    <div className="font-semibold text-emerald-800 mb-2">Kos anggaran daripada Anakku Hartaku</div>
-    {childrenData.map(c => (
-      <div key={c.id} className="flex justify-between gap-3 text-slate-700 py-0.5">
-        <span>
-          {c.name || 'Anak'} · umur {c.age}
-          {c.eduCost > 0 ? ` · masuk uni umur ${c.eduUniAge || uniAge} · ${c.eduType === 'overseas' ? 'Luar negara' : 'Tempatan'}` : ''}
-        </span>
-        <span className="font-semibold shrink-0">{c.eduCost > 0 ? formatRM(c.eduCost) : 'Guna kos umum'}</span>
-      </div>
-    ))}
-    <p className="text-xs text-slate-500 mt-2">Kos anggaran, nilai tertinggi. Anak tanpa anggaran myKids guna Kos (Per Anak) di bawah. Inflasi pendidikan dikira ke atas semua.</p>
-  </div>
-)}
+                        <Card className="p-0 overflow-hidden border-slate-200">
+                            <div className="p-5 sm:p-8 border-b border-slate-100 bg-indigo-50/30 flex items-center gap-3">
+                                <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg"><BookOpen size={24} /></div>
+                                <div>
+                                    <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Dana Pendidikan Anak</h2>
+                                    <p className="text-slate-500 text-sm">Anggaran kos pendidikan masa depan setiap anak, diimport daripada <strong>Anakku Hartaku</strong>.</p>
+                                </div>
+                            </div>
+                            <div className="p-5 sm:p-8 space-y-6">
+                                {childrenData.some(c => c.eduSumber === 'mykids') ? (
+                                  <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-800">
+                                    Kos anggaran diimport daripada Anakku Hartaku. Anda boleh ubah di sini.
+                                  </div>
+                                ) : childrenData.length === 0 ? (
+                                  <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-100 text-sm text-indigo-800">
+                                    Belum ada anak. Tambah anak di myNasab atau di tab Profil.
+                                  </div>
+                                ) : (
+                                  <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-100 text-sm text-indigo-800">
+                                    Belum ada anggaran kos? Rancang kerjaya dan kos pengajian di <a href="mykids.html" className="font-bold underline">Anakku Hartaku</a>, atau ubah nilai lalai di bawah.
+                                  </div>
+                                )}
  
-
-                            <div className="grid grid-cols-2 gap-4">
-                            <Input label="Umur Masuk Uni." value={uniAge} onChange={e => setUniAge(toNumber(e.target.value))} />
-                            <Input label="Kos (Per Anak)" value={currentEduCost} onChange={e => setCurrentEduCost(toNumber(e.target.value))} prefix="RM" />
-                          </div>
-                          <Input label="Dana SSPN Semasa" value={sspnFund} onChange={e => setSspnFund(toNumber(e.target.value))} prefix="RM" />
-                          <Input label="Dana ASB Anak" value={asbAnakFund} onChange={e => setAsbAnakFund(toNumber(e.target.value))} prefix="RM" />
-                          <Input label="Inflasi Pendidikan (%)" value={educationInflation} onChange={e => setEducationInflation(toNumber(e.target.value))} />
-                          <div>
-                            <label className="text-sm font-semibold text-slate-700 block mb-1">Jenis Universiti</label>
-                            <select value={universityType} onChange={(e) => setUniversityType(e.target.value)} className="w-full border border-slate-300 rounded-lg py-2 px-3 bg-white">
-                              <option value="local">Universiti Tempatan</option><option value="overseas">Universiti Luar Negara</option>
-                            </select>
-                          </div>
+                                <h3 className="text-base font-bold text-slate-800 mb-2">Senarai Anak</h3>
+                                <div className="space-y-4">
+                                    {childrenData.map((child) => {
+                                        const yUni = Math.max(0, umurUniAnak(child) - child.age);
+                                        const kosMasaDepan = kosAnak(child) * Math.pow(1 + (educationInflation / 100), yUni);
+                                        return (
+                                        <div key={child.id} className="p-4 sm:p-5 border border-slate-200 bg-white rounded-xl sm:rounded-2xl hover:border-indigo-300 shadow-sm">
+                                            <div className="flex items-center justify-between gap-3 mb-3">
+                                                <div className="font-bold text-slate-800">{child.name || 'Anak'} <span className="text-xs font-semibold text-slate-400">· umur {child.age}</span></div>
+                                                {child.eduSumber === 'mykids' && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold uppercase">Dari myKids</span>}
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Kos Semasa (RM)</label>
+                                                    <input type="number" value={kosAnak(child)} onChange={(e) => kemaskiniEduAnak(child.id, 'eduCost', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Umur Masuk Uni</label>
+                                                    <input type="number" value={umurUniAnak(child)} onChange={(e) => kemaskiniEduAnak(child.id, 'eduUniAge', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Jenis</label>
+                                                    <select value={child.eduType || universityType} onChange={(e) => kemaskiniEduAnak(child.id, 'eduType', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2">
+                                                        <option value="local">Tempatan</option>
+                                                        <option value="overseas">Luar Negara</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-3">Anggaran pada umur masuk uni ({yUni} tahun lagi, selepas inflasi pendidikan): <strong className="text-slate-700">{formatRM(kosMasaDepan)}</strong></p>
+                                        </div>
+                                        );
+                                    })}
+                                </div>
+ 
+                                <div className="pt-4 border-t border-slate-100">
+                                    <h3 className="text-base font-bold text-slate-800 mb-4">Dana & Inflasi</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <Input label="Dana SSPN Semasa" value={sspnFund} onChange={e => setSspnFund(toNumber(e.target.value))} prefix="RM" />
+                                        <Input label="Dana ASB Anak" value={asbAnakFund} onChange={e => setAsbAnakFund(toNumber(e.target.value))} prefix="RM" />
+                                        <Input label="Inflasi Pendidikan (%)" value={educationInflation} onChange={e => setEducationInflation(toNumber(e.target.value))} />
+                                    </div>
+                                </div>
+                            </div>
                         </Card>
-                      </div>
                     </div>
                   )}
-
+                    
                   {activeTab === 5 && (
                     <div className="space-y-6 animate-fadeIn">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
@@ -1447,8 +1499,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                           </div>
                           <div className="bg-white/5 p-4 rounded-xl">
                             <p className="text-sm text-slate-400">Jenis Universiti</p>
-                            <p className="text-xl font-bold text-white">{childrenData.some(c => c.eduCost > 0) ? 'Ikut anggaran myKids' : (universityType === 'local' ? 'Tempatan' : 'Luar Negara')}</p>
-                          </div>
+                            <p className="text-xl font-bold text-white">{jenisUniRingkas}</p>
                         </div>
                         <div className="space-y-6 mt-5">
                           <div className="bg-white/5 border border-white/10 rounded-xl p-5">
