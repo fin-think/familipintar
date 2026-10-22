@@ -64,7 +64,7 @@
                 <button onclick="beliKredit(20, 23)" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 shadow-md">Beli Sekarang</button>
             </div>
 
-            <!-- Pakej RM 50 -->
+            <!-- Pakej RM 50 (60 Kredit) -->
             <div class="bg-white border-2 border-slate-100 rounded-2xl p-6 text-center shadow-sm pakej-card relative lg:col-start-2 sm:col-span-1">
                 <h3 class="text-slate-500 font-bold mb-2">Pakej Premium</h3>
                 <div class="text-4xl font-extrabold text-slate-800 mb-1">60 <span class="text-lg">Kredit</span></div>
@@ -73,7 +73,7 @@
                 <button onclick="beliKredit(50, 60)" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900">Beli Sekarang</button>
             </div>
 
-            <!-- Pakej RM 100 -->
+            <!-- Pakej RM 100 (125 Kredit) -->
             <div class="bg-white border-2 border-slate-100 rounded-2xl p-6 text-center shadow-sm pakej-card relative sm:col-span-1">
                 <h3 class="text-slate-500 font-bold mb-2">Pakej Super</h3>
                 <div class="text-4xl font-extrabold text-slate-800 mb-1">125 <span class="text-lg">Kredit</span></div>
@@ -100,64 +100,8 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    
     let currentUser = null;
-
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUser = user;
-            const snap = await getDoc(doc(db, "mynasab_users", user.uid));
-            if (snap.exists()) {
-                document.getElementById('bakiSemasa').innerText = snap.data().credit_balance || 0;
-            }
-        } else {
-            alert("Sila log masuk dahulu untuk top up kredit.");
-            window.location.href = "index.html"; 
-        }
-    });
-
-    window.beliKredit = async (hargaRM, jumlahKredit) => {
-        if (!currentUser) return;
-        
-        const nama = "Kredit Famili Pintar (" + jumlahKredit + ")";
-        const emel = currentUser.email;
-        const uid = currentUser.uid;
-
-        // INI PENTING: Bos perlu panggil API dari server.js bos di sini
-        // Tukar URL ini kepada URL server sebenar bos (cth: https://api.familipintar.com/create-bill)
-       const SERVER_API_URL = "https://us-central1-familipintar.cloudfunctions.net/createBill";
-
-        try {
-            // Tunjuk mesej memuatkan
-            document.body.style.cursor = 'wait';
-            
-            const respon = await fetch(SERVER_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    uid: uid,
-                    emel: emel,
-                    hargaRM: hargaRM,
-                    jumlahKredit: jumlahKredit,
-                    namaPakej: nama
-                })
-            });
-
-            const data = await respon.json();
-            if (data.billUrl) {
-                // Halakan pengguna ke ToyyibPay
-                window.location.href = data.billUrl;
-            } else {
-                alert("Gagal menjana bil pembayaran: " + (data.error || "Ralat tidak diketahui"));
-            }
-        } catch (error) {
-            alert("Sistem sedang diselenggara atau pelayan tergendala. Sila cuba sebentar lagi.");
-            console.error(error);
-        } finally {
-            document.body.style.cursor = 'default';
-        }
-    };
-
-let currentUser = null;
     let namaPelanggan = "Pengguna Famili Pintar"; // Tambah pembolehubah nama
 
     onAuthStateChanged(auth, async (user) => {
@@ -213,7 +157,6 @@ let currentUser = null;
             document.body.style.cursor = 'default';
         }
     };
-    
 </script>
 </body>
 </html>
