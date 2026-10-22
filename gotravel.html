@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>JomBercuti - Perancang & Kewangan</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<!-- Enjin Penjana PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  
 <style>
   :root {
     --sun: #FFD93D; --sky: #6BCFEF; --coral: #FF6B6B; --mint: #6BCB77;
@@ -174,74 +174,37 @@
   .evt-ayah { background: #3b82f6; } .evt-ibu { background: #ec4899; } .evt-umum { background: #10b981; } .evt-bday { background: #f43f5e; } .evt-trip { background: #f59e0b; color: #fff; }
   .cal-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 12px; justify-content: center; }
 
-  /* --- TEMPLAT ITINERARI PDF (MODAL A4) --- */
-  #itinPreviewModal {
-    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 100000;
-    display: flex; flex-direction: column; align-items: center; padding: 40px 20px; overflow-y: auto;
-  }
-  .pdf-canvas-wrapper {
-    background: #0B1E4A; 
-    width: 210mm; /* SKALA A4 SEBENAR */
-    min-height: 297mm; 
-    padding: 12mm; 
-    position: relative; overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 0 auto;
-  }
-  /* Responsif jika skrin kecil */
-  @media (max-width: 850px) { .pdf-canvas-wrapper { transform: scale(0.8); transform-origin: top center; margin-bottom: -15%; } }
-  @media (max-width: 600px) { .pdf-canvas-wrapper { transform: scale(0.48); transform-origin: top center; margin-bottom: -45%; } }
-  
-  .pdf-canvas-wrapper::before { content: ''; position: absolute; top: -50px; left: -50px; width: 150px; height: 150px; background: #FF6B6B; border-radius: 50%; opacity: 0.9; }
-  .pdf-canvas-wrapper::after { content: ''; position: absolute; top: 10%; right: -20px; width: 80px; height: 200px; background: #6BCFEF; border-radius: 99px; opacity: 0.2; transform: rotate(45deg); }
-  .itin-pdf-header { background: #ffffff; border-radius: 16px; padding: 24px; display: flex; gap: 24px; align-items: center; position: relative; z-index: 10; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-  .itin-pdf-img-header { width: 110px; height: 110px; border-radius: 12px; object-fit: cover; background: #e2e8f0; cursor: pointer; border: 2px dashed #cbd5e1; }
-  .itin-pdf-title h1 { color: #0B1E4A; font-weight: 900; font-size: 2.2rem; text-transform: uppercase; margin-bottom: 4px; line-height: 1; font-family: 'Baloo 2', cursive;}
-  .itin-pdf-title h2 { color: #64748b; font-weight: 800; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
-  .itin-pdf-title p { color: #E50027; font-weight: 800; font-size: 0.85rem; }
-  
-  .itin-pdf-day { background: #ffffff; border-radius: 16px; padding: 20px; margin-bottom: 24px; display: flex; gap: 20px; position: relative; z-index: 10; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
-  .itin-pdf-day-img { width: 150px; height: 150px; border-radius: 12px; overflow: hidden; position: relative; flex-shrink: 0; background: #f1f5f9; cursor: pointer; border: 2px dashed #cbd5e1; }
-  .itin-pdf-day-img img { width: 100%; height: 100%; object-fit: cover; }
-  .itin-pdf-badge { position: absolute; bottom: 0; right: 0; background: rgba(11, 30, 74, 0.85); color: white; padding: 8px 12px; border-top-left-radius: 12px; font-weight: 900; font-size: 1.1rem; line-height: 1; text-align: center; }
-  .itin-pdf-table { flex: 1; width: 100%; border-collapse: collapse; }
-  .itin-pdf-table th { text-align: left; color: #E50027; font-weight: 900; font-size: 0.8rem; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; text-transform: uppercase; }
-  .itin-pdf-table td { padding: 10px 0; border-bottom: 1px solid #f8fafc; font-size: 0.85rem; color: #334155; font-weight: 700; vertical-align: top;}
-  .itin-pdf-table td:nth-child(1) { width: 85px; font-weight: 900; color: #0B1E4A; }
-  .itin-pdf-table td:nth-child(2) { padding-right: 15px; }
-
-  .pdf-print-controls { position: sticky; bottom: 20px; z-index: 100001; display: flex; gap: 12px; margin-top: 20px; }
-  .btn-download-pdf { background: #10b981; color: white; border: none; padding: 14px 24px; font-size: 1rem; font-weight: 800; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-  .btn-download-pdf:hover { background: #059669; }
-
-  /* --- CETAKAN ITINERARI (gaya myNasab) --- */
-  #itinPrintArea { display: none; }
+   #itinPreviewModal { position: fixed; inset: 0; background: rgba(15,23,42,.8); z-index: 6000; overflow-y: auto; padding: 16px; display: flex; justify-content: center; }
+  .itin-sheet { background: #fff; width: 100%; max-width: 794px; border-radius: 12px; padding: 18px; margin: auto; color: #0f172a; font-family: 'Nunito', sans-serif; }
+  .itin-actions { display: flex; gap: 8px; margin-bottom: 14px; }
+  .itin-actions button { border: none; border-radius: 10px; padding: 11px 16px; font-weight: 800; cursor: pointer; }
+  .print-header { background: #0B1E4A; color: #fff; border-radius: 12px; padding: 18px 22px; margin-bottom: 16px; }
+  .print-header .kicker { font-size: 11px; letter-spacing: 3px; color: #7dd3fc; font-weight: 800; margin-bottom: 4px; }
+  .print-header h1 { font-family: 'Baloo 2', cursive; font-size: 28px; line-height: 1.05; margin-bottom: 4px; }
+  .print-header h2 { font-size: 13px; letter-spacing: 2px; color: #7dd3fc; margin-bottom: 8px; }
+  .print-header p { font-size: 12px; font-weight: 700; color: #fecaca; }
+  .print-day { margin-bottom: 16px; break-inside: avoid; }
+  .print-day h3 { background: #E50027; color: #fff; padding: 6px 12px; border-radius: 8px 8px 0 0; font-size: 13px; }
+  .print-table { width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; }
+  .print-table th { background: #f1f5f9; color: #0B1E4A; text-align: left; font-size: 11px; padding: 6px 10px; }
+  .print-table td { padding: 8px 10px; border-top: 1px solid #e2e8f0; font-size: 12px; font-weight: 700; vertical-align: top; }
+  .print-table td:nth-child(1) { width: 80px; color: #0B1E4A; font-weight: 900; }
+  .print-table .subtitle { display: block; font-size: 10.5px; color: #64748b; font-weight: 600; }
+  .print-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
+  .print-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; break-inside: avoid; }
+  .print-box.full { grid-column: 1 / -1; }
+  .print-box h4 { font-size: 11px; letter-spacing: 1px; color: #E50027; margin-bottom: 6px; }
+  .print-box li { list-style: none; font-size: 12px; font-weight: 700; padding: 2px 0; }
+  .print-box li span { color: #64748b; font-weight: 600; }
+  .print-chip { display: inline-block; background: #eef2ff; color: #0B1E4A; border-radius: 99px; padding: 3px 10px; margin: 0 6px 6px 0; font-size: 11.5px; font-weight: 800; }
+  .print-foot { margin-top: 14px; text-align: center; font-size: 10px; color: #94a3b8; }
   @media print {
     @page { size: A4 portrait; margin: 12mm; }
-    body::before, #toast { display: none !important; }
-    body > *:not(#itinPrintArea) { display: none !important; }
-    #itinPrintArea { display: block !important; color: #0f172a; font-family: 'Nunito', sans-serif; }
-    #itinPrintArea * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .print-header { background: #0B1E4A; color: #fff; border-radius: 12px; padding: 18px 22px; margin-bottom: 16px; }
-    .print-header h1 { font-family: 'Baloo 2', cursive; font-size: 26px; line-height: 1; margin-bottom: 4px; }
-    .print-header h2 { font-size: 13px; letter-spacing: 2px; color: #7dd3fc; margin-bottom: 8px; }
-    .print-header p { font-size: 12px; font-weight: 700; color: #fecaca; }
-    .print-day { margin-bottom: 16px; break-inside: avoid; }
-    .print-day h3 { background: #E50027; color: #fff; padding: 6px 12px; border-radius: 8px 8px 0 0; font-size: 13px; }
-    .print-table { width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; }
-    .print-table th { background: #f1f5f9; color: #0B1E4A; text-align: left; font-size: 11px; padding: 6px 10px; }
-    .print-table td { padding: 8px 10px; border-top: 1px solid #e2e8f0; font-size: 12px; font-weight: 700; vertical-align: top; }
-    .print-table td:nth-child(1) { width: 80px; color: #0B1E4A; font-weight: 900; }
-    .print-table .subtitle { display: block; font-size: 10.5px; color: #64748b; font-weight: 600; }
-    .print-header .kicker { font-size: 11px; letter-spacing: 3px; color: #7dd3fc; font-weight: 800; margin-bottom: 4px; }
-    .print-header h1 { font-size: 28px; }
-    .print-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
-    .print-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; break-inside: avoid; }
-    .print-box.full { grid-column: 1 / -1; }
-    .print-box h4 { font-size: 11px; letter-spacing: 1px; color: #E50027; margin-bottom: 6px; }
-    .print-box li { list-style: none; font-size: 12px; font-weight: 700; padding: 2px 0; }
-    .print-box li span { color: #64748b; font-weight: 600; }
-    .print-chip { display: inline-block; background: #eef2ff; color: #0B1E4A; border-radius: 99px; padding: 3px 10px; margin: 0 6px 6px 0; font-size: 11.5px; font-weight: 800; }
-    .print-foot { margin-top: 14px; text-align: center; font-size: 10px; color: #94a3b8; }
+    body > *:not(#itinPreviewModal) { display: none !important; }
+    #itinPreviewModal { position: static; background: none; padding: 0; overflow: visible; display: block; }
+    .itin-sheet { max-width: none; border-radius: 0; padding: 0; margin: 0; }
+    .itin-actions { display: none !important; }
+    .itin-sheet * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
   
     .card { scroll-margin-top: 90px; }
@@ -309,6 +272,7 @@
   <div class="filter-section">
       <label style="font-size:0.8rem; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:5px; display:block;">Pilih Rangkaian Keluarga</label>
       <select id="filterBelah" onchange="tukarBelah()">
+          <option value="saya">🏠 Keluarga Saya (isi rumah)</option>
           <option value="induk">👨‍👦 Keluarga Induk (Belah Saya)</option>
           <option value="pasangan">👩‍👧 Keluarga Pasangan (Belah Isteri/Suami)</option>
       </select>
@@ -426,6 +390,15 @@
     </div>
   </div>
 </div>
+
+      <div class="card hidden" id="dikongsi-card" style="border:2px solid #c7d2fe; background:#eef2ff;">
+        <div class="card-header" style="margin-bottom:10px;">
+          <div class="card-title-wrap"><div class="card-icon" style="background:#4f46e5; color:#fff;">📬</div><h2 style="font-size:1.1rem;">Itinerari Dikongsi Dengan Saya</h2></div>
+          <span id="dikongsi-badge" class="hidden" style="background:#ef4444; color:#fff; border-radius:99px; padding:2px 9px; font-size:0.75rem; font-weight:800;">0</span>
+        </div>
+        <div id="dikongsi-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
       
       <!-- KAD SENARAI PELAN & CETAKAN PDF -->
       <div class="card" style="border: 2px solid #e2e8f0; margin-top:10px;">
@@ -483,7 +456,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -517,6 +490,7 @@
             init(); 
             await window.muatKeluargaRombongan(); 
             await window.muatPelanTersimpan();
+            window.muatDikongsi();
         } else {
             currentUser = null;
             if (authScreen) authScreen.classList.remove('hidden');
@@ -648,7 +622,7 @@ window.muatKeluargaRombongan = async () => {
             const key = (n.name || '').toLowerCase().trim();
             if (!key || dilihat.has(key)) return;
             dilihat.add(key);
-            const rekod = { uid: (n.is_root && n.owner_uid !== saya) ? n.owner_uid : n.id, name: n.name, role: peranKad(n), dob: n.dob };
+            const rekod = { uid: (n.is_root && n.owner_uid !== saya) ? n.owner_uid : n.id, name: n.name, role: peranKad(n), dob: n.dob, akaun: !!(n.is_root && n.owner_uid !== saya) };
             kumpulan[jenis].push(rekod); globalTeamMap.set(key, rekod);
         };
         
@@ -669,7 +643,7 @@ window.muatKeluargaRombongan = async () => {
 
         tambahRumah(kSaya, susunKiri([kSaya.diri, ...kSaya.pasangan]), 'rumah');
 
-        if (pilihanBelah === 'induk') {
+if (pilihanBelah === 'saya') { /* isi rumah sahaja */ } else if (pilihanBelah === 'induk') {
             tambahAtasan(sayaInduk ? kSaya.diri.id : sasaranIdPusat, [ibuBapaPusat, ...sisaLeluhurPusat], true);
             tambahAdikBerpaut(sasaranIdPusat);
             if (!sayaInduk && kInduk.diri && !sembunyi.includes(indukUid)) { tambahRumah(kInduk, [kInduk.diri, ...kInduk.pasangan], 'sisi'); }
@@ -678,17 +652,17 @@ window.muatKeluargaRombongan = async () => {
             kSaya.pasangan.forEach((p, i) => { tambahAtasan(p.id, [kSaya.mertua], i === 0); tambahAdikBerpaut(p.id); });
         }
 
-        const kad = (r) => `
+        const kad = (r, pra) => `
             <label class="family-item">
-                <input type="checkbox" class="fam-check" value="${esc(r.name)}" data-uid="${esc(r.uid)}" ${(r.role === 'Anda' || r.role === 'Pasangan') ? 'checked' : ''}>
+                <input type="checkbox" class="fam-check" value="${esc(r.name)}" data-uid="${esc(r.uid)}" data-akaun="${r.akaun ? 1 : 0}" ${pra ? 'checked' : ''}>
                 <div><div class="f-name">${esc(r.name)}</div><div class="f-role">${esc(r.role)}</div></div>
             </label>`;
-        const bahagian = (tajuk, arr) => arr.length ? `<div class="fam-group">${tajuk}</div>` + arr.map(kad).join('') : '';
+        const bahagian = (tajuk, arr, pra = false) => arr.length ? `<div class="fam-group">${tajuk}</div>` + arr.map(x => kad(x, pra)).join('') : '';
 
         const tajukAtas = pilihanBelah === 'induk' ? 'Ibu Bapa & Leluhur' : 'Mertua & Leluhur';
         const tajukSisi = pilihanBelah === 'induk' ? 'Adik-beradik & Keluarga' : 'Adik-beradik Pasangan & Keluarga';
 
-        let htmlList = bahagian('Isi Rumah', kumpulan.rumah) + bahagian(tajukAtas, kumpulan.atas) + bahagian(tajukSisi, kumpulan.sisi);
+        let htmlList = bahagian('Isi Rumah', kumpulan.rumah, true) + bahagian(tajukAtas, kumpulan.atas) + bahagian(tajukSisi, kumpulan.sisi);
         if (pilihanBelah === 'pasangan' && kSaya.pasangan.length === 0) { htmlList += "<div style='color:#888; font-size:0.8rem; text-align:center; padding:8px;'>Belum ada pasangan dalam myNasab, jadi belah pasangan belum dapat dipaparkan.</div>"; }
         if (!htmlList) htmlList = "<div style='color:#888; font-size:0.9rem; text-align:center;'>Tiada rekod keluarga dijumpai.</div>";
         kotakSenarai.innerHTML = htmlList;
@@ -885,8 +859,14 @@ window.toggleAlarm = () => {
 let currentTripId = null;
 let senaraiPelanTersimpan = [];
 
-const anchorSemasa = () => (document.getElementById('filterBelah').value === 'pasangan') ? jangkarCal.pasangan : jangkarCal.induk;
-const padanBelah = (t) => !t.anchor_id || t.anchor_id === anchorSemasa();   // pelan lama (tiada anchor) muncul di kedua-dua belah
+const belahSemasa = () => document.getElementById('filterBelah').value;
+const anchorSemasa = () => { const b = belahSemasa(); return b === 'pasangan' ? jangkarCal.pasangan : b === 'induk' ? jangkarCal.induk : null; };
+const padanBelah = (t) => {
+    const b = belahSemasa();
+    if (t.belah === 'saya') return b === 'saya';
+    if (b === 'saya') return !t.anchor_id;                    // pelan lama tanpa belah turut muncul
+    return !t.anchor_id || t.anchor_id === anchorSemasa();
+};
 const pelanBelahIni = () => senaraiPelanTersimpan.filter(padanBelah);
 
 window.tukarBelah = async () => {
@@ -913,7 +893,7 @@ window.muatPelanTersimpan = async (idPilih = null) => {
 // PAPAR SENARAI PELAN DENGAN BUTANG EDIT & CETAK
 window.renderSenaraiPelan = () => {
     const bekas = document.getElementById('senarai-pelan-list'); if (!bekas) return;
-    const tajukBelah = document.getElementById('filterBelah').value === 'pasangan' ? 'Keluarga Pasangan' : 'Keluarga Induk';
+    const tajukBelah = ({ saya: 'Keluarga Saya', induk: 'Keluarga Induk', pasangan: 'Keluarga Pasangan' })[belahSemasa()];
     const senarai = pelanBelahIni();
     const label = `<div style="font-size:0.75rem; font-weight:800; color:#4f46e5;">Belah: ${tajukBelah}</div>`;
 
@@ -982,11 +962,12 @@ window.simpanPelanKeDatabase = async () => {
 
    
     let senaraiAhli = [];
-    document.querySelectorAll('.fam-check:checked').forEach(cb => { senaraiAhli.push({ nama: cb.value, uid: cb.dataset.uid }); });
+    document.querySelectorAll('.fam-check:checked').forEach(cb => { senaraiAhli.push({ nama: cb.value, uid: cb.dataset.uid, akaun: cb.dataset.akaun === '1' }); });
 
-    const jb = anchorSemasa();
-    if (!jb) { alert('Belah ini belum ada pasangan dalam myNasab. Tambah pasangan dahulu.'); return; }
+    const jb = anchorSemasa(), belah = belahSemasa();
+    if (belah !== 'saya' && !jb) { alert('Belah ini belum ada pasangan dalam myNasab. Tambah pasangan dahulu.'); return; }
     const lama = senaraiPelanTersimpan.find(t => t.id === currentTripId);
+    const penerima = [...new Set(senaraiAhli.filter(m => m.akaun).map(m => m.uid))].filter(u => u !== currentUser.uid);
   
     const tripData = {
         title: title, destination: document.getElementById('destination').value,
@@ -997,7 +978,9 @@ window.simpanPelanKeDatabase = async () => {
         accommodation: accomList, transportation: transportList, miscellaneous: miscList,
         
         team_members: senaraiAhli, owner_uid: currentUser.uid,
-        anchor_id: jb, belah: document.getElementById('filterBelah').value,
+                anchor_id: jb || null, belah, share_with: penerima,
+        owner_name: currentUser.email.split('@')[0],
+        ...((lama && lama.published) ? { viewer_uids: penerima } : {}),
         created_at: (lama && lama.created_at) || Date.now(), updated_at: Date.now()
     };
 
@@ -1064,7 +1047,8 @@ window.renderKalendarWeCare = () => {
         if ( isTrip && (tkhKunci === goVal || tkhKunci === backVal) ) { htmlEvents += `<div class="cal-event evt-trip">🏖️ ${tkhKunci === goVal ? 'Pergi' : 'Balik'}</div>`; }
         globalTeamMap.forEach(v => { if (v.dob && v.dob.substring(5) === mmdd) { htmlEvents += `<div class="cal-event evt-bday" title="Hari Jadi ${esc(v.name)}">🎂 ${esc(v.name.split(' ')[0])}</div>`; } });
 
-        const tugasan = dataWeCareCal.filter(t => { const jItem = t.anchor_id || (t.belah === 'pasangan' ? jangkarCal.lamaPasangan : jangkarCal.lamaInduk); return jSemasa && jItem === jSemasa && tkhKunci >= t.date && tkhKunci <= (t.end_date || t.date); });
+        const tugasan = dataWeCareCal.filter(t => { const jItem = t.anchor_id || (t.belah === 'pasangan' ? jangkarCal.lamaPasangan : jangkarCal.lamaInduk); const okBelah = jSemasa ? jItem === jSemasa : (jItem === jangkarCal.induk || jItem === jangkarCal.pasangan);
+return okBelah && tkhKunci >= t.date && tkhKunci <= (t.end_date || t.date);
         tugasan.forEach(t => {
             let warna = 'evt-umum'; if (t.for_whom === 'ayah') warna = 'evt-ayah'; if (t.for_whom === 'ibu') warna = 'evt-ibu';
             const shift = (t.shift_siapa && t.shift_siapa !== 'Umum') ? `[${t.shift_siapa}] ` : '';
@@ -1140,38 +1124,62 @@ window.simpanJadual = async () => {
 // ENJIN CETAK ITINERARI (GAYA MYNASAB - 1 KREDIT)
 // =========================================================================
 
-window.janaItinerariPDF = async (tripId) => {
-    if (!currentUser) return;
-    let trip = senaraiPelanTersimpan.find(t => t.id === tripId);
+window.janaDanKongsi = async (tripId) => {
+    const ref = doc(db, "jombercuti_trips", tripId);
+    const s = await getDoc(ref); if (!s.exists()) return;
+    const trip = { ...s.data(), id: s.id }; const itin = trip.itinerary || [];
+    if (!itin.length) { alert("Pelan ini belum ada aktiviti. Tekan 'Edit Jadual' dan Simpan Jadual dahulu."); return; }
+    if (itin.some(x => !x.date)) { alert("Ada aktiviti tanpa tarikh. Lengkapkan di 'Edit Jadual'."); return; }
+    const penerima = trip.share_with || [];
+    if (!confirm(`Jana itinerari dan kongsi kepada ${penerima.length} ahli berakaun?\n\nCaj: 1 Kredit (sekali sahaja bagi pelan ini).`)) return;
+    try {
+        const userRef = doc(db, "mynasab_users", currentUser.uid);
+        const baki = parseInt((await getDoc(userRef)).data().credit_balance) || 0;
+        if (baki < 1) { alert("Kredit tidak mencukupi. Baki: " + baki + "."); return; }
+        await setDoc(userRef, { credit_balance: baki - 1 }, { merge: true });
+        try {
+            await updateDoc(ref, { published: true, published_at: Date.now(), viewer_uids: penerima, seen_by: [] });
+        } catch (e) { await setDoc(userRef, { credit_balance: baki }, { merge: true }); throw e; }   // pulangkan kredit jika gagal
+        const t = senaraiPelanTersimpan.find(x => x.id === tripId); if (t) Object.assign(t, { published: true, viewer_uids: penerima });
+        renderSenaraiPelan(); showToast("✅ Itinerari dijana & dikongsi!"); bukaPreview(tripId);
+    } catch (e) { console.error(e); alert("Gagal menjana: " + (e.code || '') + " " + (e.message || e)); }
+};
+
+window.bukaPreview = async (tripId) => {
     try {
         const s = await getDoc(doc(db, "jombercuti_trips", tripId));
-        if (s.exists()) trip = { ...s.data(), id: s.id };
-    } catch (e) { console.warn("Guna salinan memori:", e.message); }
-    if (!trip) { alert("Pelan tidak dijumpai."); return; }
-
-    const itinList = Array.isArray(trip.itinerary) ? trip.itinerary : [];
-    if (!itinList.length) { alert("Pelan ini belum ada aktiviti dalam jadual.\n\nTekan 'Edit Jadual', tambah aktiviti, dan 'Simpan Jadual' dahulu."); return; }
-    if (itinList.some(s => !s.date)) { alert("Ada aktiviti tanpa tarikh. Buka 'Edit Jadual' dan lengkapkan tarikh."); return; }
-
-    try {
-        binaPaparanCetak(trip, itinList);
-        const userRef = doc(db, "mynasab_users", currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        const baki = userSnap.exists() ? (parseInt(userSnap.data().credit_balance) || 0) : 0;
-        if (baki < 1) {
-            document.getElementById('itinPrintArea')?.remove();
-            alert("Kredit tidak mencukupi!\nBaki semasa anda: " + baki + " Kredit.\n\nSila tambah nilai (Top Up) terlebih dahulu.");
-            return;
+        if (!s.exists()) { alert("Itinerari tidak dijumpai."); return; }
+        const trip = { ...s.data(), id: s.id };
+        document.getElementById('itinPreviewModal')?.remove();
+        document.body.insertAdjacentHTML('beforeend', `
+          <div id="itinPreviewModal"><div class="itin-sheet">
+            <div class="itin-actions">
+              <button style="background:#f59e0b; color:#fff;" onclick="window.print()">🖨️ Cetak / Save PDF</button>
+              <button style="background:#f1f5f9; color:#475569;" onclick="document.getElementById('itinPreviewModal').remove()">Tutup</button>
+            </div>${binaPaparanCetak(trip, trip.itinerary || [])}</div></div>`);
+        if (trip.owner_uid !== currentUser.uid && !(trip.seen_by || []).includes(currentUser.uid)) {
+            await updateDoc(doc(db, "jombercuti_trips", tripId), { seen_by: arrayUnion(currentUser.uid) });
+            muatDikongsi();
         }
-        await setDoc(userRef, { credit_balance: baki - 1 }, { merge: true });
-        showToast("💎 1 Kredit ditolak. Membuka paparan cetakan...");
-        window.addEventListener('afterprint', () => { document.getElementById('itinPrintArea')?.remove(); }, { once: true });
-        setTimeout(() => window.print(), 300);
-    } catch (e) {
-        console.error(e);
-        document.getElementById('itinPrintArea')?.remove();
-        alert("Gagal menyediakan cetakan: " + (e.code || '') + " " + (e.message || e));
-    }
+    } catch (e) { alert("Gagal membuka itinerari: " + (e.code || e.message)); }
+};
+
+window.muatDikongsi = async () => {
+    try {
+        const s = await getDocs(query(collection(db, "jombercuti_trips"), where("viewer_uids", "array-contains", currentUser.uid)));
+        const arr = s.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (b.published_at || 0) - (a.published_at || 0));
+        document.getElementById('dikongsi-card').classList.toggle('hidden', !arr.length);
+        const baru = arr.filter(t => !(t.seen_by || []).includes(currentUser.uid)).length;
+        const bdg = document.getElementById('dikongsi-badge'); bdg.textContent = baru; bdg.classList.toggle('hidden', !baru);
+        document.title = (baru ? `(${baru}) ` : '') + 'JomBercuti - Perancang & Kewangan';
+        document.getElementById('dikongsi-list').innerHTML = arr.map(t => {
+            const isBaru = !(t.seen_by || []).includes(currentUser.uid);
+            return `<div style="background:#fff; border:1px solid ${isBaru ? '#818cf8' : '#e2e8f0'}; border-radius:12px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <div><div style="font-weight:800; font-size:0.9rem;">${escH(t.title)} ${isBaru ? '<span style="color:#ef4444; font-size:0.7rem;">● BARU</span>' : ''}</div>
+              <div style="font-size:0.72rem; color:#64748b;">📍 ${escH(t.destination || '-')} · 🗓️ ${escH(t.date_go || '-')} · oleh ${escH(t.owner_name || '-')}</div></div>
+              <button onclick="bukaPreview('${t.id}')" style="background:#4f46e5; color:#fff; border:none; border-radius:8px; padding:8px 12px; font-weight:800; font-size:0.8rem; cursor:pointer;">👁️ Lihat</button></div>`;
+        }).join('');
+    } catch (e) { console.warn("Gagal muat itinerari dikongsi:", e.message); }
 };
 
 window.binaPaparanCetak = (trip, itinList) => {
@@ -1189,7 +1197,7 @@ window.binaPaparanCetak = (trip, itinList) => {
     const hotel = (trip.accommodation || []).filter(a => a.name).map(a => `<li>${escH(a.name)} <span>· ${escH(a.nights || '-')} nights</span></li>`).join('');
     const trans = (trip.transportation || []).filter(t => t.from || t.to).map(t => `<li>${MOD[t.mode] || 'Transport'} <span>· ${escH(t.from || '')} ➔ ${escH(t.to || '')}</span></li>`).join('');
 
-        let html = `<div id="itinPrintArea">
+        let html = `<div>
       <div class="print-header">
         <div class="kicker">TRAVEL ITINERARY</div>
         <h1>${escH(trip.title || 'Percutian')}</h1>
