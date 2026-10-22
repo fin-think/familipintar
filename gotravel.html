@@ -219,6 +219,28 @@
   .pdf-print-controls { position: sticky; bottom: 20px; z-index: 100001; display: flex; gap: 12px; margin-top: 20px; }
   .btn-download-pdf { background: #10b981; color: white; border: none; padding: 14px 24px; font-size: 1rem; font-weight: 800; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
   .btn-download-pdf:hover { background: #059669; }
+
+  /* --- CETAKAN ITINERARI (gaya myNasab) --- */
+  #itinPrintArea { display: none; }
+  @media print {
+    @page { size: A4 portrait; margin: 12mm; }
+    body::before, #toast { display: none !important; }
+    body > *:not(#itinPrintArea) { display: none !important; }
+    #itinPrintArea { display: block !important; color: #0f172a; font-family: 'Nunito', sans-serif; }
+    #itinPrintArea * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-header { background: #0B1E4A; color: #fff; border-radius: 12px; padding: 18px 22px; margin-bottom: 16px; }
+    .print-header h1 { font-family: 'Baloo 2', cursive; font-size: 26px; line-height: 1; margin-bottom: 4px; }
+    .print-header h2 { font-size: 13px; letter-spacing: 2px; color: #7dd3fc; margin-bottom: 8px; }
+    .print-header p { font-size: 12px; font-weight: 700; color: #fecaca; }
+    .print-day { margin-bottom: 16px; break-inside: avoid; }
+    .print-day h3 { background: #E50027; color: #fff; padding: 6px 12px; border-radius: 8px 8px 0 0; font-size: 13px; }
+    .print-table { width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; }
+    .print-table th { background: #f1f5f9; color: #0B1E4A; text-align: left; font-size: 11px; padding: 6px 10px; }
+    .print-table td { padding: 8px 10px; border-top: 1px solid #e2e8f0; font-size: 12px; font-weight: 700; vertical-align: top; }
+    .print-table td:nth-child(1) { width: 80px; color: #0B1E4A; font-weight: 900; }
+    .print-table .subtitle { display: block; font-size: 10.5px; color: #64748b; font-weight: 600; }
+  }
+  
 </style>
 </head>
 <body>
@@ -901,7 +923,7 @@ window.pilihPelan = (id) => {
     miscList = Array.isArray(trip.miscellaneous) && trip.miscellaneous.length ? trip.miscellaneous : [{ id: Date.now()+2, name: '', cost: '' }];
     itineraryList = Array.isArray(trip.itinerary) ? trip.itinerary : []; renderItin();
     
-    window.setBudgetMode(trip.budget_mode || 'simple');
+    
     renderAccom(); renderTransport(); renderMisc();
 
     if (Array.isArray(trip.team_members)) {
@@ -954,7 +976,7 @@ window.simpanPelanKeDatabase = async () => {
         monthly_saving: parseFloat(document.getElementById('plan-monthly').textContent.replace('RM ', '')) || 0,
         months_left: parseInt(document.getElementById('plan-months').textContent) || 0,
         accommodation: accomList, transportation: transportList, miscellaneous: miscList,
-        budget_mode: budgetMode, itinerary: itineraryList,
+        itinerary: itineraryList,
         team_members: senaraiAhli, owner_uid: currentUser.uid, created_at: Date.now()
     };
 
@@ -1101,19 +1123,13 @@ window.janaItinerariPDF = async (tripId) => {
             binaPaparanCetak(trip, itinList);
             
             // Panggil fungsi print browser (Sama macam myNasab)
-            setTimeout(() => {
-                window.print();
-                
-                // Lepas print/save, buang balik area tu supaya tak kacau page
-                setTimeout(() => {
-                    const printArea = document.getElementById('itinPrintArea');
-                    if(printArea) printArea.remove();
-                }, 1000);
-                
-            }, 500);
+                        window.addEventListener('afterprint', () => {
+                const pa = document.getElementById('itinPrintArea'); if (pa) pa.remove();
+            }, { once: true });
+            setTimeout(() => window.print(), 300);
 
         } else { alert("Ralat: Akaun pengguna tidak dijumpai."); }
-    } catch (e) { console.error(e); alert("Ralat menyemak kredit. Pastikan internet anda stabil."); }
+    } catch (e) { console.error(e); alert("⚠️ Pelan ini belum ada jadual itinerari.\n\nKlik 'Edit Pelan', isi Jadual Itinerari (tarikh setiap aktiviti), kemudian tekan 'Simpan Pelan Percutian Ini' dahulu."); }
 };
 
 window.binaPaparanCetak = (trip, itinList) => {
