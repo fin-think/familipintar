@@ -241,6 +241,8 @@
     .print-table .subtitle { display: block; font-size: 10.5px; color: #64748b; font-weight: 600; }
   }
   
+    .card { scroll-margin-top: 90px; }
+  
 </style>
 </head>
 <body>
@@ -293,7 +295,7 @@
 
   <div class="filter-section">
       <label style="font-size:0.8rem; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:5px; display:block;">Pilih Rangkaian Keluarga</label>
-      <select id="filterBelah" onchange="muatKeluargaRombongan()">
+      <select id="filterBelah" onchange="tukarBelah()">
           <option value="induk">👨‍👦 Keluarga Induk (Belah Saya)</option>
           <option value="pasangan">👩‍👧 Keluarga Pasangan (Belah Isteri/Suami)</option>
       </select>
@@ -860,56 +862,62 @@ window.toggleAlarm = () => {
 let currentTripId = null;
 let senaraiPelanTersimpan = [];
 
-window.muatPelanTersimpan = async () => {
+const anchorSemasa = () => (document.getElementById('filterBelah').value === 'pasangan') ? jangkarCal.pasangan : jangkarCal.induk;
+const padanBelah = (t) => !t.anchor_id || t.anchor_id === anchorSemasa();   // pelan lama (tiada anchor) muncul di kedua-dua belah
+const pelanBelahIni = () => senaraiPelanTersimpan.filter(padanBelah);
+
+window.tukarBelah = async () => {
+    await window.muatKeluargaRombongan();
+    const cur = senaraiPelanTersimpan.find(t => t.id === currentTripId);
+    if (cur && !padanBelah(cur)) {
+        const senarai = pelanBelahIni();
+        if (senarai.length) window.pilihPelan(senarai[0].id); else window.buatPelanBaru();
+    } else renderSenaraiPelan();
+};
+
+  
+window.muatPelanTersimpan = async (idPilih = null) => {
     if (!currentUser) return;
     try {
-        const q = query(collection(db, "jombercuti_trips"), where("owner_uid", "==", currentUser.uid));
-        const snap = await getDocs(q);
-        if (snap.empty) {
-            renderSenaraiPelan(); 
-            return;
-        }
-
-        senaraiPelanTersimpan = snap.docs
-            .map(d => ({ ...d.data(), id: d.id }))
-            .sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
-
-        window.pilihPelan(senaraiPelanTersimpan[0].id);
-        renderSenaraiPelan();
+        const snap = await getDocs(query(collection(db, "jombercuti_trips"), where("owner_uid", "==", currentUser.uid)));
+        senaraiPelanTersimpan = snap.docs.map(d => ({ ...d.data(), id: d.id }))
+            .sort((a, b) => (b.updated_at || b.created_at || 0) - (a.updated_at || a.created_at || 0));
+        const pilih = idPilih ? senaraiPelanTersimpan.find(t => t.id === idPilih) : pelanBelahIni()[0];
+        if (pilih) window.pilihPelan(pilih.id); else renderSenaraiPelan();
     } catch (e) { console.error("Gagal memuatkan pelan lama:", e); }
 };
 
 // PAPAR SENARAI PELAN DENGAN BUTANG EDIT & CETAK
 window.renderSenaraiPelan = () => {
-    const bekas = document.getElementById('senarai-pelan-list');
-    if (!bekas) return;
+    const bekas = document.getElementById('senarai-pelan-list'); if (!bekas) return;
+    const tajukBelah = document.getElementById('filterBelah').value === 'pasangan' ? 'Keluarga Pasangan' : 'Keluarga Induk';
+    const senarai = pelanBelahIni();
+    const label = `<div style="font-size:0.75rem; font-weight:800; color:#4f46e5;">Belah: ${tajukBelah}</div>`;
 
-    if (senaraiPelanTersimpan.length === 0) {
-        bekas.innerHTML = `<div style="text-align:center; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; color:#94a3b8; font-size:0.85rem;">Belum ada pelan disimpan. Sila isi jadual dan klik butang Simpan di bawah.</div>`;
+    if (!senarai.length) {
+        bekas.innerHTML = label + `<div style="text-align:center; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; color:#94a3b8; font-size:0.85rem;">Belum ada pelan untuk ${tajukBelah}. Isi borang dan tekan Simpan.</div>`;
         return;
     }
-
-    bekas.innerHTML = senaraiPelanTersimpan.map(t => {
+    bekas.innerHTML = label + senarai.map(t => {
         const isAktif = t.id === currentTripId;
+        const lama = !t.anchor_id ? `<span style="background:#fef3c7; color:#92400e; font-size:0.65rem; font-weight:800; padding:2px 6px; border-radius:6px; margin-left:6px;">Belum ditetapkan belah</span>` : '';
         return `
-        <div style="border: 1px solid ${isAktif ? '#3b82f6' : '#e2e8f0'}; background: ${isAktif ? '#eff6ff' : '#ffffff'}; border-radius: 12px; padding: 12px; transition: 0.2s;">
-            <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; margin-bottom: 2px;">${t.title}</div>
-            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 10px;">📍 ${t.destination || 'Tiada Destinasi'} &nbsp;|&nbsp; 🗓️ ${t.date_go || '-'}</div>
-            
+        <div style="border: 1px solid ${isAktif ? '#3b82f6' : '#e2e8f0'}; background: ${isAktif ? '#eff6ff' : '#ffffff'}; border-radius: 12px; padding: 12px;">
+            <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; margin-bottom: 2px;">${escH(t.title)}${lama}</div>
+            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 10px;">📍 ${escH(t.destination || 'Tiada Destinasi')} &nbsp;|&nbsp; 🗓️ ${escH(t.date_go || '-')}</div>
             <div style="display:flex; gap:8px;">
-                <button onclick="pilihPelan('${t.id}')" style="flex:1; background: ${isAktif ? '#3b82f6' : '#f1f5f9'}; color: ${isAktif ? 'white' : '#475569'}; border:none; padding:8px; border-radius:8px; font-weight:700; font-size:0.8rem; cursor:pointer;">
-                    ${isAktif ? 'Sedang Diedit ✏️' : 'Edit Pelan ✏️'}
+                <button onclick="pilihPelan('${t.id}', true)" style="flex:1; background: ${isAktif ? '#3b82f6' : '#f1f5f9'}; color: ${isAktif ? 'white' : '#475569'}; border:none; padding:8px; border-radius:8px; font-weight:700; font-size:0.8rem; cursor:pointer;">
+                    ${isAktif ? 'Sedang Diedit ↑' : 'Edit Pelan ✏️'}
                 </button>
-                <button onclick="janaItinerariPDF('${t.id}')" style="flex:1.5; background: #f59e0b; color: white; border:none; padding:8px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer; box-shadow:0 2px 8px rgba(245, 158, 11, 0.3);">
+                <button onclick="janaItinerariPDF('${t.id}')" style="flex:1.5; background: #f59e0b; color: white; border:none; padding:8px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">
                     🖨️ Preview & Cetak (1 Kredit)
                 </button>
             </div>
-        </div>
-        `;
+        </div>`;
     }).join('');
 };
 
-window.pilihPelan = (id) => {
+window.pilihPelan = (id, scroll = false) => {
     const trip = senaraiPelanTersimpan.find(t => t.id === id); if (!trip) return;
     currentTripId = trip.id;
     
@@ -932,6 +940,7 @@ window.pilihPelan = (id) => {
     }
     window.updateAll(); 
     renderSenaraiPelan(); // Kemas kini butang aktif
+      if (scroll) document.getElementById('trip-name').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
     showToast(`📂 Pelan "${trip.title}" dimuatkan!`);
 };
 
@@ -969,6 +978,10 @@ window.simpanPelanKeDatabase = async () => {
     let senaraiAhli = [];
     document.querySelectorAll('.fam-check:checked').forEach(cb => { senaraiAhli.push({ nama: cb.value, uid: cb.dataset.uid }); });
 
+    const jb = anchorSemasa();
+    if (!jb) { alert('Belah ini belum ada pasangan dalam myNasab. Tambah pasangan dahulu.'); return; }
+    const lama = senaraiPelanTersimpan.find(t => t.id === currentTripId);
+  
     const tripData = {
         title: title, destination: document.getElementById('destination').value,
         date_go: document.getElementById('date-go').value, date_back: document.getElementById('date-back').value,
@@ -977,7 +990,9 @@ window.simpanPelanKeDatabase = async () => {
         months_left: parseInt(document.getElementById('plan-months').textContent) || 0,
         accommodation: accomList, transportation: transportList, miscellaneous: miscList,
         itinerary: itineraryList,
-        team_members: senaraiAhli, owner_uid: currentUser.uid, created_at: Date.now()
+                team_members: senaraiAhli, owner_uid: currentUser.uid,
+        anchor_id: jb, belah: document.getElementById('filterBelah').value,
+        created_at: (lama && lama.created_at) || Date.now(), updated_at: Date.now()
     };
 
     try {
@@ -1129,8 +1144,10 @@ window.janaItinerariPDF = async (tripId) => {
             setTimeout(() => window.print(), 300);
 
         } else { alert("Ralat: Akaun pengguna tidak dijumpai."); }
-    } catch (e) { console.error(e); alert("⚠️ Pelan ini belum ada jadual itinerari.\n\nKlik 'Edit Pelan', isi Jadual Itinerari (tarikh setiap aktiviti), kemudian tekan 'Simpan Pelan Percutian Ini' dahulu."); }
-};
+        alert("⚠️ Pelan ini belum ada jadual itinerari.\n\nKlik 'Edit Pelan', isi Jadual Itinerari (tarikh setiap aktiviti), kemudian tekan 'Simpan Pelan Percutian Ini' dahulu.");
+        } catch (e) { console.error(e); alert("Ralat semasa menyemak kredit atau membuka cetakan. Sila cuba lagi."); }
+  return;
+    }
 
 window.binaPaparanCetak = (trip, itinList) => {
     const oldArea = document.getElementById('itinPrintArea');
