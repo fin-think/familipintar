@@ -177,6 +177,10 @@
   const [showPaywall, setShowPaywall] = useState(false);
   const [dariMyDebt, setDariMyDebt] = useState(false);
   const [dariFinplan, setDariFinplan] = useState(null);
+  const [healthStatus, setHealthStatus] = useState('tiada');
+  const [healthCost, setHealthCost] = useState('RM 0');
+  const [smokingCost, setSmokingCost] = useState('RM 0');
+
             
   // Fungsi untuk memintas klik tab
   const handleTabClick = (tabId) => {
@@ -1023,6 +1027,39 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                         </div>
                       </Card>
 
+                    <Card>
+                        <SectionHeader title="Impak Kewangan Kesihatan (myHEALTH)" icon={Activity} description="Anggaran bocor kewangan berdasarkan rekod perubatan dan gaya hidup semasa." />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          
+                          <div className="bg-red-50 border border-red-200 p-5 rounded-2xl">
+                            <div className="flex items-center gap-3 mb-2">
+                              <Heart className="text-red-500" size={20} />
+                              <h3 className="font-bold text-red-800">Kos Rawatan Tahunan</h3>
+                            </div>
+                            <p className="text-3xl font-black text-red-600 tracking-tight">
+                              {healthCost || 'RM 0'}
+                            </p>
+                            <p className="text-sm text-red-500 font-medium mt-2">
+                              Status Penyakit: <span className="uppercase">{healthStatus === 'tiada' || !healthStatus ? 'Tiada' : healthStatus}</span>
+                            </p>
+                          </div>
+
+                          <div className="bg-slate-800 border border-slate-700 p-5 rounded-2xl">
+                            <div className="flex items-center gap-3 mb-2">
+                              <Flame className="text-amber-500" size={20} />
+                              <h3 className="font-bold text-slate-200">Kos Rokok Tahunan</h3>
+                            </div>
+                            <p className="text-3xl font-black text-emerald-400 tracking-tight">
+                              {smokingCost || 'RM 0'}
+                            </p>
+                            <p className="text-sm text-slate-400 font-medium mt-2">
+                              Wang ini berpotensi disalurkan ke pelaburan.
+                            </p>
+                          </div>
+
+                        </div>
+                      </Card>
+                        
                         <Card>
                         <SectionHeader title="Matlamat Persaraan" icon={Wallet} description="Tetapan sasaran kewangan masa depan anda." />
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
