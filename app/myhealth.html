@@ -346,32 +346,36 @@
             alertsContainer.innerHTML = '';
             const alerts = [];
 
+           // Gunakan nilai maksimum mutlak (absolute figure)
             const costEstimates = {
-                'Diabetes': 'RM 2,000 - RM 4,500',
-                'Kolesterol': 'RM 1,000 - RM 2,000',
-                'Darah Tinggi': 'RM 1,000 - RM 2,500',
-                'Gout': 'RM 500 - RM 1,500',
-                'Asma': 'RM 1,000 - RM 3,000',
-                'Jantung': 'RM 10,000 - RM 35,000+',
-                'Buah Pinggang': 'RM 30,000 - RM 45,000',
-                'Gastrik': 'RM 500 - RM 1,200'
+                'Diabetes': 4500,
+                'Kolesterol': 2000,
+                'Darah Tinggi': 2500,
+                'Gout': 1500,
+                'Asma': 3000,
+                'Jantung': 35000,
+                'Buah Pinggang': 45000,
+                'Gastrik': 1200
             };
 
             let savedMedicalCost = 'RM 0';
             let savedSmokingCost = 'RM 0';
 
+            // Fungsi format nombor kepada RM x,xxx
+            const formatRM = (val) => "RM " + val.toLocaleString('en-MY');
+
             if (smoking === 'ya') {
                 alerts.push({ type: 'danger', icon: 'ban', title: 'KRITIKAL: MEROKOK', msg: 'Risiko penyakit jantung & strok sangat tinggi.' });
-                alerts.push({ type: 'financial', icon: 'banknote', title: 'IMPAK KEWANGAN', msg: 'Anggaran kos membakar wang: RM 6,205 setahun.' });
-                savedSmokingCost = 'RM 6,205';
+                alerts.push({ type: 'financial', icon: 'banknote', title: 'IMPAK KEWANGAN', msg: `Anggaran kos membakar wang: ${formatRM(6205)} setahun.` });
+                savedSmokingCost = formatRM(6205);
             }
             if (sugaryDrinks > 1) {
                 alerts.push({ type: 'warning', icon: 'wine', title: 'RISIKO DIABETES', msg: `Pengambilan ${sugaryDrinks} gelas air manis sehari meningkatkan risiko.` });
             }
             if (medicalHistory !== 'tiada') {
                 alerts.push({ type: 'danger', icon: 'alert-circle', title: `STATUS: ${medicalHistory.toUpperCase()}`, msg: `Sila ikuti nasihat diet pakar.` });
-                alerts.push({ type: 'financial', icon: 'calculator', title: `KOS RAWATAN`, msg: `Anggaran kos penjagaan: ${costEstimates[medicalHistory]} setahun.` });
-                savedMedicalCost = costEstimates[medicalHistory];
+                alerts.push({ type: 'financial', icon: 'calculator', title: `KOS RAWATAN`, msg: `Anggaran kos penjagaan: ${formatRM(costEstimates[medicalHistory])} setahun.` });
+                savedMedicalCost = formatRM(costEstimates[medicalHistory]);
             }
 
             if (alerts.length > 0) {
