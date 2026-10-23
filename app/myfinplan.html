@@ -174,6 +174,15 @@
         const ASET_ASAS = ['KWSP', 'ASB', 'Tabung Haji', 'Simpanan Bank', 'Simpanan Emas'];
         const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+const HARGA_EMAS_LALAI = 385;
+const isEmas = n => /emas|gold/i.test(n || '');
+function kiraEmas(el) {
+    const box = el.closest('.asset-entry');
+    const g = parseFloat(box.querySelector('.assetGram').value) || 0;
+    const h = parseFloat(box.querySelector('.assetPrice').value) || 0;
+    box.querySelector('.assetValue').value = (g * h).toFixed(2);
+}
+        
         function isiAsetAsas() {
             addAsset('KWSP', 50000, 1000, 5.5, false);
             addAsset('ASB', 10000, 200, 5.0, false);
@@ -192,12 +201,17 @@
             return {
                 retireAge: v('retireAge'), incomeGrowth: v('incomeGrowth'), monthlyExpense: v('monthlyExpense'),
                 inflationRetire: v('inflationRetire'), lifeExpectancy: v('lifeExpectancy'), swrRate: v('swrRate'),
-                instruments: [...document.querySelectorAll('.asset-entry')].map(e => ({
-                    name: (e.querySelector('.font-bold') || {}).textContent || 'Instrumen',
-                    value: parseFloat(e.querySelector('.assetValue').value) || 0,
-                    monthly: parseFloat(e.querySelector('.assetMonthly').value) || 0,
-                    rate: parseFloat(e.querySelector('.assetReturn').value) || 0
-                }))
+                instruments: [...document.querySelectorAll('.asset-entry')].map(e => {
+    const o = {
+        name: (e.querySelector('.font-bold') || {}).textContent || 'Instrumen',
+        value: parseFloat(e.querySelector('.assetValue').value) || 0,
+        monthly: parseFloat(e.querySelector('.assetMonthly').value) || 0,
+        rate: parseFloat(e.querySelector('.assetReturn').value) || 0
+    };
+    const g = e.querySelector('.assetGram');
+    if (g) { o.gram = parseFloat(g.value) || 0; o.price_per_gram = parseFloat(e.querySelector('.assetPrice').value) || 0; }
+    return o;
+})
             };
         }
 
@@ -208,7 +222,7 @@
             if (Array.isArray(s.instruments)) {
                 document.getElementById('assetsContainer').innerHTML = '';
                 if (s.instruments.length) {
-                    s.instruments.forEach(x => addAsset(x.name, x.value, x.monthly, x.rate, !ASET_ASAS.includes(x.name)));
+                    s.instruments.forEach(x => addAsset(x.name, x.value, x.monthly, x.rate, !ASET_ASAS.includes(x.name), { gram: x.gram, price_per_gram: x.price_per_gram }));
                 } else {
                     isiAsetAsas();
                 }
@@ -274,30 +288,36 @@
             closeModal();
         }
 
-        function addAsset(labelName, val, monthly, rate, removable = true) {
-            const container = document.getElementById('assetsContainer');
-            const div = document.createElement('div');
-            div.className = 'asset-entry';
-            div.innerHTML = `
-                ${removable ? '<span class="remove-btn" onclick="this.parentElement.remove()">Padam</span>' : ''}
-                <div class="font-bold text-sm text-blue-600 mb-2">${esc(labelName)}</div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label>Baki Semasa (RM)</label>
-                        <input type="number" class="assetValue" value="${val}">
-                    </div>
-                    <div>
-                        <label>Simpanan/Bln (RM)</label>
-                        <input type="number" class="assetMonthly" value="${monthly}">
-                    </div>
-                    <div class="col-span-2">
-                        <label>Jangkaan Pulangan (%)</label>
-                        <input type="number" class="assetReturn" value="${rate}" step="0.1">
-                    </div>
-                </div>
-            `;
-            container.appendChild(div);
-        }
+       function addAsset(labelName, val, monthly, rate, removable = true, extra = {}) {
+    const container = document.getElementById('assetsContainer');
+    const div = document.createElement('div');
+    div.className = 'asset-entry';
+    const emas = isEmas(labelName);
+    let gram = extra.gram, harga = parseFloat(extra.price_per_gram), lama = false;
+    if (emas) {
+        if (!(harga > 0)) harga = HARGA_EMAS_LALAI;
+        if (gram === undefined || gram === null) { lama = val > 0; gram = +(val / harga).toFixed(2); }
+        val = +(gram * harga).toFixed(2);
+    }
+    const blokBaki = emas ? `
+        <div><label>Berat (gram)</label><input type="number" step="0.01" class="assetGram" value="${gram}" oninput="kiraEmas(this)"></div>
+        <div><label>Harga Semasa (RM/g)</label><input type="number" step="0.01" class="assetPrice" value="${harga}" oninput="kiraEmas(this)"></div>
+        <div class="col-span-2">
+            <label>Baki Semasa (RM) = gram × harga</label>
+            <input type="number" class="assetValue" value="${val}" readonly style="background:#f8fafc">
+            ${lama ? '<span class="hint">Dipindahkan daripada baki RM lama dengan harga lalai RM 385/g. Kemas kini harga semasa.</span>' : ''}
+        </div>` : `
+        <div><label>Baki Semasa (RM)</label><input type="number" class="assetValue" value="${val}"></div>`;
+    div.innerHTML = `
+        ${removable ? '<span class="remove-btn" onclick="this.parentElement.remove()">Padam</span>' : ''}
+        <div class="font-bold text-sm text-blue-600 mb-2">${esc(labelName)}</div>
+        <div class="grid grid-cols-2 gap-3">
+            ${blokBaki}
+            <div><label>Simpanan/Bln (RM)</label><input type="number" class="assetMonthly" value="${monthly}"></div>
+            <div class="${emas ? '' : 'col-span-2'}"><label>Jangkaan Pulangan (%)</label><input type="number" class="assetReturn" value="${rate}" step="0.1"></div>
+        </div>`;
+    container.appendChild(div);
+}
 
         function calculateAll() {
             try {
