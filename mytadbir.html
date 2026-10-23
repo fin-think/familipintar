@@ -378,6 +378,23 @@
                           }
                       }
                   } catch (e) { console.warn("Gagal baca data myFINPLAN:", e.message); }
+
+// Gabung data kesihatan daripada myHEALTH (disimpan dalam mynasab_users)
+                  try {
+                      const hSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "mynasab_users", uid));
+                      if (hSnap.exists()) {
+                          const hh = hSnap.data();
+                          if (hh.myhealth_status) setHealthStatus(hh.myhealth_status);
+                          if (hh.myhealth_medical_cost) setHealthCost(hh.myhealth_medical_cost);
+                          if (hh.myhealth_smoking_cost) setSmokingCost(hh.myhealth_smoking_cost);
+                      }
+                  } catch (e) { console.warn("Gagal baca data myHEALTH:", e.message); }
+                  
+                  setAppData(mergedData);
+              } catch (e) { console.error("Ralat memuatkan ekosistem data:", e); }
+              setLoadingData(false);
+          };
+
                   
                   setAppData(mergedData);
               } catch (e) { console.error("Ralat memuatkan ekosistem data:", e); }
