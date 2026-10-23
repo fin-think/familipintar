@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myARRAHNU</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        /* Hide arrows on number inputs for cleaner UI */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 pb-12">
+    <div class="max-w-6xl mx-auto pt-10 px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-3 tracking-tight">myARRAHNU</h1>
+            <p class="text-slate-500 text-sm md:text-base max-w-2xl mx-auto">Kira nilai gadaian, upah simpan dan hasil overlap dengan mudah. Pengiraan disesuaikan dengan formula spesifik mengikut margin dan peratusan bank.</p>
+        </div>
+
+        <!-- Bank Selection -->
+        <div class="flex justify-center mb-8">
+            <div class="inline-flex bg-slate-200 p-1.5 rounded-xl shadow-inner">
+                <label class="cursor-pointer relative">
+                    <input type="radio" name="bank" value="agro" class="peer sr-only" checked>
+                    <div class="px-6 py-2.5 rounded-lg text-sm md:text-base font-semibold text-slate-500 peer-checked:bg-white peer-checked:text-emerald-600 peer-checked:shadow transition-all duration-200 flex items-center">
+                        <i data-lucide="building-2" class="w-4 h-4 mr-2"></i> Operator 1 (75%)
+                    </div>
+                </label>
+                <label class="cursor-pointer relative ml-1">
+                    <input type="radio" name="bank" value="rakyat" class="peer sr-only">
+                    <div class="px-6 py-2.5 rounded-lg text-sm md:text-base font-semibold text-slate-500 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow transition-all duration-200 flex items-center">
+                        <i data-lucide="landmark" class="w-4 h-4 mr-2"></i> Operator 2 (80%)
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- TABLE A : GADAIAN LAMA -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                    <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                        <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
+                    </div>
+                    Table (A) - Gadaian Lama
+                </h2>
+                
+                <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Tarikh Mula Gadaian</label>
+                    <input type="date" id="date_a" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow text-slate-700" value="2025-04-18">
+                </div>
+
+                <!-- Table Header -->
+                <div class="grid grid-cols-12 gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 pb-3 border-b border-slate-200">
+                    <div class="col-span-3">Mutu</div>
+                    <div class="col-span-4 text-right">Harga (RM/g)</div>
+                    <div class="col-span-2 text-right">Berat (g)</div>
+                    <div class="col-span-3 text-right">Nilai Marhun</div>
+                </div>
+
+                <!-- Inputs Table A -->
+                <div id="inputs_a" class="space-y-3">
+                    <!-- Injected via JS to keep HTML clean -->
+                </div>
+
+                <div class="mt-6 pt-5 border-t border-slate-200 space-y-3 text-sm">
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>Jumlah Marhun:</span>
+                        <span class="font-bold text-slate-800" id="a_jumlah_marhun">RM 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>Kadar Pinjaman (<span id="a_kadar_margin" class="font-bold text-indigo-600">75</span>%):</span>
+                        <span class="font-bold text-xl text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg" id="a_jumlah_pinjaman">RM 0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLE B : GADAIAN BARU / OVERLAP -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center mb-3 sm:mb-0">
+                        <div class="bg-emerald-100 p-2 rounded-lg mr-3">
+                            <i data-lucide="refresh-cw" class="w-5 h-5 text-emerald-600"></i>
+                        </div>
+                        Table (B) - Overlap
+                    </h2>
+                    <button id="btn_copy" type="button" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center w-full sm:w-auto shadow-sm">
+                        <i data-lucide="copy" class="w-3.5 h-3.5 mr-1.5"></i> Salin Data (A)
+                    </button>
+                </div>
+                
+                <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100 flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Tarikh Overlap / Tebus</label>
+                        <input type="date" id="date_b" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow text-slate-700" value="2025-05-08">
+                    </div>
+                    <div class="w-24 text-center border-l border-slate-200 pl-4 flex flex-col justify-center">
+                        <span class="text-xs font-semibold text-slate-500 mb-1">Tempoh</span>
+                        <span class="text-lg font-bold text-slate-800" id="lbl_hari">0 Hari</span>
+                    </div>
+                </div>
+
+                <!-- Table Header -->
+                <div class="grid grid-cols-12 gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 pb-3 border-b border-slate-200">
+                    <div class="col-span-3">Mutu</div>
+                    <div class="col-span-4 text-right">Harga (RM/g)</div>
+                    <div class="col-span-2 text-right">Berat (g)</div>
+                    <div class="col-span-3 text-right">Nilai Marhun</div>
+                </div>
+
+                <!-- Inputs Table B -->
+                <div id="inputs_b" class="space-y-3">
+                    <!-- Injected via JS -->
+                </div>
+
+                <div class="mt-6 pt-5 border-t border-slate-200 space-y-3 text-sm">
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>Jumlah Marhun:</span>
+                        <span class="font-bold text-slate-800" id="b_jumlah_marhun">RM 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>Kadar Pinjaman (<span id="b_kadar_margin" class="font-bold text-emerald-600">75</span>%):</span>
+                        <span class="font-bold text-xl text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg" id="b_jumlah_pinjaman">RM 0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTS SECTION -->
+        <div class="mt-8 bg-slate-900 rounded-2xl p-6 md:p-8 shadow-xl text-white relative overflow-hidden">
+            <!-- Background Decoration -->
+            <div class="absolute -right-10 -bottom-10 opacity-5 pointer-events-none">
+                <i data-lucide="calculator" class="w-64 h-64"></i>
+            </div>
+            
+            <h2 class="text-2xl md:text-3xl font-bold mb-8 flex items-center relative z-10">
+                Hasil & Rumusan Pengiraan
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                <!-- Box 1: Info Semasa -->
+                <div class="space-y-4">
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700/50">
+                        <div class="text-slate-400 text-sm font-medium mb-1 flex items-center">
+                            <i data-lucide="clock" class="w-4 h-4 mr-1.5"></i> Bilangan Hari
+                        </div>
+                        <div class="text-2xl font-bold text-white" id="res_hari">0 Hari</div>
+                    </div>
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700/50">
+                        <div class="text-slate-400 text-sm font-medium mb-1 flex items-center">
+                            <i data-lucide="wallet" class="w-4 h-4 mr-1.5"></i> Upah Simpan Terkumpul
+                        </div>
+                        <div class="text-2xl font-bold text-rose-400" id="res_upah">RM 0.00</div>
+                    </div>
+                </div>
+
+                <!-- Box 2: Jika Penebusan -->
+                <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+                    <div class="flex items-center text-amber-300 mb-5">
+                        <i data-lucide="log-out" class="w-5 h-5 mr-2"></i>
+                        <span class="font-bold text-lg tracking-wide">Penebusan Sahaja</span>
+                    </div>
+                    <div class="space-y-3 text-sm text-slate-300 mb-6 font-medium">
+                        <div class="flex justify-between items-center">
+                            <span>Pinjaman Asal (A):</span>
+                            <span id="res_tebus_pinjaman" class="text-white">RM 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-slate-600 pb-3">
+                            <span>Upah Simpan:</span>
+                            <span id="res_tebus_upah" class="text-white">RM 0.00</span>
+                        </div>
+                        <div class="flex justify-between text-white font-bold text-xl pt-2">
+                            <span>Total Bayaran:</span>
+                            <span id="res_jumlah_tebus">RM 0.00</span>
+                        </div>
+                    </div>
+                    <div class="bg-amber-900/30 text-amber-200/80 p-3 rounded-lg text-xs leading-relaxed border border-amber-900/50">
+                        Jumlah tunai yang anda perlu bayar ke bank sekiranya ingin menebus semula emas anda.
+                    </div>
+                </div>
+
+                <!-- Box 3: Jika Overlap -->
+                <div class="bg-emerald-900/60 p-6 rounded-xl border border-emerald-700/50">
+                    <div class="flex items-center text-emerald-300 mb-5">
+                        <i data-lucide="repeat-2" class="w-5 h-5 mr-2"></i>
+                        <span class="font-bold text-lg tracking-wide">Hasil Overlap</span>
+                    </div>
+                    <div class="space-y-3 text-sm text-emerald-100/70 mb-6 font-medium">
+                        <div class="flex justify-between items-center">
+                            <span>Pinjaman Baru (B):</span>
+                            <span id="res_overlap_pinjaman_b" class="text-white">RM 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Tolak Pinjaman Lama (A):</span>
+                            <span id="res_overlap_pinjaman_a" class="text-rose-200">- RM 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-emerald-800/80 pb-3">
+                            <span>Tolak Upah Simpan:</span>
+                            <span id="res_overlap_upah" class="text-rose-200">- RM 0.00</span>
+                        </div>
+                        <div class="flex flex-col pt-3">
+                            <span class="text-emerald-100 font-medium mb-1">Baki Lebihan (Tangan Anda):</span>
+                            <span id="res_jumlah_overlap" class="text-3xl font-black text-emerald-400 tracking-tight">RM 0.00</span>
+                        </div>
+                    </div>
+                    <div id="nota_overlap" class="bg-emerald-950/50 text-emerald-200/90 p-3 rounded-lg text-xs leading-relaxed border border-emerald-800/50">
+                        Nilai tunai bersih yang anda akan terima.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Note / FAQ -->
+        <div class="mt-8 bg-blue-50 border border-blue-200/60 rounded-xl p-5 shadow-sm">
+            <h3 class="font-bold text-blue-800 flex items-center mb-3">
+                <i data-lucide="info" class="w-5 h-5 mr-2"></i>
+                Nota: Cara Pengiraan Tebus Separuh
+            </h3>
+            <div class="text-sm text-blue-900/80 space-y-2 leading-relaxed">
+                <p>Jika hendak tebus separuh, hanya masukkan <strong>berat baru</strong> yang ingin dipajak semula di <strong>Table B</strong>.</p>
+                <p class="bg-white/60 p-3 rounded-lg border border-blue-100">
+                    <span class="font-semibold text-blue-800">Contoh:</span> Pada asalnya anda menggadai 15g emas 999. Anda ingin menebus 5g. <br>
+                    Jadi, <code class="bg-blue-100 px-1.5 py-0.5 rounded text-blue-800 font-bold mx-1">15g - 5g = 10g</code>. 
+                    Masukkan <strong>10g</strong> ke ruangan berat di Table B untuk melihat kiraan overlap / lebihan tunai yang tepat.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+        <footer class="mt-8 text-center text-gray-400 text-xs">
+            <p>DISCLAIMER:Anggaran sahaja untuk rujukan. Bukan nasihat kewangan dan hasil sebenar mungkin berbeza.<p>Ingin membangunkan kalkulator interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH
+        </p>
+        </footer>
+    </div>
+
+
+    <!-- Application Logic -->
+    <script>
+        const MUTU_LIST = [
+            { id: '999', label: '999 (24K)', defaultA: { h: 642.63, b: 6 }, defaultB: { h: 668.80, b: 6 } },
+            { id: '950', label: '950 (23K)', defaultA: { h: 0, b: 0 }, defaultB: { h: 0, b: 0 } },
+            { id: '916', label: '916 (22K)', defaultA: { h: 0, b: 0 }, defaultB: { h: 0, b: 0 } },
+            { id: '875', label: '875 (21K)', defaultA: { h: 0, b: 0 }, defaultB: { h: 0, b: 0 } }
+        ];
+
+        // Format currency helper
+        const formatRM = (val) => {
+            return 'RM ' + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+
+        function initApp() {
+            // Render Table Rows dynamically to keep HTML clean
+            ['a', 'b'].forEach(table => {
+                const container = document.getElementById(`inputs_${table}`);
+                let html = '';
+                MUTU_LIST.forEach(mutu => {
+                    const defVal = table === 'a' ? mutu.defaultA : mutu.defaultB;
+                    html += `
+                    <div class="grid grid-cols-12 gap-2 items-center">
+                        <div class="col-span-3 text-sm font-semibold text-slate-700">${mutu.label}</div>
+                        <div class="col-span-4 relative">
+                            <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 text-xs font-medium pointer-events-none">RM</span>
+                            <input type="number" id="${table}_harga_${mutu.id}" class="w-full pl-8 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-${table === 'a' ? 'indigo' : 'emerald'}-500 focus:border-${table === 'a' ? 'indigo' : 'emerald'}-500 outline-none transition-all shadow-sm" step="0.01" value="${defVal.h > 0 ? defVal.h : ''}" placeholder="0.00">
+                        </div>
+                        <div class="col-span-2">
+                            <input type="number" id="${table}_berat_${mutu.id}" class="w-full px-2 py-1.5 text-right text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-${table === 'a' ? 'indigo' : 'emerald'}-500 focus:border-${table === 'a' ? 'indigo' : 'emerald'}-500 outline-none transition-all shadow-sm" step="0.01" value="${defVal.b > 0 ? defVal.b : ''}" placeholder="0">
+                        </div>
+                        <div class="col-span-3 text-right text-sm font-bold text-slate-800 bg-slate-100/50 py-1.5 px-2 rounded-md" id="${table}_marhun_${mutu.id}">RM 0.00</div>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            });
+
+            // Setup Listeners
+            document.querySelectorAll('input').forEach(el => {
+                el.addEventListener('input', calculate);
+            });
+
+            document.getElementById('btn_copy').addEventListener('click', () => {
+                MUTU_LIST.forEach(m => {
+                    document.getElementById(`b_harga_${m.id}`).value = document.getElementById(`a_harga_${m.id}`).value;
+                    document.getElementById(`b_berat_${m.id}`).value = document.getElementById(`a_berat_${m.id}`).value;
+                });
+                calculate();
+            });
+
+            // Initialize icons & Calculate initial state
+            lucide.createIcons();
+            calculate();
+        }
+
+        function calculate() {
+            const bank = document.querySelector('input[name="bank"]:checked').value;
+            const date1 = new Date(document.getElementById('date_a').value);
+            const date2 = new Date(document.getElementById('date_b').value);
+
+            let days = 0;
+            if (!isNaN(date1) && !isNaN(date2)) {
+                const diffTime = date2 - date1;
+                days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (days < 0) days = 0;
+            }
+
+            document.getElementById('lbl_hari').innerText = days + ' Hari';
+            document.getElementById('res_hari').innerText = days + ' Hari';
+
+            let marhunA = 0;
+            let marhunB = 0;
+
+            MUTU_LIST.forEach(mutu => {
+                // Table A Calculate
+                const hA = parseFloat(document.getElementById(`a_harga_${mutu.id}`).value) || 0;
+                const bA = parseFloat(document.getElementById(`a_berat_${mutu.id}`).value) || 0;
+                const mA = hA * bA;
+                document.getElementById(`a_marhun_${mutu.id}`).innerText = formatRM(mA);
+                marhunA += mA;
+
+                // Table B Calculate
+                const hB = parseFloat(document.getElementById(`b_harga_${mutu.id}`).value) || 0;
+                const bB = parseFloat(document.getElementById(`b_berat_${mutu.id}`).value) || 0;
+                const mB = hB * bB;
+                document.getElementById(`b_marhun_${mutu.id}`).innerText = formatRM(mB);
+                marhunB += mB;
+            });
+
+            // Set Margin and Upah based on Bank
+            // Agrobank: Margin 75%, Upah RM0.65/RM100
+            // Bank Rakyat: Margin 80%, Upah RM0.75/RM100
+            const margin = bank === 'agro' ? 0.75 : 0.80;
+            const upahRate = bank === 'agro' ? 0.65 : 0.75;
+
+            // Update UI rates
+            document.getElementById('a_kadar_margin').innerText = (margin * 100);
+            document.getElementById('b_kadar_margin').innerText = (margin * 100);
+
+            // Update Marhun Sum
+            document.getElementById('a_jumlah_marhun').innerText = formatRM(marhunA);
+            document.getElementById('b_jumlah_marhun').innerText = formatRM(marhunB);
+
+            // Calculate Pinjaman (Usually banked is floored down to nearest 10 for simplicity in some branches, mimicking exact behaviour here)
+            const pinjamanA = Math.floor((marhunA * margin) / 10) * 10;
+            const pinjamanB = Math.floor((marhunB * margin) / 10) * 10;
+
+            document.getElementById('a_jumlah_pinjaman').innerText = formatRM(pinjamanA);
+            document.getElementById('b_jumlah_pinjaman').innerText = formatRM(pinjamanB);
+
+            // Daily Interest Exact Formula: (Nilai Marhun / 100) * Rate * 12 Bulan / 365 Hari * Bilangan Hari
+            const upah = (marhunA / 100) * upahRate * (12 / 365) * days;
+            
+            // Computations Results
+            const tebus = pinjamanA + upah;
+            const overlap = pinjamanB - pinjamanA - upah;
+
+            // DOM Result Bindings
+            document.getElementById('res_upah').innerText = formatRM(upah);
+            document.getElementById('res_tebus_pinjaman').innerText = formatRM(pinjamanA);
+            document.getElementById('res_tebus_upah').innerText = formatRM(upah);
+            document.getElementById('res_jumlah_tebus').innerText = formatRM(tebus);
+
+            document.getElementById('res_overlap_pinjaman_b').innerText = formatRM(pinjamanB);
+            document.getElementById('res_overlap_pinjaman_a').innerText = '- ' + formatRM(pinjamanA);
+            document.getElementById('res_overlap_upah').innerText = '- ' + formatRM(upah);
+
+            // Overlap Display logic
+            const elOverlap = document.getElementById('res_jumlah_overlap');
+            const noteOverlap = document.getElementById('nota_overlap');
+            
+            if (overlap >= 0) {
+                elOverlap.innerText = formatRM(overlap);
+                elOverlap.className = 'text-3xl font-black text-emerald-400 tracking-tight';
+                noteOverlap.innerHTML = '<span class="text-emerald-300 font-semibold">Taniah!</span> Nilai tunai lebihan bersih yang anda akan terima.';
+                noteOverlap.className = 'bg-emerald-950/50 text-emerald-200/90 p-3 rounded-lg text-xs leading-relaxed border border-emerald-800/50';
+            } else {
+                elOverlap.innerText = '- ' + formatRM(Math.abs(overlap));
+                elOverlap.className = 'text-3xl font-black text-rose-400 tracking-tight';
+                noteOverlap.innerHTML = '<span class="text-rose-300 font-semibold">Perhatian:</span> Nilai tunai yang perlu anda tambah (top-up) untuk proses overlap.';
+                noteOverlap.className = 'bg-rose-950/40 text-rose-200/90 p-3 rounded-lg text-xs leading-relaxed border border-rose-900/50';
+            }
+        }
+
+        // Boot
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
