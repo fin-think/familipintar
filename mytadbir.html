@@ -159,7 +159,8 @@
           rumahValue: 0, keretaValue: 0, debtsList: [], extraBudget: 0, debtStrategy: 'snowball', consolRate: 4.5, consolYear: 7,
           retireAge: 60, lifeExpectancy: 80, inflationRate: 3, assetReturnRate: 5, uniAge: 18, currentEduCost: 50000,
           sspnFund: 0, asbAnakFund: 0, educationInflation: 6, universityType: 'local', funeralCost: 2000, sepencarianPercent: 50,
-          wasiatPercent: 0, hasSpouse: false, hasMother: false, hasFather: false, currentTakaful: 0
+          wasiatPercent: 0, hasSpouse: false, hasMother: false, hasFather: false, currentTakaful: 0,
+          healthInflationRate: 8 // <-- TAMBAH BARIS INI
         };
 
         function App() {
@@ -181,7 +182,7 @@
   const [healthStatus, setHealthStatus] = useState('tiada');
   const [healthCost, setHealthCost] = useState('RM 0');
   const [smokingCost, setSmokingCost] = useState('RM 0');
-  const [healthInflationRate, setHealthInflationRate] = useState(8);         
+           
 
             
   // Fungsi untuk memintas klik tab
@@ -414,7 +415,8 @@
             debtsList, extraBudget, debtStrategy, consolRate, consolYear,
             retireAge, lifeExpectancy, inflationRate, assetReturnRate, uniAge, currentEduCost,
             sspnFund, asbAnakFund, educationInflation, universityType,
-            funeralCost, sepencarianPercent, wasiatPercent, hasSpouse, hasMother, hasFather, currentTakaful
+            funeralCost, sepencarianPercent, wasiatPercent, hasSpouse, hasMother, hasFather, currentTakaful,
+            healthInflationRate // <-- TAMBAH BARIS INI DI SINI
           } = appData;
 
           // HELPER FUNCTIONS 
