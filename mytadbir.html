@@ -214,7 +214,7 @@
               return () => unsubscribe();
           }, [isFirebaseReady]);
 
-          // ENJIN PENYEDUT DATA BERSEPADU (myNasab -> myTADBIR)
+        // ENJIN PENYEDUT DATA BERSEPADU (myNasab -> myTADBIR)
           const fetchEcosystemData = async (uid) => {
               try {
                   const docRef = window.fbDoc(window.fbDb, "mytadbir_profiles", uid);
@@ -240,7 +240,7 @@
                   }
 
                   const q = window.fbQuery(window.fbCollection(window.fbDb, "mynasab_nodes"), window.fbWhere("owner_uid", "==", uid));
-                                    ['asb', 'th', 'unitTrust', 'tunai', 'kwsp', 'emas'].forEach(k => delete mergedData[k]);
+                  ['asb', 'th', 'unitTrust', 'tunai', 'kwsp', 'emas'].forEach(k => delete mergedData[k]);
                   const nasabSnap = await window.fbGetDocs(q);
                   
                   let childrenList = [];
@@ -299,7 +299,7 @@
 
                   childrenList.sort((a, b) => b.age - a.age);
 
- // Gabung anggaran kos pengajian daripada myKids (ID anak sama dengan ID dokumen mykids_plans)
+                  // Gabung anggaran kos pengajian daripada myKids
                   try {
                       const planSnap = await window.fbGetDocs(window.fbQuery(window.fbCollection(window.fbDb, "mykids_plans"), window.fbWhere("owner_uid", "==", uid)));
                       const planMap = {};
@@ -314,7 +314,7 @@
                           const kidsBaru = dariKids && (p.kos_dikemas || 0) > lastTadbirK;
                           const adaLama = !!(lama && lama.eduCost > 0);
                           if (kidsBaru || (dariKids && !adaLama)) {
-                              c.eduCost = p.kos_semasa;            // harga hari ini, sudah termasuk destinasi
+                              c.eduCost = p.kos_semasa;
                               c.eduUniAge = p.umur_masuk || 0;
                               c.eduType = p.jenis_uni || 'local';
                               c.eduSumber = 'mykids';
@@ -338,7 +338,8 @@
                       mergedData.childrenData = childrenList;
                   }
 
- try {
+                  // Gabung hutang daripada myDEBT
+                  try {
                       const dSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "mydebt_plans", uid));
                       if (dSnap.exists()) {
                           const dd = dSnap.data();
@@ -362,8 +363,8 @@
                       }
                   } catch (e) { console.warn("Gagal baca data myDEBT:", e.message); }
 
-// Gabung instrumen daripada myFINPLAN jika lebih baharu daripada simpanan myTADBIR terakhir
-                                   try {
+                  // Gabung instrumen daripada myFINPLAN
+                  try {
                       const fSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "myfinplan_plans", uid));
                       if (fSnap.exists()) {
                           const ff = fSnap.data();
@@ -378,8 +379,8 @@
                           }
                       }
                   } catch (e) { console.warn("Gagal baca data myFINPLAN:", e.message); }
-
-// Gabung data kesihatan daripada myHEALTH (disimpan dalam mynasab_users)
+                  
+                  // Gabung data kesihatan daripada myHEALTH (disimpan dalam mynasab_users)
                   try {
                       const hSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "mynasab_users", uid));
                       if (hSnap.exists()) {
