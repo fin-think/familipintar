@@ -416,7 +416,7 @@
             retireAge, lifeExpectancy, inflationRate, assetReturnRate, uniAge, currentEduCost,
             sspnFund, asbAnakFund, educationInflation, universityType,
             funeralCost, sepencarianPercent, wasiatPercent, hasSpouse, hasMother, hasFather, currentTakaful,
-            healthInflationRate // <-- TAMBAH BARIS INI DI SINI
+            healthInflationRate = 8
           } = appData;
 
           // HELPER FUNCTIONS 
@@ -1652,7 +1652,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                             ) : (
                               <div className="text-sm text-sky-700 bg-sky-50 p-6 rounded-xl border border-sky-100 flex gap-3 items-center h-full">
                                 <ShieldCheck size={32} className="shrink-0" />
-                                <span><strong>Tahniah!</strong> Baki dana anda dijangka mencukupi untuk membiayai persaraan anda (RM{formatRM(futureMonthlyExpenses)}/bulan) sehingga melepasi umur jangka hayat {lifeExpectancy} tahun.</span>
+                                <span><strong>Tahniah!</strong> Baki dana anda dijangka mencukupi untuk membiayai persaraan anda ({formatRM(futureMonthlyExpenses)}/bulan) sehingga melepasi umur jangka hayat {lifeExpectancy} tahun.</span>
                               </div>
                             )}
                           </div>
@@ -1715,7 +1715,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                               <span className="font-semibold text-white">{formatRM(totalSpouseSurvivalFund)}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm border-b border-slate-700 pb-4">
-                              <span className="text-slate-300">Keperluan Keluarga 10 Tahun (RM{formatRM(currentMonthlyExpenses)}/bln):</span>
+                              <span className="text-slate-300">Keperluan Keluarga 10 Tahun ({formatRM(currentMonthlyExpenses)}/bln):</span>
                               <span className="font-semibold text-white">{formatRM(familySurvivalNeeds)}</span>
                             </div>
                             <div className="pt-2 text-center bg-slate-700/50 p-4 rounded-xl">
