@@ -206,8 +206,37 @@
         <p>Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut &copy; HCH</p>
     </footer>
 
-    <script>
+<script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+            authDomain: "familipintar.firebaseapp.com",
+            projectId: "familipintar",
+            storageBucket: "familipintar.firebasestorage.app"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUser = null;
+
         lucide.createIcons();
+
+        // Tarik Umur & Jantina dari myNasab
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const snap = await getDoc(doc(db, "mynasab_users", user.uid));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data.gender) document.getElementById('gender').value = data.gender.toLowerCase();
+                    if (data.age) document.getElementById('age').value = data.age;
+                }
+            }
+        });
 
         const form = document.getElementById('health-form');
         const tabInput = document.getElementById('tab-input');
@@ -215,25 +244,21 @@
         const viewInput = document.getElementById('view-input');
         const viewResults = document.getElementById('view-results');
 
-        function showTab(tab) {
+        window.showTab = function(tab) {
             if (tab === 'input') {
                 viewInput.classList.remove('hide');
                 viewResults.classList.add('hide');
-                tabInput.classList.add('text-teal-600', 'border-b-2', 'border-teal-600', 'bg-teal-50/30');
-                tabInput.classList.remove('text-slate-400');
-                tabResults.classList.add('text-slate-400');
-                tabResults.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600', 'bg-teal-50/30');
+                tabInput.className = "flex-1 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition text-teal-600 border-b-2 border-teal-600 bg-teal-50/30";
+                tabResults.className = "flex-1 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition text-slate-400";
             } else {
                 viewInput.classList.add('hide');
                 viewResults.classList.remove('hide');
-                tabResults.classList.add('text-teal-600', 'border-b-2', 'border-teal-600', 'bg-teal-50/30');
-                tabResults.classList.remove('text-slate-400');
-                tabInput.classList.add('text-slate-400');
-                tabInput.classList.remove('text-teal-600', 'border-b-2', 'border-teal-600', 'bg-teal-50/30');
+                tabResults.className = "flex-1 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition text-teal-600 border-b-2 border-teal-600 bg-teal-50/30";
+                tabInput.className = "flex-1 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition text-slate-400";
             }
         }
 
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const gender = document.getElementById('gender').value;
@@ -259,10 +284,8 @@
             const tdee = Math.round(bmr * 1.2); 
             const waterTarget = (weight * 0.033) + 0.5;
 
-            const bmiElement = document.getElementById('res-bmi');
-            bmiElement.innerText = bmi.toFixed(1);
-            bmiElement.className = `font-black mb-1 ${isBmiDanger ? 'text-7xl text-red-600 animate-pulse-slow' : 'text-6xl ' + bmiColClass}`;
-            
+            document.getElementById('res-bmi').innerText = bmi.toFixed(1);
+            document.getElementById('res-bmi').className = `font-black mb-1 ${isBmiDanger ? 'text-7xl text-red-600 animate-pulse-slow' : 'text-6xl ' + bmiColClass}`;
             document.getElementById('res-bmi-cat').innerText = bmiCat;
             document.getElementById('res-bmi-cat').className = `text-2xl font-black uppercase ${bmiColClass}`;
             document.getElementById('res-tdee').innerText = tdee;
@@ -282,7 +305,6 @@
             alertsContainer.innerHTML = '';
             const alerts = [];
 
-            // Pangkalan data anggaran kos rawatan tahunan di Malaysia
             const costEstimates = {
                 'Diabetes': 'RM 2,000 - RM 4,500',
                 'Kolesterol': 'RM 1,000 - RM 2,000',
@@ -290,20 +312,25 @@
                 'Gout': 'RM 500 - RM 1,500',
                 'Asma': 'RM 1,000 - RM 3,000',
                 'Jantung': 'RM 10,000 - RM 35,000+',
-                'Buah Pinggang': 'RM 30,000 - RM 45,000 (termasuk kos dialisis)',
+                'Buah Pinggang': 'RM 30,000 - RM 45,000',
                 'Gastrik': 'RM 500 - RM 1,200'
             };
 
+            let savedMedicalCost = 'RM 0';
+            let savedSmokingCost = 'RM 0';
+
             if (smoking === 'ya') {
-                alerts.push({ type: 'danger', icon: 'ban', title: 'KRITIKAL: MEROKOK', msg: 'Risiko penyakit jantung & strok sangat tinggi. Segera dapatkan khidmat berhenti merokok.' });
-                alerts.push({ type: 'financial', icon: 'banknote', title: 'IMPAK KEWANGAN: MEROKOK', msg: 'Anggaran kos membakar wang: <strong class="text-emerald-400">RM 6,205 setahun</strong> (purata 1 kotak/hari).<br><span class="text-sm font-normal text-slate-300 mt-1 block">Wang ini lebih bernilai jika disalurkan untuk pelaburan masa depan keluarga anda.</span>' });
+                alerts.push({ type: 'danger', icon: 'ban', title: 'KRITIKAL: MEROKOK', msg: 'Risiko penyakit jantung & strok sangat tinggi.' });
+                alerts.push({ type: 'financial', icon: 'banknote', title: 'IMPAK KEWANGAN', msg: 'Anggaran kos membakar wang: RM 6,205 setahun.' });
+                savedSmokingCost = 'RM 6,205';
             }
             if (sugaryDrinks > 1) {
-                alerts.push({ type: 'warning', icon: 'wine', title: 'RISIKO DIABETES', msg: `Pengambilan ${sugaryDrinks} gelas air manis sehari meningkatkan risiko kencing manis secara mendadak.` });
+                alerts.push({ type: 'warning', icon: 'wine', title: 'RISIKO DIABETES', msg: `Pengambilan ${sugaryDrinks} gelas air manis sehari meningkatkan risiko.` });
             }
             if (medicalHistory !== 'tiada') {
-                alerts.push({ type: 'danger', icon: 'alert-circle', title: `STATUS: ${medicalHistory.toUpperCase()}`, msg: `Pesakit ${medicalHistory} wajib mengikuti nasihat diet pakar dan rutin ubat KKM.` });
-                alerts.push({ type: 'financial', icon: 'calculator', title: `ANGGARAN KOS RAWATAN: ${medicalHistory.toUpperCase()}`, msg: `Anggaran kos penjagaan: <strong class="text-emerald-400">${costEstimates[medicalHistory]} setahun</strong>.<br><span class="text-sm font-normal text-slate-300 mt-1 block">Ini termasuk kos ubat-ubatan, rawatan susulan pakar, dan ujian makmal berkala di fasiliti swasta/separa-swasta.</span>` });
+                alerts.push({ type: 'danger', icon: 'alert-circle', title: `STATUS: ${medicalHistory.toUpperCase()}`, msg: `Sila ikuti nasihat diet pakar.` });
+                alerts.push({ type: 'financial', icon: 'calculator', title: `KOS RAWATAN`, msg: `Anggaran kos penjagaan: ${costEstimates[medicalHistory]} setahun.` });
+                savedMedicalCost = costEstimates[medicalHistory];
             }
 
             if (alerts.length > 0) {
@@ -313,41 +340,36 @@
                     const isFinancial = alert.type === 'financial';
                     
                     let alertClasses = 'bg-amber-100 border-amber-300 text-amber-900';
-                    let iconClasses = 'w-8 h-8';
-                    let titleClasses = 'text-sm text-amber-800';
-                    let msgClasses = 'text-lg font-medium leading-snug';
-
-                    if (isDanger) {
-                        alertClasses = 'bg-red-700 border-red-800 text-white shadow-2xl scale-105 ring-8 ring-red-100 mb-2';
-                        iconClasses = 'w-10 h-10';
-                        titleClasses = 'text-xl text-red-50 danger-text-glow';
-                        msgClasses = 'text-2xl font-bold leading-tight';
-                    } else if (isFinancial) {
-                        alertClasses = 'bg-slate-800 border-slate-900 text-white shadow-xl ring-2 ring-emerald-500/50 mt-2';
-                        iconClasses = 'w-10 h-10 text-emerald-400';
-                        titleClasses = 'text-lg text-emerald-400';
-                        msgClasses = 'text-xl font-medium leading-tight';
-                    }
+                    let iconClasses = 'w-8 h-8 text-amber-600';
+                    
+                    if (isDanger) { alertClasses = 'bg-red-700 text-white'; iconClasses = 'w-10 h-10'; } 
+                    else if (isFinancial) { alertClasses = 'bg-slate-800 text-white'; iconClasses = 'w-10 h-10 text-emerald-400'; }
 
                     div.className = `flex gap-5 p-6 rounded-3xl border transition-all ${alertClasses}`;
-                    div.innerHTML = `
-                        <div class="shrink-0 pt-1"><i data-lucide="${alert.icon}" class="${iconClasses}"></i></div>
-                        <div>
-                            <h5 class="font-black uppercase tracking-widest mb-2 ${titleClasses}">${alert.title}</h5>
-                            <p class="${msgClasses}">${alert.msg}</p>
-                        </div>
-                    `;
+                    div.innerHTML = `<div class="shrink-0"><i data-lucide="${alert.icon}" class="${iconClasses}"></i></div><div><h5 class="font-black uppercase mb-1">${alert.title}</h5><p class="font-medium">${alert.msg}</p></div>`;
                     alertsContainer.appendChild(div);
                 });
             } else {
-                alertsContainer.innerHTML = `<div class="bg-green-100 border-2 border-green-500 p-10 rounded-3xl text-center text-green-800"><i data-lucide="check-circle" class="mx-auto mb-4 w-16 h-16 text-green-600"></i><p class="text-3xl font-black mb-2 uppercase">GAYA HIDUP SIHAT</p><p class="text-xl font-medium">Teruskan momentum ini!</p></div>`;
+                alertsContainer.innerHTML = `<div class="bg-green-100 p-10 rounded-3xl text-center text-green-800"><p class="text-xl font-bold">GAYA HIDUP SIHAT</p></div>`;
+            }
+
+            // Simpan Result ke mynasab_users untuk dibaca oleh myTadbir
+            if (currentUser) {
+                try {
+                    await setDoc(doc(db, "mynasab_users", currentUser.uid), {
+                        myhealth_status: medicalHistory,
+                        myhealth_medical_cost: savedMedicalCost,
+                        myhealth_smoking_cost: savedSmokingCost
+                    }, { merge: true });
+                } catch (error) {
+                    console.error("Ralat menyimpan data kesihatan:", error);
+                }
             }
 
             tabResults.disabled = false;
             tabResults.classList.remove('opacity-50', 'cursor-not-allowed');
-            showTab('results');
+            window.showTab('results');
             lucide.createIcons();
-            // Scroll to top of results
             viewResults.scrollTop = 0;
         });
     </script>
