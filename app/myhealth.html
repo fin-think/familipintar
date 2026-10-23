@@ -192,9 +192,14 @@
                         </div>
                     </div>
 
-                    <button onclick="showTab('input')" class="w-full py-5 border-2 border-slate-200 rounded-2xl text-slate-400 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2">
-                        <i data-lucide="refresh-cw" class="w-5 h-5"></i> Masukkan Data Baru
-                    </button>
+                    <div class="space-y-3">
+                        <button onclick="simpanKeTadbir()" class="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-bold shadow-lg transition flex items-center justify-center gap-2">
+                            <i data-lucide="save" class="w-5 h-5"></i> Simpan ke Profil myTadbir
+                        </button>
+                        <button onclick="showTab('input')" class="w-full py-3 border-2 border-slate-200 rounded-2xl text-slate-400 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Masukkan Data Baru
+                        </button>
+                    </div>
                 </div>
 
             </div>
@@ -389,25 +394,47 @@
                 alertsContainer.innerHTML = `<div class="bg-green-100 p-10 rounded-3xl text-center text-green-800"><p class="text-xl font-bold">GAYA HIDUP SIHAT</p></div>`;
             }
 
-            // Simpan Result ke mynasab_users untuk dibaca oleh myTadbir
-            if (currentUser) {
-                try {
-                    await setDoc(doc(db, "mynasab_users", currentUser.uid), {
-                        myhealth_status: medicalHistory,
-                        myhealth_medical_cost: savedMedicalCost,
-                        myhealth_smoking_cost: savedSmokingCost
-                    }, { merge: true });
-                } catch (error) {
-                    console.error("Ralat menyimpan data kesihatan:", error);
-                }
-            }
 
+
+            window.latestHealthData = {
+                status: medicalHistory,
+                medCost: savedMedicalCost,
+                smokeCost: savedSmokingCost
+            };
+            
             tabResults.disabled = false;
             tabResults.classList.remove('opacity-50', 'cursor-not-allowed');
             window.showTab('results');
             lucide.createIcons();
             viewResults.scrollTop = 0;
         });
+
+// TAMBAHKAN FUNGSI INI:
+        window.simpanKeTadbir = async function() {
+            if (!currentUser || !window.latestHealthData) {
+                alert("Sila jana laporan kesihatan dan log masuk terlebih dahulu.");
+                return;
+            }
+            try {
+                const btn = event.currentTarget;
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Menyimpan...`;
+                btn.disabled = true;
+                
+                await setDoc(doc(db, "mynasab_users", currentUser.uid), {
+                    myhealth_status: window.latestHealthData.status,
+                    myhealth_medical_cost: window.latestHealthData.medCost,
+                    myhealth_smoking_cost: window.latestHealthData.smokeCost
+                }, { merge: true });
+                
+                alert("✅ Rekod kesihatan telah dikemas kini. Sila buka myTadbir untuk melihat anggaran kewangan baharu anda.");
+                btn.innerHTML = `<i data-lucide="check" class="w-5 h-5"></i> Disimpan!`;
+            } catch (error) {
+                console.error(error);
+                alert("Gagal menyimpan data.");
+            }
+        };
+
+    
     </script>
 </body>
 </html>
