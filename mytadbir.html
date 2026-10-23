@@ -1043,11 +1043,22 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                     <Card>
                         <SectionHeader title="Impak Kewangan Kesihatan (data myHEALTH)" icon={Activity} description="Anggaran bocor kewangan berdasarkan rekod perubatan dan gaya hidup semasa." />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Input label={`Kos Rawatan Tahunan (${healthStatus === 'tiada' || !healthStatus ? 'Sihat' : healthStatus.toUpperCase()})`} value={healthCost} disabled={true} />
-                          <Input label="Kos Rokok Tahunan" value={smokingCost} disabled={true} />
+                          
+                          <div className="flex flex-col mb-4">
+                              <label className="text-sm font-semibold text-slate-700 mb-1">
+                                  {`Kos Rawatan Tahunan (${healthStatus === 'tiada' || !healthStatus ? 'Sihat' : healthStatus.toUpperCase()})`}
+                              </label>
+                              <input type="text" value={healthCost} disabled className="w-full border border-slate-300 rounded-lg py-2 px-3 bg-slate-100 text-slate-600 font-semibold cursor-not-allowed" />
+                          </div>
+                          
+                          <div className="flex flex-col mb-4">
+                              <label className="text-sm font-semibold text-slate-700 mb-1">Kos Rokok Tahunan</label>
+                              <input type="text" value={smokingCost} disabled className="w-full border border-slate-300 rounded-lg py-2 px-3 bg-slate-100 text-slate-600 font-semibold cursor-not-allowed" />
+                          </div>
+
                         </div>
                         <div className="mt-2 text-right">
-                             <a href="myhealth.html" className="text-xs font-bold text-sky-600 hover:text-sky-800 underline transition-colors">
+                             <a href="app/myhealth.html" className="text-xs font-bold text-sky-600 hover:text-sky-800 underline transition-colors">
                                  + Kemas Kini di myHEALTH
                              </a>
                         </div>
