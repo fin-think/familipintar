@@ -396,12 +396,6 @@
               setLoadingData(false);
           };
 
-                  
-                  setAppData(mergedData);
-              } catch (e) { console.error("Ralat memuatkan ekosistem data:", e); }
-              setLoadingData(false);
-          };
-
           const handleLogin = async (e) => {
               e.preventDefault();
               try { await window.fbSignIn(window.fbAuth, e.target.email.value, e.target.password.value); } 
