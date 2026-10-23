@@ -198,13 +198,13 @@
   .print-box li span { color: #64748b; font-weight: 600; }
   .print-chip { display: inline-block; background: #eef2ff; color: #0B1E4A; border-radius: 99px; padding: 3px 10px; margin: 0 6px 6px 0; font-size: 11.5px; font-weight: 800; }
   .print-foot { margin-top: 14px; text-align: center; font-size: 10px; color: #94a3b8; }
+   #itinPrintArea { display: none; }
   @media print {
     @page { size: A4 portrait; margin: 12mm; }
-    body > *:not(#itinPreviewModal) { display: none !important; }
-    #itinPreviewModal { position: static; background: none; padding: 0; overflow: visible; display: block; }
-    .itin-sheet { max-width: none; border-radius: 0; padding: 0; margin: 0; }
-    .itin-actions { display: none !important; }
-    .itin-sheet * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body::before { display: none !important; }
+    body > *:not(#itinPrintArea) { display: none !important; }
+    #itinPrintArea { display: block !important; color: #0f172a; font-family: 'Nunito', sans-serif; }
+    #itinPrintArea * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
   
     .card { scroll-margin-top: 90px; }
@@ -1158,9 +1158,9 @@ window.bukaPreview = async (tripId) => {
         document.body.insertAdjacentHTML('beforeend', `
           <div id="itinPreviewModal"><div class="itin-sheet">
             <div class="itin-actions">
-              <button style="background:#f59e0b; color:#fff;" onclick="window.print()">🖨️ Cetak / Save PDF</button>
+              <button style="background:#f59e0b; color:#fff;" onclick="cetakItin()">🖨️ Cetak / Save PDF</button>
               <button style="background:#f1f5f9; color:#475569;" onclick="document.getElementById('itinPreviewModal').remove()">Tutup</button>
-            </div>${binaPaparanCetak(trip, trip.itinerary || [])}</div></div>`);
+            </div><div id="itinSheetBody">${binaPaparanCetak(trip, trip.itinerary || [])}</div></div></div>`);
         if (trip.owner_uid !== currentUser.uid && !(trip.seen_by || []).includes(currentUser.uid)) {
             await updateDoc(doc(db, "jombercuti_trips", tripId), { seen_by: arrayUnion(currentUser.uid) });
             muatDikongsi();
@@ -1168,6 +1168,18 @@ window.bukaPreview = async (tripId) => {
     } catch (e) { alert("Gagal membuka itinerari: " + (e.code || e.message)); }
 };
 
+window.cetakItin = () => {
+    const isi = document.getElementById('itinSheetBody');
+    if (!isi) return;
+    document.getElementById('itinPrintArea')?.remove();
+    const pa = document.createElement('div');
+    pa.id = 'itinPrintArea';
+    pa.innerHTML = isi.innerHTML;
+    document.body.appendChild(pa);
+    window.addEventListener('afterprint', () => pa.remove(), { once: true });
+    setTimeout(() => window.print(), 150);
+};
+  
 window.muatDikongsi = async () => {
     try {
         const s = await getDocs(query(collection(db, "jombercuti_trips"), where("viewer_uids", "array-contains", currentUser.uid)));
