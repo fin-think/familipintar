@@ -611,17 +611,7 @@
           const asetWidth = jumlahKeseluruhanAsetHutang === 0 ? 50 : ((totalLiquidAssets + totalPhysicalAssets) / jumlahKeseluruhanAsetHutang) * 100;
           const hutangWidth = jumlahKeseluruhanAsetHutang === 0 ? 50 : (totalDebts / jumlahKeseluruhanAsetHutang) * 100;
 
-          // TUKAR NILAI TEKS "RM x,xxx" KE NOMBOR UNTUK DIKIRA
-          const cleanHealthCost = parseFloat(String(healthCost).replace(/[^0-9.-]+/g,"")) || 0;
-          const cleanSmokingCost = parseFloat(String(smokingCost).replace(/[^0-9.-]+/g,"")) || 0;
-          const totalCurrentHealthLeakage = cleanHealthCost + cleanSmokingCost;
-
-          // KIRA KOS MASA HADAPAN (Masa Bersara)
-          const futureHealthLeakage = totalCurrentHealthLeakage * Math.pow(1 + (healthInflationRate / 100), yearsToRetire);
           
-          // KIRA JUMLAH KESELURUHAN SEPANJANG PERSARAAN
-          // Kos ini akan berterusan setiap tahun semasa bersara
-          const totalRetirementHealthNeeds = futureHealthLeakage * yearsInRetirement;
 
             
           let dsrColor = "sky", dsrStatusText = "Sangat Sihat", dsrDesc = "";
@@ -647,7 +637,17 @@
 
           const yearsToRetire = Math.max(0, retireAge - age);
           const yearsInRetirement = Math.max(0, lifeExpectancy - retireAge);
+
+          const cleanHealthCost = parseFloat(String(healthCost).replace(/[^0-9.-]+/g,"")) || 0;
+          const cleanSmokingCost = parseFloat(String(smokingCost).replace(/[^0-9.-]+/g,"")) || 0;
+          const totalCurrentHealthLeakage = cleanHealthCost + cleanSmokingCost;
+
+          const futureHealthLeakage = totalCurrentHealthLeakage * Math.pow(1 + (healthInflationRate / 100), yearsToRetire);
           
+          const totalRetirementHealthNeeds = futureHealthLeakage * yearsInRetirement;
+
+
+            
           const futureMonthlyExpenses = currentMonthlyExpenses * Math.pow(1 + (inflationRate / 100), yearsToRetire);
           const yearlyRetirementExpense = futureMonthlyExpenses * 12;
           const netReturnRate = (assetReturnRate - inflationRate) / 100;
@@ -686,9 +686,9 @@
           const yearsItWillLast = yearlyRetirementExpense > 0 ? bakiUntukBersara / yearlyRetirementExpense : 0;
           const exhaustAge = retireAge + yearsItWillLast;
 
-          const totalFutureNeeds = unjuranTotalDebts + futureEduCostTotal + retirementCorpusNeeded;
-          const retirementShortfall = Math.max(0, (unjuranTotalDebts + retirementCorpusNeeded) - futureAssetsAfterEducation);
-
+          const totalFutureNeeds = unjuranTotalDebts + futureEduCostTotal + retirementCorpusNeeded + totalRetirementHealthNeeds;
+          const retirementShortfall = Math.max(0, (unjuranTotalDebts + retirementCorpusNeeded + totalRetirementHealthNeeds) - futureAssetsAfterEducation);
+          
           let financialScore = 0;
 
           if (monthlyBalance >= 3000) financialScore += 25;
@@ -1549,7 +1549,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                         </div>
                       </Card>
 
-                      <Card className=" from-teal-950 mb-6" shadow-xl text-white to-slate-800 via-teal-900>
+                      <Card className="bg-gradient-to-br from-teal-950 via-teal-900 to-slate-800 text-white border-none shadow-xl mb-6">
                         <h3 className="text-lg font-bold mb-5 flex items-center gap-2">🏥 Unjuran Kos Kesihatan & Bocor Kewangan (Masa Hadapan)</h3>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="bg-white/5 p-4 rounded-xl">
