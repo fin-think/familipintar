@@ -209,7 +209,7 @@
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -225,15 +225,51 @@
 
         lucide.createIcons();
 
-        // Tarik Umur & Jantina dari myNasab
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                const snap = await getDoc(doc(db, "mynasab_users", user.uid));
-                if (snap.exists()) {
-                    const data = snap.data();
-                    if (data.gender) document.getElementById('gender').value = data.gender.toLowerCase();
-                    if (data.age) document.getElementById('age').value = data.age;
+                try {
+                    // Semak dari mynasab_users
+                    const userSnap = await getDoc(doc(db, "mynasab_users", user.uid));
+                    if (userSnap.exists()) {
+                        const data = userSnap.data();
+                        if (data.gender) document.getElementById('gender').value = data.gender.toLowerCase();
+                        if (data.age) document.getElementById('age').value = data.age;
+                    }
+                    
+                    // Semak dari mynasab_nodes (Node Diri Sendiri) untuk data lebih tepat
+                    if (!document.getElementById('age').value || !document.getElementById('gender').value) {
+                        const q = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", user.uid));
+                        const nodesSnap = await getDocs(q);
+                        
+                        nodesSnap.forEach(d => {
+                            const nodeData = d.data();
+                            const rel = (nodeData.relationship || nodeData.hubungan || '').toLowerCase();
+                            
+                            // Cari node diri sendiri/induk
+                            if (rel.includes('diri sendiri') || rel.includes('induk')) {
+                                // Kira umur dari tarikh lahir (dob)
+                                if (nodeData.dob) {
+                                    const birthDate = new Date(nodeData.dob);
+                                    const today = new Date();
+                                    let age = today.getFullYear() - birthDate.getFullYear();
+                                    const m = today.getMonth() - birthDate.getMonth();
+                                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+                                    document.getElementById('age').value = age;
+                                }
+                                
+                                // Set jantina
+                                const genderRaw = (nodeData.gender || nodeData.jantina || '').toLowerCase();
+                                if (genderRaw === 'p' || genderRaw === 'perempuan' || genderRaw === 'female' || genderRaw === 'f') {
+                                    document.getElementById('gender').value = 'perempuan';
+                                } else if (genderRaw === 'l' || genderRaw === 'lelaki' || genderRaw === 'male' || genderRaw === 'm') {
+                                    document.getElementById('gender').value = 'lelaki';
+                                }
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error("Gagal menarik data dari myNasab:", e);
                 }
             }
         });
