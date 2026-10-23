@@ -1111,9 +1111,8 @@ window.simpanJadual = async () => {
   if (baris.some(s => !s.date)) { alert('Sila isi tarikh bagi setiap aktiviti.'); return; }
   baris.sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')));
   try {
-    await updateDoc(doc(db, "jombercuti_trips", jadualTripId), { itinerary: baris, updated_at: Date.now() });
     const t = senaraiPelanTersimpan.find(x => x.id === jadualTripId);
-    if (t) { t.itinerary = baris; t.updated_at = Date.now(); }
+    await updateDoc(doc(db, "jombercuti_trips", jadualTripId), { itinerary: baris, updated_at: Date.now(), ...((t && t.published) ? { seen_by: [] } : {}) });    if (t) { t.itinerary = baris; t.updated_at = Date.now(); }
     showToast('💾 Jadual itinerari disimpan!');
     window.tutupJadual();
     renderSenaraiPelan();
@@ -1183,7 +1182,7 @@ window.muatDikongsi = async () => {
 };
 
 window.binaPaparanCetak = (trip, itinList) => {
-    document.getElementById('itinPrintArea')?.remove();
+    
     const days = [...new Set(itinList.map(s => s.date).filter(Boolean))].sort();
     const dest = trip.destination || 'Destinasi';
     const go = trip.date_go || '', back = trip.date_back || go;
