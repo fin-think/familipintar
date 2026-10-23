@@ -72,8 +72,8 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 uppercase">Modal Emas Asal (Gram)</label>
-                        <input type="number" id="gramAwal" value="20" class="w-full mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700 bg-gray-50">
-                    </div>
+                        <input type="number" id="gramAwal" ...>
+                        <div id="hintGram" class="text-[11px] text-gray-500 mt-1"></div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 uppercase">Harga Semasa (RM/g)</label>
                         <input type="number" id="hargaBeli" value="385" class="w-full mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700 bg-gray-50">
@@ -312,5 +312,60 @@
             document.getElementById('placeholder').classList.add('hidden');
         }
     </script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const app = initializeApp({
+        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+        authDomain: "familipintar.firebaseapp.com",
+        projectId: "familipintar",
+        storageBucket: "familipintar.firebasestorage.app",
+        appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+    });
+    const auth = getAuth(app), db = getFirestore(app);
+    const $ = id => document.getElementById(id);
+
+    ['gramAwal', 'hargaBeli'].forEach(id => $(id).addEventListener('input', () => {
+        if ($('hintGram').dataset.dariFinplan) { $('hintGram').textContent = 'Diubah secara manual, tidak lagi mengikut myFINPLAN.'; delete $('hintGram').dataset.dariFinplan; }
+    }));
+
+    async function tarikEmas(uid) {
+        const hint = $('hintGram');
+        try {
+            const s = await getDoc(doc(db, "myfinplan_plans", uid));
+            if (!s.exists()) { hint.textContent = 'Belum ada instrumen disimpan di myFINPLAN.'; return; }
+            let gram = 0, rm = 0;
+            (s.data().instruments || []).filter(x => /emas|gold/i.test(x.name || '')).forEach(x => {
+                const v = parseFloat(x.value) || 0;
+                gram += (typeof x.gram === 'number') ? x.gram : v / (parseFloat(x.price_per_gram) || 385);
+                rm += v;
+            });
+            if (gram <= 0) { hint.textContent = 'Simpanan Emas di myFINPLAN masih 0 gram. Isi dan simpan di sana, atau taip sendiri.'; return; }
+            $('gramAwal').value = gram.toFixed(2);
+            $('hargaBeli').value = (rm / gram).toFixed(2);
+            hint.dataset.dariFinplan = '1';
+            hint.textContent = `Diambil daripada myFINPLAN: ${gram.toFixed(2)} g pada RM ${(rm / gram).toFixed(2)}/g.`;
+        } catch (e) { console.warn(e.message); hint.textContent = 'Gagal menarik data myFINPLAN.'; }
+    }
+
+    onAuthStateChanged(auth, async u => {
+        if (u) { await tarikEmas(u.uid); return; }
+        $('hintGram').innerHTML = `Log masuk untuk tarik emas daripada myFINPLAN:
+            <form id="fEmas" class="flex flex-col gap-2 mt-2">
+              <input name="e" type="email" required placeholder="E-mel myNasab" class="p-2 border rounded-lg text-xs">
+              <input name="p" type="password" required placeholder="Kata laluan" class="p-2 border rounded-lg text-xs">
+              <button class="bg-yellow-500 text-white font-bold rounded-lg py-2 text-xs">Log masuk</button>
+            </form>`;
+        $('fEmas').onsubmit = async ev => {
+            ev.preventDefault();
+            try { await signInWithEmailAndPassword(auth, ev.target.e.value, ev.target.p.value); }
+            catch { alert('Log masuk gagal.'); }
+        };
+    });
+</script>
+    
 </body>
 </html>
