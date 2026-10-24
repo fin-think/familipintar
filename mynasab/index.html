@@ -520,6 +520,14 @@
                         <option value="Anak Saudara">Anak Saudara - Tolak 1 Kredit</option>
                         <option value="Cucu Saudara">Cucu Saudara - Tolak 1 Kredit</option>
                     </optgroup>
+
+                    <optgroup label="Saudara Kembangan & Bapa Saudara">
+                        <option value="Bapa Saudara">Bapa Saudara (Pakcik) - Tolak 1 Kredit</option>
+                        <option value="Mak Saudara">Mak Saudara (Makcik) - Tolak 1 Kredit</option>
+                        <option value="Sepupu">Sepupu - Tolak 1 Kredit</option>
+                        <option value="Dua Pupuk">Dua Pupuk (Sepupu 2nd) - Tolak 1 Kredit</option>
+                    </optgroup>
+                    
                 </select>
             </div>
             
@@ -922,9 +930,9 @@ document.getElementById('authForm').addEventListener('submit', function (e) {
         document.getElementById('tambahHubungan').addEventListener('change', function() {
             const val = this.value;
             // Kemas kini: Masukkan Abang (L) dan Kakak (P)
-            const peta = { 
-                "Datuk":"L", "Ayah":"L", "Suami":"L", "Bapa Mertua":"L", "Abang":"L",
-                "Nenek":"P", "Ibu":"P", "Isteri":"P", "Ibu Mertua":"P", "Kakak":"P" 
+const peta = { 
+                "Datuk":"L", "Ayah":"L", "Suami":"L", "Bapa Mertua":"L", "Abang":"L", "Bapa Saudara":"L",
+                "Nenek":"P", "Ibu":"P", "Isteri":"P", "Ibu Mertua":"P", "Kakak":"P", "Mak Saudara":"P"
             };
             
             if(peta[val]) document.getElementById('tambahJantina').value = peta[val];
