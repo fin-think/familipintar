@@ -2234,3 +2234,112 @@ window.pantauMesejBaru = (uid) => {
         }
     });
 };
+
+// Pastikan arrayUnion diimport di bahagian atas fail app.js bos jika belum ada:
+// import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+// --- FUNGSI 1: HANTAR PERMOHONAN (Dari Pemohon) ---
+window.hantarMesejPautan = async () => {
+    const teks = document.getElementById('teksMesejNasab').value;
+    const uidPenerima = document.getElementById('ruangMesejNasab').getAttribute('data-uid-penerima');
+    
+    if (!uidPenerima) return alert("Ralat: ID waris tidak dijumpai.");
+    if (!teks.trim()) return alert("Sila taip sesuatu mesej.");
+    
+    try {
+        const btn = event.currentTarget;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menghantar...`;
+        btn.disabled = true;
+
+        await addDoc(collection(db, "mynasab_requests"), {
+            pemohon_uid: penggunaSemasa.uid,
+            penerima_uid: uidPenerima,
+            mesej: teks,
+            status: "menunggu",
+            tarikh: new Date().toISOString()
+        });
+        
+        alert("Salaman berjaya dihulurkan! Permohonan pautan telah dihantar ke Peti Mesej waris.");
+        window.tutupMesejNasab();
+    } catch (e) {
+        console.error("Gagal hantar permohonan:", e);
+        alert("Gagal menghantar permohonan. Sila cuba lagi.");
+    }
+};
+
+// --- FUNGSI 2: BUKA & MUAT PETI MESEJ (Oleh Penerima) ---
+window.bukaPetiMesej = async () => {
+    document.getElementById('modalPetiMesej').style.display = 'flex';
+    const senarai = document.getElementById('senaraiPetiMesej');
+    senarai.innerHTML = '<p style="text-align:center; color:#64748b;">Memuatkan mesej permohonan...</p>';
+    
+    try {
+        // Cari permohonan di mana kita adalah penerima dan status masih menunggu
+        const q = query(collection(db, "mynasab_requests"), where("penerima_uid", "==", penggunaSemasa.uid), where("status", "==", "menunggu"));
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+            senarai.innerHTML = '<p style="text-align:center; color:#64748b;">Peti mesej anda bersih dan kosong.</p>';
+            document.getElementById('lencanaMesejBaru').style.display = 'none';
+            return;
+        }
+
+        let html = '';
+        snap.forEach(d => {
+            const data = d.data();
+            html += `
+            <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:15px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                <p style="font-size:12px; font-weight:bold; color:#0ea5e9; text-transform:uppercase; margin:0 0 5px 0;">Permohonan Cantuman Pokok</p>
+                <p style="margin:0 0 15px 0; font-size:14px; font-weight:bold; color:#1e293b; background:#f8fafc; padding:10px; border-radius:8px;">"${data.mesej}"</p>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="terimaPautan('${d.id}', '${data.pemohon_uid}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">🤝 Terima Salaman</button>
+                    <button onclick="tolakPautan('${d.id}')" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tolak</button>
+                </div>
+            </div>`;
+        });
+        
+        senarai.innerHTML = html;
+        document.getElementById('lencanaMesejBaru').innerText = snap.size;
+        document.getElementById('lencanaMesejBaru').style.display = 'block';
+        
+    } catch (e) {
+        console.error(e);
+        senarai.innerHTML = '<p style="text-align:center; color:#ef4444;">Gagal memuatkan peti mesej.</p>';
+    }
+};
+
+window.tutupPetiMesej = () => { document.getElementById('modalPetiMesej').style.display = 'none'; };
+
+// --- FUNGSI 3: KELULUSAN (THE MAGIC HANDSHAKE) ---
+window.terimaPautan = async (requestDocId, pemohonUid) => {
+    try {
+        // 1. Tukar status permohonan ke Lulus
+        await updateDoc(doc(db, "mynasab_requests", requestDocId), { status: "lulus" });
+        
+        // 2. Tambah UID pemohon ke dalam node Diri Sendiri (Penerima)
+        const nodePenerimaSnap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", penggunaSemasa.uid), where("relationship", "in", ["Diri Sendiri", "Induk"])));
+        if (!nodePenerimaSnap.empty) {
+            const nodeRef = doc(db, "mynasab_nodes", nodePenerimaSnap.docs[0].id);
+            await updateDoc(nodeRef, { linked_uids: arrayUnion(pemohonUid) });
+        }
+
+        // 3. Tambah UID penerima ke dalam node Diri Sendiri (Pemohon)
+        const nodePemohonSnap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", pemohonUid), where("relationship", "in", ["Diri Sendiri", "Induk"])));
+        if (!nodePemohonSnap.empty) {
+            const nodeRef = doc(db, "mynasab_nodes", nodePemohonSnap.docs[0].id);
+            await updateDoc(nodeRef, { linked_uids: arrayUnion(penggunaSemasa.uid) });
+        }
+
+        alert("Berjaya! Pokok keluarga anda berdua kini telah bercantum secara rasmi.");
+        window.bukaPetiMesej(); // Refresh kotak mesej
+        
+    } catch (e) {
+        console.error(e);
+        alert("Ralat ketika cuba menyambungkan pokok keluarga.");
+    }
+};
+
+window.tolakPautan = async (requestDocId) => {
+    await updateDoc(doc(db, "mynasab_requests", requestDocId), { status: "ditolak" });
+    window.bukaPetiMesej(); // Refresh kotak mesej
+};
