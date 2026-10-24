@@ -2574,101 +2574,117 @@ window.pantauMesejBaru = (uid) => {
 };
 
 // =========================================================
-// FASA 3: ENJIN CARTA DINAMIK (AUTO-CANTUM RANGKAIAN)
+// FASA 3: ENJIN CARTA DINAMIK (DIBETULKAN LOGIK PAUTAN)
 // =========================================================
 window.bukaCartaDinamik = async () => {
     if (!penggunaSemasa) return;
     
     document.getElementById('modalCartaDinamik').classList.remove('hidden');
-    document.getElementById('ruangCartaDinamik').innerHTML = '<p style="text-align:center; margin-top:40px; color:#2c3e50; font-weight:bold;">Menarik data dan mengira sambungan salasilah... <i class="fa-solid fa-spinner fa-spin"></i></p>';
+    document.getElementById('ruangCartaDinamik').innerHTML = '<p style="text-align:center; margin-top:40px; color:#2c3e50; font-weight:bold;">Menarik data dan memproses jaringan... <i class="fa-solid fa-spinner fa-spin"></i></p>';
 
     try {
-        // 1. Tarik semua node akaun bos
         const qSaya = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", penggunaSemasa.uid));
         const snapSaya = await getDocs(qSaya);
         
         let senaraiMentah = [];
         snapSaya.forEach(d => senaraiMentah.push({ ...d.data(), idAsal: d.id }));
 
-        // 2. Tarik Pautan (Waris Cantuman dari Peti Mesej)
+        // Tarik Waris Cantuman (Jika Ada)
         const indukSaya = senaraiMentah.find(n => n.is_root);
         if (indukSaya && indukSaya.linked_uids && indukSaya.linked_uids.length > 0) {
             for (let uidWaris of indukSaya.linked_uids) {
                 const qWaris = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidWaris));
                 const snapWaris = await getDocs(qWaris);
-                snapWaris.forEach(d => {
-                    // Masukkan ke dalam tatasusunan besar tanpa memadam data bos
-                    senaraiMentah.push({ ...d.data(), idAsal: d.id });
-                });
+                snapWaris.forEach(d => senaraiMentah.push({ ...d.data(), idAsal: d.id }));
             }
         }
 
-        // 3. Formatkan ke struktur FamilyTreeJS (id, pids, mid, fid)
-        let dataCarta = [];
-        
-        senaraiMentah.forEach(node => {
-            let jantina = node.gender === 'P' ? "female" : "male";
+        // Peta Asas (Baiki ralat ikon gambar pecah)
+        let dataCarta = senaraiMentah.map(node => {
             let rel = (node.relationship || "").toLowerCase();
-            if (!node.gender && rel.match(/ibu|isteri|nenek|mak|perempuan|kakak/)) jantina = "female";
-
-            // Asas kotak
-            let item = {
+            let isP = node.gender === 'P' || rel.match(/ibu|isteri|nenek|mak|perempuan|kakak/);
+            let d = {
                 id: node.idAsal,
                 name: node.name,
                 title: node.relationship,
-                gender: jantina,
-                img: node.photo_url || (jantina === "female" ? "https://cdn.balkan.app/shared/w1.svg" : "https://cdn.balkan.app/shared/m1.svg")
+                gender: isP ? "female" : "male"
             };
-
-            // Logik Cari Ibu Bapa & Pasangan Berdasarkan "ref_id" myNasab
-            if (rel === 'anak' && node.ref_id) {
-                const parent = senaraiMentah.find(n => n.idAsal === node.ref_id);
-                if (parent) {
-                    if (parent.gender === 'L' || (parent.relationship || '').toLowerCase().match(/bapa|ayah/)) item.fid = parent.idAsal;
-                    else item.mid = parent.idAsal;
-                }
-            }
-
-            dataCarta.push(item);
+            if (node.photo_url) d.img = node.photo_url; // Kalau takde gambar, biar kosong supaya template guna ikon lalai
+            return d;
         });
 
-        // Pusingan Kedua: Set Pasangan Silang & Ibubapa Songsang
-        senaraiMentah.forEach(node => {
-            const item = dataCarta.find(d => d.id === node.idAsal);
-            const rel = (node.relationship || "").toLowerCase();
-            
-            // Ikat Suami Isteri
-            if (rel === 'suami' || rel === 'isteri') {
-                let sasaranPsg = node.ref_id || (indukSaya ? indukSaya.idAsal : null);
-                if (sasaranPsg) {
-                    item.pids = [sasaranPsg];
-                    let psgNode = dataCarta.find(d => d.id === sasaranPsg);
-                    if(psgNode) {
-                        psgNode.pids = psgNode.pids || [];
-                        if(!psgNode.pids.includes(item.id)) psgNode.pids.push(item.id);
+        // FUNGSI BANTUAN IKATAN AJAIB
+        const ikatPasangan = (id1, id2) => {
+            let n1 = dataCarta.find(d => d.id === id1);
+            let n2 = dataCarta.find(d => d.id === id2);
+            if (n1 && n2) {
+                n1.pids = n1.pids || []; if(!n1.pids.includes(n2.id)) n1.pids.push(n2.id);
+                n2.pids = n2.pids || []; if(!n2.pids.includes(n1.id)) n2.pids.push(n1.id);
+            }
+        };
+
+        const ikatAnakIbuBapa = (idAnak, idIbuBapa) => {
+            let anak = dataCarta.find(d => d.id === idAnak);
+            let ibubapa = dataCarta.find(d => d.id === idIbuBapa);
+            if (anak && ibubapa) {
+                if (ibubapa.gender === 'male') anak.fid = ibubapa.id;
+                else anak.mid = ibubapa.id;
+                
+                // Cari pasangan ibubapa tadi untuk jadikan ayah/ibu kedua kepada anak
+                if (ibubapa.pids && ibubapa.pids.length > 0) {
+                    let psg = dataCarta.find(d => d.id === ibubapa.pids[0]);
+                    if (psg) {
+                        if (psg.gender === 'male') anak.fid = psg.id;
+                        else anak.mid = psg.id;
                     }
                 }
             }
+        };
+
+        // PUSINGAN 1: Ikat Hubungan Suami-Isteri Dahulu
+        senaraiMentah.forEach(node => {
+            let rel = (node.relationship || "").toLowerCase();
+            let targetId = node.ref_id || (indukSaya ? indukSaya.idAsal : null);
+            if (rel === 'suami' || rel === 'isteri' || rel === 'menantu' || rel === 'pasangan cucu') {
+                ikatPasangan(node.idAsal, targetId);
+            }
+        });
+
+        // PUSINGAN 2: Ikat Atas (IbuBapa) & Bawah (Anak/Cucu)
+        senaraiMentah.forEach(node => {
+            let rel = (node.relationship || "").toLowerCase();
+            let targetId = node.ref_id || (indukSaya ? indukSaya.idAsal : null);
             
-            // Ikat Ibu Bapa ke Anak (reverse)
-            if (rel === 'ayah' || rel === 'bapa' || rel === 'ibu' || rel === 'emak') {
-                let sasaranAnak = node.ref_id || (indukSaya ? indukSaya.idAsal : null);
-                if (sasaranAnak) {
-                    let anakNode = dataCarta.find(d => d.id === sasaranAnak);
-                    if (anakNode) {
-                        if (item.gender === 'male') anakNode.fid = item.id;
-                        else anakNode.mid = item.id;
-                    }
+            if (rel.match(/ayah|bapa|ibu|emak|datuk|nenek|moyang|buyut|cakawari|cilawagi/)) {
+                ikatAnakIbuBapa(targetId, node.idAsal); // target adalah anak, node adalah ibubapa
+            } 
+            else if (rel.match(/anak|cucu|cicit|piut|oneng/)) {
+                ikatAnakIbuBapa(node.idAsal, targetId); // node adalah anak, target adalah ibubapa
+            }
+        });
+
+        // PUSINGAN 3: Ikat Sisi (Adik-beradik / Saudara)
+        senaraiMentah.forEach(node => {
+            let rel = (node.relationship || "").toLowerCase();
+            let targetId = node.ref_id || (indukSaya ? indukSaya.idAsal : null);
+            
+            if (rel.match(/abang|kakak|adik|saudara|ipar|sepupu/)) {
+                let nodeCarta = dataCarta.find(d => d.id === node.idAsal);
+                let targetCarta = dataCarta.find(d => d.id === targetId);
+                // Adik beradik berkongsi ID Ayah dan Ibu yang sama dengan sasarannya
+                if (nodeCarta && targetCarta) {
+                    if (targetCarta.fid) nodeCarta.fid = targetCarta.fid;
+                    if (targetCarta.mid) nodeCarta.mid = targetCarta.mid;
                 }
             }
         });
 
         document.getElementById('ruangCartaDinamik').innerHTML = '';
         
-        // 4. Lukis Graf dengan Engine FamilyTreeJS
+        // Lancarkan Enjin Pelukis Graf
         new FamilyTree(document.getElementById("ruangCartaDinamik"), {
             mouseScrool: FamilyTree.action.zoom,
-            template: 'tommy', // Tema bulat moden
+            template: 'tommy',
             nodeBinding: {
                 field_0: "name",
                 field_1: "title",
@@ -2679,6 +2695,6 @@ window.bukaCartaDinamik = async () => {
 
     } catch (e) {
         console.error(e);
-        document.getElementById('ruangCartaDinamik').innerHTML = '<p style="color:red; text-align:center;">Gagal memuatkan carta dinamik: ' + e.message + '</p>';
+        document.getElementById('ruangCartaDinamik').innerHTML = '<p style="color:red; text-align:center;">Gagal memuatkan carta: ' + e.message + '</p>';
     }
 };
