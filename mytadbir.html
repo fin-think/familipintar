@@ -153,8 +153,7 @@
         // DEFAULT DATA (DISETKAN KEPADA 0 SEPERTI DIMINTA)
         const defaultData = {
           userGender: 'lelaki', age: 30, gajiHakiki: 0, pendapatanSampingan: 0,
-          kwspPotongan: 11, socsoPotongan: 0, dapurExpenses: 0, utilitiExpenses: 0,
-          transportExpenses: 0, entertainmentExpenses: 0, insuranceExpenses: 0,
+          kwspPotongan: 11, socsoPotongan: 0, monthlyBudget: 0,
           childrenData: [], asetList: [],
           rumahValue: 0, keretaValue: 0, debtsList: [], extraBudget: 0, debtStrategy: 'snowball', consolRate: 4.5, consolYear: 7,
           retireAge: 60, lifeExpectancy: 80, inflationRate: 3, assetReturnRate: 5, uniAge: 18, currentEduCost: 50000,
@@ -179,6 +178,7 @@
   const [showPaywall, setShowPaywall] = useState(false);
   const [dariMyDebt, setDariMyDebt] = useState(false);
   const [dariFinplan, setDariFinplan] = useState(null);
+  const [budgetDariFinplan, setBudgetDariFinplan] = useState(false);
   const [healthStatus, setHealthStatus] = useState('tiada');
   const [healthCost, setHealthCost] = useState('RM 0');
   const [smokingCost, setSmokingCost] = useState('RM 0');
@@ -227,6 +227,12 @@
                   if (docSnap.exists()) {
                       const dbData = docSnap.data();
                       mergedData = { ...mergedData, ...dbData.raw_data };
+
+                      const rdb = dbData.raw_data || {};
+if (rdb.monthlyBudget === undefined) {
+    mergedData.monthlyBudget = ['dapurExpenses','utilitiExpenses','transportExpenses','entertainmentExpenses','insuranceExpenses']
+        .reduce((t, k) => t + (parseFloat(rdb[k]) || 0), 0);
+}
 
                       // Pindah data lama (kotak tetap) kepada senarai aset
                       const rd = dbData.raw_data || {};
@@ -380,6 +386,10 @@
                               }));
                               setDariFinplan(true);
                           }
+                          if ((parseFloat(ff.monthlyExpense) || 0) > 0) {
+                          mergedData.monthlyBudget = parseFloat(ff.monthlyExpense);
+                          setBudgetDariFinplan(true);
+                          }
                       }
                   } catch (e) { console.warn("Gagal baca data myFINPLAN:", e.message); }
                   
@@ -410,7 +420,7 @@
           // =========================================================================
           const {
             userGender, age, gajiHakiki, pendapatanSampingan, kwspPotongan, socsoPotongan,
-            dapurExpenses, utilitiExpenses, transportExpenses, entertainmentExpenses, insuranceExpenses, childrenData,
+            monthlyBudget, childrenData,
             asetList, rumahValue, keretaValue,
             debtsList, extraBudget, debtStrategy, consolRate, consolYear,
             retireAge, lifeExpectancy, inflationRate, assetReturnRate, uniAge, currentEduCost,
@@ -426,11 +436,7 @@
           const setPendapatanSampingan = (val) => setAppData(p => ({...p, pendapatanSampingan: val}));
           const setKwspPotongan = (val) => setAppData(p => ({...p, kwspPotongan: val}));
           const setSocsoPotongan = (val) => setAppData(p => ({...p, socsoPotongan: val}));
-          const setDapurExpenses = (val) => setAppData(p => ({...p, dapurExpenses: val}));
-          const setUtilitiExpenses = (val) => setAppData(p => ({...p, utilitiExpenses: val}));
-          const setTransportExpenses = (val) => setAppData(p => ({...p, transportExpenses: val}));
-          const setEntertainmentExpenses = (val) => setAppData(p => ({...p, entertainmentExpenses: val}));
-          const setInsuranceExpenses = (val) => setAppData(p => ({...p, insuranceExpenses: val}));
+          const setMonthlyBudget = (val) => setAppData(p => ({...p, monthlyBudget: val}));
           const setChildrenData = (val) => setAppData(p => ({...p, childrenData: val}));
           const setHealthInflationRate = (val) => setAppData(p => ({...p, healthInflationRate: val}));
           
@@ -585,7 +591,7 @@
           const totalIncomeMonthly = gajiHakiki + pendapatanSampingan;
           const kwspAmount = gajiHakiki * (kwspPotongan / 100);
           const netIncomeMonthly = totalIncomeMonthly - kwspAmount - socsoPotongan;
-          const currentMonthlyExpenses = dapurExpenses + utilitiExpenses + transportExpenses + entertainmentExpenses + insuranceExpenses;
+          const currentMonthlyExpenses = monthlyBudget;
           const totalMonthlyCommitments = debtAnalysisResult.totalCommitment + currentMonthlyExpenses;
           const monthlyBalance = netIncomeMonthly - totalMonthlyCommitments;
 
@@ -1024,11 +1030,12 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Input label="Potongan KWSP (%)" value={kwspPotongan} onChange={e => setKwspPotongan(toNumber(e.target.value))} />
                                 <Input label="SOCSO / PCB" value={socsoPotongan} onChange={e => setSocsoPotongan(toNumber(e.target.value))} prefix="RM" />
-                                <Input label="Belanja Dapur" value={dapurExpenses} onChange={e => setDapurExpenses(toNumber(e.target.value))} prefix="RM" />
-                                <Input label="Utiliti" value={utilitiExpenses} onChange={e => setUtilitiExpenses(toNumber(e.target.value))} prefix="RM" />
-                                <Input label="Transport" value={transportExpenses} onChange={e => setTransportExpenses(toNumber(e.target.value))} prefix="RM" />
-                                <Input label="Entertainment" value={entertainmentExpenses} onChange={e => setEntertainmentExpenses(toNumber(e.target.value))} prefix="RM" />
-                                <Input label="Insurance/Takaful" value={insuranceExpenses} onChange={e => setInsuranceExpenses(toNumber(e.target.value))} prefix="RM" />
+                                <div className="md:col-span-2">
+  <Input label="Bajet Bulanan Masa Kini" value={monthlyBudget} onChange={e => setMonthlyBudget(toNumber(e.target.value))} prefix="RM" />
+  <p className="text-[11px] text-slate-400 -mt-3 mb-2">
+    {budgetDariFinplan ? 'Diambil daripada myFINPLAN. ' : ''}Jumlah semua perbelanjaan bulanan (dapur, utiliti, transport, hiburan, insurans/takaful).
+  </p>
+</div>
                               </div>
                             </div>
                           </div>
