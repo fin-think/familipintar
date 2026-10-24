@@ -2815,16 +2815,62 @@ window.bukaCartaDinamik = async () => {
             prosesAkaun(a.nod, { label: (n) => n.is_root ? 'Waris Cantuman' : (n.relationship || '') });
         });
 
-        // Buang rujukan yang tidak wujud supaya graf tak rosak
+        // ---------- 5b. BERSIHKAN GRAF (punca semua kotak bertindih jadi satu) ----------
+        // Buang rujukan yang tidak wujud
         const dataCarta = [...peta.values()];
         dataCarta.forEach(n => {
             if (n.fid && !peta.has(n.fid)) delete n.fid;
             if (n.mid && !peta.has(n.mid)) delete n.mid;
-            if (n.pids) {
-                n.pids = n.pids.filter(id => peta.has(id));
-                if (n.pids.length === 0) delete n.pids;
-            }
+            if (n.pids) n.pids = n.pids.filter(id => peta.has(id) && id !== n.id);
         });
+
+        // Adakah 'sasaran' leluhur kepada 'mula'? (untuk kesan kitaran)
+        const adaLeluhur = (mula, sasaran) => {
+            const lawat = new Set();
+            const naik = (id) => {
+                if (!id || lawat.has(id)) return false;
+                if (id === sasaran) return true;
+                lawat.add(id);
+                const x = peta.get(id);
+                return !!x && (naik(x.fid) || naik(x.mid));
+            };
+            const m = peta.get(mula);
+            return !!m && (naik(m.fid) || naik(m.mid));
+        };
+
+        // Putuskan sebarang kitaran ibu bapa-anak (A ibu bapa B, B ibu bapa A)
+        dataCarta.forEach(n => {
+            if (n.fid && (n.fid === n.id || adaLeluhur(n.fid, n.id))) delete n.fid;
+            if (n.mid && (n.mid === n.id || adaLeluhur(n.mid, n.id))) delete n.mid;
+        });
+
+        // Jika anak ada bapa DAN ibu, mereka mesti pasangan (syarat susun atur Balkan)
+        dataCarta.forEach(n => {
+            if (!n.fid || !n.mid) return;
+            const f = peta.get(n.fid), m = peta.get(n.mid);
+            if (f.id === m.id) { delete n.mid; return; }
+            if (adaLeluhur(f.id, m.id) || adaLeluhur(m.id, f.id)) { delete n.mid; return; }
+            pasang(f, m);
+        });
+
+        // Pasangan mesti bertimbal balik, dan pasangan tak boleh jadi leluhur kepada pasangannya
+        dataCarta.forEach(n => {
+            (n.pids || []).slice().forEach(id => {
+                const p = peta.get(id);
+                if (!p) return;
+                if (adaLeluhur(n.id, p.id) || adaLeluhur(p.id, n.id)) {
+                    n.pids = n.pids.filter(x => x !== id);
+                    if (p.pids) p.pids = p.pids.filter(x => x !== n.id);
+                } else if (!(p.pids || []).includes(n.id)) {
+                    p.pids = p.pids || []; p.pids.push(n.id);
+                }
+            });
+        });
+        dataCarta.forEach(n => { if (n.pids && n.pids.length === 0) delete n.pids; });
+
+        // Untuk semakan: tampal output ini jika carta masih salah
+        console.log('[Carta Dinamik] jumlah nod:', dataCarta.length);
+        console.log('[Carta Dinamik] data:', JSON.stringify(dataCarta.map(({ img, ...r }) => r)));
 
         // ---------- 6. LUKIS ----------
         ruang.innerHTML = '';
