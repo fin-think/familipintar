@@ -895,7 +895,10 @@ const RUJUKAN = {
     "Anak Saudara": ["Abang", "Kakak", "Adik", "Adik-beradik"],
     "Cucu Saudara": ["Anak Saudara"],
     // --- TAMBAH INI TUK FASA 1 ---
-    "Sepupu": ["Bapa Saudara", "Mak Saudara"],
+    "Sepupu": [
+        "Bapa Saudara (Belah Ayah)", "Mak Saudara (Belah Ayah)", 
+        "Bapa Saudara (Belah Ibu)", "Mak Saudara (Belah Ibu)"
+    ],
     "Dua Pupuk": ["Sepupu"]
 };
 
