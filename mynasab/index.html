@@ -1034,10 +1034,13 @@ window.ujiCarianNasab = () => {
 };
 
 // Buka Kotak Tulis Mesej
+// Buka Kotak Tulis Mesej
 window.bukaMesejNasab = (uidPenerima, namaPenerima) => {
+    // 1. Simpan terus dalam memori browser (Sangat Kebal)
+    window.uidPenerimaSemasa = uidPenerima; 
+    
+    // 2. Papar UI
     document.getElementById('namaPenerimaMesej').innerText = namaPenerima;
-    // Set attribute data-uid-penerima supaya fungsi Firebase boleh membacanya
-    document.getElementById('ruangMesejNasab').setAttribute('data-uid-penerima', uidPenerima);
     document.getElementById('ruangMesejNasab').style.display = 'block';
 };
 
