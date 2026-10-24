@@ -2238,9 +2238,10 @@ window.pantauMesejBaru = (uid) => {
 // Pastikan arrayUnion diimport di bahagian atas fail app.js bos jika belum ada:
 // import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// --- FUNGSI 1: HANTAR PERMOHONAN (Dari Pemohon) ---
-window.hantarMesejPautan = async () => {
+// --- FUNGSI 1: HANTAR MESEJ (BIASA & PAUTAN) ---
+window.hantarMesejSebenar = async () => {
     const teks = document.getElementById('teksMesejNasab').value;
+    const jenis = document.getElementById('jenisMesejNasab').value;
     const uidPenerima = document.getElementById('ruangMesejNasab').getAttribute('data-uid-penerima');
     
     if (!uidPenerima) return alert("Ralat: ID waris tidak dijumpai.");
@@ -2255,27 +2256,28 @@ window.hantarMesejPautan = async () => {
             pemohon_uid: penggunaSemasa.uid,
             penerima_uid: uidPenerima,
             mesej: teks,
-            status: "menunggu",
+            jenis: jenis, // Tanda sebagai "biasa" atau "pautan"
+            status: jenis === "pautan" ? "menunggu" : "dibaca", 
             tarikh: new Date().toISOString()
         });
         
-        alert("Salaman berjaya dihulurkan! Permohonan pautan telah dihantar ke Peti Mesej waris.");
+        alert(jenis === "pautan" ? "Salaman dihulur! Permohonan pautan dihantar." : "Mesej berjaya dihantar ke Peti Mesej waris!");
         window.tutupMesejNasab();
     } catch (e) {
-        console.error("Gagal hantar permohonan:", e);
-        alert("Gagal menghantar permohonan. Sila cuba lagi.");
+        console.error("Gagal hantar mesej:", e);
+        alert("Gagal menghantar. Sila cuba lagi.");
     }
 };
 
-// --- FUNGSI 2: BUKA & MUAT PETI MESEJ (Oleh Penerima) ---
+// --- FUNGSI 2: BACA PETI MESEJ PINTAR ---
 window.bukaPetiMesej = async () => {
     document.getElementById('modalPetiMesej').style.display = 'flex';
     const senarai = document.getElementById('senaraiPetiMesej');
-    senarai.innerHTML = '<p style="text-align:center; color:#64748b;">Memuatkan mesej permohonan...</p>';
+    senarai.innerHTML = '<p style="text-align:center; color:#64748b;">Memuatkan mesej...</p>';
     
     try {
-        // Cari permohonan di mana kita adalah penerima dan status masih menunggu
-        const q = query(collection(db, "mynasab_requests"), where("penerima_uid", "==", penggunaSemasa.uid), where("status", "==", "menunggu"));
+        // Tarikh masuk mesej biasa (dibaca) atau permohonan pautan (menunggu)
+        const q = query(collection(db, "mynasab_requests"), where("penerima_uid", "==", penggunaSemasa.uid), where("status", "in", ["menunggu", "dibaca"]));
         const snap = await getDocs(q);
         
         if (snap.empty) {
@@ -2287,14 +2289,23 @@ window.bukaPetiMesej = async () => {
         let html = '';
         snap.forEach(d => {
             const data = d.data();
+            const isPautan = data.jenis === "pautan" && data.status === "menunggu";
+            
             html += `
             <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:15px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-                <p style="font-size:12px; font-weight:bold; color:#0ea5e9; text-transform:uppercase; margin:0 0 5px 0;">Permohonan Cantuman Pokok</p>
+                <p style="font-size:12px; font-weight:bold; color:${isPautan ? '#0ea5e9' : '#8b5cf6'}; text-transform:uppercase; margin:0 0 5px 0;">
+                    ${isPautan ? '🤝 Permohonan Cantuman Pokok' : '💬 Mesej Biasa'}
+                </p>
                 <p style="margin:0 0 15px 0; font-size:14px; font-weight:bold; color:#1e293b; background:#f8fafc; padding:10px; border-radius:8px;">"${data.mesej}"</p>
+                
+                ${isPautan ? `
                 <div style="display:flex; gap:10px;">
-                    <button onclick="terimaPautan('${d.id}', '${data.pemohon_uid}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">🤝 Terima Salaman</button>
-                    <button onclick="tolakPautan('${d.id}')" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tolak</button>
+                    <button onclick="window.terimaPautan('${d.id}', '${data.pemohon_uid}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Terima Salaman</button>
+                    <button onclick="window.tolakPautan('${d.id}')" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tolak</button>
                 </div>
+                ` : `
+                <button onclick="window.padamMesej('${d.id}')" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:5px 15px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px;">Padam Mesej</button>
+                `}
             </div>`;
         });
         
@@ -2306,6 +2317,12 @@ window.bukaPetiMesej = async () => {
         console.error(e);
         senarai.innerHTML = '<p style="text-align:center; color:#ef4444;">Gagal memuatkan peti mesej.</p>';
     }
+};
+
+// Fungsi padam mesej biasa
+window.padamMesej = async (id) => {
+    await updateDoc(doc(db, "mynasab_requests", id), { status: "dipadam" });
+    window.bukaPetiMesej();
 };
 
 window.tutupPetiMesej = () => { document.getElementById('modalPetiMesej').style.display = 'none'; };
