@@ -51,6 +51,38 @@
         "sumber": "Tiada angka khusus. Proksi: bidang bukan-STEM swasta (MMU perakaunan RM54,250, Berita Harian 2024). Sara hidup RM4,000/bln (had atas anggaran Taylor's)." },
       "luar": { "tempoh": 4, "yuran": [141736, 141736], "hidup_setahun": [20000, 20000], "anggaran_dalaman": true,
         "sumber": "Mesir (Al-Azhar): yuran sehingga ~US$8,000 (~RM32,934)/thn x4 + tambang pulang ~RM10,000. Angka yuran 2016 untuk sains kesihatan (Berita Harian), kos sara hidup di Mesir dilaporkan naik ~50%; RM20,000/thn ialah andaian." }
+    },
+    "guru": {
+      "awam": { "tempoh": 4, "yuran": [24900, 24900], "hidup_setahun": [20000, 20000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus ijazah pendidikan awam / IPG. Yuran guna siling yuran awam tempatan yang ada (RM24,900). Sara hidup RM20,000/thn (blog UM)." },
+      "swasta": { "tempoh": 4, "yuran": [54250, 54250], "hidup_setahun": [48000, 48000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus. Proksi: bidang bukan-STEM swasta (MMU perakaunan RM54,250, Berita Harian 2024). Sara hidup RM4,000/bln (had atas anggaran Taylor's)." },
+      "luar": { "tempoh": 3, "yuran": [655500, 655500], "hidup_setahun": [103500, 103500], "anggaran_dalaman": true,
+        "sumber": "UK: tiada angka khusus pendidikan. Proksi yuran subjek bilik kuliah melebihi £38,000/thn (statementory.com 2026) x3 x RM5.75. Sara hidup £18,000/thn x RM5.75." }
+    },
+    "niaga": {
+      "awam": { "tempoh": 4, "yuran": [24900, 24900], "hidup_setahun": [20000, 20000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus ijazah perniagaan awam. Yuran guna siling yuran awam tempatan yang ada (RM24,900). Sara hidup RM20,000/thn (blog UM)." },
+      "swasta": { "tempoh": 3, "yuran": [54250, 54250], "hidup_setahun": [48000, 48000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus perniagaan. Proksi: ijazah perakaunan MMU RM54,250 (Berita Harian Okt 2024; 3 tahun diandaikan). Sara hidup RM4,000/bln (had atas anggaran Taylor's)." },
+      "luar": { "tempoh": 3, "yuran": [655500, 655500], "hidup_setahun": [103500, 103500], "anggaran_dalaman": true,
+        "sumber": "UK: tiada angka khusus perniagaan. Proksi yuran subjek bilik kuliah melebihi £38,000/thn (statementory.com 2026) x3 x RM5.75. Sara hidup £18,000/thn x RM5.75." }
+    },
+    "seragam": {
+      "awam": { "tempoh": 4, "yuran": [24900, 24900], "hidup_setahun": [20000, 20000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus. Latihan agensi dan UPNM (pegawai kadet) biasanya ditaja; angka ini siling bagi laluan ijazah awam biasa. Yuran guna siling yuran awam tempatan yang ada (RM24,900). Sara hidup RM20,000/thn." },
+      "swasta": { "tempoh": 4, "yuran": [54250, 54250], "hidup_setahun": [48000, 48000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus. Proksi: bidang bukan-STEM swasta (MMU perakaunan RM54,250, Berita Harian 2024). Laluan ini jarang melalui swasta. Sara hidup RM4,000/bln (had atas anggaran Taylor's)." },
+      "luar": { "tempoh": 3, "yuran": [655500, 655500], "hidup_setahun": [103500, 103500], "anggaran_dalaman": true,
+        "sumber": "UK: tiada angka khusus. Proksi yuran subjek bilik kuliah melebihi £38,000/thn (statementory.com 2026) x3 x RM5.75. Laluan ini jarang melalui luar negara. Sara hidup £18,000/thn x RM5.75." }
+    },
+    "seni": {
+      "awam": { "tempoh": 4, "yuran": [24900, 24900], "hidup_setahun": [20000, 20000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus seni / reka bentuk awam (UiTM, UPSI, ASWARA). Yuran guna siling yuran awam tempatan yang ada (RM24,900). Sara hidup RM20,000/thn (blog UM)." },
+      "swasta": { "tempoh": 3, "yuran": [54250, 54250], "hidup_setahun": [48000, 48000], "anggaran_dalaman": true,
+        "sumber": "Tiada angka khusus seni swasta. Proksi: ijazah perakaunan MMU RM54,250 (Berita Harian Okt 2024; 3 tahun diandaikan). Sara hidup RM4,000/bln (had atas anggaran Taylor's)." },
+      "luar": { "tempoh": 3, "yuran": [655500, 655500], "hidup_setahun": [103500, 103500], "anggaran_dalaman": true,
+        "sumber": "UK: tiada angka khusus seni. Proksi yuran subjek bilik kuliah melebihi £38,000/thn (statementory.com 2026) x3 x RM5.75. Sara hidup £18,000/thn x RM5.75." }
     }
   }
 }
