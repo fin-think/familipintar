@@ -1143,15 +1143,20 @@ window.hantarMesejUjian = () => {
             <!-- Hasil -->
             <div id="hasilCarianNasab"></div>
 
-            <!-- Mesej -->
+           <!-- Mesej -->
             <div id="ruangMesejNasab" class="ruang-mesej">
                 <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
                     <h4 style="margin:0; color:#065f46; font-size:14px;">Mesej ke: <span id="namaPenerimaMesej" style="font-weight:bold;"></span></h4>
-                    <button onclick="tutupMesejNasab()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size:12px;">Batal X</button>
+                    <button onclick="window.tutupMesejNasab()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size:12px;">Batal X</button>
                 </div>
-                <textarea id="teksMesejNasab" rows="3" class="carian-input" placeholder="Assalamualaikum, saya lihat nasab kita bersambung..."></textarea>
-                <button onclick="hantarMesejUjian()" class="carian-btn" style="background:#059669; margin-top:12px;">
-                    <i class="fa-solid fa-paper-plane"></i> Hantar Mesej
+                <!-- TAMBAH PILIHAN JENIS MESEJ DI SINI -->
+                <select id="jenisMesejNasab" style="margin-bottom:10px; width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; outline:none; font-weight:bold; color:#065f46;">
+                    <option value="biasa">Mesej Sapaan (Biasa)</option>
+                    <option value="pautan">Mohon Cantum Pokok (Salaman)</option>
+                </select>
+                <textarea id="teksMesejNasab" rows="3" class="carian-input" placeholder="Assalamualaikum..."></textarea>
+                <button onclick="window.hantarMesejSebenar()" class="carian-btn" style="background:#059669; margin-top:12px;">
+                    <i class="fa-solid fa-paper-plane"></i> Hantar
                 </button>
             </div>
         </div>
