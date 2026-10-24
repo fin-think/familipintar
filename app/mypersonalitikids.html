@@ -243,6 +243,17 @@ onAuthStateChanged(auth, async user => {
         S.plans = {};
         p.forEach(d => { S.plans[d.id] = d.data(); });
 
+        // Keputusan lama (sebelum kerjaya baru ditambah): kira semula daripada skor tersimpan, tanpa perlu ambil ujian semula
+        const bilKerjaya = Object.keys(KERJAYA_SERASI).length;
+        for (const a of S.anak) {
+            const p0 = S.plans[a.id] && S.plans[a.id].personaliti;
+            if (p0 && p0.scores && (p0.serasi || []).length !== bilKerjaya) {
+                p0.serasi = kiraSerasi(p0.scores);
+                try { await setDoc(doc(db, "mykids_plans", a.id), { personaliti: p0 }, { merge: true }); }
+                catch (e) { console.warn('Gagal kemas kini serasi:', e.message); }
+            }
+        }
+
         const pre = new URLSearchParams(location.search).get('anak');
         const idx = S.anak.findIndex(a => a.id === pre);
         S.i = idx >= 0 ? idx : 0;
@@ -368,6 +379,14 @@ function updateProgress() {
 // ==========================================================
 const pctDim = score => Math.round(((score + MAX_PER_DIM) / (MAX_PER_DIM * 2)) * 100);
 
+function kiraSerasi(scores) {
+    return Object.entries(KERJAYA_SERASI).map(([k, v]) => {
+        let dot = 0, sum = 0;
+        for (const d in v.w) { dot += v.w[d] * (scores[d] / MAX_PER_DIM); sum += Math.abs(v.w[d]); }
+        return { k, n: v.n, p: Math.max(0, Math.min(100, Math.round(50 + 50 * dot / sum))) };
+    }).sort((a, b) => b.p - a.p);
+}
+
 function buildResult() {
     const scores = { E: 0, S: 0, T: 0, J: 0 };
     questions.forEach(q => { if (answers[q.id] !== undefined) scores[q.dimension] += answers[q.id] * q.direction; });
@@ -379,11 +398,7 @@ function buildResult() {
     ].join('');
     const profile = personalityTypes[type];
 
-    const serasi = Object.entries(KERJAYA_SERASI).map(([k, v]) => {
-        let dot = 0, sum = 0;
-        for (const d in v.w) { dot += v.w[d] * (scores[d] / MAX_PER_DIM); sum += Math.abs(v.w[d]); }
-        return { k, n: v.n, p: Math.max(0, Math.min(100, Math.round(50 + 50 * dot / sum))) };
-    }).sort((a, b) => b.p - a.p);
+    const serasi = kiraSerasi(scores);
 
     return {
         type, nama: profile.name, desc: profile.desc,
