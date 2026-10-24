@@ -2242,7 +2242,11 @@ window.pantauMesejBaru = (uid) => {
 window.hantarMesejSebenar = async () => {
     const teks = document.getElementById('teksMesejNasab').value;
     const jenis = document.getElementById('jenisMesejNasab').value;
-    const uidPenerima = document.getElementById('ruangMesejNasab').getAttribute('data-uid-penerima');
+    const uidPenerima = window.uidPenerimaSemasa; // Tarik dari memori
+
+if (!uidPenerima || uidPenerima === 'undefined') {
+    return alert("Ralat: ID waris tidak dijumpai di pangkalan data.");
+}
     
     if (!uidPenerima) return alert("Ralat: ID waris tidak dijumpai.");
     if (!teks.trim()) return alert("Sila taip sesuatu mesej.");
