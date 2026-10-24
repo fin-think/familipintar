@@ -2244,11 +2244,7 @@ window.hantarMesejSebenar = async () => {
     const jenis = document.getElementById('jenisMesejNasab').value;
     const uidPenerima = window.uidPenerimaSemasa; // Tarik dari memori
 
-if (!uidPenerima || uidPenerima === 'undefined') {
-    return alert("Ralat: ID waris tidak dijumpai di pangkalan data.");
-}
-    
-    if (!uidPenerima) return alert("Ralat: ID waris tidak dijumpai.");
+    if (!uidPenerima || uidPenerima === 'undefined') return alert("Ralat: ID waris tidak dijumpai di pangkalan data.");
     if (!teks.trim()) return alert("Sila taip sesuatu mesej.");
     
     try {
@@ -2258,19 +2254,28 @@ if (!uidPenerima || uidPenerima === 'undefined') {
 
         await addDoc(collection(db, "mynasab_requests"), {
             pemohon_uid: penggunaSemasa.uid,
+            penghantar_nama: (penggunaSemasa.email || '').split('@')[0], 
             penerima_uid: uidPenerima,
             mesej: teks,
             jenis: jenis, // Tanda sebagai "biasa" atau "pautan"
-            status: jenis === "pautan" ? "menunggu" : "dibaca", 
+            status: jenis === "pautan" ? "menunggu" : "belum_baca", 
             tarikh: new Date().toISOString()
         });
         
         alert(jenis === "pautan" ? "Salaman dihulur! Permohonan pautan dihantar." : "Mesej berjaya dihantar ke Peti Mesej waris!");
         window.tutupMesejNasab();
+        
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Hantar`;
+        btn.disabled = false;
     } catch (e) {
         console.error("Gagal hantar mesej:", e);
         alert("Gagal menghantar. Sila cuba lagi.");
     }
+};
+
+window.tutupMesejNasab = () => {
+    document.getElementById('ruangMesejNasab').style.display = 'none';
+    document.getElementById('teksMesejNasab').value = ''; 
 };
 
 // --- FUNGSI 2: BACA PETI MESEJ PINTAR ---
@@ -2280,13 +2285,16 @@ window.bukaPetiMesej = async () => {
     senarai.innerHTML = '<p style="text-align:center; color:#64748b;">Memuatkan mesej...</p>';
     
     try {
-        // Tarikh masuk mesej biasa (dibaca) atau permohonan pautan (menunggu)
-        const q = query(collection(db, "mynasab_requests"), where("penerima_uid", "==", penggunaSemasa.uid), where("status", "in", ["menunggu", "dibaca"]));
+        // Tarik semua mesej & pautan yang dituju kepada pengguna
+        const q = query(collection(db, "mynasab_requests"), where("penerima_uid", "==", penggunaSemasa.uid), where("status", "in", ["menunggu", "belum_baca", "dibaca"]));
         const snap = await getDocs(q);
         
         if (snap.empty) {
-            senarai.innerHTML = '<p style="text-align:center; color:#64748b;">Peti mesej anda bersih dan kosong.</p>';
-            document.getElementById('lencanaMesejBaru').style.display = 'none';
+            senarai.innerHTML = `
+                <div style="text-align:center; padding:30px 10px;">
+                    <i class="fa-regular fa-folder-open" style="font-size:40px; color:#cbd5e1; margin-bottom:15px;"></i>
+                    <p style="color:#64748b; font-weight:bold; margin:0;">Tiada mesej diterima setakat ini.</p>
+                </div>`;
             return;
         }
 
@@ -2294,28 +2302,36 @@ window.bukaPetiMesej = async () => {
         snap.forEach(d => {
             const data = d.data();
             const isPautan = data.jenis === "pautan" && data.status === "menunggu";
+            const isUnread = data.status === "belum_baca" || data.status === "menunggu";
             
+            const statusDot = isUnread ? '<span style="display:inline-block; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px;" title="Mesej Baru"></span>' : '';
+            const namaPenghantar = data.penghantar_nama || "Waris";
+            const formatTarikh = new Date(data.tarikh).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
             html += `
             <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:15px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">
+                    <strong style="color:#0f172a; font-size:14px;"><i class="fa-regular fa-user" style="color:#64748b; margin-right:5px;"></i> ${namaPenghantar} ${statusDot}</strong>
+                    <small style="color:#64748b; font-size:11px;">${formatTarikh}</small>
+                </div>
                 <p style="font-size:12px; font-weight:bold; color:${isPautan ? '#0ea5e9' : '#8b5cf6'}; text-transform:uppercase; margin:0 0 5px 0;">
                     ${isPautan ? '🤝 Permohonan Cantuman Pokok' : '💬 Mesej Biasa'}
                 </p>
                 <p style="margin:0 0 15px 0; font-size:14px; font-weight:bold; color:#1e293b; background:#f8fafc; padding:10px; border-radius:8px;">"${data.mesej}"</p>
                 
-                ${isPautan ? `
                 <div style="display:flex; gap:10px;">
+                ${isPautan ? `
                     <button onclick="window.terimaPautan('${d.id}', '${data.pemohon_uid}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Terima Salaman</button>
-                    <button onclick="window.tolakPautan('${d.id}')" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tolak</button>
-                </div>
+                    <button onclick="window.padamMesej('${d.id}', 'tolak')" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tolak</button>
                 ` : `
-                <button onclick="window.padamMesej('${d.id}')" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:5px 15px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px;">Padam Mesej</button>
+                    ${data.status === "belum_baca" ? `<button onclick="window.tandakanMesejDibaca('${d.id}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tandakan Dibaca ✓</button>` : ''}
+                    <button onclick="window.padamMesej('${d.id}', 'padam')" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Padam Mesej</button>
                 `}
+                </div>
             </div>`;
         });
         
         senarai.innerHTML = html;
-        document.getElementById('lencanaMesejBaru').innerText = snap.size;
-        document.getElementById('lencanaMesejBaru').style.display = 'block';
         
     } catch (e) {
         console.error(e);
@@ -2323,10 +2339,17 @@ window.bukaPetiMesej = async () => {
     }
 };
 
-// Fungsi padam mesej biasa
-window.padamMesej = async (id) => {
-    await updateDoc(doc(db, "mynasab_requests", id), { status: "dipadam" });
+window.tandakanMesejDibaca = async (docId) => {
+    await updateDoc(doc(db, "mynasab_requests", docId), { status: "dibaca" });
     window.bukaPetiMesej();
+};
+
+window.padamMesej = async (id, jenis) => {
+    const msg = jenis === 'tolak' ? "Tolak permohonan pautan ini?" : "Adakah anda pasti mahu memadam mesej ini?";
+    if (confirm(msg)) {
+        await updateDoc(doc(db, "mynasab_requests", id), { status: "dipadam" });
+        window.bukaPetiMesej();
+    }
 };
 
 window.tutupPetiMesej = () => { document.getElementById('modalPetiMesej').style.display = 'none'; };
@@ -2334,25 +2357,20 @@ window.tutupPetiMesej = () => { document.getElementById('modalPetiMesej').style.
 // --- FUNGSI 3: KELULUSAN (THE MAGIC HANDSHAKE) ---
 window.terimaPautan = async (requestDocId, pemohonUid) => {
     try {
-        // 1. Tukar status permohonan ke Lulus
         await updateDoc(doc(db, "mynasab_requests", requestDocId), { status: "lulus" });
         
-        // 2. Tambah UID pemohon ke dalam node Diri Sendiri (Penerima)
         const nodePenerimaSnap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", penggunaSemasa.uid), where("relationship", "in", ["Diri Sendiri", "Induk"])));
         if (!nodePenerimaSnap.empty) {
-            const nodeRef = doc(db, "mynasab_nodes", nodePenerimaSnap.docs[0].id);
-            await updateDoc(nodeRef, { linked_uids: arrayUnion(pemohonUid) });
+            await updateDoc(doc(db, "mynasab_nodes", nodePenerimaSnap.docs[0].id), { linked_uids: arrayUnion(pemohonUid) });
         }
 
-        // 3. Tambah UID penerima ke dalam node Diri Sendiri (Pemohon)
         const nodePemohonSnap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", pemohonUid), where("relationship", "in", ["Diri Sendiri", "Induk"])));
         if (!nodePemohonSnap.empty) {
-            const nodeRef = doc(db, "mynasab_nodes", nodePemohonSnap.docs[0].id);
-            await updateDoc(nodeRef, { linked_uids: arrayUnion(penggunaSemasa.uid) });
+            await updateDoc(doc(db, "mynasab_nodes", nodePemohonSnap.docs[0].id), { linked_uids: arrayUnion(penggunaSemasa.uid) });
         }
 
         alert("Berjaya! Pokok keluarga anda berdua kini telah bercantum secara rasmi.");
-        window.bukaPetiMesej(); // Refresh kotak mesej
+        window.bukaPetiMesej(); 
         
     } catch (e) {
         console.error(e);
@@ -2360,7 +2378,39 @@ window.terimaPautan = async (requestDocId, pemohonUid) => {
     }
 };
 
-window.tolakPautan = async (requestDocId) => {
-    await updateDoc(doc(db, "mynasab_requests", requestDocId), { status: "ditolak" });
-    window.bukaPetiMesej(); // Refresh kotak mesej
+// =========================================================
+// SISTEM NOTIFIKASI MESEJ (REAL-TIME & APP BADGE)
+// =========================================================
+window.pantauMesejBaru = (uid) => {
+    const q = query(
+        collection(db, "mynasab_requests"), 
+        where("penerima_uid", "==", uid),
+        where("status", "in", ["menunggu", "belum_baca"]) // Pantau mesej belum dibaca & pautan menunggu
+    );
+
+    onSnapshot(q, (snapshot) => {
+        const jumlahBaru = snapshot.docs.length;
+        
+        const lencana = document.getElementById('lencanaMesejBaru');
+        if (lencana) {
+            if (jumlahBaru > 0) {
+                lencana.style.display = 'inline-block';
+                lencana.innerText = jumlahBaru;
+            } else {
+                lencana.style.display = 'none';
+            }
+        }
+
+        if (jumlahBaru > 0) {
+            if (navigator.setAppBadge && window.matchMedia('(display-mode: standalone)').matches) {
+                navigator.setAppBadge(jumlahBaru).catch(e => console.log(e));
+            }
+            document.title = `(${jumlahBaru}) myNasab - Famili Pintar`;
+        } else {
+            if (navigator.clearAppBadge && window.matchMedia('(display-mode: standalone)').matches) {
+                navigator.clearAppBadge().catch(e => console.log(e));
+            }
+            document.title = `myNasab - Famili Pintar`; 
+        }
+    });
 };
