@@ -893,7 +893,10 @@ const RUJUKAN = {
     // 🔥 TAMBAHAN BARU UNTUK CABANG ADIK-BERADIK (MANUAL)
     "Ipar": ["Abang", "Kakak", "Adik", "Adik-beradik"],
     "Anak Saudara": ["Abang", "Kakak", "Adik", "Adik-beradik"],
-    "Cucu Saudara": ["Anak Saudara"]
+    "Cucu Saudara": ["Anak Saudara"],
+    // --- TAMBAH INI TUK FASA 1 ---
+    "Sepupu": ["Bapa Saudara", "Mak Saudara"],
+    "Dua Pupuk": ["Sepupu"]
 };
 
 window.siapkanRujukan = async (hubungan) => {
@@ -908,7 +911,8 @@ window.siapkanRujukan = async (hubungan) => {
     // Ubah label soalan mengikut jenis hubungan supaya lebih tepat
     if (["Menantu", "Pasangan Cucu", "Ipar"].includes(hubungan)) {
         labelRujukan.innerText = `Suami/Isteri kepada siapa?`;
-    } else if (["Cucu", "Cicit", "Piut / Cece", "Oneng-oneng", "Anak Saudara", "Cucu Saudara"].includes(hubungan)) {
+    } else if (["Cucu", "Cicit", "Piut / Cece", "Oneng-oneng", "Anak Saudara", "Cucu Saudara", "Sepupu", "Dua Pupuk"].includes(hubungan)) {
+        // Sepupu & Dua Pupuk ditambah di sini ^
         labelRujukan.innerText = `Anak kepada siapa?`;
     } else {
         labelRujukan.innerText = `Ibu/bapa kepada siapa?`;
@@ -917,10 +921,10 @@ window.siapkanRujukan = async (hubungan) => {
     const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", penggunaSemasa.uid)));
     const pilihan = snap.docs.filter(s => sasaran.includes(s.data().relationship));
     
-    let labelPilihan = sasaran.length > 2 ? "Adik-beradik" : sasaran.join('/');
+    let labelPilihan = sasaran.length > 2 ? "Adik-beradik / Ahli" : sasaran.join('/');
 
     sel.innerHTML = pilihan.length
-        ? `<option value="">-- Sila Pilih --</option>` + pilihan.map(s => `<option value="${esc(s.id)}">${esc(s.data().name)} (${esc(s.data().relationship)})</option>`).join('')
+        ? `<option value="">-- Sila Pilih --</option>` + pilihan.map(s => `<option value="${s.id}">${s.data().name} (${s.data().relationship})</option>`).join('')
         : `<option value="">-- Tambah ${labelPilihan} dahulu --</option>`;
         
     kumpulan.classList.remove('hidden');
