@@ -2397,13 +2397,7 @@ window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
         alert("Gagal menghantar balasan: " + error.message);
     }
 };
-```Aduh, maaf bos! Tahniah sebab cantuman pokok dah berjaya[cite: 3], tapi saya terlepas pandang bahagian butang Balas tu. Semasa kita membuang "kod bertindih" tadi, fungsi *reply* dan paparan borang balas turut terpadam secara tidak sengaja.
 
-Untuk mengembalikan butang **Balas** pada mesej biasa berserta fungsi menghantar balasannya, sila gantikan fungsi `window.bukaPetiMesej` dalam fail **`app.js`** bos, dan tambahkan dua fungsi balasan di bawahnya. 
-
-Salin dan gantikan kod ini:
-
-```javascript
 // --- FUNGSI 2: BACA PETI MESEJ PINTAR ---
 window.bukaPetiMesej = async () => {
     document.getElementById('modalPetiMesej').style.display = 'flex';
