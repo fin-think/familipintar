@@ -521,9 +521,11 @@
                         <option value="Cucu Saudara">Cucu Saudara - Tolak 1 Kredit</option>
                     </optgroup>
 
-                    <optgroup label="Saudara Kembangan & Bapa Saudara">
-                        <option value="Bapa Saudara">Bapa Saudara (Pakcik) - Tolak 1 Kredit</option>
-                        <option value="Mak Saudara">Mak Saudara (Makcik) - Tolak 1 Kredit</option>
+                    <optgroup label="Saudara Kembangan">
+                        <option value="Bapa Saudara (Belah Ayah)">Bapa Saudara (Belah Ayah) - Tolak 1 Kredit</option>
+                        <option value="Mak Saudara (Belah Ayah)">Mak Saudara (Belah Ayah) - Tolak 1 Kredit</option>
+                        <option value="Bapa Saudara (Belah Ibu)">Bapa Saudara (Belah Ibu) - Tolak 1 Kredit</option>
+                        <option value="Mak Saudara (Belah Ibu)">Mak Saudara (Belah Ibu) - Tolak 1 Kredit</option>
                         <option value="Sepupu">Sepupu - Tolak 1 Kredit</option>
                         <option value="Dua Pupuk">Dua Pupuk (Sepupu 2nd) - Tolak 1 Kredit</option>
                     </optgroup>
@@ -931,8 +933,10 @@ document.getElementById('authForm').addEventListener('submit', function (e) {
             const val = this.value;
             // Kemas kini: Masukkan Abang (L) dan Kakak (P)
 const peta = { 
-                "Datuk":"L", "Ayah":"L", "Suami":"L", "Bapa Mertua":"L", "Abang":"L", "Bapa Saudara":"L",
-                "Nenek":"P", "Ibu":"P", "Isteri":"P", "Ibu Mertua":"P", "Kakak":"P", "Mak Saudara":"P"
+                "Datuk":"L", "Ayah":"L", "Suami":"L", "Bapa Mertua":"L", "Abang":"L", 
+                "Bapa Saudara (Belah Ayah)":"L", "Bapa Saudara (Belah Ibu)":"L",
+                "Nenek":"P", "Ibu":"P", "Isteri":"P", "Ibu Mertua":"P", "Kakak":"P", 
+                "Mak Saudara (Belah Ayah)":"P", "Mak Saudara (Belah Ibu)":"P"
             };
             
             if(peta[val]) document.getElementById('tambahJantina').value = peta[val];
