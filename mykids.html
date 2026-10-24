@@ -54,6 +54,13 @@ select{width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;f
 .nota{font-size:12px;color:var(--mut);margin-top:8px}
 .kosong{text-align:center;color:var(--mut);padding:30px 10px}
 #auth{text-align:center;padding:60px 20px;color:var(--mut)}
+
+.pers{background:linear-gradient(135deg,#f0fdfa,#fff);border:1px solid #99f6e4;border-radius:14px;padding:16px;margin:0 0 14px}
+.pers h2{margin:0;font-size:19px}.pers .s{margin:2px 0 10px;color:var(--mut);font-size:14px}
+.pbar{margin:8px 0}.pbar div.t{display:flex;justify-content:space-between;font-size:14px;font-weight:700}
+.pbar div.b{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:4px}
+.pbar div.b i{display:block;height:100%;background:var(--akh)}
+  
 </style>
 </head>
 <body>
@@ -63,6 +70,7 @@ select{width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;f
   <div id="app" class="hidden">
     <div class="anak" id="anak"></div>
     <div class="ringkas" id="ringkas"></div>
+    <div id="pers"></div>
     <div class="tab">
   <button class="d on" id="tD">
     <!-- Ikon SVG Dunia / Sfera / Pengajian -->
@@ -188,7 +196,7 @@ async function pilih(i) {
   S.i = i;
   const a = S.anak[i];
   const p = await getDoc(doc(db,"mykids_plans",a.id));
-  S.plan = p.exists() ? { ker:p.data().kerjaya||'', tick:p.data().tick||{}, tier:p.data().tier||'awam' } : { ker:'', tick:{}, tier:'awam' };
+  S.plan = p.exists() ? { ker:p.data().kerjaya||'', tick:p.data().tick||{}, tier:p.data().tier||'awam', pers:p.data().personaliti||null } : { ker:'', tick:{}, tier:'awam', pers:null };
   render();
 }
 const simpan = () => setDoc(doc(db,"mykids_plans",S.anak[S.i].id), { owner_uid:S.uid, kerjaya:S.plan.ker, tier:S.plan.tier||'awam', tick:S.plan.tick, updated_at:Date.now() }, { merge:true });
@@ -199,19 +207,33 @@ function render() {
   document.getElementById('anak').innerHTML = S.anak.map((x,i)=>`<button class="${i===S.i?'on':''}" data-i="${i}">${esc(x.name)}</button>`).join('');
   if (!a.dob) {
     document.getElementById('ringkas').innerHTML = `<h1>${esc(a.name)}</h1><p>Tarikh lahir belum diisi. Kemas kini di myNasab (Edit) untuk melihat pelan mengikut umur.</p>`;
-    document.getElementById('isi').innerHTML = `<a class="btn" href="${URL_MYNASAB}">Buka myNasab</a>`; return;
+    document.getElementById('isi').innerHTML = `<a class="btn" href="${URL_MYNASAB}">Buka myNasab</a>`; 
+    document.getElementById('pers').innerHTML = '';
+    return;
   }
   const u = tahun - new Date(a.dob).getFullYear(), tp = tahap(u);
   document.getElementById('ringkas').innerHTML = `<h1>${esc(a.name)}</h1><p>${umurSebenar(a.dob)} tahun · ${tp[1]} · ${S.anak.length} anak dalam senarai</p>`;
+   document.getElementById('pers').innerHTML = persBox(a);
   document.getElementById('tD').className = 'd' + (S.tab==='dunia'?' on':'');
   document.getElementById('tA').className = 'a' + (S.tab==='akhirat'?' on':'');
   document.getElementById('isi').innerHTML = S.tab==='dunia' ? dunia(a,u,tp[0]) : akhirat(u);
 }
 
+const URL_PERS = "mypersonalitikids.html";
+function persBox(a) {
+  const P = S.plan.pers;
+  if (!P) return `<div class="pers"><h2>Personaliti ${esc(a.name)}</h2><p class="s">Belum ada ujian. Keputusan personaliti membantu memilih kerjaya yang serasi.</p><a class="btn" href="${URL_PERS}?anak=${encodeURIComponent(a.id)}">Ambil ujian personaliti</a></div>`;
+  return `<div class="pers"><h2>${esc(P.type)} · ${esc(P.nama)}</h2><p class="s">${esc(P.desc)}</p>
+    <div style="font-weight:800;font-size:14px;margin-bottom:2px">Kerjaya yang serasi dengan personaliti:</div>
+    ${(P.serasi||[]).slice(0,3).map(c=>`<div class="pbar"><div class="t"><span>${esc(c.n)}</span><span>${c.p}%</span></div><div class="b"><i style="width:${c.p}%"></i></div></div>`).join('')}
+    <p class="nota">Panduan sahaja. Pertimbangkan juga minat, kebolehan dan keputusan akademik anak.</p>
+    <a href="${URL_PERS}?anak=${encodeURIComponent(a.id)}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+}
+  
 function dunia(a,u,tk) {
   const lahir = new Date(a.dob).getFullYear();
   let h = `<div class="box"><h2>Fokus umur ini</h2><p class="s">${tahap(u)[1]}</p>${GENERIK[tk].map((t,i)=>ck('g:'+tk+':'+i,t)).join('')}</div>`;
-  h += `<div class="box"><h2>Kerjaya yang dipilih</h2><p class="s">Tidak perlu muktamad. Boleh ditukar bila-bila masa.</p><select id="ker"><option value="">-- Belum pilih --</option>${Object.entries(KERJAYA).map(([k,v])=>`<option value="${k}" ${S.plan.ker===k?'selected':''}>${v.i} ${v.n}</option>`).join('')}</select></div>`;
+  h += `<div class="box"><h2>Kerjaya yang dipilih</h2><p class="s">Tidak perlu muktamad. Boleh ditukar bila-bila masa.</p><select id="ker"><option value="">-- Belum pilih --</option>${Object.entries(KERJAYA).map(([k,v])=>`<option value="${k}" ${S.plan.ker===k?'selected':''}>${v.i} ${v.n}${(S.plan.pers&&(S.plan.pers.serasi||[]).find(c=>c.k===k))?' ('+S.plan.pers.serasi.find(c=>c.k===k).p+'% serasi)':''}</option>`).join('')}</select></div>`;
   const K = KERJAYA[S.plan.ker];
   if (!K) return h;
   h += `<div class="box"><h2>Sasaran SPM (${lahir+17})</h2><p class="s">Anggaran umum. Semak syarat UPU dan institusi bagi tahun kemasukan.</p><p style="margin:0;font-size:14px">${esc(K.spm)}</p></div>`;
