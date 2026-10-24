@@ -2574,117 +2574,265 @@ window.pantauMesejBaru = (uid) => {
 };
 
 // =========================================================
-// FASA 3: ENJIN CARTA DINAMIK (DIBETULKAN LOGIK PAUTAN)
+// FASA 3: ENJIN CARTA DINAMIK (VERSI DIBETULKAN)
+// GANTIKAN keseluruhan window.bukaCartaDinamik lama dalam app.js
+// (dari baris "FASA 3: ENJIN CARTA DINAMIK" hingga hujung fail)
 // =========================================================
 window.bukaCartaDinamik = async () => {
     if (!penggunaSemasa) return;
-    
+
+    const ruang = document.getElementById('ruangCartaDinamik');
     document.getElementById('modalCartaDinamik').classList.remove('hidden');
-    document.getElementById('ruangCartaDinamik').innerHTML = '<p style="text-align:center; margin-top:40px; color:#2c3e50; font-weight:bold;">Menarik data dan memproses jaringan... <i class="fa-solid fa-spinner fa-spin"></i></p>';
+    ruang.innerHTML = '<p style="text-align:center; margin-top:40px; color:#2c3e50; font-weight:bold;">Menarik data dan memproses jaringan... <i class="fa-solid fa-spinner fa-spin"></i></p>';
 
     try {
-        const qSaya = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", penggunaSemasa.uid));
-        const snapSaya = await getDocs(qSaya);
-        
-        let senaraiMentah = [];
-        snapSaya.forEach(d => senaraiMentah.push({ ...d.data(), idAsal: d.id }));
+        if (typeof FamilyTree === 'undefined') throw new Error("Pustaka FamilyTree (balkan.app) belum dimuatkan.");
 
-        // Tarik Waris Cantuman (Jika Ada)
-        const indukSaya = senaraiMentah.find(n => n.is_root);
-        if (indukSaya && indukSaya.linked_uids && indukSaya.linked_uids.length > 0) {
-            for (let uidWaris of indukSaya.linked_uids) {
-                const qWaris = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uidWaris));
-                const snapWaris = await getDocs(qWaris);
-                snapWaris.forEach(d => senaraiMentah.push({ ...d.data(), idAsal: d.id }));
+        const saya = penggunaSemasa.uid;
+
+        const ambil = async (uid) => {
+            try {
+                const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
+                return s.docs.map(d => ({ ...d.data(), id: d.id }));
+            } catch (e) {
+                console.warn("Tak dapat baca nod", uid, e.message);
+                return [];
             }
+        };
+
+        // ---------- 1. TENTUKAN AKAUN INDUK & AKAUN DIPAUTKAN ----------
+        let indukUid = saya;
+        const sLinkSaya = await getDoc(doc(db, "mynasab_links", saya));
+        if (sLinkSaya.exists() && sLinkSaya.data().status === 'aktif') indukUid = sLinkSaya.data().owner_uid;
+
+        const nodInduk = await ambil(indukUid);
+        const rootInduk = nodInduk.find(n => n.is_root);
+        if (!rootInduk) throw new Error("Data akaun induk tidak dijumpai.");
+
+        const sPautan = await getDocs(query(collection(db, "mynasab_links"),
+            where("owner_uid", "==", indukUid), where("status", "==", "aktif")));
+        const akaunLuar = await Promise.all(sPautan.docs.map(async d => {
+            const p = d.data();
+            return { uid: p.uid, sasaran: p.sasaran_id, nod: await ambil(p.uid) };
+        }));
+
+        // Waris cantuman (salaman) lama - tanpa sambungan ke pokok induk
+        const sudah = new Set([indukUid, ...akaunLuar.map(a => a.uid)]);
+        const akaunCantum = [];
+        for (const u of (rootInduk.linked_uids || [])) {
+            if (sudah.has(u)) continue;
+            sudah.add(u);
+            akaunCantum.push({ uid: u, nod: await ambil(u) });
         }
 
-        // Peta Asas (Baiki ralat ikon gambar pecah)
-        let dataCarta = senaraiMentah.map(node => {
-            let rel = (node.relationship || "").toLowerCase();
-            let isP = node.gender === 'P' || rel.match(/ibu|isteri|nenek|mak|perempuan|kakak/);
-            let d = {
-                id: node.idAsal,
-                name: node.name,
-                title: node.relationship,
-                gender: isP ? "female" : "male"
+        // ---------- 2. ALATAN ----------
+        const peta = new Map(); // id -> nod carta
+
+        const jantina = (n) => {
+            if (n.gender === 'L') return 'male';
+            if (n.gender === 'P') return 'female';
+            const h = (n.relationship || '').toLowerCase();
+            if (/ayah|bapa|datuk|suami|abang|moyang|buyut|cakawari|cilawagi/.test(h)) return 'male';
+            if (/ibu|isteri|nenek|kakak|mak /.test(h)) return 'female';
+            return 'male';
+        };
+
+        const avatar = (g) => 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" fill="${g === 'female' ? '#f8c8d4' : '#aed9e0'}"/><path fill="#ffffff" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`);
+
+        const daftar = (n, title) => {
+            const g = jantina(n);
+            const o = {
+                id: n.id,
+                name: n.name || 'Tiada Nama',
+                title: n.status === 'meninggal' ? `${title} (Meninggal)` : title,
+                gender: g,
+                img: n.photo_url || avatar(g)
             };
-            if (node.photo_url) d.img = node.photo_url; // Kalau takde gambar, biar kosong supaya template guna ikon lalai
-            return d;
-        });
+            peta.set(n.id, o);
+            return o;
+        };
 
-        // FUNGSI BANTUAN IKATAN AJAIB
-        const ikatPasangan = (id1, id2) => {
-            let n1 = dataCarta.find(d => d.id === id1);
-            let n2 = dataCarta.find(d => d.id === id2);
-            if (n1 && n2) {
-                n1.pids = n1.pids || []; if(!n1.pids.includes(n2.id)) n1.pids.push(n2.id);
-                n2.pids = n2.pids || []; if(!n2.pids.includes(n1.id)) n2.pids.push(n1.id);
+        // anak.fid / anak.mid ikut jantina ibu bapa
+        const jadiIbuBapa = (anak, ibubapa) => {
+            if (!anak || !ibubapa || anak.id === ibubapa.id) return;
+            if (ibubapa.gender === 'male') {
+                if (!anak.fid) anak.fid = ibubapa.id; else if (!anak.mid) anak.mid = ibubapa.id;
+            } else {
+                if (!anak.mid) anak.mid = ibubapa.id; else if (!anak.fid) anak.fid = ibubapa.id;
             }
         };
 
-        const ikatAnakIbuBapa = (idAnak, idIbuBapa) => {
-            let anak = dataCarta.find(d => d.id === idAnak);
-            let ibubapa = dataCarta.find(d => d.id === idIbuBapa);
-            if (anak && ibubapa) {
-                if (ibubapa.gender === 'male') anak.fid = ibubapa.id;
-                else anak.mid = ibubapa.id;
-                
-                // Cari pasangan ibubapa tadi untuk jadikan ayah/ibu kedua kepada anak
-                if (ibubapa.pids && ibubapa.pids.length > 0) {
-                    let psg = dataCarta.find(d => d.id === ibubapa.pids[0]);
-                    if (psg) {
-                        if (psg.gender === 'male') anak.fid = psg.id;
-                        else anak.mid = psg.id;
-                    }
-                }
-            }
+        const pasang = (a, b) => {
+            if (!a || !b || a.id === b.id) return;
+            a.pids = a.pids || []; b.pids = b.pids || [];
+            if (!a.pids.includes(b.id)) a.pids.push(b.id);
+            if (!b.pids.includes(a.id)) b.pids.push(a.id);
         };
 
-        // PUSINGAN 1: Ikat Hubungan Suami-Isteri Dahulu
-        senaraiMentah.forEach(node => {
-            let rel = (node.relationship || "").toLowerCase();
-            let targetId = node.ref_id || (indukSaya ? indukSaya.idAsal : null);
-            if (rel === 'suami' || rel === 'isteri' || rel === 'menantu' || rel === 'pasangan cucu') {
-                ikatPasangan(node.idAsal, targetId);
-            }
-        });
+        // Anak kepada 'induk' + pasangannya (jika hanya ada seorang pasangan)
+        const jadiAnak = (anak, induk) => {
+            if (!anak || !induk) return;
+            jadiIbuBapa(anak, induk);
+            if (induk.pids && induk.pids.length === 1) jadiIbuBapa(anak, peta.get(induk.pids[0]));
+        };
 
-        // PUSINGAN 2: Ikat Atas (IbuBapa) & Bawah (Anak/Cucu)
-        senaraiMentah.forEach(node => {
-            let rel = (node.relationship || "").toLowerCase();
-            let targetId = node.ref_id || (indukSaya ? indukSaya.idAsal : null);
-            
-            if (rel.match(/ayah|bapa|ibu|emak|datuk|nenek|moyang|buyut|cakawari|cilawagi/)) {
-                ikatAnakIbuBapa(targetId, node.idAsal); // target adalah anak, node adalah ibubapa
-            } 
-            else if (rel.match(/anak|cucu|cicit|piut|oneng/)) {
-                ikatAnakIbuBapa(node.idAsal, targetId); // node adalah anak, target adalah ibubapa
-            }
-        });
+        // Jika seseorang belum ada ibu bapa tetapi perlu ada adik-beradik, cipta penanda tempat
+        const pastikanIbuBapa = (n) => {
+            if (!n || n.fid || n.mid) return;
+            const ph = { id: 'ph_' + n.id, name: '(Belum direkod)', title: 'Ibu bapa', gender: 'male', img: avatar('male') };
+            peta.set(ph.id, ph);
+            n.fid = ph.id;
+        };
 
-        // PUSINGAN 3: Ikat Sisi (Adik-beradik / Saudara)
-        senaraiMentah.forEach(node => {
-            let rel = (node.relationship || "").toLowerCase();
-            let targetId = node.ref_id || (indukSaya ? indukSaya.idAsal : null);
-            
-            if (rel.match(/abang|kakak|adik|saudara|ipar|sepupu/)) {
-                let nodeCarta = dataCarta.find(d => d.id === node.idAsal);
-                let targetCarta = dataCarta.find(d => d.id === targetId);
-                // Adik beradik berkongsi ID Ayah dan Ibu yang sama dengan sasarannya
-                if (nodeCarta && targetCarta) {
-                    if (targetCarta.fid) nodeCarta.fid = targetCarta.fid;
-                    if (targetCarta.mid) nodeCarta.mid = targetCarta.mid;
+        const jadiAdikBeradik = (adik, jangkar) => {
+            if (!adik || !jangkar || adik.id === jangkar.id) return;
+            pastikanIbuBapa(jangkar);
+            if (jangkar.fid) adik.fid = jangkar.fid;
+            if (jangkar.mid) adik.mid = jangkar.mid;
+        };
+
+        // ---------- 3. KLASIFIKASI HUBUNGAN (padanan TEPAT, bukan regex longgar) ----------
+        const rel = (n) => (n.relationship || '').toLowerCase().trim();
+        const aras = (n) => {
+            const h = rel(n);
+            if (h === 'ayah' || h === 'ibu') return 0;
+            if (h === 'datuk' || h === 'nenek') return 1;
+            if (h === 'moyang') return 2;
+            if (h === 'buyut') return 3;
+            if (h === 'cakawari') return 4;
+            if (h === 'cilawagi') return 5;
+            return -1;
+        };
+        const jenis = (n) => {
+            if (n.is_root) return 'diri';
+            const h = rel(n);
+            if (h === 'suami' || h === 'isteri') return 'pasangan';
+            if (h.includes('mertua')) return 'mertua';
+            if (h.includes('bapa saudara') || h.includes('mak saudara')) return 'saudaraIbuBapa';
+            if (aras(n) >= 0) return 'leluhur';
+            if (h === 'menantu' || h === 'pasangan cucu' || h === 'ipar') return 'pasanganAhli';
+            if (['abang', 'kakak', 'adik', 'adik-beradik'].includes(h)) return 'adik';
+            if (['anak', 'cucu', 'cicit', 'anak saudara', 'cucu saudara', 'sepupu', 'dua pupuk'].includes(h)
+                || h.includes('piut') || h.includes('oneng')) return 'turun';
+            return 'lain';
+        };
+
+        // ---------- 4. PROSES SATU AKAUN ----------
+        const prosesAkaun = (nodMentah, o) => {
+            // Ibu bapa/leluhur salinan daripada pengundang dibuang (sudah ada dalam pokok pengundang)
+            const nod = o.tapisSalinan
+                ? nodMentah.filter(n => !(n.created_by && n.created_by !== n.owner_uid))
+                : nodMentah;
+
+            const lokal = new Map(nod.map(n => [n.id, n]));
+            const diri = nod.find(n => n.is_root);
+            if (!diri) return null;
+
+            nod.forEach(n => daftar(n, o.label(n)));
+
+            const k = { pasangan: [], leluhur: [], mertua: [], pasanganAhli: [], adik: [], saudaraIbuBapa: [], turun: [] };
+            nod.forEach(n => { const j = jenis(n); if (k[j]) k[j].push(n); });
+
+            const cd = (n) => peta.get(n.id);
+
+            // a) Pasangan
+            k.pasangan.forEach(p => pasang(cd(diri), cd(p)));
+            k.pasanganAhli.forEach(n => {
+                const r = lokal.get(n.ref_id);
+                if (r) pasang(cd(n), cd(r));
+            });
+
+            // b) Leluhur (Ayah/Ibu -> Datuk/Nenek -> Moyang -> ...)
+            const peringkat = (a) => k.leluhur.filter(n => aras(n) === a);
+            k.leluhur.forEach(n => {
+                let anak;
+                if (aras(n) === 0) {
+                    anak = diri;
+                } else {
+                    const r = lokal.get(n.ref_id);
+                    anak = (r && jenis(r) === 'leluhur' && aras(r) === aras(n) - 1) ? r : peringkat(aras(n) - 1)[0];
                 }
+                if (anak) jadiIbuBapa(cd(anak), cd(n));
+            });
+
+            // c) Mertua -> ibu bapa kepada pasangan
+            k.mertua.forEach(n => {
+                const r = lokal.get(n.ref_id);
+                const psg = (r && jenis(r) === 'pasangan') ? r : k.pasangan[0];
+                if (psg) jadiIbuBapa(cd(psg), cd(n));
+            });
+
+            // d) Keturunan (Anak, Cucu, Cicit, ... + Anak Saudara, Sepupu)
+            k.turun.forEach(n => {
+                let induk = lokal.get(n.ref_id);
+                if (!induk && rel(n) === 'anak') induk = diri;
+                if (!induk || induk.id === n.id) return;
+                jadiAnak(cd(n), cd(induk));
+            });
+
+            // e) Adik-beradik (kongsi ibu bapa dengan diri sendiri)
+            k.adik.forEach(n => jadiAdikBeradik(cd(n), cd(diri)));
+
+            // f) Bapa/Mak Saudara (adik-beradik kepada Ayah atau Ibu)
+            k.saudaraIbuBapa.forEach(n => {
+                const belahIbu = rel(n).includes('belah ibu');
+                const jangkar = k.leluhur.find(x => rel(x) === (belahIbu ? 'ibu' : 'ayah'));
+                if (jangkar) jadiAdikBeradik(cd(n), cd(jangkar));
+            });
+
+            return { diri, pasangan: k.pasangan };
+        };
+
+        // ---------- 5. BINA PETA DATA ----------
+        // Akaun induk
+        prosesAkaun(nodInduk, {
+            label: (n) => n.is_root ? (indukUid === saya ? 'Diri Sendiri' : 'Ketua Keluarga') : (n.relationship || '')
+        });
+
+        // Akaun adik-beradik yang dipautkan melalui jemputan
+        akaunLuar.forEach(a => {
+            const sasaranNode = nodInduk.find(n => n.id === a.sasaran);
+            const sasaranPasangan = sasaranNode && /suami|isteri/i.test(sasaranNode.relationship || '');
+            const res = prosesAkaun(a.nod, {
+                tapisSalinan: true,
+                label: (n) => {
+                    const h = n.relationship || '';
+                    if (n.is_root) return a.uid === saya ? 'Diri Sendiri' : (sasaranPasangan ? 'Ipar' : 'Adik-beradik');
+                    if (/suami|isteri|menantu/i.test(h)) return 'Ipar';
+                    if (h === 'Anak') return 'Anak saudara';
+                    if (h === 'Cucu') return 'Cucu saudara';
+                    if (h === 'Cicit') return 'Cicit saudara';
+                    return h;
+                }
+            });
+            // Sambung ke ibu bapa pengundang (atau mertua jika sasaran ialah pasangan)
+            if (res && sasaranNode) jadiAdikBeradik(peta.get(res.diri.id), peta.get(sasaranNode.id));
+        });
+
+        // Waris cantuman (salaman)
+        akaunCantum.forEach(a => {
+            prosesAkaun(a.nod, { label: (n) => n.is_root ? 'Waris Cantuman' : (n.relationship || '') });
+        });
+
+        // Buang rujukan yang tidak wujud supaya graf tak rosak
+        const dataCarta = [...peta.values()];
+        dataCarta.forEach(n => {
+            if (n.fid && !peta.has(n.fid)) delete n.fid;
+            if (n.mid && !peta.has(n.mid)) delete n.mid;
+            if (n.pids) {
+                n.pids = n.pids.filter(id => peta.has(id));
+                if (n.pids.length === 0) delete n.pids;
             }
         });
 
-        document.getElementById('ruangCartaDinamik').innerHTML = '';
-        
-        // Lancarkan Enjin Pelukis Graf
-        new FamilyTree(document.getElementById("ruangCartaDinamik"), {
+        // ---------- 6. LUKIS ----------
+        ruang.innerHTML = '';
+        new FamilyTree(ruang, {
             mouseScrool: FamilyTree.action.zoom,
             template: 'tommy',
+            scaleInitial: FamilyTree.match.boundary,
+            nodeMouseClick: FamilyTree.action.none,
             nodeBinding: {
                 field_0: "name",
                 field_1: "title",
@@ -2695,6 +2843,6 @@ window.bukaCartaDinamik = async () => {
 
     } catch (e) {
         console.error(e);
-        document.getElementById('ruangCartaDinamik').innerHTML = '<p style="color:red; text-align:center;">Gagal memuatkan carta: ' + e.message + '</p>';
+        ruang.innerHTML = '<p style="color:red; text-align:center; margin-top:40px;">Gagal memuatkan carta: ' + esc(e.message) + '</p>';
     }
 };
