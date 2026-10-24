@@ -767,6 +767,21 @@
 
         </div>
     </div>
+
+<!-- TAMBAHAN FASA 3: Modal Kanvas Graf Dinamik -->
+<div id="modalCartaDinamik" class="modal-overlay hidden" style="z-index: 3000; background: rgba(15, 23, 42, 0.95);">
+    <div class="modal-box" style="width: 100vw; height: 100vh; max-width: none; border-radius: 0; display: flex; flex-direction: column; padding: 10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:white; border-radius:12px; margin-bottom:10px;">
+            <div>
+                <h3 style="margin:0; color:#2c3e50; font-size:18px;">Carta Dinamik (Termasuk Waris Cantuman)</h3>
+                <small style="color:#7f8c8d;">Boleh disentuh, ditarik, dan dizum menggunakan jari/tetikus.</small>
+            </div>
+            <button onclick="document.getElementById('modalCartaDinamik').classList.add('hidden')" style="background:#e74c3c; color:white; border:none; padding:8px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">Tutup X</button>
+        </div>
+        <!-- Di sinilah keajaiban akan berlaku -->
+        <div id="ruangCartaDinamik" style="flex:1; width:100%; background:#fdfdfd; border-radius:12px; overflow:hidden;"></div>
+    </div>
+</div>
     
     <!-- Antaramuka Utama (Hanya muncul lepas login) -->
     <div id="dashboardUtama" class="hidden">
@@ -794,7 +809,15 @@
         Jemput Keluarga
         <span id="lencanaMenunggu" class="hidden" style="background:#e74c3c; color:#fff; border-radius:10px; padding:1px 8px; font-size:12px; margin-left:6px;">0</span>
     </button>
+
+    <button class="btn-action btn-generate" onclick="window.bukaPreview()">Preview Famili Tree</button>
     
+    <!-- TAMBAHAN FASA 3: Butang Carta Dinamik -->
+    <button class="btn-action" style="background:#d35400; color:white; display:flex; justify-content:center; align-items:center; gap:8px;" onclick="window.bukaCartaDinamik()">
+        <i class="fa-solid fa-project-diagram"></i> Carta Dinamik Auto-Cantum
+    </button>
+
+      
     <!-- KOD BARU: Butang Carian Nasab -->
     <button class="btn-action" style="background:#3498db; color:white; display:flex; justify-content:center; align-items:center; gap:8px;" onclick="window.bukaCarianNasab()">
         <i class="fa-solid fa-magnifying-glass"></i> Cari Waris 
@@ -1182,6 +1205,9 @@ window.hantarMesejUjian = () => {
         </div>
     </div>
 </div>
+
+<!-- TAMBAHAN FASA 3: Enjin Pelukis Graf Dinamik -->
+    <script src="https://balkan.app/js/FamilyTree.js"></script>
     
 </body>
 </html>
