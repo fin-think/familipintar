@@ -2324,10 +2324,22 @@ window.bukaPetiMesej = async () => {
                     <button onclick="window.terimaPautan('${d.id}', '${data.pemohon_uid}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Terima Salaman</button>
                     <button onclick="window.padamMesej('${d.id}', 'tolak')" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tolak</button>
                 ` : `
+                    <button onclick="window.paparKotakBalas('${d.id}')" style="background:#3b82f6; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Balas</button>
                     ${data.status === "belum_baca" ? `<button onclick="window.tandakanMesejDibaca('${d.id}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tandakan Dibaca ✓</button>` : ''}
-                    <button onclick="window.padamMesej('${d.id}', 'padam')" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Padam Mesej</button>
+                    <button onclick="window.padamMesej('${d.id}', 'padam')" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Padam</button>
                 `}
                 </div>
+
+                ${!isPautan ? `
+                <div id="kotakBalas_${d.id}" style="display:none; margin-top:15px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+                    <textarea id="teksBalas_${d.id}" rows="2" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-size:12px; margin-bottom:8px; outline:none; box-sizing:border-box; font-family:inherit;" placeholder="Taip balasan..."></textarea>
+                    <div style="text-align:right;">
+                        <button onclick="window.hantarBalasanMesej('${d.id}', '${data.pemohon_uid}')" style="background:#059669; color:white; border:none; padding:6px 15px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">
+                            Hantar Balasan <i class="fa-solid fa-paper-plane ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+                ` : ''}
             </div>`;
         });
         
@@ -2349,6 +2361,158 @@ window.padamMesej = async (id, jenis) => {
     if (confirm(msg)) {
         await updateDoc(doc(db, "mynasab_requests", id), { status: "dipadam" });
         window.bukaPetiMesej();
+    }
+};
+
+// Buka tutup kotak balas
+window.paparKotakBalas = (idMesej) => {
+    const kotak = document.getElementById('kotakBalas_' + idMesej);
+    kotak.style.display = kotak.style.display === 'none' ? 'block' : 'none';
+};
+
+// Hantar mesej balasan ke Firebase
+window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
+    const teks = document.getElementById('teksBalas_' + idMesej).value;
+    if(!teks.trim()) return alert("Sila taip sesuatu sebelum hantar balasan.");
+
+    try {
+        // Hantar mesej baru
+        await addDoc(collection(db, "mynasab_requests"), {
+            pemohon_uid: penggunaSemasa.uid,
+            penghantar_nama: (penggunaSemasa.email || '').split('@')[0], 
+            penerima_uid: uidPenerima,
+            mesej: teks,
+            jenis: "biasa",
+            status: "belum_baca",
+            tarikh: new Date().toISOString()
+        });
+        
+        // Tandakan mesej asal sebagai dibaca secara automatik
+        await updateDoc(doc(db, "mynasab_requests", idMesej), { status: "dibaca" });
+        
+        alert("Mesej balasan anda telah berjaya dihantar!");
+        window.bukaPetiMesej(); 
+    } catch (error) {
+        console.error("Gagal balas mesej:", error);
+        alert("Gagal menghantar balasan: " + error.message);
+    }
+};
+```Aduh, maaf bos! Tahniah sebab cantuman pokok dah berjaya[cite: 3], tapi saya terlepas pandang bahagian butang Balas tu. Semasa kita membuang "kod bertindih" tadi, fungsi *reply* dan paparan borang balas turut terpadam secara tidak sengaja.
+
+Untuk mengembalikan butang **Balas** pada mesej biasa berserta fungsi menghantar balasannya, sila gantikan fungsi `window.bukaPetiMesej` dalam fail **`app.js`** bos, dan tambahkan dua fungsi balasan di bawahnya. 
+
+Salin dan gantikan kod ini:
+
+```javascript
+// --- FUNGSI 2: BACA PETI MESEJ PINTAR ---
+window.bukaPetiMesej = async () => {
+    document.getElementById('modalPetiMesej').style.display = 'flex';
+    const senarai = document.getElementById('senaraiPetiMesej');
+    senarai.innerHTML = '<p style="text-align:center; color:#64748b;">Memuatkan mesej...</p>';
+    
+    try {
+        const q = query(collection(db, "mynasab_requests"), where("penerima_uid", "==", penggunaSemasa.uid), where("status", "in", ["menunggu", "belum_baca", "dibaca"]));
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+            senarai.innerHTML = `
+                <div style="text-align:center; padding:30px 10px;">
+                    <i class="fa-regular fa-folder-open" style="font-size:40px; color:#cbd5e1; margin-bottom:15px;"></i>
+                    <p style="color:#64748b; font-weight:bold; margin:0;">Tiada mesej diterima setakat ini.</p>
+                </div>`;
+            return;
+        }
+
+        let html = '';
+        snap.forEach(d => {
+            const data = d.data();
+            const isPautan = data.jenis === "pautan" && data.status === "menunggu";
+            const isUnread = data.status === "belum_baca" || data.status === "menunggu";
+            
+            const statusDot = isUnread ? '<span style="display:inline-block; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px;" title="Mesej Baru"></span>' : '';
+            const namaPenghantar = data.penghantar_nama || "Waris";
+            const formatTarikh = new Date(data.tarikh).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+            html += `
+            <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:15px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">
+                    <strong style="color:#0f172a; font-size:14px;"><i class="fa-regular fa-user" style="color:#64748b; margin-right:5px;"></i> ${namaPenghantar} ${statusDot}</strong>
+                    <small style="color:#64748b; font-size:11px;">${formatTarikh}</small>
+                </div>
+                <p style="font-size:12px; font-weight:bold; color:${isPautan ? '#0ea5e9' : '#8b5cf6'}; text-transform:uppercase; margin:0 0 5px 0;">
+                    ${isPautan ? '🤝 Permohonan Cantuman Pokok' : '💬 Mesej Biasa'}
+                </p>
+                <p style="margin:0 0 15px 0; font-size:14px; font-weight:bold; color:#1e293b; background:#f8fafc; padding:10px; border-radius:8px;">"${data.mesej}"</p>
+                
+                <div style="display:flex; gap:8px;">
+                ${isPautan ? `
+                    <button onclick="window.terimaPautan('${d.id}', '${data.pemohon_uid}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Terima Salaman</button>
+                    <button onclick="window.padamMesej('${d.id}', 'tolak')" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tolak</button>
+                ` : `
+                    <button onclick="window.paparKotakBalas('${d.id}')" style="background:#3b82f6; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">
+                        <i class="fa-solid fa-reply"></i> Balas
+                    </button>
+                    ${data.status === "belum_baca" ? `<button onclick="window.tandakanMesejDibaca('${d.id}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tandakan Dibaca ✓</button>` : ''}
+                    <button onclick="window.padamMesej('${d.id}', 'padam')" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Padam 🗑️</button>
+                `}
+                </div>
+
+                <!-- Kotak Balas Tersembunyi (Hanya untuk mesej biasa) -->
+                ${!isPautan ? `
+                <div id="kotakBalas_${d.id}" style="display:none; margin-top:15px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+                    <textarea id="teksBalas_${d.id}" rows="2" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-size:12px; margin-bottom:8px; outline:none; box-sizing:border-box; font-family:inherit;" placeholder="Taip balasan..."></textarea>
+                    <div style="text-align:right;">
+                        <button onclick="window.hantarBalasanMesej('${d.id}', '${data.pemohon_uid}')" style="background:#059669; color:white; border:none; padding:6px 15px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">
+                            Hantar Balasan <i class="fa-solid fa-paper-plane ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+                ` : ''}
+            </div>`;
+        });
+        
+        senarai.innerHTML = html;
+        
+    } catch (e) {
+        console.error(e);
+        senarai.innerHTML = '<p style="text-align:center; color:#ef4444;">Gagal memuatkan peti mesej.</p>';
+    }
+};
+
+// --- FUNGSI SOKONGAN BALAS MESEJ ---
+window.paparKotakBalas = (idMesej) => {
+    const kotak = document.getElementById('kotakBalas_' + idMesej);
+    if(kotak.style.display === 'none') {
+        kotak.style.display = 'block';
+    } else {
+        kotak.style.display = 'none';
+    }
+};
+
+window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
+    const teks = document.getElementById('teksBalas_' + idMesej).value;
+    if(!teks.trim()) return alert("Sila taip sesuatu sebelum hantar balasan.");
+
+    try {
+        await addDoc(collection(db, "mynasab_requests"), {
+            pemohon_uid: penggunaSemasa.uid,
+            penghantar_nama: (penggunaSemasa.email || '').split('@')[0], 
+            penerima_uid: uidPenerima,
+            mesej: teks,
+            jenis: "biasa",
+            status: "belum_baca",
+            tarikh: new Date().toISOString()
+        });
+        
+        // Autotandakan mesej asal sebagai dibaca selepas membalas
+        await updateDoc(doc(db, "mynasab_requests", idMesej), { status: "dibaca" });
+        
+        alert("Mesej balasan anda telah berjaya dihantar!");
+        window.bukaPetiMesej(); 
+        
+    } catch (error) {
+        console.error("Gagal balas mesej:", error);
+        alert("Gagal menghantar balasan: " + error.message);
     }
 };
 
