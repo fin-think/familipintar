@@ -2634,8 +2634,9 @@ window.bukaCartaDinamik = async () => {
 
         const daftar = (n, title) => {
             const g = jantina(n);
-            const o = { id: n.id, name: n.name || 'Tiada Nama', title: n.status === 'meninggal' ? `${title} (Meninggal)` : title,
-                gender: g, img: n.photo_url || avatar(g), tags: [g === 'female' ? 'mn_p' : 'mn_l'] };
+        const o = { id: n.id, name: n.name || 'Tiada Nama', title: n.status === 'meninggal' ? `${title} (Meninggal)` : title,
+                gender: g, img: n.photo_url || avatar(g), tags: [g === 'female' ? 'mn_p' : 'mn_l'],
+                dob: n.dob || '', info: infoLahir(n) };
             peta.set(n.id, o);
             return o;
         };
@@ -2854,15 +2855,20 @@ window.bukaCartaDinamik = async () => {
         dataCarta.forEach(n => { if (n.pids && n.pids.length === 0) delete n.pids; });
         console.log('[Carta Dinamik] jumlah nod:', dataCarta.length);
 
+        // Susun ikut tarikh lahir: yang tertua dahulu; tanpa tarikh lahir di hujung
+        const tkhLahir = (n) => { const t = n.dob ? new Date(n.dob).getTime() : NaN; return isNaN(t) ? Infinity : t; };
+        dataCarta.sort((a, b) => { const x = tkhLahir(a), y = tkhLahir(b); return x === y ? 0 : (x < y ? -1 : 1); });
+        
         // ---------- 6. WARNA SAMA SEPERTI KAD PREVIEW ----------
         const T = FamilyTree.templates;
         const buatTema = (nama, isi, garis) => {
             T[nama] = Object.assign({}, T.tommy);
-            T[nama].size = [190, 60];
-            T[nama].node = `<rect x="0" y="0" width="190" height="60" rx="5" ry="5" fill="${isi}" stroke="${garis}" stroke-width="1"></rect>`;
-            T[nama].field_0 = '<text data-width="125" data-text-overflow="ellipsis" style="font-size:12px;font-weight:700;" fill="#222222" x="56" y="42">{val}</text>';
-            T[nama].field_1 = '<text data-width="125" data-text-overflow="ellipsis" style="font-size:9px;" fill="#444444" x="56" y="22">{val}</text>';
-            T[nama].img_0 = '<clipPath id="{randId}"><rect x="6" y="8" width="42" height="44" rx="6" ry="6"></rect></clipPath><image preserveAspectRatio="xMidYMid slice" clip-path="url(#{randId})" xlink:href="{val}" x="6" y="8" width="42" height="44"></image>';
+            T[nama].size = [190, 72];
+            T[nama].node = `<rect x="0" y="0" width="190" height="72" rx="5" ry="5" fill="${isi}" stroke="${garis}" stroke-width="1"></rect>`;
+            T[nama].field_1 = '<text data-width="125" data-text-overflow="ellipsis" style="font-size:9px;" fill="#444444" x="56" y="20">{val}</text>';
+            T[nama].field_0 = '<text data-width="125" data-text-overflow="ellipsis" style="font-size:12px;font-weight:700;" fill="#222222" x="56" y="40">{val}</text>';
+            T[nama].field_2 = '<text data-width="125" data-text-overflow="ellipsis" style="font-size:9px;" fill="#444444" x="56" y="58">{val}</text>';
+            T[nama].img_0 = '<clipPath id="{randId}"><rect x="6" y="8" width="42" height="56" rx="6" ry="6"></rect></clipPath><image preserveAspectRatio="xMidYMid slice" clip-path="url(#{randId})" xlink:href="{val}" x="6" y="8" width="42" height="56"></image>';
         };
         buatTema('mn_l', '#aed9e0', '#8ab6be');   // lelaki
         buatTema('mn_p', '#f8c8d4', '#d19ba9');   // perempuan
@@ -2875,7 +2881,7 @@ window.bukaCartaDinamik = async () => {
             tags: { mn_l: { template: 'mn_l' }, mn_p: { template: 'mn_p' }, mn_n: { template: 'mn_n' } },
             scaleInitial: FamilyTree.match.boundary,
             nodeMouseClick: FamilyTree.action.none,
-            nodeBinding: { field_0: "name", field_1: "title", img_0: "img" },
+            nodeBinding: { field_0: "name", field_1: "title", field_2: "info", img_0: "img" },
             nodes: dataCarta
         });
         setTimeout(() => { try { carta.center(diriSaya.id); } catch (e) {} }, 400);
