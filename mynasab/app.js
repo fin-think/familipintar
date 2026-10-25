@@ -2517,27 +2517,46 @@ window.hantarBalasanMesej = async (idMesej, uidPenerima) => {
 window.tutupPetiMesej = () => { document.getElementById('modalPetiMesej').style.display = 'none'; };
 
 // --- FUNGSI 3: KELULUSAN (THE MAGIC HANDSHAKE) ---
+const cariNodInduk = async (uid) => {
+    const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid), where("is_root", "==", true)));
+    return s.empty ? null : s.docs[0];
+};
+
 window.terimaPautan = async (requestDocId, pemohonUid) => {
     try {
+        const rootSaya = await cariNodInduk(penggunaSemasa.uid);
+        const rootPemohon = await cariNodInduk(pemohonUid);
+        if (!rootSaya || !rootPemohon) {
+            alert("Nod 'Diri Sendiri' salah satu pihak tidak dijumpai, jadi pautan tidak dibuat.");
+            return;
+        }
+        await updateDoc(doc(db, "mynasab_nodes", rootSaya.id), { linked_uids: arrayUnion(pemohonUid) });
+        await updateDoc(doc(db, "mynasab_nodes", rootPemohon.id), { linked_uids: arrayUnion(penggunaSemasa.uid) });
         await updateDoc(doc(db, "mynasab_requests", requestDocId), { status: "lulus" });
-        
-        const nodePenerimaSnap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", penggunaSemasa.uid), where("relationship", "in", ["Diri Sendiri", "Induk"])));
-        if (!nodePenerimaSnap.empty) {
-            await updateDoc(doc(db, "mynasab_nodes", nodePenerimaSnap.docs[0].id), { linked_uids: arrayUnion(pemohonUid) });
-        }
-
-        const nodePemohonSnap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", pemohonUid), where("relationship", "in", ["Diri Sendiri", "Induk"])));
-        if (!nodePemohonSnap.empty) {
-            await updateDoc(doc(db, "mynasab_nodes", nodePemohonSnap.docs[0].id), { linked_uids: arrayUnion(penggunaSemasa.uid) });
-        }
 
         alert("Berjaya! Pokok keluarga anda berdua kini telah bercantum secara rasmi.");
-        window.bukaPetiMesej(); 
-        
+        window.bukaPetiMesej();
     } catch (e) {
         console.error(e);
-        alert("Ralat ketika cuba menyambungkan pokok keluarga.");
+        alert("Ralat ketika cuba menyambungkan pokok keluarga: " + e.message);
     }
+};
+
+// Pembetulan sekali untuk permohonan yang sudah diluluskan tetapi pautannya tak tertulis
+window.baikiPautanLulus = async () => {
+    const s = await getDocs(query(collection(db, "mynasab_requests"), where("penerima_uid", "==", penggunaSemasa.uid), where("status", "==", "lulus")));
+    const rootSaya = await cariNodInduk(penggunaSemasa.uid);
+    let bilangan = 0;
+    for (const d of s.docs) {
+        const pUid = d.data().pemohon_uid;
+        if (d.data().jenis !== "pautan" || !pUid || !rootSaya) continue;
+        const rootPemohon = await cariNodInduk(pUid);
+        if (!rootPemohon) continue;
+        await updateDoc(doc(db, "mynasab_nodes", rootSaya.id), { linked_uids: arrayUnion(pUid) });
+        await updateDoc(doc(db, "mynasab_nodes", rootPemohon.id), { linked_uids: arrayUnion(penggunaSemasa.uid) });
+        bilangan++;
+    }
+    alert(bilangan + " pautan dibaiki. Buka semula Carta Dinamik.");
 };
 
 // =========================================================
