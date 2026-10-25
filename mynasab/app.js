@@ -1060,10 +1060,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         const pautan = sPautan.docs.map(d => d.data());
         
         const sUser = await getDoc(doc(db, "mynasab_users", saya));
-
-        document.getElementById('tajukCartaDinamik').innerText =
-            'Carta Dinamik Keluarga' + (sUser.exists() && sUser.data().name ? ' ' + sUser.data().name : '');
-        
+               
         const sembunyi = (sUser.exists() && sUser.data().sembunyi) || [];
 
         const ambil = async (uid) => {
@@ -2587,6 +2584,14 @@ window.bukaCartaDinamik = async () => {
     if (!penggunaSemasa) return;
     const ruang = document.getElementById('ruangCartaDinamik');
     document.getElementById('modalCartaDinamik').classList.remove('hidden');
+        const elTajuk = document.getElementById('tajukCartaDinamik');
+    const setTajuk = (nama) => {
+        const n = (nama || '').trim();
+        const sah = n && !['undefined', 'Pengguna'].includes(n);
+        const ulang = sah && /famili|keluarga/i.test(n);          // elak "Keluarga Keluarga X"
+        if (elTajuk) elTajuk.innerText = sah ? (ulang ? 'Carta Dinamik ' + n : 'Carta Dinamik Keluarga ' + n) : 'Carta Dinamik Keluarga';
+    };
+    setTajuk(document.getElementById('treeNameDisplay').innerText);
     ruang.innerHTML = '<p style="text-align:center; margin-top:40px; color:#2c3e50; font-weight:bold;">Menarik data dan memproses jaringan... <i class="fa-solid fa-spinner fa-spin"></i></p>';
 
     try {
@@ -2609,6 +2614,10 @@ window.bukaCartaDinamik = async () => {
         const nodSaya = await ambil(saya);
         const diriSaya = nodSaya.find(n => n.is_root);
         if (!diriSaya) throw new Error("Data akaun anda tidak dijumpai.");
+        
+                const namaPapar = (document.getElementById('treeNameDisplay').innerText || '').trim();
+        if (!namaPapar || ['undefined', 'Pengguna'].includes(namaPapar)) setTajuk(diriSaya.name);
+        
         const nodInduk = sayaInduk ? nodSaya : await ambil(indukUid);
         const sasaranNode = sayaInduk ? diriSaya : nodInduk.find(n => n.id === sasaranId);
         const sasaranPasangan = !sayaInduk && !!sasaranNode && /suami|isteri/i.test(sasaranNode.relationship || '');
