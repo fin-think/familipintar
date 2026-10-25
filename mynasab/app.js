@@ -2911,9 +2911,7 @@ window.bukaCartaDinamik = async () => {
 
         if (window._cartaMN) { try { window._cartaMN.destroy(); } catch (e) {} window._cartaMN = null; }
         ruang.innerHTML = '';
-        window._cartaMN = new FamilyTree(ruang, {
-            
-        const carta = new FamilyTree(ruang, {
+            window._cartaMN = new FamilyTree(ruang, {
             mouseScrool: FamilyTree.action.zoom,
             template: 'mn_l',
             tags: { mn_l: { template: 'mn_l' }, mn_p: { template: 'mn_p' }, mn_n: { template: 'mn_n' } },
