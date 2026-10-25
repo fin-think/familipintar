@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>myPSIKOkids</title>
+    <title>myPSIKOkids - Ujian Psikometrik Kanak-Kanak</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Quicksand', sans-serif;
@@ -15,12 +16,8 @@
         .heading-font {
             font-family: 'Fredoka One', cursive;
         }
-        .card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:active {
-            transform: scale(0.98);
-        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .fade-in {
             animation: fadeIn 0.5s ease-out forwards;
         }
@@ -33,15 +30,16 @@
         }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center p-4">
+<body class="flex flex-col items-center justify-center p-4 min-h-screen">
 
     <!-- Bekas Utama Aplikasi -->
-    <div id="app-container" class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-yellow-400">
+    <div id="app-container" class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-yellow-400 min-h-[650px] flex flex-col">
         
         <!-- Pengepala (Header) -->
-        <div class="bg-yellow-400 p-6 text-center">
+        <div class="bg-yellow-400 p-6 text-center relative">
+            <a id="kembali" href="#" class="absolute left-4 top-4 text-xs font-bold text-yellow-900 hover:text-black">&larr; Kembali</a>
             <h1 class="heading-font text-3xl text-yellow-900">myPSIKOkids</h1>
-            <p class="text-sm font-semibold text-yellow-800 opacity-80">Kembara Menjadi Anak Syurga 🌈</p>
+            <p class="text-sm font-semibold text-yellow-800 opacity-90">Kembara Menjadi Anak Syurga 🌈</p>
         </div>
 
         <!-- Bar Kemajuan (Progress Bar) -->
@@ -50,57 +48,114 @@
         </div>
 
         <!-- Ruang Kandungan -->
-        <div id="content" class="p-8">
-            <!-- Skrin Selamat Datang -->
-            <div id="screen-welcome" class="text-center space-y-6 text-yellow-900">
-                <div class="text-6xl text-center">
-                    <span class="inline-block animate-bounce">😇</span>
-                </div>
-                <h2 class="heading-font text-2xl text-gray-800">Assalamualaikum Wira & Wirawati Kecil!</h2>
-                <p class="text-gray-600 leading-relaxed">
-                    Adakah adik-adik bersedia untuk menjadi <b>Anak yang Soleh & Solehah</b>? Jom ikuti kembara 10 soalan ini untuk melihat betapa besarnya kasih sayang kita pada Ibu dan Ayah!
-                </p>
-                <button onclick="startQuiz()" class="w-full bg-green-500 hover:bg-green-600 text-white heading-font text-xl py-4 rounded-2xl shadow-lg transform transition active:scale-95">
-                    Mula Kembara! 🚀
-                </button>
+        <div class="p-6 flex-grow flex flex-col justify-center">
+
+            <!-- 1. LOADING -->
+            <div id="s-loading" class="text-center text-slate-500 font-semibold">Memuatkan data anak daripada myNasab...</div>
+
+            <!-- 2. LOGIN (Jika belum log masuk) -->
+            <div id="s-login" class="hidden text-center">
+                <p class="text-sm text-slate-500 mb-4">Log masuk dengan akaun myNasab untuk memuatkan senarai anak anda.</p>
+                <form id="form-login" class="flex flex-col gap-3">
+                    <input name="e" type="email" required placeholder="E-mel" class="p-3 border rounded-xl outline-none focus:border-yellow-500">
+                    <input name="p" type="password" required placeholder="Kata laluan" class="p-3 border rounded-xl outline-none focus:border-yellow-500">
+                    <button class="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold rounded-xl p-3 shadow-md">Log Masuk</button>
+                </form>
             </div>
 
-            <!-- Skrin Soalan Ujian -->
-            <div id="screen-quiz" class="hidden space-y-6">
-                <div id="question-box" class="fade-in">
-                    <p id="question-text" class="text-lg font-bold text-gray-800 mb-6"></p>
-                    <div id="options-container" class="space-y-4">
-                        <!-- Pilihan jawapan akan dimasukkan di sini melalui JS -->
-                    </div>
+            <!-- 3. TIADA ANAK BAWAH 12 TAHUN -->
+            <div id="s-noanak" class="hidden text-center space-y-4">
+                <p class="text-slate-600">Tiada rekod anak berumur <b>bawah 12 tahun</b> dijumpai dalam <b>myNasab</b>.<br>Sila tambah maklumat anak dan tarikh lahir mereka dahulu.</p>
+                <a id="link-mynasab" href="#" class="inline-block bg-yellow-400 text-yellow-900 font-bold py-3 px-8 rounded-xl shadow-md">Buka myNasab</a>
+            </div>
+
+            <!-- 4. PILIH ANAK & HOME -->
+            <div id="s-home" class="hidden space-y-5 text-center">
+                <div>
+                    <h2 class="heading-font text-xl text-yellow-900">Pilih Wira / Wirawati Kecil</h2>
+                    <p class="text-slate-600 mt-2 text-sm leading-relaxed">Pilih profil anak di bawah 12 tahun untuk memulakan kembara kasih sayang bersama Ibu dan Ayah!</p>
+                </div>
+                <div id="picker" class="flex gap-2 overflow-x-auto hide-scrollbar pb-1"></div>
+                <div id="child-card" class="bg-yellow-50/50 border border-yellow-100 rounded-2xl p-5"></div>
+            </div>
+
+            <!-- 5. KUIZ -->
+            <div id="s-quiz" class="hidden space-y-6">
+                <p class="text-center text-xs font-bold uppercase tracking-widest text-slate-400">Ujian untuk <span id="quiz-for" class="text-yellow-600 font-extrabold"></span></p>
+                <div class="flex justify-between items-center text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <span id="q-count"></span><span>Soalan Interaktif</span>
+                </div>
+                <div class="w-full bg-yellow-100 h-3 rounded-full overflow-hidden">
+                    <div id="q-bar" class="progress-bar h-full bg-green-400" style="width:0%"></div>
+                </div>
+                <div class="py-2">
+                    <div class="text-5xl text-center mb-3"><span class="inline-block animate-bounce">🌟</span></div>
+                    <h3 id="q-text" class="text-base font-bold text-gray-800 leading-snug min-h-[3.5rem] text-center"></h3>
+                </div>
+                <div id="options-container" class="space-y-3">
+                    <!-- Pilihan jawapan dinamik -->
                 </div>
             </div>
 
-            <!-- Skrin Keputusan -->
-            <div id="screen-result" class="hidden text-center space-y-6 fade-in">
-                <div id="result-emoji" class="text-7xl">🌟</div>
-                <h2 id="result-title" class="heading-font text-2xl text-gray-800">Keputusan Ujian</h2>
-                <div id="result-message" class="bg-yellow-50 p-4 rounded-xl text-gray-700 italic border-l-4 border-yellow-400 text-sm leading-relaxed">
+            <!-- 6. KEPUTUSAN -->
+            <div id="s-result" class="hidden text-center space-y-5 fade-in">
+                <div id="result-emoji" class="text-6xl">🌟</div>
+                <h2 id="result-title" class="heading-font text-xl text-gray-800">Keputusan Ujian</h2>
+                <div id="result-message" class="bg-yellow-50 p-4 rounded-xl text-gray-700 italic border-l-4 border-yellow-400 text-xs leading-relaxed text-left">
                     <!-- Mesej keputusan -->
                 </div>
                 
-                <div class="p-4 bg-green-50 rounded-2xl border-2 border-green-100">
-                    <p class="font-bold text-green-800 mb-2">Tugasan Kasih Sayang: ❤️</p>
-                    <p id="result-task" class="text-sm text-green-700"></p>
+                <div class="p-3 bg-green-50 rounded-2xl border-2 border-green-100 text-left">
+                    <p class="font-bold text-green-800 text-xs mb-1">Tugasan Kasih Sayang: ❤️</p>
+                    <p id="result-task" class="text-xs text-green-700 leading-relaxed"></p>
                 </div>
 
-                <button onclick="location.reload()" class="text-blue-500 font-bold underline">Mula Semula</button>
+                <p id="save-status" class="text-xs font-semibold text-slate-400">Menyimpan ke myKids...</p>
+                <button id="btn-simpan" class="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-md">💾 Simpan ke myKids</button>
+                <a id="link-mykids" href="mykids.html" class="block w-full py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-sm">Buka myKids (Tab Akhirat)</a>
+                <div class="flex gap-2">
+                    <button id="btn-lain" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">Pilih Anak Lain</button>
+                    <button id="btn-mula" class="flex-1 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold rounded-xl text-xs">Ambil Semula</button>
+                </div>
             </div>
         </div>
+
+        <footer class="bg-slate-50 border-t border-slate-100 p-4 text-center">
+            <p class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-yellow-600 mb-1">Kembara Anak Soleh & Solehah</p>
+            <p class="text-[11px] text-slate-500">DISCLAIMER: Keputusan adalah anggaran berasaskan input. © HCH</p>
+        </footer>
     </div>
 
-    <footer class="mt-8 text-yellow-900 text-xs font-semibold text-center opacity-60">
-        DISCLAIMER: Keputusan ini adalah anggaran berdasarkan input dan bukan jaminan pulangan sebenar.<p>
+    <!-- Skrip Firebase & Logik Aplikasi -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH
-    </footer>
+        const URL_MYNASAB = "../index.html", URL_MYKIDS = "mykids.html";
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+            authDomain: "familipintar.firebaseapp.com",
+            databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "familipintar",
+            storageBucket: "familipintar.firebasestorage.app",
+            messagingSenderId: "277029764059",
+            appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app), db = getFirestore(app);
+        
+        const $ = id => document.getElementById(id);
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        $('kembali').href = URL_MYKIDS;
+        $('link-mynasab').href = URL_MYNASAB;
+        $('link-mykids').href = URL_MYKIDS;
 
-    <script>
-        // Senarai 10 soalan psikometrik kanak-kanak
+        const SCREENS = ['loading','login','noanak','home','quiz','result'];
+        const show = n => { SCREENS.forEach(x => $('s-' + x).classList.toggle('hidden', x !== n)); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+        const umurSebenar = d => { const n = new Date(), b = new Date(d); let u = n.getFullYear() - b.getFullYear(); if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) u--; return u; };
+
+        // Senarai 10 Soalan Asal myPSIKOkids
         const questions = [
             {
                 question: "1. Ibu nampak penat sangat lipat kain. Apa adik buat?",
@@ -184,80 +239,210 @@ Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubu
             }
         ];
 
+        const S = { uid: null, anak: [], plans: {}, i: 0 };
         let currentQuestionIndex = 0;
         let totalScore = 0;
+        let curRes = null;
 
-        // Memulakan kuiz
+        $('form-login').onsubmit = async ev => {
+            ev.preventDefault();
+            try { await signInWithEmailAndPassword(auth, ev.target.e.value, ev.target.p.value); }
+            catch (err) { alert('Log masuk gagal. Sila semak e-mel dan kata laluan.'); }
+        };
+
+        onAuthStateChanged(auth, async user => {
+            if (!user) { show('login'); return; }
+            S.uid = user.uid;
+            show('loading');
+            try {
+                // Tarik data daripada mynasab_nodes
+                const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", user.uid)));
+                
+                // FILTER: Hanya anak berumur < 12 tahun dan status hidup
+                S.anak = s.docs.map(d => ({ ...d.data(), id: d.id }))
+                    .filter(n => {
+                        if (n.relationship !== 'Anak' || n.status === 'meninggal') return false;
+                        if (!n.dob) return false;
+                        const u = umurSebenar(n.dob);
+                        return u < 12; // Syarat bawah 12 tahun
+                    })
+                    .sort((a, b) => (a.dob || '9').localeCompare(b.dob || '9'));
+
+                if (!S.anak.length) { show('noanak'); return; }
+
+                // Tarik simpanan pelan dari mykids_plans
+                const p = await getDocs(query(collection(db, "mykids_plans"), where("owner_uid", "==", user.uid)));
+                S.plans = {};
+                p.forEach(d => { S.plans[d.id] = d.data(); });
+
+                const idx = S.anak.findIndex(a => a.id === new URLSearchParams(location.search).get('anak'));
+                S.i = idx >= 0 ? idx : 0;
+                renderHome();
+                show('home');
+            } catch (e) { 
+                console.error(e); 
+                $('s-loading').textContent = 'Gagal memuatkan data: ' + e.message; 
+            }
+        });
+
+        function renderHome() {
+            $('picker').innerHTML = S.anak.map((x, i) =>
+                `<button data-i="${i}" class="shrink-0 px-4 py-2 rounded-full border-2 font-bold text-sm whitespace-nowrap ${i === S.i ? 'border-yellow-500 bg-yellow-50 text-yellow-900' : 'border-slate-200 bg-white text-slate-600'}">${esc(x.name)}${S.plans[x.id] && S.plans[x.id].psikokids ? ' ✔' : ''}</button>`).join('');
+            
+            const a = S.anak[S.i], r = S.plans[a.id] && S.plans[a.id].psikokids;
+            const umur = a.dob ? umurSebenar(a.dob) : null;
+            
+            let h = `<h3 class="text-xl font-extrabold text-slate-800">${esc(a.name)}</h3>
+                     <p class="text-slate-500 text-sm mb-4">${umur !== null ? umur + ' tahun' : ''}</p>`;
+            
+            if (r) {
+                h += `<div class="bg-white border border-slate-100 rounded-xl p-3 mb-4 text-center">
+                        <p class="text-xs font-bold uppercase tracking-widest text-yellow-600">Keputusan Tersimpan</p>
+                        <p class="font-extrabold text-slate-800 text-lg">${esc(r.status)}</p>
+                        <p class="text-sm text-slate-500">${r.score} / ${r.max} mata</p>
+                      </div>
+                      <div class="flex gap-2">
+                        <button id="btn-lihat" class="flex-1 py-3 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold rounded-2xl shadow-md">Lihat Keputusan</button>
+                        <button id="btn-mula" class="flex-1 py-3 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-2xl">Ambil Semula</button>
+                      </div>`;
+            } else {
+                h += `<button id="btn-mula" class="w-full py-4 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold rounded-2xl shadow-lg">Mula Kembara untuk ${esc(a.name)} 🚀</button>`;
+            }
+            $('child-card').innerHTML = h;
+        }
+
         function startQuiz() {
+            currentQuestionIndex = 0;
+            totalScore = 0;
+            $('quiz-for').textContent = S.anak[S.i].name;
             document.getElementById('screen-welcome').classList.add('hidden');
             document.getElementById('progress-container').classList.remove('hidden');
             document.getElementById('screen-quiz').classList.remove('hidden');
             showQuestion();
+            show('quiz');
         }
 
-        // Memaparkan soalan mengikut indeks
         function showQuestion() {
             const q = questions[currentQuestionIndex];
-            document.getElementById('question-text').innerText = q.question;
+            $('q-text').innerText = q.question;
             const optionsContainer = document.getElementById('options-container');
             optionsContainer.innerHTML = '';
 
-            // Kemas kini bar kemajuan
             const progress = (currentQuestionIndex / questions.length) * 100;
-            document.getElementById('progress-fill').style.width = progress + '%';
+            $('q-bar').style.width = progress + '%';
+            $('q-count').textContent = `Soalan ${currentQuestionIndex + 1} / ${questions.length}`;
 
             q.options.forEach(opt => {
                 const btn = document.createElement('button');
-                btn.className = "w-full text-left p-4 bg-white border-2 border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 rounded-2xl transition flex items-center group active:scale-95";
+                btn.className = "w-full text-left p-4 bg-white border-2 border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 rounded-2xl transition flex items-center group active:scale-95 shadow-sm";
                 btn.innerHTML = `
                     <div class="w-8 h-8 flex items-center justify-center bg-gray-100 group-hover:bg-yellow-200 rounded-full mr-4 font-bold text-gray-500 group-hover:text-yellow-700 transition">?</div>
-                    <span class="flex-1 font-semibold text-gray-700">${opt.text}</span>
+                    <span class="flex-1 font-semibold text-gray-700 text-sm">${opt.text}</span>
                 `;
                 btn.onclick = () => selectOption(opt.score);
                 optionsContainer.appendChild(btn);
             });
         }
 
-        // Mengendalikan pemilihan jawapan
         function selectOption(score) {
             totalScore += score;
             currentQuestionIndex++;
-
             if (currentQuestionIndex < questions.length) {
                 showQuestion();
             } else {
-                showResult();
+                selesai();
             }
         }
 
-        // Memaparkan keputusan akhir
-        function showResult() {
+        async function selesai() {
+            let statusTitle = "", emoji = "", message = "", task = "";
+            if (totalScore >= 80) {
+                emoji = "🏆";
+                statusTitle = "Masha-Allah! Wira Syurga Sejati";
+                message = "Tahniah adik! Markah adik menunjukkan adik seorang anak yang sangat menyayangi Ibu dan Ayah. Teruskan sifat mulia ini ya. Adik adalah kebanggaan dunia dan akhirat!";
+                task = "Pergi peluk Ibu dan Ayah sekarang, bisikkan 'Terima kasih jaga adik, adik sayang sangat dekat Ibu & Ayah!'";
+            } else if (totalScore >= 50) {
+                emoji = "💎";
+                statusTitle = "Permata Hati Ibu & Ayah";
+                message = "Adik seorang anak yang baik. Ada banyak perkara hebat yang adik dah buat. Jom kita cuba tingkatkan lagi usaha untuk bantu Ibu Ayah tanpa perlu disuruh!";
+                task = "Cari satu kerja rumah (seperti susun kasut atau kemas meja) dan buat sekarang untuk kejutan buat Ibu Ayah!";
+            } else {
+                emoji = "🌱";
+                statusTitle = "Wira Kecil Sedang Belajar";
+                message = "Setiap wira bermula dari langkah pertama! Adik ada hati yang murni, jom kita mula belajar untuk lebih rajin membantu dan bercakap dengan lembut pada Ibu Ayah mulai hari ini.";
+                task = "Pergi salam tangan Ibu dan Ayah, kemudian tanya mereka 'Ada apa-apa yang adik boleh tolong?'";
+            }
+
+            curRes = { score: totalScore, max: 100, status: statusTitle, updated_at: Date.now() };
+            renderResult(curRes, emoji, message, task, false);
+            await simpan();
+        }
+
+        function setStatus(t, ok) { 
+            const el = $('save-status'); 
+            if (el) { 
+                el.textContent = t; 
+                el.className = 'text-xs font-semibold ' + (ok ? 'text-emerald-600' : 'text-red-600'); 
+            } 
+        }
+
+        async function simpan() {
+            const a = S.anak[S.i];
+            try {
+                // Simpan ke collection mykids_plans di bawah key psikokids
+                await setDoc(doc(db, "mykids_plans", a.id), { owner_uid: S.uid, nama_anak: a.name, psikokids: curRes }, { merge: true });
+                S.plans[a.id] = { ...(S.plans[a.id] || {}), psikokids: curRes };
+                setStatus('✔ Disimpan berjaya ke tab Akhirat myKids.', true);
+                return true;
+            } catch (e) { 
+                console.error(e); 
+                setStatus('Gagal menyimpan: ' + e.message, false); 
+                return false; 
+            }
+        }
+
+        function renderResult(r, emojiVal, messageVal, taskVal, dariSimpan) {
+            curRes = r;
+            const a = S.anak[S.i];
+            
+            // Generate teks berdasarkan score jika dari local cache/load
+            if (!emojiVal) {
+                if (r.score >= 80) {
+                    emojiVal = "🏆"; messageVal = "Markah adik menunjukkan adik seorang anak yang sangat menyayangi Ibu dan Ayah."; taskVal = "Pergi peluk Ibu dan Ayah sekarang!";
+                } else if (r.score >= 50) {
+                    emojiVal = "💎"; messageVal = "Adik seorang anak yang baik dan membanggakan."; taskVal = "Cari satu kerja rumah dan bantu Ibu Ayah!";
+                } else {
+                    emojiVal = "🌱"; messageVal = "Jom kita mula belajar untuk lebih rajin membantu Ibu Ayah."; taskVal = "Pergi salam tangan Ibu dan Ayah sekarang.";
+                }
+            }
+
+            $('result-emoji').innerText = emojiVal;
+            $('result-title').innerText = r.status;
+            $('result-message').innerText = messageVal;
+            $('result-task').innerText = taskVal;
+
             document.getElementById('screen-quiz').classList.add('hidden');
             document.getElementById('progress-container').classList.add('hidden');
             document.getElementById('screen-result').classList.remove('hidden');
 
-            const emoji = document.getElementById('result-emoji');
-            const title = document.getElementById('result-title');
-            const message = document.getElementById('result-message');
-            const task = document.getElementById('result-task');
-
-            if (totalScore >= 80) {
-                emoji.innerText = "🏆";
-                title.innerText = "Masha-Allah! Wira Syurga Sejati";
-                message.innerText = "Tahniah adik! Markah adik menunjukkan adik seorang anak yang sangat menyayangi Ibu dan Ayah. Teruskan sifat mulia ini ya. Adik adalah kebanggaan dunia dan akhirat!";
-                task.innerText = "Pergi peluk Ibu dan Ayah sekarang, bisikkan 'Terima kasih jaga adik, adik sayang sangat dekat Ibu & Ayah!'";
-            } else if (totalScore >= 50) {
-                emoji.innerText = "💎";
-                title.innerText = "Permata Hati Ibu & Ayah";
-                message.innerText = "Adik seorang anak yang baik. Ada banyak perkara hebat yang adik dah buat. Jom kita cuba tingkatkan lagi usaha untuk bantu Ibu Ayah tanpa perlu disuruh!";
-                task.innerText = "Cari satu kerja rumah (seperti susun kasut atau kemas meja) dan buat sekarang untuk kejutan buat Ibu Ayah!";
-            } else {
-                emoji.innerText = "🌱";
-                title.innerText = "Wira Kecil Sedang Belajar";
-                message.innerText = "Setiap wira bermula dari langkah pertama! Adik ada hati yang murni, jom kita mula belajar untuk lebih rajin membantu dan bercakap dengan lembut pada Ibu Ayah mulai hari ini.";
-                task.innerText = "Pergi salam tangan Ibu dan Ayah, kemudian tanya mereka 'Ada apa-apa yang adik boleh tolong?'";
-            }
+            setStatus(dariSimpan ? 'Keputusan ini sudah disimpan di myKids.' : 'Menyimpan ke myKids...', true);
+            show('result');
         }
+
+        // Global Event Listeners
+        document.addEventListener('click', async e => {
+            const c = e.target.closest('#picker [data-i]');
+            if (c) { S.i = +c.dataset.i; renderHome(); return; }
+            
+            if (e.target.closest('#btn-mula')) startQuiz();
+            else if (e.target.closest('#btn-lihat')) renderResult(S.plans[S.anak[S.i].id].psikokids, null, null, null, true);
+            else if (e.target.closest('#btn-lain')) { renderHome(); show('home'); }
+            else if (e.target.closest('#btn-simpan')) {
+                const b = $('btn-simpan'); b.disabled = true; b.textContent = 'Menyimpan...';
+                const ok = await simpan();
+                b.disabled = false; b.textContent = ok ? '✔ Disimpan ke myKids' : '💾 Cuba simpan semula';
+            }
+        });
     </script>
 </body>
 </html>
