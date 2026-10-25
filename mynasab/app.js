@@ -2836,12 +2836,15 @@ window.bukaCartaDinamik = async () => {
             });
         }
 
-        // E. Waris cantuman (salaman): hanya yang saya sendiri sahkan
+                // E. Waris cantuman (salaman): hanya yang saya sendiri sahkan
         const sudah = new Set([saya, indukUid, ...akaunPaut.map(a => a.uid)]);
+        console.log('[Carta Dinamik] linked_uids pada nod saya:', diriSaya.linked_uids || 'TIADA');
         for (const u of (diriSaya.linked_uids || [])) {
-            if (sudah.has(u)) continue;
+            if (sudah.has(u)) { console.log('[Carta Dinamik] langkau (sudah ada):', u); continue; }
             sudah.add(u);
-            prosesAkaun(await ambil(u), { leluhur: true, adik: true, mertua: false, label: (n) => n.is_root ? 'Waris Cantuman' : (n.relationship || '') });
+            const nodLuar = await ambil(u);
+            console.log('[Carta Dinamik] waris cantuman', u, '->', nodLuar.length, 'nod');
+            prosesAkaun(nodLuar, { leluhur: true, adik: true, mertua: false, label: (n) => n.is_root ? 'Waris Cantuman' : (n.relationship || '') });
         }
 
         // ---------- 5b. BERSIHKAN GRAF ----------
