@@ -264,7 +264,7 @@ function render() {
   document.getElementById('isi').innerHTML = S.tab==='dunia' ? dunia(a,u,tp[0]) : akhirat(u);
 }
 
-const URL_PERS = "mypersonalitikids.html";
+const URL_PERS = "app/mypersonalitikids.html";
 function persBox(a) {
   const P = S.plan.pers;
   // Cek jika pengguna dah buka kunci modul 'kids' di myJurnal
@@ -284,7 +284,7 @@ function persBox(a) {
     <a href="${linkTo}" style="font-size:13px;font-weight:700;color:var(--akh)">${linkText}</a></div>`;
 }
 
-const URL_PSIKO = "mypsikoteens.html", URL_KIDS = "mypsikokids.html", URL_ING = "myintegrity.html";
+const URL_PSIKO = "app/mypsikoteens.html", URL_KIDS = "app/mypsikokids.html", URL_ING = "app/myintegrity.html";
 function akhiratBox(a, umur) {
   const id = encodeURIComponent(a.id), A = S.plan.psi, K = S.plan.kids, B = S.plan.ing;
   
