@@ -152,8 +152,15 @@ onAuthStateChanged(auth, async user => {
     show('loading');
     try {
         const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", user.uid)));
-        S.anak = s.docs.map(d => ({ ...d.data(), id: d.id }))
-            .filter(n => n.relationship === 'Anak' && n.status !== 'meninggal')
+       S.anak = s.docs.map(d => ({ ...d.data(), id: d.id }))
+            .filter(n => {
+                if (n.relationship !== 'Anak' || n.status === 'meninggal') return false;
+                // Jika tarikh lahir (dob) tidak diisi, kita boleh kekalkan atau abaikan.
+                // Di sini kita tapis anak yang berumur antara 12 hingga 21 tahun (inklusif).
+                if (!n.dob) return false; 
+                const u = umurSebenar(n.dob);
+                return u >= 12 && u <= 21;
+            })
             .sort((a, b) => (a.dob || '9').localeCompare(b.dob || '9'));
         if (!S.anak.length) { show('noanak'); return; }
         const p = await getDocs(query(collection(db, "mykids_plans"), where("owner_uid", "==", user.uid)));
