@@ -4,261 +4,296 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>myINTEGRITY</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Quicksand', sans-serif;
-            background-color: #f0fdf4;
-        }
-        .option-btn {
-            transition: all 0.2s ease;
-        }
-        .option-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
+        body { font-family: 'Quicksand', sans-serif; background-color: #f0fdf4; }
+        .option-btn { transition: all 0.2s ease; }
+        .option-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
 
-    <!-- Container Utama -->
-    <div id="app" class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-t-8 border-emerald-500">
-        <!-- Header -->
-        <div class="bg-emerald-600 p-8 text-white text-center">
-            <h1 class="text-4xl font-bold tracking-tight">my<span class="text-yellow-300">INTEGRITY</span></h1>
-            <p class="text-emerald-100 text-sm mt-2 font-medium">Membentuk Karakter Anak Jujur & Amanah</p>
-        </div>
-
-        <!-- Progress Bar -->
-        <div class="w-full bg-gray-100 h-3">
-            <div id="progress" class="bg-yellow-400 h-3 transition-all duration-500" style="width: 0%"></div>
-        </div>
-
-        <!-- Main Content -->
-        <div id="game-container" class="p-8">
-            <!-- Intro Screen -->
-            <div id="intro-screen" class="text-center">
-                <div class="mb-6 text-7xl">💎</div>
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">Selamat Datang ke d'INTEGRITY</h2>
-                <p class="text-gray-600 mb-8 leading-relaxed">
-                    Ujian ini mempunyai 10 situasi mencabar. Adakah anda akan memilih jalan yang jujur atau jalan yang mudah? Mari kita lihat!
-                </p>
-                <button onclick="startGame()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-12 rounded-2xl shadow-lg transition-all text-lg">
-                    Mula Sekarang
-                </button>
-            </div>
-
-            <!-- Question Screen -->
-            <div id="question-screen" class="hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <span id="category-tag" class="text-xs font-bold uppercase px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg">Kategori</span>
-                    <span id="question-count" class="text-sm font-bold text-gray-400 font-mono">1/10</span>
-                </div>
-                <h3 id="question-text" class="text-xl font-bold text-gray-800 mb-8 leading-tight">
-                    Memuatkan soalan...
-                </h3>
-                <div id="options-container" class="space-y-4">
-                    <!-- Options injected by JS -->
-                </div>
-            </div>
-
-            <!-- Feedback Screen -->
-            <div id="feedback-screen" class="hidden text-center py-4">
-                <div id="feedback-icon" class="text-7xl mb-6">✨</div>
-                <h3 id="feedback-title" class="text-2xl font-bold mb-3">Hebat!</h3>
-                <p id="feedback-text" class="text-gray-600 mb-10 text-lg italic px-4"></p>
-                <button onclick="nextQuestion()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-10 rounded-xl shadow-md w-full sm:w-auto">
-                    Teruskan
-                </button>
-            </div>
-
-            <!-- Result Screen -->
-            <div id="result-screen" class="hidden text-center">
-                <h2 class="text-3xl font-bold mb-2 text-emerald-800">Keputusan Ujian</h2>
-                <p class="text-gray-500 mb-8 font-medium">Tahap Integriti Anda</p>
-                
-                <div id="score-circle" class="w-40 h-40 rounded-full border-[10px] border-emerald-500 flex flex-col items-center justify-center mx-auto mb-8 shadow-inner">
-                    <span class="text-4xl font-black text-emerald-600">0</span>
-                    <span class="text-gray-400 text-sm font-bold uppercase tracking-widest">Markah</span>
-                </div>
-
-                <h3 id="result-status" class="text-2xl font-bold mb-4">Menganalisis...</h3>
-                <p id="result-desc" class="text-gray-600 mb-10 leading-relaxed"></p>
-                
-                <button onclick="location.reload()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-12 rounded-2xl transition-all shadow-lg">
-                    Main Semula
-                </button>
-            </div>
-        </div>
+<div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-t-8 border-emerald-500">
+    <div class="bg-emerald-600 p-8 text-white text-center relative">
+        <a id="kembali" href="#" class="absolute left-4 top-4 text-xs font-bold text-emerald-100 hover:text-white">&larr; Kembali</a>
+        <h1 class="text-4xl font-bold tracking-tight">my<span class="text-yellow-300">INTEGRITY</span></h1>
+        <p class="text-emerald-100 text-sm mt-2 font-medium">Membentuk Karakter Anak Jujur &amp; Amanah</p>
     </div>
+    <div class="w-full bg-gray-100 h-3"><div id="progress" class="bg-yellow-400 h-3 transition-all duration-500" style="width:0%"></div></div>
 
-    <!-- Footer di Luar Kotak Utama -->
-    <footer class="mt-8 max-w-2xl text-center text-gray-400 text-xs px-4">
-        <p>Ingin membangunkan ujian interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut.</p>
-    </footer>
+    <div class="p-8">
+        <div id="s-loading" class="text-center text-gray-500">Memuatkan data anak daripada myNasab...</div>
 
-    <script>
-        const questions = [
-            {
-                category: "Sekolah",
-                text: "Mak cik kantin tersalah bagi baki duit lebih RM2 kepada anda. Apa tindakan anda?",
-                options: [
-                    { text: "Simpan duit itu sebab mak cik kantin yang salah kira.", score: 0, feedback: "Duit itu bukan milik anda. Memulangkan baki yang lebih adalah tanda kejujuran sejati." },
-                    { text: "Pulangkan semula duit itu kepada mak cik kantin.", score: 1, feedback: "Syabas! Anda seorang yang amanah dalam urusan kewangan." }
-                ]
-            },
-            {
-                category: "Rumah",
-                text: "Ibu pesan jangan main 'game' lebih satu jam. Ibu keluar ke kedai. Jam sudah menunjukkan satu jam tetapi anda sedang seronok bermain. Anda...",
-                options: [
-                    { text: "Terus tutup 'game' dan lakukan aktiviti lain.", score: 1, feedback: "Hebat! Anda mematuhi janji walaupun tiada sesiapa yang memantau." },
-                    { text: "Teruskan main lagi 30 minit sebab Ibu belum balik.", score: 0, feedback: "Integriti bermaksud melakukan perkara yang betul walaupun Ibu tiada di rumah." }
-                ]
-            },
-            {
-                category: "Sekolah",
-                text: "Dalam kerja kumpulan, kawan anda melakukan hampir semua kerja. Guru bertanya siapa yang paling banyak membantu. Anda...",
-                options: [
-                    { text: "Cakap semua buat sama banyak supaya anda nampak rajin.", score: 0, feedback: "Mengambil kredit atas usaha orang lain adalah tidak adil dan tidak jujur." },
-                    { text: "Beritahu guru bahawa kawan itu yang paling banyak buat kerja.", score: 1, feedback: "Bagus! Menghargai usaha orang lain menunjukkan anda seorang yang adil." }
-                ]
-            },
-            {
-                category: "Rumah",
-                text: "Anda terjumpa biskut kegemaran kakak di dapur. Anda teringin sangat nak makan tapi itu biskut terakhir kakak. Anda...",
-                options: [
-                    { text: "Minta izin kakak dahulu sebelum makan.", score: 1, feedback: "Menghormati hak milik orang lain adalah asas integriti diri." },
-                    { text: "Makan senyap-senyap dan buang plastik ke luar tingkap.", score: 0, feedback: "Mencuri dan menyembunyikan bukti adalah tindakan yang tidak bermoral." }
-                ]
-            },
-            {
-                category: "Permainan",
-                text: "Semasa bermain sorok-sorok, anda nampak kawan anda bersembunyi di tempat yang dilarang. Adakah anda akan guna maklumat itu untuk menang?",
-                options: [
-                    { text: "Gunakan maklumat itu supaya saya cepat menang.", score: 0, feedback: "Kemenangan tanpa mengikut peraturan bukanlah satu kemenangan yang membanggakan." },
-                    { text: "Tegur kawan itu supaya bersembunyi di tempat yang dibenarkan.", score: 1, feedback: "Integriti dalam permainan dipanggil semangat kesukanan (sportsmanship)." }
-                ]
-            },
-            {
-                category: "Sekolah",
-                text: "Anda nampak kawan meniru semasa ujian ejaan. Guru tidak nampak. Anda...",
-                options: [
-                    { text: "Beritahu guru atau nasihatkan kawan selepas ujian.", score: 1, feedback: "Berani menegur kesalahan adalah sebahagian daripada integriti." },
-                    { text: "Diamkan sahaja supaya kawan tidak marah anda.", score: 0, feedback: "Bersubahat dalam penipuan akan merosakkan karakter anda dan kawan anda." }
-                ]
-            },
-            {
-                category: "Rumah",
-                text: "Ayah beri RM10 untuk beli roti dan pesan baki duit itu untuk anda simpan sebagai upah. Roti harga RM4, tapi anda cakap pada Ayah harga roti RM6.",
-                options: [
-                    { text: "Beritahu harga sebenar dan pulangkan baki yang betul.", score: 1, feedback: "Kejujuran kepada keluarga adalah kunci kepercayaan dalam rumah." },
-                    { text: "Cakap harga RM6 supaya dapat simpan lebih banyak duit.", score: 0, feedback: "Menipu keluarga untuk kepentingan diri sendiri akan menghancurkan kepercayaan." }
-                ]
-            },
-            {
-                category: "Sekolah",
-                text: "Anda terlanggar kawan di koridor hingga buku-bukunya jatuh berselerak. Tiada orang lain di situ. Anda...",
-                options: [
-                    { text: "Terus lari supaya tidak perlu minta maaf.", score: 0, feedback: "Bertanggungjawab atas kesilapan sendiri adalah ciri pemimpin berintegriti." },
-                    { text: "Berhenti, minta maaf dan bantu kutip buku tersebut.", score: 1, feedback: "Bertanggungjawab atas tindakan anda menunjukkan kematangan diri." }
-                ]
-            },
-            {
-                category: "Gajet",
-                text: "Anda sedang menggunakan tablet sekolah. Anda secara tidak sengaja tertekan laman web yang dilarang. Anda...",
-                options: [
-                    { text: "Cepat-cepat tutup tab tersebut dan beritahu guru.", score: 1, feedback: "Mengaku kesilapan teknikal adalah lebih baik daripada menyembunyikannya." },
-                    { text: "Terus tengok laman web itu selagi guru tidak nampak.", score: 0, feedback: "Menggunakan kemudahan awam dengan cara yang salah melanggar amanah." }
-                ]
-            },
-            {
-                category: "Sekolah",
-                text: "Anda dilantik sebagai ketua kelas. Kawan baik anda bising dalam kelas. Adakah anda akan tulis namanya di papan hitam?",
-                options: [
-                    { text: "Tulis namanya kerana dia memang bising.", score: 1, feedback: "Menjalankan tugas dengan adil tanpa pilih kasih adalah integriti yang hebat!" },
-                    { text: "Jangan tulis sebab dia kawan baik anda.", score: 0, feedback: "Pilih kasih dalam menjalankan tugas adalah satu bentuk ketidakadilan." }
-                ]
-            }
-        ];
+        <div id="s-login" class="hidden text-center max-w-sm mx-auto">
+            <p class="text-sm text-gray-500 mb-4">Log masuk dengan akaun myNasab untuk memuatkan senarai anak anda.</p>
+            <form id="form-login" class="flex flex-col gap-3">
+                <input name="e" type="email" required placeholder="E-mel" class="p-3 border rounded-xl outline-none focus:border-emerald-500">
+                <input name="p" type="password" required placeholder="Kata laluan" class="p-3 border rounded-xl outline-none focus:border-emerald-500">
+                <button class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl p-3">Log Masuk</button>
+            </form>
+        </div>
 
-        let currentQuestionIndex = 0;
-        let totalScore = 0;
+        <div id="s-noanak" class="hidden text-center">
+            <p class="text-gray-600 mb-4">Belum ada anak dalam <b>myNasab</b>.<br>Tambah anak dan tarikh lahir mereka dahulu.</p>
+            <a id="link-mynasab" href="#" class="inline-block bg-emerald-600 text-white font-bold py-3 px-8 rounded-xl">Buka myNasab</a>
+        </div>
 
-        function startGame() {
-            document.getElementById('intro-screen').classList.add('hidden');
-            document.getElementById('question-screen').classList.remove('hidden');
-            showQuestion();
-        }
+        <!-- PILIH ANAK -->
+        <div id="s-home" class="hidden text-center">
+            <div class="mb-4 text-6xl">💎</div>
+            <h2 class="text-2xl font-bold mb-3 text-gray-800">Selamat Datang ke d'INTEGRITY</h2>
+            <p class="text-gray-600 mb-6 leading-relaxed">10 situasi mencabar. Adakah anak akan memilih jalan yang jujur atau jalan yang mudah? Pilih anak, kemudian mula. Keputusan disimpan di myKids (tab Akhirat).</p>
+            <div id="picker" class="flex gap-2 overflow-x-auto hide-scrollbar pb-2 mb-4 justify-start sm:justify-center"></div>
+            <div id="child-card" class="bg-emerald-50/60 rounded-2xl p-6"></div>
+        </div>
 
-        function showQuestion() {
-            const q = questions[currentQuestionIndex];
-            document.getElementById('category-tag').innerText = q.category;
-            document.getElementById('question-count').innerText = `${currentQuestionIndex + 1}/${questions.length}`;
-            document.getElementById('question-text').innerText = q.text;
-            
-            const optionsContainer = document.getElementById('options-container');
-            optionsContainer.innerHTML = '';
-            
-            q.options.forEach((opt) => {
-                const btn = document.createElement('button');
-                btn.className = "option-btn w-full text-left p-5 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-emerald-400 hover:bg-emerald-50 font-semibold text-gray-700 transition-all";
-                btn.innerText = opt.text;
-                btn.onclick = () => selectOption(opt);
-                optionsContainer.appendChild(btn);
-            });
+        <!-- SOALAN -->
+        <div id="s-question" class="hidden">
+            <p class="text-center text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Untuk <span id="quiz-for" class="text-emerald-600"></span></p>
+            <div class="flex justify-between items-center mb-6">
+                <span id="category-tag" class="text-xs font-bold uppercase px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg"></span>
+                <span id="question-count" class="text-sm font-bold text-gray-400 font-mono"></span>
+            </div>
+            <h3 id="question-text" class="text-xl font-bold text-gray-800 mb-8 leading-tight"></h3>
+            <div id="options-container" class="space-y-4"></div>
+        </div>
 
-            const progress = ((currentQuestionIndex) / questions.length) * 100;
-            document.getElementById('progress').style.width = progress + '%';
-        }
+        <!-- MAKLUM BALAS -->
+        <div id="s-feedback" class="hidden text-center py-4">
+            <div id="feedback-icon" class="text-7xl mb-6"></div>
+            <h3 id="feedback-title" class="text-2xl font-bold mb-3"></h3>
+            <p id="feedback-text" class="text-gray-600 mb-10 text-lg italic px-4"></p>
+            <button id="btn-next" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-10 rounded-xl shadow-md w-full sm:w-auto">Teruskan</button>
+        </div>
 
-        function selectOption(opt) {
-            totalScore += opt.score;
-            
-            document.getElementById('question-screen').classList.add('hidden');
-            document.getElementById('feedback-screen').classList.remove('hidden');
-            
-            document.getElementById('feedback-icon').innerText = opt.score > 0 ? "🌟" : "💡";
-            document.getElementById('feedback-title').innerText = opt.score > 0 ? "Syabas!" : "Renungkan...";
-            document.getElementById('feedback-text').innerText = opt.feedback;
-        }
+        <!-- KEPUTUSAN -->
+        <div id="s-result" class="hidden text-center"></div>
+    </div>
+</div>
 
-        function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                document.getElementById('feedback-screen').classList.add('hidden');
-                document.getElementById('question-screen').classList.remove('hidden');
-                showQuestion();
-            } else {
-                showResults();
-            }
-        }
+<footer class="mt-8 max-w-2xl text-center text-gray-400 text-xs px-4 pb-6">
+    <p>DISCLAIMER: Keputusan ini adalah anggaran berdasarkan jawapan dan bukan jaminan sebenar. © HCH</p>
+</footer>
 
-        function showResults() {
-            document.getElementById('feedback-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.remove('hidden');
-            document.getElementById('progress').style.width = '100%';
-            
-            const scoreDisplay = document.querySelector('#score-circle span:first-child');
-            scoreDisplay.innerText = totalScore;
-            
-            const status = document.getElementById('result-status');
-            const desc = document.getElementById('result-desc');
-            
-            if (totalScore === 10) {
-                status.innerText = "IKON INTEGRITI! 🥇";
-                desc.innerText = "Luar biasa! Anda adalah contoh teladan yang hebat. Teruskan memegang prinsip kejujuran ini sepanjang hayat anda.";
-            } else if (totalScore >= 8) {
-                status.innerText = "WIRA JUJUR! 🥈";
-                desc.innerText = "Sangat bagus! Anda faham erti integriti. Sikit lagi nak jadi sempurna, teruskan usaha untuk sentiasa amanah!";
-            } else if (totalScore >= 5) {
-                status.innerText = "PELAJAR AMANAH! 🥉";
-                desc.innerText = "Anda mempunyai asas yang baik. Ingat, integriti adalah pilihan harian. Jom cuba buat pilihan yang lebih tepat lepas ni!";
-            } else {
-                status.innerText = "USAHA LAGI! 🌱";
-                desc.innerText = "Jangan sedih. Integriti boleh dipelajari. Ambil masa untuk fikirkan kenapa kejujuran itu penting bagi diri dan orang lain.";
-            }
-        }
-    </script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+// Laraskan ikut lokasi fail di tapak anda (sama seperti mykids.html)
+const URL_MYNASAB = "../index.html", URL_MYKIDS = "mykids.html";
+const firebaseConfig = {
+    apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+    authDomain: "familipintar.firebaseapp.com",
+    databaseURL: "https://familipintar-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "familipintar",
+    storageBucket: "familipintar.firebasestorage.app",
+    messagingSenderId: "277029764059",
+    appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app), db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+$('kembali').href = URL_MYKIDS;
+$('link-mynasab').href = URL_MYNASAB;
+
+const SCREENS = ['loading','login','noanak','home','question','feedback','result'];
+const show = n => { SCREENS.forEach(x => $('s-' + x).classList.toggle('hidden', x !== n)); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+const umurSebenar = d => { const n = new Date(), b = new Date(d); let u = n.getFullYear() - b.getFullYear(); if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) u--; return u; };
+
+// ---------- SOALAN ----------
+const questions = [
+    { category: "Sekolah", text: "Mak cik kantin tersalah bagi baki duit lebih RM2 kepada anda. Apa tindakan anda?",
+      options: [
+        { text: "Simpan duit itu sebab mak cik kantin yang salah kira.", score: 0, feedback: "Duit itu bukan milik anda. Memulangkan baki yang lebih adalah tanda kejujuran sejati." },
+        { text: "Pulangkan semula duit itu kepada mak cik kantin.", score: 1, feedback: "Syabas! Anda seorang yang amanah dalam urusan kewangan." } ] },
+    { category: "Rumah", text: "Ibu pesan jangan main 'game' lebih satu jam. Ibu keluar ke kedai. Jam sudah menunjukkan satu jam tetapi anda sedang seronok bermain. Anda...",
+      options: [
+        { text: "Terus tutup 'game' dan lakukan aktiviti lain.", score: 1, feedback: "Hebat! Anda mematuhi janji walaupun tiada sesiapa yang memantau." },
+        { text: "Teruskan main lagi 30 minit sebab Ibu belum balik.", score: 0, feedback: "Integriti bermaksud melakukan perkara yang betul walaupun Ibu tiada di rumah." } ] },
+    { category: "Sekolah", text: "Dalam kerja kumpulan, kawan anda melakukan hampir semua kerja. Guru bertanya siapa yang paling banyak membantu. Anda...",
+      options: [
+        { text: "Cakap semua buat sama banyak supaya anda nampak rajin.", score: 0, feedback: "Mengambil kredit atas usaha orang lain adalah tidak adil dan tidak jujur." },
+        { text: "Beritahu guru bahawa kawan itu yang paling banyak buat kerja.", score: 1, feedback: "Bagus! Menghargai usaha orang lain menunjukkan anda seorang yang adil." } ] },
+    { category: "Rumah", text: "Anda terjumpa biskut kegemaran kakak di dapur. Anda teringin sangat nak makan tapi itu biskut terakhir kakak. Anda...",
+      options: [
+        { text: "Minta izin kakak dahulu sebelum makan.", score: 1, feedback: "Menghormati hak milik orang lain adalah asas integriti diri." },
+        { text: "Makan senyap-senyap dan buang plastik ke luar tingkap.", score: 0, feedback: "Mencuri dan menyembunyikan bukti adalah tindakan yang tidak bermoral." } ] },
+    { category: "Permainan", text: "Semasa bermain sorok-sorok, anda nampak kawan anda bersembunyi di tempat yang dilarang. Adakah anda akan guna maklumat itu untuk menang?",
+      options: [
+        { text: "Gunakan maklumat itu supaya saya cepat menang.", score: 0, feedback: "Kemenangan tanpa mengikut peraturan bukanlah satu kemenangan yang membanggakan." },
+        { text: "Tegur kawan itu supaya bersembunyi di tempat yang dibenarkan.", score: 1, feedback: "Integriti dalam permainan dipanggil semangat kesukanan (sportsmanship)." } ] },
+    { category: "Sekolah", text: "Anda nampak kawan meniru semasa ujian ejaan. Guru tidak nampak. Anda...",
+      options: [
+        { text: "Beritahu guru atau nasihatkan kawan selepas ujian.", score: 1, feedback: "Berani menegur kesalahan adalah sebahagian daripada integriti." },
+        { text: "Diamkan sahaja supaya kawan tidak marah anda.", score: 0, feedback: "Bersubahat dalam penipuan akan merosakkan karakter anda dan kawan anda." } ] },
+    { category: "Rumah", text: "Ayah beri RM10 untuk beli roti dan pesan baki duit itu untuk anda simpan sebagai upah. Roti harga RM4, tapi anda cakap pada Ayah harga roti RM6.",
+      options: [
+        { text: "Beritahu harga sebenar dan pulangkan baki yang betul.", score: 1, feedback: "Kejujuran kepada keluarga adalah kunci kepercayaan dalam rumah." },
+        { text: "Cakap harga RM6 supaya dapat simpan lebih banyak duit.", score: 0, feedback: "Menipu keluarga untuk kepentingan diri sendiri akan menghancurkan kepercayaan." } ] },
+    { category: "Sekolah", text: "Anda terlanggar kawan di koridor hingga buku-bukunya jatuh berselerak. Tiada orang lain di situ. Anda...",
+      options: [
+        { text: "Terus lari supaya tidak perlu minta maaf.", score: 0, feedback: "Bertanggungjawab atas kesilapan sendiri adalah ciri pemimpin berintegriti." },
+        { text: "Berhenti, minta maaf dan bantu kutip buku tersebut.", score: 1, feedback: "Bertanggungjawab atas tindakan anda menunjukkan kematangan diri." } ] },
+    { category: "Gajet", text: "Anda sedang menggunakan tablet sekolah. Anda secara tidak sengaja tertekan laman web yang dilarang. Anda...",
+      options: [
+        { text: "Cepat-cepat tutup tab tersebut dan beritahu guru.", score: 1, feedback: "Mengaku kesilapan teknikal adalah lebih baik daripada menyembunyikannya." },
+        { text: "Terus tengok laman web itu selagi guru tidak nampak.", score: 0, feedback: "Menggunakan kemudahan awam dengan cara yang salah melanggar amanah." } ] },
+    { category: "Sekolah", text: "Anda dilantik sebagai ketua kelas. Kawan baik anda bising dalam kelas. Adakah anda akan tulis namanya di papan hitam?",
+      options: [
+        { text: "Tulis namanya kerana dia memang bising.", score: 1, feedback: "Menjalankan tugas dengan adil tanpa pilih kasih adalah integriti yang hebat!" },
+        { text: "Jangan tulis sebab dia kawan baik anda.", score: 0, feedback: "Pilih kasih dalam menjalankan tugas adalah satu bentuk ketidakadilan." } ] }
+];
+
+const statusDari = s => s === 10
+    ? { status: "IKON INTEGRITI! 🥇", desc: "Luar biasa! Contoh teladan yang hebat. Teruskan memegang prinsip kejujuran ini sepanjang hayat." }
+    : s >= 8 ? { status: "WIRA JUJUR! 🥈", desc: "Sangat bagus! Faham erti integriti. Sikit lagi nak jadi sempurna, teruskan usaha untuk sentiasa amanah!" }
+    : s >= 5 ? { status: "PELAJAR AMANAH! 🥉", desc: "Asas yang baik. Ingat, integriti adalah pilihan harian. Jom cuba buat pilihan yang lebih tepat lepas ni!" }
+    : { status: "USAHA LAGI! 🌱", desc: "Jangan sedih. Integriti boleh dipelajari. Ambil masa untuk fikirkan kenapa kejujuran itu penting bagi diri dan orang lain." };
+
+// ---------- STATE & AUTH ----------
+const S = { uid: null, anak: [], plans: {}, i: 0 };
+let idx = 0, total = 0, salah = [], curRes = null;
+
+$('form-login').onsubmit = async ev => {
+    ev.preventDefault();
+    try { await signInWithEmailAndPassword(auth, ev.target.e.value, ev.target.p.value); }
+    catch (err) { alert('Log masuk gagal. Sila semak e-mel dan kata laluan.'); }
+};
+
+onAuthStateChanged(auth, async user => {
+    if (!user) { show('login'); return; }
+    S.uid = user.uid;
+    show('loading');
+    try {
+        const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", user.uid)));
+        S.anak = s.docs.map(d => ({ ...d.data(), id: d.id }))
+            .filter(n => n.relationship === 'Anak' && n.status !== 'meninggal')
+            .sort((a, b) => (a.dob || '9').localeCompare(b.dob || '9'));
+        if (!S.anak.length) { show('noanak'); return; }
+        const p = await getDocs(query(collection(db, "mykids_plans"), where("owner_uid", "==", user.uid)));
+        S.plans = {};
+        p.forEach(d => { S.plans[d.id] = d.data(); });
+        const k = S.anak.findIndex(a => a.id === new URLSearchParams(location.search).get('anak'));
+        S.i = k >= 0 ? k : 0;
+        renderHome();
+        show('home');
+    } catch (e) { console.error(e); $('s-loading').textContent = 'Gagal memuatkan data: ' + e.message; }
+});
+
+// ---------- PILIH ANAK ----------
+function renderHome() {
+    $('progress').style.width = '0%';
+    $('picker').innerHTML = S.anak.map((x, i) =>
+        `<button data-i="${i}" class="shrink-0 px-4 py-2 rounded-full border-2 font-bold text-sm whitespace-nowrap ${i === S.i ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-white text-gray-600'}">${esc(x.name)}${S.plans[x.id] && S.plans[x.id].integrity ? ' ✔' : ''}</button>`).join('');
+    const a = S.anak[S.i], r = S.plans[a.id] && S.plans[a.id].integrity;
+    const umur = a.dob ? umurSebenar(a.dob) : null;
+    let h = `<h3 class="text-xl font-extrabold text-gray-800">${esc(a.name)}</h3>
+             <p class="text-gray-500 text-sm mb-4">${umur !== null ? umur + ' tahun' : 'Tarikh lahir belum diisi di myNasab'}</p>`;
+    if (umur !== null && umur < 6) h += `<p class="text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 mb-4">Anak masih kecil. Ibu bapa boleh membacakan situasi dan menjawab bersama anak.</p>`;
+    if (r) {
+        h += `<div class="bg-white border border-emerald-100 rounded-xl p-3 mb-4"><p class="text-xs font-bold uppercase tracking-widest text-emerald-600">Keputusan tersimpan</p><p class="font-extrabold text-gray-800">${esc(r.status)}</p><p class="text-sm text-gray-500">${r.score} / ${r.max} markah</p></div>
+              <div class="flex flex-col sm:flex-row gap-3 justify-center"><button id="btn-lihat" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-2xl">Lihat Keputusan</button><button id="btn-mula" class="bg-white border-2 border-gray-200 text-gray-700 font-bold py-3 px-8 rounded-2xl">Ambil Semula</button></div>`;
+    } else {
+        h += `<button id="btn-mula" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-10 rounded-2xl shadow-lg text-lg">Mula untuk ${esc(a.name)}</button>`;
+    }
+    $('child-card').innerHTML = h;
+}
+
+// ---------- PERMAINAN ----------
+function startGame() {
+    idx = 0; total = 0; salah = [];
+    $('quiz-for').textContent = S.anak[S.i].name;
+    showQuestion();
+}
+function showQuestion() {
+    const q = questions[idx];
+    $('category-tag').innerText = q.category;
+    $('question-count').innerText = `${idx + 1}/${questions.length}`;
+    $('question-text').innerText = q.text;
+    const box = $('options-container');
+    box.innerHTML = '';
+    q.options.forEach(opt => {
+        const b = document.createElement('button');
+        b.className = "option-btn w-full text-left p-5 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-emerald-400 hover:bg-emerald-50 font-semibold text-gray-700";
+        b.innerText = opt.text;
+        b.onclick = () => pilihJawapan(q, opt);
+        box.appendChild(b);
+    });
+    $('progress').style.width = (idx / questions.length * 100) + '%';
+    show('question');
+}
+function pilihJawapan(q, opt) {
+    total += opt.score;
+    if (opt.score === 0 && !salah.includes(q.category)) salah.push(q.category);
+    $('feedback-icon').innerText = opt.score > 0 ? "🌟" : "💡";
+    $('feedback-title').innerText = opt.score > 0 ? "Syabas!" : "Renungkan...";
+    $('feedback-text').innerText = opt.feedback;
+    show('feedback');
+}
+async function seterusnya() {
+    idx++;
+    if (idx < questions.length) { showQuestion(); return; }
+    const d = statusDari(total);
+    curRes = { score: total, max: questions.length, status: d.status, desc: d.desc, lemah: salah, updated_at: Date.now() };
+    renderResult(curRes, false);
+    await simpan();
+}
+
+// ---------- SIMPAN KE myKids ----------
+function setStatus(t, ok) { const el = $('save-status'); if (el) { el.textContent = t; el.className = 'text-sm font-semibold mb-6 ' + (ok ? 'text-emerald-600' : 'text-red-600'); } }
+async function simpan() {
+    const a = S.anak[S.i];
+    try {
+        await setDoc(doc(db, "mykids_plans", a.id), { owner_uid: S.uid, nama_anak: a.name, integrity: curRes }, { merge: true });
+        S.plans[a.id] = { ...(S.plans[a.id] || {}), integrity: curRes };
+        setStatus('✔ Disimpan. Boleh dilihat di myKids (tab Akhirat).', true);
+        return true;
+    } catch (e) { console.error(e); setStatus('Gagal menyimpan: ' + e.message, false); return false; }
+}
+
+function renderResult(r, dariSimpan) {
+    curRes = r;
+    $('progress').style.width = '100%';
+    $('s-result').innerHTML = `
+        <h2 class="text-3xl font-bold mb-1 text-emerald-800">Keputusan Ujian</h2>
+        <p class="text-gray-500 mb-6 font-medium">Tahap Integriti ${esc(S.anak[S.i].name)}</p>
+        <div class="w-40 h-40 rounded-full border-[10px] border-emerald-500 flex flex-col items-center justify-center mx-auto mb-6 shadow-inner">
+            <span class="text-4xl font-black text-emerald-600">${r.score}<span class="text-lg text-gray-400">/${r.max}</span></span>
+            <span class="text-gray-400 text-sm font-bold uppercase tracking-widest">Markah</span>
+        </div>
+        <h3 class="text-2xl font-bold mb-3">${esc(r.status)}</h3>
+        <p class="text-gray-600 mb-4 leading-relaxed">${esc(r.desc)}</p>
+        ${(r.lemah || []).length ? `<p class="text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 mb-4">Situasi yang perlu dibimbing: <b>${r.lemah.map(esc).join(', ')}</b></p>` : ''}
+        <p id="save-status" class="text-sm font-semibold mb-6 text-gray-400">${dariSimpan ? 'Keputusan ini sudah disimpan di myKids.' : 'Menyimpan ke myKids...'}</p>
+        <button id="btn-simpan" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-10 rounded-2xl shadow-lg mb-3">💾 Simpan ke myKids</button>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="${URL_MYKIDS}" class="bg-white border-2 border-emerald-200 text-emerald-700 font-bold py-3 px-8 rounded-2xl">Buka myKids</a>
+            <button id="btn-lain" class="bg-white border-2 border-gray-200 text-gray-700 font-bold py-3 px-8 rounded-2xl">Pilih Anak Lain</button>
+            <button id="btn-mula" class="bg-gray-800 text-white font-bold py-3 px-8 rounded-2xl">Main Semula</button>
+        </div>`;
+    show('result');
+}
+
+// ---------- EVENT ----------
+$('btn-next').onclick = seterusnya;
+document.addEventListener('click', async e => {
+    const c = e.target.closest('#picker [data-i]');
+    if (c) { S.i = +c.dataset.i; renderHome(); return; }
+    if (e.target.closest('#btn-mula')) startGame();
+    else if (e.target.closest('#btn-lihat')) renderResult(S.plans[S.anak[S.i].id].integrity, true);
+    else if (e.target.closest('#btn-lain')) { renderHome(); show('home'); }
+    else if (e.target.closest('#btn-simpan')) {
+        const b = $('btn-simpan'); b.disabled = true; b.textContent = 'Menyimpan...';
+        const ok = await simpan();
+        b.disabled = false; b.textContent = ok ? '✔ Disimpan ke myKids' : '💾 Cuba simpan semula';
+    }
+});
+</script>
 </body>
 </html>
