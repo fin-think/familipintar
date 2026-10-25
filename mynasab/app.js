@@ -2530,8 +2530,10 @@ window.terimaPautan = async (requestDocId, pemohonUid) => {
             alert("Nod 'Diri Sendiri' salah satu pihak tidak dijumpai, jadi pautan tidak dibuat.");
             return;
         }
-        await updateDoc(doc(db, "mynasab_nodes", rootSaya.id), { linked_uids: arrayUnion(pemohonUid) });
-        await updateDoc(doc(db, "mynasab_nodes", rootPemohon.id), { linked_uids: arrayUnion(penggunaSemasa.uid) });
+        const adik = confirm("Adakah pemohon ini ADIK-BERADIK anda?\n\nOK = ya (dipaparkan sebaris di bawah ibu bapa yang sama)\nCancel = bukan (dipaparkan sebagai pokok waris berasingan)");
+        const medan = (uid) => adik ? { linked_uids: arrayUnion(uid), linked_adik: arrayUnion(uid) } : { linked_uids: arrayUnion(uid) };
+        await updateDoc(doc(db, "mynasab_nodes", rootSaya.id), medan(pemohonUid));
+        await updateDoc(doc(db, "mynasab_nodes", rootPemohon.id), medan(penggunaSemasa.uid));
         await updateDoc(doc(db, "mynasab_requests", requestDocId), { status: "lulus" });
 
         alert("Berjaya! Pokok keluarga anda berdua kini telah bercantum secara rasmi.");
@@ -2540,6 +2542,22 @@ window.terimaPautan = async (requestDocId, pemohonUid) => {
         console.error(e);
         alert("Ralat ketika cuba menyambungkan pokok keluarga: " + e.message);
     }
+};
+
+// Untuk pautan yang sudah diterima: tandakan siapa adik-beradik
+window.tandaAdikCantum = async () => {
+    const rootSaya = await cariNodInduk(penggunaSemasa.uid);
+    if (!rootSaya) return alert("Nod 'Diri Sendiri' anda tidak dijumpai.");
+    let bil = 0;
+    for (const u of (rootSaya.data().linked_uids || [])) {
+        const r = await cariNodInduk(u);
+        if (!r) continue;
+        if (!confirm(`Tandakan "${r.data().name}" sebagai ADIK-BERADIK anda?`)) continue;
+        await updateDoc(doc(db, "mynasab_nodes", rootSaya.id), { linked_adik: arrayUnion(u) });
+        await updateDoc(doc(db, "mynasab_nodes", r.id), { linked_adik: arrayUnion(penggunaSemasa.uid) });
+        bil++;
+    }
+    alert(bil + " ditandakan. Buka semula Carta Dinamik.");
 };
 
 // Pembetulan sekali untuk permohonan yang sudah diluluskan tetapi pautannya tak tertulis
@@ -2601,6 +2619,7 @@ window.pantauMesejBaru = (uid) => {
 // =========================================================
 window.bukaCartaDinamik = async () => {
     if (!penggunaSemasa) return;
+    if (window._cartaMN) { try { window._cartaMN.destroy(); } catch (e) {} window._cartaMN = null; }
     const ruang = document.getElementById('ruangCartaDinamik');
     document.getElementById('modalCartaDinamik').classList.remove('hidden');
         const elTajuk = document.getElementById('tajukCartaDinamik');
@@ -2836,15 +2855,21 @@ window.bukaCartaDinamik = async () => {
             });
         }
 
-                // E. Waris cantuman (salaman): hanya yang saya sendiri sahkan
+                 // E. Waris cantuman (salaman)
+        const adikCantum = new Set(diriSaya.linked_adik || []);
         const sudah = new Set([saya, indukUid, ...akaunPaut.map(a => a.uid)]);
-        console.log('[Carta Dinamik] linked_uids pada nod saya:', diriSaya.linked_uids || 'TIADA');
+        console.log('[Carta Dinamik] linked_uids:', diriSaya.linked_uids || 'TIADA', '| adik:', [...adikCantum]);
         for (const u of (diriSaya.linked_uids || [])) {
             if (sudah.has(u)) { console.log('[Carta Dinamik] langkau (sudah ada):', u); continue; }
             sudah.add(u);
             const nodLuar = await ambil(u);
-            console.log('[Carta Dinamik] waris cantuman', u, '->', nodLuar.length, 'nod');
-            prosesAkaun(nodLuar, { leluhur: true, adik: true, mertua: false, label: (n) => n.is_root ? 'Waris Cantuman' : (n.relationship || '') });
+            const adik = adikCantum.has(u);
+            console.log('[Carta Dinamik] waris cantuman', u, '->', nodLuar.length, 'nod', adik ? '(adik-beradik)' : '');
+            const r = prosesAkaun(nodLuar, {
+                leluhur: !adik, adik: !adik, mertua: false,
+                label: (n) => n.is_root ? (adik ? 'Adik-beradik' : 'Waris Cantuman') : (n.relationship || '')
+            });
+            if (r && adik) jadiAdikBeradik(peta.get(r.diri.id), peta.get(diriSaya.id));
         }
 
         // ---------- 5b. BERSIHKAN GRAF ----------
