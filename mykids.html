@@ -48,6 +48,7 @@ select{width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;f
 .tl small{display:block;color:var(--mut);font-weight:700}
 .pil{display:inline-block;background:#f1f5f9;border-radius:8px;padding:3px 9px;margin:0 6px 6px 0;font-size:13px;font-weight:700}
 .btn{display:block;text-align:center;background:var(--dunia);color:#fff;text-decoration:none;font-weight:800;padding:13px;border-radius:12px;margin-top:10px}
+.btn-lock{background:#f1f5f9;color:#64748b;border:2px dashed #cbd5e1;}
 .fasa{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:14px}
 .fasa b{color:var(--akh)}
 .ayat{font-size:22px;text-align:right;direction:rtl;line-height:2;margin:6px 0 2px}
@@ -97,6 +98,8 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const URL_UTAMA = "../index.html", URL_MYNASAB = "../index.html", URL_MYTADBIR = "mytadbir.html";
+const URL_JURNAL = "myjurnal.html?bahagian=utama#anakku"; // Tambahan URL direct ke Timeline Zuriat
+
 const firebaseConfig = {
     apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
     authDomain: "familipintar.firebaseapp.com",
@@ -195,7 +198,7 @@ const AKHIRAT = [
 ];
 
 // ---------- LOGIK ----------
-const S = { anak:[], i:0, tab:'dunia', plan:{ker:'',tick:{}} };
+const S = { anak:[], i:0, tab:'dunia', plan:{ker:'',tick:{}}, jurnal_unlocked: [] };
 const tahun = new Date().getFullYear();
 const tahap = u => u<4?['bayi','Bayi / kanak-kanak']:u<7?['pra','Prasekolah']:u<=12?['rendah','Tahun '+(u-6)]:u<=17?['menengah','Tingkatan '+(u-12)]:u<=19?['prau','Pra-U / Diploma']:['ipt','IPT / bekerja'];
 const umurSebenar = d => { const n=new Date(),b=new Date(d); let u=n.getFullYear()-b.getFullYear(); if(n<new Date(n.getFullYear(),b.getMonth(),b.getDate())) u--; return u; };
@@ -203,11 +206,24 @@ const ck = (k,t) => `<label class="ck"><input type="checkbox" data-k="${k}" ${S.
 
 onAuthStateChanged(auth, async user => {
   if (!user) { location.href = URL_UTAMA; return; }
+  
+  // Ambil data akaun myNasab untuk semak akses myJurnal
+  const userRef = doc(db, "mynasab_users", user.uid);
+  const userSnap = await getDoc(userRef);
+  if(userSnap.exists()) {
+      S.jurnal_unlocked = userSnap.data().jurnal_unlocked || [];
+  }
+
   const s = await getDocs(query(collection(db,"mynasab_nodes"), where("owner_uid","==",user.uid)));
   S.uid = user.uid;
   S.anak = s.docs.map(d=>({...d.data(),id:d.id})).filter(n=>n.relationship==='Anak' && n.status!=='meninggal')
     .sort((a,b)=>(a.dob||'9').localeCompare(b.dob||'9'));
-  if (!S.anak.length) { document.getElementById('auth').innerHTML = `Belum ada anak dalam <b>myNasab</b>.<br>Tambah anak dan tarikh lahir mereka dahulu.<br><a class="btn" href="${URL_MYNASAB}">Buka myNasab</a>`; return; }
+  
+  if (!S.anak.length) { 
+      document.getElementById('auth').innerHTML = `Belum ada anak dalam <b>myNasab</b>.<br>Tambah anak dan tarikh lahir mereka dahulu.<br><a class="btn" href="${URL_MYNASAB}">Buka myNasab</a>`; 
+      return; 
+  }
+  
   document.getElementById('auth').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   await pilih(0);
@@ -224,7 +240,7 @@ async function pilih(i) {
     tier: dp.tier||'awam', 
     pers: dp.personaliti||null, 
     psi: dp.psikoteens||null, 
-    kids: dp.psikokids||null, // Data myPSIKOkids
+    kids: dp.psikokids||null, 
     ing: dp.integrity||null 
   };
   render();
@@ -251,50 +267,73 @@ function render() {
 const URL_PERS = "mypersonalitikids.html";
 function persBox(a) {
   const P = S.plan.pers;
-  if (!P) return `<div class="pers"><h2>Personaliti ${esc(a.name)}</h2><p class="s">Belum ada ujian. Keputusan personaliti membantu memilih kerjaya yang serasi.</p><a class="btn" href="${URL_PERS}?anak=${encodeURIComponent(a.id)}">Ambil ujian personaliti</a></div>`;
+  // Cek jika pengguna dah buka kunci modul 'kids' di myJurnal
+  const unlockKids = S.jurnal_unlocked && S.jurnal_unlocked.includes('kids');
+  
+  const linkTo = unlockKids ? `${URL_PERS}?anak=${encodeURIComponent(a.id)}` : URL_JURNAL;
+  const btnClass = unlockKids ? 'btn' : 'btn btn-lock';
+  const btnText = unlockKids ? 'Ambil ujian personaliti' : '<i class="fa-solid fa-lock mr-2"></i> Buka Kunci Modul Zuriat (myJurnal)';
+  const linkText = unlockKids ? 'Lihat penuh / ambil semula' : 'Buka Kunci Modul Zuriat (myJurnal)';
+
+  if (!P) return `<div class="pers"><h2>Personaliti ${esc(a.name)}</h2><p class="s">Belum ada ujian. Keputusan personaliti membantu memilih kerjaya yang serasi.</p><a class="${btnClass}" href="${linkTo}">${btnText}</a></div>`;
+  
   return `<div class="pers"><h2>${esc(P.type)} · ${esc(P.nama)}</h2><p class="s">${esc(P.desc)}</p>
     <div style="font-weight:800;font-size:14px;margin-bottom:2px">Kerjaya yang serasi dengan personaliti:</div>
     ${(P.serasi||[]).slice(0,3).map(c=>`<div class="pbar"><div class="t"><span>${esc(c.n)}</span><span>${c.p}%</span></div><div class="b"><i style="width:${c.p}%"></i></div></div>`).join('')}
     <p class="nota">Panduan sahaja. Pertimbangkan juga minat, kebolehan dan keputusan akademik anak.</p>
-    <a href="${URL_PERS}?anak=${encodeURIComponent(a.id)}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+    <a href="${linkTo}" style="font-size:13px;font-weight:700;color:var(--akh)">${linkText}</a></div>`;
 }
 
 const URL_PSIKO = "mypsikoteens.html", URL_KIDS = "mypsikokids.html", URL_ING = "myintegrity.html";
 function akhiratBox(a, umur) {
   const id = encodeURIComponent(a.id), A = S.plan.psi, K = S.plan.kids, B = S.plan.ing;
+  
+  // Cek jika pengguna dah buka kunci modul 'kids' di myJurnal
+  const unlockKids = S.jurnal_unlocked && S.jurnal_unlocked.includes('kids');
+  
+  const linkKids = unlockKids ? `${URL_KIDS}?anak=${id}` : URL_JURNAL;
+  const linkTeens = unlockKids ? `${URL_PSIKO}?anak=${id}` : URL_JURNAL;
+  const linkIng = unlockKids ? `${URL_ING}?anak=${id}` : URL_JURNAL;
+  
+  const btnClass = unlockKids ? 'btn' : 'btn btn-lock';
+  const textAmbilKids = unlockKids ? 'Ambil ujian myPSIKOkids' : '<i class="fa-solid fa-lock mr-2"></i> Buka Kunci Modul Zuriat (myJurnal)';
+  const textAmbilTeens = unlockKids ? 'Ambil ujian myPSIKOteens' : '<i class="fa-solid fa-lock mr-2"></i> Buka Kunci Modul Zuriat (myJurnal)';
+  const textAmbilIng = unlockKids ? 'Ambil ujian myINTEGRITY' : '<i class="fa-solid fa-lock mr-2"></i> Buka Kunci Modul Zuriat (myJurnal)';
+  const textLihat = unlockKids ? 'Lihat penuh / ambil semula' : 'Buka Kunci Modul Zuriat (myJurnal)';
+
   const bar = (l,p) => `<div class="pbar"><div class="t"><span>${l}</span><span>${p}%</span></div><div class="b"><i style="width:${p}%"></i></div></div>`;
   let h = '';
 
   // Papar myPSIKOkids jika umur < 12, atau myPSIKOteens jika umur >= 12
   if (umur < 12) {
     if (!K) {
-      h += `<div class="pers"><h2>myPSIKOkids: ${esc(a.name)}</h2><p class="s">Belum ada ujian. Kembara anak soleh & solehah (kanak-kanak bawah 12 tahun).</p><a class="btn" href="${URL_KIDS}?anak=${id}">Ambil ujian myPSIKOkids</a></div>`;
+      h += `<div class="pers"><h2>myPSIKOkids: ${esc(a.name)}</h2><p class="s">Belum ada ujian. Kembara anak soleh & solehah (kanak-kanak bawah 12 tahun).</p><a class="${btnClass}" href="${linkKids}">${textAmbilKids}</a></div>`;
     } else {
       h += `<div class="pers"><h2>myPSIKOkids: ${esc(K.status)}</h2><p class="s">Skor: ${K.score} / ${K.max} mata</p>
         ${bar('Pencapaian Kasih Sayang', Math.round(K.score/K.max*100))}
-        <a href="${URL_KIDS}?anak=${id}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+        <a href="${linkKids}" style="font-size:13px;font-weight:700;color:var(--akh)">${textLihat}</a></div>`;
     }
   } else {
     if (!A) {
-      h += `<div class="pers"><h2>myPSIKOteens: ${esc(a.name)}</h2><p class="s">Belum ada ujian. Menilai ibadah, adab terhadap ibu bapa dan tanggungjawab (remaja 12 tahun ke atas).</p><a class="btn" href="${URL_PSIKO}?anak=${id}">Ambil ujian myPSIKOteens</a></div>`;
+      h += `<div class="pers"><h2>myPSIKOteens: ${esc(a.name)}</h2><p class="s">Belum ada ujian. Menilai ibadah, adab terhadap ibu bapa dan tanggungjawab (remaja 12 tahun ke atas).</p><a class="${btnClass}" href="${linkTeens}">${textAmbilTeens}</a></div>`;
     } else {
       const kat = [['Amal Ibadah',A.ibadah],['Adab Ibu Bapa',A.ibubapa],['Tanggungjawab Diri',A.tanggungjawab]];
       const lemah = kat.slice().sort((x,y)=>x[1]-y[1])[0];
       h += `<div class="pers"><h2>myPSIKOteens: ${esc(A.status)}</h2><p class="s">${A.score} / ${A.max} mata</p>
         ${kat.map(k=>bar(k[0],k[1])).join('')}
         <p class="nota">Aspek yang paling perlu dikukuhkan: <b>${lemah[0]}</b>. Panduan sahaja, bukan penilaian muktamad.</p>
-        <a href="${URL_PSIKO}?anak=${id}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+        <a href="${linkTeens}" style="font-size:13px;font-weight:700;color:var(--akh)">${textLihat}</a></div>`;
     }
   }
 
   // myINTEGRITY untuk semua peringkat umur
   if (!B) {
-    h += `<div class="pers"><h2>myINTEGRITY: ${esc(a.name)}</h2><p class="s">Belum ada ujian. 10 situasi untuk melihat kejujuran dan amanah.</p><a class="btn" href="${URL_ING}?anak=${id}">Ambil ujian myINTEGRITY</a></div>`;
+    h += `<div class="pers"><h2>myINTEGRITY: ${esc(a.name)}</h2><p class="s">Belum ada ujian. 10 situasi untuk melihat kejujuran dan amanah.</p><a class="${btnClass}" href="${linkIng}">${textAmbilIng}</a></div>`;
   } else {
     h += `<div class="pers"><h2>myINTEGRITY: ${esc(B.status)}</h2><p class="s">${B.score} / ${B.max} markah</p>
       ${bar('Tahap integriti', Math.round(B.score/B.max*100))}
       ${(B.lemah||[]).length ? `<p class="nota">Situasi yang perlu dibimbing: <b>${B.lemah.map(esc).join(', ')}</b></p>` : '<p class="nota">Tiada situasi yang tersilap. Teruskan galakan.</p>'}
-      <a href="${URL_ING}?anak=${id}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+      <a href="${linkIng}" style="font-size:13px;font-weight:700;color:var(--akh)">${textLihat}</a></div>`;
   }
 
   return h;
