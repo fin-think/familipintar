@@ -299,8 +299,9 @@ if (rdb.monthlyBudget === undefined) {
                           });
                       }
                       
-                      if (!isMeninggal && !isMertua) {
-                          if (rel.includes('suami') || rel.includes('isteri') || rel.includes('pasangan')) spouse = true;
+                      const bukanSaudara = !rel.includes('saudara') && !rel.includes('sepupu') && !rel.includes('pupuk');
+                      if (!isMeninggal && !isMertua && bukanSaudara) {
+                          if (rel === 'suami' || rel === 'isteri') spouse = true;
                           if (rel.match(/ibu|mak|mama/)) mother = true;
                           if (rel.match(/ayah|bapa|abah|papa/)) father = true;
                       }
