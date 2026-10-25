@@ -9,7 +9,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{--bg:#f6f9fc;--ink:#1e293b;--mut:#64748b;--line:#e2e8f0;--dunia:#0ea5e9;--akh:#0f766e;--kuning:#f5b82e;--card:#fff}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:'Nunito',sans-serif;line-height:1.6;font-size:16px;} /* Tambah font-size: 16px di sini */
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Nunito',sans-serif;line-height:1.6;font-size:16px;}
 .hidden{display:none!important}
 header{background:#fff;border-bottom:1px solid var(--line);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5}
 .brand{font-weight:800;font-size:22px}.brand b{color:var(--kuning)}.brand i{color:var(--dunia);font-style:normal}
@@ -73,7 +73,6 @@ select{width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;f
     <div id="pers"></div>
     <div class="tab">
   <button class="d on" id="tD">
-    <!-- Ikon SVG Dunia / Sfera / Pengajian -->
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:6px;">
       <circle cx="12" cy="12" r="10"/>
       <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
@@ -82,7 +81,6 @@ select{width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;f
     Dunia
   </button>
   <button class="a" id="tA">
-    <!-- Ikon SVG Akhirat / Bulan Sabit Rohtani -->
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:6px;">
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
     </svg>
@@ -113,8 +111,7 @@ const auth = getAuth(app), db = getFirestore(app);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 document.getElementById('kembali').href = URL_UTAMA;
 
-// ---------- KANDUNGAN (edit di sini) ----------
-// Tahap persekolahan ikut selisih tahun (tahun semasa - tahun lahir): 7 = Tahun 1, 13 = Tingkatan 1, 17 = Tingkatan 5 (SPM)
+// ---------- KANDUNGAN ----------
 const GENERIK = {
   bayi:["Daftar sijil lahir dan buka akaun SSPN (PTPTN) untuk simpanan pendidikan","Rancang tabung pendidikan bulanan","Banyakkan bercakap, bernyanyi dan membaca bersama"],
   pra:["Daftar tadika / prasekolah","Kenal huruf, nombor dan warna melalui permainan","Mula tabiat menyimpan (tabung)"],
@@ -186,7 +183,6 @@ const KERJAYA = {
     t:{menengah:["Simpan semua karya dalam portfolio","Belajar alat digital (Procreate, Canva, Figma)","Sertai pertandingan seni dan pameran sekolah"],prau:["Siapkan portfolio untuk kemasukan","Semak syarat dan temuduga / ujian bakat"],ipt:["Bina portfolio dalam talian","Ambil projek bebas dan internship studio","Belajar harga dan kontrak kerja bebas"]}}
 };
   
-// 3 fasa 7 tahun dikaitkan dengan Saidina Ali; sandaran sanad tidak dapat dipastikan, jadi digunakan sebagai pendekatan, bukan hukum.
 const FASA = [[0,6,"Fasa 1 (0-7 tahun): kasih sayang dan teladan","Anak dibentuk melalui kasih sayang, permainan dan contoh ibu bapa."],[7,13,"Fasa 2 (7-14 tahun): disiplin dan adab","Latihan ibadah, adab dan tanggungjawab dengan tegas tetapi berhikmah."],[14,21,"Fasa 3 (14-21 tahun): rakan dan amanah","Berbincang, mendengar dan memberi amanah seperti rakan yang dipercayai."]];
 const AKHIRAT = [
  [0,3,["Azan di telinga bayi, nama yang baik, aqiqah (sunat)","Perdengarkan Al-Quran, selawat dan doa harian","Kenalkan nama Allah dan kalimah tauhid dengan lembut","Solat dan mengaji di hadapan anak"]],
@@ -222,11 +218,18 @@ async function pilih(i) {
   const a = S.anak[i];
   const p = await getDoc(doc(db,"mykids_plans",a.id));
   const dp = p.exists() ? p.data() : {};
-S.plan = { ker:dp.kerjaya||'', tick:dp.tick||{}, tier:dp.tier||'awam', pers:dp.personaliti||null, psi:dp.psikoteens||null, ing:dp.integrity||null };
+  S.plan = { 
+    ker: dp.kerjaya||'', 
+    tick: dp.tick||{}, 
+    tier: dp.tier||'awam', 
+    pers: dp.personaliti||null, 
+    psi: dp.psikoteens||null, 
+    kids: dp.psikokids||null, // Data myPSIKOkids
+    ing: dp.integrity||null 
+  };
   render();
 }
 const simpan = () => setDoc(doc(db,"mykids_plans",S.anak[S.i].id), { owner_uid:S.uid, kerjaya:S.plan.ker, tier:S.plan.tier||'awam', tick:S.plan.tick, updated_at:Date.now() }, { merge:true });
-
 
 function render() {
   const a = S.anak[S.i];
@@ -239,7 +242,7 @@ function render() {
   }
   const u = tahun - new Date(a.dob).getFullYear(), tp = tahap(u);
   document.getElementById('ringkas').innerHTML = `<h1>${esc(a.name)}</h1><p>${umurSebenar(a.dob)} tahun · ${tp[1]} · ${S.anak.length} anak dalam senarai</p>`;
-  document.getElementById('pers').innerHTML = S.tab==='dunia' ? persBox(a) : akhiratBox(a);
+  document.getElementById('pers').innerHTML = S.tab==='dunia' ? persBox(a) : akhiratBox(a, umurSebenar(a.dob));
   document.getElementById('tD').className = 'd' + (S.tab==='dunia'?' on':'');
   document.getElementById('tA').className = 'a' + (S.tab==='akhirat'?' on':'');
   document.getElementById('isi').innerHTML = S.tab==='dunia' ? dunia(a,u,tp[0]) : akhirat(u);
@@ -256,25 +259,44 @@ function persBox(a) {
     <a href="${URL_PERS}?anak=${encodeURIComponent(a.id)}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
 }
 
-const URL_PSIKO = "mypsikoteens.html", URL_ING = "myintegrity.html";
-function akhiratBox(a) {
-  const id = encodeURIComponent(a.id), A = S.plan.psi, B = S.plan.ing;
+const URL_PSIKO = "mypsikoteens.html", URL_KIDS = "mypsikokids.html", URL_ING = "myintegrity.html";
+function akhiratBox(a, umur) {
+  const id = encodeURIComponent(a.id), A = S.plan.psi, K = S.plan.kids, B = S.plan.ing;
   const bar = (l,p) => `<div class="pbar"><div class="t"><span>${l}</span><span>${p}%</span></div><div class="b"><i style="width:${p}%"></i></div></div>`;
   let h = '';
-  if (!A) h += `<div class="pers"><h2>myPSIKOteens: ${esc(a.name)}</h2><p class="s">Belum ada ujian. Menilai ibadah, adab terhadap ibu bapa dan tanggungjawab (sesuai remaja 12 tahun ke atas).</p><a class="btn" href="${URL_PSIKO}?anak=${id}">Ambil ujian myPSIKOteens</a></div>`;
-  else {
-    const kat = [['Amal Ibadah',A.ibadah],['Adab Ibu Bapa',A.ibubapa],['Tanggungjawab Diri',A.tanggungjawab]];
-    const lemah = kat.slice().sort((x,y)=>x[1]-y[1])[0];
-    h += `<div class="pers"><h2>myPSIKOteens: ${esc(A.status)}</h2><p class="s">${A.score} / ${A.max} mata</p>
-      ${kat.map(k=>bar(k[0],k[1])).join('')}
-      <p class="nota">Aspek yang paling perlu dikukuhkan: <b>${lemah[0]}</b>. Panduan sahaja, bukan penilaian muktamad.</p>
-      <a href="${URL_PSIKO}?anak=${id}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+
+  // Papar myPSIKOkids jika umur < 12, atau myPSIKOteens jika umur >= 12
+  if (umur < 12) {
+    if (!K) {
+      h += `<div class="pers"><h2>myPSIKOkids: ${esc(a.name)}</h2><p class="s">Belum ada ujian. Kembara anak soleh & solehah (kanak-kanak bawah 12 tahun).</p><a class="btn" href="${URL_KIDS}?anak=${id}">Ambil ujian myPSIKOkids</a></div>`;
+    } else {
+      h += `<div class="pers"><h2>myPSIKOkids: ${esc(K.status)}</h2><p class="s">Skor: ${K.score} / ${K.max} mata</p>
+        ${bar('Pencapaian Kasih Sayang', Math.round(K.score/K.max*100))}
+        <a href="${URL_KIDS}?anak=${id}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+    }
+  } else {
+    if (!A) {
+      h += `<div class="pers"><h2>myPSIKOteens: ${esc(a.name)}</h2><p class="s">Belum ada ujian. Menilai ibadah, adab terhadap ibu bapa dan tanggungjawab (remaja 12 tahun ke atas).</p><a class="btn" href="${URL_PSIKO}?anak=${id}">Ambil ujian myPSIKOteens</a></div>`;
+    } else {
+      const kat = [['Amal Ibadah',A.ibadah],['Adab Ibu Bapa',A.ibubapa],['Tanggungjawab Diri',A.tanggungjawab]];
+      const lemah = kat.slice().sort((x,y)=>x[1]-y[1])[0];
+      h += `<div class="pers"><h2>myPSIKOteens: ${esc(A.status)}</h2><p class="s">${A.score} / ${A.max} mata</p>
+        ${kat.map(k=>bar(k[0],k[1])).join('')}
+        <p class="nota">Aspek yang paling perlu dikukuhkan: <b>${lemah[0]}</b>. Panduan sahaja, bukan penilaian muktamad.</p>
+        <a href="${URL_PSIKO}?anak=${id}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+    }
   }
-  if (!B) h += `<div class="pers"><h2>myINTEGRITY: ${esc(a.name)}</h2><p class="s">Belum ada ujian. 10 situasi untuk melihat kejujuran dan amanah.</p><a class="btn" href="${URL_ING}?anak=${id}">Ambil ujian myINTEGRITY</a></div>`;
-  else h += `<div class="pers"><h2>myINTEGRITY: ${esc(B.status)}</h2><p class="s">${B.score} / ${B.max} markah</p>
+
+  // myINTEGRITY untuk semua peringkat umur
+  if (!B) {
+    h += `<div class="pers"><h2>myINTEGRITY: ${esc(a.name)}</h2><p class="s">Belum ada ujian. 10 situasi untuk melihat kejujuran dan amanah.</p><a class="btn" href="${URL_ING}?anak=${id}">Ambil ujian myINTEGRITY</a></div>`;
+  } else {
+    h += `<div class="pers"><h2>myINTEGRITY: ${esc(B.status)}</h2><p class="s">${B.score} / ${B.max} markah</p>
       ${bar('Tahap integriti', Math.round(B.score/B.max*100))}
       ${(B.lemah||[]).length ? `<p class="nota">Situasi yang perlu dibimbing: <b>${B.lemah.map(esc).join(', ')}</b></p>` : '<p class="nota">Tiada situasi yang tersilap. Teruskan galakan.</p>'}
       <a href="${URL_ING}?anak=${id}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+  }
+
   return h;
 }
   
