@@ -1060,6 +1060,10 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         const pautan = sPautan.docs.map(d => d.data());
         
         const sUser = await getDoc(doc(db, "mynasab_users", saya));
+
+        document.getElementById('tajukCartaDinamik').innerText =
+            'Carta Dinamik Keluarga' + (sUser.exists() && sUser.data().name ? ' ' + sUser.data().name : '');
+        
         const sembunyi = (sUser.exists() && sUser.data().sembunyi) || [];
 
         const ambil = async (uid) => {
