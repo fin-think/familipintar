@@ -529,6 +529,11 @@
                         <option value="Sepupu">Sepupu - Tolak 1 Kredit</option>
                         <option value="Dua Pupuk">Dua Pupuk (Sepupu 2nd) - Tolak 1 Kredit</option>
                     </optgroup>
+
+                    <optgroup label="Pasangan Bapa / Mak Saudara">
+                        <option value="Pasangan Bapa Saudara">Pasangan Bapa Saudara (Isteri) - Tolak 1 Kredit</option>
+                        <option value="Pasangan Mak Saudara">Pasangan Mak Saudara (Suami) - Tolak 1 Kredit</option>
+                    </optgroup>
                     
                 </select>
             </div>
@@ -958,7 +963,8 @@ const peta = {
                 "Datuk":"L", "Ayah":"L", "Suami":"L", "Bapa Mertua":"L", "Abang":"L", 
                 "Bapa Saudara (Belah Ayah)":"L", "Bapa Saudara (Belah Ibu)":"L",
                 "Nenek":"P", "Ibu":"P", "Isteri":"P", "Ibu Mertua":"P", "Kakak":"P", 
-                "Mak Saudara (Belah Ayah)":"P", "Mak Saudara (Belah Ibu)":"P"
+                "Mak Saudara (Belah Ayah)":"P", "Mak Saudara (Belah Ibu)":"P",
+                "Pasangan Bapa Saudara":"P", "Pasangan Mak Saudara":"L"
             };
             
             if(peta[val]) document.getElementById('tambahJantina').value = peta[val];
