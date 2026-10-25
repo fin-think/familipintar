@@ -2428,7 +2428,7 @@ window.bukaPetiMesej = async () => {
             const isUnread = data.status === "belum_baca" || data.status === "menunggu";
             
             const statusDot = isUnread ? '<span style="display:inline-block; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px;" title="Mesej Baru"></span>' : '';
-            const namaPenghantar = data.penghantar_nama || "Waris";
+            const namaPenghantar = esc(data.penghantar_nama || "Waris");
             const formatTarikh = new Date(data.tarikh).toLocaleDateString('ms-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 
             html += `
@@ -2440,7 +2440,7 @@ window.bukaPetiMesej = async () => {
                 <p style="font-size:12px; font-weight:bold; color:${isPautan ? '#0ea5e9' : '#8b5cf6'}; text-transform:uppercase; margin:0 0 5px 0;">
                     ${isPautan ? '🤝 Permohonan Cantuman Pokok' : '💬 Mesej Biasa'}
                 </p>
-                <p style="margin:0 0 15px 0; font-size:14px; font-weight:bold; color:#1e293b; background:#f8fafc; padding:10px; border-radius:8px;">"${data.mesej}"</p>
+                <p style="margin:0 0 15px 0; font-size:14px; font-weight:bold; color:#1e293b; background:#f8fafc; padding:10px; border-radius:8px;">"${esc(data.mesej)}"</p>
                 
                 <div style="display:flex; gap:8px;">
                 ${isPautan ? `
