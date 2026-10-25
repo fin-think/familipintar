@@ -2906,7 +2906,10 @@ window.bukaCartaDinamik = async () => {
         buatTema('mn_p', '#f8c8d4', '#d19ba9');   // perempuan
         buatTema('mn_n', '#c9e4ca', '#a4c4a6');   // tidak diketahui
 
+        if (window._cartaMN) { try { window._cartaMN.destroy(); } catch (e) {} window._cartaMN = null; }
         ruang.innerHTML = '';
+        window._cartaMN = new FamilyTree(ruang, {
+            
         const carta = new FamilyTree(ruang, {
             mouseScrool: FamilyTree.action.zoom,
             template: 'mn_l',
@@ -2916,10 +2919,15 @@ window.bukaCartaDinamik = async () => {
             nodeBinding: { field_0: "name", field_1: "title", field_2: "info", img_0: "img" },
             nodes: dataCarta
         });
-        setTimeout(() => { try { carta.center(diriSaya.id); } catch (e) {} }, 400);
+  
 
     } catch (e) {
         console.error(e);
         ruang.innerHTML = '<p style="color:red; text-align:center; margin-top:40px;">Gagal memuatkan carta: ' + esc(e.message) + '</p>';
     }
+};
+
+window.tutupCartaDinamik = () => {
+    if (window._cartaMN) { try { window._cartaMN.destroy(); } catch (e) {} window._cartaMN = null; }
+    document.getElementById('modalCartaDinamik').classList.add('hidden');
 };
