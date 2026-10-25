@@ -438,7 +438,7 @@ async function muatProfilIbuBapa(uidPengguna) {
       const d = docSnap.data();
       const rel = (d.relationship || '').toLowerCase();
       const isMertua = rel.includes('mertua');
-      const isKandung = (rel.includes('ayah') || rel.includes('ibu') || rel.includes('bapa') || rel.includes('mak') || rel.includes('abah')) && !isMertua;
+            const isKandung = (rel.includes('ayah') || rel.includes('ibu') || rel.includes('bapa') || rel.includes('mak') || rel.includes('abah')) && !isMertua && !rel.includes('saudara');
       if ((pilihanBelah === 'induk' && isKandung) || (pilihanBelah === 'pasangan' && isMertua)) {
         html += renderKad(docSnap.id, d, d.relationship || 'Keluarga');
       }
