@@ -221,7 +221,8 @@ async function pilih(i) {
   S.i = i;
   const a = S.anak[i];
   const p = await getDoc(doc(db,"mykids_plans",a.id));
-  S.plan = p.exists() ? { ker:p.data().kerjaya||'', tick:p.data().tick||{}, tier:p.data().tier||'awam', pers:p.data().personaliti||null } : { ker:'', tick:{}, tier:'awam', pers:null };
+  const dp = p.exists() ? p.data() : {};
+S.plan = { ker:dp.kerjaya||'', tick:dp.tick||{}, tier:dp.tier||'awam', pers:dp.personaliti||null, psi:dp.psikoteens||null, ing:dp.integrity||null };
   render();
 }
 const simpan = () => setDoc(doc(db,"mykids_plans",S.anak[S.i].id), { owner_uid:S.uid, kerjaya:S.plan.ker, tier:S.plan.tier||'awam', tick:S.plan.tick, updated_at:Date.now() }, { merge:true });
@@ -238,7 +239,7 @@ function render() {
   }
   const u = tahun - new Date(a.dob).getFullYear(), tp = tahap(u);
   document.getElementById('ringkas').innerHTML = `<h1>${esc(a.name)}</h1><p>${umurSebenar(a.dob)} tahun · ${tp[1]} · ${S.anak.length} anak dalam senarai</p>`;
-   document.getElementById('pers').innerHTML = persBox(a);
+  document.getElementById('pers').innerHTML = S.tab==='dunia' ? persBox(a) : akhiratBox(a);
   document.getElementById('tD').className = 'd' + (S.tab==='dunia'?' on':'');
   document.getElementById('tA').className = 'a' + (S.tab==='akhirat'?' on':'');
   document.getElementById('isi').innerHTML = S.tab==='dunia' ? dunia(a,u,tp[0]) : akhirat(u);
@@ -253,6 +254,28 @@ function persBox(a) {
     ${(P.serasi||[]).slice(0,3).map(c=>`<div class="pbar"><div class="t"><span>${esc(c.n)}</span><span>${c.p}%</span></div><div class="b"><i style="width:${c.p}%"></i></div></div>`).join('')}
     <p class="nota">Panduan sahaja. Pertimbangkan juga minat, kebolehan dan keputusan akademik anak.</p>
     <a href="${URL_PERS}?anak=${encodeURIComponent(a.id)}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+}
+
+const URL_PSIKO = "mypsikoteens.html", URL_ING = "myintegrity.html";
+function akhiratBox(a) {
+  const id = encodeURIComponent(a.id), A = S.plan.psi, B = S.plan.ing;
+  const bar = (l,p) => `<div class="pbar"><div class="t"><span>${l}</span><span>${p}%</span></div><div class="b"><i style="width:${p}%"></i></div></div>`;
+  let h = '';
+  if (!A) h += `<div class="pers"><h2>myPSIKOteens: ${esc(a.name)}</h2><p class="s">Belum ada ujian. Menilai ibadah, adab terhadap ibu bapa dan tanggungjawab (sesuai remaja 12 tahun ke atas).</p><a class="btn" href="${URL_PSIKO}?anak=${id}">Ambil ujian myPSIKOteens</a></div>`;
+  else {
+    const kat = [['Amal Ibadah',A.ibadah],['Adab Ibu Bapa',A.ibubapa],['Tanggungjawab Diri',A.tanggungjawab]];
+    const lemah = kat.slice().sort((x,y)=>x[1]-y[1])[0];
+    h += `<div class="pers"><h2>myPSIKOteens: ${esc(A.status)}</h2><p class="s">${A.score} / ${A.max} mata</p>
+      ${kat.map(k=>bar(k[0],k[1])).join('')}
+      <p class="nota">Aspek yang paling perlu dikukuhkan: <b>${lemah[0]}</b>. Panduan sahaja, bukan penilaian muktamad.</p>
+      <a href="${URL_PSIKO}?anak=${id}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+  }
+  if (!B) h += `<div class="pers"><h2>myINTEGRITY: ${esc(a.name)}</h2><p class="s">Belum ada ujian. 10 situasi untuk melihat kejujuran dan amanah.</p><a class="btn" href="${URL_ING}?anak=${id}">Ambil ujian myINTEGRITY</a></div>`;
+  else h += `<div class="pers"><h2>myINTEGRITY: ${esc(B.status)}</h2><p class="s">${B.score} / ${B.max} markah</p>
+      ${bar('Tahap integriti', Math.round(B.score/B.max*100))}
+      ${(B.lemah||[]).length ? `<p class="nota">Situasi yang perlu dibimbing: <b>${B.lemah.map(esc).join(', ')}</b></p>` : '<p class="nota">Tiada situasi yang tersilap. Teruskan galakan.</p>'}
+      <a href="${URL_ING}?anak=${id}" style="font-size:13px;font-weight:700;color:var(--akh)">Lihat penuh / ambil semula</a></div>`;
+  return h;
 }
   
 function dunia(a,u,tk) {
