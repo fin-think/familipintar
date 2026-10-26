@@ -424,6 +424,7 @@ function kiraEmas(el) {
     </script>
 
     <!-- SAMBUNGAN FIREBASE: umur (myNasab), pendapatan (myDEBT), simpan instrumen untuk myTADBIR -->
+    <script src="../autosave.js?v=1"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -450,6 +451,22 @@ function kiraEmas(el) {
         const kad = document.getElementById('kad-isi');
         const hint = (id, teks) => { const e = document.getElementById(id); if (e) e.textContent = teks; };
         let user = null;
+        let disentuh = false, adaSimpanan = false;
+
+        // Simpan automatik ke myTADBIR (menggantikan butang "Simpan ke myTADBIR")
+        const AS = AutoSimpan.buat({
+            el: () => document.getElementById('save-status'),
+            boleh: () => !!user,
+            mesejTunda: 'Tambah sekurang-kurangnya satu instrumen untuk simpan automatik ke myTADBIR.',
+            ambil: () => { const s = window.getState(); return (!s.instruments.length && !adaSimpanan) ? null : s; },
+            simpan: async (s) => {
+                await setDoc(doc(db, "myfinplan_plans", user.uid), { owner_uid: user.uid, ...s, updated_at: Date.now() });
+                adaSimpanan = true;
+            }
+        });
+        const dalamLogin = e => e.target && e.target.closest && e.target.closest('#fLog');
+        ['input', 'change'].forEach(ev => document.addEventListener(ev, e => { if (dalamLogin(e)) return; disentuh = true; AS.ubah(); }, true));
+        document.addEventListener('click', e => { if (!dalamLogin(e)) AS.ubah(); }, true);
 
         const umurDariDob = (dobStr) => {
             const lahir = new Date(dobStr), kini = new Date();
@@ -464,7 +481,7 @@ function kiraEmas(el) {
         async function muatSimpanan(uid) {
             try {
                 const s = await getDoc(doc(db, "myfinplan_plans", uid));
-                if (s.exists()) window.loadState(s.data());
+                if (s.exists()) { window.loadState(s.data()); adaSimpanan = true; }
             } catch (e) { console.warn('Gagal muat pelan myFINPLAN:', e.message); }
         }
 
@@ -529,21 +546,9 @@ function kiraEmas(el) {
             }
             kad.innerHTML = `
               <p class="text-xs text-slate-500 mb-3">Log masuk sebagai <b>${esc(user.email)}</b></p>
-              <button id="btnSimpan" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-3">💾 Simpan ke myTADBIR</button>
-              <a href="${URL_MYTADBIR}" class="inline-block mt-3 sm:mt-0 sm:ml-3 font-bold text-blue-700 underline">Buka myTADBIR</a>
-              ${mesejBerjaya ? `<p class="text-sm font-semibold text-emerald-700 mt-3">${mesejBerjaya}</p>` : ''}`;
-            document.getElementById('btnSimpan').onclick = simpan;
-        }
-
-        async function simpan() {
-            const s = window.getState();
-            if (!s.instruments.length) { alert('Tambah sekurang-kurangnya satu instrumen dahulu.'); return; }
-            const jumlah = s.instruments.reduce((a, x) => a + x.value, 0);
-            if (!confirm(`Simpan ${s.instruments.length} instrumen (jumlah baki ${RM(jumlah)}) ke myTADBIR?\n\nBaki ini akan mengisi Aset Tunai / Pelaburan di tab Aset Semasa myTADBIR sehingga anda menyimpan semula di sana.`)) return;
-            try {
-                await setDoc(doc(db, "myfinplan_plans", user.uid), { owner_uid: user.uid, ...s, updated_at: Date.now() });
-                papar('✔ Disimpan. Buka myTADBIR dan lihat tab Aset Semasa.');
-            } catch (e) { alert('Gagal menyimpan: ' + e.message); }
+              <p id="save-status" class="text-sm font-semibold text-slate-500 mb-2">Perubahan disimpan automatik ke myTADBIR.</p>
+              <a href="${URL_MYTADBIR}" class="inline-block font-bold text-blue-700 underline">Buka myTADBIR</a>`;
+            AS.segar();
         }
 
         onAuthStateChanged(auth, async u => {
@@ -553,7 +558,9 @@ function kiraEmas(el) {
                 if (document.readyState !== 'complete') await new Promise(r => window.addEventListener('load', r, { once: true }));
                 await muatSimpanan(u.uid);
                 await Promise.all([tarikUmur(u.uid), tarikPendapatan(u.uid)]);
-            }
+                if (adaSimpanan || !disentuh) AS.sedia(); else AS.sedia('');
+                AS.ubah();
+            } else AS.sedia('');
             papar();
         });
     </script>

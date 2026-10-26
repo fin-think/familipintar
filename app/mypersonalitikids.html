@@ -450,6 +450,8 @@ function setStatus(t, ok) {
     if (!el) return;
     el.textContent = t;
     el.className = 'text-center text-sm font-semibold mb-6 ' + (ok ? 'text-emerald-600' : 'text-red-600');
+    // Simpan berlaku automatik; butang hanya muncul jika gagal, untuk cuba semula
+    { const b = $('btn-simpan'); if (b) { b.classList.toggle('hidden', ok); if (!ok) { b.disabled = false; b.textContent = '💾 Cuba simpan semula'; } } }
 }
 
 // ==========================================================
@@ -520,7 +522,7 @@ function renderResultPage(res, dariSimpan) {
         </div>
 
         <div class="text-center mb-4">
-            <button id="btn-simpan" onclick="simpanManual()" class="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-10 rounded-full text-lg shadow-lg">💾 Simpan ke myKids</button>
+            <button id="btn-simpan" onclick="simpanManual()" class="hidden w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-10 rounded-full text-lg shadow-lg">💾 Simpan ke myKids</button>
         </div>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="${URL_MYKIDS}" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-8 rounded-full text-center">Buka myKids</a>

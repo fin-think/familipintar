@@ -193,9 +193,7 @@
                     </div>
 
                     <div class="space-y-3">
-                        <button onclick="simpanKeTadbir()" class="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-bold shadow-lg transition flex items-center justify-center gap-2">
-                            <i data-lucide="save" class="w-5 h-5"></i> Simpan ke Profil myTadbir
-                        </button>
+                        <p id="save-status" class="text-center text-sm font-semibold text-slate-400">Keputusan ini disimpan automatik ke profil myTADBIR selepas anda log masuk.</p>
                         <button onclick="showTab('input')" class="w-full py-3 border-2 border-slate-200 rounded-2xl text-slate-400 font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2">
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i> Masukkan Data Baru
                         </button>
@@ -211,6 +209,7 @@
         <p>Ingin membangunkan aplikasi interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut &copy; HCH</p>
     </footer>
 
+<script src="../autosave.js?v=1"></script>
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -228,11 +227,26 @@
         const db = getFirestore(app);
         let currentUser = null;
 
+        // Simpan automatik ke myTADBIR (menggantikan butang "Simpan ke Profil myTadbir")
+        const AS = AutoSimpan.buat({
+            el: 'save-status',
+            boleh: () => !!currentUser,
+            ambil: () => window.latestHealthData ? {
+                myhealth_status: window.latestHealthData.status,
+                myhealth_medical_cost: window.latestHealthData.medCost,
+                myhealth_smoking_cost: window.latestHealthData.smokeCost
+            } : null,
+            mesejTunda: 'Jana laporan untuk disimpan automatik ke myTADBIR.',
+            simpan: (d) => setDoc(doc(db, "mynasab_users", currentUser.uid), d, { merge: true })
+        });
+
         lucide.createIcons();
 
         onAuthStateChanged(auth, async (user) => {
+            currentUser = user || null;
+            AS.sedia('');          // tiada simpanan lama untuk dibandingkan; laporan yang dijana akan disimpan
+            AS.ubah();
             if (user) {
-                currentUser = user;
                 try {
                     // Semak dari mynasab_users
                     const userSnap = await getDoc(doc(db, "mynasab_users", user.uid));
@@ -411,34 +425,9 @@
             window.showTab('results');
             lucide.createIcons();
             viewResults.scrollTop = 0;
+            AS.ubah();   // simpan automatik ke myTADBIR
         });
 
-// TAMBAHKAN FUNGSI INI:
-        window.simpanKeTadbir = async function() {
-            if (!currentUser || !window.latestHealthData) {
-                alert("Sila jana laporan kesihatan dan log masuk terlebih dahulu.");
-                return;
-            }
-            try {
-                const btn = event.currentTarget;
-                btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Menyimpan...`;
-                btn.disabled = true;
-                
-                await setDoc(doc(db, "mynasab_users", currentUser.uid), {
-                    myhealth_status: window.latestHealthData.status,
-                    myhealth_medical_cost: window.latestHealthData.medCost,
-                    myhealth_smoking_cost: window.latestHealthData.smokeCost
-                }, { merge: true });
-                
-                alert("✅ Rekod kesihatan telah dikemas kini. Sila buka myTadbir untuk melihat anggaran kewangan baharu anda.");
-                btn.innerHTML = `<i data-lucide="check" class="w-5 h-5"></i> Disimpan!`;
-            } catch (error) {
-                console.error(error);
-                alert("Gagal menyimpan data.");
-            }
-        };
-
-    
     </script>
 </body>
 </html>

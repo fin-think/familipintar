@@ -234,7 +234,10 @@ async function selesai() {
 }
 
 // ---------- SIMPAN KE myKids ----------
-function setStatus(t, ok) { const el = $('save-status'); if (el) { el.textContent = t; el.className = 'text-sm font-semibold ' + (ok ? 'text-emerald-600' : 'text-red-600'); } }
+function setStatus(t, ok) { const el = $('save-status'); if (el) { el.textContent = t; el.className = 'text-sm font-semibold ' + (ok ? 'text-emerald-600' : 'text-red-600'); }
+    // Simpan berlaku automatik; butang hanya muncul jika gagal, untuk cuba semula
+    const b = $('btn-simpan'); if (b) { b.classList.toggle('hidden', ok); if (!ok) { b.disabled = false; b.textContent = '💾 Cuba simpan semula'; } }
+}
 async function simpan() {
     const a = S.anak[S.i];
     try {
@@ -262,7 +265,7 @@ function renderResult(r, dariSimpan) {
             <div class="p-3 bg-white border border-slate-100 rounded-xl col-span-2"><div class="text-slate-400 mb-1 text-center font-bold">Tanggungjawab Diri</div><div class="font-bold text-slate-800 text-center text-lg">${r.tanggungjawab}%</div></div>
         </div>
         <p id="save-status" class="text-sm font-semibold text-slate-400">${dariSimpan ? 'Keputusan ini sudah disimpan di myKids.' : 'Menyimpan ke myKids...'}</p>
-        <button id="btn-simpan" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200">💾 Simpan ke myKids</button>
+        <button id="btn-simpan" class="hidden w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200">💾 Simpan ke myKids</button>
         <a href="${URL_MYKIDS}" class="block w-full py-3 border-2 border-indigo-200 text-indigo-700 font-bold rounded-2xl">Buka myKids</a>
         <div class="flex gap-2">
             <button id="btn-lain" class="flex-1 py-3 bg-slate-100 text-slate-700 font-bold rounded-2xl">Pilih Anak Lain</button>
