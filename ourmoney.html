@@ -418,7 +418,7 @@
         <!-- Kad Misi Kewangan (sasaran daripada myTADBIR) -->
         <div class="misi-card" id="misi-card">
             <h3>🎯 Misi Kewangan</h3>
-            <div class="misi-sub">Sasaran pendidikan, kesihatan dan persaraan daripada myTADBIR. Setor setiap bulan dan jejak sama ada anda di landasan.</div>
+            <div class="misi-sub">Sasaran daripada myTADBIR dan JomBercuti. Untuk menyetor, rekod di <b>Rekod Transaksi Harian → Duit Keluar</b> dan pilih misi atau percutian pada Kategori.</div>
             <div id="misi-isi"><div class="misi-kosong">Memuatkan misi...</div></div>
         </div>
 
@@ -644,10 +644,10 @@
         const dahPilih = selectCat.value;
         let h = options.map(c => `<option value="${c}">${c}</option>`).join('');
         if (type === 'outflow') {
-            const m = (typeof misiSenarai !== 'undefined' ? misiSenarai : []).filter(x => !(x.k && x.k.siap));
+            const m = (typeof misiSenarai !== 'undefined' ? misiSenarai : []).filter(x => !x.trip && !(x.k && x.k.siap));
             if (m.length) h += '<optgroup label="🎯 Simpanan Misi Kewangan">' + m.map(x => `<option value="misi:${esc(x.id)}">🎯 ${esc(x.label)}</option>`).join('') + '</optgroup>';
-            const t = typeof tripList !== 'undefined' ? tripList : [];
-            if (t.length) h += '<optgroup label="✈️ Simpanan Percutian">' + t.map(x => `<option value="trip:${esc(x.id)}">✈️ ${esc(x.name)}</option>`).join('') + '</optgroup>';
+            const t = (typeof misiSenarai !== 'undefined' ? misiSenarai : []).filter(x => x.trip && !(x.k && x.k.siap));
+            if (t.length) h += '<optgroup label="✈️ Simpanan Percutian">' + t.map(x => `<option value="${esc(x.id)}">${esc(x.label)}</option>`).join('') + '</optgroup>';
         }
         selectCat.innerHTML = h;
         if (dahPilih && [...selectCat.options].some(o => o.value === dahPilih)) selectCat.value = dahPilih;
@@ -792,7 +792,7 @@
                 const x = d.data();
                 const saving = parseFloat(x.monthly_saving) || 0;
                 targetPercutian += saving;
-                tripList.push({ id: d.id, saving, name: x.trip_name || x.name || x.destination || x.title || x.tajuk || 'Percutian' });
+                tripList.push({ id: d.id, saving, name: x.title || x.destination || 'Percutian', jumlah: parseFloat(x.total_budget) || 0, dateGo: x.date_go || '', dateBack: x.date_back || '', created: x.created_at || Date.now() });
             });
             kemaskiniSenaraiKategori();
 
@@ -835,7 +835,7 @@
     function keadaanMisi(g) {
         const rm = rBulan(g.rate), now = Date.now();
         const m = Math.max(0, (now - tsTarikh(g.start_date)) / BULAN_MS);
-        const setoran = misiSetoran.filter(d => d.goal_id === g.goal_id && d.date >= g.start_date);
+        const setoran = misiSetoran.filter(d => d.goal_id === g.goal_id && (g.semua || d.date >= g.start_date));
         let nilai = g.start_balance * Math.pow(1 + rm, m), jumlahSetor = 0, bulanIni = 0;
         setoran.forEach(d => {
             const md = Math.max(0, (now - tsTarikh(d.date)) / BULAN_MS);
@@ -853,6 +853,20 @@
         return { nilai, jumlahSetor, bulanIni, selisih, kejar, siap, status, lepasTarikh: g.months - m <= 0,
                  cadangan: siap ? 0 : (status === 'lewat' ? kejar : g.monthly_plan),
                  pct: Math.max(0, Math.min(100, nilai / g.target_fv * 100)) };
+    }
+
+    // Sasaran percutian dibina seperti misi myTADBIR: sasaran = bajet JomBercuti, tempoh = sehingga tarikh bertolak
+    function sasaranTrip(t) {
+        if (!(t.jumlah > 0)) return null;
+        const mulaMs = Math.min(t.created, Date.now());
+        const mula = new Date(mulaMs - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+        const tamat = t.dateGo ? tsTarikh(t.dateGo) : mulaMs + 12 * BULAN_MS;
+        if (t.dateBack && tsTarikh(t.dateBack) < Date.now()) return null; // percutian sudah tamat
+        const bulan = Math.max(1, Math.round((tamat - tsTarikh(mula)) / BULAN_MS));
+        const g = { goal_id: 'trip:' + t.id, type: 'percutian', label: '✈️ ' + t.name, priority: 9, target_fv: t.jumlah, start_balance: 0, rate: 0,
+                    months: bulan, start_date: mula, semua: true, tarikh_teks: t.dateGo ? tarikhSasaran(t.dateGo, 0) : '' };
+        g.monthly_plan = pelanBulanan(g);
+        return g;
     }
 
     async function muatMisi() {
@@ -882,10 +896,11 @@
         // Gabung: misi dalam profil + misi lama yang masih aktif
         const senarai = profilMisi.map(pg => ({ pg, act: misiAktif[pg.id] || null, id: pg.id }));
         Object.values(misiAktif).forEach(a => { if (!profilMisi.some(p => p.id === a.goal_id)) senarai.push({ pg: null, act: a, id: a.goal_id }); });
+        tripList.forEach(t => { const g = sasaranTrip(t); if (g) senarai.push({ pg: null, act: g, id: g.goal_id, trip: true }); });
 
         if (senarai.length === 0) {
             misiBulananJumlah = 0; misiSenarai = []; kemaskiniSenaraiKategori(); semakNotifMisi();
-            wrap.innerHTML = `<div class="misi-kosong">Belum ada misi.<br>Isi dan simpan profil di <b>myTADBIR</b> untuk menjana sasaran dana kecemasan, pendidikan anak dan kesihatan.<br><a href="mytadbir.html" class="btn-tadbir" style="margin-top:10px; background:#7C3AED; color:#fff; border-color:#7C3AED;">Buka myTADBIR ➔</a></div>`;
+            wrap.innerHTML = `<div class="misi-kosong">Belum ada misi.<br>Isi dan simpan profil di <b>myTADBIR</b> untuk menjana sasaran dana kecemasan, pendidikan anak dan kesihatan. Rancang percutian di <b>JomBercuti</b> untuk sasaran percutian.<br><a href="mytadbir.html" class="btn-tadbir" style="margin-top:10px; background:#7C3AED; color:#fff; border-color:#7C3AED;">Buka myTADBIR ➔</a></div>`;
             return;
         }
 
@@ -898,7 +913,7 @@
                 it.k = keadaanMisi(it.act);
                 it.perlu = it.k.cadangan;
                 it.target = it.act.target_fv;
-                it.sasaranTarikh = tarikhSasaran(it.act.start_date, it.act.months);
+                it.sasaranTarikh = it.trip && it.act.tarikh_teks ? it.act.tarikh_teks : tarikhSasaran(it.act.start_date, it.act.months);
             } else {
                 it.perlu = pelanBulanan(it.pg);
                 it.target = it.pg.target_fv;
@@ -917,15 +932,15 @@
         });
 
         const jumlahPerlu = senarai.reduce((t, it) => t + (it.k && it.k.siap ? 0 : it.perlu), 0);
-        misiBulananJumlah = senarai.reduce((t, it) => t + (it.act && it.k && !it.k.siap ? it.k.cadangan : 0), 0);
+        misiBulananJumlah = senarai.reduce((t, it) => t + (it.act && !it.trip && it.k && !it.k.siap ? it.k.cadangan : 0), 0); // percutian sudah dikira dalam targetPercutian
         const adaBelumMula = senarai.some(it => !it.act && it.pg);
         const perluKemaskini = senarai.some(it => !it.pg ? false : (!it.act ? false : Math.abs(it.pg.target_fv - it.act.target_fv) > Math.max(1, it.act.target_fv * 0.02)))
-            || senarai.some(it => it.act && !it.pg) || (senarai.some(it => it.act) && adaBelumMula);
+            || senarai.some(it => it.act && !it.pg && !it.trip) || (senarai.some(it => it.act && !it.trip) && adaBelumMula);
 
         let html = '';
         // Ringkasan kemampuan
         html += `<div class="misi-ringkas">
-            <div><span>Simpanan misi sebulan</span><b>${fmtRM(jumlahPerlu)}</b></div>
+            <div><span>Simpanan misi &amp; percutian sebulan</span><b>${fmtRM(jumlahPerlu)}</b></div>
             <div><span>Baki bulanan (myTADBIR)</span><b>${profilSurplus === null ? '-' : fmtRM(profilSurplus)}</b></div>
         </div>`;
         if (profilSurplus !== null) {
@@ -951,12 +966,12 @@
                 meta = `<span>${fmtRM(k.nilai)} / ${fmtRM(a.target_fv)} (${k.pct.toFixed(0)}%)</span><span>Sasaran: ${it.sasaranTarikh}</span>`;
                 bulan = k.siap ? 'Sasaran tercapai. Syabas!'
                     : `${k.status === 'lewat' ? 'Untuk mengejar, setor' : 'Pelan'} <b>${fmtRM(k.cadangan)}</b>/bulan${k.lepasTarikh ? ' (tarikh sasaran sudah lepas)' : ''} • Bulan ini disetor <b>${fmtRM(k.bulanIni)}</b>`;
-                btn = k.siap ? '' : `<div class="misi-act"><button class="utama" onclick="pilihSetor('misi:${esc(it.id)}')">+ Setor ke misi ini</button></div>`;
+                btn = '';
             } else {
                 pill = '<span class="misi-pill pill-baru">Belum dimulakan</span>' + (it.muat ? '' : ' <span class="misi-pill pill-kemudian">Fasa kemudian</span>');
                 meta = `<span>${fmtRM(it.pg.start_balance)} / ${fmtRM(it.pg.target_fv)}</span><span>Sasaran: ${it.sasaranTarikh}</span>`;
                 bulan = `Perlu <b>${fmtRM(it.perlu)}</b>/bulan selama ${Math.round(it.pg.months)} bulan`;
-                btn = `<div class="misi-act"><button class="utama" onclick="pilihSetor('misi:${esc(it.id)}')">+ Setor ke misi ini</button></div>`;
+                btn = '';
             }
             html += `<div class="misi-item">
                 <div class="misi-top"><span class="misi-nama">${esc(it.label)}</span><span>${pill}</span></div>
@@ -967,7 +982,7 @@
             </div>`;
         });
 
-        if (adaBelumMula && !senarai.some(it => it.act)) {
+        if (adaBelumMula && !senarai.some(it => it.act && !it.trip)) {
             html += `<button class="misi-btn-besar" onclick="mulakanSemuaMisi()">🚀 Mulakan Semua Misi</button>`;
         } else if (perluKemaskini) {
             html += `<button class="misi-btn-besar sekunder" onclick="kemaskiniPelanMisi()">🔄 Kemas Kini Pelan daripada myTADBIR</button>`;
@@ -1039,13 +1054,7 @@
             misiSenarai.forEach(it => {
                 if (!it.act || !it.muat || (it.k && it.k.siap)) return;
                 const baki = it.k.cadangan - it.k.bulanIni;
-                if (baki > 1) tarikhTiada.push({ nilai: 'misi:' + it.id, nama: it.label, baki, ikon: '🎯' });
-            });
-            tripList.forEach(t => {
-                if (t.saving <= 0) return;
-                const sudah = misiSetoran.filter(d => d.goal_id === 'trip:' + t.id && d.date.startsWith(bulanIniStr)).reduce((a, d) => a + d.amount, 0);
-                const baki = t.saving - sudah;
-                if (baki > 1) tarikhTiada.push({ nilai: 'trip:' + t.id, nama: t.name, baki, ikon: '✈️' });
+                if (baki > 1) tarikhTiada.push({ nilai: it.trip ? it.id : 'misi:' + it.id, nama: it.label, baki, ikon: it.trip ? '' : '🎯' });
             });
         }
         const bilangan = tarikhTiada.length;
@@ -1100,13 +1109,9 @@
     selectCat.addEventListener('change', () => {
         const v = selectCat.value, amt = document.getElementById('txnAmount');
         let cadang = 0;
-        if (v.startsWith('misi:')) {
-            const it = misiSenarai.find(x => 'misi:' + x.id === v);
-            if (it) cadang = it.k && it.k.siap ? 0 : Math.max(0, it.perlu - (it.k ? it.k.bulanIni : 0));
-        } else if (v.startsWith('trip:')) {
-            const t = tripList.find(x => 'trip:' + x.id === v);
-            if (t) cadang = t.saving;
-        } else return;
+        if (!v.startsWith('misi:') && !v.startsWith('trip:')) return;
+        const it = misiSenarai.find(x => (x.trip ? x.id : 'misi:' + x.id) === v);
+        if (it) cadang = it.k && it.k.siap ? 0 : Math.max(0, it.perlu - (it.k ? it.k.bulanIni : 0));
         if (!amt.value && cadang > 0) { amt.type = 'number'; amt.value = (Math.round(cadang * 100) / 100).toFixed(2); }
         document.getElementById('txnNote').placeholder = 'Cth: Masuk SSPN / ASB';
     });
