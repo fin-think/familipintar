@@ -448,11 +448,12 @@
             <div class="fin-box highlight"><div class="fin-label">Simpanan Bulanan</div><div class="fin-val" id="plan-monthly">RM 0.00</div></div>
         </div>
     </div>
-    <button class="btn-save-trip" onclick="simpanPelanKeDatabase()">💾 Simpan Pelan Percutian Ini</button>
+    <p id="save-status-trip" style="text-align:center; font-size:0.85rem; font-weight:600; color:#64748b; margin-top:15px;">Perubahan disimpan automatik apabila nama dan tarikh berlepas diisi.</p>
   </div>
 </div>
 
 <!-- SCRIPT FIREBASE & LOGIK -->
+<script src="autosave.js?v=1"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -490,6 +491,7 @@
             init(); 
             await window.muatKeluargaRombongan(); 
             await window.muatPelanTersimpan();
+            AS.sedia(kunciTrip());   // auto-save bermula selepas data lama dimuat
             window.muatDikongsi();
         } else {
             currentUser = null;
@@ -869,6 +871,33 @@ const padanBelah = (t) => {
 };
 const pelanBelahIni = () => senaraiPelanTersimpan.filter(padanBelah);
 
+// ---- SIMPAN AUTOMATIK (menggantikan butang "Simpan Pelan Percutian Ini") ----
+// Kunci borang untuk dibandingkan; null = belum cukup lengkap (perlu nama & tarikh berlepas, dan belah yang sah)
+const kunciTrip = () => {
+    const title = document.getElementById('trip-name').value.trim();
+    const dateGo = document.getElementById('date-go').value;
+    if (!title || !dateGo) return null;
+    const belah = belahSemasa(), jb = anchorSemasa();
+    if (belah !== 'saya' && !jb) return null;
+    return {
+        title, destination: document.getElementById('destination').value, date_go: dateGo, date_back: document.getElementById('date-back').value,
+        accomList, transportList, miscList,
+        ahli: [...document.querySelectorAll('.fam-check:checked')].map(cb => cb.value),
+        belah, anchor: jb || null,
+        jumlah: document.getElementById('sum-total').textContent, bulanan: document.getElementById('plan-monthly').textContent
+    };
+};
+const AS = AutoSimpan.buat({
+    el: 'save-status-trip',
+    boleh: () => !!currentUser,
+    mesejTunda: 'Isi nama program dan tarikh berlepas untuk simpan automatik.',
+    ambil: kunciTrip,
+    simpan: () => window.simpanPelanKeDatabase(true)
+});
+document.addEventListener('input', () => AS.ubah(), true);
+document.addEventListener('change', () => AS.ubah(), true);
+document.addEventListener('click', () => AS.ubah(), true);
+
 window.tukarBelah = async () => {
     await window.muatKeluargaRombongan();
     const cur = senaraiPelanTersimpan.find(t => t.id === currentTripId);
@@ -923,6 +952,7 @@ window.renderSenaraiPelan = () => {
 
 window.pilihPelan = (id, scroll = false) => {
     const trip = senaraiPelanTersimpan.find(t => t.id === id); if (!trip) return;
+    if (id !== currentTripId) AS.siram();   // simpan dahulu suntingan pelan semasa sebelum bertukar
     currentTripId = trip.id;
     
     document.getElementById('trip-name').value = trip.title || ''; 
@@ -944,30 +974,34 @@ window.pilihPelan = (id, scroll = false) => {
     }
     window.updateAll(); 
     renderSenaraiPelan(); // Kemas kini butang aktif
+    AS.sedia(kunciTrip());   // pelan yang baru dimuat sudah sama dengan yang tersimpan
       if (scroll) document.getElementById('trip-name').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
     showToast(`📂 Pelan "${trip.title}" dimuatkan!`);
 };
 
 window.buatPelanBaru = () => {
+    AS.siram();
     currentTripId = null; 
     document.getElementById('trip-name').value = ''; 
     document.getElementById('destination').value = '';
     accomList = []; transportList = []; miscList = []; init();
     renderSenaraiPelan();
+    AS.sedia(kunciTrip());
     showToast('✨ Borang dikosongkan untuk pelan baharu!');
 };
 
-window.simpanPelanKeDatabase = async () => {
+window.simpanPelanKeDatabase = async (senyap = false) => {
     if (!currentUser) return;
+    const idAsal = currentTripId;
     const title = document.getElementById('trip-name').value;
-    if (!title) { alert("Sila masukkan Nama Program / Percutian terlebih dahulu."); return; }
+    if (!title) { if (!senyap) alert("Sila masukkan Nama Program / Percutian terlebih dahulu."); return; }
 
    
     let senaraiAhli = [];
     document.querySelectorAll('.fam-check:checked').forEach(cb => { senaraiAhli.push({ nama: cb.value, uid: cb.dataset.uid, akaun: cb.dataset.akaun === '1' }); });
 
     const jb = anchorSemasa(), belah = belahSemasa();
-    if (belah !== 'saya' && !jb) { alert('Belah ini belum ada pasangan dalam myNasab. Tambah pasangan dahulu.'); return; }
+    if (belah !== 'saya' && !jb) { if (!senyap) alert('Belah ini belum ada pasangan dalam myNasab. Tambah pasangan dahulu.'); return; }
     const lama = senaraiPelanTersimpan.find(t => t.id === currentTripId);
     const penerima = [...new Set(senaraiAhli.filter(m => m.akaun).map(m => m.uid))].filter(u => u !== currentUser.uid);
   
@@ -990,10 +1024,18 @@ window.simpanPelanKeDatabase = async () => {
         const idUnik = currentTripId || ("TRIP_" + Date.now());
               delete tripData.itinerary;   // jadual hanya diubah melalui "Edit Jadual"
                 await setDoc(doc(db, "jombercuti_trips", idUnik), tripData, { merge: true });
-        currentTripId = idUnik;
-        await window.muatPelanTersimpan(); // Akan kemas kini list dan UI
-        showToast("💾 Pelan Percutian Berjaya Disimpan!");
-    } catch (e) { alert("Gagal menyimpan pelan: " + e.message); }
+        if (currentTripId === idAsal) currentTripId = idUnik;   // jangan timpa jika pengguna sudah tukar pelan semasa menyimpan
+        if (senyap) {
+            // Auto-save: kemas kini senarai setempat sahaja. Jangan muat semula borang (akan ganggu taipan pengguna).
+            const baru = { ...(lama || {}), ...tripData, id: idUnik };
+            const k = senaraiPelanTersimpan.findIndex(t => t.id === idUnik);
+            if (k >= 0) senaraiPelanTersimpan[k] = baru; else senaraiPelanTersimpan.unshift(baru);
+            renderSenaraiPelan();
+        } else {
+            await window.muatPelanTersimpan(); // Akan kemas kini list dan UI
+            showToast("💾 Pelan Percutian Berjaya Disimpan!");
+        }
+    } catch (e) { if (senyap) throw e; alert("Gagal menyimpan pelan: " + e.message); }
 };
   
 function showToast(msg) { 
