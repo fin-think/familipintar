@@ -2909,7 +2909,7 @@ window.tandaAdikCantum = async () => {
         await updateDoc(doc(db, "mynasab_nodes", r.id), { linked_adik: arrayUnion(penggunaSemasa.uid) });
         bil++;
     }
-    alert(bil + " ditandakan. Buka semula Carta Dinamik.");
+    alert(bil + " ditandakan. Buka semula Preview.");
 };
 
 // Pembetulan sekali untuk permohonan yang sudah diluluskan tetapi pautannya tak tertulis
