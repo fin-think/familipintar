@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>OurMoney - Penjejak Aliran Tunai</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+  /* FONT DARI MYTADBIR */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
   :root {
     --bg-color: #f8fafc; --card-bg: #ffffff; --ink: #1e293b;
     --primary: #10b981; --primary-hover: #059669; --danger: #ef4444; 
@@ -13,7 +15,8 @@
     --line: #e2e8f0; --radius: 16px; --shadow: 0 4px 20px rgba(0,0,0,0.04);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+  /* KEMAS KINI FONT FAMILY DI SINI */
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
   body { background: var(--bg-color); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
 
   body::before {
@@ -607,7 +610,7 @@
             });
             
             const selectUser = document.getElementById('txnUser');
-            let htmlOptions = `<option value="${namaInduk}">${namaInduk}</option>`;
+            let htmlOptions = `<option value="${namaInduk}">${namaInduk} (Sila Pilih)</option>`;
             if (dPasangan) {
                 htmlOptions += `<option value="${namaPasangan}">${namaPasangan}</option>`;
             }
