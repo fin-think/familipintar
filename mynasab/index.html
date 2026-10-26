@@ -428,6 +428,56 @@
 @media print {
     #kertasCetak { cursor: default; }
 }
+
+/* ===== NASAB KELUARGA BESAR ===== */
+.tree { --ht: 55px; }
+.nasab-wrap { display: flex; flex-direction: column; align-items: flex-start; }
+.nasab-atas { display: flex; align-items: flex-start; }
+.nasab-kolum { display: flex; flex-direction: column; flex: none; }
+.nasab-k-kiri > .nasab-ul { align-self: flex-end; }
+.nasab-k-kanan > .nasab-ul { align-self: flex-start; }
+
+/* ruang leluhur: tinggi sama untuk kiri & kanan supaya ayah & ibu berada pada satu garis */
+.nasab-anc {
+    align-self: center; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+    height: calc(var(--k, 0) * var(--ht) + max(0, var(--k, 0) - 1) * 30px);
+}
+
+/* semua <li> di baris ayah/ibu: padding atas sama supaya sejajar */
+.nasab-kolum > .nasab-ul > li { padding-top: 30px !important; }
+.nasab-kolum > .nasab-ul.tanpa-bar > li::before,
+.nasab-kolum > .nasab-ul.tanpa-bar > li::after { display: none !important; }
+.nasab-kolum > .nasab-ul.ada-leluhur::before,
+.nasab-bawah > ul::before {
+    content: ''; position: absolute; top: 0; left: 50%; height: 30px;
+    border-left: 1px solid #a0a0a0; width: 0; transform: translateX(-50%); z-index: 1;
+}
+.tree .nasab-kolum > .nasab-ul.ada-leluhur > li:only-child::after {
+    display: block !important; border: 0 !important; border-left: 1px solid #a0a0a0 !important;
+}
+
+/* garis suami-isteri antara ayah & ibu + garis turun ke baris adik-beradik */
+.nasab-bapa::after, .nasab-ibu::before {
+    content: ''; position: absolute; bottom: calc(var(--ht) / 2); width: 25px;
+    border-top: 1px solid #a0a0a0; z-index: 1;
+}
+.nasab-bapa::after { left: calc(100% - 15px); }
+.nasab-ibu::before { right: calc(100% - 15px); }
+.nasab-sambung { position: relative; align-self: stretch; width: 0; }
+.nasab-sambung::before, .nasab-sambung::after {
+    content: ''; position: absolute; z-index: 1;
+    top: calc(var(--k, 0) * var(--ht) + max(0, var(--k, 0) - 1) * 30px + 60px + var(--ht) / 2);
+}
+.nasab-sambung::before { left: 0; right: 0; border-top: 1px solid #a0a0a0; }
+.nasab-sambung::after { left: 50%; bottom: 0; border-left: 1px solid #a0a0a0; transform: translateX(-50%); }
+
+.nasab-bawah { align-self: flex-start; }
+
+/* kad ibu/bapa belum direkod */
+.mh-card.kosong { background: #fff; border: 1px dashed #bbb; opacity: .75; box-shadow: none; }
+.mh-card.kosong .mh-name { color: #888; font-weight: 600; }
+
+@media (max-width: 768px) { .tree { --ht: 50px; } }
        
     </style>
 </head>
