@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Bina salasilah keluarga digital bersama adik-beradik. Biar anak-anak kenal Pak Long, Mak Ngah dan sepupu mereka. 20 kredit percuma.">
+<meta property="og:title" content="myNasab - Salasilah Keluarga Digital">
+<meta property="og:description" content="Anak anda kenal ramai kawan online. Kenal berapa sepupu? Bina pokok keluarga percuma.">
+<meta property="og:type" content="website">
+<style>html{color-scheme:light dark}body{margin:0}[hidden]{display:none!important}</style>
+<title>myNasab - Salasilah Keluarga Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Susun atur: hero dua lajur (teks kiri, pokok contoh kanan), kemudian jalur bersilih ganti AIDA: perhatian, minat, keinginan, tindakan.
+   Identiti: kad pastel biru/merah jambu sama seperti kad dalam aplikasi, hijau hutan sebagai warna jenama. */
+:root {
+  --bg: #f4f8f6;
+  --surface: #ffffff;
+  --band: #e6f0ec;
+  --ink: #10231f;
+  --muted: #4a625d;
+  --line: #c9d9d3;
+  --brand: #0e5a4e;
+  --on-brand: #ffffff;
+  --warm: #f0a22c;
+  --kad-l: #bfe3ec;
+  --kad-p: #f6cbd8;
+  --kad-n: #d6ebcf;
+  --kad-ink: #1b2b28;
+  --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1917; --surface: #13251f; --band: #102320; --ink: #e8f3ef; --muted: #9db8b1; --line: #264039;
+    --brand: #43c9a7; --on-brand: #062a22; --warm: #f5b84f;
+    --kad-l: #2a5b69; --kad-p: #6a3447; --kad-n: #3b5a35; --kad-ink: #f1f7f5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1917; --surface: #13251f; --band: #102320; --ink: #e8f3ef; --muted: #9db8b1; --line: #264039;
+  --brand: #43c9a7; --on-brand: #062a22; --warm: #f5b84f;
+  --kad-l: #2a5b69; --kad-p: #6a3447; --kad-n: #3b5a35; --kad-ink: #f1f7f5;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.12; letter-spacing: -0.015em; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--warm); outline-offset: 3px; }
+
+.wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.eyebrow { font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand); }
+
+/* butang */
+.btn { display: inline-block; background: var(--brand); color: var(--on-brand); font-weight: 800; font-size: 17px; text-decoration: none; padding: 14px 24px; border-radius: 6px; border: 0; cursor: pointer; font-family: var(--font-body); }
+.btn:hover { filter: brightness(1.1); }
+.btn.alt { background: transparent; color: var(--ink); border: 2px solid var(--line); }
+
+/* bar atas */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; }
+.logo { font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; text-decoration: none; }
+.logo b { color: var(--brand); }
+.top .btn { padding: 10px 18px; font-size: 15px; }
+
+/* HERO */
+.hero { padding-block: 32px 72px; }
+.hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
+.hero h1 { font-size: clamp(38px, 6vw, 68px); font-weight: 800; margin: 14px 0 20px; }
+.hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, color-mix(in srgb, var(--warm) 55%, transparent) 62%); }
+.hero .lead { font-size: 20px; color: var(--muted); max-width: 34em; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.hero .note { margin-top: 14px; font-size: 15px; color: var(--muted); }
+
+/* pokok contoh */
+.demo { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 28px 16px 18px; min-width: 0; }
+.demo-label { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: center; margin-top: 18px; }
+.tr { display: flex; flex-direction: column; align-items: center; }
+.kad { position: relative; width: 100%; max-width: 120px; min-height: 50px; padding: 9px 8px 8px; border-radius: 5px; color: var(--kad-ink); font-size: 13px; font-weight: 800; line-height: 1.2; border: 1px solid rgba(0,0,0,.12); box-shadow: 1px 2px 5px rgba(0,0,0,.08); }
+.kad small { display: block; font-weight: 600; font-size: 11px; opacity: .75; margin-top: 3px; }
+.kad.l { background: var(--kad-l); } .kad.p { background: var(--kad-p); } .kad.n { background: var(--kad-n); }
+.kad .tag { position: absolute; top: -10px; right: 5px; background: var(--surface); color: var(--ink); border-radius: 999px; font-size: 10.5px; font-weight: 800; padding: 1px 8px; box-shadow: 0 1px 4px rgba(0,0,0,.18); white-space: nowrap; }
+.kad.anda { outline: 3px solid var(--warm); outline-offset: 2px; }
+.pair { display: flex; align-items: center; gap: 0; width: 100%; justify-content: center; }
+.pair .gap { width: 14px; border-top: 1px solid var(--muted); }
+.stem { width: 0; height: 18px; border-left: 1px solid var(--muted); }
+.bar { width: 66.66%; border-top: 1px solid var(--muted); }
+.cols { display: flex; width: 100%; }
+.col { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; padding: 0 3px; }
+.col .stem { height: 16px; }
+
+/* BAHAGIAN UMUM */
+section { padding-block: 72px; }
+section .eyebrow + h2 { margin-top: 10px; }
+section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
+.sec-lead { color: var(--muted); font-size: 19px; max-width: 38em; margin-top: 14px; }
+.band { background: var(--band); }
+
+/* PERHATIAN: masalah */
+.masalah-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+.situasi { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.situasi > div { padding: 18px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 8px 1fr; gap: 16px; }
+.situasi > div::before { content: ''; background: var(--warm); border-radius: 2px; }
+.situasi b { display: block; font-size: 18px; }
+.situasi span { color: var(--muted); font-size: 16px; }
+
+/* MINAT: ujian */
+.ujian { margin-top: 32px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 24px 24px; max-width: 760px; }
+.soal { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 20px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.soal p { flex: 1 1 320px; min-width: 0; font-weight: 600; }
+.pilih { display: flex; gap: 8px; }
+.pilih button { font-family: var(--font-body); font-weight: 800; font-size: 15px; padding: 8px 18px; border-radius: 6px; border: 2px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.pilih button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+.keputusan { margin-top: 22px; display: grid; gap: 14px; }
+.keputusan strong { font-family: var(--font-display); font-size: 24px; line-height: 1.2; }
+.keputusan p { color: var(--muted); }
+
+/* CARA GUNA */
+.langkah { margin-top: 40px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; counter-reset: l; padding: 0; list-style: none; }
+.langkah li { position: relative; padding-top: 24px; border-top: 3px solid var(--brand); counter-increment: l; }
+.langkah li::before { content: counter(l); position: absolute; top: -20px; left: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--brand); color: var(--on-brand); font-family: var(--font-display); font-weight: 800; display: grid; place-items: center; }
+.langkah h3 { font-size: 21px; margin: 8px 0 8px; }
+.langkah p { color: var(--muted); font-size: 16px; }
+
+/* KELEBIHAN */
+.kelebihan { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 56px; }
+.kelebihan div { padding: 22px 0; border-top: 1px solid var(--line); }
+.kelebihan h3 { font-size: 22px; margin-bottom: 6px; }
+.kelebihan p { color: var(--muted); font-size: 16.5px; }
+
+/* TINDAKAN */
+.akhir { text-align: left; }
+.akhir-box { background: var(--brand); color: var(--on-brand); border-radius: 12px; padding: 56px 40px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: center; }
+.akhir h2 { color: var(--on-brand); }
+.akhir p { color: var(--on-brand); opacity: .9; margin-top: 12px; font-size: 18px; }
+.akhir .btn { background: var(--on-brand); color: var(--brand); justify-self: start; }
+.baki { padding-block: 32px 48px; color: var(--muted); font-size: 14.5px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+
+@media (max-width: 860px) {
+  .hero-grid, .masalah-grid, .akhir-box { grid-template-columns: 1fr; }
+  .hero-grid { gap: 36px; }
+  .langkah { grid-template-columns: 1fr 1fr; row-gap: 40px; }
+  .kelebihan { grid-template-columns: 1fr; }
+  .akhir-box { padding: 36px 24px; }
+  section { padding-block: 56px; }
+}
+@media (max-width: 520px) {
+  body { font-size: 16px; }
+  .langkah { grid-template-columns: 1fr; }
+  .hero .lead { font-size: 18px; }
+  .ujian { padding: 4px 16px 20px; }
+}
+</style>
+
+</head>
+<body>
+<header class="wrap top">
+  <a class="logo" href="#atas">my<b>Nasab</b></a>
+  <a class="btn" href="https://familipintar.com/mynasab/index.html">Mula percuma</a>
+</header>
+
+<main id="atas">
+  <!-- PERHATIAN -->
+  <div class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Salasilah keluarga digital</p>
+        <h1>Anak anda kenal ramai kawan online. Kenal berapa <em>sepupu</em>?</h1>
+        <p class="lead">Bina pokok keluarga bersama adik-beradik, supaya anak-anak tahu siapa Pak Long, Mak Ngah dan sepupu mereka sebelum kenduri seterusnya.</p>
+        <div class="cta">
+          <a class="btn" href="https://familipintar.com/mynasab/index.html">Bina pokok keluarga</a>
+          <a class="btn alt" href="#cara">Lihat cara ia berfungsi</a>
+        </div>
+        <p class="note">20 kredit percuma untuk bermula.</p>
+      </div>
+
+      <div>
+        <div class="demo" role="img" aria-label="Contoh pokok nasab: Tok Wan dan Tok Ma, tiga anak mereka iaitu Pak Long, Ayah dan Mak Su, dan seorang anak bagi setiap seorang.">
+          <div class="tr">
+            <div class="pair" style="max-width:260px">
+              <div class="kad l" style="max-width:120px">Tok Wan<small>Meninggal dunia</small><span class="tag">Datuk</span></div>
+              <div class="gap"></div>
+              <div class="kad p" style="max-width:120px">Tok Ma<small>Lahir 1951</small><span class="tag">Nenek</span></div>
+            </div>
+            <div class="stem"></div>
+            <div class="bar"></div>
+            <div class="cols">
+              <div class="col"><div class="stem"></div>
+                <div class="kad l">Pak Long<small>Lahir 1974</small><span class="tag">Bapa saudara</span></div>
+                <div class="stem"></div>
+                <div class="kad l">Aiman<small>Lahir 2008</small><span class="tag">Sepupu</span></div>
+              </div>
+              <div class="col"><div class="stem"></div>
+                <div class="kad l">Ayah<small>Lahir 1979</small><span class="tag">Ayah</span></div>
+                <div class="stem"></div>
+                <div class="kad p anda">Nur Iman<small>Lahir 2012</small><span class="tag">Anda</span></div>
+              </div>
+              <div class="col"><div class="stem"></div>
+                <div class="kad p">Mak Su<small>Lahir 1984</small><span class="tag">Mak saudara</span></div>
+                <div class="stem"></div>
+                <div class="kad p">Sofea<small>Lahir 2014</small><span class="tag">Sepupu</span></div>
+              </div>
+            </div>
+          </div>
+          <p class="demo-label">Contoh paparan Nasab Keluarga Besar</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERHATIAN (sambungan): sebab -->
+  <section class="band">
+    <div class="wrap masalah-grid">
+      <div>
+        <p class="eyebrow">Kenapa sekarang</p>
+        <h2>Dulu semua kenal kerana balik kampung. Sekarang kita jumpa setahun sekali.</h2>
+        <p class="sec-lead">Keluarga makin berjauhan dan anak-anak membesar dengan skrin. Nama datuk, nenek dan sepupu hilang sebelum sesiapa sedar.</p>
+      </div>
+      <div class="situasi">
+        <div><div><b>"Itu siapa, ibu?"</b><span>Anak bersalam dengan saudara di kenduri tetapi tidak tahu nak panggil apa.</span></div></div>
+        <div><div><b>Semua dipanggil "pakcik" dan "makcik"</b><span>Pak Long, Pak Ngah dan Pak Su jadi satu, begitu juga belah ibu.</span></div></div>
+        <div><div><b>Nama datuk dan moyang cuma ada pada orang tua</b><span>Bila mereka tiada, silsilah keluarga ikut hilang.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MINAT -->
+  <section id="ujian">
+    <div class="wrap">
+      <p class="eyebrow">Ujian 5 soalan untuk ibu bapa</p>
+      <h2>Berapa banyak keluarga anda yang anak anda tahu?</h2>
+      <p class="sec-lead">Jawab dengan jujur. Tiada siapa nampak jawapan anda.</p>
+
+      <div class="ujian" id="borang-ujian">
+        <div class="soal"><p>Anak saya boleh sebut nama datuk dan nenek belah ayah dan belah ibu.</p><div class="pilih" data-q="0"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Anak saya tahu beza Pak Long, Pak Ngah dan Pak Su.</p><div class="pilih" data-q="1"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Anak saya boleh sebut sekurang-kurangnya 5 nama sepupu.</p><div class="pilih" data-q="2"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Anak saya tahu sepupu mana belah ayah dan mana belah ibu.</p><div class="pilih" data-q="3"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Nama moyang keluarga kami ada tercatat di satu tempat.</p><div class="pilih" data-q="4"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+
+        <div class="keputusan" id="keputusan" aria-live="polite" hidden>
+          <strong id="k-tajuk"></strong>
+          <p id="k-teks"></p>
+          <a class="btn" href="https://familipintar.com/mynasab/index.html" style="justify-self:start">Bina pokok keluarga</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEINGINAN: cara guna -->
+  <section id="cara" class="band">
+    <div class="wrap">
+      <p class="eyebrow">Cara guna</p>
+      <h2>Empat langkah, daripada nama ayah kepada pokok keluarga besar.</h2>
+      <ol class="langkah">
+        <li><h3>Daftar dan bina pokok anda</h3><p>Masukkan diri sendiri, ibu bapa, pasangan dan anak. Setiap ahli dipaparkan sebagai kad bergambar.</p></li>
+        <li><h3>Jemput adik-beradik dengan pautan</h3><p>Hantar satu pautan melalui WhatsApp. Mereka mendaftar sendiri dan terus berada sebaris di bawah ibu bapa yang sama.</p></li>
+        <li><h3>Cantum pokok yang sudah ada</h3><p>Saudara yang dah ada akaun sendiri boleh dicantum melalui permohonan salaman. Pokok kedua-dua pihak bercantum dan setiap akaun kekal milik sendiri.</p></li>
+        <li><h3>Buka dan cetak pokok keluarga besar</h3><p>Lihat datuk dan nenek ke atas, bapa dan mak saudara, sepupu, anak saudara dan cucu ke bawah. Cetak pada A4 atau A3 untuk dibawa balik raya.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- KEINGINAN: kelebihan -->
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">Kenapa myNasab</p>
+      <h2>Dibuat untuk cara keluarga Malaysia menyusun hubungan.</h2>
+      <div class="kelebihan">
+        <div><h3>Jemput, bukan taip satu per satu</h3><p>Adik-beradik mendaftar sendiri melalui pautan jemputan dan mengisi maklumat mereka. Anda jimat masa dan kredit.</p></div>
+        <div><h3>Nasab keluarga besar dalam satu paparan</h3><p>Bapa saudara dan mak saudara belah ayah atau ibu, sepupu, dua pupuk dan anak saudara, disusun ikut umur.</p></div>
+        <div><h3>Setiap keluarga kekal milik sendiri</h3><p>Anda hanya nampak keluarga sendiri dan pasangan. Ahli lain boleh disembunyikan daripada pandangan anda. Pendaftaran memerlukan persetujuan PDPA.</p></div>
+        <div><h3>Cantum pokok tanpa hilang kawalan</h3><p>Pokok saudara yang berdaftar berasingan bercantum selepas kedua-dua pihak bersetuju, tanpa data bertindih.</p></div>
+        <div><h3>Siap cetak</h3><p>Pokok muat pada kertas A4 atau A3, dan boleh digerak serta di-zoom dengan jari atau tetikus sebelum dicetak.</p></div>
+        <div><h3>Anggaran faraid daripada pokok anda</h3><p>Waris dan bahagian dikira daripada data keluarga yang sudah ada. Ini anggaran sahaja dan bukan pengganti nasihat pakar faraid.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TINDAKAN -->
+  <section class="akhir" style="padding-top:0">
+    <div class="wrap">
+      <div class="akhir-box">
+        <div>
+          <h2>Mulakan dengan satu nama.</h2>
+          <p>Nama ayah dan ibu sudah cukup untuk pokok pertama. Jemput adik-beradik, dan biar anak-anak tengok sendiri siapa keluarga mereka.</p>
+        </div>
+        <a class="btn" href="https://familipintar.com/mynasab/index.html">Bina pokok keluarga</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap baki">
+  <span>myNasab, sebahagian daripada Famili Pintar.</span>
+  <span>Daftar terus: 20 kredit percuma. Daftar melalui jemputan: 5 kredit. <a href="privasi.html">Dasar Privasi</a></span>
+</footer>
+
+<script>
+(function () {
+  var jawab = [null, null, null, null, null];
+  var hasil = document.getElementById('keputusan');
+  var mesej = [
+    ['Anak anda belum kenal kebanyakan keluarga.', 'Tidak mengapa. Ramai keluarga bermula dari sini. Masukkan nama ayah, ibu dan adik-beradik dahulu, kemudian jemput mereka melengkapkan pokok.'],
+    ['Anak anda sudah tahu sebahagiannya.', 'Asas sudah ada. Pokok keluarga membantu menyambung bahagian yang masih kosong, seperti sepupu belah sebelah lagi dan moyang.'],
+    ['Anak anda kenal keluarganya dengan baik.', 'Simpan pengetahuan itu sebelum ia hilang. Catat dalam pokok supaya generasi seterusnya boleh meneruskannya.']
+  ];
+  document.querySelectorAll('.pilih').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      var q = +g.getAttribute('data-q');
+      jawab[q] = +b.getAttribute('data-v');
+      g.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      if (jawab.every(function (v) { return v !== null; })) {
+        var skor = jawab.reduce(function (a, v) { return a + v; }, 0);
+        var m = mesej[skor <= 1 ? 0 : skor <= 3 ? 1 : 2];
+        document.getElementById('k-tajuk').textContent = skor + ' daripada 5. ' + m[0];
+        document.getElementById('k-teks').textContent = m[1];
+        hasil.hidden = false;
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
