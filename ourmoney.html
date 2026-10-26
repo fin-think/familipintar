@@ -104,7 +104,6 @@
   .dash-balance .dash-label { color: #94a3b8; }
   .dash-balance .dash-val { color: white; font-size: 2rem; font-weight: 800; }
 
-  /* KOTAK PECAHAN TUNAI & BANK (BARU) */
   .balance-split { display: flex; justify-content: space-between; margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 15px; text-align: left; }
   .balance-split > div { flex: 1; }
   .balance-split > div:last-child { text-align: right; border-left: 1px dashed rgba(255,255,255,0.2); }
@@ -134,6 +133,27 @@
   .health-msg { font-size: 0.85rem; font-weight: 700; line-height: 1.4; padding: 12px; border-radius: 8px; }
   .msg-good { background: #dcfce7; color: #166534; }
   .msg-bad { background: #fee2e2; color: #991b1b; }
+
+  /* GAYA LAPORAN EKSEKUTIF PREMIUM */
+  .report-card { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border-radius: var(--radius); padding: 24px; margin-top: 20px; position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #334155; }
+  .report-lock { position: absolute; inset: 0; background: rgba(15,23,42,0.9); backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; padding: 20px; }
+  .report-title { font-size: 1.1rem; font-weight: 800; color: #facc15; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+  .report-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .report-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; }
+  .report-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; }
+  .report-val { font-size: 1.1rem; font-weight: 800; color: #fff; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .trend-up { color: #ef4444; font-size: 0.8rem; background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px; }
+  .trend-down { color: #10b981; font-size: 0.8rem; background: rgba(16,185,129,0.1); padding: 2px 6px; border-radius: 4px; }
+  .trend-neutral { color: #94a3b8; font-size: 0.8rem; background: rgba(148,163,184,0.1); padding: 2px 6px; border-radius: 4px; }
+  
+  .cat-bar-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700; }
+  .cat-name { width: 40%; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cat-bar { flex: 1; height: 8px; background: #334155; border-radius: 4px; overflow: hidden; }
+  .cat-fill { height: 100%; background: #facc15; }
+  .cat-amt { width: 30%; text-align: right; color: #fff; }
+
+  .btn-unlock-report { background: #f59e0b; color: #fff; border: none; padding: 12px 24px; border-radius: 99px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(245,158,11,0.3); transition: 0.2s; margin-top: 15px; }
+  .btn-unlock-report:hover { background: #d97706; transform: translateY(-2px); }
 
   .hidden { display: none !important; }
 </style>
@@ -196,8 +216,7 @@
             <div class="field">
               <label>Tindakan Oleh (Pengguna)</label>
               <select id="txnUser" required>
-                <option value="Induk">Induk (Saya)</option>
-                <option value="Pasangan">Pasangan</option>
+                <option value="Induk">Induk (Sila Pilih)</option>
               </select>
             </div>
             <div class="field">
@@ -288,7 +307,6 @@
           <div class="dash-label">Baki Bersih Semasa</div>
           <div class="dash-val" id="dash-net">RM 0.00</div>
           
-          <!-- PECAHAN BAKI TUNAI & BANK (BARU) -->
           <div class="balance-split">
              <div>
                 <div style="font-size:0.75rem; color:#94a3b8; text-transform:uppercase; font-weight:800;">Baki Tunai</div>
@@ -302,33 +320,33 @@
         </div>
 
         <!-- Kad Integrasi myTADBIR (Sentiasa Papar) -->
-<div class="tadbir-card" id="mytadbir-target" style="border-left: 4px solid #3b82f6;">
-    <h3 style="margin-bottom: 12px; color: #1e293b;">🏦 Ringkasan myTADBIR</h3>
-    
-    <div id="tadbir-content-wrapper">
-        <div class="tadbir-row">
-            <span class="tadbir-label">Harta Bersih (Net Worth)</span>
-            <span class="tadbir-val" id="tadbir-networth">RM 0.00</span>
-        </div>
-        <div class="tadbir-row">
-            <span class="tadbir-label">Hutang Terkumpul</span>
-            <span class="tadbir-val" id="tadbir-debts" style="color:var(--danger);">RM 0.00</span>
-        </div>
-        <div class="tadbir-row">
-            <span class="tadbir-label">Defisit Pendidikan Anak</span>
-            <span class="tadbir-val" id="tadbir-edu" style="color:var(--warning);">RM 0.00</span>
-        </div>
-    </div>
+        <div class="tadbir-card" id="mytadbir-target" style="border-left: 4px solid #3b82f6;">
+            <h3 style="margin-bottom: 12px; color: #1e293b;">🏦 Ringkasan myTADBIR</h3>
+            
+            <div id="tadbir-content-wrapper">
+                <div class="tadbir-row">
+                    <span class="tadbir-label">Harta Bersih (Net Worth)</span>
+                    <span class="tadbir-val" id="tadbir-networth">RM 0.00</span>
+                </div>
+                <div class="tadbir-row">
+                    <span class="tadbir-label">Hutang Terkumpul</span>
+                    <span class="tadbir-val" id="tadbir-debts" style="color:var(--danger);">RM 0.00</span>
+                </div>
+                <div class="tadbir-row">
+                    <span class="tadbir-label">Defisit Pendidikan Anak</span>
+                    <span class="tadbir-val" id="tadbir-edu" style="color:var(--warning);">RM 0.00</span>
+                </div>
+            </div>
 
-    <div id="tadbir-empty-state" class="hidden" style="text-align: center; padding: 12px 5px; background: #f8fafc; border-radius: 6px; margin-bottom: 10px;">
-        <p style="font-size: 13px; color: #475569; line-height: 1.5; margin: 0;">
-            💡 <strong>Optimumkan Perancangan Kewangan!</strong><br>
-            Profil myTADBIR anda masih kosong. Lengkapkan data harta dan liabiliti untuk merungkai unjuran masa depan keluarga dengan lebih komprehensif.
-        </p>
-    </div>
+            <div id="tadbir-empty-state" class="hidden" style="text-align: center; padding: 12px 5px; background: #f8fafc; border-radius: 6px; margin-bottom: 10px;">
+                <p style="font-size: 13px; color: #475569; line-height: 1.5; margin: 0;">
+                    💡 <strong>Optimumkan Perancangan Kewangan!</strong><br>
+                    Profil myTADBIR anda masih kosong. Lengkapkan data harta dan liabiliti untuk merungkai unjuran masa depan keluarga dengan lebih komprehensif.
+                </p>
+            </div>
 
-    <a href="mytadbir.html" class="btn-tadbir" id="tadbir-btn-action" style="display: block; text-align: center; margin-top: 12px; text-decoration: none;">Urus Profil myTADBIR ➔</a>
-</div>
+            <a href="mytadbir.html" class="btn-tadbir" id="tadbir-btn-action" style="display: block; text-align: center; margin-top: 12px; text-decoration: none;">Urus Profil myTADBIR ➔</a>
+        </div>
 
         <!-- Kad Integrasi JomBercuti -->
         <div class="vacation-card" id="vacation-target">
@@ -353,6 +371,63 @@
             Sila masukkan rekod Pendapatan (Duit Masuk) terlebih dahulu untuk melihat analisis kewangan.
           </div>
         </div>
+        
+        <!-- LAPORAN EKSEKUTIF PREMIUM (BARU) -->
+        <div class="report-card" id="executive-report-section" style="display:none;">
+            <div id="report-lock" class="report-lock">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
+                <h3 class="font-bold text-lg mb-2 text-white">Laporan Eksekutif Bulanan</h3>
+                <p class="text-sm text-slate-300 mb-4 px-2">Ketahui trend aliran tunai, perbandingan bulan lepas, kedudukan kategori bocor wang dan realiti tabiat perbelanjaan keluarga.</p>
+                <button onclick="tebusLaporanEksekutif()" id="btn-unlock-report" class="btn-unlock-report">Jana Laporan Penuh (1 Kredit)</button>
+            </div>
+            
+            <div id="report-content" class="hidden">
+                <h3 class="report-title">📑 Analisis Eksekutif</h3>
+                <div class="report-grid">
+                    
+                    <!-- 1. Perbandingan Pengguna -->
+                    <div class="report-box">
+                        <div class="report-label">Perbelanjaan (Bulan Semasa)</div>
+                        <div id="rep-user-stats">Memuatkan...</div>
+                    </div>
+                    
+                    <!-- 2. Perbandingan In / Out vs Bulan Lepas -->
+                    <div class="report-box">
+                        <div class="report-label">Trend vs Bulan Lepas</div>
+                        <div class="report-val">
+                            <span class="text-sm">Aliran Masuk</span>
+                            <span id="rep-trend-in" class="trend-neutral">--</span>
+                        </div>
+                        <div class="report-val">
+                            <span class="text-sm">Perbelanjaan</span>
+                            <span id="rep-trend-out" class="trend-neutral">--</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 3. Top 3 Kategori Belanja -->
+                    <div class="report-box">
+                        <div class="report-label">3 Perbelanjaan Tertinggi</div>
+                        <div id="rep-top-cats">
+                            Memuatkan...
+                        </div>
+                    </div>
+                    
+                    <!-- 4. Cash vs Bank -->
+                    <div class="report-box">
+                        <div class="report-label">Tabiat Perbelanjaan</div>
+                        <div class="report-val">
+                            <span class="text-sm">Guna Bank (Digital)</span>
+                            <span id="rep-hab-bank" class="text-blue-400">0%</span>
+                        </div>
+                        <div class="report-val">
+                            <span class="text-sm">Guna Tunai (Fizikal)</span>
+                            <span id="rep-hab-cash" class="text-emerald-400">0%</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
 
       </div>
 
@@ -371,7 +446,10 @@
             <b style="color:var(--ink); display:block; margin-top:12px;">1. Langganan Premium</b>
             <p style="margin-top:4px;">OurMoney adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar kewangan, integrasi percutian, analisis bulanan dan storan gambar (resit) tertakluk kepada caj langganan sebanyak <b>20 Kredit / Sebulan</b>.</p>
 
-            <b style="color:var(--ink); display:block; margin-top:12px;">2. Privasi Data & Storan</b>
+            <b style="color:var(--ink); display:block; margin-top:12px;">2. Laporan Eksekutif Hujung Bulan</b>
+            <p style="margin-top:4px;">Menjana Laporan Eksekutif yang membandingkan tabiat dan aliran tunai dari bulan ke bulan akan dicaj <b>1 Kredit</b> bagi setiap janaan.</p>
+
+            <b style="color:var(--ink); display:block; margin-top:12px;">3. Privasi Data & Storan</b>
             <p style="margin-top:4px;">Kesemua rekod kewangan dan gambar resit yang dimuat naik akan disimpan secara selamat di bawah pengkalan data keluarga anda.</p>
         </div>
         
@@ -406,7 +484,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, addDoc, deleteDoc, collection, query, where, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, updateDoc, increment, addDoc, deleteDoc, collection, query, where, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
     const firebaseConfig = {
@@ -427,6 +505,9 @@
     let currentUser = null;
     let targetPercutian = 0;
     let selectedImageFile = null;
+    let namaInduk = "Induk";
+    let namaPasangan = "Pasangan";
+    let statusLaporanUnlock = false; // Status session laporan
 
     const todayLocal = new Date();
     const localOffset = todayLocal.getTimezoneOffset() * 60000;
@@ -443,7 +524,6 @@
     };
 
     const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Pakaian", "Lain-lain"];
-    // DIKEMAS KINI: Memasukkan "Baki Permulaan" di dalam senarai duit masuk
     const catInflow = ["Baki Permulaan", "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
 
     const btnRadios = document.querySelectorAll('input[name="txnType"]');
@@ -457,6 +537,33 @@
 
     btnRadios.forEach(radio => radio.addEventListener('change', kemaskiniSenaraiKategori));
     kemaskiniSenaraiKategori(); 
+
+    // --- LOGIK NAMA SEBENAR ---
+    async function muatNamaPengguna() {
+        if (!currentUser) return;
+        try {
+            const q = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid));
+            const snap = await getDocs(q);
+            let dPasangan = null;
+            
+            snap.forEach(d => {
+                const data = d.data();
+                if(data.is_root || data.relationship === "Diri Sendiri") namaInduk = data.name || "Induk";
+                if(data.relationship === "Suami" || data.relationship === "Isteri") {
+                    namaPasangan = data.name || "Pasangan";
+                    dPasangan = true;
+                }
+            });
+            
+            const selectUser = document.getElementById('txnUser');
+            let htmlOptions = `<option value="${namaInduk}">${namaInduk} (Sila Pilih)</option>`;
+            if (dPasangan) {
+                htmlOptions += `<option value="${namaPasangan}">${namaPasangan}</option>`;
+            }
+            selectUser.innerHTML = htmlOptions;
+            
+        } catch(e) { console.error("Gagal muat nama:", e); }
+    }
 
     // --- LOGIK PAYWALL OURMONEY ---
     window.semakStatusLangganan = async (uid) => {
@@ -531,6 +638,7 @@
             if (mainApp) mainApp.classList.remove('hidden');
             
             semakTnC();
+            await muatNamaPengguna();
             await muatDataMyTadbir(); 
             await muatTargetPercutian();
             muatDataOurMoney();
@@ -570,7 +678,6 @@
     async function muatDataMyTadbir() {
         try {
             if (!currentUser) return;
-            
             const docRef = doc(db, "mytadbir_profiles", currentUser.uid);
             const snap = await getDoc(docRef);
 
@@ -669,7 +776,6 @@
                 note: document.getElementById('txnNote').value.trim(),
                 receipt_url: imgUrl, 
                 created_at: Date.now(),
-                // REKOD BARU DI SIMPAN
                 txnUser: document.getElementById('txnUser').value,
                 txnAccount: document.getElementById('txnAccount').value
             };
@@ -691,6 +797,7 @@
 
     window.tukarBulanPaparan = () => {
         modPaparan = 'bulan';
+        statusLaporanUnlock = false; // Reset laporan jika tukar bulan
         muatDataOurMoney();
     };
 
@@ -718,15 +825,31 @@
 
             let htmlTxn = "";
             let totalIn = 0; let totalOut = 0;
-            // PEMBOLEHUBAH BARU UNTUK TUNAI DAN BANK
             let tunaiIn = 0; let tunaiOut = 0;
             let bankIn = 0; let bankOut = 0;
             let listSemasa = [];
+            
+            // Variabel Laporan Eksekutif
+            let arraySemasa = [];
+            let arrayLepas = [];
+            
+            // Kira Bulan Lepas
+            const [yStr, mStr] = filterVal.split('-');
+            let mPrev = parseInt(mStr) - 1;
+            let yPrev = parseInt(yStr);
+            if(mPrev === 0) { mPrev = 12; yPrev -= 1; }
+            const prevMonthStr = `${yPrev}-${mPrev.toString().padStart(2, '0')}`;
 
             snap.forEach(d => {
                 const data = d.data();
-                if (modPaparan === 'bulan' && data.date && data.date.startsWith(filterVal)) {
-                    listSemasa.push({ id: d.id, ...data });
+                if (modPaparan === 'bulan') {
+                    if (data.date && data.date.startsWith(filterVal)) {
+                        listSemasa.push({ id: d.id, ...data });
+                        arraySemasa.push(data);
+                    }
+                    if (data.date && data.date.startsWith(prevMonthStr)) {
+                        arrayLepas.push(data);
+                    }
                 } else if (modPaparan === 'tahun' && data.date && data.date.startsWith(tahunVal)) {
                     listSemasa.push({ id: d.id, ...data });
                 }
@@ -736,7 +859,6 @@
 
             listSemasa.forEach(t => {
                 const isOut = t.type === 'outflow';
-                // Kira Total keseluruhan & asingkan Tunai vs Bank
                 if (isOut) {
                     totalOut += t.amount;
                     if(t.txnAccount === 'Tunai') tunaiOut += t.amount; else bankOut += t.amount;
@@ -750,7 +872,7 @@
                 const amtPrefix = isOut ? '- RM' : '+ RM';
                 const tarikhFormat = t.date.split('-').reverse().join('/');
                 
-                // Tambah label pengguna dan akaun
+                // Gunakan nama pengguna sebenar
                 const badgeUser = t.txnUser ? `<span style="background:#e2e8f0; color:#475569; padding:3px 8px; border-radius:6px; font-size:0.65rem;">${t.txnUser}</span>` : '';
                 const badgeAcc = t.txnAccount === 'Tunai' ? `💵 Tunai` : `🏦 Bank`;
                 
@@ -786,15 +908,17 @@
             document.getElementById('dash-in').innerText = `RM ${formatRM(totalIn)}`;
             document.getElementById('dash-out').innerText = `RM ${formatRM(totalOut)}`;
             document.getElementById('dash-net').innerText = `RM ${formatRM(netBalance)}`;
-            // Pamerkan baki tunai & bank
             document.getElementById('dash-tunai').innerText = `RM ${formatRM(bakiTunai)}`;
             document.getElementById('dash-bank').innerText = `RM ${formatRM(bakiBank)}`;
 
             if (modPaparan === 'tahun') {
                 document.getElementById('health-card-section').style.display = 'none';
+                document.getElementById('executive-report-section').style.display = 'none';
             } else {
                 document.getElementById('health-card-section').style.display = 'block';
+                document.getElementById('executive-report-section').style.display = 'block';
                 renderAnalisisKesihatan(totalIn, totalOut, targetPercutian);
+                siapkanLaporanEksekutif(arraySemasa, arrayLepas, totalOut);
             }
 
         } catch(e) { console.error("Ralat muat transaksi:", e); }
@@ -839,6 +963,113 @@
             msgBox.className = 'health-msg msg-good';
             msgBox.innerHTML = `✅ <b>Kewangan Sihat!</b> Baki selamat bulan ini adalah <b>RM ${formatRM(bakiTinggal)}</b>. Anda berada di landasan yang betul untuk mencapai sasaran kewangan keluarga anda.`;
         }
+    }
+
+    // --- LOGIK LAPORAN EKSEKUTIF ---
+    window.tebusLaporanEksekutif = async () => {
+        if (!currentUser) return;
+        const btn = document.getElementById('btn-unlock-report');
+        btn.innerText = "Memproses...";
+        btn.disabled = true;
+
+        try {
+            const userRef = doc(db, "mynasab_users", currentUser.uid);
+            const snap = await getDoc(userRef);
+            if (snap.exists()) {
+                let baki = parseInt(snap.data().credit_balance) || 0;
+                if (baki >= 1) {
+                    await updateDoc(userRef, { credit_balance: increment(-1) });
+                    statusLaporanUnlock = true;
+                    
+                    document.getElementById('report-lock').classList.add('hidden');
+                    document.getElementById('report-content').classList.remove('hidden');
+                } else {
+                    alert("Kredit tidak mencukupi. Baki anda: " + baki + ". Sila Top Up.");
+                    btn.innerText = "Jana Laporan Penuh (1 Kredit)";
+                    btn.disabled = false;
+                }
+            }
+        } catch (e) {
+            alert("Ralat memproses: " + e.message);
+            btn.innerText = "Jana Laporan Penuh (1 Kredit)";
+            btn.disabled = false;
+        }
+    }
+
+    function siapkanLaporanEksekutif(arrCur, arrPrev, totalOutCur) {
+        // Jika belum unlock, reset paparan lock
+        if(!statusLaporanUnlock) {
+            document.getElementById('report-lock').classList.remove('hidden');
+            document.getElementById('report-content').classList.add('hidden');
+            document.getElementById('btn-unlock-report').innerText = "Jana Laporan Penuh (1 Kredit)";
+            document.getElementById('btn-unlock-report').disabled = false;
+        }
+
+        // Kalkulasi In/Out Prev & Cur
+        let inCur = 0, outCur = 0, inPrev = 0, outPrev = 0;
+        let bankOut = 0, cashOut = 0;
+        let userSpent = {};
+        let catSpent = {};
+
+        arrCur.forEach(t => {
+            if(t.type === 'outflow') {
+                outCur += t.amount;
+                if(t.txnAccount === 'Tunai') cashOut += t.amount; else bankOut += t.amount;
+                userSpent[t.txnUser] = (userSpent[t.txnUser] || 0) + t.amount;
+                catSpent[t.category] = (catSpent[t.category] || 0) + t.amount;
+            } else {
+                inCur += t.amount;
+            }
+        });
+
+        arrPrev.forEach(t => {
+            if(t.type === 'outflow') outPrev += t.amount; else inPrev += t.amount;
+        });
+
+        // 1. Perbandingan Pengguna
+        let htmlUser = "";
+        for(const [uName, uAmt] of Object.entries(userSpent)) {
+            let pct = totalOutCur > 0 ? (uAmt / totalOutCur * 100).toFixed(0) : 0;
+            htmlUser += `<div class="report-val"><span class="text-sm text-slate-300">${uName}</span><span>RM ${formatRM(uAmt)} <small class="text-slate-500">(${pct}%)</small></span></div>`;
+        }
+        if(htmlUser === "") htmlUser = `<div class="text-sm text-slate-400">Tiada perbelanjaan direkod.</div>`;
+        document.getElementById('rep-user-stats').innerHTML = htmlUser;
+
+        // 2. Trend Perbandingan (Naik / Turun)
+        const kiraTrend = (cur, prev, isBadIfUp) => {
+            if (prev === 0 && cur > 0) return `<span class="trend-${isBadIfUp?'up':'down'}">↑ 100%</span>`;
+            if (prev === 0 && cur === 0) return `<span class="trend-neutral">Kekal</span>`;
+            const diff = cur - prev;
+            const pct = Math.abs((diff / prev) * 100).toFixed(0);
+            if (diff > 0) return `<span class="trend-${isBadIfUp?'up':'down'}">↑ Naik ${pct}%</span>`;
+            if (diff < 0) return `<span class="trend-${isBadIfUp?'down':'up'}">↓ Turun ${pct}%</span>`;
+            return `<span class="trend-neutral">Kekal</span>`;
+        };
+        
+        document.getElementById('rep-trend-in').outerHTML = `<span id="rep-trend-in">${kiraTrend(inCur, inPrev, false)}</span>`;
+        document.getElementById('rep-trend-out').outerHTML = `<span id="rep-trend-out">${kiraTrend(outCur, outPrev, true)}</span>`;
+
+        // 3. Top 3 Kategori
+        let sortCat = Object.keys(catSpent).map(k => ({ cat: k, amt: catSpent[k] })).sort((a,b) => b.amt - a.amt).slice(0,3);
+        let htmlCat = "";
+        sortCat.forEach(c => {
+            let p = totalOutCur > 0 ? (c.amt / totalOutCur * 100) : 0;
+            htmlCat += `
+            <div class="cat-bar-wrap">
+                <div class="cat-name">${c.cat}</div>
+                <div class="cat-bar"><div class="cat-fill" style="width:${p}%"></div></div>
+                <div class="cat-amt">RM${Math.round(c.amt)}</div>
+            </div>`;
+        });
+        if(htmlCat === "") htmlCat = `<div class="text-sm text-slate-400">Tiada perbelanjaan direkod.</div>`;
+        document.getElementById('rep-top-cats').innerHTML = htmlCat;
+
+        // 4. Tabiat Bank vs Cash
+        let totalOutBnc = bankOut + cashOut;
+        let pBank = totalOutBnc > 0 ? (bankOut / totalOutBnc * 100).toFixed(0) : 0;
+        let pCash = totalOutBnc > 0 ? (cashOut / totalOutBnc * 100).toFixed(0) : 0;
+        document.getElementById('rep-hab-bank').innerText = pBank + '%';
+        document.getElementById('rep-hab-cash').innerText = pCash + '%';
     }
 
 </script>
