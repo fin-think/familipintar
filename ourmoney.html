@@ -178,6 +178,48 @@
   }
 
   .hidden { display: none !important; }
+
+  /* ===== MISI KEWANGAN ===== */
+  .misi-card { background: linear-gradient(135deg, #F5F3FF, #EDE9FE); border: 2px solid #DDD6FE; border-radius: 12px; padding: 16px; margin-top: 20px; }
+  .misi-card h3 { font-weight: 800; color: #5B21B6; font-size: 0.95rem; text-transform: uppercase; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .misi-sub { font-size: 0.75rem; color: #6D28D9; font-weight: 600; margin-bottom: 12px; line-height: 1.4; }
+  .misi-ringkas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .misi-ringkas > div { background: #fff; border: 1px solid #DDD6FE; border-radius: 10px; padding: 10px; text-align: center; }
+  .misi-ringkas span { display: block; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #7C3AED; line-height: 1.2; }
+  .misi-ringkas b { display: block; font-size: 1.05rem; font-weight: 800; color: #4C1D95; margin-top: 4px; }
+  .misi-nota { font-size: 0.8rem; font-weight: 600; line-height: 1.5; padding: 10px 12px; border-radius: 10px; margin-bottom: 12px; }
+  .misi-nota.baik { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+  .misi-nota.amaran { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
+  .misi-nota.neutral { background: #fff; color: #5B21B6; border: 1px solid #DDD6FE; }
+  .misi-item { background: #fff; border: 1px solid #DDD6FE; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+  .misi-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .misi-nama { font-weight: 800; color: #1e293b; font-size: 0.9rem; line-height: 1.25; }
+  .misi-pill { font-size: 0.65rem; font-weight: 800; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
+  .pill-landasan { background: #D1FAE5; color: #047857; }
+  .pill-lewat { background: #FEE2E2; color: #B91C1C; }
+  .pill-siap { background: #DBEAFE; color: #1D4ED8; }
+  .pill-baru { background: #F1F5F9; color: #475569; }
+  .pill-kemudian { background: #FEF3C7; color: #92400E; }
+  .misi-bar { height: 10px; background: #EDE9FE; border-radius: 99px; overflow: hidden; margin: 10px 0 6px; }
+  .misi-bar > div { height: 100%; background: linear-gradient(90deg, #8B5CF6, #6366F1); border-radius: 99px; min-width: 2px; }
+  .misi-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 0.72rem; font-weight: 700; color: #64748b; flex-wrap: wrap; }
+  .misi-bulan { font-size: 0.78rem; font-weight: 700; color: #4C1D95; margin-top: 8px; line-height: 1.45; }
+  .misi-act { display: flex; gap: 8px; margin-top: 10px; }
+  .misi-act button { flex: 1; font-size: 0.78rem; font-weight: 800; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid #C4B5FD; background: #fff; color: #6D28D9; }
+  .misi-act button.utama { background: #7C3AED; color: #fff; border-color: #7C3AED; }
+  .misi-act button:hover { opacity: .88; }
+  .misi-btn-besar { display: block; width: 100%; font-size: 0.85rem; font-weight: 800; padding: 10px; border-radius: 10px; cursor: pointer; border: none; background: #7C3AED; color: #fff; margin-top: 4px; }
+  .misi-btn-besar.sekunder { background: #fff; color: #6D28D9; border: 1px solid #C4B5FD; }
+  .misi-kosong { text-align: center; font-size: 0.85rem; color: #5B21B6; background: #fff; border-radius: 10px; padding: 14px; line-height: 1.5; font-weight: 600; }
+  .misi-modal { position: fixed; inset: 0; background: rgba(15,23,42,0.7); z-index: 9000; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .misi-modal-box { background: #fff; border-radius: 16px; padding: 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+  .misi-modal-box h3 { font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
+  .misi-modal-info { font-size: 0.8rem; color: #64748b; font-weight: 600; margin-bottom: 14px; line-height: 1.45; }
+  .misi-sejarah { margin-top: 14px; border-top: 1px dashed #e2e8f0; padding-top: 10px; }
+  .misi-sejarah-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 700; color: #334155; padding: 6px 0; gap: 8px; }
+  .misi-sejarah-item small { color: #94a3b8; font-weight: 600; display: block; }
+  .misi-sejarah-item button { background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 1.1rem; }
+  .misi-sejarah-item button:hover { color: var(--danger); }
 </style>
 </head>
 <body>
@@ -370,6 +412,13 @@
             <a href="mytadbir.html" class="btn-tadbir" id="tadbir-btn-action" style="display: block; text-align: center; margin-top: 12px; text-decoration: none;">Urus Profil myTADBIR ➔</a>
         </div>
 
+        <!-- Kad Misi Kewangan (sasaran daripada myTADBIR) -->
+        <div class="misi-card" id="misi-card">
+            <h3>🎯 Misi Kewangan</h3>
+            <div class="misi-sub">Sasaran pendidikan, kesihatan dan persaraan daripada myTADBIR. Setor setiap bulan dan jejak sama ada anda di landasan.</div>
+            <div id="misi-isi"><div class="misi-kosong">Memuatkan misi...</div></div>
+        </div>
+
         <!-- Kad Integrasi JomBercuti -->
         <div class="vacation-card" id="vacation-target">
           <div class="vac-icon">✈️</div>
@@ -386,7 +435,7 @@
           
           <div class="progress-wrap" id="health-bar-wrap" style="display:none;">
             <div class="prog-out" id="bar-out" title="Perbelanjaan"></div>
-            <div class="prog-save" id="bar-save" title="Sasaran Simpanan Percutian"></div>
+            <div class="prog-save" id="bar-save" title="Sasaran Simpanan (Percutian & Misi)"></div>
           </div>
 
           <div class="health-msg" id="health-message">
@@ -527,6 +576,27 @@
         <button onclick="window.location.href='../index.html'" style="width:100%; background:transparent; color:#94a3b8; padding:5px; border:none; font-weight:400; font-size:12px; cursor:pointer;">
             Kembali ke Muka Depan myNasab
         </button>
+    </div>
+</div>
+
+<!-- MODAL SETORAN MISI -->
+<div id="modalMisi" class="misi-modal">
+    <div class="misi-modal-box">
+        <h3 id="misi-modal-judul">Setor Misi</h3>
+        <div class="misi-modal-info" id="misi-modal-info"></div>
+        <form id="form-setor" class="form-grid">
+            <div class="field">
+                <label>Jumlah Disetor (RM)</label>
+                <div class="input-prefix"><span>RM</span><input type="number" id="setorJumlah" placeholder="0.00" step="0.01" min="0.01" required></div>
+            </div>
+            <div class="grid-2">
+                <div class="field"><label>Tarikh</label><input type="date" id="setorTarikh" required></div>
+                <div class="field"><label>Nota (Pilihan)</label><input type="text" id="setorNota" placeholder="Cth: Masuk SSPN"></div>
+            </div>
+            <button type="submit" class="btn-submit" id="btn-simpan-setor">💾 Simpan Setoran</button>
+        </form>
+        <div class="misi-sejarah" id="misi-sejarah"></div>
+        <button type="button" class="btn-ghost" style="margin-top:12px;" onclick="tutupSetor()">Tutup</button>
     </div>
 </div>
 
@@ -704,6 +774,7 @@
             await muatNamaPengguna();
             await muatDataMyTadbir(); 
             await muatTargetPercutian();
+            await muatMisi();
             muatDataOurMoney();
         } else {
             currentUser = null;
@@ -737,6 +808,279 @@
             }
         } catch(e) { console.error(e); }
     }
+
+    // ===== MISI KEWANGAN (sasaran daripada myTADBIR) =====
+    let profilMisi = [];
+    let profilSurplus = null;
+    let profilMisiKemaskini = 0;
+    let misiAktif = {};
+    let misiSetoran = [];
+    let misiBulananJumlah = 0;
+    let misiModalId = null;
+
+    const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const fmtRM = (v) => 'RM' + formatRM(v);
+    const BULAN_MS = 30.4375 * 24 * 3600 * 1000;
+    const NAMA_BULAN = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
+    const rBulan = (rate) => Math.pow(1 + (parseFloat(rate) || 0) / 100, 1 / 12) - 1;
+    const fvAnuiti = (rm, n) => rm === 0 ? n : (Math.pow(1 + rm, n) - 1) / rm;
+    const tsTarikh = (iso) => new Date(iso + 'T00:00:00').getTime();
+
+    // Simpanan bulanan untuk mencapai target (setoran hujung bulan, pulangan dikompaun bulanan)
+    const pelanBulanan = (g) => {
+        const rm = rBulan(g.rate), n = Math.max(1, Math.round(g.months));
+        return Math.max(0, (g.target_fv - g.start_balance * Math.pow(1 + rm, n)) / fvAnuiti(rm, n));
+    };
+    const tarikhSasaran = (mulaIso, bulan) => {
+        const d = new Date(tsTarikh(mulaIso)); d.setMonth(d.getMonth() + Math.round(bulan));
+        return NAMA_BULAN[d.getMonth()] + ' ' + d.getFullYear();
+    };
+
+    // Keadaan misi yang sudah dimulakan: nilai semasa, status landasan, cadangan bulan ini
+    function keadaanMisi(g) {
+        const rm = rBulan(g.rate), now = Date.now();
+        const m = Math.max(0, (now - tsTarikh(g.start_date)) / BULAN_MS);
+        const setoran = misiSetoran.filter(d => d.goal_id === g.goal_id && d.date >= g.start_date);
+        let nilai = g.start_balance * Math.pow(1 + rm, m), jumlahSetor = 0, bulanIni = 0;
+        setoran.forEach(d => {
+            const md = Math.max(0, (now - tsTarikh(d.date)) / BULAN_MS);
+            nilai += d.amount * Math.pow(1 + rm, md);
+            jumlahSetor += d.amount;
+            if (d.date.startsWith(bulanIniStr)) bulanIni += d.amount;
+        });
+        const mp = Math.floor(m);
+        const dijangka = g.start_balance * Math.pow(1 + rm, m) + g.monthly_plan * fvAnuiti(rm, mp) * Math.pow(1 + rm, m - mp);
+        const selisih = nilai - dijangka;
+        const bakiBulan = Math.max(1, Math.ceil(g.months - m));
+        const kejar = Math.max(0, (g.target_fv - nilai * Math.pow(1 + rm, bakiBulan)) / fvAnuiti(rm, bakiBulan));
+        const siap = nilai >= g.target_fv;
+        const status = siap ? 'siap' : (selisih >= -0.5 * g.monthly_plan ? 'landasan' : 'lewat');
+        return { nilai, jumlahSetor, bulanIni, selisih, kejar, siap, status, lepasTarikh: g.months - m <= 0,
+                 cadangan: siap ? 0 : (status === 'lewat' ? kejar : g.monthly_plan),
+                 pct: Math.max(0, Math.min(100, nilai / g.target_fv * 100)) };
+    }
+
+    async function muatMisi() {
+        if (!currentUser) return;
+        try {
+            const pSnap = await getDoc(doc(db, "mytadbir_profiles", currentUser.uid));
+            const sum = pSnap.exists() ? (pSnap.data().summary || {}) : {};
+            profilMisi = Array.isArray(sum.goals) ? sum.goals : [];
+            profilSurplus = typeof sum.monthly_surplus === 'number' ? sum.monthly_surplus : null;
+            profilMisiKemaskini = sum.goals_updated || 0;
+
+            misiAktif = {};
+            const aSnap = await getDocs(query(collection(db, "ourmoney_goals"), where("owner_uid", "==", currentUser.uid)));
+            aSnap.forEach(d => { const x = d.data(); if (x.status !== 'selesai') misiAktif[x.goal_id] = { docId: d.id, ...x }; });
+
+            misiSetoran = [];
+            const dSnap = await getDocs(query(collection(db, "ourmoney_goal_deposits"), where("owner_uid", "==", currentUser.uid)));
+            dSnap.forEach(d => misiSetoran.push({ id: d.id, ...d.data() }));
+        } catch (e) { console.error("Gagal muat misi:", e); }
+        renderMisi();
+    }
+
+    function renderMisi() {
+        const wrap = document.getElementById('misi-isi');
+        if (!wrap) return;
+
+        // Gabung: misi dalam profil + misi lama yang masih aktif
+        const senarai = profilMisi.map(pg => ({ pg, act: misiAktif[pg.id] || null, id: pg.id }));
+        Object.values(misiAktif).forEach(a => { if (!profilMisi.some(p => p.id === a.goal_id)) senarai.push({ pg: null, act: a, id: a.goal_id }); });
+
+        if (senarai.length === 0) {
+            misiBulananJumlah = 0;
+            wrap.innerHTML = `<div class="misi-kosong">Belum ada misi.<br>Isi dan simpan profil di <b>myTADBIR</b> untuk menjana sasaran dana kecemasan, pendidikan anak dan kesihatan.<br><a href="mytadbir.html" class="btn-tadbir" style="margin-top:10px; background:#7C3AED; color:#fff; border-color:#7C3AED;">Buka myTADBIR ➔</a></div>`;
+            return;
+        }
+
+        // Kira setiap misi
+        senarai.forEach(it => {
+            const g = it.act || it.pg;
+            it.priority = g.priority || 9;
+            it.label = g.label;
+            if (it.act) {
+                it.k = keadaanMisi(it.act);
+                it.perlu = it.k.cadangan;
+                it.target = it.act.target_fv;
+                it.sasaranTarikh = tarikhSasaran(it.act.start_date, it.act.months);
+            } else {
+                it.perlu = pelanBulanan(it.pg);
+                it.target = it.pg.target_fv;
+                it.sasaranTarikh = tarikhSasaran(localDateStr, it.pg.months);
+            }
+        });
+        senarai.sort((a, b) => a.priority - b.priority);
+
+        // Semakan kemampuan: agih baki bulanan ikut keutamaan
+        let baki = profilSurplus === null ? null : Math.max(0, profilSurplus);
+        senarai.forEach(it => {
+            if (it.k && it.k.siap) { it.muat = true; return; }
+            if (baki === null) { it.muat = true; return; }
+            if (it.perlu <= baki + 0.005) { it.muat = true; baki -= it.perlu; } else { it.muat = false; }
+        });
+
+        const jumlahPerlu = senarai.reduce((t, it) => t + (it.k && it.k.siap ? 0 : it.perlu), 0);
+        misiBulananJumlah = senarai.reduce((t, it) => t + (it.act && it.k && !it.k.siap ? it.k.cadangan : 0), 0);
+        const adaBelumMula = senarai.some(it => !it.act && it.pg);
+        const perluKemaskini = senarai.some(it => !it.pg ? false : (!it.act ? false : Math.abs(it.pg.target_fv - it.act.target_fv) > Math.max(1, it.act.target_fv * 0.02)))
+            || senarai.some(it => it.act && !it.pg) || (senarai.some(it => it.act) && adaBelumMula);
+
+        let html = '';
+        // Ringkasan kemampuan
+        html += `<div class="misi-ringkas">
+            <div><span>Simpanan misi sebulan</span><b>${fmtRM(jumlahPerlu)}</b></div>
+            <div><span>Baki bulanan (myTADBIR)</span><b>${profilSurplus === null ? '-' : fmtRM(profilSurplus)}</b></div>
+        </div>`;
+        if (profilSurplus !== null) {
+            const tidakMuat = senarai.filter(it => !it.muat);
+            if (tidakMuat.length === 0) {
+                html += `<div class="misi-nota baik">✅ Semua misi muat dalam baki bulanan anda.</div>`;
+            } else {
+                const muat = senarai.filter(it => it.muat && !(it.k && it.k.siap)).map(it => esc(it.label));
+                html += `<div class="misi-nota amaran">⚠️ Jumlah misi melebihi baki bulanan anda sebanyak <b>${fmtRM(Math.max(0, jumlahPerlu - Math.max(0, profilSurplus)))}</b>. ${muat.length ? 'Fokus dahulu pada: <b>' + muat.join(', ') + '</b>.' : 'Baki bulanan belum cukup untuk misi pertama.'} Selebihnya ditanda "Fasa kemudian". Pilihan lain: tambah tempoh, kurangkan bajet, tambah pendapatan atau perlindungan takaful.</div>`;
+            }
+        }
+
+        // Senarai misi
+        senarai.forEach(it => {
+            const a = it.act, k = it.k;
+            let pill, bar = 0, meta, bulan, btn;
+            if (a) {
+                pill = k.siap ? '<span class="misi-pill pill-siap">🎉 Siap</span>'
+                    : k.status === 'landasan' ? '<span class="misi-pill pill-landasan">Di landasan</span>'
+                    : `<span class="misi-pill pill-lewat">Lewat ${fmtRM(Math.abs(k.selisih))}</span>`;
+                if (!k.siap && !it.muat) pill += ' <span class="misi-pill pill-kemudian">Fasa kemudian</span>';
+                bar = k.pct;
+                meta = `<span>${fmtRM(k.nilai)} / ${fmtRM(a.target_fv)} (${k.pct.toFixed(0)}%)</span><span>Sasaran: ${it.sasaranTarikh}</span>`;
+                bulan = k.siap ? 'Sasaran tercapai. Syabas!'
+                    : `${k.status === 'lewat' ? 'Untuk mengejar, setor' : 'Pelan'} <b>${fmtRM(k.cadangan)}</b>/bulan${k.lepasTarikh ? ' (tarikh sasaran sudah lepas)' : ''} • Bulan ini disetor <b>${fmtRM(k.bulanIni)}</b>`;
+                btn = `<div class="misi-act"><button class="utama" onclick="bukaSetor('${esc(it.id)}')">+ Setor</button><button onclick="bukaSetor('${esc(it.id)}', true)">Sejarah</button></div>`;
+            } else {
+                pill = '<span class="misi-pill pill-baru">Belum dimulakan</span>' + (it.muat ? '' : ' <span class="misi-pill pill-kemudian">Fasa kemudian</span>');
+                meta = `<span>${fmtRM(it.pg.start_balance)} / ${fmtRM(it.pg.target_fv)}</span><span>Sasaran: ${it.sasaranTarikh}</span>`;
+                bulan = `Perlu <b>${fmtRM(it.perlu)}</b>/bulan selama ${Math.round(it.pg.months)} bulan`;
+                btn = `<div class="misi-act"><button class="utama" onclick="bukaSetor('${esc(it.id)}')">Mula & Setor</button></div>`;
+            }
+            html += `<div class="misi-item">
+                <div class="misi-top"><span class="misi-nama">${esc(it.label)}</span><span>${pill}</span></div>
+                <div class="misi-bar"><div style="width:${bar}%"></div></div>
+                <div class="misi-meta">${meta}</div>
+                <div class="misi-bulan">${bulan}</div>
+                ${btn}
+            </div>`;
+        });
+
+        if (adaBelumMula && !senarai.some(it => it.act)) {
+            html += `<button class="misi-btn-besar" onclick="mulakanSemuaMisi()">🚀 Mulakan Semua Misi</button>`;
+        } else if (perluKemaskini) {
+            html += `<button class="misi-btn-besar sekunder" onclick="kemaskiniPelanMisi()">🔄 Kemas Kini Pelan daripada myTADBIR</button>`;
+        }
+        html += `<a href="mytadbir.html" class="btn-tadbir" style="margin-top:10px;">Ubah andaian di myTADBIR ➔</a>`;
+        wrap.innerHTML = html;
+    }
+
+    function binaDasar(pg, mula) {
+        const d = {
+            owner_uid: currentUser.uid, goal_id: pg.id, type: pg.type, label: pg.label, priority: pg.priority || 9,
+            target_fv: pg.target_fv, start_balance: mula, rate: pg.rate, months: pg.months,
+            start_date: localDateStr, profile_updated: profilMisiKemaskini, status: 'aktif', created_at: Date.now()
+        };
+        if (pg.child_id) d.child_id = pg.child_id;
+        d.monthly_plan = Math.round(pelanBulanan(d) * 100) / 100;
+        return d;
+    }
+
+    async function tulisMisi(pg, mula) {
+        await setDoc(doc(db, "ourmoney_goals", currentUser.uid + '_' + pg.id), binaDasar(pg, mula));
+    }
+
+    window.mulakanSemuaMisi = async () => {
+        try {
+            for (const pg of profilMisi) { if (!misiAktif[pg.id]) await tulisMisi(pg, pg.start_balance); }
+            await muatMisi(); muatDataOurMoney();
+        } catch (e) { alert("Gagal memulakan misi: " + e.message); }
+    };
+
+    // Kemas kini pelan: nilai semasa dibawa sebagai baki permulaan (elak kira dua kali setoran lama)
+    window.kemaskiniPelanMisi = async () => {
+        if (!confirm("Kemas kini pelan mengikut data terkini myTADBIR?\n\nSetoran lama kekal. Nilai semasa setiap misi dijadikan baki permulaan, dan simpanan bulanan dikira semula.")) return;
+        try {
+            for (const pg of profilMisi) {
+                const a = misiAktif[pg.id];
+                const mula = a ? Math.max(keadaanMisi(a).nilai, pg.start_balance) : pg.start_balance;
+                await tulisMisi(pg, mula);
+            }
+            for (const a of Object.values(misiAktif)) {
+                if (!profilMisi.some(p => p.id === a.goal_id)) await updateDoc(doc(db, "ourmoney_goals", a.docId), { status: 'selesai' });
+            }
+            await muatMisi(); muatDataOurMoney();
+        } catch (e) { alert("Gagal mengemas kini pelan: " + e.message); }
+    };
+
+    window.bukaSetor = async (id, sejarahSahaja) => {
+        try {
+            if (!misiAktif[id]) {
+                const pg = profilMisi.find(p => p.id === id);
+                if (!pg) return;
+                await tulisMisi(pg, pg.start_balance);
+                await muatMisi();
+            }
+        } catch (e) { alert("Gagal memulakan misi: " + e.message); return; }
+        const a = misiAktif[id];
+        if (!a) return;
+        misiModalId = id;
+        document.getElementById('misi-modal-judul').innerText = a.label;
+        document.getElementById('setorTarikh').value = localDateStr;
+        document.getElementById('setorJumlah').value = '';
+        document.getElementById('setorNota').value = '';
+        paparInfoSetor();
+        document.getElementById('modalMisi').style.display = 'flex';
+        if (sejarahSahaja) document.getElementById('misi-sejarah').scrollIntoView({ block: 'nearest' });
+    };
+
+    function paparInfoSetor() {
+        const a = misiAktif[misiModalId];
+        if (!a) return;
+        const k = keadaanMisi(a);
+        document.getElementById('misi-modal-info').innerHTML =
+            `Nilai semasa: <b>${fmtRM(k.nilai)}</b> daripada <b>${fmtRM(a.target_fv)}</b><br>Cadangan bulan ini: <b>${fmtRM(k.cadangan)}</b> • Sudah disetor bulan ini: <b>${fmtRM(k.bulanIni)}</b>`;
+        const sej = misiSetoran.filter(d => d.goal_id === misiModalId).sort((x, y) => y.date.localeCompare(x.date) || y.created_at - x.created_at);
+        document.getElementById('misi-sejarah').innerHTML = sej.length === 0
+            ? '<div style="font-size:0.8rem; color:#94a3b8; text-align:center;">Belum ada setoran.</div>'
+            : '<div style="font-size:0.7rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:4px;">Sejarah setoran</div>' + sej.map(d =>
+                `<div class="misi-sejarah-item"><div>${fmtRM(d.amount)}<small>${d.date.split('-').reverse().join('/')}${d.note ? ' • ' + esc(d.note) : ''}</small></div><button onclick="padamSetoran('${d.id}')" title="Padam">✕</button></div>`).join('');
+    }
+
+    window.tutupSetor = () => { document.getElementById('modalMisi').style.display = 'none'; misiModalId = null; };
+
+    document.getElementById('form-setor').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentUser || !misiModalId) return;
+        const jumlah = parseFloat(document.getElementById('setorJumlah').value);
+        if (!(jumlah > 0)) return;
+        const btn = document.getElementById('btn-simpan-setor');
+        btn.disabled = true; btn.innerText = 'Menyimpan...';
+        try {
+            await addDoc(collection(db, "ourmoney_goal_deposits"), {
+                owner_uid: currentUser.uid, goal_id: misiModalId, amount: jumlah,
+                date: document.getElementById('setorTarikh').value || localDateStr,
+                note: document.getElementById('setorNota').value.trim(), created_at: Date.now()
+            });
+            await muatMisi(); paparInfoSetor();
+            document.getElementById('setorJumlah').value = ''; document.getElementById('setorNota').value = '';
+            muatDataOurMoney();
+        } catch (err) { alert("Gagal menyimpan setoran: " + err.message); }
+        btn.disabled = false; btn.innerText = '💾 Simpan Setoran';
+    });
+
+    window.padamSetoran = async (id) => {
+        if (!confirm("Padam setoran ini?")) return;
+        try {
+            await deleteDoc(doc(db, "ourmoney_goal_deposits", id));
+            await muatMisi(); paparInfoSetor(); muatDataOurMoney();
+        } catch (e) { alert("Gagal memadam: " + e.message); }
+    };
 
     async function muatDataMyTadbir() {
         try {
@@ -1132,7 +1476,7 @@
 
             document.getElementById('health-card-section').style.display = 'block';
             document.getElementById('executive-report-section').style.display = 'block';
-            renderAnalisisKesihatan(totalIn, totalOut, targetPercutian);
+            renderAnalisisKesihatan(totalIn, totalOut, targetPercutian + misiBulananJumlah);
             siapkanLaporanEksekutif(arraySemasa, arrayLepas, totalOut);
 
         } catch(e) { console.error("Ralat muat transaksi:", e); }
@@ -1162,10 +1506,10 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
 
         if (bakiTinggal < 0) {
             msgBox.className = 'health-msg msg-bad';
-            msgBox.innerHTML = `⚠️ <b>Kritikal!</b> Jumlah perbelanjaan dan komitmen percutian anda telah melebihi pendapatan bulan ini sebanyak <b>RM ${formatRM(Math.abs(bakiTinggal))}</b>. Anda berisiko menggunakan duit simpanan lama atau berhutang.`;
+            msgBox.innerHTML = `⚠️ <b>Kritikal!</b> Jumlah perbelanjaan dan komitmen simpanan (percutian & misi) anda telah melebihi pendapatan bulan ini sebanyak <b>RM ${formatRM(Math.abs(bakiTinggal))}</b>. Anda berisiko menggunakan duit simpanan lama atau berhutang.`;
         } else if (bakiTinggal < (pendapatan * 0.1)) {
             msgBox.className = 'health-msg msg-bad';
-            msgBox.innerHTML = `⚠️ <b>Amaran:</b> Baki anda selepas ditolak belanja dan simpanan percutian hanya tinggal <b>RM ${formatRM(bakiTinggal)}</b>. Sila kurangkan perbelanjaan yang tidak perlu.`;
+            msgBox.innerHTML = `⚠️ <b>Amaran:</b> Baki anda selepas ditolak belanja dan simpanan (percutian & misi) hanya tinggal <b>RM ${formatRM(bakiTinggal)}</b>. Sila kurangkan perbelanjaan yang tidak perlu.`;
         } else {
             msgBox.className = 'health-msg msg-good';
             msgBox.innerHTML = `✅ <b>Kewangan Sihat!</b> Baki selamat bulan ini adalah <b>RM ${formatRM(bakiTinggal)}</b>. Anda berada di landasan yang betul untuk mencapai sasaran kewangan keluarga anda.`;
@@ -1283,4 +1627,3 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
 </script>
 </body>
 </html>
-
