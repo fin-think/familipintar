@@ -1748,6 +1748,24 @@ document.addEventListener('wheel', (e) => {
     document.addEventListener('mouseup', lepas);
     window.addEventListener('blur', lepas);
 
+    // --- RODA TETIKUS = ZOOM (ke arah kursor). Menggantikan blok "Ctrl + roda tetikus" lama ---
+    document.addEventListener('wheel', (e) => {
+        const k = kertas();
+        if (!k || !k.contains(e.target)) return;
+        const modal = document.getElementById('modalPreview');
+        if (modal && modal.classList.contains('hidden')) return;
+        e.preventDefault();
+        e.stopPropagation();                       // elak pengendali Ctrl+roda lama berjalan sekali lagi
+        const r = k.getBoundingClientRect();
+        const px = e.clientX - r.left, py = e.clientY - r.top;
+        const fx = (k.scrollLeft + px) / k.scrollWidth;
+        const fy = (k.scrollTop + py) / k.scrollHeight;
+        const d = Math.max(-200, Math.min(200, e.deltaY));
+        terapZoom(zoomSemasa * Math.exp(-d * 0.0015));
+        k.scrollLeft = fx * k.scrollWidth - px;    // kekalkan titik di bawah kursor
+        k.scrollTop = fy * k.scrollHeight - py;
+    }, { passive: false, capture: true });
+
     // Cubit dua jari = zoom (telefon). Satu jari = skrol biasa.
     let jarak0 = null, zoom0 = 1;
     const jarakJari = (e) => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
