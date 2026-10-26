@@ -91,11 +91,11 @@
         );
 
         // KOTAK INPUT KHAS: BERUBAH JADI KOMA SECARA AUTOMATIK
-        const Input = ({ label, value, onChange, prefix = '', suffix = '', disabled=false, className="" }) => {
+        const Input = ({ label, value, onChange, prefix = '', suffix = '', disabled=false, className="", integer=false }) => {
           const [isFocused, setIsFocused] = React.useState(false);
           const displayValue = isFocused 
             ? (value === 0 ? '' : value) 
-            : (value === 0 ? '' : new Intl.NumberFormat('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value));
+            : (value === 0 ? '' : new Intl.NumberFormat('en-MY', { minimumFractionDigits: integer ? 0 : 2, maximumFractionDigits: integer ? 0 : 2 }).format(value));
 
           return (
             <div className={`flex flex-col mb-4 ${className}`}>
@@ -106,13 +106,13 @@
                   type={isFocused ? 'number' : 'text'}
                   value={displayValue}
                   onChange={(e) => {
-                    const raw = e.target.value.replace(/,/g, '');
+                    const raw = integer ? e.target.value.replace(/,/g, '').split('.')[0] : e.target.value.replace(/,/g, '');
                     onChange({ target: { value: raw } });
                   }}
                   onFocus={() => setIsFocused(true)}
                   onBlur={() => setIsFocused(false)}
                   disabled={disabled}
-                  placeholder="0.00"
+                  placeholder={integer ? "0" : "0.00"}
                   className={`w-full border border-slate-300 rounded-lg py-2 outline-none focus:ring-2 focus:ring-sky-500 transition-all ${prefix ? 'pl-9' : 'pl-3'} ${suffix ? 'pr-8' : 'pr-3'} ${disabled ? 'bg-slate-100 text-slate-500' : 'bg-white'}`}
                 />
                 {suffix && <span className="absolute right-3 text-slate-500 font-semibold">{suffix}</span>}
@@ -649,21 +649,26 @@ if (rdb.monthlyBudget === undefined) {
           const cleanSmokingCost = parseFloat(String(smokingCost).replace(/[^0-9.-]+/g,"")) || 0;
           const totalCurrentHealthLeakage = cleanHealthCost + cleanSmokingCost;
 
+          // --- Kadar sebenar & faktor anuiti ---
+          const rA = assetReturnRate / 100;
+          const realReturn = (1 + rA) / (1 + inflationRate / 100) - 1;
+          const annuityDue = (r, n) => n <= 0 ? 0 : (Math.abs(r) < 1e-9 ? n : (1 - Math.pow(1 + r, -n)) / r * (1 + r));
+          // Kos kesihatan terus naik pada kadar inflasi kesihatan SEPANJANG persaraan, dinilai pada hari bersara
+          const hq = (1 + healthInflationRate / 100) / (1 + rA);
+          const healthFactor = yearsInRetirement <= 0 ? 0
+            : (Math.abs(hq - 1) < 1e-9 ? yearsInRetirement : (1 - Math.pow(hq, yearsInRetirement)) / (1 - hq));
+
           const futureHealthLeakage = totalCurrentHealthLeakage * Math.pow(1 + (healthInflationRate / 100), yearsToRetire);
           
-          const totalRetirementHealthNeeds = futureHealthLeakage * yearsInRetirement;
+          const totalRetirementHealthNeeds = futureHealthLeakage * healthFactor;
 
 
             
           const futureMonthlyExpenses = currentMonthlyExpenses * Math.pow(1 + (inflationRate / 100), yearsToRetire);
           const yearlyRetirementExpense = futureMonthlyExpenses * 12;
-          const netReturnRate = (assetReturnRate - inflationRate) / 100;
 
-          const retirementCorpusNeeded = netReturnRate === 0
-            ? yearlyRetirementExpense * yearsInRetirement
-            : yearlyRetirementExpense * (
-                (1 - Math.pow(1 + netReturnRate, -yearsInRetirement)) / netReturnRate
-              );
+          // Sasaran belanja sehingga umur jangka hayat (kadar sebenar, belanja dikeluarkan pada awal setiap tahun)
+          const retirementCorpusNeeded = yearlyRetirementExpense * annuityDue(realReturn, yearsInRetirement);
           
           const totalEducationFundNow = sspnFund + asbAnakFund;
 
@@ -686,15 +691,32 @@ if (rdb.monthlyBudget === undefined) {
           const monthsToUniversity = Math.max(1, earliestChildYears * 12);
           const educationCatchupMonthly = Number.isFinite(educationShortfall) ? educationShortfall / monthsToUniversity : 0;
 
-          const futureLiquidAssets = totalLiquidAssets * Math.pow(1 + (assetReturnRate / 100), yearsToRetire);
-          const futureAssetsAfterEducation = Math.max(0, futureLiquidAssets - futureEduCostTotal);
-          const bakiUntukBersara = Math.max(0, futureAssetsAfterEducation - unjuranTotalDebts - totalRetirementHealthNeeds);
-          
-          const yearsItWillLast = yearlyRetirementExpense > 0 ? bakiUntukBersara / yearlyRetirementExpense : 0;
+          const futureLiquidAssets = totalLiquidAssets * Math.pow(1 + rA, yearsToRetire);
+
+          // Pendidikan: kos dikompaun hingga tahun bersara, ditolak dana SSPN/ASB (juga dikompaun)
+          const eduCostAtRetire = childrenData.reduce((t, c) => {
+            const yUni = Math.max(0, umurUniAnak(c) - c.age);
+            return t + kosAnak(c) * Math.pow(1 + educationInflation / 100, yUni) * Math.pow(1 + rA, yearsToRetire - yUni);
+          }, 0);
+          const eduNetAtRetire = eduCostAtRetire - totalEducationFundNow * Math.pow(1 + rA, yearsToRetire);   // negatif = dana lebih
+          const futureAssetsAfterEducation = futureLiquidAssets - eduNetAtRetire;
+
+          // Baki bersih untuk bersara = aset masa depan - pendidikan - hutang - kos kesihatan
+          const bakiUntukBersara = futureAssetsAfterEducation - unjuranTotalDebts - totalRetirementHealthNeeds;
+          const bakiPositif = Math.max(0, bakiUntukBersara);
+
+          // Berapa lama baki mampu menampung sasaran belanja (kadar sebenar, sama model dengan korpus)
+          const yearsItWillLast = (() => {
+            if (yearlyRetirementExpense <= 0) return yearsInRetirement;
+            if (bakiPositif <= 0) return 0;
+            if (Math.abs(realReturn) < 1e-9) return bakiPositif / yearlyRetirementExpense;
+            const x = bakiPositif * realReturn / (yearlyRetirementExpense * (1 + realReturn));
+            return x >= 1 ? 60 : Math.min(60, -Math.log(1 - x) / Math.log(1 + realReturn));
+          })();
           const exhaustAge = retireAge + yearsItWillLast;
 
-          const totalFutureNeeds = unjuranTotalDebts + futureEduCostTotal + retirementCorpusNeeded + totalRetirementHealthNeeds;
-          const retirementShortfall = Math.max(0, (unjuranTotalDebts + retirementCorpusNeeded + totalRetirementHealthNeeds) - futureAssetsAfterEducation);
+          const totalFutureNeeds = unjuranTotalDebts + Math.max(0, eduNetAtRetire) + retirementCorpusNeeded + totalRetirementHealthNeeds;
+          const retirementShortfall = Math.max(0, retirementCorpusNeeded - bakiUntukBersara);
           
           let financialScore = 0;
 
@@ -728,8 +750,14 @@ if (rdb.monthlyBudget === undefined) {
             'Kritikal';
 
           const monthsToRetire = Math.max(1, yearsToRetire * 12);
-          const extraSavingsNeeded = Number.isFinite(retirementShortfall) ? retirementShortfall / monthsToRetire : 0;
-          const sustainableMonthlyExpense = yearsInRetirement > 0 ? (bakiUntukBersara / (yearsInRetirement * 12)) : 0;
+          const rm = Math.pow(1 + rA, 1 / 12) - 1;
+          const extraSavingsNeeded = retirementShortfall > 0
+            ? (rm === 0 ? retirementShortfall / monthsToRetire : retirementShortfall * rm / (Math.pow(1 + rm, monthsToRetire) - 1))
+            : 0;
+          // Bajet bulanan yang mampu dikekalkan sehingga jangka hayat, dalam nilai RINGGIT HARI INI
+          const sustainableMonthlyExpense = annuityDue(realReturn, yearsInRetirement) > 0
+            ? (bakiPositif / annuityDue(realReturn, yearsInRetirement) / 12) / Math.pow(1 + inflationRate / 100, yearsToRetire)
+            : 0;
 
           // --- PENGIRAAN FARAID & PENYUCIAN HARTA ---
           const totalZakatable = jumlahAset(asetList.filter(a => kategoriAset(a.name) !== 'kwsp'));
@@ -819,10 +847,11 @@ if (rdb.monthlyBudget === undefined) {
           const spouseFaraidAmount = spouseFaraidObj ? spouseFaraidObj.amount : 0;
           
           const totalSpouseSurvivalFund = sepencarianAmount + spouseFaraidAmount + currentTakaful;
-          const familySurvivalNeeds = futureMonthlyExpenses * 12 * Math.min(10, Math.max(5, childrenData.length * 2));
+          const familySurvivalNeeds = currentMonthlyExpenses * 12 * Math.min(10, Math.max(5, childrenData.length * 2));
           const incomeProtectionGap = Math.max(0, familySurvivalNeeds - totalSpouseSurvivalFund);
 
-          const formatRM = (val) => "RM " + (parseFloat(val) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const formatRM = (val) => { const n = parseFloat(val); return "RM" + (Number.isFinite(n) ? n : 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+          const formatUmur = (v) => String(Math.max(0, Math.floor(Number.isFinite(v) ? v : 0)));
           const faraidColors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#f97316', '#64748b'];
 
           // Fungsi Aset & Hutang & Anak
@@ -941,7 +970,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                     <section><h2 className="text-xl font-bold border-b mb-3">Profil: Umur {age}, Gaji {formatRM(annualIncome)}/thn, Anak {childrenData.length}</h2></section>
                     <section><h2 className="text-xl font-bold border-b mb-3">DSR: {debtAnalysisResult.dsr.toFixed(1)}% ({debtAnalysisResult.dsr > 60 ? 'Kritikal' : 'Sihat'})</h2></section>
                     <section><h2 className="text-xl font-bold border-b mb-3">Harta Bersih: {formatRM(currentNetWorth)}</h2></section>
-                    <section><h2 className="text-xl font-bold border-b mb-3">Dana Bersara: {exhaustAge < lifeExpectancy ? `Defisit ${formatRM(retirementShortfall)}` : 'Mencukupi'}</h2></section>
+                    <section><h2 className="text-xl font-bold border-b mb-3">Dana Bersara: {retirementShortfall > 0 ? `Defisit ${formatRM(retirementShortfall)}` : 'Mencukupi'}</h2></section>
                 </div>
               </div>
             );
@@ -1019,7 +1048,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                                   <option value="lelaki">Lelaki</option><option value="perempuan">Perempuan</option>
                                 </select>
                               </div>
-                              <Input label="Umur Semasa" value={age} onChange={e => setAge(toNumber(e.target.value))} />
+                              <Input label="Umur Semasa" integer value={age} onChange={e => setAge(toNumber(e.target.value))} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <Input label="Gaji Hakiki (Bln)" value={gajiHakiki} onChange={e => setGajiHakiki(toNumber(e.target.value))} prefix="RM" />
@@ -1048,7 +1077,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                             {childrenData.map((child, index) => (
                               <div key={child.id} className="flex items-end gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
                                 <div className="flex-1">
-                                  <Input label={child.name ? `Umur ${child.name}` : `Umur Anak ${index + 1}`} value={child.age} onChange={e => setChildrenData(childrenData.map(c => c.id === child.id ? { ...c, age: toNumber(e.target.value) } : c))} />
+                                  <Input label={child.name ? `Umur ${child.name}` : `Umur Anak ${index + 1}`} integer value={child.age} onChange={e => setChildrenData(childrenData.map(c => c.id === child.id ? { ...c, age: toNumber(e.target.value) } : c))} />
                                 </div>
                                 <div className="flex-1">
                                   <label className="text-sm font-semibold text-slate-700 block mb-1">Jantina</label>
@@ -1093,8 +1122,8 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                         <Card>
                         <SectionHeader title="Matlamat Persaraan" icon={Wallet} description="Tetapan sasaran kewangan masa depan anda." />
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <Input label="Umur Sasaran Bersara" value={retireAge} onChange={e => setRetireAge(toNumber(e.target.value))} />
-                          <Input label="Jangka Hayat" value={lifeExpectancy} onChange={e => setLifeExpectancy(toNumber(e.target.value))} />
+                          <Input label="Umur Sasaran Bersara" integer value={retireAge} onChange={e => setRetireAge(toNumber(e.target.value))} />
+                          <Input label="Jangka Hayat" integer value={lifeExpectancy} onChange={e => setLifeExpectancy(toNumber(e.target.value))} />
                           <Input label="Kadar Inflasi (%)" value={inflationRate} onChange={e => setInflationRate(toNumber(e.target.value))} />
                           <Input label="Pulangan Aset (%)" value={assetReturnRate} onChange={e => setAssetReturnRate(toNumber(e.target.value))} />
                         </div>
@@ -1633,18 +1662,18 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                         <h3 className="text-lg font-bold text-blue-900 mb-4 border-b border-blue-200 pb-2 flex items-center gap-2"><TrendingUp className="text-blue-600" /> Ketahanan Dana Masa Depan & Persaraan</h3>
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
                           <div className="lg:col-span-1 bg-white p-6 rounded-xl border border-blue-100 shadow-sm text-center h-full flex flex-col justify-center">
-                            <p className="text-slate-600 mb-2 text-sm">Dengan sasaran perbelanjaan <strong>{formatRM(futureMonthlyExpenses)}/bulan</strong>, dana persaraan anda mampu bertahan selama:</p>
-                            <p className={`font-extrabold text-5xl mb-2 ${exhaustAge >= lifeExpectancy ? 'text-sky-600' : 'text-red-500'}`}>
-                              {yearsItWillLast.toFixed(1)} Tahun
+                            <p className="text-slate-600 mb-2 text-sm">Dengan sasaran perbelanjaan <strong>{formatRM(futureMonthlyExpenses)}/bulan</strong> (nilai pada umur bersara), dana persaraan anda mampu bertahan selama:</p>
+                            <p className={`font-extrabold text-5xl mb-2 ${retirementShortfall <= 0 ? 'text-sky-600' : 'text-red-500'}`}>
+                              {formatUmur(yearsItWillLast)} Tahun
                             </p>
-                            <p className="text-sm text-slate-500">Akan habis pada umur: <strong className={exhaustAge >= lifeExpectancy ? 'text-sky-600' : 'text-red-500'}>{Math.floor(exhaustAge)}</strong></p>
+                            <p className="text-sm text-slate-500">Akan habis pada umur: <strong className={retirementShortfall <= 0 ? 'text-sky-600' : 'text-red-500'}>{retirementShortfall <= 0 ? `${lifeExpectancy}+` : formatUmur(exhaustAge)}</strong></p>
                           </div>
                           <div className="lg:col-span-2">
-                            {exhaustAge < lifeExpectancy ? (
+                            {retirementShortfall > 0 ? (
                               <div className="space-y-4">
                                 <div className="text-sm text-red-700 bg-red-50 p-3 rounded-lg border border-red-100 flex gap-2">
                                   <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                                  <span><strong>Defisit {Math.max(0, lifeExpectancy - exhaustAge).toFixed(1)} Tahun!</strong> Dana anda kekurangan <strong className="text-red-600">{formatRM(retirementShortfall)}</strong> untuk capai umur {lifeExpectancy} tahun. Berikut adalah pelan tindakan anda:</span>
+                                  <span><strong>Defisit {Math.max(0, lifeExpectancy - Math.floor(exhaustAge))} Tahun!</strong> Dana anda kekurangan <strong className="text-red-600">{formatRM(retirementShortfall)}</strong> untuk capai umur {lifeExpectancy} tahun. Berikut adalah pelan tindakan anda:</span>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="p-4 bg-white border-l-4 border-sky-500 rounded-lg shadow-sm">
@@ -1652,7 +1681,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                                     <p className="text-2xl font-bold text-sky-600">+{formatRM(extraSavingsNeeded)}<span className="text-sm">/bln</span></p>
                                   </div>
                                   <div className="p-4 bg-white border-l-4 border-amber-500 rounded-lg shadow-sm">
-                                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Opsyen B: Downsize Bajet</p>
+                                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Opsyen B: Downsize Bajet (nilai hari ini)</p>
                                     <p className="text-2xl font-bold text-amber-600">{formatRM(sustainableMonthlyExpense)}<span className="text-sm">/bln</span></p>
                                   </div>
                                 </div>
