@@ -1666,6 +1666,29 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             const ml = jun - lebarBawah / 2;
             if (ml >= 0) bawah.style.marginLeft = ml + 'px';
             else kolKiri.style.marginLeft = (-ml) + 'px';
+            // Garisan suami-isteri ayah & ibu: satu garisan, diukur terus dari kedudukan sebenar kad
+            const kb = wrap.querySelector('.nasab-bapa .mh-card'), ki = wrap.querySelector('.nasab-ibu .mh-card');
+            if (kb && ki) {
+                const s = sambung.getBoundingClientRect(), cb = kb.getBoundingClientRect(), ci = ki.getBoundingClientRect();
+                sambung.style.setProperty('--gy', Math.round((cb.top + cb.height / 2) - s.top - 0.5) + 'px');
+                sambung.style.setProperty('--gx', Math.round(cb.right - s.left) + 'px');
+                sambung.style.setProperty('--gw', Math.round(ci.left - cb.right) + 'px');
+            }
+            ruang.style.zoom = zoomAsal;
+        };
+
+        // Tulang belakang senarai anak menegak: satu garisan setiap senarai, hujungnya tepat pada garis pendek baris terakhir
+        const rapikanSpine = () => {
+            const zoomAsal = ruang.style.zoom;
+            ruang.style.zoom = 1;
+            ruang.querySelectorAll('.anak-menegak').forEach(l => {
+                const baris = l.querySelectorAll(':scope > .baris-anak');
+                if (!baris.length) return;
+                const akhir = baris[baris.length - 1];
+                const topStub = parseFloat(getComputedStyle(akhir, '::before').top) || 27;
+                const h = akhir.getBoundingClientRect().top - l.getBoundingClientRect().top + topStub + 1;
+                l.style.setProperty('--spine', Math.round(h) + 'px');
+            });
             ruang.style.zoom = zoomAsal;
         };
 
@@ -1677,6 +1700,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
 
         ruang.innerHTML = `<div class="tree pokok-besar">${htmlSisi}</div>${htmlBar}`;
         rapikanNasab();
+        rapikanSpine();
         window.autoMuat();
 
     } catch (error) {
