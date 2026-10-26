@@ -122,7 +122,15 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const APP_CONFIG = { appName: "myPERSONALITIkids", defaultIcon: "brain" };
 
 $('logo-container').innerHTML = `<i data-lucide="${APP_CONFIG.defaultIcon}" class="w-6 h-6"></i> <span>${APP_CONFIG.appName}</span>`;
-$('kembali').href = URL_MYKIDS;
+$('kembali').onclick = (e) => {
+    e.preventDefault();
+    // Semak jika pengguna datang dari link dalam domain yang sama
+    if (document.referrer && document.referrer.includes(window.location.hostname)) {
+        window.location.href = document.referrer;
+    } else {
+        window.location.href = URL_MYKIDS; // Fallback ke myKids
+    }
+};
 $('link-mynasab').href = URL_MYNASAB;
 document.title = `Ujian Personaliti | ${APP_CONFIG.appName}`;
 
