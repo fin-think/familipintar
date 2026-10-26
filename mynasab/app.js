@@ -1173,6 +1173,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             const h = n.relationship || '';
             if (uidAdikCantum.has(n.owner_uid)) {
                 if (n.is_root) return 'Adik-beradik';
+                if (/^(abang|kakak|adik|adik-beradik)$/i.test(h)) return 'Adik-beradik';
                 if (/suami|isteri|menantu/i.test(h)) return 'Ipar';
                 if (h === 'Anak') return 'Anak saudara';
                 if (h === 'Cucu') return 'Cucu saudara';
@@ -1401,18 +1402,41 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
 
         const binaSisi = (judul, jangkar, ibuBapa, sisa, sasaranIdSisi) => {
             const belahSaya = sasaranIdSisi === sasaranIdPusat;
+            const kunci = (n) => String((n && n.name) || '').trim().toLowerCase();
+            const sudahAdik = new Set([kunci(jangkar.k.diri)]);
             // Setiap entri: t = tarikh lahir (untuk susun), jangkar = pemilik pokok, bina(sisiKiri) = HTML
             const entri = [{ t: tarikh(jangkar.penentu), jangkar: true, bina: () => binaRumah(jangkar.k, jangkar.orang, false) }];
 
+            // Adik-beradik yang direkod manual dalam sesebuah akaun (abang/kakak/adik + ipar + anak saudara)
+            const tambahAdikManual = (kSumber) => {
+                (kSumber.adikBeradik || []).forEach(adik => {
+                    const kk = kunci(adik);
+                    if (sudahAdik.has(kk)) return;      // elak muncul dua kali
+                    sudahAdik.add(kk);
+                    const kAdik = {
+                        diri: adik,
+                        pasangan: kSumber.ipar.filter(i => i.ref_id === adik.id),
+                        menantu: kSumber.ipar,
+                        turun: [
+                            kSumber.anakSaudara.filter(c => c.ref_id === adik.id),
+                            kSumber.cucuSaudara,
+                            [], [], []
+                        ]
+                    };
+                    entri.push({ t: tarikh(adik), bina: (kiri) => binaRumahMenegak(kAdik, adik, kAdik.pasangan, false, kiri) });
+                });
+            };
+            
             // 1. Adik Beradik dari Pautan (Akaun Luar: jemputan mynasab_links)
             akaun.filter(a => a.sasaran === sasaranIdSisi && a.uid !== jangkar.k.diri.owner_uid).forEach(a => {
                 const kAkaun = kelompok(a.nod);
                 if (!kAkaun.diri) return;
-
-                if (sembunyi.includes(a.uid)) {
-                    hiddenList.push({ uid: a.uid, nama: kAkaun.diri.name });
-                    return;
+                
+                if (sembunyi.includes(a.uid)) { 
+                    hiddenList.push({ uid: a.uid, nama: kAkaun.diri.name }); 
+                    return; 
                 }
+                sudahAdik.add(kunci(kAkaun.diri));
                 entri.push({ t: tarikh(kAkaun.diri), bina: (kiri) => binaRumahMenegak(kAkaun, kAkaun.diri, kAkaun.pasangan, a.uid !== saya, kiri) });
             });
 
@@ -1422,6 +1446,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
                     hiddenList.push({ uid: indukUid, nama: kInduk.diri.name });
                 } else {
                     const sasaranNode = nodInduk.find(n => n.id === sasaranIdPusat) || kInduk.diri;
+                    sudahAdik.add(kunci(kInduk.diri));
                     entri.push({ t: tarikh(sasaranNode), bina: (kiri) => binaRumahMenegak(kInduk, kInduk.diri, kInduk.pasangan, true, kiri) });
                 }
             }
@@ -1430,27 +1455,20 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             if (belahSaya) {
                 cantumAdik.forEach(c => {
                     if (sembunyi.includes(c.uid)) { hiddenList.push({ uid: c.uid, nama: c.k.diri.name }); return; }
+                    sudahAdik.add(kunci(c.k.diri));
                     entri.push({ t: tarikh(c.k.diri), bina: (kiri) => binaRumahMenegak(c.k, c.k.diri, c.k.pasangan, true, kiri) });
                 });
             }
 
-            // 2. Adik Beradik Manual (ditambah dalam akaun sendiri) - hanya belah saya
-            if (belahSaya && jangkar.k.adikBeradik && jangkar.k.adikBeradik.length > 0) {
-                jangkar.k.adikBeradik.forEach(adik => {
-                    const kAdik = {
-                        diri: adik,
-                        pasangan: jangkar.k.ipar.filter(i => i.ref_id === adik.id),
-                        menantu: jangkar.k.ipar,
-                        turun: [
-                            jangkar.k.anakSaudara.filter(c => c.ref_id === adik.id),
-                            jangkar.k.cucuSaudara,
-                            [], [], []
-                        ]
-                    };
-                    entri.push({ t: tarikh(adik), bina: (kiri) => binaRumahMenegak(kAdik, adik, kAdik.pasangan, false, kiri) });
-                });
+            // 2. Adik Beradik Manual - hanya belah saya
+            if (belahSaya) {
+                tambahAdikManual(jangkar.k);
+                // 3. Adik-beradik manual milik akaun lain yang sepokok: kakak/abang/adik yang induk rekodkan
+                cantumAdik.forEach(c => { if (!sembunyi.includes(c.uid)) tambahAdikManual(c.k); });
+                // Jika saya dijemput sebagai adik-beradik induk (bukan pasangan), adik-beradik induk juga adik-beradik saya
+                if (!sayaInduk && sasaranIdPusat === indukRootId && !sembunyi.includes(indukUid)) tambahAdikManual(kInduk);
             }
-
+            
             entri.sort((x, y) => x.t - y.t);
             const idxJangkar = entri.findIndex(e => e.jangkar);
 
