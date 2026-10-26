@@ -1382,8 +1382,13 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
 
         // sisiKiri = true  -> adik-beradik ini berada di KIRI pemilik: pasangan di sebelah kiri (luar)
         // sisiKiri = false -> di KANAN pemilik: pasangan di sebelah kanan (luar)
+        // false = lelaki sentiasa di kiri (sama seperti kad lain). true = pasangan di sebelah luar, jauh dari pemilik pokok.
+        const PASANGAN_DI_LUAR = false;
+
         const binaRumahMenegak = (k, diri, pasanganArr, bolehSembunyi, sisiKiri) => {
-            const orang = sisiKiri ? [...susunKiri(pasanganArr), diri] : [diri, ...susunKiri(pasanganArr)];
+            const orang = PASANGAN_DI_LUAR
+                ? (sisiKiri ? [...susunKiri(pasanganArr), diri] : [diri, ...susunKiri(pasanganArr)])
+                : susunKiri([diri, ...pasanganArr]);
             const n = orang.length;
             const salinan = k.turun.map(a => [...a]);
             const idx = salinan.findIndex(a => a.length > 0);
