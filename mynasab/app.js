@@ -125,9 +125,11 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         penggunaSemasa = null;
         // JANGAN tendang ke muka depan jika dia ada link jemputan
-        if (!sessionStorage.getItem('simpanJemput') && !new URLSearchParams(location.search).get('jemput')) {
-            window.location.href = "../index.html";
-        }
+        if (!sessionStorage.getItem('simpanJemput')
+    && !new URLSearchParams(location.search).get('jemput')
+    && !new URLSearchParams(location.search).get('daftar')) {
+    window.location.href = "../index.html";
+}
     }
 });
 
