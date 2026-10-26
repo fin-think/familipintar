@@ -557,11 +557,11 @@
     let namaInduk = "Induk";
     let namaPasangan = "Pasangan";
     
-    // Status Akses Seumur Hidup
-    let laporanEksekutifUnlocked = false; 
-    let historyUnlocked = false;
-    let yearlyUnlocked = false;
-    let pendingFitur = null; // Menyimpan jenis fitur yang nak dibeli
+    // Status Akses Seumur Hidup (Global)
+    window.laporanEksekutifUnlocked = false; 
+    window.historyUnlocked = false;
+    window.yearlyUnlocked = false;
+    let pendingFitur = null; 
 
     const todayLocal = new Date();
     const localOffset = todayLocal.getTimezoneOffset() * 60000;
@@ -592,7 +592,6 @@
     btnRadios.forEach(radio => radio.addEventListener('change', kemaskiniSenaraiKategori));
     kemaskiniSenaraiKategori(); 
 
-    // --- LOGIK NAMA SEBENAR ---
     async function muatNamaPengguna() {
         if (!currentUser) return;
         try {
@@ -619,7 +618,6 @@
         } catch(e) { console.error("Gagal muat nama:", e); }
     }
 
-    // --- LOGIK PAYWALL OURMONEY ---
     window.semakStatusLangganan = async (uid) => {
         try {
             const userDoc = await getDoc(doc(db, "mynasab_users", uid));
@@ -673,10 +671,10 @@
                     const masaSekarang = new Date().getTime();
                     const tambah30Hari = masaSekarang + (30 * 24 * 60 * 60 * 1000);
                     await setDoc(userRef, { credit_balance: baki - 20, ourmoney_expiry_date: tambah30Hari }, { merge: true });
-                    alert("Pembaharuan berjaya! 20 Kredit telah dipotong dari akaun anda.");
+                    alert("Pembaharuan berjaya! 20 Kredit telah dipotong dari akun Anda.");
                     document.getElementById('modalPaywall').style.display = 'none';
                 } else {
-                    alert("Kredit tidak mencukupi. Baki semasa anda: " + baki + " Kredit.");
+                    alert("Kredit tidak mencukupi. Baki saat ini: " + baki + " Kredit.");
                     window.location.href = "../topup.html";
                 }
             }
@@ -696,11 +694,11 @@
                 const uDoc = await getDoc(doc(db, "mynasab_users", user.uid));
                 if (uDoc.exists()) {
                     let d = uDoc.data();
-                    laporanEksekutifUnlocked = d.ourmoney_report_unlocked || false;
-                    historyUnlocked = d.ourmoney_history_unlocked || false;
-                    yearlyUnlocked = d.ourmoney_yearly_unlocked || false;
+                    window.laporanEksekutifUnlocked = d.ourmoney_report_unlocked === true;
+                    window.historyUnlocked = d.ourmoney_history_unlocked === true;
+                    window.yearlyUnlocked = d.ourmoney_yearly_unlocked === true;
                 }
-            } catch(e) {}
+            } catch(e) { console.error("Ralat membaca status fitur:", e); }
 
             semakTnC();
             await muatNamaPengguna();
@@ -851,7 +849,6 @@
             document.getElementById('txnNote').value = '';
             window.buangGambar();
             
-            // JIKA TAHUNAN, refresh tahunan, jika bulan, refresh bulan
             if(modPaparan === 'tahun') lihatTahunan();
             else muatDataOurMoney();
             
@@ -901,12 +898,11 @@
                 if (baki >= cost) { 
                     await updateDoc(userRef, updateObj);
                     
-                    if (pendingFitur === 'history') historyUnlocked = true;
-                    if (pendingFitur === 'yearly') yearlyUnlocked = true;
+                    if (pendingFitur === 'history') window.historyUnlocked = true;
+                    if (pendingFitur === 'yearly') window.yearlyUnlocked = true;
                     
                     document.getElementById('modalBeliFitur').style.display = 'none';
                     
-                    // Teruskan action asal
                     if (pendingFitur === 'history') window.tukarBulanPaparan(true);
                     if (pendingFitur === 'yearly') window.lihatTahunan(true);
                     
@@ -923,9 +919,8 @@
 
     window.tukarBulanPaparan = (skipCheck = false) => {
         const filterVal = document.getElementById('filterBulan').value;
-        // JIKA BULAN LEPAS DAN BELUM UNLOCK
-        if (filterVal < bulanIniStr && !historyUnlocked && !skipCheck) {
-            document.getElementById('filterBulan').value = bulanIniStr; // revert ke asal
+        if (filterVal < bulanIniStr && !window.historyUnlocked && !skipCheck) {
+            document.getElementById('filterBulan').value = bulanIniStr; 
             window.bukaBeliFitur('history');
             return;
         }
@@ -934,11 +929,10 @@
     };
 
     window.lihatTahunan = (skipCheck = false) => {
-        if (!yearlyUnlocked && !skipCheck) {
+        if (!window.yearlyUnlocked && !skipCheck) {
             window.bukaBeliFitur('yearly');
             return;
         }
-        // JIKA DAH UNLOCK, KITA BUKA MODAL PRINT PREVIEW
         bukaPreviewTahunan();
     };
 
@@ -964,7 +958,6 @@
                     list.push(data);
                 }
             });
-            // Sort menaik (ascending) untuk cetakan logik
             list.sort((a, b) => a.date.localeCompare(b.date)); 
             
             list.forEach(t => {
@@ -1050,7 +1043,6 @@
             const filterVal = document.getElementById('filterBulan').value || bulanIniStr; 
             const tahunVal = filterVal.substring(0, 4); 
 
-            // Paparan utama hanya menunjukkan bulan
             document.getElementById('tajuk-transaksi').innerText = "📋 Transaksi Bulan " + filterVal;
             document.getElementById('tajuk-dashboard').innerText = "📊 Aliran Tunai Bulan " + filterVal;
             
@@ -1063,11 +1055,9 @@
             let bankIn = 0; let bankOut = 0;
             let listSemasa = [];
             
-            // Variabel Laporan Eksekutif
             let arraySemasa = [];
             let arrayLepas = [];
             
-            // Kira Bulan Lepas
             const [yStr, mStr] = filterVal.split('-');
             let mPrev = parseInt(mStr) - 1;
             let yPrev = parseInt(yStr);
@@ -1165,7 +1155,7 @@
                         credit_balance: increment(-10),
                         ourmoney_report_unlocked: true 
                     });
-                    laporanEksekutifUnlocked = true;
+                    window.laporanEksekutifUnlocked = true;
                     
                     document.getElementById('report-lock').classList.add('hidden');
                     document.getElementById('report-content').classList.remove('hidden');
@@ -1183,7 +1173,7 @@
     }
 
     function siapkanLaporanEksekutif(arrCur, arrPrev, totalOutCur) {
-        if(!laporanEksekutifUnlocked) {
+        if(!window.laporanEksekutifUnlocked) {
             document.getElementById('report-lock').classList.remove('hidden');
             document.getElementById('report-content').classList.add('hidden');
             document.getElementById('btn-unlock-report').innerText = "Buka Akses Seumur Hidup (10 Kredit)";
@@ -1258,3 +1248,4 @@
 </script>
 </body>
 </html>
+
