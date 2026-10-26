@@ -408,14 +408,12 @@
     content: ''; position: absolute; left: -22px; top: 27px; width: 37px;
     border-top: 1px solid #a0a0a0; z-index: 1;
 }
-/* tulang belakang (satu segmen setiap baris) */
-.anak-menegak > .baris-anak::after {
-    content: ''; position: absolute; left: -22px; top: -14px; bottom: 0;
+/* tulang belakang: SATU garisan sahaja setiap senarai (tinggi diukur oleh JS, elak bezanya 1px antara baris) */
+.anak-menegak { position: relative; }
+.anak-menegak::after {
+    content: ''; position: absolute; left: 0; top: 0; height: var(--spine, 0px);
     border-left: 1px solid #a0a0a0; z-index: 1;
 }
-.anak-menegak > .baris-anak:first-child::after { top: -16px; }
-.anak-menegak > .baris-anak:last-child::after { bottom: auto; height: 41px; }
-.anak-menegak > .baris-anak:first-child:last-child::after { height: 43px; }
 
 /* Pan (seret) */
 #kertasCetak { cursor: grab; touch-action: pan-x pan-y; }
@@ -456,20 +454,18 @@
     display: block !important; border: 0 !important; border-left: 1px solid #a0a0a0 !important;
 }
 
-/* garis suami-isteri antara ayah & ibu + garis turun ke baris adik-beradik */
-.nasab-bapa::after, .nasab-ibu::before {
-    content: ''; position: absolute; bottom: var(--mid); width: 25px;
-    border-top: 1px solid #a0a0a0; z-index: 1;
-}
-.nasab-bapa::after { left: calc(100% - 15px); }
-.nasab-ibu::before { right: calc(100% - 15px); }
+/* garis suami-isteri ayah & ibu: SATU garisan mendatar (kedudukan diukur oleh JS) + garis turun ke baris adik-beradik */
 .nasab-sambung { position: relative; align-self: stretch; width: 0; }
-.nasab-sambung::before, .nasab-sambung::after {
+.nasab-sambung::before {
     content: ''; position: absolute; z-index: 1;
-    top: calc(var(--k, 0) * var(--ht) + max(0, var(--k, 0) - 1) * 30px + 60px + var(--mid));
+    top: var(--gy, 0px); left: var(--gx, 0px); width: var(--gw, 0px);
+    border-top: 1px solid #a0a0a0;
 }
-.nasab-sambung::before { left: 0; right: 0; border-top: 1px solid #a0a0a0; }
-.nasab-sambung::after { left: 50%; bottom: 0; border-left: 1px solid #a0a0a0; transform: translateX(-50%); }
+.nasab-sambung::after {
+    content: ''; position: absolute; z-index: 1;
+    top: var(--gy, 0px); bottom: 0; left: 50%;
+    border-left: 1px solid #a0a0a0; transform: translateX(-50%);
+}
 
 .nasab-bawah { align-self: flex-start; }
 
