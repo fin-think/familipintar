@@ -2617,8 +2617,9 @@ window.pantauMesejBaru = (uid) => {
 // =========================================================
 // FASA 3: ENJIN CARTA DINAMIK (IKUT PERATURAN PREVIEW KELUARGA BESAR)
 // =========================================================
-window.bukaCartaDinamik = async () => {
+window.bukaCartaDinamik = async (modDipilih) => {
     if (!penggunaSemasa) return;
+    const mod = (modDipilih === 'besar') ? 'besar' : 'saya';   // lalai: Keluarga Saya
     if (window._cartaMN) { try { window._cartaMN.destroy(); } catch (e) {} window._cartaMN = null; }
     const ruang = document.getElementById('ruangCartaDinamik');
     document.getElementById('modalCartaDinamik').classList.remove('hidden');
@@ -2630,6 +2631,15 @@ window.bukaCartaDinamik = async () => {
         if (elTajuk) elTajuk.innerText = sah ? (ulang ? 'Carta Dinamik ' + n : 'Carta Dinamik Keluarga ' + n) : 'Carta Dinamik Keluarga';
     };
     setTajuk(document.getElementById('treeNameDisplay').innerText);
+        let barMod = document.getElementById('pilihModCarta');
+    if (!barMod && elTajuk) {
+        barMod = document.createElement('div');
+        barMod.id = 'pilihModCarta';
+        barMod.style.cssText = 'display:flex; gap:6px; margin-top:8px;';
+        elTajuk.parentElement.appendChild(barMod);
+    }
+    if (barMod) barMod.innerHTML = [['saya', 'Keluarga Saya'], ['besar', 'Keluarga Besar']].map(([m, t]) =>
+        `<button type="button" onclick="window.bukaCartaDinamik('${m}')" style="padding:5px 12px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer; border:1px solid ${m === mod ? '#0f766e' : '#cbd5e1'}; background:${m === mod ? '#0f766e' : '#fff'}; color:${m === mod ? '#fff' : '#334155'};">${t}</button>`).join('');
     ruang.innerHTML = '<p style="text-align:center; margin-top:40px; color:#2c3e50; font-weight:bold;">Menarik data dan memproses jaringan... <i class="fa-solid fa-spinner fa-spin"></i></p>';
 
     try {
@@ -2753,13 +2763,17 @@ window.bukaCartaDinamik = async () => {
             const diri = asal.find(n => n.is_root);
             if (!diri) return null;
 
+                        const SISI = ['ipar', 'anak saudara', 'cucu saudara', 'sepupu', 'dua pupuk', 'pasangan bapa saudara', 'pasangan mak saudara'];
             const dibenar = (n) => {
                 const j = jenis(n);
-                if (j === 'leluhur' || j === 'saudaraIbuBapa') return !!o.leluhur;
+                if (o.saya && (j === 'lain' || SISI.includes(rel(n)))) return false;
+                if (j === 'leluhur') return !!o.leluhur;
+                if (j === 'saudaraIbuBapa') return o.saudara !== undefined ? !!o.saudara : !!o.leluhur;
                 if (j === 'mertua') return !!o.mertua;
                 if (j === 'adik') return !!o.adik;
                 return true;
             };
+            
             let nod = asal.filter(dibenar);
             const ids = new Set(nod.map(n => n.id));
             let ubah = true;
@@ -2826,6 +2840,19 @@ window.bukaCartaDinamik = async () => {
             return h;
         };
 
+        if (mod === 'saya') {
+            // Sama seperti Preview "Keluarga Saya": leluhur, pasangan (+mertua), anak cucu. Tiada adik-beradik.
+            let senaraiSaya = nodSaya;
+            if (!sayaInduk && !sasaranPasangan && !nodSaya.some(n => jenis(n) === 'leluhur')) {
+                // akaun jemputan yang salinan ibu bapanya tiada: ambil leluhur daripada pengundang
+                senaraiSaya = [...nodSaya, ...nodInduk.filter(n => jenis(n) === 'leluhur')];
+                console.log('[Carta Dinamik] leluhur diambil daripada akaun pengundang');
+            }
+            prosesAkaun(senaraiSaya, { leluhur: true, mertua: true, adik: false, saudara: false, saya: true, label: labelSendiri });
+            console.log('[Carta Dinamik] mod saya | leluhur dalam akaun:', nodSaya.filter(n => jenis(n) === 'leluhur').length);
+        } else {
+        
+        
         // ---------- 5. BINA PETA DATA IKUT PERATURAN PREVIEW ----------
         // A. Akaun saya (sentiasa pusat)
         prosesAkaun(nodSaya, { tapisSalinan: !sayaInduk, leluhur: true, mertua: true, adik: true, label: labelSendiri });
@@ -2871,7 +2898,7 @@ window.bukaCartaDinamik = async () => {
             });
             if (r && adik) jadiAdikBeradik(peta.get(r.diri.id), peta.get(diriSaya.id));
         }
-
+        }
         // ---------- 5b. BERSIHKAN GRAF ----------
         const dataCarta = [...peta.values()];
         dataCarta.forEach(n => {
@@ -2918,6 +2945,16 @@ window.bukaCartaDinamik = async () => {
         // Susun ikut tarikh lahir: yang tertua dahulu; tanpa tarikh lahir di hujung
         const tkhLahir = (n) => { const t = n.dob ? new Date(n.dob).getTime() : NaN; return isNaN(t) ? Infinity : t; };
         dataCarta.sort((a, b) => { const x = tkhLahir(a), y = tkhLahir(b); return x === y ? 0 : (x < y ? -1 : 1); });
+
+        // Akar lalai: puncak garis keturunan akaun ini (bukan orang tertua dalam data)
+        let rootLalai = peta.get(diriSaya.id);
+        const lawatAtas = new Set();
+        while (rootLalai && !lawatAtas.has(rootLalai.id)) {
+            lawatAtas.add(rootLalai.id);
+            const atas = peta.get(rootLalai.fid) || peta.get(rootLalai.mid);
+            if (!atas) break;
+            rootLalai = atas;
+        }
         
         // ---------- 6. WARNA SAMA SEPERTI KAD PREVIEW ----------
         const T = FamilyTree.templates;
@@ -2941,6 +2978,7 @@ window.bukaCartaDinamik = async () => {
             template: 'mn_l',
             tags: { mn_l: { template: 'mn_l' }, mn_p: { template: 'mn_p' }, mn_n: { template: 'mn_n' } },
             scaleInitial: FamilyTree.match.boundary,
+            roots: (mod === 'besar' && rootLalai) ? [rootLalai.id] : null,
             nodeMouseClick: FamilyTree.action.none,
             nodeBinding: { field_0: "name", field_1: "title", field_2: "info", img_0: "img" },
             nodes: dataCarta
