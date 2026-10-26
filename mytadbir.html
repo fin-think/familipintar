@@ -914,6 +914,43 @@ if (rdb.monthlyBudget === undefined) {
           const simpanDanSyncKeOurMoney = async () => {
               setIsSaving(true);
               try {
+                  // --- MISI KEWANGAN: sasaran yang boleh dijejak dalam OurMoney ---
+                  // Setiap misi: target_fv (nilai pada tarikh sasaran), start_balance (dana khas sedia ada),
+                  // rate (% setahun), months (bulan ke sasaran). OurMoney kira simpanan bulanan & jejak kemajuan.
+                  const bangunMisi = () => {
+                      const goals = [];
+                      const bulanKe = (tahun) => Math.max(1, Math.round(tahun * 12));
+                      const tambah = (g) => {
+                          if (![g.target_fv, g.start_balance, g.rate, g.months].every(Number.isFinite)) return;
+                          g.target_fv = Math.round(g.target_fv * 100) / 100;
+                          g.start_balance = Math.round(g.start_balance * 100) / 100;
+                          goals.push(g);
+                      };
+                      // 1. Dana kecemasan: 6 bulan belanja ditolak tunai sedia ada, sasaran 12 bulan
+                      const kecemasan = Math.max(0, currentMonthlyExpenses * 6 - tunai);
+                      if (kecemasan > 0) tambah({ id: 'kecemasan', type: 'kecemasan', priority: 1, label: 'Dana Kecemasan (6 bulan belanja)', target_fv: kecemasan, start_balance: 0, rate: 0, months: 12 });
+                      // 2. Dana perubatan segera: kos kesihatan setahun (daripada myHEALTH)
+                      if (totalCurrentHealthLeakage > 0) tambah({ id: 'kesihatan_segera', type: 'kesihatan', priority: 2, label: 'Dana Perubatan Segera (kos setahun)', target_fv: totalCurrentHealthLeakage, start_balance: 0, rate: 0, months: 12 });
+                      // 3. Pendidikan: satu misi bagi setiap anak, dana SSPN/ASB diagih ikut kos
+                      const perAnak = childrenData.map((c, i) => {
+                          const yUni = Math.max(0, umurUniAnak(c) - c.age);
+                          return { c, i, yUni, fv: kosAnak(c) * Math.pow(1 + educationInflation / 100, yUni) };
+                      });
+                      const jumlahFv = perAnak.reduce((t, x) => t + x.fv, 0);
+                      perAnak.forEach(({ c, i, yUni, fv }) => {
+                          const alloc = jumlahFv > 0 ? totalEducationFundNow * fv / jumlahFv : 0;
+                          const perluLagi = fv - alloc * Math.pow(1 + rA, yUni);
+                          if (perluLagi > 1) tambah({ id: 'pendidikan_' + (c.id || i), type: 'pendidikan', priority: 3, label: 'Pendidikan ' + (c.name || 'Anak ' + (i + 1)), child_id: String(c.id || i), target_fv: fv, start_balance: alloc, rate: assetReturnRate, months: bulanKe(yUni) });
+                      });
+                      // 4 & 5. Persaraan: kekurangan selepas pendidikan dibiayai melalui misi sendiri (elak kira dua kali)
+                      const kurangTanpaEdu = Math.max(0, unjuranTotalDebts + retirementCorpusNeeded + totalRetirementHealthNeeds - futureLiquidAssets);
+                      const bhgKesihatan = Math.min(totalRetirementHealthNeeds, kurangTanpaEdu);
+                      const bhgPersaraan = kurangTanpaEdu - bhgKesihatan;
+                      if (bhgKesihatan > 1) tambah({ id: 'kesihatan_persaraan', type: 'kesihatan', priority: 4, label: 'Dana Kesihatan Persaraan', target_fv: bhgKesihatan, start_balance: 0, rate: assetReturnRate, months: bulanKe(yearsToRetire) });
+                      if (bhgPersaraan > 1) tambah({ id: 'persaraan', type: 'persaraan', priority: 5, label: 'Dana Persaraan (kekurangan)', target_fv: bhgPersaraan, start_balance: 0, rate: assetReturnRate, months: bulanKe(yearsToRetire) });
+                      return goals;
+                  };
+
                   const payload = {
                       owner_uid: user.uid,
                       raw_data: appData,
@@ -923,12 +960,15 @@ if (rdb.monthlyBudget === undefined) {
                           net_worth: currentNetWorth,
                           education_fund_needed: educationShortfall,
                           zakat_payable: zakatPayable,
+                          monthly_surplus: Number.isFinite(monthlyBalance) ? Math.round(monthlyBalance * 100) / 100 : 0,
+                          goals: bangunMisi(),
+                          goals_updated: Date.now(),
                           last_updated: Date.now()
                       }
                   };
                   // Kod Baru (Tambah { merge: true })
 await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), payload, { merge: true });
-                  alert("✅ Data berjaya disimpan!\n\nNilai Harta Bersih & Sasaran Kewangan anda kini telah disinkronisasi ke aplikasi OurMoney.");
+                  alert("✅ Data berjaya disimpan!\n\nNilai Harta Bersih, Sasaran Kewangan dan Misi Kewangan anda kini telah disinkronisasi ke aplikasi OurMoney.");
               } catch (e) {
                   console.error(e);
                   alert("Gagal menyimpan data ke pangkalan data. Sila pastikan sambungan internet anda stabil.");
@@ -1709,7 +1749,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                       </Card>
 
                       <Card>
-                        <h3 className="text-lg font-bold text-slate-800 mb-6 border-b pb-2 flex items-center gap-2"><PieChart className="text-sky-600" /> Pengurusan Harta & Faraid Waris (berdasarkan harta & waris semasa)</h3>
+                        <h3 className="text-lg font-bold text-slate-800 mb-6 border-b pb-2 flex items-center gap-2"><PieChart className="text-sky-600" /> Pengurusan Harta & Faraid Waris</h3>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                           <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
                             <h4 className="font-semibold text-slate-700 mb-3 border-b pb-2">Aliran Harta Pusaka Bersih</h4>
