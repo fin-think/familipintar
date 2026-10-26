@@ -385,7 +385,7 @@
                 <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
                 <h3 class="font-bold text-lg mb-2 text-white">Laporan Eksekutif Bulanan</h3>
                 <p class="text-sm text-slate-300 mb-4 px-2">Ketahui trend aliran tunai, perbandingan bulan lepas, kedudukan kategori bocor wang dan realiti tabiat perbelanjaan keluarga.</p>
-                <button onclick="tebusLaporanEksekutif()" id="btn-unlock-report" class="btn-unlock-report">Jana Laporan Penuh (1 Kredit)</button>
+                <button onclick="tebusLaporanEksekutif()" id="btn-unlock-report" class="btn-unlock-report">Buka Akses Seumur Hidup (10 Kredit)</button>
             </div>
             
             <div id="report-content" class="hidden">
@@ -454,7 +454,7 @@
             <p style="margin-top:4px;">OurMoney adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar kewangan, integrasi percutian, analisis bulanan dan storan gambar (resit) tertakluk kepada caj langganan sebanyak <b>20 Kredit / Sebulan</b>.</p>
 
             <b style="color:var(--ink); display:block; margin-top:12px;">2. Laporan Eksekutif Hujung Bulan</b>
-            <p style="margin-top:4px;">Menjana Laporan Eksekutif yang membandingkan tabiat dan aliran tunai dari bulan ke bulan akan dicaj <b>1 Kredit</b> bagi setiap janaan.</p>
+            <p style="margin-top:4px;">Menjana Laporan Eksekutif yang membandingkan tabiat dan aliran tunai dari bulan ke bulan akan dicaj <b>10 Kredit</b> sekali sahaja untuk akses seumur hidup.</p>
 
             <b style="color:var(--ink); display:block; margin-top:12px;">3. Privasi Data & Storan</b>
             <p style="margin-top:4px;">Kesemua rekod kewangan dan gambar resit yang dimuat naik akan disimpan secara selamat di bawah pengkalan data keluarga anda.</p>
@@ -514,7 +514,7 @@
     let selectedImageFile = null;
     let namaInduk = "Induk";
     let namaPasangan = "Pasangan";
-    let statusLaporanUnlock = false; // Status session laporan
+    
 
     const todayLocal = new Date();
     const localOffset = todayLocal.getTimezoneOffset() * 60000;
@@ -636,6 +636,8 @@
         } catch (e) { alert("Gagal memproses langganan: " + e.message); }
     };
 
+    let laporanEksekutifUnlocked = false; // Ganti pembolehubah statusLaporanUnlock lama
+
     onAuthStateChanged(auth, async (user) => {
         const authScreen = document.getElementById('authScreen');
         const mainApp = document.getElementById('mainApp');
@@ -644,6 +646,14 @@
             if (authScreen) authScreen.classList.add('hidden');
             if (mainApp) mainApp.classList.remove('hidden');
             
+            // SEMAK STATUS AKSES SEUMUR HIDUP DARI DATABASE
+            try {
+                const uDoc = await getDoc(doc(db, "mynasab_users", user.uid));
+                if (uDoc.exists()) {
+                    laporanEksekutifUnlocked = uDoc.data().ourmoney_report_unlocked || false;
+                }
+            } catch(e) {}
+
             semakTnC();
             await muatNamaPengguna();
             await muatDataMyTadbir(); 
@@ -972,7 +982,7 @@
         }
     }
 
-    // --- LOGIK LAPORAN EKSEKUTIF ---
+// --- LOGIK LAPORAN EKSEKUTIF (SEUMUR HIDUP) ---
     window.tebusLaporanEksekutif = async () => {
         if (!currentUser) return;
         const btn = document.getElementById('btn-unlock-report');
@@ -984,32 +994,38 @@
             const snap = await getDoc(userRef);
             if (snap.exists()) {
                 let baki = parseInt(snap.data().credit_balance) || 0;
-                if (baki >= 1) {
-                    await updateDoc(userRef, { credit_balance: increment(-1) });
-                    statusLaporanUnlock = true;
+                if (baki >= 10) { // Tolak 10 Kredit
+                    await updateDoc(userRef, { 
+                        credit_balance: increment(-10),
+                        ourmoney_report_unlocked: true // Simpan kunci seumur hidup
+                    });
+                    laporanEksekutifUnlocked = true;
                     
                     document.getElementById('report-lock').classList.add('hidden');
                     document.getElementById('report-content').classList.remove('hidden');
                 } else {
                     alert("Kredit tidak mencukupi. Baki anda: " + baki + ". Sila Top Up.");
-                    btn.innerText = "Jana Laporan Penuh (1 Kredit)";
+                    btn.innerText = "Buka Akses Seumur Hidup (10 Kredit)";
                     btn.disabled = false;
                 }
             }
         } catch (e) {
             alert("Ralat memproses: " + e.message);
-            btn.innerText = "Jana Laporan Penuh (1 Kredit)";
+            btn.innerText = "Buka Akses Seumur Hidup (10 Kredit)";
             btn.disabled = false;
         }
     }
 
     function siapkanLaporanEksekutif(arrCur, arrPrev, totalOutCur) {
         // Jika belum unlock, reset paparan lock
-        if(!statusLaporanUnlock) {
+        if(!laporanEksekutifUnlocked) {
             document.getElementById('report-lock').classList.remove('hidden');
             document.getElementById('report-content').classList.add('hidden');
-            document.getElementById('btn-unlock-report').innerText = "Jana Laporan Penuh (1 Kredit)";
+            document.getElementById('btn-unlock-report').innerText = "Buka Akses Seumur Hidup (10 Kredit)";
             document.getElementById('btn-unlock-report').disabled = false;
+        } else {
+            document.getElementById('report-lock').classList.add('hidden');
+            document.getElementById('report-content').classList.remove('hidden');
         }
 
         // Kalkulasi In/Out Prev & Cur
