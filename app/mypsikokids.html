@@ -323,11 +323,11 @@
             currentQuestionIndex = 0;
             totalScore = 0;
             $('quiz-for').textContent = S.anak[S.i].name;
-            document.getElementById('screen-welcome').classList.add('hidden');
+            
+            // Paparkan bar kemajuan dan tukar ke skrin soalan
             document.getElementById('progress-container').classList.remove('hidden');
-            document.getElementById('screen-quiz').classList.remove('hidden');
             showQuestion();
-            show('quiz');
+            show('quiz'); 
         }
 
         function showQuestion() {
@@ -413,7 +413,6 @@
             curRes = r;
             const a = S.anak[S.i];
             
-            // Generate teks berdasarkan score jika dari local cache/load
             if (!emojiVal) {
                 if (r.score >= 80) {
                     emojiVal = "🏆"; messageVal = "Markah adik menunjukkan adik seorang anak yang sangat menyayangi Ibu dan Ayah."; taskVal = "Pergi peluk Ibu dan Ayah sekarang!";
@@ -429,9 +428,8 @@
             $('result-message').innerText = messageVal;
             $('result-task').innerText = taskVal;
 
-            document.getElementById('screen-quiz').classList.add('hidden');
+            // Sembunyikan bar kemajuan, fungsi show() akan uruskan pertukaran skrin
             document.getElementById('progress-container').classList.add('hidden');
-            document.getElementById('screen-result').classList.remove('hidden');
 
             setStatus(dariSimpan ? 'Keputusan ini sudah disimpan di myKids.' : 'Menyimpan ke myKids...', true);
             show('result');
