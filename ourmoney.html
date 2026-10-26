@@ -1138,6 +1138,41 @@
         } catch(e) { console.error("Ralat muat transaksi:", e); }
     }
 
+function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
+        const barWrap = document.getElementById('health-bar-wrap');
+        const barOut = document.getElementById('bar-out');
+        const barSave = document.getElementById('bar-save');
+        const msgBox = document.getElementById('health-message');
+
+        if (pendapatan === 0) {
+            barWrap.style.display = 'none';
+            msgBox.className = 'health-msg msg-bad';
+            msgBox.innerHTML = 'Tiada data pendapatan. Sila rekod "Duit Masuk" (gaji/elaun/baki permulaan) untuk sistem menganalisis status kewangan anda.';
+            return;
+        }
+
+        barWrap.style.display = 'flex';
+        let pctOut = (belanja / pendapatan) * 100;
+        let pctSave = (simpanan / pendapatan) * 100;
+
+        barOut.style.width = Math.min(pctOut, 100) + '%';
+        barSave.style.width = Math.min(pctSave, 100 - Math.min(pctOut, 100)) + '%';
+
+        const bakiTinggal = pendapatan - belanja - simpanan;
+
+        if (bakiTinggal < 0) {
+            msgBox.className = 'health-msg msg-bad';
+            msgBox.innerHTML = `⚠️ <b>Kritikal!</b> Jumlah perbelanjaan dan komitmen percutian anda telah melebihi pendapatan bulan ini sebanyak <b>RM ${formatRM(Math.abs(bakiTinggal))}</b>. Anda berisiko menggunakan duit simpanan lama atau berhutang.`;
+        } else if (bakiTinggal < (pendapatan * 0.1)) {
+            msgBox.className = 'health-msg msg-bad';
+            msgBox.innerHTML = `⚠️ <b>Amaran:</b> Baki anda selepas ditolak belanja dan simpanan percutian hanya tinggal <b>RM ${formatRM(bakiTinggal)}</b>. Sila kurangkan perbelanjaan yang tidak perlu.`;
+        } else {
+            msgBox.className = 'health-msg msg-good';
+            msgBox.innerHTML = `✅ <b>Kewangan Sihat!</b> Baki selamat bulan ini adalah <b>RM ${formatRM(bakiTinggal)}</b>. Anda berada di landasan yang betul untuk mencapai sasaran kewangan keluarga anda.`;
+        }
+    }
+
+  
     // --- LOGIK LAPORAN EKSEKUTIF (SEUMUR HIDUP) ---
     window.tebusLaporanEksekutif = async () => {
         if (!currentUser) return;
