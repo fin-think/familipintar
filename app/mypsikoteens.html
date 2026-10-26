@@ -95,7 +95,15 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app), db = getFirestore(app);
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-$('kembali').href = URL_MYKIDS;
+$('kembali').onclick = (e) => {
+    e.preventDefault();
+    // Semak jika pengguna datang dari link dalam domain yang sama
+    if (document.referrer && document.referrer.includes(window.location.hostname)) {
+        window.location.href = document.referrer;
+    } else {
+        window.location.href = URL_MYKIDS; // Fallback ke myKids
+    }
+};
 $('link-mynasab').href = URL_MYNASAB;
 
 const SCREENS = ['loading','login','noanak','home','quiz','result'];
