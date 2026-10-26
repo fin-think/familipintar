@@ -1003,7 +1003,7 @@
     </div> <!-- Ini penutup dashboardUtama -->
 
     <!-- Muatkan app.js -->
-    <script type="module" src="app.js?v=18"></script>
+    <script type="module" src="app.js?v=19"></script>
     
     <!-- Skrip UI Mudah -->
     <script>
@@ -1025,6 +1025,11 @@ if (kodJemput) {
     document.getElementById('authModal').classList.remove('hidden');
     tukarModAuth();
 }
+if (!kodJemput && new URLSearchParams(location.search).get('daftar')) {
+    document.getElementById('welcomeScreen').style.display = 'none';
+    document.getElementById('authModal').classList.remove('hidden');
+    tukarModAuth();
+}   
 
 document.getElementById('authForm').addEventListener('submit', function (e) {
     e.preventDefault();
