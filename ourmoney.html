@@ -25,59 +25,21 @@
 
   .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px; position: relative; z-index: 1; }
 
- /* Pengepala Penuh (Full Width) */
-  /* Pengepala Penuh (Full Width) - 2 Tone Color */
   .top-nav {
-      /* Gunakan kod warna myTADBIR: dari indigo-950 ke slate-900 ke blue-950 */
       background: linear-gradient(to right, #1e1b4b, #0f172a, #172554); 
-      padding: 24px 40px; /* Padding yang cukup untuk nampak premium */
+      padding: 24px 40px; 
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       position: sticky;
       top: 0;
       z-index: 50;
-      width: 100%; /* Wajib letak supaya dia paksa panjang sampai hujung */
+      width: 100%; 
       margin-bottom: 30px;
   }
   
-  .nav-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-  }
-  
-  .nav-container h1 {
-      font-size: 1.8rem;
-      font-weight: 900;
-      color: #34d399; /* Warna hijau premium */
-      line-height: 1.1;
-      margin-bottom: 2px;
-  }
-  .nav-container p {
-      font-size: 0.85rem;
-      color: #94a3b8;
-      font-weight: 600;
-  }
-  .btn-kembali {
-      background: #0ea5e9;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 99px;
-      font-weight: 800;
-      font-size: 0.85rem;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(14,165,233,0.3);
-      transition: 0.2s;
-      white-space: nowrap;
-  }
-  .btn-kembali:hover {
-      background: #0284c7;
-      transform: translateY(-2px);
-  }
+  .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+  .btn-kembali { background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 99px; font-weight: 800; font-size: 0.85rem; cursor: pointer; box-shadow: 0 4px 10px rgba(14,165,233,0.3); transition: 0.2s; white-space: nowrap; }
+  .btn-kembali:hover { background: #0284c7; transform: translateY(-2px); }
 
-  /* Grid Utama */
   .layout-utama { display: flex; flex-direction: column; gap: 24px; align-items: stretch; }
   .kolum-kiri, .kolum-kanan { width: 100%; display: flex; flex-direction: column; gap: 20px; }
   
@@ -85,22 +47,18 @@
     .container { padding-left: 32px; padding-right: 32px; }
     .layout-utama { flex-direction: row; align-items: flex-start; }
     .kolum-kiri { flex: 1 1 0; }
-    /* DIKEMAS KINI: Dilebarkan dari 400px ke 480px */
     .kolum-kanan { flex: 0 0 480px; width: 480px; position: sticky; top: 20px; } 
   }
 
-  /* Kad Komponen */
   .card { background: var(--card-bg); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--line); }
   .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 2px dashed var(--line); padding-bottom: 12px; }
   .card-header h2 { font-size: 1.2rem; font-weight: 800; color: var(--ink); }
 
-  /* Filter Ruangan Transaksi */
   .filter-wrap { display: flex; gap: 10px; margin-bottom: 15px; }
   .filter-wrap input[type="month"] { flex: 1; padding: 10px; border: 1.5px solid var(--line); border-radius: 8px; font-weight: 800; color: var(--ink); outline: none; }
   .filter-wrap button { background: #e0f2fe; color: #0284c7; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; }
   .filter-wrap button:hover { background: #bae6fd; }
 
-  /* Borang Transaksi */
   .form-grid { display: flex; flex-direction: column; gap: 12px; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
@@ -112,25 +70,22 @@
   .input-prefix span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 800; color: #94a3b8; font-size: 0.9rem; }
   .input-prefix input { padding-left: 45px; font-weight: 800; font-size: 1.1rem; }
 
-  /* Butang */
   button.btn-submit { background: var(--primary); color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 800; cursor: pointer; margin-top: 10px; width: 100%; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: 0.2s; }
   button.btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
   button.btn-ghost { background: #f1f5f9; color: var(--ink); border: 1px dashed #cbd5e1; border-radius: 10px; padding: 12px; font-size: 0.9rem; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; }
   button.btn-ghost:hover { background: #e2e8f0; border-color: #94a3b8; }
   
-  /* Toggle Duit Masuk/Keluar */
   .type-toggle { display: flex; background: #f1f5f9; border-radius: 10px; overflow: hidden; margin-bottom: 15px; border: 1px solid var(--line); }
   .type-toggle label { flex: 1; text-align: center; padding: 12px; font-weight: 800; font-size: 0.9rem; cursor: pointer; color: var(--muted); transition: 0.2s; }
   .type-toggle input { display: none; }
   .type-toggle input[value="outflow"]:checked + label { background: var(--danger); color: white; }
   .type-toggle input[value="inflow"]:checked + label { background: var(--primary); color: white; }
 
-  /* Senarai Transaksi */
   .txn-list { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; padding-right: 5px; }
   .txn-item { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; }
   .txn-info { display: flex; flex-direction: column; gap: 4px; }
-  .txn-cat { font-weight: 800; color: var(--ink); font-size: 0.95rem; }
-  .txn-note { font-size: 0.8rem; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .txn-cat { font-weight: 800; color: var(--ink); font-size: 0.95rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .txn-note { font-size: 0.8rem; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .txn-amt { font-size: 1.1rem; font-weight: 800; text-align: right; }
   .amt-in { color: var(--primary); }
   .amt-out { color: var(--danger); }
@@ -138,7 +93,6 @@
   .btn-del-txn:hover { color: var(--danger); }
   .resit-link { color: var(--secondary); text-decoration: none; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; }
 
-  /* Dashboard Kewangan */
   .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
   .dash-box { background: #f8fafc; padding: 16px; border-radius: 12px; text-align: center; border: 1px solid var(--line); }
   .dash-box.in { border-bottom: 4px solid var(--primary); }
@@ -150,14 +104,16 @@
   .dash-balance .dash-label { color: #94a3b8; }
   .dash-balance .dash-val { color: white; font-size: 2rem; font-weight: 800; }
 
-  /* Kad myTADBIR & JomBercuti */
+  /* KOTAK PECAHAN TUNAI & BANK (BARU) */
+  .balance-split { display: flex; justify-content: space-between; margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 15px; text-align: left; }
+  .balance-split > div { flex: 1; }
+  .balance-split > div:last-child { text-align: right; border-left: 1px dashed rgba(255,255,255,0.2); }
+
   .tadbir-card { background: linear-gradient(135deg, #F0F9FF, #E0F2FE); border: 2px solid #BAE6FD; border-radius: 12px; padding: 16px; margin-top: 20px; }
   .tadbir-card h3 { font-weight: 800; color: #0369A1; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-  /* DIKEMAS KINI: Tambah 'gap' supaya teks tidak bertindih jika terlalu panjang */
   .tadbir-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px dashed #7DD3FC; gap: 15px; }
   .tadbir-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
   .tadbir-label { font-size: 0.85rem; font-weight: 700; color: #0284C7; line-height: 1.2; }
-  /* DIKEMAS KINI: Tambah 'white-space: nowrap' dan 'text-align: right' */
   .tadbir-val { font-size: 1.1rem; font-weight: 800; color: #0C4A6E; text-align: right; white-space: nowrap; }
   .btn-tadbir { font-size: 0.75rem; background: #fff; border: 1px solid #BAE6FD; border-radius: 6px; padding: 6px 10px; text-decoration: none; color: #0284C7; display: block; text-align: center; margin-top: 12px; font-weight: 800; box-shadow: 0 2px 4px rgba(2,132,199,0.1); transition: 0.2s; }
   .btn-tadbir:hover { background: #F0F9FF; }
@@ -170,7 +126,6 @@
   .btn-rancang { font-size: 0.75rem; background: #fff; border: 1px solid #FFECCC; border-radius: 6px; padding: 4px 10px; text-decoration: none; color: #ea580c; display: inline-block; margin-top: 6px; font-weight: 800; box-shadow: 0 2px 4px rgba(234,88,12,0.1); }
   .btn-rancang:hover { background: #fff7ed; }
 
-  /* Analisis Hujung Bulan */
   .health-card { margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--line); }
   .health-title { font-size: 1rem; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
   .progress-wrap { background: #e2e8f0; height: 12px; border-radius: 99px; overflow: hidden; margin-bottom: 10px; display: flex; }
@@ -199,35 +154,27 @@
 
 <div id="mainApp">
   
-  <!-- Pengepala Utama (Dibaiki Melebar Penuh & Ikon SVG Moden) -->
   <header class="top-nav" style="padding: 20px 0;">
-    <!-- Buang had max-width dan beri padding sisi supaya logo & butang rapat ke dinding skrin -->
     <div class="nav-container" style="max-width: 100% !important; padding: 0 24px; display: flex; justify-content: space-between; align-items: center;">
       <div>
         <h1 style="color: #67e8f9; display: flex; align-items: center; gap: 12px; font-size: 1.8rem; margin: 0;">
-          
-          <!-- IKON SVG MODEN (Ganti Emoji 💰) -->
           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #34d399;">
             <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0-0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
             <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-3" />
             <circle cx="18" cy="12" r="1" fill="currentColor" />
           </svg>
-
           <span>Our<span style="color: white;">Money</span></span>
         </h1>
       </div>
-      
       <button onclick="window.location.href='index.html'" class="btn-kembali" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); margin: 0;">
         Kembali
       </button>
     </div>
   </header>
 
-  <!-- Container utama aplikasi bermula di sini -->
   <div class="container">
     <div class="layout-utama">
-      ...
-    
+      
     <!-- KOLUM KIRI (Kemasukan & Senarai) -->
     <div class="kolum-kiri">
       
@@ -247,21 +194,38 @@
 
           <div class="grid-2">
             <div class="field">
-              <label>Kategori</label>
-              <select id="txnCat" required></select>
+              <label>Tindakan Oleh (Pengguna)</label>
+              <select id="txnUser" required>
+                <option value="Induk">Induk (Saya)</option>
+                <option value="Pasangan">Pasangan</option>
+              </select>
             </div>
             <div class="field">
               <label>Tarikh</label>
               <input type="date" id="txnDate" required>
             </div>
           </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label>Jumlah (RM)</label>
+              <div class="input-prefix">
+                <span>RM</span>
+                <input type="number" id="txnAmount" placeholder="0.00" step="0.01" min="0.01" required>
+              </div>
+            </div>
+            <div class="field">
+              <label>Kaedah Transaksi</label>
+              <select id="txnAccount" required>
+                <option value="Bank">Bank (Akaun/Kad)</option>
+                <option value="Tunai">Tunai di Tangan</option>
+              </select>
+            </div>
+          </div>
           
           <div class="field">
-            <label>Jumlah (RM)</label>
-            <div class="input-prefix">
-              <span>RM</span>
-              <input type="number" id="txnAmount" placeholder="0.00" step="0.01" min="0.01" required>
-            </div>
+            <label>Kategori</label>
+            <select id="txnCat" required></select>
           </div>
 
           <div class="field">
@@ -323,13 +287,24 @@
         <div class="dash-balance">
           <div class="dash-label">Baki Bersih Semasa</div>
           <div class="dash-val" id="dash-net">RM 0.00</div>
+          
+          <!-- PECAHAN BAKI TUNAI & BANK (BARU) -->
+          <div class="balance-split">
+             <div>
+                <div style="font-size:0.75rem; color:#94a3b8; text-transform:uppercase; font-weight:800;">Baki Tunai</div>
+                <div id="dash-tunai" style="color:#10b981; font-size:1.2rem; font-weight:800;">RM 0.00</div>
+             </div>
+             <div>
+                <div style="font-size:0.75rem; color:#94a3b8; text-transform:uppercase; font-weight:800;">Baki Bank</div>
+                <div id="dash-bank" style="color:#3b82f6; font-size:1.2rem; font-weight:800;">RM 0.00</div>
+             </div>
+          </div>
         </div>
 
         <!-- Kad Integrasi myTADBIR (Sentiasa Papar) -->
 <div class="tadbir-card" id="mytadbir-target" style="border-left: 4px solid #3b82f6;">
     <h3 style="margin-bottom: 12px; color: #1e293b;">🏦 Ringkasan myTADBIR</h3>
     
-    <!-- Bahagian Nombor -->
     <div id="tadbir-content-wrapper">
         <div class="tadbir-row">
             <span class="tadbir-label">Harta Bersih (Net Worth)</span>
@@ -345,7 +320,6 @@
         </div>
     </div>
 
-    <!-- Mesej Hook Kosong (Pastikan id ini ada!) -->
     <div id="tadbir-empty-state" class="hidden" style="text-align: center; padding: 12px 5px; background: #f8fafc; border-radius: 6px; margin-bottom: 10px;">
         <p style="font-size: 13px; color: #475569; line-height: 1.5; margin: 0;">
             💡 <strong>Optimumkan Perancangan Kewangan!</strong><br>
@@ -464,13 +438,13 @@
     document.getElementById('filterBulan').value = bulanIniStr;
     document.getElementById('txnDate').value = localDateStr;
 
-    // FUNGSI HELPER UNTUK KOMA BERIBU
     const formatRM = (val) => {
         return (parseFloat(val) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
     const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Pakaian", "Lain-lain"];
-    const catInflow = ["Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
+    // DIKEMAS KINI: Memasukkan "Baki Permulaan" di dalam senarai duit masuk
+    const catInflow = ["Baki Permulaan", "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
 
     const btnRadios = document.querySelectorAll('input[name="txnType"]');
     const selectCat = document.getElementById('txnCat');
@@ -548,7 +522,6 @@
         } catch (e) { alert("Gagal memproses langganan: " + e.message); }
     };
 
-    // Semakan Auth Utama
     onAuthStateChanged(auth, async (user) => {
         const authScreen = document.getElementById('authScreen');
         const mainApp = document.getElementById('mainApp');
@@ -574,7 +547,6 @@
         catch (err) { alert("Gagal Log Masuk."); }
     });
 
-    // 1. Integrasi Sasaran JomBercuti
     async function muatTargetPercutian() {
         try {
             const q = query(collection(db, "jombercuti_trips"), where("owner_uid", "==", currentUser.uid));
@@ -595,55 +567,48 @@
         } catch(e) { console.error(e); }
     }
 
-   // 1.5 Integrasi Profil myTADBIR (Sentiasa Papar dengan Status Dinamik)
-async function muatDataMyTadbir() {
-    try {
-        // Gunakan currentUser kerana itu nama variable yang aktif di ourmoney.html
-        if (!currentUser) return;
-        
-        const docRef = doc(db, "mytadbir_profiles", currentUser.uid);
-        const snap = await getDoc(docRef);
+    async function muatDataMyTadbir() {
+        try {
+            if (!currentUser) return;
+            
+            const docRef = doc(db, "mytadbir_profiles", currentUser.uid);
+            const snap = await getDoc(docRef);
 
-        const contentWrapper = document.getElementById('tadbir-content-wrapper');
-        const emptyState = document.getElementById('tadbir-empty-state');
-        const btnAction = document.getElementById('tadbir-btn-action');
+            const contentWrapper = document.getElementById('tadbir-content-wrapper');
+            const emptyState = document.getElementById('tadbir-empty-state');
+            const btnAction = document.getElementById('tadbir-btn-action');
 
-        // Pastikan kad utama sentiasa nampak
-        document.getElementById('mytadbir-target').style.display = 'block';
+            document.getElementById('mytadbir-target').style.display = 'block';
 
-        if (snap.exists() && snap.data().summary) {
-            const data = snap.data();
-            const netWorth = data.summary.net_worth || 0;
-            const debts = data.summary.total_debts || 0;
-            const eduDeficit = data.summary.education_fund_needed || 0;
+            if (snap.exists() && snap.data().summary) {
+                const data = snap.data();
+                const netWorth = data.summary.net_worth || 0;
+                const debts = data.summary.total_debts || 0;
+                const eduDeficit = data.summary.education_fund_needed || 0;
 
-            // Jika semua nilai sifar (0), papar mesej kosong
-            if (netWorth === 0 && debts === 0 && eduDeficit === 0) {
+                if (netWorth === 0 && debts === 0 && eduDeficit === 0) {
+                    if (contentWrapper) contentWrapper.style.display = 'none';
+                    if (emptyState) emptyState.classList.remove('hidden');
+                    if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang 🚀';
+                } else {
+                    document.getElementById('tadbir-networth').innerText = `RM ${formatRM(netWorth)}`;
+                    document.getElementById('tadbir-debts').innerText = `RM ${formatRM(debts)}`;
+                    document.getElementById('tadbir-edu').innerText = `RM ${formatRM(eduDeficit)}`;
+                  
+                    if (contentWrapper) contentWrapper.style.display = 'block';
+                    if (emptyState) emptyState.classList.add('hidden');
+                    if (btnAction) btnAction.innerText = 'Urus Profil myTADBIR ➔';
+                }
+            } else {
                 if (contentWrapper) contentWrapper.style.display = 'none';
                 if (emptyState) emptyState.classList.remove('hidden');
                 if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang 🚀';
-            } else {
-                // Jika ada data sebenar, paparkan nilainya
-                document.getElementById('tadbir-networth').innerText = `RM ${formatRM(netWorth)}`;
-                    document.getElementById('tadbir-debts').innerText = `RM ${formatRM(debts)}`;
-                    document.getElementById('tadbir-edu').innerText = `RM ${formatRM(eduDeficit)}`;
-              
-                if (contentWrapper) contentWrapper.style.display = 'block';
-                if (emptyState) emptyState.classList.add('hidden');
-                if (btnAction) btnAction.innerText = 'Urus Profil myTADBIR ➔';
             }
-        } else {
-            // Jika dokumen profil tidak wujud langsung
-            if (contentWrapper) contentWrapper.style.display = 'none';
-            if (emptyState) emptyState.classList.remove('hidden');
-            if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang 🚀';
+        } catch (e) {
+            console.error("Gagal muat data myTADBIR:", e);
         }
-    } catch (e) {
-        console.error("Gagal muat data myTADBIR:", e);
     }
-}
 
-    // 2. FUNGSI GAMBAR (PREVIEW & CLEAR)
     window.pilihGambar = (e) => {
         selectedImageFile = e.target.files[0];
         if (selectedImageFile) {
@@ -664,7 +629,6 @@ async function muatDataMyTadbir() {
         document.getElementById('imgPreview').src = '';
     };
 
-// FUNGSI KOTAK INPUT FORMAT KOMA AUTOMATIK (OURMONEY)
     const amtInput = document.getElementById('txnAmount');
     amtInput.addEventListener('blur', function() {
         if (this.value) {
@@ -681,8 +645,6 @@ async function muatDataMyTadbir() {
         }
     });
 
-  
-    // 3. Simpan Transaksi Baru & Upload Gambar
     document.getElementById('form-transaksi').addEventListener('submit', async (e) => {
         e.preventDefault();
         if(!currentUser) return;
@@ -706,7 +668,10 @@ async function muatDataMyTadbir() {
                 amount: parseFloat(document.getElementById('txnAmount').value.replace(/,/g, '')),
                 note: document.getElementById('txnNote').value.trim(),
                 receipt_url: imgUrl, 
-                created_at: Date.now()
+                created_at: Date.now(),
+                // REKOD BARU DI SIMPAN
+                txnUser: document.getElementById('txnUser').value,
+                txnAccount: document.getElementById('txnAccount').value
             };
 
             await addDoc(collection(db, "ourmoney_transactions"), txnData);
@@ -724,7 +689,6 @@ async function muatDataMyTadbir() {
         btn.disabled = false; btn.innerText = "💾 Simpan Rekod";
     });
 
-    // --- FUNGSI FILTER (CLOSING / TAHUNAN) ---
     window.tukarBulanPaparan = () => {
         modPaparan = 'bulan';
         muatDataOurMoney();
@@ -735,7 +699,6 @@ async function muatDataMyTadbir() {
         muatDataOurMoney();
     };
 
-    // 4. Muat Data Transaksi & Analisis Kewangan
     async function muatDataOurMoney() {
         if(!currentUser) return;
         try {
@@ -755,6 +718,9 @@ async function muatDataMyTadbir() {
 
             let htmlTxn = "";
             let totalIn = 0; let totalOut = 0;
+            // PEMBOLEHUBAH BARU UNTUK TUNAI DAN BANK
+            let tunaiIn = 0; let tunaiOut = 0;
+            let bankIn = 0; let bankOut = 0;
             let listSemasa = [];
 
             snap.forEach(d => {
@@ -770,12 +736,23 @@ async function muatDataMyTadbir() {
 
             listSemasa.forEach(t => {
                 const isOut = t.type === 'outflow';
-                if (isOut) totalOut += t.amount; else totalIn += t.amount;
+                // Kira Total keseluruhan & asingkan Tunai vs Bank
+                if (isOut) {
+                    totalOut += t.amount;
+                    if(t.txnAccount === 'Tunai') tunaiOut += t.amount; else bankOut += t.amount;
+                } else {
+                    totalIn += t.amount;
+                    if(t.txnAccount === 'Tunai') tunaiIn += t.amount; else bankIn += t.amount;
+                }
                 
                 const icon = isOut ? '📉' : '📈';
                 const amtClass = isOut ? 'amt-out' : 'amt-in';
                 const amtPrefix = isOut ? '- RM' : '+ RM';
                 const tarikhFormat = t.date.split('-').reverse().join('/');
+                
+                // Tambah label pengguna dan akaun
+                const badgeUser = t.txnUser ? `<span style="background:#e2e8f0; color:#475569; padding:3px 8px; border-radius:6px; font-size:0.65rem;">${t.txnUser}</span>` : '';
+                const badgeAcc = t.txnAccount === 'Tunai' ? `💵 Tunai` : `🏦 Bank`;
                 
                 const resitHtml = t.receipt_url 
                     ? `<a href="${t.receipt_url}" target="_blank" class="resit-link">📸 Resit</a>` 
@@ -786,8 +763,8 @@ async function muatDataMyTadbir() {
                     <div style="display:flex; gap:12px; align-items:center;">
                         <div style="font-size:1.5rem;">${icon}</div>
                         <div class="txn-info">
-                            <span class="txn-cat">${t.category}</span>
-                            <span class="txn-note">${tarikhFormat} ${t.note ? `• \${t.note}` : ''} ${resitHtml}</span>
+                            <span class="txn-cat">${t.category} ${badgeUser}</span>
+                            <span class="txn-note">${tarikhFormat} • <b style="color:#64748b;">${badgeAcc}</b> ${t.note ? `• ${t.note}` : ''} ${resitHtml}</span>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center;">
@@ -803,9 +780,15 @@ async function muatDataMyTadbir() {
             document.getElementById('senarai-transaksi').innerHTML = htmlTxn;
 
             const netBalance = totalIn - totalOut;
+            const bakiTunai = tunaiIn - tunaiOut;
+            const bakiBank = bankIn - bankOut;
+
             document.getElementById('dash-in').innerText = `RM ${formatRM(totalIn)}`;
             document.getElementById('dash-out').innerText = `RM ${formatRM(totalOut)}`;
             document.getElementById('dash-net').innerText = `RM ${formatRM(netBalance)}`;
+            // Pamerkan baki tunai & bank
+            document.getElementById('dash-tunai').innerText = `RM ${formatRM(bakiTunai)}`;
+            document.getElementById('dash-bank').innerText = `RM ${formatRM(bakiBank)}`;
 
             if (modPaparan === 'tahun') {
                 document.getElementById('health-card-section').style.display = 'none';
@@ -817,7 +800,6 @@ async function muatDataMyTadbir() {
         } catch(e) { console.error("Ralat muat transaksi:", e); }
     }
 
-    // 5. Padam Rekod
     window.padamRekod = async (id) => {
         if(confirm("Anda pasti mahu memadam rekod ini?")) {
             await deleteDoc(doc(db, "ourmoney_transactions", id));
@@ -825,7 +807,6 @@ async function muatDataMyTadbir() {
         }
     };
 
-    // 6. Analisis Kesihatan Kewangan
     function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         const barWrap = document.getElementById('health-bar-wrap');
         const barOut = document.getElementById('bar-out');
@@ -835,7 +816,7 @@ async function muatDataMyTadbir() {
         if (pendapatan === 0) {
             barWrap.style.display = 'none';
             msgBox.className = 'health-msg msg-bad';
-            msgBox.innerHTML = 'Tiada data pendapatan. Sila rekod "Duit Masuk" (gaji/elaun) untuk sistem menganalisis status kewangan anda.';
+            msgBox.innerHTML = 'Tiada data pendapatan. Sila rekod "Duit Masuk" (gaji/elaun/baki permulaan) untuk sistem menganalisis status kewangan anda.';
             return;
         }
 
