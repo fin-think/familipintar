@@ -148,7 +148,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
         return;
     }
     const jem = jemputan;
-    const kreditAwal = jem ? 5 : 10;
+    const kreditAwal = jem ? 5 : 20;
 
     try {
         const kredensial = await createUserWithEmailAndPassword(auth, emel, kataLaluan);
