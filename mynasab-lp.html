@@ -16,13 +16,14 @@
 /* Susun atur: hero dua lajur (teks kiri, pokok contoh kanan), kemudian jalur bersilih ganti AIDA: perhatian, minat, keinginan, tindakan.
    Identiti: kad pastel biru/merah jambu sama seperti kad dalam aplikasi, hijau hutan sebagai warna jenama. */
 :root {
-  --bg: #f4f8f6;
+  --bg: #f3f8fc;
   --surface: #ffffff;
-  --band: #e6f0ec;
-  --ink: #10231f;
-  --muted: #4a625d;
-  --line: #c9d9d3;
-  --brand: #0e5a4e;
+  --band: #e1eff9;
+  --ink: #0f2230;
+  --muted: #465e72;
+  --line: #c6d8e6;
+  --brand: #0ea5e9;
+  --brand-text: #0369a1;
   --on-brand: #ffffff;
   --warm: #f0a22c;
   --kad-l: #bfe3ec;
@@ -34,15 +35,15 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0c1917; --surface: #13251f; --band: #102320; --ink: #e8f3ef; --muted: #9db8b1; --line: #264039;
-    --brand: #43c9a7; --on-brand: #062a22; --warm: #f5b84f;
+    --bg: #0b1620; --surface: #12222f; --band: #0e1c28; --ink: #e8f1f7; --muted: #9db5c6; --line: #25394a;
+    --brand: #0ea5e9; --brand-text: #38bdf8; --on-brand: #ffffff; --warm: #f5b84f;
     --kad-l: #2a5b69; --kad-p: #6a3447; --kad-n: #3b5a35; --kad-ink: #f1f7f5;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0c1917; --surface: #13251f; --band: #102320; --ink: #e8f3ef; --muted: #9db8b1; --line: #264039;
-  --brand: #43c9a7; --on-brand: #062a22; --warm: #f5b84f;
+  --bg: #0b1620; --surface: #12222f; --band: #0e1c28; --ink: #e8f1f7; --muted: #9db5c6; --line: #25394a;
+  --brand: #0ea5e9; --brand-text: #38bdf8; --on-brand: #ffffff; --warm: #f5b84f;
   --kad-l: #2a5b69; --kad-p: #6a3447; --kad-n: #3b5a35; --kad-ink: #f1f7f5;
   color-scheme: dark;
 }
@@ -55,7 +56,7 @@ a { color: inherit; }
 :focus-visible { outline: 3px solid var(--warm); outline-offset: 3px; }
 
 .wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.eyebrow { font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand); }
+.eyebrow { font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand-text); }
 
 /* butang */
 .btn { display: inline-block; background: var(--brand); color: var(--on-brand); font-weight: 800; font-size: 17px; text-decoration: none; padding: 14px 24px; border-radius: 6px; border: 0; cursor: pointer; font-family: var(--font-body); }
@@ -65,7 +66,10 @@ a { color: inherit; }
 /* bar atas */
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; }
 .logo { font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; text-decoration: none; }
-.logo b { color: var(--brand); }
+.logo b { color: #0ea5e9; }
+.logo i { font-style: normal; color: #eab308; }
+.fp-f { color: #eab308; }
+.fp-p { color: #0ea5e9; }
 .top .btn { padding: 10px 18px; font-size: 15px; }
 
 /* HERO */
@@ -139,6 +143,9 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
 .akhir h2 { color: var(--on-brand); }
 .akhir p { color: var(--on-brand); opacity: .9; margin-top: 12px; font-size: 18px; }
 .akhir .btn { background: var(--on-brand); color: var(--brand); justify-self: start; }
+.lebih { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 20px 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.lebih p { flex: 1 1 320px; min-width: 0; font-weight: 600; font-size: 17px; color: var(--ink); opacity: 1; margin-top: 0; }
+.lebih a { color: var(--brand-text); font-weight: 800; white-space: nowrap; }
 .baki { padding-block: 32px 48px; color: var(--muted); font-size: 14.5px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
 
 @media (max-width: 860px) {
@@ -160,7 +167,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
 </head>
 <body>
 <header class="wrap top">
-  <a class="logo" href="#atas">my<b>Nasab</b></a>
+  <a class="logo" href="#atas"><i>my</i><b>Nasab</b></a>
   <a class="btn" href="https://familipintar.com/mynasab/index.html?daftar=1">Mula percuma</a>
 </header>
 
@@ -292,12 +299,16 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
         </div>
         <a class="btn" href="https://familipintar.com/mynasab/index.html?daftar=1">Bina pokok keluarga</a>
       </div>
+      <div class="lebih">
+        <p>Nak explore lebih daripada myNasab? Famili Pintar ada lebih banyak alat untuk urus keluarga anda.</p>
+        <a href="https://familipintar.com/">Lawati <span class="fp-f">Famili</span> <span class="fp-p">Pintar</span> &rarr;</a>
+      </div>
     </div>
   </section>
 </main>
 
 <footer class="wrap baki">
-  <span>myNasab, sebahagian daripada Famili Pintar.</span>
+  <span>myNasab, sebahagian daripada <a href="https://familipintar.com/"><span class="fp-f">Famili</span> <span class="fp-p">Pintar</span></a>.</span>
   <span>Setiap pendaftaran baru mendapat 20 kredit percuma. <a href="privasi.html">Dasar Privasi</a></span>
 </footer>
 
