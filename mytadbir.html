@@ -15,6 +15,9 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
+    <!-- Simpan automatik (kongsi) -->
+    <script src="autosave.js?v=1"></script>
+
     <!-- Babel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
 
@@ -68,7 +71,7 @@
 
     <!-- LOGIK APLIKASI (REACT) -->
     <script type="text/babel">
-        const { useState, useMemo, useEffect } = React;
+        const { useState, useMemo, useEffect, useRef } = React;
         
         // --- Komponen Ikon ---
         const createIcon = (name) => ({ size = 24, className = '' }) => (
@@ -172,6 +175,26 @@
           const [showReport, setShowReport] = useState(false);
           
           const [appData, setAppData] = useState(defaultData);
+
+          // --- SIMPAN AUTOMATIK (menggantikan butang "Simpan Profil myTADBIR") ---
+          const [statusSimpan, setStatusSimpan] = useState({ state: '', teks: '' });
+          const appDataRef = useRef(appData); appDataRef.current = appData;
+          const simpanRef = useRef(null);          // sentiasa menunjuk fungsi simpan versi render terkini
+          const asiasRef = useRef(undefined);      // keadaan yang sudah tersimpan di pangkalan data (asas perbandingan)
+          const asSediaRef = useRef(false);
+          const asRef = useRef(null);
+          if (!asRef.current) {
+              asRef.current = AutoSimpan.buat({
+                  onStatus: (state, teks) => setStatusSimpan({ state, teks }),
+                  ambil: () => appDataRef.current,
+                  simpan: () => simpanRef.current()
+              });
+          }
+          useEffect(() => {
+              if (loadingData || !user) return;
+              if (!asSediaRef.current) { asSediaRef.current = true; asRef.current.sedia(asiasRef.current); }
+              asRef.current.ubah();    // bandingkan dengan yang tersimpan; simpan 2 saat selepas perubahan terakhir
+          }, [appData, loadingData, user]);
 
 // State untuk Paywall Dashboard
   const [isDashboardUnlocked, setIsDashboardUnlocked] = useState(false); 
@@ -405,6 +428,8 @@ if (rdb.monthlyBudget === undefined) {
                       }
                   } catch (e) { console.warn("Gagal baca data myHEALTH:", e.message); }
                   
+                  // Asas auto-save: profil yang sudah tersimpan (jika data ekosistem lebih baharu, ia akan disimpan automatik)
+                  asiasRef.current = docSnap.exists() ? (docSnap.data().raw_data || {}) : mergedData;
                   setAppData(mergedData);
               } catch (e) { console.error("Ralat memuatkan ekosistem data:", e); }
               setLoadingData(false);
@@ -968,13 +993,11 @@ if (rdb.monthlyBudget === undefined) {
                   };
                   // Kod Baru (Tambah { merge: true })
 await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), payload, { merge: true });
-                  alert("✅ Data berjaya disimpan!\n\nNilai Harta Bersih, Sasaran Kewangan dan Misi Kewangan anda kini telah disinkronisasi ke aplikasi OurMoney.");
-              } catch (e) {
-                  console.error(e);
-                  alert("Gagal menyimpan data ke pangkalan data. Sila pastikan sambungan internet anda stabil.");
+              } finally {
+                  setIsSaving(false);
               }
-              setIsSaving(false);
           };
+          simpanRef.current = simpanDanSyncKeOurMoney;
 
           if (!isFirebaseReady || loadingData) {
               return <div className="min-h-screen flex items-center justify-center font-bold text-sky-600 bg-slate-50">Memuatkan myTADBIR...</div>;
@@ -1912,26 +1935,30 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                         </div>
                       </Card>
 
-                      {/* --- BUTANG SIMPAN KE OURMONEY --- */}
+                      {/* --- STATUS SIMPANAN AUTOMATIK KE OURMONEY --- */}
                       <div className="mt-12 bg-sky-50 border border-sky-200 p-6 rounded-2xl text-center shadow-sm">
                           <CloudArrowUp size={48} className="mx-auto text-sky-500 mb-3" />
-                          <h3 className="text-xl font-bold text-slate-800 mb-2">Simpan & Hubungkan ke OurMoney</h3>
-                          <p className="text-slate-600 text-sm mb-6 max-w-lg mx-auto">
-                              Simpan profil perancangan myTADBIR anda. Nilai Harta Bersih (Net Worth) dan Unjuran Dana ini akan dipaparkan di aplikasi <strong>OurMoney</strong> secara automatik.
+                          <h3 className="text-xl font-bold text-slate-800 mb-2">Disimpan Automatik ke OurMoney</h3>
+                          <p className="text-slate-600 text-sm mb-4 max-w-lg mx-auto">
+                              Setiap perubahan pada profil myTADBIR anda disimpan sendiri. Nilai Harta Bersih, sasaran dan Misi Kewangan akan dipaparkan di aplikasi <strong>OurMoney</strong> secara automatik.
                           </p>
-                          <button 
-                              onClick={simpanDanSyncKeOurMoney} 
-                              disabled={isSaving}
-                              className={`px-8 py-4 font-bold text-white rounded-xl shadow-md transition-all ${isSaving ? 'bg-slate-400 cursor-not-allowed' : 'bg-sky-600 hover:bg-sky-700 hover:-translate-y-1'}`}
-                          >
-                              {isSaving ? "Menyimpan Data..." : "💾 Simpan Profil myTADBIR"}
-                          </button>
+                          <p className={`text-sm font-bold mb-4 ${statusSimpan.state === 'gagal' ? 'text-red-600' : statusSimpan.state === 'tersimpan' ? 'text-emerald-600' : 'text-slate-500'}`}>
+                              {statusSimpan.teks || 'Perubahan akan disimpan automatik.'}
+                          </p>
+                          <a href="ourmoney.html" className="inline-block px-6 py-3 font-bold text-white rounded-xl shadow-md bg-sky-600 hover:bg-sky-700 transition-all">Buka OurMoney ➔</a>
                       </div>
 
                     </div>
                   )}
                   
                 </div>
+
+{/* PENUNJUK SIMPAN AUTOMATIK */}
+      {user && statusSimpan.teks && (
+        <div className={`fixed bottom-4 right-4 z-[90] px-3 py-1.5 rounded-full text-xs font-bold shadow-md border bg-white ${statusSimpan.state === 'gagal' ? 'text-red-600 border-red-200' : statusSimpan.state === 'tersimpan' ? 'text-emerald-600 border-emerald-200' : 'text-slate-500 border-slate-200'}`}>
+          {statusSimpan.teks}
+        </div>
+      )}
 
 {/* MODAL PAYWALL DASHBOARD */}
       {showPaywall && (
