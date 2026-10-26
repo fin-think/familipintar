@@ -634,6 +634,7 @@ if (rdb.monthlyBudget === undefined) {
             dsrColor = "rose"; dsrStatusText = "Kritikal"; dsrDesc = "Komitmen hutang terlalu tinggi.";
           }
 
+          const adaHutang = debtsList.length > 0 && debtAnalysisResult.totalBalance > 0;
           const dsrStyles = {
             sky: { bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-600', badgeBg: 'bg-sky-100', badgeText: 'text-sky-700' },
             amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-500', badgeBg: 'bg-amber-100', badgeText: 'text-amber-700' },
@@ -1455,6 +1456,8 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                         </Card>
                       </div>
 
+                      {adaHutang ? (
+                      <>
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch mb-6">
                         <Card className={`lg:col-span-1 border ${s.border} ${s.bg} flex flex-col justify-center text-center shadow-sm relative overflow-hidden`}>
                           <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Skor DSR Anda</p>
@@ -1585,6 +1588,15 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
                           )}
                         </div>
                       </Card>
+                      </>
+                      ) : (
+                      <Card className="border-sky-200 bg-sky-50/50 shadow-sm">
+                        <div className="flex items-center gap-3 text-sky-800">
+                          <ShieldCheck size={28} className="shrink-0" />
+                          <div><p className="font-bold">Bebas Hutang</p><p className="text-sm text-sky-700">Anda tiada komitmen hutang. Strategi pelunasan dan skor DSR tidak diperlukan.</p></div>
+                        </div>
+                      </Card>
+                      )}
 
                       <Card className="bg-gradient-to-br from-teal-950 via-teal-900 to-slate-800 text-white border-none shadow-xl mb-6">
                         <h3 className="text-lg font-bold mb-5 flex items-center gap-2">🏥 Unjuran Kos Kesihatan & Bocor Kewangan (Masa Hadapan)</h3>
