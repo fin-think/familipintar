@@ -58,7 +58,9 @@ if (kodJemput) {
         jemputan = s.data();
         const b = document.getElementById('bannerJemput');
         if(b) {
-            b.innerText = `Anda dijemput menyertai keluarga ${jemputan.nama_pengundang}. Mendaftar atau log masuk akan memautkan akaun anda secara automatik.`;
+            b.innerText = jemputan.jenis === 'anak_saudara'
+                ? `${jemputan.nama_pengundang} menjemput anda sebagai anak kepada ${jemputan.nama_sasaran}. Daftar akaun baharu untuk mendapat pokok keluarga yang telah disediakan (ibu bapa dan datuk nenek).`
+                : `Anda dijemput menyertai keluarga ${jemputan.nama_pengundang}. Mendaftar atau log masuk akan memautkan akaun anda secara automatik.`;
             b.classList.remove('hidden');
         }
     });
@@ -93,7 +95,12 @@ onAuthStateChanged(auth, async (user) => {
             document.getElementById('treeNameDisplay').innerText = dataPengguna.name;
             
             // --- LOGIK PAUTAN AUTOMATIK (JEMPUTAN) ---
-            if (kodJemput && jemputan) {
+            if (kodJemput && jemputan && jemputan.jenis === 'anak_saudara') {
+                // Pautan anak saudara hanya untuk akaun baharu (pokok disalin semasa pendaftaran)
+                sessionStorage.removeItem('simpanJemput');
+                window.history.replaceState({}, document.title, location.pathname);
+                alert("Pautan jemputan anak saudara hanya boleh digunakan untuk mendaftar akaun baharu. Log keluar dan daftar menggunakan pautan itu.");
+            } else if (kodJemput && jemputan) {
                 const linkRef = doc(db, "mynasab_links", user.uid);
                 const linkSnap = await getDoc(linkRef);
                 
@@ -158,6 +165,57 @@ window.logMasuk = async (emel, kataLaluan) => {
     }
 };
 
+// Pokok siap isi untuk anak saudara: ibu bapa (abang/kakak/adik pengundang + pasangan) dan datuk nenek (leluhur pengundang, naik satu generasi)
+async function salinPokokAnakSaudara(jem, uidBaru) {
+    const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", jem.owner_uid)));
+    const nodes = [];
+    snap.forEach(d => nodes.push({ id: d.id, data: d.data() }));
+    const bersih = (data) => Object.fromEntries(Object.entries(data).filter(([k]) => !k.startsWith('jemput') && k !== 'linked_uids' && k !== 'linked_adik'));
+    const rootBaru = "root_" + uidBaru;
+    const tulis = async (data, rel, ref) => {
+        const r = await addDoc(collection(db, "mynasab_nodes"), {
+            ...bersih(data), owner_uid: uidBaru, created_by: jem.owner_uid, relationship: rel, ref_id: ref, is_root: false, created_at: new Date()
+        });
+        return r.id;
+    };
+
+    const ibuBapa = nodes.find(n => n.id === jem.sasaran_id);
+    if (!ibuBapa) return;
+    const lelaki1 = ibuBapa.data.gender === 'L';
+    const idIbuBapa = await tulis(ibuBapa.data, lelaki1 ? 'Ayah' : 'Ibu', rootBaru);
+
+    // Pasangan abang/kakak/adik (direkod sebagai Ipar) menjadi ibu/bapa yang seorang lagi
+    const pasangan = nodes.filter(n => (n.data.relationship || '').trim().toLowerCase() === 'ipar' && n.data.ref_id === ibuBapa.id);
+    if (pasangan.length === 1) {
+        const p = pasangan[0].data;
+        const lelaki2 = p.gender ? p.gender === 'L' : !lelaki1;
+        await tulis(p, lelaki2 ? 'Ayah' : 'Ibu', rootBaru);
+    }
+
+    // Leluhur pengundang naik satu generasi: Ayah/Ibu -> Datuk/Nenek, Datuk/Nenek -> Moyang, dst.
+    const NAIK = { 'ayah': 'Datuk', 'ibu': 'Nenek', 'datuk': 'Moyang', 'nenek': 'Moyang', 'moyang': 'Buyut', 'buyut': 'Cakawari', 'cakawari': 'Cilawagi' };
+    const pangkal = new Set(['', 'root_' + jem.owner_uid, jem.owner_uid]);
+    const leluhur = nodes.filter(n => {
+        const h = (n.data.relationship || '').trim().toLowerCase();
+        return NAIK[h] && !h.includes('mertua');
+    });
+    const peta = {};
+    // proses ikut peringkat supaya induk disalin dahulu
+    let giliran = leluhur.filter(n => pangkal.has(n.data.ref_id || '') || (n.data.ref_id || '').startsWith('root_'));
+    const tersalin = new Set();
+    while (giliran.length) {
+        for (const n of giliran) {
+            const rujuk = pangkal.has(n.data.ref_id || '') || (n.data.ref_id || '').startsWith('root_') ? idIbuBapa : peta[n.data.ref_id];
+            if (!rujuk) continue;
+            const rel = NAIK[(n.data.relationship || '').trim().toLowerCase()];
+            peta[n.id] = await tulis(n.data, rel, rujuk);
+            tersalin.add(n.id);
+        }
+        giliran = leluhur.filter(n => !tersalin.has(n.id) && peta[n.data.ref_id] && !(pangkal.has(n.data.ref_id || '')));
+        giliran = giliran.filter(n => (NAIK[(n.data.relationship || '').trim().toLowerCase()]));
+    }
+}
+
 window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
     if (kodJemput && !jemputan) {
         alert("Pautan jemputan tidak sah atau belum siap dimuatkan. Cuba lagi sebentar.");
@@ -184,11 +242,16 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
             relationship: "Diri Sendiri (Induk)",
             gender: jantina,
             is_root: true,
-            ...(jem ? { sibling_of: jem.sasaran_id, link_owner: jem.owner_uid } : {}),
+            ...(jem && jem.jenis !== 'anak_saudara' ? { sibling_of: jem.sasaran_id, link_owner: jem.owner_uid } : {}),
+            ...(jem && jem.jenis === 'anak_saudara' ? { anak_saudara_dari: { uid: jem.owner_uid, nod: jem.sasaran_id } } : {}),
             created_at: new Date()
         });
 
-       if (jem) {
+        if (jem && jem.jenis === 'anak_saudara') {
+            try { await salinPokokAnakSaudara(jem, user.uid); }
+            catch (e) { console.warn("Gagal menyediakan pokok anak saudara", e); }
+            sessionStorage.removeItem('simpanJemput');
+        } else if (jem) {
             await setDoc(doc(db, "mynasab_links", user.uid), {
                 uid: user.uid,
                 owner_uid: jem.owner_uid,
@@ -245,7 +308,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
                 // 2. Salin data yang dah ditapis ke akaun baru (Adi / Hanapi)
                 for (let item of senaraiSalin) {
                     const docRef = await addDoc(collection(db, "mynasab_nodes"), {
-                        ...item.data,
+                        ...Object.fromEntries(Object.entries(item.data).filter(([k]) => !k.startsWith('jemput'))),
                         owner_uid: user.uid,
                         created_by: jem.owner_uid, // Kekalkan hak cipta Awi
                         created_at: new Date()
@@ -274,7 +337,9 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
             } catch(e) { console.warn("Gagal auto-salin leluhur", e); }
         }
         
-        alert(jem
+        alert(jem && jem.jenis === 'anak_saudara'
+            ? `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit. Pokok keluarga anda (ibu bapa dan datuk nenek) telah disediakan. Sila semak dan kemas kini maklumat mereka.`
+            : jem
             ? `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit. Pautan keluarga anda menunggu kelulusan ${jem.nama_pengundang}.`
             : `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit percuma.`);
         location.href = location.pathname;
@@ -997,8 +1062,11 @@ window.muatSenaraiRujukan = async (hubungan) => {
 window.bukaJemput = async () => {
     const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", penggunaSemasa.uid)));
     const calon = snap.docs.filter(s => s.data().is_root || /suami|isteri/i.test(s.data().relationship));
+    const adik = snap.docs.filter(s => /^(abang|kakak|adik|adik-beradik)$/i.test((s.data().relationship || '').trim()));
     document.getElementById('jemputSasaran').innerHTML =
-        calon.map(s => `<option value="${esc(s.id)}">Adik-beradik ${esc(s.data().name)}</option>`).join('');
+        calon.map(s => `<option value="${esc(s.id)}">Adik-beradik ${esc(s.data().name)}</option>`).join('') +
+        (adik.length ? '<optgroup label="Anak saudara (pokok siap isi)">' +
+            adik.map(s => `<option value="${esc(s.id)}" data-jenis="anak_saudara" data-nama="${esc((s.data().relationship || '') + ' ' + s.data().name)}">Anak kepada ${esc(s.data().relationship)} ${esc(s.data().name)}</option>`).join('') + '</optgroup>' : '');
     document.getElementById('hasilPautan').classList.add('hidden');
     window.muatMenunggu();
     document.getElementById('modalJemput').classList.remove('hidden');
@@ -1011,7 +1079,8 @@ window.janaPautan = async () => {
     await setDoc(doc(db, "mynasab_invites", kod), {
         owner_uid: penggunaSemasa.uid,
         sasaran_id: sel.value,
-        nama_sasaran: sel.options[sel.selectedIndex].text.replace('Adik-beradik ', ''),
+        jenis: sel.options[sel.selectedIndex].dataset.jenis === 'anak_saudara' ? 'anak_saudara' : 'adik_beradik',
+        nama_sasaran: sel.options[sel.selectedIndex].dataset.nama || sel.options[sel.selectedIndex].text.replace('Adik-beradik ', ''),
         nama_pengundang: document.getElementById('treeNameDisplay').innerText,
         created_at: new Date()
     });
