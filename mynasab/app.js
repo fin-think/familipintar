@@ -206,19 +206,27 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
         return NAIK[h] && !h.includes('mertua');
     });
     const peta = {};
-    // proses ikut peringkat supaya induk disalin dahulu
-    let giliran = leluhur.filter(n => pangkal.has(n.data.ref_id || '') || (n.data.ref_id || '').startsWith('root_'));
-    const tersalin = new Set();
-    while (giliran.length) {
-        for (const n of giliran) {
-            const rujuk = pangkal.has(n.data.ref_id || '') || (n.data.ref_id || '').startsWith('root_') ? idIbuBapa : peta[n.data.ref_id];
-            if (!rujuk) continue;
-            const rel = NAIK[(n.data.relationship || '').trim().toLowerCase()];
-            peta[n.id] = await tulis(n.data, rel, rujuk);
-            tersalin.add(n.id);
+    const PANGKAT = { 'ayah': 1, 'ibu': 1, 'datuk': 2, 'nenek': 2, 'moyang': 3, 'buyut': 4, 'cakawari': 5, 'cilawagi': 6 };
+    const pangkat = n => PANGKAT[(n.data.relationship || '').trim().toLowerCase()];
+    const lelakiN = n => n.data.gender ? n.data.gender === 'L' : /^(ayah|datuk|moyang|buyut|cakawari|cilawagi)$/i.test((n.data.relationship || '').trim());
+    // ikut peringkat supaya generasi bawah disalin dahulu
+    leluhur.sort((x, y) => pangkat(x) - pangkat(y));
+    const tiangUtama = new Set();
+    for (const n of leluhur) {
+        const r = pangkat(n);
+        const rel = NAIK[(n.data.relationship || '').trim().toLowerCase()];
+        let rujuk = peta[n.data.ref_id];
+        if (!rujuk) {
+            // rujukan kosong / 'root_' / tidak dikenali: sama seperti paparan Induk, ikut tiang utama (lelaki) peringkat bawah
+            tiangUtama.add(n.id);
+            if (r === 1) rujuk = idIbuBapa;
+            else {
+                const bawah = leluhur.filter(x => pangkat(x) === r - 1 && peta[x.id]);
+                const utama = bawah.find(x => tiangUtama.has(x.id) && lelakiN(x)) || bawah.find(x => tiangUtama.has(x.id)) || bawah.find(lelakiN) || bawah[0];
+                rujuk = utama ? peta[utama.id] : idIbuBapa;
+            }
         }
-        giliran = leluhur.filter(n => !tersalin.has(n.id) && peta[n.data.ref_id] && !(pangkal.has(n.data.ref_id || '')));
-        giliran = giliran.filter(n => (NAIK[(n.data.relationship || '').trim().toLowerCase()]));
+        peta[n.id] = await tulis(n.data, rel, rujuk);
     }
 
     // Bapa/Mak saudara dan sepupu: pengundang + adik-beradik lain pengundang, pasangan dan anak mereka (salinan ringkas tanpa telefon/e-mel)
