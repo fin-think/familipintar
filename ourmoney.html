@@ -64,6 +64,12 @@
   .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 2px dashed var(--line); padding-bottom: 12px; }
   .card-header h2 { font-size: 1.2rem; font-weight: 800; color: var(--ink); }
 
+  .pilih-pengguna { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .pilih-pengguna .pp-label { font-size: 0.75rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .pilih-pengguna .pp-btns { display: flex; gap: 8px; flex: 1; min-width: 240px; }
+  .pp-btn { flex: 1; padding: 10px 12px; border: 1.5px solid var(--line); background: #f8fafc; color: var(--ink); border-radius: 10px; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pp-btn:hover { border-color: #94a3b8; }
+  .pp-btn.aktif { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
   .filter-wrap { display: flex; gap: 10px; margin-bottom: 15px; }
   .filter-wrap input[type="month"] { flex: 1; padding: 10px; border: 1.5px solid var(--line); border-radius: 8px; font-weight: 800; color: var(--ink); outline: none; }
   .filter-wrap button { background: #e0f2fe; color: #0284c7; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; }
@@ -259,6 +265,7 @@
   </header>
 
   <div class="container">
+    <div id="pilih-pengguna" class="pilih-pengguna hidden"></div>
     <div id="misi-notif"></div>
     <div class="layout-utama">
       
@@ -280,7 +287,7 @@
           </div>
 
           <div class="grid-2">
-            <div class="field">
+            <div class="field" id="field-txnUser">
               <label>Tindakan Oleh (Pengguna)</label>
               <select id="txnUser" required>
                 <option value="Induk">Induk</option>
@@ -450,17 +457,17 @@
         <div class="report-card" id="executive-report-section" style="display:none;">
             <div id="report-lock" class="report-lock">
                 <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
-                <h3 class="font-bold text-lg mb-2 text-white">Laporan Eksekutif Bulanan</h3>
-                <p class="text-sm text-slate-300 mb-4 px-2">Ketahui trend aliran tunai, perbandingan bulan lepas, kedudukan kategori bocor wang dan realiti tabiat perbelanjaan keluarga.</p>
+                <h3 class="font-bold text-lg mb-2 text-white" id="lock-tajuk">Laporan Eksekutif Bulanan</h3>
+                <p class="text-sm text-slate-300 mb-4 px-2" id="lock-desc">Ketahui trend aliran tunai, perbandingan bulan lepas, kedudukan kategori bocor wang dan realiti tabiat perbelanjaan.</p>
                 <button onclick="tebusLaporanEksekutif()" id="btn-unlock-report" class="btn-unlock-report">Buka Akses Seumur Hidup (10 Kredit)</button>
             </div>
             
             <div id="report-content" class="hidden">
-                <h3 class="report-title">📑 Analisis Eksekutif</h3>
+                <h3 class="report-title" id="rep-tajuk">📑 Analisis Eksekutif</h3>
                 <div class="report-grid">
                     
                     <div class="report-box">
-                        <div class="report-label">Perbelanjaan (Bulan Semasa)</div>
+                        <div class="report-label" id="rep-label-1">Perbelanjaan (Bulan Semasa)</div>
                         <div id="rep-user-stats">Memuatkan...</div>
                     </div>
                     
@@ -585,7 +592,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, updateDoc, increment, addDoc, deleteDoc, collection, query, where, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, updateDoc, increment, addDoc, deleteDoc, collection, query, where, getDocs, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
     const firebaseConfig = {
@@ -608,6 +615,10 @@
     let selectedImageFile = null;
     let namaInduk = "Induk";
     let namaPasangan = "Pasangan";
+    let adaPasangan = false;
+    let modPengguna = 'induk';            // 'induk' | 'pasangan' | 'gabungan'
+    let laporanDijana = new Set();         // laporan yang sudah dibayar dalam sesi ini (mod|bulan)
+    let _lapArgs = null;
     
     // Status Akses Seumur Hidup (Global)
     window.laporanEksekutifUnlocked = false; 
@@ -631,6 +642,42 @@
 
     const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     let misiSenarai = [];
+    // Peranan rekod: rekod baharu simpan txnPeranan; rekod lama dipadankan ikut nama
+    const peranRekod = (t) => (t.txnPeranan === 'induk' || t.txnPeranan === 'pasangan') ? t.txnPeranan
+        : (adaPasangan && t.txnUser === namaPasangan && namaPasangan !== namaInduk ? 'pasangan' : 'induk');
+    const padanPengguna = (t) => modPengguna === 'gabungan' || peranRekod(t) === modPengguna;
+    const namaPeranan = (p) => p === 'pasangan' ? namaPasangan : namaInduk;
+    const labelMod = () => modPengguna === 'gabungan' ? 'Gabungan' : namaPeranan(modPengguna);
+    const kosTahunan = () => modPengguna === 'gabungan' ? 8 : 5;   // penyata tahunan: setiap kali jana
+    const kunciTahunan = () => 'T|' + modPengguna + '|' + (document.getElementById('filterBulan').value || bulanIniStr).substring(0, 4);
+    const kunciSesi = () => 'om_laporan_' + (currentUser ? currentUser.uid : '');
+    function simpanLaporanSesi() { try { sessionStorage.setItem(kunciSesi(), JSON.stringify([...laporanDijana])); } catch (e) {} }
+    function muatLaporanSesi() { try { laporanDijana = new Set(JSON.parse(sessionStorage.getItem(kunciSesi()) || '[]')); } catch (e) { laporanDijana = new Set(); } }
+
+    function renderPemilih() {
+        const el = document.getElementById('pilih-pengguna');
+        if (!adaPasangan) { el.classList.add('hidden'); el.innerHTML = ''; return; }
+        el.classList.remove('hidden');
+        const items = [['induk', namaInduk], ['pasangan', namaPasangan], ['gabungan', 'Gabungan']];
+        el.innerHTML = '<div class="pp-label">👤 Paparan untuk</div><div class="pp-btns">' +
+            items.map(([m, n]) => `<button type="button" class="pp-btn ${m === modPengguna ? 'aktif' : ''}" onclick="tukarPengguna('${m}')">${m === 'gabungan' ? '👨‍👩‍👧 ' : ''}${esc(n)}</button>`).join('') + '</div>';
+    }
+    function segerakBorangPengguna() {
+        const sel = document.getElementById('txnUser');
+        if (modPengguna !== 'gabungan') {
+            const opt = [...sel.options].find(o => o.dataset.peranan === modPengguna);
+            if (opt) sel.value = opt.value;
+        }
+        sel.disabled = modPengguna !== 'gabungan';
+    }
+    window.tukarPengguna = (m) => {
+        if (m === 'gabungan' && !adaPasangan) m = 'induk';
+        if (m === 'pasangan' && !adaPasangan) m = 'induk';
+        modPengguna = m;
+        try { localStorage.setItem('om_pengguna', m); } catch (e) {}
+        renderPemilih(); segerakBorangPengguna();
+        if (currentUser) muatDataOurMoney();
+    };
     let tripList = [];
     const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Pakaian", "Lain-lain"];
     const catInflow = ["Baki Permulaan", "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
@@ -673,11 +720,16 @@
             });
             
             const selectUser = document.getElementById('txnUser');
-            let htmlOptions = `<option value="${namaInduk}">${namaInduk}</option>`;
+            adaPasangan = !!dPasangan;
+            let htmlOptions = `<option value="${esc(namaInduk)}" data-peranan="induk">${esc(namaInduk)}</option>`;
             if (dPasangan) {
-                htmlOptions += `<option value="${namaPasangan}">${namaPasangan}</option>`;
+                htmlOptions += `<option value="${esc(namaPasangan)}" data-peranan="pasangan">${esc(namaPasangan)}</option>`;
             }
             selectUser.innerHTML = htmlOptions;
+            let simpan = null;
+            try { simpan = localStorage.getItem('om_pengguna'); } catch (e) {}
+            modPengguna = (simpan === 'pasangan' || simpan === 'gabungan') && adaPasangan ? simpan : 'induk';
+            renderPemilih(); segerakBorangPengguna();
             
         } catch(e) { console.error("Gagal muat nama:", e); }
     }
@@ -765,6 +817,7 @@
             } catch(e) { console.error("Ralat membaca status fitur:", e); }
 
             semakTnC();
+            muatLaporanSesi();
             await muatNamaPengguna();
             await muatDataMyTadbir(); 
             await muatTargetPercutian();
@@ -1241,6 +1294,7 @@
                 receipt_url: imgUrl, 
                 created_at: Date.now(),
                 txnUser: document.getElementById('txnUser').value,
+                txnPeranan: (document.getElementById('txnUser').selectedOptions[0] || {dataset: {}}).dataset.peranan || 'induk',
                 txnAccount: document.getElementById('txnAccount').value
             };
 
@@ -1272,8 +1326,9 @@
             caj = "💳 Potong 1 Kredit";
         } else if (jenis === 'yearly') {
             tajuk = "Laporan Tahunan & Cetakan";
-            desc = "Jana laporan tahunan lengkap dalam format PDF untuk rekod rasmi atau cetakan. Caj dikenakan sekali seumur hidup.";
-            caj = "💳 Potong 5 Kredit";
+            const kos = kosTahunan();
+            desc = "Jana penyata tahunan lengkap (" + (modPengguna === 'gabungan' ? "Gabungan keluarga" : labelMod()) + ", tahun " + (document.getElementById('filterBulan').value || bulanIniStr).substring(0, 4) + ") untuk rekod rasmi atau cetakan. Caj dikenakan setiap kali dijana.";
+            caj = "💳 Potong " + kos + " Kredit";
         }
         document.getElementById('fitur-tajuk').innerText = tajuk;
         document.getElementById('fitur-desc').innerText = desc;
@@ -1287,10 +1342,9 @@
         btn.innerText = "Memproses...";
         btn.disabled = true;
         
-        let cost = pendingFitur === 'history' ? 1 : 5;
+        let cost = pendingFitur === 'history' ? 1 : kosTahunan();
         let updateObj = { credit_balance: increment(-cost) };
         if (pendingFitur === 'history') updateObj.ourmoney_history_unlocked = true;
-        if (pendingFitur === 'yearly') updateObj.ourmoney_yearly_unlocked = true;
 
         try {
             const userRef = doc(db, "mynasab_users", currentUser.uid);
@@ -1301,7 +1355,7 @@
                     await updateDoc(userRef, updateObj);
                     
                     if (pendingFitur === 'history') window.historyUnlocked = true;
-                    if (pendingFitur === 'yearly') window.yearlyUnlocked = true;
+                    if (pendingFitur === 'yearly') { laporanDijana.add(kunciTahunan()); simpanLaporanSesi(); }
                     
                     document.getElementById('modalBeliFitur').style.display = 'none';
                     
@@ -1331,7 +1385,7 @@
     };
 
     window.lihatTahunan = (skipCheck = false) => {
-        if (!window.yearlyUnlocked && !skipCheck) {
+        if (!window.yearlyUnlocked && !laporanDijana.has(kunciTahunan()) && !skipCheck) {
             window.bukaBeliFitur('yearly');
             return;
         }
@@ -1356,7 +1410,7 @@
             
             snap.forEach(d => {
                 const data = d.data();
-                if (data.date && data.date.startsWith(tahunVal)) {
+                if (data.date && data.date.startsWith(tahunVal) && padanPengguna(data)) {
                     list.push(data);
                 }
             });
@@ -1391,7 +1445,7 @@
             let fullHtml = `
             <div style="text-align:center; margin-bottom:30px; border-bottom:3px solid #1e293b; padding-bottom:20px;">
                 <h2 style="font-size:28px; font-weight:900; margin-bottom:5px; color:#1e293b;">LAPORAN KEWANGAN TAHUNAN</h2>
-                <p style="font-size:16px; color:#64748b;">Tahun: <b>${tahunVal}</b> | Dijana pada: ${new Date().toLocaleDateString('ms-MY')}</p>
+                <p style="font-size:16px; color:#64748b;">Tahun: <b>${tahunVal}</b> | Pengguna: <b>${esc(labelMod())}</b> | Dijana pada: ${new Date().toLocaleDateString('ms-MY')}</p>
             </div>
             
             <div style="display:flex; justify-content:space-between; margin-bottom:30px; background:#f8fafc; padding:20px; border-radius:12px; border:2px solid #e2e8f0;">
@@ -1445,8 +1499,9 @@
             const filterVal = document.getElementById('filterBulan').value || bulanIniStr; 
             const tahunVal = filterVal.substring(0, 4); 
 
-            document.getElementById('tajuk-transaksi').innerText = "📋 Transaksi Bulan " + filterVal;
-            document.getElementById('tajuk-dashboard').innerText = "📊 Aliran Tunai Bulan " + filterVal;
+            const akhiran = adaPasangan ? " • " + labelMod() : "";
+            document.getElementById('tajuk-transaksi').innerText = "📋 Transaksi Bulan " + filterVal + akhiran;
+            document.getElementById('tajuk-dashboard').innerText = "📊 Aliran Tunai Bulan " + filterVal + akhiran;
             
             const q = query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid));
             const snap = await getDocs(q);
@@ -1468,6 +1523,7 @@
 
             snap.forEach(d => {
                 const data = d.data();
+                if (!padanPengguna(data)) return;
                 if (data.date && data.date.startsWith(filterVal)) {
                     listSemasa.push({ id: d.id, ...data });
                     arraySemasa.push(data);
@@ -1535,8 +1591,11 @@
 
             document.getElementById('health-card-section').style.display = 'block';
             document.getElementById('executive-report-section').style.display = 'block';
-            renderAnalisisKesihatan(totalIn, totalOut - totalSimpan, Math.max(targetPercutian + misiBulananJumlah, totalSimpan));
-            siapkanLaporanEksekutif(arraySemasa, arrayLepas, totalOut);
+            // Komitmen misi/percutian dikongsi keluarga: hanya dikira penuh dalam paparan Gabungan.
+            // Paparan individu guna setoran sebenar pengguna itu sahaja.
+            const komitmen = modPengguna === 'gabungan' ? Math.max(targetPercutian + misiBulananJumlah, totalSimpan) : totalSimpan;
+            renderAnalisisKesihatan(totalIn, totalOut - totalSimpan, komitmen);
+            siapkanLaporanEksekutif(arraySemasa, arrayLepas);
 
         } catch(e) { console.error("Ralat muat transaksi:", e); }
     }
@@ -1576,7 +1635,9 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
     }
 
   
-    // --- LOGIK LAPORAN EKSEKUTIF (SEUMUR HIDUP) ---
+    // --- LOGIK LAPORAN ANALISIS EKSEKUTIF (10 KREDIT, AKSES SEUMUR HIDUP) ---
+    // Bayaran sekali pada akaun keluarga: Induk atau Pasangan sama-sama boleh mengaktifkan,
+    // dan selepas itu semua paparan (Induk / Pasangan / Gabungan) terbuka.
     window.tebusLaporanEksekutif = async () => {
         if (!currentUser) return;
         const btn = document.getElementById('btn-unlock-report');
@@ -1585,23 +1646,22 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
 
         try {
             const userRef = doc(db, "mynasab_users", currentUser.uid);
-            const snap = await getDoc(userRef);
-            if (snap.exists()) {
-                let baki = parseInt(snap.data().credit_balance) || 0;
-                if (baki >= 10) { 
-                    await updateDoc(userRef, { 
-                        credit_balance: increment(-10),
-                        ourmoney_report_unlocked: true 
-                    });
-                    window.laporanEksekutifUnlocked = true;
-                    
-                    document.getElementById('report-lock').classList.add('hidden');
-                    document.getElementById('report-content').classList.remove('hidden');
-                } else {
-                    alert("Kredit tidak mencukupi. Baki anda: " + baki + ". Sila Top Up.");
-                    btn.innerText = "Buka Akses Seumur Hidup (10 Kredit)";
-                    btn.disabled = false;
-                }
+            const hasil = await runTransaction(db, async (tx) => {
+                const snap = await tx.get(userRef);
+                const d = snap.exists() ? snap.data() : {};
+                if (d.ourmoney_report_unlocked === true) return { ok: true, baki: parseInt(d.credit_balance) || 0, dah: true };
+                const baki = parseInt(d.credit_balance) || 0;
+                if (baki < 10) return { ok: false, baki };
+                tx.update(userRef, { credit_balance: increment(-10), ourmoney_report_unlocked: true });
+                return { ok: true, baki };
+            });
+            if (hasil.ok) {
+                window.laporanEksekutifUnlocked = true;
+                if (_lapArgs) siapkanLaporanEksekutif(_lapArgs[0], _lapArgs[1]);
+            } else {
+                alert("Kredit tidak mencukupi. Baki anda: " + hasil.baki + ". Perlu 10 kredit. Sila Top Up.");
+                btn.innerText = "Buka Akses Seumur Hidup (10 Kredit)";
+                btn.disabled = false;
             }
         } catch (e) {
             alert("Ralat memproses: " + e.message);
@@ -1610,43 +1670,67 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         }
     }
 
-    function siapkanLaporanEksekutif(arrCur, arrPrev, totalOutCur) {
-        if(!window.laporanEksekutifUnlocked) {
+    function siapkanLaporanEksekutif(arrCur, arrPrev) {
+        _lapArgs = [arrCur, arrPrev];
+        const terbuka = window.laporanEksekutifUnlocked;
+        const gabung = modPengguna === 'gabungan';
+
+        document.getElementById('rep-tajuk').innerText = "📑 Analisis Eksekutif • " + (gabung ? "Gabungan" : labelMod());
+        if (!terbuka) {
             document.getElementById('report-lock').classList.remove('hidden');
             document.getElementById('report-content').classList.add('hidden');
-            document.getElementById('btn-unlock-report').innerText = "Buka Akses Seumur Hidup (10 Kredit)";
-            document.getElementById('btn-unlock-report').disabled = false;
-        } else {
-            document.getElementById('report-lock').classList.add('hidden');
-            document.getElementById('report-content').classList.remove('hidden');
+            document.getElementById('lock-tajuk').innerText = "Laporan Eksekutif Bulanan";
+            document.getElementById('lock-desc').innerText = "Trend aliran tunai, perbandingan bulan lepas, kategori bocor wang dan tabiat perbelanjaan, bagi Induk, Pasangan dan Gabungan. Bayar sekali sahaja; sesiapa antara pasangan boleh mengaktifkannya.";
+            const btn = document.getElementById('btn-unlock-report');
+            btn.innerText = "Buka Akses Seumur Hidup (10 Kredit)";
+            btn.disabled = false;
+            return;
         }
+        document.getElementById('report-lock').classList.add('hidden');
+        document.getElementById('report-content').classList.remove('hidden');
 
-        let inCur = 0, outCur = 0, inPrev = 0, outPrev = 0;
+        // Perbelanjaan sebenar tidak termasuk setoran simpanan (misi / percutian)
+        let inCur = 0, outCur = 0, simpanCur = 0, inPrev = 0, outPrev = 0;
         let bankOut = 0, cashOut = 0;
-        let userSpent = {};
+        const peran = { induk: { masuk: 0, belanja: 0, simpan: 0 }, pasangan: { masuk: 0, belanja: 0, simpan: 0 } };
         let catSpent = {};
 
         arrCur.forEach(t => {
-            if(t.type === 'outflow') {
-                outCur += t.amount;
-                if(t.txnAccount === 'Tunai') cashOut += t.amount; else bankOut += t.amount;
-                userSpent[t.txnUser] = (userSpent[t.txnUser] || 0) + t.amount;
+            const p = peran[peranRekod(t)];
+            if (t.type === 'outflow') {
+                if (t.is_saving) { simpanCur += t.amount; p.simpan += t.amount; return; }
+                outCur += t.amount; p.belanja += t.amount;
+                if (t.txnAccount === 'Tunai') cashOut += t.amount; else bankOut += t.amount;
                 catSpent[t.category] = (catSpent[t.category] || 0) + t.amount;
             } else {
-                inCur += t.amount;
+                inCur += t.amount; p.masuk += t.amount;
             }
         });
 
         arrPrev.forEach(t => {
-            if(t.type === 'outflow') outPrev += t.amount; else inPrev += t.amount;
+            if (t.type === 'outflow') { if (!t.is_saving) outPrev += t.amount; } else inPrev += t.amount;
         });
 
         let htmlUser = "";
-        for(const [uName, uAmt] of Object.entries(userSpent)) {
-            let pct = totalOutCur > 0 ? (uAmt / totalOutCur * 100).toFixed(0) : 0;
-            htmlUser += `<div class="report-val"><span class="text-sm text-slate-300">${uName}</span><span>RM ${formatRM(uAmt)} <small class="text-slate-500">(${pct}%)</small></span></div>`;
+        if (gabung) {
+            document.getElementById('rep-label-1').innerText = "Ikut Individu (Bulan Semasa)";
+            const baris = [['induk', namaInduk]];
+            if (adaPasangan) baris.push(['pasangan', namaPasangan]);
+            baris.forEach(([k, n]) => {
+                const x = peran[k];
+                const pct = outCur > 0 ? (x.belanja / outCur * 100).toFixed(0) : 0;
+                htmlUser += `<div style="margin-bottom:8px;"><div class="report-val"><span class="text-sm text-slate-300">${esc(n)}</span><span>RM ${formatRM(x.belanja)} <small class="text-slate-500">(${pct}%)</small></span></div>` +
+                    `<div class="text-sm text-slate-400" style="font-size:0.72rem;">Masuk RM ${formatRM(x.masuk)} • Simpan RM ${formatRM(x.simpan)}</div></div>`;
+            });
+        } else {
+            document.getElementById('rep-label-1').innerText = "Ringkasan " + labelMod();
+            const baki = inCur - outCur - simpanCur;
+            htmlUser = `<div class="report-val"><span class="text-sm text-slate-300">Pendapatan</span><span>RM ${formatRM(inCur)}</span></div>` +
+                `<div class="report-val"><span class="text-sm text-slate-300">Perbelanjaan</span><span>RM ${formatRM(outCur)}</span></div>` +
+                `<div class="report-val"><span class="text-sm text-slate-300">Disimpan (misi/percutian)</span><span>RM ${formatRM(simpanCur)}</span></div>` +
+                `<div class="report-val"><span class="text-sm text-slate-300">Baki</span><span>RM ${formatRM(baki)}</span></div>`;
         }
-        if(htmlUser === "") htmlUser = `<div class="text-sm text-slate-400">Tiada perbelanjaan direkod.</div>`;
+        if (arrCur.length === 0) htmlUser = `<div class="text-sm text-slate-400">Tiada rekod untuk bulan ini.</div>`;
         document.getElementById('rep-user-stats').innerHTML = htmlUser;
 
         const kiraTrend = (cur, prev, isBadIfUp) => {
@@ -1658,17 +1742,17 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
             if (diff < 0) return `<span class="trend-${isBadIfUp?'down':'up'}">↓ Turun ${pct}%</span>`;
             return `<span class="trend-neutral">Kekal</span>`;
         };
-        
+
         document.getElementById('rep-trend-in').outerHTML = `<span id="rep-trend-in">${kiraTrend(inCur, inPrev, false)}</span>`;
         document.getElementById('rep-trend-out').outerHTML = `<span id="rep-trend-out">${kiraTrend(outCur, outPrev, true)}</span>`;
 
         let sortCat = Object.keys(catSpent).map(k => ({ cat: k, amt: catSpent[k] })).sort((a,b) => b.amt - a.amt).slice(0,3);
         let htmlCat = "";
         sortCat.forEach(c => {
-            let p = totalOutCur > 0 ? (c.amt / totalOutCur * 100) : 0;
+            let p = outCur > 0 ? (c.amt / outCur * 100) : 0;
             htmlCat += `
             <div class="cat-bar-wrap">
-                <div class="cat-name">${c.cat}</div>
+                <div class="cat-name">${esc(c.cat)}</div>
                 <div class="cat-bar"><div class="cat-fill" style="width:${p}%"></div></div>
                 <div class="cat-amt">RM${Math.round(c.amt)}</div>
             </div>`;
