@@ -272,7 +272,7 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
     } catch (e) { console.warn("Tak dapat salin adik-beradik berakaun:", e.message); }
 }
 
-// SEMENTARA: betulkan pokok anak saudara yang didaftar dengan kod lama. Buang selepas digunakan.
+// Kemas kini salinan pokok akaun anak saudara daripada pokok pengundang.
 window.segerakPokokAnakSaudara = async () => {
     if (!penggunaSemasa) return;
     const uid = penggunaSemasa.uid;
