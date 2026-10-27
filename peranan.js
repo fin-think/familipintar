@@ -64,7 +64,7 @@
     suntikGaya();
     var el = typeof tempat === 'string' ? document.querySelector(tempat) : tempat;
     if (!el) return;
-    P.pilihan = { el: el, gabungan: !!opsyen.gabungan, onTukar: opsyen.onTukar };
+    P.pilihan = { el: el, gabungan: !!opsyen.gabungan, onTukar: opsyen.onTukar, sebelum: opsyen.sebelum };
     if (!info.ada) { el.style.display = 'none'; el.innerHTML = ''; return; }
     if (P.mod === 'gabungan' && !P.pilihan.gabungan) P.mod = 'induk';
     el.style.display = '';
@@ -83,6 +83,8 @@
     if (!P.info || !P.info.ada) mod = 'induk';
     if (mod === 'gabungan' && !(P.pilihan && P.pilihan.gabungan)) mod = 'induk';
     if (mod === P.mod) return;
+    // simpan dahulu data orang sebelumnya (masih guna id dokumen lama)
+    if (P.pilihan && P.pilihan.sebelum) { try { P.pilihan.sebelum(); } catch (e) {} }
     P.mod = mod;
     try { localStorage.setItem(KUNCI, mod); } catch (e) {}
     if (P.pilihan) {

@@ -643,7 +643,7 @@
 
     <!-- SAMBUNGAN FIREBASE: simpan ke myTADBIR -->
     <script src="../autosave.js?v=1"></script>
-    <script src="../peranan.js?v=1"></script>
+    <script src="../peranan.js?v=2"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -726,7 +726,7 @@
               <p id="save-status" class="text-sm font-semibold text-slate-500 mb-2">Perubahan disimpan automatik ke myTADBIR.</p>
               <a href="${URL_MYTADBIR}" class="inline-block font-bold text-indigo-700 underline">Buka myTADBIR</a>`;
             AS.segar();
-            if (infoPeranan) Peranan.pasang('#pilih-peranan', infoPeranan, { onTukar: tukarOrang });
+            if (infoPeranan) Peranan.pasang('#pilih-peranan', infoPeranan, { onTukar: tukarOrang, sebelum: () => AS.siram() });
         }
 
         let infoPeranan = null;

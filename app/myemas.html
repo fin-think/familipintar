@@ -44,6 +44,7 @@ body { font-family: 'Inter', sans-serif; }
     <div class="card p-6 border-t-4 border-yellow-500">
       <h2 class="text-lg font-bold mb-4 text-gray-800 text-center">Parameter Input</h2>
       <div class="space-y-4">
+        <div id="pilih-peranan" style="display:none"></div>
         <div>
           <label class="block text-xs font-semibold text-gray-500 uppercase">Modal Emas Asal (Gram)</label>
           <input type="number" id="gramAwal" value="20" class="w-full mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none font-bold text-gray-700 bg-gray-50">
@@ -227,10 +228,11 @@ function kira() {
 </script>
 
 <!-- 2. TARIK EMAS DARIPADA myFINPLAN (gram + harga/gram) -->
+<script src="../peranan.js?v=2"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -246,10 +248,13 @@ const $ = id => document.getElementById(id);
   if ($('hintGram').dataset.dariFinplan) { $('hintGram').textContent = 'Diubah secara manual, tidak lagi mengikut myFINPLAN.'; delete $('hintGram').dataset.dariFinplan; }
 }));
 
+const asal = { gram: $('gramAwal').value, harga: $('hargaBeli').value };
 async function tarikEmas(uid) {
   const hint = $('hintGram');
   try {
-    const s = await getDoc(doc(db, "myfinplan_plans", uid));
+    $('gramAwal').value = asal.gram; $('hargaBeli').value = asal.harga; delete hint.dataset.dariFinplan;
+    if (typeof kira === 'function') { try { kira(); } catch (e) {} }
+    const s = await getDoc(doc(db, "myfinplan_plans", Peranan.dok(uid)));
     if (!s.exists()) { hint.textContent = 'Belum ada instrumen disimpan di myFINPLAN.'; return; }
     let gram = 0, rm = 0;
     (s.data().instruments || []).filter(x => /emas|gold/i.test(x.name || '')).forEach(x => {
@@ -260,13 +265,19 @@ async function tarikEmas(uid) {
     if (gram <= 0) { hint.textContent = 'Simpanan Emas di myFINPLAN masih 0 gram. Isi dan simpan di sana, atau taip sendiri.'; return; }
     $('gramAwal').value = gram.toFixed(2);
     $('hargaBeli').value = (rm / gram).toFixed(2);
+    try { kira(); } catch (e) {}
     hint.dataset.dariFinplan = '1';
     hint.textContent = `Diambil daripada myFINPLAN: ${gram.toFixed(2)} g pada RM ${(rm / gram).toFixed(2)}/g.`;
   } catch (e) { console.warn(e.message); hint.textContent = 'Gagal menarik data myFINPLAN.'; }
 }
 
 onAuthStateChanged(auth, async u => {
-  if (u) { await tarikEmas(u.uid); return; }
+  if (u) {
+    const info = await Peranan.muat(db, u.uid, { collection, query, where, getDocs });
+    if (Peranan.mod === 'gabungan') Peranan.mod = 'induk';
+    Peranan.pasang('#pilih-peranan', info, { onTukar: () => tarikEmas(u.uid) });
+    await tarikEmas(u.uid); return;
+  }
   $('hintGram').innerHTML = `Log masuk untuk tarik emas daripada myFINPLAN:
     <form id="fEmas" class="flex flex-col gap-2 mt-2">
       <input name="e" type="email" required placeholder="E-mel myNasab" class="p-2 border rounded-lg text-xs">

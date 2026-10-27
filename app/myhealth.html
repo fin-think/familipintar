@@ -211,7 +211,7 @@
     </footer>
 
 <script src="../autosave.js?v=1"></script>
-<script src="../peranan.js?v=1"></script>
+<script src="../peranan.js?v=2"></script>
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -297,7 +297,7 @@
                 // Pemilih Induk / Pasangan (hanya muncul jika ada pasangan dalam myNasab)
                 try {
                     const info = await Peranan.muat(db, user.uid, { collection, query, where, getDocs });
-                    Peranan.pasang('#pilih-peranan', info, { onTukar: tukarOrang });
+                    Peranan.pasang('#pilih-peranan', info, { onTukar: tukarOrang, sebelum: () => AS.siram() });
                     if (Peranan.mod === 'pasangan') isiProfilPeranan();
                 } catch (e) { console.error("Pemilih peranan:", e); }
             }

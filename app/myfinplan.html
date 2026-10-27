@@ -425,6 +425,7 @@ function kiraEmas(el) {
 
     <!-- SAMBUNGAN FIREBASE: umur (myNasab), pendapatan (myDEBT), simpan instrumen untuk myTADBIR -->
     <script src="../autosave.js?v=1"></script>
+    <script src="../peranan.js?v=2"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -460,7 +461,7 @@ function kiraEmas(el) {
             mesejTunda: 'Tambah sekurang-kurangnya satu instrumen untuk simpan automatik ke myTADBIR.',
             ambil: () => { const s = window.getState(); return (!s.instruments.length && !adaSimpanan) ? null : s; },
             simpan: async (s) => {
-                await setDoc(doc(db, "myfinplan_plans", user.uid), { owner_uid: user.uid, ...s, updated_at: Date.now() });
+                await setDoc(doc(db, "myfinplan_plans", Peranan.dok(user.uid)), { owner_uid: user.uid, peranan: Peranan.mod, ...s, updated_at: Date.now() });
                 adaSimpanan = true;
             }
         });
@@ -480,7 +481,7 @@ function kiraEmas(el) {
         // 1. Pulihkan pelan myFINPLAN yang pernah disimpan
         async function muatSimpanan(uid) {
             try {
-                const s = await getDoc(doc(db, "myfinplan_plans", uid));
+                const s = await getDoc(doc(db, "myfinplan_plans", Peranan.dok(uid)));
                 if (s.exists()) { window.loadState(s.data()); adaSimpanan = true; }
             } catch (e) { console.warn('Gagal muat pelan myFINPLAN:', e.message); }
         }
@@ -488,14 +489,12 @@ function kiraEmas(el) {
         // 2. Umur daripada myNasab (nod "Diri Sendiri")
         async function tarikUmur(uid) {
             try {
-                const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
-                const nod = s.docs.map(d => d.data());
-                const diri = nod.find(n => n.is_root) || nod.find(n => (n.relationship || '').toLowerCase().includes('diri sendiri'));
-                if (diri && diri.dob) {
-                    const umur = umurDariDob(diri.dob);
+                const o = Peranan.orang();
+                if (o && o.dob) {
+                    const umur = umurDariDob(o.dob);
                     if (umur > 0) {
                         document.getElementById('currentAge').value = umur;
-                        hint('hintUmur', 'Diambil daripada myNasab');
+                        hint('hintUmur', 'Diambil daripada myNasab' + (infoPeranan && infoPeranan.ada ? ' (' + o.nama + ')' : ''));
                         return;
                     }
                 }
@@ -506,7 +505,7 @@ function kiraEmas(el) {
         // 3. Pendapatan daripada myDEBT (jika myTADBIR disimpan lebih baharu, guna yang itu)
         async function tarikPendapatan(uid) {
             try {
-                const [a, b] = await Promise.all([getDoc(doc(db, "mydebt_plans", uid)), getDoc(doc(db, "mytadbir_profiles", uid))]);
+                const [a, b] = await Promise.all([getDoc(doc(db, "mydebt_plans", Peranan.dok(uid))), getDoc(doc(db, "mytadbir_profiles", Peranan.dok(uid)))]);
                 let jumlah = 0, sumber = '', t = 0;
                 if (a.exists()) {
                     jumlah = (a.data().gaji || 0) + (a.data().sampingan || 0);
@@ -528,6 +527,17 @@ function kiraEmas(el) {
             } catch (e) { console.warn('Gagal tarik pendapatan:', e.message); }
         }
 
+        let infoPeranan = null, stateAsal = null;
+        // Tukar Induk / Pasangan: simpan yang sedia ada, kembali ke nilai asal, muat data orang yang dipilih
+        async function tukarOrang() {
+            try { await AS.siram(); } catch (e) {}
+            adaSimpanan = false; disentuh = false;
+            if (stateAsal) window.loadState(stateAsal);
+            await muatSimpanan(user.uid);
+            await Promise.all([tarikUmur(user.uid), tarikPendapatan(user.uid)]);
+            if (adaSimpanan || !disentuh) AS.sedia(); else AS.sedia('');
+        }
+
         function papar(mesejBerjaya = '') {
             if (!user) {
                 kad.innerHTML = `
@@ -545,10 +555,12 @@ function kiraEmas(el) {
                 return;
             }
             kad.innerHTML = `
+              <div id="pilih-peranan" style="display:none"></div>
               <p class="text-xs text-slate-500 mb-3">Log masuk sebagai <b>${esc(user.email)}</b></p>
               <p id="save-status" class="text-sm font-semibold text-slate-500 mb-2">Perubahan disimpan automatik ke myTADBIR.</p>
               <a href="${URL_MYTADBIR}" class="inline-block font-bold text-blue-700 underline">Buka myTADBIR</a>`;
             AS.segar();
+            if (infoPeranan) Peranan.pasang('#pilih-peranan', infoPeranan, { onTukar: tukarOrang, sebelum: () => AS.siram() });
         }
 
         onAuthStateChanged(auth, async u => {
@@ -556,6 +568,9 @@ function kiraEmas(el) {
             if (u) {
                 // tunggu halaman siap supaya instrumen asas tidak menimpa data yang dimuat
                 if (document.readyState !== 'complete') await new Promise(r => window.addEventListener('load', r, { once: true }));
+                infoPeranan = await Peranan.muat(db, u.uid, { collection, query, where, getDocs });
+                if (Peranan.mod === 'gabungan') Peranan.mod = 'induk';
+                if (!stateAsal) stateAsal = JSON.parse(JSON.stringify(window.getState()));
                 await muatSimpanan(u.uid);
                 await Promise.all([tarikUmur(u.uid), tarikPendapatan(u.uid)]);
                 if (adaSimpanan || !disentuh) AS.sedia(); else AS.sedia('');
