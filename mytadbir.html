@@ -17,6 +17,7 @@
     
     <!-- Simpan automatik (kongsi) -->
     <script src="autosave.js?v=1"></script>
+    <script src="peranan.js?v=1"></script>
 
     <!-- Babel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
@@ -175,6 +176,10 @@
           const [showReport, setShowReport] = useState(false);
           
           const [appData, setAppData] = useState(defaultData);
+          const [mod, setMod] = useState('induk');                 // 'induk' | 'pasangan' | 'gabungan'
+          const modRef = useRef('induk'); modRef.current = mod;
+          const infoRef = useRef(null);
+          const [infoPeranan, setInfoPeranan] = useState(null);
 
           // --- SIMPAN AUTOMATIK (menggantikan butang "Simpan Profil myTADBIR") ---
           const [statusSimpan, setStatusSimpan] = useState({ state: '', teks: '' });
@@ -186,7 +191,7 @@
           if (!asRef.current) {
               asRef.current = AutoSimpan.buat({
                   onStatus: (state, teks) => setStatusSimpan({ state, teks }),
-                  ambil: () => appDataRef.current,
+                  ambil: () => modRef.current === 'gabungan' ? null : appDataRef.current,
                   simpan: () => simpanRef.current()
               });
           }
@@ -241,9 +246,13 @@
           }, [isFirebaseReady]);
 
         // ENJIN PENYEDUT DATA BERSEPADU (myNasab -> myTADBIR)
-          const fetchEcosystemData = async (uid) => {
-              try {
-                  const docRef = window.fbDoc(window.fbDb, "mytadbir_profiles", uid);
+          // Bina data satu orang (induk / pasangan) daripada dokumen profilnya + myNasab + app lain
+          const binaData = async (uid, peranan) => {
+              const dokId = peranan === 'pasangan' ? uid + '_pasangan' : uid;
+              const aw = peranan === 'pasangan' ? 'pasangan_' : '';
+              const flags = { buka: false, debt: false, finplan: false, budget: false, health: null };
+              {
+                  const docRef = window.fbDoc(window.fbDb, "mytadbir_profiles", dokId);
                   const docSnap = await window.fbGetDoc(docRef);
                   let mergedData = { ...defaultData };
                   
@@ -267,7 +276,7 @@ if (rdb.monthlyBudget === undefined) {
                       
                       // SEMAK REKOD BAYARAN: Jika sudah bayar, terus buka kunci
                       if (dbData.is_dashboard_unlocked === true) {
-                          setIsDashboardUnlocked(true);
+                          flags.buka = true;
                       }
                   }
 
@@ -308,7 +317,8 @@ if (rdb.monthlyBudget === undefined) {
                       else if (rel.includes('lelaki')) jantinaDikesan = 'lelaki';
                       else if (nText.includes('binti ')) jantinaDikesan = 'perempuan';
 
-                      if (rel.includes('diri sendiri') || rel.includes('induk')) {
+                      const adalahSaya = peranan === 'pasangan' ? (rel === 'suami' || rel === 'isteri') : (rel.includes('diri sendiri') || rel.includes('induk'));
+                      if (adalahSaya) {
                           selfAge = calcAge(data.dob) || selfAge;
                           selfGender = jantinaDikesan;
                       }
@@ -323,7 +333,13 @@ if (rdb.monthlyBudget === undefined) {
                       }
                       
                       const bukanSaudara = !rel.includes('saudara') && !rel.includes('sepupu') && !rel.includes('pupuk');
-                      if (!isMeninggal && !isMertua && bukanSaudara) {
+                      if (peranan === 'pasangan') {
+                          // Ibu bapa pasangan = mertua dalam myNasab
+                          if (!isMeninggal && isMertua) {
+                              if (rel.match(/ibu|mak|mama/)) mother = true;
+                              if (rel.match(/ayah|bapa|abah|papa/)) father = true;
+                          }
+                      } else if (!isMeninggal && !isMertua && bukanSaudara) {
                           if (rel === 'suami' || rel === 'isteri') spouse = true;
                           if (rel.match(/ibu|mak|mama/)) mother = true;
                           if (rel.match(/ayah|bapa|abah|papa/)) father = true;
@@ -363,7 +379,7 @@ if (rdb.monthlyBudget === undefined) {
                   
                   if(selfAge > 0) mergedData.age = selfAge;
                   mergedData.userGender = selfGender;
-                  mergedData.hasSpouse = spouse;
+                  mergedData.hasSpouse = peranan === 'pasangan' ? true : spouse;
                   mergedData.hasMother = mother;
                   mergedData.hasFather = father;
                   
@@ -373,7 +389,7 @@ if (rdb.monthlyBudget === undefined) {
 
                   // Gabung hutang daripada myDEBT
                   try {
-                      const dSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "mydebt_plans", uid));
+                      const dSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "mydebt_plans", dokId));
                       if (dSnap.exists()) {
                           const dd = dSnap.data();
                           const lastTadbir = docSnap.exists() ? ((docSnap.data().summary || {}).last_updated || 0) : 0;
@@ -391,14 +407,14 @@ if (rdb.monthlyBudget === undefined) {
                                   interest: parseFloat(d.interest) || 0,
                                   minPayment: parseFloat(d.minPayment) || 0
                               }));
-                              setDariMyDebt(true);
+                              flags.debt = true;
                           }
                       }
                   } catch (e) { console.warn("Gagal baca data myDEBT:", e.message); }
 
                   // Gabung instrumen daripada myFINPLAN
                   try {
-                      const fSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "myfinplan_plans", uid));
+                      const fSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "myfinplan_plans", dokId));
                       if (fSnap.exists()) {
                           const ff = fSnap.data();
                           const lastTadbirF = docSnap.exists() ? ((docSnap.data().summary || {}).last_updated || 0) : 0;
@@ -408,11 +424,11 @@ if (rdb.monthlyBudget === undefined) {
                                   name: x.name || 'Instrumen',
                                   value: parseFloat(x.value) || 0
                               }));
-                              setDariFinplan(true);
+                              flags.finplan = true;
                           }
                           if ((parseFloat(ff.monthlyExpense) || 0) > 0) {
                           mergedData.monthlyBudget = parseFloat(ff.monthlyExpense);
-                          setBudgetDariFinplan(true);
+                          flags.budget = true;
                           }
                       }
                   } catch (e) { console.warn("Gagal baca data myFINPLAN:", e.message); }
@@ -422,18 +438,86 @@ if (rdb.monthlyBudget === undefined) {
                       const hSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "mynasab_users", uid));
                       if (hSnap.exists()) {
                           const hh = hSnap.data();
-                          if (hh.myhealth_status) setHealthStatus(hh.myhealth_status);
-                          if (hh.myhealth_medical_cost) setHealthCost(hh.myhealth_medical_cost);
-                          if (hh.myhealth_smoking_cost) setSmokingCost(hh.myhealth_smoking_cost);
+                          flags.health = {
+                              status: hh[aw + 'myhealth_status'],
+                              medCost: hh[aw + 'myhealth_medical_cost'],
+                              smokeCost: hh[aw + 'myhealth_smoking_cost']
+                          };
                       }
                   } catch (e) { console.warn("Gagal baca data myHEALTH:", e.message); }
                   
                   // Asas auto-save: profil yang sudah tersimpan (jika data ekosistem lebih baharu, ia akan disimpan automatik)
-                  asiasRef.current = docSnap.exists() ? (docSnap.data().raw_data || {}) : mergedData;
-                  setAppData(mergedData);
+                  return { mergedData, asias: docSnap.exists() ? (docSnap.data().raw_data || {}) : mergedData, flags };
+              }
+          };
+
+          // Gabungan: jumlahkan kewangan induk + pasangan (anak & tetapan peribadi ikut induk)
+          const gabungData = (a, b, nA, nB) => {
+              const j = k => (parseFloat(a[k]) || 0) + (parseFloat(b[k]) || 0);
+              const tanda = (arr, n, s) => (arr || []).map(x => ({ ...x, id: String(x.id) + '_' + s, name: (x.name || '') + ' (' + n + ')' }));
+              return {
+                  ...a,
+                  gajiHakiki: j('gajiHakiki'), pendapatanSampingan: j('pendapatanSampingan'),
+                  monthlyBudget: j('monthlyBudget'), extraBudget: j('extraBudget'),
+                  rumahValue: j('rumahValue'), keretaValue: j('keretaValue'),
+                  sspnFund: j('sspnFund'), asbAnakFund: j('asbAnakFund'), currentTakaful: j('currentTakaful'),
+                  asetList: [...tanda(a.asetList, nA, 'i'), ...tanda(b.asetList, nB, 'p')],
+                  debtsList: [...tanda(a.debtsList, nA, 'i'), ...tanda(b.debtsList, nB, 'p')]
+              };
+          };
+
+          const fetchEcosystemData = async (uid, modPilih) => {
+              try {
+                  let info = infoRef.current;
+                  if (!info) {
+                      info = await Peranan.muat(window.fbDb, uid, { collection: window.fbCollection, query: window.fbQuery, where: window.fbWhere, getDocs: window.fbGetDocs });
+                      infoRef.current = info; setInfoPeranan(info);
+                  }
+                  let m = modPilih || Peranan.mod || 'induk';
+                  if (!info.ada) m = 'induk';
+                  modRef.current = m; setMod(m);
+
+                  // Kunci Analisis (10 Kredit seumur hidup) disimpan pada akaun (dokumen induk), terpakai untuk semua paparan
+                  try {
+                      const iSnap = await window.fbGetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", uid));
+                      if (iSnap.exists() && iSnap.data().is_dashboard_unlocked === true) setIsDashboardUnlocked(true);
+                  } catch (e) { console.warn("Gagal semak kunci:", e.message); }
+
+                  let r;
+                  if (m === 'gabungan') {
+                      const ri = await binaData(uid, 'induk');
+                      const rp = await binaData(uid, 'pasangan');
+                      const data = gabungData(ri.mergedData, rp.mergedData, info.induk.nama, info.pasangan.nama);
+                      r = { mergedData: data, asias: data, flags: {
+                          debt: ri.flags.debt || rp.flags.debt, finplan: ri.flags.finplan || rp.flags.finplan, budget: ri.flags.budget || rp.flags.budget,
+                          health: ri.flags.health } };
+                  } else {
+                      r = await binaData(uid, m);
+                  }
+                  setDariMyDebt(!!r.flags.debt);
+                  setDariFinplan(r.flags.finplan ? true : null);
+                  setBudgetDariFinplan(!!r.flags.budget);
+                  const hh = r.flags.health || {};
+                  setHealthStatus(hh.status || 'tiada');
+                  setHealthCost(hh.medCost || 'RM 0');
+                  setSmokingCost(hh.smokeCost || 'RM 0');
+                  asiasRef.current = r.asias;
+                  setAppData(r.mergedData);
               } catch (e) { console.error("Ralat memuatkan ekosistem data:", e); }
               setLoadingData(false);
           };
+
+          // Tukar Induk / Pasangan / Gabungan
+          const ubahMod = async (m) => {
+              if (!user || m === modRef.current) return;
+              try { await asRef.current.siram(); } catch (e) {}
+              try { localStorage.setItem('fp_pengguna', m); } catch (e) {}
+              Peranan.mod = m;
+              asSediaRef.current = false;
+              setLoadingData(true);
+              await fetchEcosystemData(user.uid, m);
+          };
+
 
           const handleLogin = async (e) => {
               e.preventDefault();
@@ -937,6 +1021,7 @@ if (rdb.monthlyBudget === undefined) {
 
           // --- ENJIN PENYIMPANAN KE OURMONEY ---
           const simpanDanSyncKeOurMoney = async () => {
+              if (modRef.current === 'gabungan') return;   // paparan gabungan: baca sahaja
               setIsSaving(true);
               try {
                   // --- MISI KEWANGAN: sasaran yang boleh dijejak dalam OurMoney ---
@@ -978,6 +1063,7 @@ if (rdb.monthlyBudget === undefined) {
 
                   const payload = {
                       owner_uid: user.uid,
+                      peranan: modRef.current === 'pasangan' ? 'pasangan' : 'induk',
                       raw_data: appData,
                       summary: {
                           total_assets: totalLiquidAssets + totalPhysicalAssets,
@@ -992,7 +1078,7 @@ if (rdb.monthlyBudget === undefined) {
                       }
                   };
                   // Kod Baru (Tambah { merge: true })
-await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), payload, { merge: true });
+await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.current === 'pasangan' ? user.uid + '_pasangan' : user.uid), payload, { merge: true });
               } finally {
                   setIsSaving(false);
               }
@@ -1092,7 +1178,25 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), 
         </button>
       ))}
     </div>
-                <div className="space-y-6">
+                {infoPeranan && infoPeranan.ada && (
+                  <div className="flex items-center gap-3 flex-wrap bg-white border border-slate-200 rounded-xl p-3 mb-6 shadow-sm">
+                    <div className="text-xs font-extrabold text-slate-500 uppercase tracking-wide">👤 Paparan untuk</div>
+                    <div className="flex gap-2 flex-1 min-w-[240px]">
+                      {[['induk', infoPeranan.induk.nama], ['pasangan', infoPeranan.pasangan.nama], ['gabungan', 'Gabungan']].map(([m, n]) => (
+                        <button key={m} type="button" onClick={() => ubahMod(m)}
+                          className={`flex-1 px-3 py-2 rounded-lg border-2 font-bold text-sm truncate ${mod === m ? 'bg-sky-600 border-sky-600 text-white' : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-400'}`}>
+                          {m === 'gabungan' ? '👨‍👩‍👧 ' : ''}{n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {mod === 'gabungan' && (
+                  <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-xl text-sm font-semibold mb-6">
+                    👨‍👩‍👧 Paparan Gabungan (baca sahaja): pendapatan, aset dan hutang suami isteri dijumlahkan. Umur dan tetapan persaraan ikut {infoPeranan ? infoPeranan.induk.nama : 'Induk'}. Pilih nama seseorang untuk mengemas kini data.
+                  </div>
+                )}
+                <div className="space-y-6" style={mod === 'gabungan' ? { pointerEvents: 'none' } : undefined}>
                   
                   {activeTab === 1 && (
                     <div className="space-y-6 animate-fadeIn">
