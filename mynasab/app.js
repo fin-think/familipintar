@@ -172,7 +172,7 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
     const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", jem.owner_uid)));
     const nodes = [];
     snap.forEach(d => nodes.push({ id: d.id, data: d.data() }));
-    const bersih = (data) => Object.fromEntries(Object.entries(data).filter(([k]) => !k.startsWith('jemput') && k !== 'linked_uids' && k !== 'linked_adik'));
+    const bersih = (data) => Object.fromEntries(Object.entries(data).filter(([k]) => !k.startsWith('jemput') && !['linked_uids', 'linked_adik', 'sibling_of', 'link_owner', 'anak_saudara_dari', 'dijemput'].includes(k)));
     const rootBaru = "root_" + uidBaru;
     const tulis = async (data, rel, ref) => {
         const r = await addDoc(collection(db, "mynasab_nodes"), {
@@ -215,6 +215,29 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
         }
         giliran = leluhur.filter(n => !tersalin.has(n.id) && peta[n.data.ref_id] && !(pangkal.has(n.data.ref_id || '')));
         giliran = giliran.filter(n => (NAIK[(n.data.relationship || '').trim().toLowerCase()]));
+    }
+
+    // Bapa/Mak saudara dan sepupu: pengundang + adik-beradik lain pengundang, pasangan dan anak mereka (salinan ringkas tanpa telefon/e-mel)
+    const belah = lelaki1 ? 'Ayah' : 'Ibu';
+    const ringkas = (d) => ({ ...bersih(d), phone: '', email: '' });
+    const adaRel = (n, re) => re.test((n.data.relationship || '').trim());
+    const rootInduk = nodes.find(n => n.data.is_root);
+    const saudara = [];
+    if (rootInduk) saudara.push(rootInduk);
+    nodes.filter(n => n.id !== ibuBapa.id && adaRel(n, /^(abang|kakak|adik|adik-beradik)$/i)).forEach(n => saudara.push(n));
+    for (const sd of saudara) {
+        const L = sd.data.gender === 'L';
+        const idSaudara = await tulis(ringkas(sd.data), `${L ? 'Bapa Saudara' : 'Mak Saudara'} (Belah ${belah})`, '');
+        // pasangan
+        const pasanganSd = sd === rootInduk
+            ? nodes.filter(n => adaRel(n, /^(suami|isteri)$/i))
+            : nodes.filter(n => adaRel(n, /^ipar$/i) && n.data.ref_id === sd.id);
+        for (const p of pasanganSd) await tulis(ringkas(p.data), L ? 'Pasangan Bapa Saudara' : 'Pasangan Mak Saudara', idSaudara);
+        // anak -> sepupu
+        const anakSd = sd === rootInduk
+            ? nodes.filter(n => adaRel(n, /^anak$/i))
+            : nodes.filter(n => adaRel(n, /^anak saudara$/i) && n.data.ref_id === sd.id);
+        for (const a of anakSd) await tulis(ringkas(a.data), 'Sepupu', idSaudara);
     }
 }
 
