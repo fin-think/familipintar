@@ -272,6 +272,25 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
     } catch (e) { console.warn("Tak dapat salin adik-beradik berakaun:", e.message); }
 }
 
+// SEMENTARA: betulkan pokok anak saudara yang didaftar dengan kod lama. Buang selepas digunakan.
+window.segerakPokokAnakSaudara = async () => {
+    if (!penggunaSemasa) return;
+    const uid = penggunaSemasa.uid;
+    try {
+        const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
+        const semua = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+        const akar = semua.find(n => n.data.is_root && n.data.anak_saudara_dari);
+        if (!akar) { alert("Akaun ini bukan akaun anak saudara."); return; }
+        const dari = akar.data.anak_saudara_dari;
+        if (!confirm("Salinan pokok keluarga ibu/bapa anda akan dikemas kini daripada pokok pengundang. Ahli yang anda tambah sendiri tidak disentuh. Teruskan?")) return;
+        const lama = semua.filter(n => !n.data.is_root && n.data.created_by === dari.uid);
+        for (const n of lama) await deleteDoc(doc(db, "mynasab_nodes", n.id));
+        await salinPokokAnakSaudara({ owner_uid: dari.uid, sasaran_id: dari.nod, anak_nod: dari.anak_nod }, uid);
+        alert("Pokok berjaya dikemas kini.");
+        window.bukaPreviewBesar('saya');
+    } catch (e) { console.error(e); alert("Gagal mengemas kini pokok: " + e.message); }
+};
+
 window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
     if (kodJemput && !jemputan) {
         alert("Pautan jemputan tidak sah atau belum siap dimuatkan. Cuba lagi sebentar.");
@@ -1334,6 +1353,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             return k;
         };
 
+        { const bt = document.getElementById('btnSegerakPokok'); if (bt) bt.style.display = 'none'; }
         const kInduk = kelompok(nodInduk);
         if (!kInduk.diri) {
             ruang.innerHTML = '<p>Data akaun induk tidak dijumpai.</p>';
@@ -1776,6 +1796,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             return { ada: true, judul: 'Belah ' + d.name, isi };
         };
 
+        { const bt = document.getElementById('btnSegerakPokok'); if (bt && sayaInduk && kPusat.diri.anak_saudara_dari) bt.style.display = ''; }
         const sisi = [];
         const belahKhas = (mod === 'saya' || mod === 'semua') && kPusat.diri.anak_saudara_dari ? binaBelahSaudara() : null;
         if (belahKhas) sisi.push(belahKhas);
