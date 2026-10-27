@@ -30,6 +30,7 @@
             <h1 class="text-3xl font-bold text-slate-800">myFINPLAN | Life Planning Calculator</h1>
             <p class="text-slate-500">Rancang masa hadapan persaraan anda dengan bijak.</p>
         </header>
+        <div id="pilih-peranan" style="display:none"></div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <!-- Bahagian 1: Persaraan & Pendapatan -->
@@ -555,7 +556,6 @@ function kiraEmas(el) {
                 return;
             }
             kad.innerHTML = `
-              <div id="pilih-peranan" style="display:none"></div>
               <p class="text-xs text-slate-500 mb-3">Log masuk sebagai <b>${esc(user.email)}</b></p>
               <p id="save-status" class="text-sm font-semibold text-slate-500 mb-2">Perubahan disimpan automatik ke myTADBIR.</p>
               <a href="${URL_MYTADBIR}" class="inline-block font-bold text-blue-700 underline">Buka myTADBIR</a>`;

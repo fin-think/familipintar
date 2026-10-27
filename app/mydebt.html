@@ -30,6 +30,7 @@
     </nav>
 
     <div class="max-w-5xl mx-auto px-4 mt-6 sm:mt-8 space-y-6 sm:space-y-8">
+        <div id="pilih-peranan" style="display:none"></div>
 
         <!-- SECTION 1: DATA ENTRY -->
         <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-200 overflow-hidden">
@@ -721,7 +722,6 @@
                 return;
             }
             kad.innerHTML = `
-              <div id="pilih-peranan" style="display:none"></div>
               <p class="text-xs text-slate-500 mb-3">Log masuk sebagai <b>${esc(user.email)}</b></p>
               <p id="save-status" class="text-sm font-semibold text-slate-500 mb-2">Perubahan disimpan automatik ke myTADBIR.</p>
               <a href="${URL_MYTADBIR}" class="inline-block font-bold text-indigo-700 underline">Buka myTADBIR</a>`;
