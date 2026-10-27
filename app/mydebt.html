@@ -643,10 +643,11 @@
 
     <!-- SAMBUNGAN FIREBASE: simpan ke myTADBIR -->
     <script src="../autosave.js?v=1"></script>
+    <script src="../peranan.js?v=1"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // Laraskan jika lokasi fail berbeza. mydebt.html berada dalam /app/, mytadbir.html di akar tapak.
         const URL_MYTADBIR = "../mytadbir.html";
@@ -677,7 +678,7 @@
             mesejTunda: 'Tambah sekurang-kurangnya satu hutang untuk simpan automatik ke myTADBIR.',
             ambil: () => { const s = window.getState(); return (!s.debts.length && !adaSimpanan) ? null : s; },
             simpan: async (s) => {
-                await setDoc(doc(db, "mydebt_plans", user.uid), { owner_uid: user.uid, ...s, updated_at: Date.now() });
+                await setDoc(doc(db, "mydebt_plans", Peranan.dok(user.uid)), { owner_uid: user.uid, peranan: Peranan.mod === 'pasangan' ? 'pasangan' : 'induk', ...s, updated_at: Date.now() });
                 adaSimpanan = true;
             }
         });
@@ -688,7 +689,7 @@
         // Muat data tersimpan: guna yang paling baharu antara myDEBT dan myTADBIR
         async function muatTersimpan(uid) {
             try {
-                const [a, b] = await Promise.all([getDoc(doc(db, "mydebt_plans", uid)), getDoc(doc(db, "mytadbir_profiles", uid))]);
+                const [a, b] = await Promise.all([getDoc(doc(db, "mydebt_plans", Peranan.dok(uid))), getDoc(doc(db, "mytadbir_profiles", Peranan.dok(uid)))]);
                 let calon = null, t = 0;
                 if (a.exists()) { calon = a.data(); t = a.data().updated_at || 0; }
                 if (b.exists()) {
@@ -720,15 +721,29 @@
                 return;
             }
             kad.innerHTML = `
+              <div id="pilih-peranan" style="display:none"></div>
               <p class="text-xs text-slate-500 mb-3">Log masuk sebagai <b>${esc(user.email)}</b></p>
               <p id="save-status" class="text-sm font-semibold text-slate-500 mb-2">Perubahan disimpan automatik ke myTADBIR.</p>
               <a href="${URL_MYTADBIR}" class="inline-block font-bold text-indigo-700 underline">Buka myTADBIR</a>`;
             AS.segar();
+            if (infoPeranan) Peranan.pasang('#pilih-peranan', infoPeranan, { onTukar: tukarOrang });
+        }
+
+        let infoPeranan = null;
+        // Tukar Induk / Pasangan: simpan yang sedia ada, kosongkan, muat data orang yang dipilih
+        async function tukarOrang() {
+            try { await AS.siram(); } catch (e) {}
+            adaSimpanan = false; disentuh = false;
+            window.loadState({ gaji: 0, sampingan: 0, extra_budget: 0, debts: [] });
+            await muatTersimpan(user.uid);
+            if (adaSimpanan || !disentuh) AS.sedia(); else AS.sedia('');
         }
 
         onAuthStateChanged(auth, async u => {
             user = u;
             if (u) {
+                infoPeranan = await Peranan.muat(db, u.uid, { collection, query, where, getDocs });
+                if (Peranan.mod === 'gabungan') Peranan.mod = 'induk';
                 await muatTersimpan(u.uid);
                 // Ada simpanan lama = anggap keadaan semasa sudah tersimpan. Jika tiada, simpan data yang user dah isi (jika ada).
                 if (adaSimpanan || !disentuh) AS.sedia(); else AS.sedia('');
