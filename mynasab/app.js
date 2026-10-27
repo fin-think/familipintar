@@ -1764,7 +1764,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         };
 
         // Akaun anak saudara (pokok disalin daripada pengundang): paparkan ibu/bapa yang berkaitan bersama adik-beradik mereka (bapa/mak saudara)
-        const binaBelahSaudara = () => {
+        const binaBelahSaudara = (tanpaPasangan = false) => {
             const d = kPusat.diri;
             const unc = kPusat.saudaraIbuBapa;
             if (!unc.length) return null;
@@ -1776,12 +1776,12 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             const adik = kPusat.adikBeradik;
             const kP = {
                 diri: P,
-                menantu: [...sendiri(kPusat.pasangan, d.id), ...kPusat.ipar],
+                menantu: tanpaPasangan ? [] : [...sendiri(kPusat.pasangan, d.id), ...kPusat.ipar],
                 turun: [[d, ...adik], [...sendiri(kPusat.turun[0], d.id), ...kPusat.anakSaudara], [...kPusat.turun[1], ...kPusat.cucuSaudara], kPusat.turun[2], kPusat.turun[3]]
             };
-            const entri = [{ t: tarikh(P), bina: (kiri) => binaRumahMenegak(kP, P, lain, false, kiri), jangkar: true }];
+            const entri = [{ t: tarikh(P), bina: (kiri) => binaRumahMenegak(kP, P, tanpaPasangan ? [] : lain, false, kiri), jangkar: true }];
             unc.forEach(u => {
-                const psg = kPusat.pasanganSaudara.filter(p => p.ref_id === u.id);
+                const psg = tanpaPasangan ? [] : kPusat.pasanganSaudara.filter(p => p.ref_id === u.id);
                 const anak = kPusat.sepupu.filter(c => c.ref_id === u.id);
                 const kU = { diri: u, menantu: [], turun: [anak, [], [], [], []] };
                 entri.push({ t: tarikh(u), bina: (kiri) => binaRumahMenegak(kU, u, psg, false, kiri) });
@@ -1830,7 +1830,9 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
 
         // ===== NASAB KELUARGA BESAR =====
         // Ayah/ibu ke atas; bapa/mak saudara + sepupu; adik-beradik + anak saudara; keturunan ke bawah. Tanpa pasangan.
-        if (mod === 'nasab') {
+        const nasabKhas = mod === 'nasab' && kPusat.diri.anak_saudara_dari ? binaBelahSaudara(true) : null;
+        if (nasabKhas) { nasabKhas.judul = 'Nasab Keluarga Besar'; sisi.push(nasabKhas); }
+        else if (mod === 'nasab') {
             const sasaranSebagaiAdik = !sayaInduk && sasaranIdPusat === indukRootId;
             const nodSaudara = (sayaInduk || sasaranSebagaiAdik) ? nodInduk : [];
             const o = { ayah: [], ibu: [], sepupu: [], duaPupuk: [] };
