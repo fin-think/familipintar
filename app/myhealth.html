@@ -66,6 +66,7 @@
             <div class="p-4 md:p-10 overflow-y-auto max-h-[85vh] md:max-h-[70vh]">
                 
                 <!-- INPUT FORM -->
+                <div id="pilih-peranan" style="display:none; margin:16px 16px 0;"></div>
                 <div id="view-input">
                     <form id="health-form" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -210,6 +211,7 @@
     </footer>
 
 <script src="../autosave.js?v=1"></script>
+<script src="../peranan.js?v=1"></script>
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -231,11 +233,13 @@
         const AS = AutoSimpan.buat({
             el: 'save-status',
             boleh: () => !!currentUser,
-            ambil: () => window.latestHealthData ? {
-                myhealth_status: window.latestHealthData.status,
-                myhealth_medical_cost: window.latestHealthData.medCost,
-                myhealth_smoking_cost: window.latestHealthData.smokeCost
-            } : null,
+            ambil: () => window.latestHealthData ? (function (a) {
+                var o = {};
+                o[a + 'myhealth_status'] = window.latestHealthData.status;
+                o[a + 'myhealth_medical_cost'] = window.latestHealthData.medCost;
+                o[a + 'myhealth_smoking_cost'] = window.latestHealthData.smokeCost;
+                return o;
+            })(Peranan.awalan()) : null,
             mesejTunda: 'Jana laporan untuk disimpan automatik ke myTADBIR.',
             simpan: (d) => setDoc(doc(db, "mynasab_users", currentUser.uid), d, { merge: true })
         });
@@ -290,8 +294,43 @@
                 } catch (e) {
                     console.error("Gagal menarik data dari myNasab:", e);
                 }
+                // Pemilih Induk / Pasangan (hanya muncul jika ada pasangan dalam myNasab)
+                try {
+                    const info = await Peranan.muat(db, user.uid, { collection, query, where, getDocs });
+                    Peranan.pasang('#pilih-peranan', info, { onTukar: tukarOrang });
+                    if (Peranan.mod === 'pasangan') isiProfilPeranan();
+                } catch (e) { console.error("Pemilih peranan:", e); }
             }
         });
+
+        // Isi jantina & umur ikut orang yang dipilih (daripada nod myNasab)
+        function isiProfilPeranan() {
+            const o = Peranan.orang();
+            if (!o) return;
+            const g = String(o.jantina || '').toLowerCase();
+            if (g === 'p') document.getElementById('gender').value = 'perempuan';
+            else if (g === 'l') document.getElementById('gender').value = 'lelaki';
+            if (o.dob) {
+                const b = new Date(o.dob), t = new Date();
+                let a = t.getFullYear() - b.getFullYear();
+                const m = t.getMonth() - b.getMonth();
+                if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--;
+                if (!isNaN(a)) document.getElementById('age').value = a;
+            }
+        }
+
+        // Tukar orang: kosongkan borang & keputusan, simpan automatik selepas ini masuk ke medan orang yang dipilih
+        async function tukarOrang() {
+            try { await AS.siram(); } catch (e) {}
+            window.latestHealthData = null;
+            ['age', 'weight', 'height', 'waterIntake', 'sugaryDrinks'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            const mh = document.getElementById('medicalHistory'); if (mh) mh.value = 'tiada';
+            tabResults.disabled = true;
+            tabResults.classList.add('opacity-50', 'cursor-not-allowed');
+            window.showTab('input');
+            isiProfilPeranan();
+            AS.sedia('');
+        }
 
         const form = document.getElementById('health-form');
         const tabInput = document.getElementById('tab-input');
