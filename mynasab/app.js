@@ -6,6 +6,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, collection, addDoc, query, where, getDocs, deleteDoc, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -22,6 +23,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+const fungsi = getFunctions(app);   // Cloud Functions (jemputan e-mel, kredit awal)
 let penggunaSemasa = null;
 
 // --- BANTU: escape teks (elak skrip berniat jahat) ---
@@ -75,6 +77,18 @@ onAuthStateChanged(auth, async (user) => {
 
         if (snapPengguna.exists()) {
             const dataPengguna = snapPengguna.data();
+            // --- AKAUN JEMPUTAN: tuntut kredit percuma selepas log masuk pertama ---
+            if ((parseInt(dataPengguna.kredit_menunggu, 10) || 0) > 0 && !dataPengguna.kredit_dituntut_pada && !window.__sedangTuntutKredit) {
+                window.__sedangTuntutKredit = true;
+                try {
+                    const bakal = parseInt(dataPengguna.kredit_menunggu, 10);
+                    if (confirm(`Selamat datang ke Famili Pintar!\n\nAnda menerima ${bakal} kredit percuma.\nDengan menekan OK, anda bersetuju dengan Dasar Privasi kami (familipintar.com/mynasab/privasi.html).`)) {
+                        const hasil = await httpsCallable(fungsi, 'tuntutKreditAwal')({ pdpa: true });
+                        dataPengguna.credit_balance = (parseInt(dataPengguna.credit_balance, 10) || 0) + ((hasil.data && hasil.data.kredit) || 0);
+                    }
+                } catch (e) { console.warn("Gagal menuntut kredit awal:", e.message); }
+                window.__sedangTuntutKredit = false;
+            }
             document.getElementById('creditBalance').innerText = dataPengguna.credit_balance;
             document.getElementById('treeNameDisplay').innerText = dataPengguna.name;
             
@@ -500,7 +514,10 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
             urlGambar = await getDownloadURL(storageRef);
         }
 
-        await addDoc(collection(db, "mynasab_nodes"), {
+        const kotakJemput = document.getElementById('tambahJemputEmel');
+        const jemputEmel = !!(kotakJemput && kotakJemput.checked && email && status !== 'meninggal');
+
+        const rujukanBaru = await addDoc(collection(db, "mynasab_nodes"), {
             owner_uid: penggunaSemasa.uid,
             name: nama,
             relationship: hubungan,
@@ -523,7 +540,18 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
             document.getElementById('creditBalance').innerText = bakiTerkini - jumlahKos;
         }
 
-        alert(`Berjaya! ${nama} direkodkan.`);
+        // --- JEMPUTAN E-MEL (akaun dicipta di pelayan, ahli tetapkan kata laluan sendiri) ---
+        let ayatJemput = '';
+        if (jemputEmel) {
+            try {
+                const r = (await httpsCallable(fungsi, 'jemputAhliEmel')({ nodeId: rujukanBaru.id, persetujuan: true })).data || {};
+                if (r.status === 'dihantar') ayatJemput = `\n\nJemputan telah dihantar ke ${email}. Minta ${nama} semak e-mel untuk menetapkan kata laluan.`;
+                else if (r.status === 'dijadualkan') ayatJemput = `\n\nJemputan akan dihantar secara automatik pada ${new Date(r.pada).toLocaleDateString('ms-MY')} apabila ${nama} genap 21 tahun.`;
+                else if (r.status === 'sudah_berdaftar') ayatJemput = `\n\nE-mel ini sudah berdaftar di Famili Pintar, jadi akaun baharu tidak dicipta. Gunakan butang Jemput (pautan) untuk memautkan akaun beliau.`;
+            } catch (e) { ayatJemput = `\n\nAhli disimpan, tetapi jemputan e-mel gagal: ${e.message}`; }
+        }
+
+        alert(`Berjaya! ${nama} direkodkan.${ayatJemput}`);
         document.getElementById('modalTambahAhli').classList.add('hidden');
         document.getElementById('formTambahAhli').reset();
         document.getElementById('groupRujukan').classList.add('hidden');
@@ -538,6 +566,24 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
         }
     }
 };
+
+// Papar kotak persetujuan jemputan hanya apabila e-mel sah diisi dan ahli masih hidup
+window.segerakJemputEmel = () => {
+    const kumpulan = document.getElementById('groupJemputEmel');
+    if (!kumpulan) return;
+    const emel = (document.getElementById('tambahEmail') || {}).value || '';
+    const radio = document.querySelector('input[name="tambahStatus"]:checked');
+    const boleh = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emel.trim()) && (!radio || radio.value !== 'meninggal');
+    kumpulan.classList.toggle('hidden', !boleh);
+    if (!boleh) { const k = document.getElementById('tambahJemputEmel'); if (k) k.checked = false; }
+};
+(() => {
+    const e = document.getElementById('tambahEmail');
+    if (e) e.addEventListener('input', window.segerakJemputEmel);
+    document.querySelectorAll('input[name="tambahStatus"]').forEach(r => r.addEventListener('change', window.segerakJemputEmel));
+    const f = document.getElementById('formTambahAhli');
+    if (f) f.addEventListener('reset', () => setTimeout(window.segerakJemputEmel, 0));
+})();
 
 // --- 6. KEMASKINI PROFIL AHLI (EDIT) ---
 window.bukaModalEdit = async (idKotak) => {
