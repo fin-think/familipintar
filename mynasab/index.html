@@ -812,7 +812,24 @@
         <h2 style="margin-bottom:15px; color:#2c3e50;">Jemput Keluarga</h2>
         <div class="input-group">
             <label>Jemput sebagai (adik-beradik atau anak saudara):</label>
-            <select id="jemputSasaran"></select>
+            <select id="jemputSasaran" onchange="window.tukarSasaranJemput()"></select>
+        </div>
+        <div id="blokAnakSaudara" class="hidden" style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px 12px; margin-bottom:12px;">
+            <div class="input-group">
+                <label>Anak saudara yang dijemput</label>
+                <select id="jemputAnakSedia" onchange="window.segerakAnakBaru()"></select>
+            </div>
+            <div id="jemputAnakBaru">
+                <div class="input-group">
+                    <label>Nama anak saudara</label>
+                    <input type="text" id="jemputAnakNama" placeholder="Cth: Haswadi">
+                </div>
+                <div class="input-group">
+                    <label>Jantina</label>
+                    <select id="jemputAnakJantina"><option value="L">Lelaki</option><option value="P">Perempuan</option></select>
+                </div>
+            </div>
+            <small style="color:#166534;">Anak saudara ini ditambah dalam pokok anda di bawah ibu atau bapanya (caj 1 kredit seperti tambah ahli biasa), supaya dia muncul dalam Keluarga Besar anda.</small>
         </div>
         <button type="button" class="btn-primary" onclick="window.janaPautan()">Jana Pautan</button>
         <div id="hasilPautan" class="hidden" style="margin-top:15px;">
@@ -1010,7 +1027,7 @@
     </div> <!-- Ini penutup dashboardUtama -->
 
     <!-- Muatkan app.js -->
-    <script type="module" src="app.js?v=24"></script>
+    <script type="module" src="app.js?v=25"></script>
     
     <!-- Skrip UI Mudah -->
     <script>

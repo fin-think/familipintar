@@ -59,9 +59,13 @@ if (kodJemput) {
         const b = document.getElementById('bannerJemput');
         if(b) {
             b.innerText = jemputan.jenis === 'anak_saudara'
-                ? `${jemputan.nama_pengundang} menjemput anda sebagai anak kepada ${jemputan.nama_sasaran}. Daftar akaun baharu untuk mendapat pokok keluarga yang telah disediakan (ibu bapa dan datuk nenek).`
+                ? `${jemputan.nama_pengundang} menjemput ${jemputan.nama_anak ? jemputan.nama_anak + ' ' : 'anda '}sebagai anak kepada ${jemputan.nama_sasaran}. Daftar akaun baharu untuk mendapat pokok keluarga yang telah disediakan (ibu bapa dan datuk nenek).`
                 : `Anda dijemput menyertai keluarga ${jemputan.nama_pengundang}. Mendaftar atau log masuk akan memautkan akaun anda secara automatik.`;
             b.classList.remove('hidden');
+        }
+        if (jemputan.jenis === 'anak_saudara' && jemputan.nama_anak) {
+            const i = document.getElementById('inputNama');
+            if (i && !i.value) i.value = jemputan.nama_anak;
         }
     });
 }
@@ -269,7 +273,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
             gender: jantina,
             is_root: true,
             ...(jem && jem.jenis !== 'anak_saudara' ? { sibling_of: jem.sasaran_id, link_owner: jem.owner_uid } : {}),
-            ...(jem && jem.jenis === 'anak_saudara' ? { anak_saudara_dari: { uid: jem.owner_uid, nod: jem.sasaran_id } } : {}),
+            ...(jem && jem.jenis === 'anak_saudara' ? { anak_saudara_dari: { uid: jem.owner_uid, nod: jem.sasaran_id, anak_nod: jem.anak_nod || '' } } : {}),
             created_at: new Date()
         });
 
@@ -1096,17 +1100,67 @@ window.bukaJemput = async () => {
             adik.map(s => `<option value="${esc(s.id)}" data-jenis="anak_saudara" data-nama="${esc((s.data().relationship || '') + ' ' + s.data().name)}">Anak kepada ${esc(s.data().relationship)} ${esc(s.data().name)}</option>`).join('') + '</optgroup>' : '');
     document.getElementById('hasilPautan').classList.add('hidden');
     window.muatMenunggu();
+    window.tukarSasaranJemput();
     document.getElementById('modalJemput').classList.remove('hidden');
+};
+
+// Pilihan "anak saudara": papar senarai anak saudara sedia ada (di bawah ibu/bapa itu) atau borang anak baharu
+window.tukarSasaranJemput = async () => {
+    const sel = document.getElementById('jemputSasaran');
+    const blok = document.getElementById('blokAnakSaudara');
+    if (!sel || !blok) return;
+    const opt = sel.options[sel.selectedIndex];
+    if (!opt || opt.dataset.jenis !== 'anak_saudara') { blok.classList.add('hidden'); return; }
+    blok.classList.remove('hidden');
+    const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", penggunaSemasa.uid)));
+    const sedia = snap.docs.filter(s => /^anak saudara$/i.test((s.data().relationship || '').trim()) && s.data().ref_id === sel.value);
+    document.getElementById('jemputAnakSedia').innerHTML = '<option value="">+ Anak saudara baharu</option>' +
+        sedia.map(s => `<option value="${esc(s.id)}" data-nama="${esc(s.data().name)}">${esc(s.data().name)}</option>`).join('');
+    window.segerakAnakBaru();
+};
+window.segerakAnakBaru = () => {
+    const baru = document.getElementById('jemputAnakBaru');
+    if (baru) baru.classList.toggle('hidden', !!document.getElementById('jemputAnakSedia').value);
 };
 
 window.janaPautan = async () => {
     const sel = document.getElementById('jemputSasaran');
     if (!sel.value) return;
+    const anak = sel.options[sel.selectedIndex].dataset.jenis === 'anak_saudara';
+    let anakNod = '', namaAnak = '';
+    if (anak) {
+        const sedia = document.getElementById('jemputAnakSedia');
+        if (sedia.value) {
+            anakNod = sedia.value;
+            namaAnak = sedia.options[sedia.selectedIndex].dataset.nama || '';
+        } else {
+            const nama = document.getElementById('jemputAnakNama').value.trim();
+            if (!nama) { alert("Sila isi nama anak saudara."); return; }
+            const refP = doc(db, "mynasab_users", penggunaSemasa.uid);
+            const sp = await getDoc(refP);
+            const baki = parseInt(sp.exists() ? sp.data().credit_balance : 0, 10) || 0;
+            if (baki < 1) { alert(`Baki kredit tidak mencukupi!\n\nMenambah anak saudara memerlukan 1 Kredit.\nBaki semasa anda: ${baki} Kredit.`); return; }
+            const rujukBaru = await addDoc(collection(db, "mynasab_nodes"), {
+                owner_uid: penggunaSemasa.uid, name: nama, relationship: 'Anak Saudara',
+                gender: document.getElementById('jemputAnakJantina').value, ref_id: sel.value, dob: '', status: 'hidup',
+                phone: '', email: '', city: '', state: '', photo_url: '', is_root: false,
+                created_by: penggunaSemasa.uid, created_at: new Date()
+            });
+            await updateDoc(refP, { credit_balance: increment(-1) });
+            const paparan = document.getElementById('creditBalance'); if (paparan) paparan.innerText = baki - 1;
+            anakNod = rujukBaru.id; namaAnak = nama;
+            document.getElementById('jemputAnakNama').value = '';
+            if (window.muatTurunSalasilah) window.muatTurunSalasilah();
+            await window.tukarSasaranJemput();
+            document.getElementById('jemputAnakSedia').value = anakNod; window.segerakAnakBaru();
+        }
+    }
     const kod = crypto.randomUUID().replace(/-/g, '').slice(0, 12);
     await setDoc(doc(db, "mynasab_invites", kod), {
         owner_uid: penggunaSemasa.uid,
         sasaran_id: sel.value,
-        jenis: sel.options[sel.selectedIndex].dataset.jenis === 'anak_saudara' ? 'anak_saudara' : 'adik_beradik',
+        ...(anak ? { anak_nod: anakNod, nama_anak: namaAnak } : {}),
+        jenis: anak ? 'anak_saudara' : 'adik_beradik',
         nama_sasaran: sel.options[sel.selectedIndex].dataset.nama || sel.options[sel.selectedIndex].text.replace('Adik-beradik ', ''),
         nama_pengundang: document.getElementById('treeNameDisplay').innerText,
         created_at: new Date()
