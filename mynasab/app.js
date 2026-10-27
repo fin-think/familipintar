@@ -1786,10 +1786,19 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             const lain = kPusat.ibuBapa.filter(x => x !== P);
             const sendiri = (arr, rujuk) => arr.map(c => (c.ref_id ? c : Object.assign({}, c, { ref_id: rujuk })));
             const adik = kPusat.adikBeradik;
+            // Adik-beradik yang berdaftar dengan akaun sendiri (pautan aktif ke pokok ini): akar + pasangan + anak
+            const akarAkaun = [], anakAkaun = [], pasanganAkaun = [];
+            akaun.filter(a => a.sasaran === d.id && a.uid !== saya && !sembunyi.includes(a.uid)).forEach(a => {
+                const kA = kelompok(a.nod);
+                if (!kA.diri) return;
+                akarAkaun.push(kA.diri);
+                kA.turun[0].forEach(c => anakAkaun.push(Object.assign({}, c, { ref_id: kA.diri.id })));
+                kA.pasangan.forEach(p => pasanganAkaun.push(Object.assign({}, p, { ref_id: kA.diri.id })));
+            });
             const kP = {
                 diri: P,
-                menantu: tanpaPasangan ? [] : [...sendiri(kPusat.pasangan, d.id), ...kPusat.ipar],
-                turun: [[d, ...adik], [...sendiri(kPusat.turun[0], d.id), ...kPusat.anakSaudara], [...kPusat.turun[1], ...kPusat.cucuSaudara], kPusat.turun[2], kPusat.turun[3]]
+                menantu: tanpaPasangan ? [] : [...sendiri(kPusat.pasangan, d.id), ...kPusat.ipar, ...pasanganAkaun],
+                turun: [[d, ...adik, ...akarAkaun], [...sendiri(kPusat.turun[0], d.id), ...kPusat.anakSaudara, ...anakAkaun], [...kPusat.turun[1], ...kPusat.cucuSaudara], kPusat.turun[2], kPusat.turun[3]]
             };
             const entri = [{ t: tarikh(P), bina: (kiri) => binaRumahMenegak(kP, P, tanpaPasangan ? [] : lain, false, kiri), jangkar: true }];
             unc.forEach(u => {
