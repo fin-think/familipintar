@@ -95,7 +95,9 @@ onAuthStateChanged(auth, async (user) => {
             document.getElementById('treeNameDisplay').innerText = dataPengguna.name;
             
             // --- LOGIK PAUTAN AUTOMATIK (JEMPUTAN) ---
-            if (kodJemput && jemputan && jemputan.jenis === 'anak_saudara') {
+            if (window.__sedangDaftar) {
+                // pendaftaran baharu sedang berjalan: biar daftarPengguna menyiapkan pokok
+            } else if (kodJemput && jemputan && jemputan.jenis === 'anak_saudara') {
                 // Pautan anak saudara hanya untuk akaun baharu (pokok disalin semasa pendaftaran)
                 sessionStorage.removeItem('simpanJemput');
                 window.history.replaceState({}, document.title, location.pathname);
@@ -223,6 +225,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
     }
     const jem = jemputan;
     const kreditAwal = 20;
+    window.__sedangDaftar = true;
 
     try {
         const kredensial = await createUserWithEmailAndPassword(auth, emel, kataLaluan);
@@ -344,6 +347,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
             : `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit percuma.`);
         location.href = location.pathname;
     } catch (error) {
+        window.__sedangDaftar = false;
         alert("Ralat pendaftaran: " + error.message);
     }
 };
