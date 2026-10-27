@@ -520,6 +520,9 @@ else {
             } else {
                 // Tambahan href="javascript:void(0)" agar tombol wajib bereaksi saat diklik
                 butangTindakan = `<a href="javascript:void(0)" onclick="window.bukaModalEdit('${data.id}')" class="action-link" style="cursor: pointer;">✏️ Edit</a>`;
+                if (data.jemput_status === 'gagal_emel') {
+                    butangTindakan += `<a href="javascript:void(0)" onclick="window.hantarSemulaJemputan('${data.id}')" class="action-link" style="color:#16a085; margin-left:10px; cursor:pointer;">📧 Hantar semula</a>`;
+                }
                 if (!data.is_root) { 
                     butangTindakan += `<a href="javascript:void(0)" onclick="padamAhli('${data.id}')" class="action-link" style="color: #e74c3c; margin-left: 10px; cursor: pointer;">🗑️ Padam</a>`;
                 }
@@ -710,6 +713,15 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
 };
 
 // Papar kotak persetujuan jemputan hanya apabila e-mel sah diisi dan ahli masih hidup
+window.hantarSemulaJemputan = async (idNod) => {
+    try {
+        const r = (await httpsCallable(fungsi, 'jemputAhliEmel')({ nodeId: idNod, persetujuan: true, hantarSemula: true })).data || {};
+        if (r.status === 'dihantar') { alert("E-mel jemputan berjaya dihantar semula."); }
+        else { alert("E-mel masih gagal dihantar (" + (r.status || 'ralat') + "). Cuba lagi sebentar."); }
+        window.muatTurunSalasilah();
+    } catch (e) { console.error(e); alert("Gagal menghantar semula: " + (e.message || e)); }
+};
+
 window.segerakJemputEmel = () => {
     const kumpulan = document.getElementById('groupJemputEmel');
     if (!kumpulan) return;
