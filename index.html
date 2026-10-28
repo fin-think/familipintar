@@ -451,7 +451,10 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             <div class="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl mb-5">
                 <i class="fa-solid fa-wallet"></i>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-800">Urus & Belanja</h3>
+            <h3 class="text-xl font-extrabold text-slate-800" style="display:flex; align-items:center;">
+                Urus & Belanja
+                <span id="lencanaLuarOurMoney" style="display:none; background:#ef4444; color:white; border-radius:10px; padding:2px 6px; font-size:11px; margin-left:8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">0</span>
+            </h3>
             <p class="text-indigo-600 text-sm font-semibold mb-3">Penjejak aliran tunai keluarga</p>
             <p class="text-slate-500 text-sm leading-relaxed mb-5 flex-grow">Selalu bocor poket hujung bulan? Jejak setiap sen, pantau kesihatan kewangan, dan urus duit keluarga tanpa pening kepala!</p>
             <span class="inline-flex items-center gap-2 font-bold text-indigo-600 group-hover:gap-3 transition-all">
@@ -665,6 +668,14 @@ if ('Notification' in window) {
                     namaDisplay.innerText = userData.name || user.email.split('@')[0];
                 }
 
+                // Lencana OurMoney (bilangan simpanan belum cukup bulan ini, dikemas kini bila OurMoney dibuka)
+                const lenOM = document.getElementById('lencanaLuarOurMoney');
+                if (lenOM) {
+                    const on = userData.ourmoney_notif, kini = new Date();
+                    const bulanKini = kini.getFullYear() + '-' + String(kini.getMonth() + 1).padStart(2, '0');
+                    if (on && on.bulan === bulanKini && on.bilangan > 0) { lenOM.innerText = on.bilangan; lenOM.style.display = 'inline-block'; }
+                    else lenOM.style.display = 'none';
+                }
                 const elKredit = document.getElementById('bakiKreditHeader');
                 const elKreditMob = document.getElementById('bakiKreditHeaderMobile');
                 if (elKredit) elKredit.innerText = baki;

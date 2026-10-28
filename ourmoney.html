@@ -2,6 +2,12 @@
 <html lang="ms">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="/manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('firebase-messaging-sw.js').catch(() => {}); });
+  }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>OurMoney - Penjejak Aliran Tunai</title>
 <style>
@@ -76,8 +82,10 @@
   .filter-wrap button:hover { background: #bae6fd; }
 
   .form-grid { display: flex; flex-direction: column; gap: 12px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
+  .grid-2 { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; }
+  .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .field input, .field select { width: 100%; min-width: 0; box-sizing: border-box; }
+  @media (max-width: 480px) { .grid-2 { grid-template-columns: minmax(0,1fr); } }
   .field label { font-size: 0.75rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .field input, .field select { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 0.95rem; font-weight: 600; color: var(--ink); background: #f8fafc; outline: none; transition: 0.2s; }
   .field input:focus, .field select:focus { border-color: var(--primary); background: #fff; }
@@ -266,6 +274,10 @@
 
   <div class="container">
     <div id="pilih-pengguna" class="pilih-pengguna hidden"></div>
+    <div id="barNotifOM" style="display:none;gap:10px;align-items:center;justify-content:space-between;background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#3730a3;">
+      <span>🔔 Hidupkan notifikasi supaya telefon mengingatkan simpanan bulanan anda.</span>
+      <button onclick="aktifkanNotifOM()" style="background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap;">Hidupkan</button>
+    </div>
     <div id="misi-notif"></div>
     <div class="layout-utama">
       
@@ -1111,6 +1123,9 @@
             });
         }
         const bilangan = tarikhTiada.length;
+        semakBarNotifOM();
+        simpanBilanganNotif(bilangan, tahap);
+        notifTelefonOM(bilangan, tahap);
 
         // Lencana ikon PWA + tajuk tab (sama seperti myNasab)
         try {
@@ -1140,6 +1155,42 @@
             </div>
             ${tahap !== 'gagal' ? '<button class="tutup" onclick="tutupNotifMisi()" title="Tutup">✕</button>' : ''}
         </div>`;
+    }
+
+    // ===== Notifikasi telefon + lencana kad di index (cara sama seperti weCare) =====
+    function semakBarNotifOM() {
+        const b = document.getElementById('barNotifOM');
+        if (b) b.style.display = ('Notification' in window && Notification.permission === 'default') ? 'flex' : 'none';
+    }
+    window.aktifkanNotifOM = async () => {
+        if (!('Notification' in window)) { alert('Pelayar ini tidak menyokong notifikasi.'); return; }
+        await Notification.requestPermission();
+        semakBarNotifOM();
+        if (Notification.permission === 'granted') { try { localStorage.removeItem('om_notif_hantar'); } catch (e) {} semakNotifMisi(); }
+    };
+    // Simpan bilangan untuk lencana pada kad OurMoney di index
+    let _bilanganTerakhir = null;
+    function simpanBilanganNotif(bil, tahap) {
+        if (!currentUser) return;
+        const kunci = bulanIniStr + '|' + bil + '|' + (tahap || '');
+        if (_bilanganTerakhir === kunci) return;
+        _bilanganTerakhir = kunci;
+        updateDoc(doc(db, "mynasab_users", currentUser.uid), { ourmoney_notif: { bilangan: bil, bulan: bulanIniStr, tahap: tahap || '' } }).catch(() => {});
+    }
+    // Notifikasi sebenar (muncul pada telefon; titik pada ikon app). Sekali setiap tahap setiap bulan.
+    async function notifTelefonOM(bil, tahap) {
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+        try {
+            const reg = ('serviceWorker' in navigator) ? await navigator.serviceWorker.getRegistration() : null;
+            if (bil === 0) { if (reg) (await reg.getNotifications({ tag: 'ourmoney-simpanan' })).forEach(n => n.close()); return; }
+            let sudah = null; try { sudah = localStorage.getItem('om_notif_hantar'); } catch (e) {}
+            const kunci = bulanIniStr + '|' + tahap;
+            if (sudah === kunci) return;
+            const tajuk = { peringatan: 'Peringatan simpanan bulan ini', amaran: 'Amaran: hampir hujung bulan', gagal: 'Simpanan bulan ini belum tercapai' }[tahap] || 'OurMoney';
+            const pilihan = { body: bil + ' misi simpanan belum cukup bulan ini. Setor sekarang.', tag: 'ourmoney-simpanan', renotify: true, data: { app: 'ourmoney', url: '/ourmoney.html' } };
+            if (reg) await reg.showNotification(tajuk, pilihan); else new Notification(tajuk, pilihan);
+            try { localStorage.setItem('om_notif_hantar', kunci); } catch (e) {}
+        } catch (e) { console.warn('Notifikasi gagal:', e); }
     }
 
     window.tutupNotifMisi = () => {
