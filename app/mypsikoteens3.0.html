@@ -351,6 +351,9 @@
             
             // Re-initialize icons just in case
             lucide.createIcons();
+
+            // Privasi: HANYA catat bahawa ujian telah diambil. Skor dan keputusan tidak disimpan.
+            FP.catat({ tahap: 'ujian', label: 'Ujian telah diambil (keputusan tidak disimpan)' });
         }
 
         function restartApp() {
@@ -359,5 +362,7 @@
             totalScore = 0;
         }
     </script>
+<script src="../fpapp.js?v=2"></script>
+<script>FP.sediaAnak({ kunci: 'mypsikoteens3', letak: 'body' });</script>
 </body>
 </html>

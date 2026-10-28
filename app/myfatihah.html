@@ -177,6 +177,7 @@
                     currentU1Index++;
                     renderUjian1();
                 } else {
+                    FP.catat({ tahap: 'u1', label: 'Ujian 1 - Lengkapkan Ayat' });
                     nextAction = startUjian2;
                     showModal("Tahniah! 🎉", "Ujian 1 selesai! Mari teruskan ke Ujian 2.", "✅");
                 }
@@ -231,6 +232,7 @@
                 const slot = document.getElementById(`slot-${i}`);
                 if (slot && slot.dataset.correctId == i) correctCount++;
             }
+            FP.catat({ tahap: 'u2', label: 'Ujian 2 - Susun Terjemahan', skor: correctCount, jumlah: 7 });
             if(correctCount === 7) {
                 nextAction = startUjian3;
                 showModal("Hebat! 🔥", "Susunan anda sangat sempurna! Mari ke Ujian 3.", "⭐");
@@ -294,6 +296,7 @@
                     pairsFound++;
                     
                     if(pairsFound === 7) {
+                        FP.catat({ tahap: 'u3', label: 'Ujian 3 - Padan Ayat dan Terjemahan' });
                         nextAction = () => showSection('home');
                         showModal("MasyaAllah! 🌈", "Adik hebat! Adik telah berjaya menyelesaikan semua ujian Surah Al-Fatihah.", "🏆");
                     }
@@ -332,5 +335,7 @@
 
         window.onload = initHome;
     </script>
+<script src="../fpapp.js?v=2"></script>
+<script>FP.sediaAnak({ kunci: 'myfatihah', letak: 'body' });</script>
 </body>
 </html>

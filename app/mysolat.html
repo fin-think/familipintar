@@ -318,6 +318,7 @@
             });
 
             if(correct === 4) {
+                FP.catat({ tahap: 't1', label: 'Tahap 1 - Susun Wuduk' });
                 showMsg("Hebat! Wuduk adik sempurna.", "🌊");
                 setTimeout(() => startLevel(2), 1500);
             } else {
@@ -343,6 +344,7 @@
                     q2Index++;
                     if(q2Index < 10) loadQuiz2();
                     else {
+                        FP.catat({ tahap: 't2', label: 'Tahap 2 - Kuiz', skor: score2, jumlah: 10 });
                         if(score2 >= 8) {
                             showMsg(`Bagus! Skor: ${score2}/10. Jom ke tahap seterusnya!`, "⏰");
                             setTimeout(() => startLevel(3), 1500);
@@ -396,6 +398,7 @@
             let ok = true;
             zones.forEach(z => { if(z.dataset.currentId !== z.dataset.correctId) ok = false; });
             if(ok) {
+                FP.catat({ tahap: 't3', label: 'Tahap 3 - Susun Solat' });
                 showMsg("MasyaAllah! Susunan solat yang tepat.", "✨");
                 setTimeout(() => startLevel(4), 1500);
             } else {
@@ -431,6 +434,7 @@
             });
 
             if(win) {
+                FP.catat({ tahap: 't4', label: 'Tahap 4 - Padan Bacaan' });
                 showMsg("Hebat! Bacaan adik sangat baik.", "📖");
                 setTimeout(() => startLevel(5), 1500);
             } else {
@@ -455,7 +459,9 @@
                     q5Index++;
                     if(q5Index < 10) loadQuiz5();
                     else {
+                        FP.catat({ tahap: 't5', label: 'Tahap 5 - Kuiz Akhir', skor: score5, jumlah: 10 });
                         if(score5 === 10) { // All must be correct
+                            FP.catat({ tahap: 'tamat', label: 'Tamat semua tahap' });
                             document.querySelectorAll('.level-card').forEach(c => c.classList.remove('active'));
                             document.getElementById('win-screen').classList.add('active');
                             document.getElementById('progress-fill').style.width = "100%";
@@ -470,5 +476,7 @@
         }
 
     </script>
+<script src="../fpapp.js?v=2"></script>
+<script>FP.sediaAnak({ kunci: 'mysolat', letak: 'body' });</script>
 </body>
 </html>

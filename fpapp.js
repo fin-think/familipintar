@@ -44,12 +44,15 @@
     var s = document.createElement('style');
     s.id = 'fp-gaya';
     s.textContent =
-      '#fp-kad{box-sizing:border-box;max-width:56rem;margin:12px auto;padding:12px 14px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;font-family:inherit;font-size:13px;color:#334155;box-shadow:0 1px 3px rgba(0,0,0,.05)}' +
+      '#fp-kad{box-sizing:border-box;width:100%;max-width:56rem;margin:12px auto;padding:12px 14px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;font-family:inherit;font-size:13px;color:#334155;box-shadow:0 1px 3px rgba(0,0,0,.05)}' +
       '#fp-kad form{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}' +
       '#fp-kad input{padding:9px 10px;border:1px solid #cbd5e1;border-radius:9px;font-size:14px;min-width:0}' +
       '#fp-kad button.fp-log{background:#0d9488;color:#fff;border:none;border-radius:9px;padding:9px 14px;font-weight:800;cursor:pointer}' +
       '#fp-kad .fp-kecil{font-size:12px;color:#64748b;margin-top:6px}' +
       '#fp-kad .fp-peranan{margin:0 0 10px}' +
+      '#fp-kad select{padding:9px 10px;border:1px solid #cbd5e1;border-radius:9px;font-size:14px;max-width:100%;background:#fff;color:#334155}' +
+      '#fp-kad details summary{cursor:pointer;font-size:13px;color:#0f766e}' +
+      '#fp-kad .fp-baris{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed #e2e8f0;font-size:12px}' +
       '@media(max-width:560px){#fp-kad form{grid-template-columns:1fr}}';
     document.head.appendChild(s);
   }
@@ -195,6 +198,131 @@
         });
       }
       await ganti();
+    });
+  };
+
+  // =====================================================================
+  // MOD ANAK: untuk app anak (permainan/ujian). Pilih anak (< 21 tahun) daripada myNasab,
+  // dan setiap keputusan disimpan mengikut anak itu dalam mynasab_users/{uid}.
+  //
+  //   FP.sediaAnak({ kunci: 'mysolat', letak: 'body', umurMaks: 21, pilihAnak: (anak, FP) => {} });
+  //   FP.catat({ tahap: 'tahap1', label: 'Tahap 1', skor: 8, jumlah: 10 });   // skor + jumlah
+  //   FP.catat({ tahap: 'ujian', label: 'Keputusan', ringkasan: 'Teks ringkas' }); // tanpa skor
+  //   FP.catat({ tahap: 'tahap1', label: 'Tahap 1' });                          // lulus sahaja (tanda ✓)
+  // Tanpa log masuk atau tanpa anak dipilih, FP.catat tidak berbuat apa-apa dan app terus berfungsi.
+  // =====================================================================
+  FP.anakDipilih = null;
+  FP.rekod = null;
+  FP.anakBawah = function (had) {
+    had = had || (FP.opt && FP.opt.umurMaks) || 21;
+    return FP.anak().filter(function (a) { return !a.dob || a.umur < had; });
+  };
+  function medanAnak(a) { return 'fp_anak_' + a.id + '_' + FP.opt.kunci; }
+  function kunciSah(s) { return String(s || 'umum').replace(/[^A-Za-z0-9_]/g, '_').slice(0, 60); }
+  function kunciPilih() { return 'fp_anak_pilih_' + (FP.user ? FP.user.uid : '') + '_' + (FP.opt && FP.opt.kunci || ''); }
+
+  function paparRekod() {
+    var a = FP.anakDipilih, h;
+    if (!a) {
+      h = FP.anakBawah().length ? 'Pilih anak di atas supaya keputusan disimpan.' :
+        'Tiada anak di bawah 21 tahun dalam myNasab. Tambah anak di myNasab untuk menyimpan keputusan.';
+      FP.maklumat(h); return;
+    }
+    var t = (FP.rekod && FP.rekod.tahap) || {}, ks = Object.keys(t);
+    if (!ks.length) { FP.maklumat('Belum ada rekod untuk <b>' + esc(a.nama) + '</b>. Keputusan disimpan automatik selepas selesai.'); return; }
+    ks.sort(function (x, y) { return String(t[x].label || x).localeCompare(String(t[y].label || y)); });
+    var baris = ks.map(function (k) {
+      var r = t[k], nilai = r.ringkasan ? esc(r.ringkasan) : (typeof r.terbaik === 'number' ? ('terbaik ' + r.terbaik + (r.jumlah ? '/' + r.jumlah : '')) : '&#10003;');
+      return '<div class="fp-baris"><span>' + esc(r.label || k) + '</span><span>' + nilai + ' &middot; ' + (r.cubaan || 1) + ' kali &middot; ' + esc(r.tarikh || '') + '</span></div>';
+    }).join('');
+    FP.maklumat('<details><summary><b>Rekod ' + esc(a.nama) + '</b> &middot; ' + ks.length + ' rekod</summary><div style="margin-top:6px">' + baris + '</div></details>');
+  }
+
+  async function pilihAnak(id) {
+    var a = FP.anakBawah().filter(function (x) { return x.id === id; })[0] || null;
+    FP.anakDipilih = a;
+    FP.rekod = null;
+    try { localStorage.setItem(kunciPilih(), a ? a.id : ''); } catch (e) {}
+    if (a) {
+      var d = await FP.baca('mynasab_users', FP.user.uid);
+      // Pastikan pilihan belum bertukar semasa menunggu
+      if (FP.anakDipilih !== a) return;
+      FP.rekod = (d && d[medanAnak(a)]) || { tahap: {} };
+      if (!FP.rekod.tahap) FP.rekod.tahap = {};
+    }
+    paparRekod();
+    if (FP.opt.pilihAnak) { try { FP.opt.pilihAnak(a, FP); } catch (e) { console.error('FP pilihAnak', e); } }
+  }
+
+  FP.catat = async function (e) {
+    var a = FP.anakDipilih, r = FP.rekod;
+    if (!FP.user || !FP.fs || !a || !r || !e) return;
+    var k = kunciSah(e.tahap), t = r.tahap[k] || { cubaan: 0 };
+    t.label = e.label || t.label || k;
+    t.cubaan = (t.cubaan || 0) + 1;
+    if (typeof e.skor === 'number') {
+      t.terakhir = e.skor; t.jumlah = e.jumlah;
+      if (!(typeof t.terbaik === 'number' && t.terbaik >= e.skor)) t.terbaik = e.skor;
+    } else if (e.ringkasan === undefined) { t.lulus = true; }
+    if (e.ringkasan !== undefined) t.ringkasan = String(e.ringkasan).slice(0, 160);
+    t.tarikh = new Date().toISOString().slice(0, 10);
+    r.tahap[k] = t;
+    r.kemaskini = new Date().toISOString();
+    if (FP.anakDipilih === a) paparRekod();
+    var st = document.getElementById('fp-status');
+    try {
+      var d = {}; d[medanAnak(a)] = JSON.parse(JSON.stringify(r));
+      await FP.fs.updateDoc(FP.fs.doc(FP.db, 'mynasab_users', FP.user.uid), d);
+      if (st) st.innerHTML = '<span style="color:#0f766e">Rekod ' + esc(a.nama) + ' disimpan.</span>';
+    } catch (err) {
+      console.warn('FP.catat', err);
+      if (st) st.innerHTML = '<span style="color:#b91c1c">Rekod gagal disimpan. Semak sambungan internet.</span>';
+    }
+  };
+
+  function paparPemilihAnak() {
+    var s = document.getElementById('fp-pilih');
+    if (!s) return;
+    var ada = FP.anakBawah();
+    s.style.display = '';
+    s.className = 'fp-peranan';
+    if (!ada.length) { s.innerHTML = ''; s.style.display = 'none'; return; }
+    s.innerHTML = '<label style="font-weight:700;margin-right:6px" for="fp-anak">Anak:</label>' +
+      '<select id="fp-anak"><option value="">-- Pilih anak --</option>' +
+      ada.map(function (a) { return '<option value="' + esc(a.id) + '">' + esc(a.nama || 'Anak') + (a.dob ? ' (' + a.umur + ' thn)' : '') + '</option>'; }).join('') +
+      '</select>';
+    document.getElementById('fp-anak').onchange = function (ev) { pilihAnak(ev.target.value); };
+  }
+
+  FP.sediaAnak = async function (opt) {
+    FP.opt = opt || {};
+    gaya();
+    paparLogMasuk(function () { return Promise.reject(); });
+    var A, Au, Fs;
+    try {
+      var m = await Promise.all([import(B + 'firebase-app.js'), import(B + 'firebase-auth.js'), import(B + 'firebase-firestore.js')]);
+      A = m[0]; Au = m[1]; Fs = m[2];
+    } catch (e) { console.warn('FP: Firebase tidak dapat dimuat', e); return; }
+    var app = A.initializeApp(CFG), auth = Au.getAuth(app);
+    FP.db = Fs.getFirestore(app); FP.fs = Fs;
+    var log = function (e, p) { return Au.signInWithEmailAndPassword(auth, e, p); };
+    paparLogMasuk(log);
+    Au.onAuthStateChanged(auth, async function (u) {
+      FP.user = u || null;
+      FP.anakDipilih = null; FP.rekod = null;
+      if (!u) { FP.ada = false; FP.nod = []; paparLogMasuk(log); return; }
+      FP.ada = true;
+      paparKad();
+      try {
+        var s = await Fs.getDocs(Fs.query(Fs.collection(FP.db, 'mynasab_nodes'), Fs.where('owner_uid', '==', u.uid)));
+        FP.nod = s.docs.map(function (d) { return Object.assign({}, d.data(), { id: d.id }); });
+      } catch (e) { console.warn('FP: gagal muat nod', e); FP.nod = []; }
+      paparPemilihAnak();
+      var ada = FP.anakBawah(), ingat = '';
+      try { ingat = localStorage.getItem(kunciPilih()) || ''; } catch (e) {}
+      var pilih = ada.filter(function (a) { return a.id === ingat; })[0] || (ada.length === 1 ? ada[0] : null);
+      var sel = document.getElementById('fp-anak');
+      if (pilih) { if (sel) sel.value = pilih.id; await pilihAnak(pilih.id); } else { paparRekod(); }
     });
   };
 

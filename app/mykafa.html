@@ -377,6 +377,7 @@
             sub.totalAccumulated += sessionScore;
             
             localStorage.setItem('upkk_scores_v4', JSON.stringify(scoresData));
+            FP.catat({ tahap: currentSubject.id, label: currentSubject.name, skor: correctCount, jumlah: currentSubjectQuestions.length });
 
             // Papar UI
             document.getElementById('quiz-screen').classList.add('hidden');
@@ -436,5 +437,7 @@
 
         window.onload = renderHome;
     </script>
+<script src="../fpapp.js?v=2"></script>
+<script>FP.sediaAnak({ kunci: 'mykafa', letak: 'body' });</script>
 </body>
 </html>

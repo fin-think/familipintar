@@ -239,6 +239,7 @@
                 state.isAnswered = false;
                 render();
             } else {
+                FP.catat({ tahap: state.currentLevel.id, label: state.currentLevel.name, skor: state.score, jumlah: state.currentLevel.questions.length });
                 setView('result');
             }
         }
@@ -377,5 +378,7 @@
 
         window.onload = render;
     </script>
+<script src="../fpapp.js?v=2"></script>
+<script>FP.sediaAnak({ kunci: 'mysains', letak: 'body' });</script>
 </body>
 </html>

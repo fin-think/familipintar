@@ -334,6 +334,8 @@
             else comment = "Mari kita baca lagi tentang Rukun Islam & Iman dan cuba semula! ❤️";
             
             document.getElementById('score-comment').innerText = comment;
+            const jenisKuiz = document.getElementById('quiz-title').innerText;
+            FP.catat({ tahap: jenisKuiz, label: jenisKuiz, skor: score, jumlah: 10 });
         }
 
         function showMenu() {
@@ -350,5 +352,7 @@
             return newArr;
         }
     </script>
+<script src="../fpapp.js?v=2"></script>
+<script>FP.sediaAnak({ kunci: 'myrukun', letak: 'body' });</script>
 </body>
 </html>

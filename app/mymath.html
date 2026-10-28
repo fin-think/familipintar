@@ -332,6 +332,8 @@
         function showResult() {
             switchScreen('result-screen');
             document.getElementById('final-score').innerText = state.score;
+            const namaTahapM = `${config[state.category].title} - ${state.level}`;
+            FP.catat({ tahap: state.category + '_' + state.level, label: namaTahapM, skor: state.score / 10, jumlah: 10 });
             
             let feedback = state.score >= 80 ? "Luar Biasa! Anda adalah Pakar Matematik!" : 
                           (state.score >= 50 ? "Bagus! Teruskan latihan untuk lebih mahir." : 
@@ -371,5 +373,7 @@
             switchScreen('review-screen');
         }
     </script>
+<script src="../fpapp.js?v=2"></script>
+<script>FP.sediaAnak({ kunci: 'mymath', letak: 'body' });</script>
 </body>
 </html>

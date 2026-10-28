@@ -286,6 +286,7 @@
         function startQuiz(cat, lvl, label) {
             currentQuiz = quizData[cat][lvl];
             currentLevelLabel = label;
+            window._engKunci = cat + '_' + lvl;
             currentQuestionIndex = 0;
             score = 0;
             userAnswers = [];
@@ -359,6 +360,7 @@
             document.getElementById('result-screen').classList.remove('hidden');
             
             document.getElementById('final-score').innerText = `${score}/${currentQuiz.length}`;
+            FP.catat({ tahap: window._engKunci || currentLevelLabel, label: (/^primary/.test(window._engKunci || '') ? 'Primary ' : 'Secondary ') + currentLevelLabel, skor: score, jumlah: currentQuiz.length });
             
             const feedback = document.getElementById('feedback-msg');
             if (score === 10) feedback.innerText = "Excellent! Perfect Score!";
@@ -385,5 +387,7 @@
             });
         }
     </script>
+<script src="../fpapp.js?v=2"></script>
+<script>FP.sediaAnak({ kunci: 'myenglish', letak: 'body' });</script>
 </body>
 </html>
