@@ -266,5 +266,24 @@
         // Init
         renderChildren();
     </script>
+
+    <script src="../peranan.js?v=2"></script>
+    <script src="../fpapp.js?v=1"></script>
+    <script>
+        // ---- Tarik nama dan umur anak daripada myNasab. Kos sekarang, umur uni dan simpanan kekal nilai lalai (user isi sendiri). Tidak disimpan. ----
+        FP.sedia({
+            perOrang: false,
+            onData: (F) => {
+                const ank = F.anak().filter(a => a.umur < 18);
+                if (ank.length) {
+                    children = ank.slice(0, 10).map((a, i) => ({ id: Date.now() + i, name: a.nama, currentAge: a.umur, entryAge: 18, currentCost: 50000, currentSavings: 0 }));
+                    renderChildren();
+                    F.maklumat('Nama dan umur ' + children.length + ' anak ditarik daripada myNasab. Sila semak kos sekarang dan simpanan bagi setiap anak.');
+                } else {
+                    F.maklumat('Tiada anak berumur bawah 18 tahun dalam myNasab. Anda boleh tambah sendiri.');
+                }
+            }
+        });
+    </script>
 </body>
 </html>

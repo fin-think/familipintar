@@ -319,5 +319,36 @@
             lucide.createIcons();
         }
     </script>
+
+    <script src="../peranan.js?v=2"></script>
+    <script src="../autosave.js?v=1"></script>
+    <script src="../fpapp.js?v=1"></script>
+    <script>
+        // ---- Induk / Pasangan: setiap ibu bapa menjawab sendiri, jawapan disimpan dalam akaun ----
+        FP.sedia({
+            kunci: 'mypsiko',
+            isi: (F) => {
+                answers = {}; currentIndex = 0; showView('intro-view');
+                const anak = F.anak();
+                F.maklumat(anak.length
+                    ? 'Anak dalam myNasab: ' + anak.map(a => a.nama + (a.umur ? ' (' + a.umur + ' thn)' : '')).join(', ') + '.'
+                    : 'Belum ada anak dalam myNasab.');
+            },
+            ambil: () => {
+                if (!Object.keys(answers).length && !FP.sudahSimpan) return null;
+                return { jawapan: answers, selesai: !document.getElementById('result-view').classList.contains('hidden') };
+            },
+            pulih: (d) => {
+                answers = {}; currentIndex = 0; showView('intro-view');
+                if (!d) return;
+                answers = Object.assign({}, d.jawapan || {});
+                if (d.selesai && Object.keys(answers).length === questions.length) calculateAndShowResult();
+                else if (Object.keys(answers).length) {
+                    currentIndex = Math.max(0, questions.findIndex(q => answers[q.id] === undefined));
+                    showView('quiz-view'); renderQuiz();
+                }
+            }
+        });
+    </script>
 </body>
 </html>

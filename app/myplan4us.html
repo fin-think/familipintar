@@ -491,5 +491,39 @@
             calculate();
         };
     </script>
+
+    <script src="../peranan.js?v=2"></script>
+    <script src="../autosave.js?v=1"></script>
+    <script src="../fpapp.js?v=1"></script>
+    <script>
+        // ---- Umur Induk & Pasangan ditarik daripada myNasab; pelan disimpan dalam akaun ----
+        const IDP = ['userAge','userRetireAge','userMonthly','userCurrent','spouseAge','spouseRetireAge','spouseMonthly','spouseCurrent','annualReturn','retireYears','retireReturn','taxRate'];
+        function umurDaripadaNasab(F) {
+            const a = F.orang('induk'), b = F.adaPasangan() ? F.orang('pasangan') : null;
+            if (a.umur) document.getElementById('userAge').value = a.umur;
+            document.getElementById('hasSpouse').checked = !!b;
+            if (b && b.umur) document.getElementById('spouseAge').value = b.umur;
+            toggleSpouseUI(); calculate();
+            F.maklumat('Umur ditarik daripada myNasab: <b>' + a.nama + '</b>' + (b ? ' dan <b>' + b.nama + '</b>' : '') + '. Anda boleh ubah sendiri.');
+        }
+        FP.sedia({
+            kunci: 'myplan4us',
+            perOrang: false,
+            isi: (F) => umurDaripadaNasab(F),
+            ambil: () => {
+                const d = {};
+                IDP.forEach(i => { d[i] = document.getElementById(i).value; });
+                d.hasSpouse = document.getElementById('hasSpouse').checked;
+                return d;
+            },
+            pulih: (d, F) => {
+                if (!d) return;
+                IDP.forEach(i => { if (d[i] !== undefined) document.getElementById(i).value = d[i]; });
+                if (d.hasSpouse !== undefined) document.getElementById('hasSpouse').checked = d.hasSpouse;
+                // umur sentiasa ikut tarikh lahir terkini dalam myNasab
+                umurDaripadaNasab(F);
+            }
+        });
+    </script>
 </body>
 </html>

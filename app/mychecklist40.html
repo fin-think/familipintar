@@ -284,5 +284,31 @@
             window.scrollTo(0, 0);
         }
     </script>
+
+    <script src="../peranan.js?v=2"></script>
+    <script src="../autosave.js?v=1"></script>
+    <script src="../fpapp.js?v=1"></script>
+    <script>
+        // ---- Induk / Pasangan: setiap orang ada checklist sendiri, disimpan dalam akaun ----
+        FP.sedia({
+            kunci: 'mychecklist40',
+            isi: (F) => {
+                resetForm();
+                const o = F.orang();
+                F.maklumat(o.umur ? 'Checklist untuk <b>' + o.nama + '</b> (' + o.umur + ' tahun).' : '');
+            },
+            ambil: () => {
+                const dicentang = [...document.querySelectorAll('.checkbox-custom')].filter(c => c.checked).map(c => c.id);
+                const selesai = !document.getElementById('result-container').classList.contains('hidden');
+                if (!dicentang.length && !selesai && !FP.sudahSimpan) return null;
+                return { dicentang, selesai };
+            },
+            pulih: (d) => {
+                if (!d) return;
+                document.querySelectorAll('.checkbox-custom').forEach(c => { c.checked = (d.dicentang || []).includes(c.id); });
+                if (d.selesai) calculateResult();
+            }
+        });
+    </script>
 </body>
 </html>

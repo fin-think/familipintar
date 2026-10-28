@@ -401,7 +401,8 @@
             <h2 id="result-type" class="result-title">Menganalisis...</h2>
             <p id="result-msg" class="result-text"></p>
         </div>
-        <button class="btn-redo" onclick="location.reload()">Mula Semula</button>
+        <div id="banding-skor" style="margin:14px 0;font-size:0.9rem;color:#6b7280;"></div>
+        <button class="btn-redo" onclick="ulangLove()">Mula Semula</button>
     </div>
 
     <!-- Footer Kemas -->
@@ -458,6 +459,7 @@
         const resMsg = document.getElementById('result-msg');
 
         scoreText.innerText = score + "/30";
+        window._skorLove = score;
 
         if (score >= 26) {
             resType.innerText = "Cinta Syurga (Platinum)";
@@ -473,6 +475,68 @@
             resMsg.innerText = "Hubungan anda mungkin sedang melalui fasa yang sangat mencabar. Mungkin banyak perkara yang dipendam. Ambillah masa untuk duduk berdua, tanpa gangguan, dan berbincang dari hati ke hati tentang apa yang anda berdua perlukan.";
         }
     }
+</script>
+
+<script src="../peranan.js?v=2"></script>
+<script src="../autosave.js?v=1"></script>
+<script src="../fpapp.js?v=1"></script>
+<script>
+    // ---- Induk / Pasangan: setiap orang menjawab sendiri, jawapan disimpan dalam akaun ----
+    let adaSimpananLove = false;
+    function jawapanLove() {
+        const j = {};
+        document.querySelectorAll('#loveQuiz input[type=radio]:checked').forEach(r => { j[r.name] = parseInt(r.value); });
+        return j;
+    }
+    function kosongLove() {
+        document.querySelectorAll('#loveQuiz input[type=radio]').forEach(r => { r.checked = false; });
+        document.getElementById('quiz-ui').style.display = '';
+        document.getElementById('result-area').style.display = 'none';
+        window._skorLove = 0;
+    }
+    window.ulangLove = function () { kosongLove(); window.scrollTo(0, 0); if (window.FP && FP.AS) FP.AS.ubah(); };
+
+    async function paparBandingLove() {
+        const el = document.getElementById('banding-skor');
+        if (!el || !window.FP || !FP.ada || !FP.adaPasangan()) { if (el) el.innerHTML = ''; return; }
+        const d = await FP.baca('mynasab_users', FP.user.uid) || {};
+        const a = d.fp_mylove, b = d.fp_pasangan_mylove;
+        const nama = FP.info;
+        const baris = [];
+        if (a && a.selesai) baris.push(nama.induk.nama + ': <b>' + a.skor + '/30</b>');
+        if (b && b.selesai) baris.push(nama.pasangan.nama + ': <b>' + b.skor + '/30</b>');
+        el.innerHTML = baris.length === 2 ? 'Skor kedua-dua anda &mdash; ' + baris.join(' &nbsp;|&nbsp; ') : '';
+    }
+
+    FP.sedia({
+        kunci: 'mylove',
+        letak: '.card',
+        isi: (F) => {
+            adaSimpananLove = false; kosongLove();
+            if (F.adaPasangan()) {
+                const o = F.orang(), p = F.orang(o.pasangan);
+                F.maklumat('Anda menjawab sebagai <b>' + o.nama + '</b> tentang <b>' + p.nama + '</b>. Pilih nama di atas untuk menukar orang.');
+            }
+        },
+        ambil: () => {
+            const j = jawapanLove();
+            if (!Object.keys(j).length && !adaSimpananLove) return null;
+            const selesai = document.getElementById('result-area').style.display === 'block';
+            return { jawapan: j, selesai, skor: selesai ? (window._skorLove || 0) : 0 };
+        },
+        selepasSimpan: (st) => { if (st && st.selesai) paparBandingLove(); },
+        pulih: (d) => {
+            kosongLove();
+            if (!d) { return; }
+            adaSimpananLove = true;
+            Object.keys(d.jawapan || {}).forEach(k => {
+                const r = document.querySelector('#loveQuiz input[name=' + k + '][value="' + d.jawapan[k] + '"]');
+                if (r) r.checked = true;
+            });
+            if (d.selesai) showLoveResult();
+            paparBandingLove();
+        }
+    });
 </script>
 
 </body>

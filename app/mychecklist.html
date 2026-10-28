@@ -362,5 +362,46 @@
         document.getElementById('currentDate').innerText = "KEMASKINI: " + new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' });
         setAgeGroup('20-30');
     </script>
+
+    <script src="../peranan.js?v=2"></script>
+    <script src="../autosave.js?v=1"></script>
+    <script src="../fpapp.js?v=1"></script>
+    <script>
+        // ---- Induk / Pasangan: kategori umur ikut tarikh lahir myNasab; tanda semak disimpan setiap orang ----
+        let semakSimpan = {};   // { '20-30': [indeks...], ... }
+        function rekodSemak() {
+            semakSimpan[currentAgeGroup] = [...document.querySelectorAll('#checklistContent .checkbox-custom')]
+                .map((cb, i) => cb.checked ? i : -1).filter(i => i >= 0);
+        }
+        const _renderAsal = renderChecklist;
+        renderChecklist = function () {
+            _renderAsal();
+            const t = semakSimpan[currentAgeGroup] || [];
+            document.querySelectorAll('#checklistContent .checkbox-custom').forEach((cb, i) => { cb.checked = t.includes(i); });
+        };
+        const _statusAsal = updateStatus;
+        updateStatus = function () { _statusAsal(); rekodSemak(); };
+        const kumpulanUmur = u => u >= 40 ? '40-50' : (u >= 30 ? '30-40' : '20-30');
+        FP.sedia({
+            kunci: 'mychecklist',
+            isi: (F) => {
+                semakSimpan = {};
+                const u = F.orang().umur;
+                setAgeGroup(u ? kumpulanUmur(u) : '20-30');
+                F.maklumat(u ? 'Kategori umur dipilih ikut tarikh lahir dalam myNasab (' + u + ' tahun). Anda boleh tukar sendiri.' : 'Tarikh lahir belum diisi di myNasab. Pilih kategori umur sendiri.');
+            },
+            ambil: () => {
+                rekodSemak();
+                const ada = Object.values(semakSimpan).some(a => a.length);
+                if (!ada && !FP.sudahSimpan) return null;
+                return { kumpulan: currentAgeGroup, semak: semakSimpan };
+            },
+            pulih: (d) => {
+                if (!d) return;
+                semakSimpan = d.semak || {};
+                setAgeGroup(d.kumpulan || currentAgeGroup);
+            }
+        });
+    </script>
 </body>
 </html>

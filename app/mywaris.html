@@ -25,8 +25,8 @@
         <!-- Header -->
         <header class="bg-emerald-800 text-white p-6 shadow-lg rounded-b-3xl mb-8 flex flex-col md:flex-row items-center justify-between">
             <div class="flex items-center gap-4">
-                <div class="bg-white p-2 rounded-xl">
-                    <img src="https://i.postimg.cc/N0n5P1R7/LOGO-HANS-LEGASI-BARU-transparent.png" alt="myMAWARIS Logo" class="w-12 h-12">
+                <div class="bg-white p-3 rounded-xl text-emerald-700 flex items-center justify-center">
+                    <i data-lucide="scroll-text" class="w-8 h-8"></i>
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">myWARIS</h1>
@@ -69,7 +69,7 @@
                     </div>
                     <div class="p-4 border rounded-xl bg-white shadow-sm">
                         <label class="block text-sm font-semibold mb-2">Status Perkahwinan</label>
-                        <select onchange="updateProfile('status', this.value)" class="w-full p-2 border rounded-lg">
+                        <select id="sel-status" onchange="updateProfile('status', this.value)" class="w-full p-2 border rounded-lg">
                             <option value="kahwin">Berkahwin</option>
                             <option value="bujang">Bujang / Tak Kahwin</option>
                         </select>
@@ -77,14 +77,14 @@
                     
                     <div class="p-4 border rounded-xl bg-white shadow-sm">
                         <label class="block text-sm font-semibold mb-2">Status Ayah Kandung</label>
-                        <select onchange="updateProfile('statusAyah', this.value)" class="w-full p-2 border rounded-lg">
+                        <select id="sel-ayah" onchange="updateProfile('statusAyah', this.value)" class="w-full p-2 border rounded-lg">
                             <option value="ada">Masih Ada</option>
                             <option value="tiada">Tiada (Meninggal)</option>
                         </select>
                     </div>
                     <div class="p-4 border rounded-xl bg-white shadow-sm">
                         <label class="block text-sm font-semibold mb-2">Status Ibu Kandung</label>
-                        <select onchange="updateProfile('statusIbu', this.value)" class="w-full p-2 border rounded-lg">
+                        <select id="sel-ibu" onchange="updateProfile('statusIbu', this.value)" class="w-full p-2 border rounded-lg">
                             <option value="ada">Masih Ada</option>
                             <option value="tiada">Tiada (Meninggal)</option>
                         </select>
@@ -95,11 +95,11 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-xs text-gray-500 block">Lelaki</label>
-                                <input type="number" oninput="updateProfile('bilAnakLelaki', this.value)" value="0" class="w-full p-2 border rounded">
+                                <input type="number" id="in-anakL" oninput="updateProfile('bilAnakLelaki', this.value)" value="0" class="w-full p-2 border rounded">
                             </div>
                             <div>
                                 <label class="text-xs text-gray-500 block">Perempuan</label>
-                                <input type="number" oninput="updateProfile('bilAnakPerempuan', this.value)" value="0" class="w-full p-2 border rounded">
+                                <input type="number" id="in-anakP" oninput="updateProfile('bilAnakPerempuan', this.value)" value="0" class="w-full p-2 border rounded">
                             </div>
                         </div>
                     </div>
@@ -108,11 +108,11 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-xs text-gray-500 block">Lelaki</label>
-                                <input type="number" oninput="updateProfile('bilAdikLelaki', this.value)" value="0" class="w-full p-2 border rounded">
+                                <input type="number" id="in-adikL" oninput="updateProfile('bilAdikLelaki', this.value)" value="0" class="w-full p-2 border rounded">
                             </div>
                             <div>
                                 <label class="text-xs text-gray-500 block">Perempuan</label>
-                                <input type="number" oninput="updateProfile('bilAdikPerempuan', this.value)" value="0" class="w-full p-2 border rounded">
+                                <input type="number" id="in-adikP" oninput="updateProfile('bilAdikPerempuan', this.value)" value="0" class="w-full p-2 border rounded">
                             </div>
                         </div>
                     </div>
@@ -127,6 +127,7 @@
                         <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2 mb-4">
                             <i data-lucide="wallet" class="text-emerald-600"></i> Analisa Harta
                         </h2>
+                        <button id="btn-tarik" onclick="tarikHartaHutang(true)" class="mb-3 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 hidden">🔄 Tarik semula harta &amp; hutang daripada myFINPLAN dan myDEBT</button>
                         <div id="assets-container" class="space-y-3"></div>
                         <button onclick="addAsset()" class="mt-2 text-emerald-600 text-sm font-bold flex items-center gap-1 hover:underline p-2">
                             <i data-lucide="plus-circle" size="16"></i> Tambah Harta Lain
@@ -147,8 +148,8 @@
                         <i data-lucide="file-text" size="20"></i> Wasiat 1/3 (Bukan Waris)
                     </h3>
                     <div class="grid md:grid-cols-2 gap-4">
-                        <input oninput="updateWasiat('penerima', this.value)" class="w-full p-2 border rounded-lg" placeholder="Penerima Wasiat">
-                        <input type="number" oninput="updateWasiat('nilaiCustom', this.value)" class="w-full p-2 border rounded-lg" placeholder="Nilai RM">
+                        <input id="in-wpenerima" oninput="updateWasiat('penerima', this.value)" class="w-full p-2 border rounded-lg" placeholder="Penerima Wasiat">
+                        <input type="number" id="in-wnilai" oninput="updateWasiat('nilaiCustom', this.value)" class="w-full p-2 border rounded-lg" placeholder="Nilai RM">
                     </div>
                 </div>
                 <div class="flex gap-4">
@@ -199,11 +200,11 @@
                             <div class="bg-white/10 p-4 rounded-xl space-y-3">
                                 <div class="flex justify-between items-center text-sm">
                                     <span>Hibah Takaful (RM):</span>
-                                    <input type="number" oninput="updateTakaful('hibahTakaful', this.value)" value="0" class="bg-transparent border-b border-indigo-400 text-right w-28 outline-none font-bold">
+                                    <input type="number" id="in-thibah" oninput="updateTakaful('hibahTakaful', this.value)" value="0" class="bg-transparent border-b border-indigo-400 text-right w-28 outline-none font-bold">
                                 </div>
                                 <div class="flex justify-between items-center text-sm">
                                     <span>Tunai (RM):</span>
-                                    <input type="number" oninput="updateTakaful('tunaiAmanah', this.value)" value="0" class="bg-transparent border-b border-indigo-400 text-right w-28 outline-none font-bold">
+                                    <input type="number" id="in-ttunai" oninput="updateTakaful('tunaiAmanah', this.value)" value="0" class="bg-transparent border-b border-indigo-400 text-right w-28 outline-none font-bold">
                                 </div>
                             </div>
                             <div id="cash-analysis-box" class="bg-white/5 p-4 rounded-xl space-y-3 border border-white/10"></div>
@@ -226,10 +227,6 @@
                             <i data-lucide="printer" size="20"></i> Cetak Laporan (PDF)
                         </button>
                     </div>
-                    <!-- New eWasiat Button -->
-                    <button onclick="gotoEWasiat()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-indigo-700 transition shadow-lg">
-                        <i data-lucide="file-signature" size="20"></i> Permohonan eWasiat
-                    </button>
                 </div>
             </section>
         </main>
@@ -240,9 +237,6 @@
     </div>
 
     <script>
-        // --- SLOT UNTUK LINK EXTERNAL ---
-        const EWASIAT_URL = "https://wasiatku.my?cid=182"; // Tukar link di sini nnt
-
         // State
         let currentStep = 1;
         let profile = {
@@ -461,11 +455,106 @@
             lucide.createIcons();
         }
 
-        function gotoEWasiat() {
-            window.open(EWASIAT_URL, '_blank');
+        lucide.createIcons();
+    </script>
+
+    <script src="../peranan.js?v=2"></script>
+    <script src="../autosave.js?v=1"></script>
+    <script src="../fpapp.js?v=1"></script>
+    <script>
+        // ---- Induk / Pasangan: pilih siapa "Si Mati"; profil waris ditarik daripada myNasab, harta daripada myFINPLAN, hutang daripada myDEBT ----
+        let disentuhW = false;
+        document.addEventListener('input', e => { if (!(e.target.closest && e.target.closest('#fp-kad'))) disentuhW = true; }, true);
+        document.addEventListener('change', e => { if (!(e.target.closest && e.target.closest('#fp-kad'))) disentuhW = true; }, true);
+
+        function setProfilDOM() {
+            document.getElementById('btn-jantina-lelaki').className = profile.jantina === 'lelaki' ? 'flex-1 py-2 px-4 rounded-lg border-2 bg-emerald-600 text-white border-emerald-600' : 'flex-1 py-2 px-4 rounded-lg border-2 bg-white text-gray-600 border-gray-200';
+            document.getElementById('btn-jantina-perempuan').className = profile.jantina === 'perempuan' ? 'flex-1 py-2 px-4 rounded-lg border-2 bg-emerald-600 text-white border-emerald-600' : 'flex-1 py-2 px-4 rounded-lg border-2 bg-white text-gray-600 border-gray-200';
+            document.getElementById('sel-status').value = profile.status;
+            document.getElementById('sel-ayah').value = profile.statusAyah;
+            document.getElementById('sel-ibu').value = profile.statusIbu;
+            document.getElementById('in-anakL').value = profile.bilAnakLelaki;
+            document.getElementById('in-anakP').value = profile.bilAnakPerempuan;
+            document.getElementById('in-adikL').value = profile.bilAdikLelaki;
+            document.getElementById('in-adikP').value = profile.bilAdikPerempuan;
+            document.getElementById('in-wpenerima').value = wasiat.penerima || '';
+            document.getElementById('in-wnilai').value = wasiat.nilaiCustom || '';
+            document.getElementById('in-thibah').value = takaful.hibahTakaful || 0;
+            document.getElementById('in-ttunai').value = takaful.tunaiAmanah || 0;
+        }
+        function segarSkrin() {
+            setProfilDOM();
+            renderAssets(); renderDebts();
+            if (currentStep === 3) renderResults();
         }
 
-        lucide.createIcons();
+        // Profil waris daripada myNasab untuk orang yang dipilih (Si Mati)
+        function profilDaripadaNasab(F) {
+            const m = Peranan.mod, o = F.orang(m);
+            const ib = F.ibuBapa(m), ank = F.anak();
+            profile.jantina = o.jantina === 'P' ? 'perempuan' : 'lelaki';
+            profile.status = F.adaPasangan() ? 'kahwin' : 'bujang';
+            if (ib.ayah.ada) profile.statusAyah = ib.ayah.hidup ? 'ada' : 'tiada';
+            if (ib.ibu.ada) profile.statusIbu = ib.ibu.hidup ? 'ada' : 'tiada';
+            profile.bilAnakLelaki = ank.filter(a => a.jantina === 'L').length;
+            profile.bilAnakPerempuan = ank.filter(a => a.jantina === 'P').length;
+            if (m === 'induk') { const ab = F.adikBeradik(); profile.bilAdikLelaki = ab.lelaki; profile.bilAdikPerempuan = ab.perempuan; }
+            else { profile.bilAdikLelaki = 0; profile.bilAdikPerempuan = 0; }
+        }
+
+        // Harta daripada myFINPLAN, hutang daripada myDEBT (ikut orang yang dipilih)
+        async function tarikHartaHutang(manual) {
+            if (!FP.ada) return;
+            const dok = Peranan.dok(FP.user.uid);
+            const [fin, deb] = await Promise.all([FP.baca('myfinplan_plans', dok), FP.baca('mydebt_plans', dok)]);
+            let nota = [];
+            const ins = fin && Array.isArray(fin.instruments) ? fin.instruments.filter(x => (parseFloat(x.value) || 0) > 0) : [];
+            if (ins.length) {
+                assets = ins.map((x, i) => ({ id: Date.now() + i, name: x.name || 'Harta', value: Math.round(parseFloat(x.value) || 0), hibah: false }));
+                nota.push(ins.length + ' harta daripada myFINPLAN');
+            }
+            const dl = deb && Array.isArray(deb.debts) ? deb.debts.filter(x => (parseFloat(x.balance) || 0) > 0) : [];
+            if (dl.length) {
+                debts = dl.map((x, i) => ({ id: Date.now() + 100 + i, name: x.name || 'Hutang', value: Math.round(parseFloat(x.balance) || 0) }));
+                nota.push(dl.length + ' hutang daripada myDEBT');
+            }
+            document.getElementById('btn-tarik').classList.remove('hidden');
+            if (manual) disentuhW = true;
+            if (manual && !nota.length) alert('Tiada data harta (myFINPLAN) atau hutang (myDEBT) untuk ditarik.');
+            return nota;
+        }
+
+        FP.sedia({
+            kunci: 'mywaris',
+            letak: 'main',
+            isi: async (F) => {
+                disentuhW = false;
+                profile = { jantina: 'lelaki', status: 'kahwin', statusAyah: 'ada', statusIbu: 'ada', bilAnakLelaki: 0, bilAnakPerempuan: 0, bilAdikLelaki: 0, bilAdikPerempuan: 0 };
+                assets = [
+                    { id: 1, name: 'Rumah Kediaman', value: 0, hibah: false }, { id: 2, name: 'Simpanan Bank', value: 0, hibah: false },
+                    { id: 3, name: 'EPF (KWSP)', value: 0, hibah: false }, { id: 4, name: 'Kenderaan', value: 0, hibah: false }];
+                debts = [{ id: 1, name: 'Hutang Rumah', value: 0 }, { id: 2, name: 'Hutang Kereta', value: 0 }, { id: 3, name: 'Hutang Peribadi', value: 0 }];
+                wasiat = { penerima: '', nilaiCustom: 0 }; takaful = { hibahTakaful: 0, tunaiAmanah: 0 };
+                profilDaripadaNasab(F);
+                const nota = await tarikHartaHutang(false);
+                const o = F.orang();
+                F.maklumat('Analisa waris jika <b>' + o.nama + '</b> meninggal dunia. Profil keluarga daripada myNasab' + (nota && nota.length ? ', ' + nota.join(' dan ') : ', harta daripada myFINPLAN dan hutang daripada myDEBT (jika ada)') + '.');
+                segarSkrin();
+            },
+            ambil: () => {
+                if (!disentuhW && !FP.sudahSimpan) return null;
+                return { profile, assets, debts, wasiat, takaful };
+            },
+            pulih: (d) => {
+                if (!d) return;
+                profile = Object.assign(profile, d.profile || {});
+                if (Array.isArray(d.assets) && d.assets.length) assets = d.assets;
+                if (Array.isArray(d.debts) && d.debts.length) debts = d.debts;
+                wasiat = Object.assign({ penerima: '', nilaiCustom: 0 }, d.wasiat || {});
+                takaful = Object.assign({ hibahTakaful: 0, tunaiAmanah: 0 }, d.takaful || {});
+                segarSkrin();
+            }
+        });
     </script>
 </body>
 </html>

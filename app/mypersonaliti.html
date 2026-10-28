@@ -136,7 +136,7 @@
                 </div>
             </div>
 
-            <button onclick="location.reload()" class="w-full py-5 bg-white text-slate-900 font-black rounded-3xl hover:bg-slate-50 transition mb-24 shadow-xl border-2 border-slate-200">UJIAN SEMULA</button>
+            <button onclick="ulangPers()" class="w-full py-5 bg-white text-slate-900 font-black rounded-3xl hover:bg-slate-50 transition mb-24 shadow-xl border-2 border-slate-200">UJIAN SEMULA</button>
         </div>
     </div>
 
@@ -332,6 +332,51 @@
                 pathContainer.appendChild(div);
             });
         }
+    </script>
+
+    <script src="../peranan.js?v=2"></script>
+    <script src="../autosave.js?v=1"></script>
+    <script src="../fpapp.js?v=1"></script>
+    <script>
+        // ---- Induk / Pasangan: setiap orang ada profil dan keputusan sendiri; bilangan anak ditarik daripada myNasab ----
+        function paparanProfil() {
+            ['step-quiz', 'step-result'].forEach(i => document.getElementById(i).classList.add('hidden'));
+            document.getElementById('step-profile').classList.remove('hidden');
+        }
+        function resetPers() {
+            currentQuestion = 0; score = 0; userData = { career: "", children: 0 };
+            document.getElementById('input-career').value = '';
+            paparanProfil();
+        }
+        window.ulangPers = function () { resetPers(); window.scrollTo(0, 0); if (window.FP && FP.AS) FP.AS.ubah(); };
+        function keadaanPers() {
+            const sel = !document.getElementById('step-result').classList.contains('hidden');
+            const mula = !document.getElementById('step-quiz').classList.contains('hidden');
+            return { kerjaya: document.getElementById('input-career').value, anak: document.getElementById('input-children').value, skor: score, soalan: currentQuestion, selesai: sel, berjalan: mula };
+        }
+        FP.sedia({
+            kunci: 'mypersonaliti',
+            isi: (F) => {
+                resetPers();
+                const n = F.anak().length;
+                document.getElementById('input-children').value = n;
+                F.maklumat(n ? 'Bilangan anak diambil daripada myNasab: <b>' + n + '</b>.' : 'Belum ada anak dalam myNasab. Anda boleh isi sendiri.');
+            },
+            ambil: () => {
+                const k = keadaanPers();
+                if (!k.kerjaya && !k.selesai && !k.berjalan && !FP.sudahSimpan) return null;
+                return k;
+            },
+            pulih: (d) => {
+                if (!d) return;
+                document.getElementById('input-career').value = d.kerjaya || '';
+                if (d.anak !== undefined && d.anak !== '') document.getElementById('input-children').value = d.anak;
+                userData = { career: d.kerjaya || '', children: document.getElementById('input-children').value };
+                score = d.skor || 0; currentQuestion = d.soalan || 0;
+                if (d.selesai) { document.getElementById('step-profile').classList.add('hidden'); showResult(); }
+                else if (d.berjalan && userData.career) { document.getElementById('step-profile').classList.add('hidden'); document.getElementById('step-quiz').classList.remove('hidden'); renderQuestion(); }
+            }
+        });
     </script>
 </body>
 </html>

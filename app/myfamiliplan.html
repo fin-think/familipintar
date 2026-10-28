@@ -220,7 +220,7 @@
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 bg-green-100 text-green-700 rounded-lg flex items-center justify-center font-black text-xs" x-text="'A' + (index+1)"></div>
                                     <div>
-                                        <div class="text-[10px] font-bold text-gray-500 uppercase" x-text="'Anak #' + (index+1)"></div>
+                                        <div class="text-[10px] font-bold text-gray-500 uppercase" x-text="'Anak #' + (index+1) + (child.name ? ' · ' + child.name : '')"></div>
                                         <div class="font-black text-gray-800"><span x-text="getAge(child.y)"></span> <span class="text-[10px] font-normal">Tahun</span></div>
                                     </div>
                                 </div>
@@ -392,5 +392,32 @@
 
     </div>
 
+
+    <script src="../peranan.js?v=2"></script>
+    <script src="../fpapp.js?v=1"></script>
+    <script>
+        // ---- Tarik tarikh lahir Induk, Pasangan dan anak-anak daripada myNasab (tidak disimpan) ----
+        const pecahDob = dob => { const p = String(dob || '').split('-'); return p.length === 3 ? { y: p[0], m: String(parseInt(p[1], 10)), d: String(parseInt(p[2], 10)) } : null; };
+        function tungguAlpine() {
+            return new Promise(res => {
+                const cuba = () => { const el = document.querySelector('[x-data]'); if (window.Alpine && el && Alpine.$data(el) && Alpine.$data(el).children !== undefined) res(Alpine.$data(el)); else setTimeout(cuba, 100); };
+                cuba();
+            });
+        }
+        FP.sedia({
+            perOrang: false,
+            onData: async (F) => {
+                const app = await tungguAlpine();
+                const a = pecahDob(F.orang('induk').dob), b = F.adaPasangan() ? pecahDob(F.orang('pasangan').dob) : null;
+                if (a) app.me = a;
+                if (b) app.spouse = b;
+                const ank = F.anak().filter(x => pecahDob(x.dob));
+                if (ank.length) {
+                    app.children = ank.map((x, i) => Object.assign({ id: Date.now() + i, name: x.nama, showPlanning: false, marriageAge: 25, grandchildAge: 28, weddingCost: 20000 }, pecahDob(x.dob)));
+                }
+                F.maklumat(ank.length ? 'Tarikh lahir ' + (a ? 'anda, ' : '') + (b ? 'pasangan dan ' : '') + ank.length + ' anak ditarik daripada myNasab. Anda boleh ubah sendiri.' : 'Belum ada anak berserta tarikh lahir dalam myNasab. Anda boleh tambah sendiri.');
+            }
+        });
+    </script>
 </body>
 </html>
