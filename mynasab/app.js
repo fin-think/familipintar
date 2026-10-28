@@ -349,6 +349,13 @@ async function salinLeluhurAdik(jem, uidBaru) {
     } catch(e) { console.warn("Gagal auto-salin leluhur", e); }
 }
 
+// Cari pengundang akaun adik-beradik: daripada nod Induk, atau (akaun jemputan e-mel) daripada dokumen pautan
+async function pautanPengundang(uid) {
+    const l = await getDoc(doc(db, "mynasab_links", uid));
+    if (l.exists() && l.data().owner_uid && l.data().sasaran_id) return { owner: l.data().owner_uid, sasaran: l.data().sasaran_id };
+    return null;
+}
+
 // Kemas kini salinan pokok akaun anak saudara daripada pokok pengundang.
 window.segerakPokokAnakSaudara = async () => {
     if (!penggunaSemasa) return;
@@ -356,7 +363,11 @@ window.segerakPokokAnakSaudara = async () => {
     try {
         const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
         const semua = snap.docs.map(d => ({ id: d.id, data: d.data() }));
-        const akarAdik = semua.find(n => n.data.is_root && n.data.sibling_of && n.data.link_owner);
+        let akarAdik = semua.find(n => n.data.is_root && n.data.sibling_of && n.data.link_owner);
+        if (!akarAdik && !semua.some(n => n.data.is_root && n.data.anak_saudara_dari)) {
+            const pl = await pautanPengundang(uid);
+            if (pl) akarAdik = { data: { link_owner: pl.owner, sibling_of: pl.sasaran } };
+        }
         if (akarAdik && !semua.some(n => n.data.is_root && n.data.anak_saudara_dari)) {
             if (!confirm("Ibu bapa dan leluhur anda akan dikemas kini daripada pokok pengundang. Ahli yang anda tambah sendiri tidak disentuh. Teruskan?")) return;
             const dr = akarAdik.data.link_owner;
@@ -1833,7 +1844,11 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             return { ada: true, judul: 'Belah ' + d.name, isi };
         };
 
-        { const bt = document.getElementById('btnSegerakPokok'); if (bt && sayaInduk && (kPusat.diri.anak_saudara_dari || (kPusat.diri.sibling_of && kPusat.diri.link_owner))) bt.style.display = ''; }
+        { const bt = document.getElementById('btnSegerakPokok'); if (bt) {
+            // Akaun adik-beradik yang sudah dipautkan (sayaInduk = false) atau mempunyai tanda pengundang pada nod Induk
+            if (!sayaInduk || kPusat.diri.anak_saudara_dari || (kPusat.diri.sibling_of && kPusat.diri.link_owner)) bt.style.display = '';
+            else if (penggunaSemasa) pautanPengundang(penggunaSemasa.uid).then(l => { if (l) bt.style.display = ''; }).catch(e => console.warn('pautanPengundang', e));
+        } }
         const sisi = [];
         const belahKhas = (mod === 'saya' || mod === 'semua') && kPusat.diri.anak_saudara_dari ? binaBelahSaudara() : null;
         if (belahKhas) sisi.push(belahKhas);
