@@ -781,6 +781,13 @@
                 <input type="email" id="editAhliEmail" placeholder="Cth: nama@email.com">
             </div>
 
+            <div id="groupEditJemputEmel" class="hidden" style="background:#ecfdf5; border:1px solid #6ee7b7; border-radius:8px; padding:10px 12px; font-size:13px; line-height:1.5; color:#065f46;">
+                <label style="display:flex; gap:8px; align-items:flex-start; margin:0; font-weight:normal; color:#065f46;">
+                    <input type="checkbox" id="editJemputEmel" style="width:auto; margin-top:3px;">
+                    <span>Cipta akaun Famili Pintar untuk ahli ini dan hantar jemputan ke e-mel di atas. <b>Saya mengesahkan ahli ini (atau ibu bapa/penjaganya) telah bersetuju.</b> Ahli menetapkan kata laluan sendiri melalui e-mel, dan menerima 20 kredit percuma selepas log masuk pertama. Jika ahli belum mencapai umur 21 tahun, jemputan dihantar automatik apabila dia genap 21.</span>
+                </label>
+            </div>
+
             <div style="display: flex; gap: 10px;">
                 <div class="input-group" style="flex: 1;">
                     <label>Bandar</label>
@@ -974,7 +981,7 @@
                         <li><b>Tambah ahli:</b> butang <b>+ Tambah Ahli</b>. Pilih hubungan, dan pilih ibu/bapa rujukan bila diminta.</li>
                         <li><b>Jemput keluarga:</b> butang <b>Jemput Keluarga</b>.
                             <ul style="padding-left:16px; margin:4px 0;">
-                                <li>Adik-beradik, dua cara: (a) <b>Pautan</b> &ndash; salin pautan dan hantar kepada mereka, mereka daftar sendiri; (b) <b>Emel</b> &ndash; masukkan emel mereka semasa tambah ahli (dengan persetujuan mereka), akaun dicipta dan mereka terima emel untuk tetapkan kata laluan.</li>
+                                <li>Adik-beradik, dua cara: (a) <b>Pautan</b> &ndash; salin pautan dan hantar kepada mereka, mereka daftar sendiri; (b) <b>Emel</b> &ndash; masukkan emel mereka semasa tambah atau edit ahli (dengan persetujuan mereka), akaun dicipta dan mereka terima emel untuk tetapkan kata laluan.</li>
                                 <li>Anak saudara: <b>tambah dahulu</b> ibu/bapa mereka (abang/kakak/adik anda) dalam <b>+ Tambah Ahli</b>. Kemudian di <b>Jemput Keluarga</b>, pilih anak kepada ibu/bapa itu dan kongsi pautan. Pokok keluarga siap terisi dan boleh mereka ubah sendiri.</li>
                             </ul>
                         </li>
@@ -1046,7 +1053,7 @@
     </div> <!-- Ini penutup dashboardUtama -->
 
     <!-- Muatkan app.js -->
-    <script type="module" src="app.js?v=38"></script>
+    <script type="module" src="app.js?v=39"></script>
     
     <!-- Skrip UI Mudah -->
     <script>

@@ -804,6 +804,11 @@ window.bukaModalEdit = async (idKotak) => {
                 groupAkaun.classList.add('hidden');
             }
 
+            window._editJemputStatus = data.jemput_status || '';
+            window._editAdaRoot = !!data.is_root;
+            const kotakEditJemput = document.getElementById('editJemputEmel'); if (kotakEditJemput) kotakEditJemput.checked = false;
+            window.segerakJemputEmelEdit();
+
             document.getElementById('modalEditAhli').classList.remove('hidden');
         }
     } catch (error) {
@@ -811,6 +816,23 @@ window.bukaModalEdit = async (idKotak) => {
         console.error("Ralat Modal Edit:", error);
     }
 };
+
+// Kotak jemputan e-mel semasa edit: hanya bila e-mel sah, ahli masih hidup, bukan akaun sendiri dan belum dijemput
+window.segerakJemputEmelEdit = () => {
+    const kumpulan = document.getElementById('groupEditJemputEmel');
+    if (!kumpulan) return;
+    const emel = ((document.getElementById('editAhliEmail') || {}).value || '').trim();
+    const radio = document.querySelector('input[name="editStatus"]:checked');
+    const sudahDijemput = ['dihantar', 'dijadualkan'].includes(window._editJemputStatus || '');
+    const boleh = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emel) && (!radio || radio.value !== 'meninggal') && !window._editAdaRoot && !sudahDijemput;
+    kumpulan.classList.toggle('hidden', !boleh);
+    if (!boleh) { const k = document.getElementById('editJemputEmel'); if (k) k.checked = false; }
+};
+(() => {
+    const e = document.getElementById('editAhliEmail');
+    if (e) e.addEventListener('input', window.segerakJemputEmelEdit);
+    document.querySelectorAll('input[name="editStatus"]').forEach(r => r.addEventListener('change', window.segerakJemputEmelEdit));
+})();
 
 const formEdit = document.getElementById('formEditAhli');
 if (formEdit) {
@@ -861,7 +883,20 @@ if (formEdit) {
 
             await updateDoc(doc(db, "mynasab_nodes", idKotak), dataUpdate);
 
-            alert("Profil berjaya dikemas kini!");
+            // --- JEMPUTAN E-MEL semasa edit (e-mel baharu ditambah kemudian) ---
+            let ayatJemput = '';
+            const kotakEditJemput = document.getElementById('editJemputEmel');
+            if (kotakEditJemput && kotakEditJemput.checked && dataUpdate.email && dataUpdate.status !== 'meninggal') {
+                try {
+                    const r = (await httpsCallable(fungsi, 'jemputAhliEmel')({ nodeId: idKotak, persetujuan: true })).data || {};
+                    if (r.status === 'dihantar') ayatJemput = `\n\nJemputan telah dihantar ke ${dataUpdate.email}. Minta ${dataUpdate.name} semak e-mel untuk menetapkan kata laluan.`;
+                    else if (r.status === 'dijadualkan') ayatJemput = `\n\nJemputan akan dihantar secara automatik pada ${new Date(r.pada).toLocaleDateString('ms-MY')} apabila ${dataUpdate.name} genap 21 tahun.`;
+                    else if (r.status === 'sudah_berdaftar') ayatJemput = `\n\nE-mel ini sudah berdaftar di Famili Pintar, jadi akaun baharu tidak dicipta. Gunakan butang Jemput (pautan) untuk memautkan akaun beliau.`;
+                } catch (e) { ayatJemput = `\n\nProfil disimpan, tetapi jemputan e-mel gagal: ${e.message}`; }
+                kotakEditJemput.checked = false;
+            }
+
+            alert("Profil berjaya dikemas kini!" + ayatJemput);
             document.getElementById('modalEditAhli').classList.add('hidden');
             window.muatTurunSalasilah();
 
