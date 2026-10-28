@@ -272,74 +272,10 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
     } catch (e) { console.warn("Tak dapat salin adik-beradik berakaun:", e.message); }
 }
 
-// Kemas kini salinan pokok akaun anak saudara daripada pokok pengundang.
-window.segerakPokokAnakSaudara = async () => {
-    if (!penggunaSemasa) return;
-    const uid = penggunaSemasa.uid;
+// Salin ibu bapa & leluhur pengundang ke akaun adik-beradik (dipakai semasa daftar dan butang Kemas Kini Pokok)
+async function salinLeluhurAdik(jem, uidBaru) {
+    const user = { uid: uidBaru };
     try {
-        const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
-        const semua = snap.docs.map(d => ({ id: d.id, data: d.data() }));
-        const akar = semua.find(n => n.data.is_root && n.data.anak_saudara_dari);
-        if (!akar) { alert("Akaun ini bukan akaun anak saudara."); return; }
-        const dari = akar.data.anak_saudara_dari;
-        if (!confirm("Salinan pokok keluarga ibu/bapa anda akan dikemas kini daripada pokok pengundang. Ahli yang anda tambah sendiri tidak disentuh. Teruskan?")) return;
-        const lama = semua.filter(n => !n.data.is_root && n.data.created_by === dari.uid);
-        for (const n of lama) await deleteDoc(doc(db, "mynasab_nodes", n.id));
-        await salinPokokAnakSaudara({ owner_uid: dari.uid, sasaran_id: dari.nod, anak_nod: dari.anak_nod }, uid);
-        alert("Pokok berjaya dikemas kini.");
-        window.bukaPreviewBesar('saya');
-    } catch (e) { console.error(e); alert("Gagal mengemas kini pokok: " + e.message); }
-};
-
-window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
-    if (kodJemput && !jemputan) {
-        alert("Pautan jemputan tidak sah atau belum siap dimuatkan. Cuba lagi sebentar.");
-        return;
-    }
-    const jem = jemputan;
-    const kreditAwal = 20;
-    window.__sedangDaftar = true;
-
-    try {
-        const kredensial = await createUserWithEmailAndPassword(auth, emel, kataLaluan);
-        const user = kredensial.user;
-
-        await setDoc(doc(db, "mynasab_users", user.uid), {
-            name: namaKeluarga,
-            email: emel,
-            credit_balance: kreditAwal,
-            pdpa: { setuju: true, tarikh: new Date(), versi: "1.0" },
-            created_at: new Date()
-        });
-
-        await setDoc(doc(db, "mynasab_nodes", "root_" + user.uid), {
-            owner_uid: user.uid,
-            name: namaKeluarga,
-            relationship: "Diri Sendiri (Induk)",
-            gender: jantina,
-            is_root: true,
-            ...(jem && jem.jenis !== 'anak_saudara' ? { sibling_of: jem.sasaran_id, link_owner: jem.owner_uid } : {}),
-            ...(jem && jem.jenis === 'anak_saudara' ? { anak_saudara_dari: { uid: jem.owner_uid, nod: jem.sasaran_id, anak_nod: jem.anak_nod || '' } } : {}),
-            created_at: new Date()
-        });
-
-        if (jem && jem.jenis === 'anak_saudara') {
-            try { await salinPokokAnakSaudara(jem, user.uid); }
-            catch (e) { console.warn("Gagal menyediakan pokok anak saudara", e); }
-            sessionStorage.removeItem('simpanJemput');
-        } else if (jem) {
-            await setDoc(doc(db, "mynasab_links", user.uid), {
-                uid: user.uid,
-                owner_uid: jem.owner_uid,
-                sasaran_id: jem.sasaran_id,
-                kod: kodJemput,
-                status: 'menunggu',
-                nama: namaKeluarga,
-                created_at: new Date()
-            });
-
-            // 🧬 FUNGSI AUTO-SALIN IBUBAPA & LELUHUR DARI PENGUNDANG (DIBETULKAN PIVOT)
-            try {
                 const qLeluhur = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", jem.owner_uid));
                 const snapLeluhur = await getDocs(qLeluhur);
                 
@@ -410,7 +346,87 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
                     
                     await updateDoc(doc(db, "mynasab_nodes", baruId), { ref_id: newRef });
                 }
-            } catch(e) { console.warn("Gagal auto-salin leluhur", e); }
+    } catch(e) { console.warn("Gagal auto-salin leluhur", e); }
+}
+
+// Kemas kini salinan pokok akaun anak saudara daripada pokok pengundang.
+window.segerakPokokAnakSaudara = async () => {
+    if (!penggunaSemasa) return;
+    const uid = penggunaSemasa.uid;
+    try {
+        const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
+        const semua = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+        const akarAdik = semua.find(n => n.data.is_root && n.data.sibling_of && n.data.link_owner);
+        if (akarAdik && !semua.some(n => n.data.is_root && n.data.anak_saudara_dari)) {
+            if (!confirm("Ibu bapa dan leluhur anda akan dikemas kini daripada pokok pengundang. Ahli yang anda tambah sendiri tidak disentuh. Teruskan?")) return;
+            const dr = akarAdik.data.link_owner;
+            const lamaA = semua.filter(n => !n.data.is_root && n.data.created_by === dr);
+            for (const n of lamaA) await deleteDoc(doc(db, "mynasab_nodes", n.id));
+            await salinLeluhurAdik({ owner_uid: dr, sasaran_id: akarAdik.data.sibling_of }, uid);
+            alert("Pokok berjaya dikemas kini.");
+            window.bukaPreviewBesar('saya');
+            return;
+        }
+        const akar = semua.find(n => n.data.is_root && n.data.anak_saudara_dari);
+        if (!akar) { alert("Akaun ini tiada pautan kepada pokok pengundang."); return; }
+        const dari = akar.data.anak_saudara_dari;
+        if (!confirm("Salinan pokok keluarga ibu/bapa anda akan dikemas kini daripada pokok pengundang. Ahli yang anda tambah sendiri tidak disentuh. Teruskan?")) return;
+        const lama = semua.filter(n => !n.data.is_root && n.data.created_by === dari.uid);
+        for (const n of lama) await deleteDoc(doc(db, "mynasab_nodes", n.id));
+        await salinPokokAnakSaudara({ owner_uid: dari.uid, sasaran_id: dari.nod, anak_nod: dari.anak_nod }, uid);
+        alert("Pokok berjaya dikemas kini.");
+        window.bukaPreviewBesar('saya');
+    } catch (e) { console.error(e); alert("Gagal mengemas kini pokok: " + e.message); }
+};
+
+window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
+    if (kodJemput && !jemputan) {
+        alert("Pautan jemputan tidak sah atau belum siap dimuatkan. Cuba lagi sebentar.");
+        return;
+    }
+    const jem = jemputan;
+    const kreditAwal = 20;
+    window.__sedangDaftar = true;
+
+    try {
+        const kredensial = await createUserWithEmailAndPassword(auth, emel, kataLaluan);
+        const user = kredensial.user;
+
+        await setDoc(doc(db, "mynasab_users", user.uid), {
+            name: namaKeluarga,
+            email: emel,
+            credit_balance: kreditAwal,
+            pdpa: { setuju: true, tarikh: new Date(), versi: "1.0" },
+            created_at: new Date()
+        });
+
+        await setDoc(doc(db, "mynasab_nodes", "root_" + user.uid), {
+            owner_uid: user.uid,
+            name: namaKeluarga,
+            relationship: "Diri Sendiri (Induk)",
+            gender: jantina,
+            is_root: true,
+            ...(jem && jem.jenis !== 'anak_saudara' ? { sibling_of: jem.sasaran_id, link_owner: jem.owner_uid } : {}),
+            ...(jem && jem.jenis === 'anak_saudara' ? { anak_saudara_dari: { uid: jem.owner_uid, nod: jem.sasaran_id, anak_nod: jem.anak_nod || '' } } : {}),
+            created_at: new Date()
+        });
+
+        if (jem && jem.jenis === 'anak_saudara') {
+            try { await salinPokokAnakSaudara(jem, user.uid); }
+            catch (e) { console.warn("Gagal menyediakan pokok anak saudara", e); }
+            sessionStorage.removeItem('simpanJemput');
+        } else if (jem) {
+            await setDoc(doc(db, "mynasab_links", user.uid), {
+                uid: user.uid,
+                owner_uid: jem.owner_uid,
+                sasaran_id: jem.sasaran_id,
+                kod: kodJemput,
+                status: 'menunggu',
+                nama: namaKeluarga,
+                created_at: new Date()
+            });
+
+            await salinLeluhurAdik(jem, user.uid);
         }
         
         alert(jem && jem.jenis === 'anak_saudara'
@@ -1817,7 +1833,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             return { ada: true, judul: 'Belah ' + d.name, isi };
         };
 
-        { const bt = document.getElementById('btnSegerakPokok'); if (bt && sayaInduk && kPusat.diri.anak_saudara_dari) bt.style.display = ''; }
+        { const bt = document.getElementById('btnSegerakPokok'); if (bt && sayaInduk && (kPusat.diri.anak_saudara_dari || (kPusat.diri.sibling_of && kPusat.diri.link_owner))) bt.style.display = ''; }
         const sisi = [];
         const belahKhas = (mod === 'saya' || mod === 'semua') && kPusat.diri.anak_saudara_dari ? binaBelahSaudara() : null;
         if (belahKhas) sisi.push(belahKhas);
