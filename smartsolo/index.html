@@ -107,11 +107,6 @@
                     <div class="flex items-center space-x-8 hidden md:flex font-medium text-slate-500">
                         <a href="#mapa-finance" class="nav-link hover:text-blue-800 transition text-sm uppercase tracking-widest">Kewangan</a>
                         <a href="#mapa-legacy" class="nav-link hover:text-indigo-700 transition text-sm uppercase tracking-widest">Legasi</a>
-                        <a href="../index.html" class="hover:text-blue-800 transition text-sm uppercase tracking-widest">Famili Pintar</a>
-                        <!-- Tukar butang profil ke url Learn Mandarin di sini -->
-                        <a href="../mandarin.html" class="hover:text-blue-800 transition flex items-center text-sm uppercase tracking-widest">
-                            <i class="fa-solid fa-language mr-2 opacity-70"></i> Learn Mandarin
-                        </a>
                     </div>
                 </div>
             </div>
@@ -476,8 +471,6 @@
     document.getElementById('navLogo').onclick = () => { window.scrollTo(0,0); hideProfile(); };
     document.querySelectorAll('.nav-link').forEach(link => { link.onclick = hideProfile; });
     
-    // Perhatian: Butang profail (profileBtn) telah ditukar ke elemen pautan <a> "Learn Mandarin"
-    // Oleh itu listener asal telah dipadam untuk mengelakkan ralat.
     
     document.getElementById('consultBtn').onclick = () => window.open(`https://wa.me/60129443846?text=Bantuan%20Konsultasi%20Kewangan%20Solo`, '_blank');
 

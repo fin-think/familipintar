@@ -426,7 +426,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         </a>
 
         <!-- 4. Anakku Hartaku (mykids.html - Baharu, Diletakkan Sebelum jomBercuti) -->
-        <a onclick="semakAksesPintu('Anakku Hartaku', 'mykids.html')" class="cursor-pointer group bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
+        <a id="kadMykids" onclick="semakAksesPintu('Anakku Hartaku', 'mykids.html')" class="cursor-pointer group bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
             <div class="w-14 h-14 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center text-2xl mb-5">
                 <i class="fa-solid fa-child-reaching"></i>
             </div>
@@ -681,9 +681,14 @@ if ('Notification' in window) {
             (async () => {
                 try {
                     const sN = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", user.uid)));
-                    let berpasangan = false;
-                    sN.forEach(d => { const h = (d.data().relationship || '').trim().toLowerCase(); if (h === 'suami' || h === 'isteri') berpasangan = true; });
-                    window.__berpasangan = berpasangan;
+                    let berpasangan = false, adaAnak = false, umur = null;
+                    sN.forEach(d => {
+                        const x = d.data(), h = (x.relationship || '').trim().toLowerCase();
+                        if (h === 'suami' || h === 'isteri') berpasangan = true;
+                        if (h === 'anak') adaAnak = true;
+                        if (x.is_root && x.dob) { const t = new Date(x.dob); if (!isNaN(t)) umur = Math.floor((Date.now() - t.getTime()) / 31557600000); }
+                    });
+                    window.__berpasangan = berpasangan; window.__adaAnak = adaAnak; window.__umur = umur;
                     window.aturKadJurnal();
                 } catch (e) { console.warn("Semak status pasangan:", e.message); }
             })();
@@ -794,12 +799,16 @@ if ('Notification' in window) {
     // Papar myJurnal ATAU SmartSolo (satu sahaja) ikut status pasangan; pelawat belum log masuk nampak kedua-duanya.
     window.__lihatSemuaJurnal = false;
     window.aturKadJurnal = () => {
-        const kJ = document.getElementById('kadMyjurnal'), kS = document.getElementById('kadSmartsolo'), pt = document.getElementById('pautanLihatSemua');
+        const kJ = document.getElementById('kadMyjurnal'), kS = document.getElementById('kadSmartsolo'), kK = document.getElementById('kadMykids'), pt = document.getElementById('pautanLihatSemua');
         if (!kJ || !kS) return;
         const tahu = typeof window.__berpasangan === 'boolean';
         const semua = !tahu || window.__lihatSemuaJurnal;
-        kJ.style.display = (semua || window.__berpasangan) ? '' : 'none';
-        kS.style.display = (semua || !window.__berpasangan) ? '' : 'none';
+        // SmartSolo: tiada pasangan DAN umur 21 tahun ke atas (jika tarikh lahir tak diisi, hanya syarat pasangan)
+        const solo = !window.__berpasangan && (window.__umur == null || window.__umur >= 21);
+        kJ.style.display = (semua || !solo) ? '' : 'none';
+        kS.style.display = (semua || solo) ? '' : 'none';
+        // Anakku Hartaku: sembunyi jika tiada pasangan dan tiada anak
+        if (kK) kK.style.display = (semua || window.__berpasangan || window.__adaAnak) ? '' : 'none';
         if (pt) { pt.style.display = tahu ? '' : 'none'; pt.innerText = window.__lihatSemuaJurnal ? 'Tunjuk yang sesuai sahaja' : 'Lihat juga jurnal lain (SmartSolo / myJurnal)'; }
     };
     window.togolLihatSemua = () => { window.__lihatSemuaJurnal = !window.__lihatSemuaJurnal; window.aturKadJurnal(); };
