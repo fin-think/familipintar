@@ -265,7 +265,7 @@
           </svg>
           <span>Our<span style="color: white;">Money</span></span>
         </h1>
-        <div id="lencanaTamat" style="display:none;color:#cbd5e1;font-size:12px;margin-top:4px;"></div>
+        <div id="lencanaTamat" data-warna="#cbd5e1" style="display:none;color:#cbd5e1;font-size:12px;margin-top:4px;"></div>
       </div>
       <button onclick="window.location.href='index.html'" class="btn-kembali" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); margin: 0;">
         Kembali
@@ -754,7 +754,7 @@
       const tkh = new Date(ms).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
       el.style.display = 'block';
       el.innerText = baki > 0 ? ('Langganan tamat: ' + tkh + ' (' + baki + ' hari lagi)') : ('Langganan tamat pada ' + tkh);
-      el.style.color = baki <= 5 ? '#ef4444' : '';
+      el.style.color = baki <= 5 ? '#ef4444' : (el.dataset.warna || '');
     };
     
     window.semakStatusLangganan = async (uid) => {

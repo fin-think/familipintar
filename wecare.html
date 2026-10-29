@@ -84,7 +84,7 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
     <div class="brand"><span class="we">we</span><span class="care">Care</span></div>
     <div class="who">
       <div id="displayUserName" style="font-weight:800;color:var(--ink);">Pengguna</div>
-      <div id="lencanaTamat" style="display:none;font-size:11px;color:var(--muted);"></div>
+      <div id="lencanaTamat" data-warna="var(--muted)" style="display:none;font-size:11px;color:var(--muted);"></div>
       <a href="../index.html" style="font-size:12px;color:var(--muted);text-decoration:none; display:inline-flex; align-items:center;">
         Kembali
         <!-- Ini adalah Lencana Luar weCare -->
@@ -253,7 +253,7 @@ const paparTamat = (ms) => {
   const tkh = new Date(ms).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
   el.style.display = 'block';
   el.innerText = baki > 0 ? ('Langganan tamat: ' + tkh + ' (' + baki + ' hari lagi)') : ('Langganan tamat pada ' + tkh);
-  el.style.color = baki <= 5 ? '#ef4444' : '';
+  el.style.color = baki <= 5 ? '#ef4444' : (el.dataset.warna || '');
 };
 window.semakStatusLangganan = async (uid) => {
   try {
