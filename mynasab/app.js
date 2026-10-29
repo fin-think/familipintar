@@ -1846,14 +1846,20 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         // Akaun anak saudara (pokok disalin daripada pengundang): paparkan ibu/bapa yang berkaitan bersama adik-beradik mereka (bapa/mak saudara)
         const binaBelahSaudara = (tanpaPasangan = false) => {
             const d = kPusat.diri;
-            const unc = kPusat.saudaraIbuBapa;
+            // Akaun anak saudara: bapa/mak saudara ada dalam pokok sendiri.
+            // Akaun adik-beradik kepada akaun anak saudara (cth. adik yang dijemput oleh anak saudara): guna pokok pengundang (S) sebagai sumber.
+            const adaSendiri = !!kPusat.diri.anak_saudara_dari;
+            const S = adaSendiri ? kPusat : kInduk;
+            const unc = S.saudaraIbuBapa;
             if (!unc.length) return null;
             const belah = /belah ayah/i.test(unc[0].relationship || '') ? 'ayah' : 'ibu';
-            const P = kPusat.ibuBapa.find(x => (x.relationship || '').toLowerCase() === belah);
+            const P = S.ibuBapa.find(x => (x.relationship || '').toLowerCase() === belah);
             if (!P) return null;
-            const lain = kPusat.ibuBapa.filter(x => x !== P);
+            const lain = S.ibuBapa.filter(x => x !== P);
             const sendiri = (arr, rujuk) => arr.map(c => (c.ref_id ? c : Object.assign({}, c, { ref_id: rujuk })));
-            const adik = kPusat.adikBeradik;
+            const namaD = (d.name || '').trim().toLowerCase();
+            const adik = adaSendiri ? kPusat.adikBeradik
+                : [S.diri, ...S.adikBeradik.filter(n => n.id !== sasaranIdPusat && (n.name || '').trim().toLowerCase() !== namaD), ...kPusat.adikBeradik];
             // Adik-beradik yang berdaftar dengan akaun sendiri (pautan aktif ke pokok ini): akar + pasangan + anak
             const akarAkaun = [], anakAkaun = [], pasanganAkaun = [];
             akaun.filter(a => a.sasaran === d.id && a.uid !== saya && !sembunyi.includes(a.uid)).forEach(a => {
@@ -1870,15 +1876,15 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             };
             const entri = [{ t: tarikh(P), bina: (kiri) => binaRumahMenegak(kP, P, tanpaPasangan ? [] : lain, false, kiri), jangkar: true }];
             unc.forEach(u => {
-                const psg = tanpaPasangan ? [] : kPusat.pasanganSaudara.filter(p => p.ref_id === u.id);
-                const anak = kPusat.sepupu.filter(c => c.ref_id === u.id);
+                const psg = tanpaPasangan ? [] : S.pasanganSaudara.filter(p => p.ref_id === u.id);
+                const anak = S.sepupu.filter(c => c.ref_id === u.id);
                 const kU = { diri: u, menantu: [], turun: [anak, [], [], [], []] };
                 entri.push({ t: tarikh(u), bina: (kiri) => binaRumahMenegak(kU, u, psg, false, kiri) });
             });
             entri.sort((x, y) => x.t - y.t);
             const idxJ = entri.findIndex(e => e.jangkar);
             const htmlSemua = entri.map((e, i) => e.bina(i < idxJ));
-            const { senarai, sisa } = cariIbuBapa(P.id, [kPusat.datukNenek, kPusat.moyang, kPusat.buyut, kPusat.cakawari, kPusat.cilawagi], true);
+            const { senarai, sisa } = cariIbuBapa(P.id, [S.datukNenek, S.moyang, S.buyut, S.cakawari, S.cilawagi], true);
             const isi = senarai.length
                 ? `<ul><li>${binaIbuBapaAtas(senarai, sisa)}<ul>${htmlSemua.map(h => `<li>${h}</li>`).join('')}</ul></li></ul>`
                 : `<div style="display:flex; gap:60px; align-items:flex-start;">${htmlSemua.map(h => `<ul><li>${h}</li></ul>`).join('')}</div>`;
@@ -1891,7 +1897,8 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             else if (penggunaSemasa) pautanPengundang(penggunaSemasa.uid).then(l => { if (l) bt.style.display = ''; }).catch(e => console.warn('pautanPengundang', e));
         } }
         const sisi = [];
-        const belahKhas = (mod === 'saya' || mod === 'semua') && kPusat.diri.anak_saudara_dari ? binaBelahSaudara() : null;
+        const adikAnakSaudara = !sayaInduk && sasaranIdPusat === indukRootId && !!kInduk.diri.anak_saudara_dari && !sembunyi.includes(indukUid);
+        const belahKhas = (mod === 'saya' || mod === 'semua') && (kPusat.diri.anak_saudara_dari || adikAnakSaudara) ? binaBelahSaudara() : null;
         if (belahKhas) sisi.push(belahKhas);
         else if (mod === 'saya' || mod === 'semua') {
             const { senarai, sisa } = ibuBapaSaya();
