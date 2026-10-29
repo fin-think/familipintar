@@ -679,13 +679,10 @@ async function muatKeluargaDanNota(groupId) {
     })));
 
     const kelompok = (nod) => {
-      const k = { diri: null, pasangan: [], adikBeradik: [], saudaraIbuBapa: [], pasanganSaudara: [], sepupu: [] };
+      const k = { diri: null, pasangan: [], adikBeradik: [] };
       nod.forEach(d => {
         const h = (d.relationship || '').toLowerCase();
         if (d.is_root) k.diri = d;
-        else if (/^pasangan (bapa|mak|ibu) saudara/.test(h)) k.pasanganSaudara.push(d);
-        else if (/^(bapa|mak|ibu) saudara/.test(h)) k.saudaraIbuBapa.push(d);
-        else if (h === 'sepupu') k.sepupu.push(d);
         else if (h.includes('suami') || h.includes('isteri')) k.pasangan.push(d);
         else if (!h.includes('ipar') && !h.includes('saudara') && (h.includes('adik') || h.includes('abang') || h.includes('kakak'))) k.adikBeradik.push(d);
       });
@@ -699,21 +696,10 @@ async function muatKeluargaDanNota(groupId) {
       return;
     }
 
-    // Akaun anak saudara (atau adik-beradiknya): bapa/mak saudara + pasangan + sepupu daripada pokok salinan Induk
-    const kIndukS = sayaInduk ? kPusat : kelompok(nodInduk);
-    const adikAnakSaudara = !sayaInduk && !!kIndukS.diri && sasaranIdPusat === kIndukS.diri.id && !!kIndukS.diri.anak_saudara_dari && !sembunyi.includes(indukUid);
-    const SSaudara = kPusat.diri.anak_saudara_dari ? kPusat : (adikAnakSaudara ? kIndukS : null);
-    const ahliSaudara = [];
-    if (SSaudara) SSaudara.saudaraIbuBapa.forEach(u => {
-      const L = /^bapa/i.test(u.relationship || '');
-      ahliSaudara.push({ n: u, role: L ? 'Bapa Saudara' : 'Mak Saudara' });
-      SSaudara.pasanganSaudara.filter(p => p.ref_id === u.id).forEach(p => ahliSaudara.push({ n: p, role: L ? 'Pasangan Bapa Saudara' : 'Pasangan Mak Saudara' }));
-      SSaudara.sepupu.filter(c => c.ref_id === u.id).forEach(c => ahliSaudara.push({ n: c, role: 'Sepupu' }));
-    });
 // Hari jadi untuk lencana: semua ahli kedua-dua belah, tidak bergantung pada dropdown
     window._hariJadiSemua = [];
     const masukHJ = (n) => { if (n && n.dob && n.status !== 'meninggal') window._hariJadiSemua.push({ name: n.name, dob: n.dob }); };
-    ahliSaudara.forEach(x => masukHJ(x.n)); masukHJ(kPusat.diri); kPusat.pasangan.forEach(masukHJ); kPusat.adikBeradik.forEach(masukHJ);
+    masukHJ(kPusat.diri); kPusat.pasangan.forEach(masukHJ); kPusat.adikBeradik.forEach(masukHJ);
     akaun.forEach(a => { if (a.uid === saya || sembunyi.includes(a.uid)) return; masukHJ(kelompok(a.nod).diri); });
     if (!sayaInduk) { const kI = kelompok(nodInduk); masukHJ(kI.diri); kI.pasangan.forEach(masukHJ); }
    
@@ -759,7 +745,6 @@ async function muatKeluargaDanNota(groupId) {
         if (sasaranNode) tambah(sasaranNode.id, sasaranNode.name, sasaranNode.email, 'Adik-beradik', sasaranNode.dob);
         if (kInduk.diri) tambah(kInduk.diri.id, kInduk.diri.name, await emelAkaun(indukUid), 'Ipar', kInduk.diri.dob);
       }
-      ahliSaudara.forEach(x => { if (x.n.status !== 'meninggal') tambah(x.n.id, x.n.name, '', x.role, x.n.dob); });
     } else {
       kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan', p.dob));
       tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa', kPusat.diri.dob);
