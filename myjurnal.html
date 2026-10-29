@@ -305,7 +305,13 @@
                      
 
             <div id="timelineContent">
+                <div id="barPengenalan" class="hidden text-center mb-10">
+                    <button onclick="togolPengenalan(true)" class="text-sm text-slate-500 hover:text-slate-800 underline">Papar semula Pengenalan Diri</button>
+                </div>
                 <section id="mapa-intro" class="mb-24 relative scroll-mt-24"> 
+                    <div class="text-right px-4 -mb-6">
+                        <button onclick="cubaSembunyiPengenalan()" class="text-xs text-slate-400 hover:text-slate-700 transition"><i class="fa-regular fa-eye-slash mr-1"></i>Sembunyikan bahagian ini</button>
+                    </div>
                     <div class="text-center mb-12 px-4"> 
                         <h2 class="text-2xl font-bold text-blue-500 mb-2"> <i class="fa-solid fa-compass mr-2"></i> Anda tak boleh perbaiki apa yang anda tak sedar.
 Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewangan, dan kesihatan anda — hari ini. Kerana permulaan yang jujur adalah permulaan yang betul.</h2> 
@@ -403,6 +409,28 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         }
     });
 
+    // Papar / sembunyi bahagian Pengenalan Diri
+    window.togolPengenalan = (papar) => {
+        const sec = document.getElementById('mapa-intro'), bar = document.getElementById('barPengenalan');
+        if (sec) sec.style.display = papar ? '' : 'none';
+        if (bar) bar.classList.toggle('hidden', papar);
+    };
+    // Pengguna cuba sembunyi: dibenarkan hanya selepas kedua-dua ujian dijawab; jika belum, popup kecil
+    window.cubaSembunyiPengenalan = () => {
+        const j = window.__ujianDijawab || {};
+        if (j.checklist && j.health) { window.togolPengenalan(false); return; }
+        const belum = [];
+        if (!j.checklist) belum.push('<a href="/app/mychecklist.html" class="font-bold text-blue-600 underline">myCHECKLIST</a>');
+        if (!j.health) belum.push('<a href="/app/myhealth.html" class="font-bold text-blue-600 underline">myHEALTH</a>');
+        let p = document.getElementById('popupUjian');
+        if (!p) {
+            p = document.createElement('div'); p.id = 'popupUjian';
+            p.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] max-w-sm w-[92%] bg-white border border-slate-200 shadow-2xl rounded-2xl p-5 text-sm text-slate-600';
+            document.body.appendChild(p);
+        }
+        p.innerHTML = '<p class="mb-3">Bahagian ini akan disembunyikan selepas anda menjawab ujian: ' + belum.join(' dan ') + '.</p><button onclick="this.parentElement.remove()" class="bg-slate-800 text-white px-4 py-1.5 rounded-full text-xs font-bold">Faham</button>';
+    };
+
     async function muatDataPengguna() {
         try {
             const snap = await getDoc(doc(db, "mynasab_users", penggunaSemasa.uid));
@@ -411,6 +439,13 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                 bakiKredit = data.credit_balance || 0;
                 modulTerbuka = data.jurnal_unlocked || []; 
                 
+                // Pengenalan Diri: sembunyi jika kedua-dua ujian (myCHECKLIST & myHEALTH) sudah dijawab
+                window.__ujianDijawab = {
+                    checklist: !!(data.fp_mychecklist || data.fp_pasangan_mychecklist),
+                    health: !!(data.myhealth_status || data.pasangan_myhealth_status)
+                };
+                window.togolPengenalan(!(window.__ujianDijawab.checklist && window.__ujianDijawab.health));
+
                 document.getElementById('displayKredit').innerText = bakiKredit;
                 document.getElementById('userDisplay').innerText = data.name || "Pengguna";
             }
