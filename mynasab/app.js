@@ -962,6 +962,33 @@ window.bukaPreview = async () => {
             // Adik-beradik/Ipar/Anak Saudara DIABAIKAN sepenuhnya dalam paparan ini
         });
 
+        // Salaman (cantuman) dengan adik-beradik berakaun lain: jika akaun ini tiada ibu bapa sendiri, pinjam (paparan sahaja) leluhur adik-beradik itu
+        if (diriSendiri && ibuBapa.length === 0) {
+            for (const u of (diriSendiri.linked_adik || [])) {
+                try {
+                    const sLuar = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", u)));
+                    const L = { ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [] };
+                    sLuar.forEach(ds => {
+                        const d = { ...ds.data(), id: ds.id };
+                        const h = (d.relationship || '').toLowerCase();
+                        if (d.is_root) return;
+                        semuaId.add(d.id);
+                        if (h === 'ayah' || h === 'ibu') L.ibuBapa.push(Object.assign({}, d, { ref_id: '' }));
+                        else if (h.includes('mertua')) return;
+                        else if (h.includes('datuk') || h.includes('nenek')) L.datukNenek.push(d);
+                        else if (h.includes('moyang')) L.moyang.push(d);
+                        else if (h.includes('buyut')) L.buyut.push(d);
+                        else if (h.includes('cakawari')) L.cakawari.push(d);
+                        else if (h.includes('cilawagi')) L.cilawagi.push(d);
+                    });
+                    if (L.ibuBapa.length > 0) {
+                        ibuBapa = L.ibuBapa; datukNenek = L.datukNenek; moyang = L.moyang; buyut = L.buyut; cakawari = L.cakawari; cilawagi = L.cilawagi;
+                        break;
+                    }
+                } catch (e) { console.warn('Tak dapat baca leluhur adik-beradik cantuman:', e.message); }
+            }
+        }
+
         const binaKotak = (ahli, kategory) => {
             let tema = 'theme-neutral';
             const hub = (ahli.relationship || '').toLowerCase();
