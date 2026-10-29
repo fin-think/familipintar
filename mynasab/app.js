@@ -1327,9 +1327,46 @@ window.muatMenunggu = async () => {
     } catch (e) { console.warn("Gagal muat senarai menunggu:", e.message); }
 };
 
+// Bila akaun anak saudara (cth. Eyo) meluluskan adik-beradiknya (cth. Era), tambah adik itu ke pokok Induk
+// sebagai "Anak Saudara" di bawah ibu/bapa yang sama, secara automatik dan tanpa caj. Pasangan tidak ditambah.
+async function tambahAdikKePokokInduk(uidAdik) {
+    try {
+        const lk = await getDoc(doc(db, "mynasab_links", uidAdik));
+        if (!lk.exists()) return;
+        const sas = await getDoc(doc(db, "mynasab_nodes", lk.data().sasaran_id));
+        const relS = sas.exists() ? (sas.data().relationship || '').toLowerCase() : '';
+        if (relS.includes('suami') || relS.includes('isteri')) return;
+
+        // Cari akaun anak saudara teratas (ikut rantaian jemputan, maksimum 5 peringkat)
+        let pemilik = lk.data().owner_uid, dari = null;
+        for (let i = 0; i < 5 && pemilik; i++) {
+            const r = await getDoc(doc(db, "mynasab_nodes", "root_" + pemilik));
+            if (!r.exists()) return;
+            const rd = r.data();
+            if (rd.anak_saudara_dari) { dari = rd.anak_saudara_dari; break; }
+            pemilik = (rd.sibling_of && rd.link_owner) ? rd.link_owner : null;
+        }
+        if (!dari || !dari.uid || !dari.nod) return;
+
+        const rAdik = await getDoc(doc(db, "mynasab_nodes", "root_" + uidAdik));
+        if (!rAdik.exists()) return;
+        const a = rAdik.data();
+        const nama = (a.name || '').trim().toLowerCase();
+        const sedia = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", dari.uid), where("ref_id", "==", dari.nod)));
+        if (sedia.docs.some(d => d.data().akaun_uid === uidAdik || (d.data().name || '').trim().toLowerCase() === nama)) return;
+
+        await addDoc(collection(db, "mynasab_nodes"), {
+            owner_uid: dari.uid, name: a.name, relationship: 'Anak Saudara', gender: a.gender || '',
+            ref_id: dari.nod, dob: '', status: 'hidup', phone: '', email: '', city: '', state: '', photo_url: '',
+            is_root: false, created_by: dari.uid, akaun_uid: uidAdik, created_at: new Date()
+        });
+    } catch (e) { console.warn("Tak dapat tambah adik ke pokok Induk:", e.message); }
+}
+
 window.luluskanPautan = async (uid) => {
     try {
         await updateDoc(doc(db, "mynasab_links", uid), { status: 'aktif' });
+        await tambahAdikKePokokInduk(uid);
         alert("Adik-beradik diterima. Mereka kini boleh dilihat dalam Keluarga Besar.");
     } catch (e) { alert("Gagal meluluskan: " + e.message); }
     window.muatMenunggu();
