@@ -202,10 +202,10 @@
   };
 
   // =====================================================================
-  // MOD ANAK: untuk app anak (permainan/ujian). Pilih anak (< 21 tahun) daripada myNasab,
+  // MOD ANAK: untuk app anak (permainan/ujian). Pilih anak mengikut lingkungan umur daripada myNasab,
   // dan setiap keputusan disimpan mengikut anak itu dalam mynasab_users/{uid}.
   //
-  //   FP.sediaAnak({ kunci: 'mysolat', letak: 'body', umurMaks: 21, pilihAnak: (anak, FP) => {} });
+  //   FP.sediaAnak({ kunci: 'mysolat', letak: 'body', umurMin: 0, umurMaks: 12, pilihAnak: (anak, FP) => {} });  // umurMin <= umur < umurMaks
   //   FP.catat({ tahap: 'tahap1', label: 'Tahap 1', skor: 8, jumlah: 10 });   // skor + jumlah
   //   FP.catat({ tahap: 'ujian', label: 'Keputusan', ringkasan: 'Teks ringkas' }); // tanpa skor
   //   FP.catat({ tahap: 'tahap1', label: 'Tahap 1' });                          // lulus sahaja (tanda ✓)
@@ -213,10 +213,15 @@
   // =====================================================================
   FP.anakDipilih = null;
   FP.rekod = null;
-  FP.anakBawah = function (had) {
-    had = had || (FP.opt && FP.opt.umurMaks) || 21;
-    return FP.anak().filter(function (a) { return !a.dob || a.umur < had; });
+  // Anak yang layak untuk app ini: umurMin <= umur < umurMaks (lalai 0 hingga < 21). Tanpa tarikh lahir = dimasukkan.
+  FP.anakBawah = function () {
+    var o = FP.opt || {}, min = o.umurMin || 0, maks = o.umurMaks || 21;
+    return FP.anak().filter(function (a) { return !a.dob || (a.umur >= min && a.umur < maks); });
   };
+  function lingkungan() {
+    var o = FP.opt || {}, min = o.umurMin || 0, maks = o.umurMaks || 21;
+    return min ? ('umur ' + min + ' hingga ' + (maks - 1) + ' tahun') : ('bawah ' + maks + ' tahun');
+  }
   function medanAnak(a) { return 'fp_anak_' + a.id + '_' + FP.opt.kunci; }
   function kunciSah(s) { return String(s || 'umum').replace(/[^A-Za-z0-9_]/g, '_').slice(0, 60); }
   function kunciPilih() { return 'fp_anak_pilih_' + (FP.user ? FP.user.uid : '') + '_' + (FP.opt && FP.opt.kunci || ''); }
@@ -225,7 +230,7 @@
     var a = FP.anakDipilih, h;
     if (!a) {
       h = FP.anakBawah().length ? 'Pilih anak di atas supaya keputusan disimpan.' :
-        'Tiada anak di bawah 21 tahun dalam myNasab. Tambah anak di myNasab untuk menyimpan keputusan.';
+        'Tiada anak ' + lingkungan() + ' dalam myNasab. App ini sesuai untuk anak ' + lingkungan() + '; tambah atau semak tarikh lahir anak di myNasab untuk menyimpan keputusan.';
       FP.maklumat(h); return;
     }
     var t = (FP.rekod && FP.rekod.tahap) || {}, ks = Object.keys(t);
