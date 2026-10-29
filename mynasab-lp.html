@@ -137,6 +137,21 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
 .kelebihan h3 { font-size: 22px; margin-bottom: 6px; }
 .kelebihan p { color: var(--muted); font-size: 16.5px; }
 
+/* INDUK */
+.induk-pilih { margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.induk-pilih article { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+.induk-pilih .jawab { font-size: 12.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--brand-text); }
+.induk-pilih h3 { font-size: 22px; }
+.induk-pilih p { color: var(--muted); font-size: 16px; }
+.induk-pilih .hasil { margin-top: auto; padding-top: 12px; border-top: 1px dashed var(--line); font-weight: 700; font-size: 15.5px; color: var(--ink); }
+.mesej-kongsi { margin-top: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.mesej-kongsi > div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; }
+.mesej-kongsi h3 { font-size: 18px; }
+.mesej-kongsi blockquote { margin: 0; padding: 12px 14px; border-left: 4px solid var(--brand); background: color-mix(in srgb, var(--brand) 8%, var(--surface)); border-radius: 0 6px 6px 0; font-size: 16px; color: var(--ink); white-space: pre-line; }
+.mesej-kongsi button { align-self: flex-start; }
+.nota-induk { margin-top: 24px; padding: 16px 20px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 16px; }
+.nota-induk b { color: var(--ink); }
+
 /* TINDAKAN */
 .akhir { text-align: left; }
 .akhir-box { background: var(--brand); color: var(--on-brand); border-radius: 12px; padding: 56px 40px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: center; }
@@ -153,6 +168,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
   .hero-grid { gap: 36px; }
   .langkah { grid-template-columns: 1fr 1fr; row-gap: 40px; }
   .kelebihan { grid-template-columns: 1fr; }
+  .induk-pilih, .mesej-kongsi { grid-template-columns: 1fr; }
   .akhir-box { padding: 36px 24px; }
   section { padding-block: 56px; }
 }
@@ -265,16 +281,65 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
       <p class="eyebrow">Cara guna</p>
       <h2>Empat langkah, daripada nama ayah kepada pokok keluarga besar.</h2>
       <ol class="langkah">
-        <li><h3>Daftar dan bina pokok anda</h3><p>Masukkan diri sendiri, ibu bapa, pasangan dan anak. Setiap ahli dipaparkan sebagai kad bergambar.</p></li>
-        <li><h3>Jemput dengan pautan atau emel</h3><p>Hantar pautan melalui WhatsApp, atau masukkan emel mereka dengan persetujuan mereka. Ibu bapa dan datuk nenek anda terus disalin ke pokok mereka. Jemput keluarga percuma.</p></li>
-        <li><h3>Cantum pokok yang sudah ada</h3><p>Saudara yang dah ada akaun sendiri boleh dicantum melalui permohonan salaman. Pokok kedua-dua pihak bercantum dan setiap akaun kekal milik sendiri.</p></li>
+        <li><h3>Daftar sebagai Induk dan bina pokok</h3><p>Induk ialah akaun yang membina pokok dan menjemput adik-beradik. Masukkan diri sendiri, ibu bapa, pasangan dan anak. Setiap ahli dipaparkan sebagai kad bergambar.</p></li>
+        <li><h3>Jemput dengan pautan atau emel</h3><p>Adik-beradik menerima jemputan, bukan mendaftar sebagai Induk baharu. Hantar pautan melalui WhatsApp, atau masukkan emel mereka dengan persetujuan mereka. Ibu bapa dan datuk nenek terus disalin ke pokok mereka. Jemput keluarga percuma.</p></li>
+        <li><h3>Pautkan pokok yang sudah berasingan</h3><p>Kalau ada saudara yang sudah terlanjur mendaftar sendiri, hantar permohonan salaman. Selepas kedua-dua pihak bersetuju, pokok dipautkan dan setiap akaun kekal milik sendiri.</p></li>
         <li><h3>Buka dan cetak pokok keluarga besar</h3><p>Lihat datuk dan nenek ke atas, bapa dan mak saudara, sepupu, anak saudara dan cucu ke bawah. Cetak pada A4 atau A3 untuk dibawa balik raya.</p></li>
       </ol>
     </div>
   </section>
 
+  <!-- INDUK -->
+  <section id="induk">
+    <div class="wrap">
+      <p class="eyebrow">Sebelum anda mula</p>
+      <h2>Satu keluarga, satu Induk.</h2>
+      <p class="sec-lead">Induk ialah akaun pertama yang membina pokok dan menjemput adik-beradik. Mereka yang dijemput terus dapat ibu bapa dan datuk nenek yang sama, tanpa menaip semula. Kalau setiap adik-beradik buka akaun Induk sendiri, pokok jadi berasingan dan maklumat direkod berulang kali.</p>
+
+      <p class="eyebrow" style="margin-top:36px">Tanya adik-beradik dahulu</p>
+      <h3 style="font-size:26px;margin-top:8px">"Ada sesiapa yang dah guna myNasab?"</h3>
+
+      <div class="induk-pilih">
+        <article>
+          <span class="jawab">Jawapan: ada</span>
+          <h3>Biar dia jadi Induk</h3>
+          <p>Bincang siapa yang paling bersedia mengisi nama ayah, ibu dan datuk nenek. Yang lain tidak mendaftar sebagai Induk baharu. Mereka menerima jemputan melalui pautan atau emel.</p>
+          <span class="hasil">Satu pokok, semua adik-beradik dalam satu keluarga.</span>
+        </article>
+        <article>
+          <span class="jawab">Jawapan: belum</span>
+          <h3>Anda jadi Induk</h3>
+          <p>Terangkan sedikit kepada mereka, kemudian hantar pautan jemputan. Mereka tak perlu isi ibu bapa dan datuk nenek semula, kerana semuanya disalin daripada pokok anda.</p>
+          <span class="hasil">Anda bina sekali, mereka terima siap.</span>
+        </article>
+        <article>
+          <span class="jawab">Jawapan: dah terlanjur masing-masing daftar</span>
+          <h3>Pautkan melalui salaman</h3>
+          <p>Hantar permohonan salaman daripada dalam myNasab. Selepas kedua-dua pihak bersetuju, pokok dipautkan dan setiap akaun kekal milik sendiri. Ini jalan pemulihan, bukan cara terbaik.</p>
+          <span class="hasil">Lebih kemas kalau satu Induk sahaja.</span>
+        </article>
+      </div>
+
+      <p class="nota-induk"><b>Tip:</b> perbualan ini sendiri ialah permulaan. Bila anda bertanya, adik-beradik anda mula tahu myNasab wujud, dan jemputan anda sampai kepada mereka dengan penjelasan yang mereka faham.</p>
+
+      <div class="mesej-kongsi">
+        <div>
+          <h3>Mesej 1: tanya dahulu</h3>
+          <blockquote id="mesej-tanya">Assalamualaikum. Aku nak bina pokok keluarga kita di myNasab (percuma). Dah ada sesiapa mula? Kalau belum, biar aku jadi Induk, nanti aku hantar jemputan. Kau tak payah isi nama mak ayah semula.</blockquote>
+          <button type="button" class="btn alt" data-salin="mesej-tanya">Salin mesej</button>
+        </div>
+        <div>
+          <h3>Mesej 2: hantar jemputan</h3>
+          <blockquote id="mesej-jemput">Ni pautan jemputan pokok keluarga kita di myNasab: [tampal pautan jemputan anda di sini]
+Klik pautan tu dan daftar, jangan buat akaun baharu sendiri. Mak ayah dan atuk nenek dah siap aku isi, dan kau dapat 20 kredit percuma.</blockquote>
+          <button type="button" class="btn alt" data-salin="mesej-jemput">Salin mesej</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- KEINGINAN: kelebihan -->
-  <section>
+  <section class="band">
     <div class="wrap">
       <p class="eyebrow">Kenapa myNasab</p>
       <h2>Dibuat untuk cara keluarga Malaysia menyusun hubungan.</h2>
@@ -284,7 +349,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
         <div><h3>Pokok sentiasa terkini</h3><p>Bila anda mengemas kini pokok, ahli yang dijemput boleh menekan Kemas Kini Pokok untuk menarik leluhur terkini. Ahli yang mereka tambah sendiri tidak disentuh.</p></div>
         <div><h3>Nasab keluarga besar dalam satu paparan</h3><p>Bapa saudara dan mak saudara belah ayah atau ibu, sepupu, dua pupuk dan anak saudara, disusun ikut umur.</p></div>
         <div><h3>Setiap keluarga kekal milik sendiri</h3><p>Anda hanya nampak keluarga sendiri dan pasangan. Ahli lain boleh disembunyikan daripada pandangan anda. Pendaftaran memerlukan persetujuan PDPA.</p></div>
-        <div><h3>Cantum pokok tanpa hilang kawalan</h3><p>Pokok saudara yang berdaftar berasingan bercantum selepas kedua-dua pihak bersetuju, tanpa data bertindih.</p></div>
+        <div><h3>Pautkan pokok tanpa hilang kawalan</h3><p>Pokok saudara yang berdaftar berasingan boleh dipautkan selepas kedua-dua pihak bersetuju. Cara paling kemas tetap satu Induk sahaja, supaya maklumat tak direkod dua kali.</p></div>
         <div><h3>Siap cetak</h3><p>Pokok muat pada kertas A4 atau A3, boleh digerak serta di-zoom sebelum dicetak. Di telefon, pratonton dibuka skrin penuh dan melintang supaya pokok besar mudah dibaca.</p></div>
         <div><h3>Anggaran faraid daripada pokok anda</h3><p>Waris dan bahagian dikira daripada data keluarga yang sudah ada. Ini anggaran sahaja dan bukan pengganti nasihat pakar faraid.</p></div>
       </div>
@@ -314,6 +379,23 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
   <span>Setiap pendaftaran baru mendapat 20 kredit percuma. <a href="privasi.html">Dasar Privasi</a></span>
 </footer>
 
+<script>
+(function () {
+  document.querySelectorAll('[data-salin]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var el = document.getElementById(b.getAttribute('data-salin')); if (!el) return;
+      var t = el.textContent.trim(), asal = b.textContent;
+      var selesai = function () { b.textContent = 'Disalin'; setTimeout(function () { b.textContent = asal; }, 1800); };
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(selesai, function () {}); return; }
+      } catch (e) {}
+      var r = document.createRange(); r.selectNodeContents(el);
+      var sl = window.getSelection(); sl.removeAllRanges(); sl.addRange(r);
+      try { document.execCommand('copy'); selesai(); } catch (e) {}
+    });
+  });
+})();
+</script>
 <script>
 (function () {
   var jawab = [null, null, null, null, null];
