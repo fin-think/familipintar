@@ -403,11 +403,17 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
         const kredensial = await createUserWithEmailAndPassword(auth, emel, kataLaluan);
         const user = kredensial.user;
 
+        // Sumber pendaftaran. Pendaftaran melalui pautan jemputan TIDAK layak komisen (tiada referred_by).
+        const sumber = window.FPSumber ? window.FPSumber.untukDaftar(!!jem) : {};
+        const refUid = (!jem && sumber.ref) ? await window.FPSumber.selesaikanRef(db, { query, collection, where, getDocs }, sumber.ref, user.uid) : null;
+
         await setDoc(doc(db, "mynasab_users", user.uid), {
             name: namaKeluarga,
             email: emel,
             credit_balance: kreditAwal,
             pdpa: { setuju: true, tarikh: new Date(), versi: "1.0" },
+            sumber: sumber,
+            ...(refUid ? { referred_by: refUid } : {}),
             created_at: new Date()
         });
 

@@ -20,6 +20,7 @@
             <div class="flex gap-4 items-center">
                 <button onclick="tab('dash')" class="hover:text-sky-300 transition text-sm font-semibold">P&L</button>
                 <button onclick="tab('list')" class="hover:text-sky-300 transition text-sm font-semibold">Senarai Ejen</button>
+                <button onclick="tab('src')" class="hover:text-sky-300 transition text-sm font-semibold">Sumber</button>
                 <button onclick="tab('aff')" class="hover:text-sky-300 transition text-sm font-semibold">Payouts</button>
                 <button onclick="tab('cash')" class="hover:text-sky-300 transition text-sm font-semibold">Expenses</button>
                 <span class="text-slate-600">|</span>
@@ -80,6 +81,23 @@
                             <tr><td colspan="4" class="p-4 text-center">Memuatkan...</td></tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: SUMBER PENDAFTARAN -->
+        <div id="tab-src" class="hidden animate-fade-in">
+            <h2 class="text-2xl font-bold mb-2 text-slate-800">Sumber Pendaftaran</h2>
+            <p class="text-sm text-slate-500 mb-6">Pengguna lama (sebelum pengesanan dipasang) dikira melalui kesan jemputan; selebihnya "Tidak diketahui".</p>
+            <div id="srcCards" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 font-bold bg-slate-100 text-sm">Kempen / halaman (utm &amp; halaman mula)</div>
+                    <table class="w-full text-left text-sm"><tbody id="srcKempen" class="divide-y"></tbody></table>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 font-bold bg-slate-100 text-sm">Ejen teratas (kod ref)</div>
+                    <table class="w-full text-left text-sm"><tbody id="srcEjen" class="divide-y"></tbody></table>
                 </div>
             </div>
         </div>
@@ -150,12 +168,14 @@
         document.getElementById('tab-dash').classList.add('hidden');
         document.getElementById('tab-list').classList.add('hidden');
         document.getElementById('tab-aff').classList.add('hidden');
+        document.getElementById('tab-src').classList.add('hidden');
         document.getElementById('tab-cash').classList.add('hidden');
         document.getElementById('tab-'+id).classList.remove('hidden');
         
         if(id === 'dash') calculatePNL();
         if(id === 'list') loadAffiliatesList();
         if(id === 'aff') loadPayouts();
+        if(id === 'src') loadSumber();
     };
 
     async function calculatePNL() {
@@ -193,6 +213,37 @@
                 </tr>`;
         });
         document.getElementById('affListTableBody').innerHTML = html || '<tr><td colspan="4" class="text-center p-4">Tiada ejen berdaftar lagi.</td></tr>';
+    }
+
+    const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    async function loadSumber() {
+        const [uSnap, lSnap] = await Promise.all([getDocs(collection(db, "mynasab_users")), getDocs(collection(db, "mynasab_links"))]);
+        const dipautkan = new Set(); lSnap.forEach(d => dipautkan.add(d.id));
+        const kira = { affiliate: 0, jemputan: 0, kempen: 0, langsung: 0, lama_jemputan: 0, tidak_diketahui: 0 };
+        const kempen = {}, ejen = {}, kodKePemilik = {};
+        uSnap.forEach(d => { const u = d.data(); if (u.referral_code) kodKePemilik[u.referral_code] = u.name || d.id; });
+        let jumlah = 0;
+        uSnap.forEach(d => {
+            const u = d.data(); jumlah++;
+            const s = u.sumber;
+            let jenis;
+            if (s && s.jenis) jenis = s.jenis;
+            else if (dipautkan.has(d.id)) jenis = 'lama_jemputan';
+            else jenis = 'tidak_diketahui';
+            kira[jenis] = (kira[jenis] || 0) + 1;
+            if (s) {
+                const kunci = (s.utm_campaign || s.utm_source || '') ? `${esc(s.utm_source || '-')} / ${esc(s.utm_campaign || '-')}` : (s.halaman ? esc(s.halaman) : 'langsung');
+                kempen[kunci] = (kempen[kunci] || 0) + 1;
+                if (s.ref) ejen[s.ref] = (ejen[s.ref] || 0) + 1;
+            }
+        });
+        const kad = [
+            ['Jumlah pengguna', jumlah, 'slate'], ['Affiliate (ref)', kira.affiliate, 'purple'], ['Jemputan adik-beradik', kira.jemputan + kira.lama_jemputan, 'emerald'],
+            ['Kempen (utm)', kira.kempen, 'sky'], ['Langsung', kira.langsung, 'yellow'], ['Tidak diketahui', kira.tidak_diketahui, 'slate']];
+        document.getElementById('srcCards').innerHTML = kad.map(k => `<div class="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-${k[2]}-500"><p class="text-xs text-slate-500 font-bold">${k[0]}</p><h3 class="text-2xl font-extrabold">${k[1]}</h3></div>`).join('');
+        const baris = (o, nama) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 15).map(([k, v]) => `<tr><td class="p-3">${nama ? nama(k) : k}</td><td class="p-3 text-right font-bold">${v}</td></tr>`).join('');
+        document.getElementById('srcKempen').innerHTML = baris(kempen) || '<tr><td class="p-3 text-center text-slate-400">Belum ada data.</td></tr>';
+        document.getElementById('srcEjen').innerHTML = baris(ejen, k => `<span class="font-mono text-sky-600">${esc(k)}</span> <span class="text-slate-500">${esc(kodKePemilik[k] || 'kod belum dikenali')}</span>`) || '<tr><td class="p-3 text-center text-slate-400">Belum ada data.</td></tr>';
     }
 
     async function loadPayouts() {

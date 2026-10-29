@@ -189,6 +189,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
   }
 </script>
     
+<script src="sumber.js?v=1"></script>
 </head>
 <body class="text-slate-800 antialiased overflow-x-hidden">
 
@@ -590,7 +591,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     // Import modul Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
 
 // KOD MEMINTA IZIN NOTIFIKASI DARI TELEFON
@@ -857,10 +858,14 @@ if ('Notification' in window) {
                 const user = kredensial.user;
 
                 // Simpan profil & Beri 20 Kredit Percuma
+                const sumber = window.FPSumber ? window.FPSumber.untukDaftar(false) : {};
+                const refUid = sumber.ref ? await window.FPSumber.selesaikanRef(db, { query, collection, where, getDocs }, sumber.ref, user.uid) : null;
                 await setDoc(doc(db, "mynasab_users", user.uid), {
                     name: nama,
                     email: emel,
                     credit_balance: 20, 
+                    sumber: sumber,
+                    ...(refUid ? { referred_by: refUid } : {}),
                     created_at: new Date()
                 });
 
