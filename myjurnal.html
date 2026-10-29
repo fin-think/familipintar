@@ -135,7 +135,11 @@
             </div>
 
 <!-- SECTION FINANCIAL HEALTH CHECK -->
-<div class="mb-10 bg-white rounded-[2rem] p-8 md:p-10 shadow-sm border border-slate-100 text-center">
+<div id="barHC" class="hidden text-center mb-6">
+    <button onclick="togolHC(true)" class="text-sm text-slate-500 hover:text-slate-800 underline">Papar semula Financial Health Check</button>
+</div>
+<div id="sectionHC" class="mb-10 bg-white rounded-[2rem] p-8 md:p-10 shadow-sm border border-slate-100 text-center relative">
+    <button onclick="cubaSembunyiHC()" class="absolute top-4 right-5 text-xs text-slate-400 hover:text-slate-700 transition"><i class="fa-regular fa-eye-slash mr-1"></i>Sembunyikan</button>
 
     <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-4">
         Financial Health Check
@@ -372,7 +376,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -403,6 +407,31 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         }
     });
 
+    // Financial Health Check: sembunyi jika sudah dijawab; jika belum dan cuba sembunyi, popup kecil
+    window.hcDijawab = false;
+    window.togolHC = (papar) => {
+        const sec = document.getElementById('sectionHC'), bar = document.getElementById('barHC');
+        if (sec) sec.style.display = papar ? '' : 'none';
+        if (bar) bar.classList.toggle('hidden', papar);
+    };
+    window.cubaSembunyiHC = () => {
+        if (window.hcDijawab || window.hcSelesai) { window.togolHC(false); return; }
+        let p = document.getElementById('popupHC');
+        if (!p) {
+            p = document.createElement('div'); p.id = 'popupHC';
+            p.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] max-w-sm w-[92%] bg-white border border-slate-200 shadow-2xl rounded-2xl p-5 text-sm text-slate-600 text-center';
+            document.body.appendChild(p);
+        }
+        p.innerHTML = '<p class="mb-3">Sila jawab <b>Financial Health Check</b> ini dahulu. Selepas itu bahagian ini akan disembunyikan pada lawatan seterusnya.</p><button onclick="this.parentElement.remove()" class="bg-slate-800 text-white px-4 py-1.5 rounded-full text-xs font-bold">Faham</button>';
+    };
+    // Simpan keputusan kuiz dalam akaun bila selesai
+    window.addEventListener('hc-selesai', async (e) => {
+        window.hcDijawab = true;
+        try {
+            if (penggunaSemasa) await setDoc(doc(db, "mynasab_users", penggunaSemasa.uid), { jurnal_hc: { ...e.detail, tarikh: Date.now() } }, { merge: true });
+        } catch (err) { console.warn("Gagal simpan Financial Health Check:", err.message); }
+    });
+
     async function muatDataPengguna() {
         try {
             const snap = await getDoc(doc(db, "mynasab_users", penggunaSemasa.uid));
@@ -411,6 +440,8 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                 bakiKredit = data.credit_balance || 0;
                 modulTerbuka = data.jurnal_unlocked || []; 
                 
+                if (data.jurnal_hc) { window.hcDijawab = true; window.togolHC(false); }
+
                 document.getElementById('displayKredit').innerText = bakiKredit;
                 document.getElementById('userDisplay').innerText = data.name || "Pengguna";
             }
@@ -908,6 +939,8 @@ function showResult() {
     }
 
     document.getElementById("resultText").innerText = resultText;
+    window.hcSelesai = true;
+    window.dispatchEvent(new CustomEvent('hc-selesai', { detail: { skor: score, jumlah: questions.length, tahap: score <= 2 ? 'kritikal' : (score <= 4 ? 'sederhana' : 'stabil') } }));
 }
 
 // Load first question
