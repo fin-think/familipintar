@@ -135,9 +135,6 @@
             </div>
 
 <!-- SECTION FINANCIAL HEALTH CHECK -->
-<div id="barHC" class="hidden text-center mb-6">
-    <button onclick="togolHC(true)" class="text-sm text-slate-500 hover:text-slate-800 underline">Papar semula Financial Health Check</button>
-</div>
 <div id="sectionHC" class="mb-10 bg-white rounded-[2rem] p-8 md:p-10 shadow-sm border border-slate-100 text-center relative">
     <button onclick="cubaSembunyiHC()" class="absolute top-4 right-5 text-xs text-slate-400 hover:text-slate-700 transition"><i class="fa-regular fa-eye-slash mr-1"></i>Sembunyikan</button>
 
@@ -409,11 +406,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
 
     // Financial Health Check: sembunyi jika sudah dijawab; jika belum dan cuba sembunyi, popup kecil
     window.hcDijawab = false;
-    window.togolHC = (papar) => {
-        const sec = document.getElementById('sectionHC'), bar = document.getElementById('barHC');
-        if (sec) sec.style.display = papar ? '' : 'none';
-        if (bar) bar.classList.toggle('hidden', papar);
-    };
+    window.togolHC = (papar) => { if (!papar) window.showApp(); };
     window.cubaSembunyiHC = () => {
         if (window.hcDijawab || window.hcSelesai) { window.togolHC(false); return; }
         let p = document.getElementById('popupHC');
@@ -422,7 +415,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
             p.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] max-w-sm w-[92%] bg-white border border-slate-200 shadow-2xl rounded-2xl p-5 text-sm text-slate-600 text-center';
             document.body.appendChild(p);
         }
-        p.innerHTML = '<p class="mb-3">Sila jawab <b>Financial Health Check</b> ini dahulu. Selepas itu bahagian ini akan disembunyikan pada lawatan seterusnya.</p><button onclick="this.parentElement.remove()" class="bg-slate-800 text-white px-4 py-1.5 rounded-full text-xs font-bold">Faham</button>';
+        p.innerHTML = '<p class="mb-3">Sila jawab <b>Financial Health Check</b> ini dahulu. Selepas itu halaman pengenalan ini akan disembunyikan pada lawatan seterusnya.</p><button onclick="this.parentElement.remove()" class="bg-slate-800 text-white px-4 py-1.5 rounded-full text-xs font-bold">Faham</button>';
     };
     // Simpan keputusan kuiz dalam akaun bila selesai
     window.addEventListener('hc-selesai', async (e) => {
@@ -440,7 +433,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                 bakiKredit = data.credit_balance || 0;
                 modulTerbuka = data.jurnal_unlocked || []; 
                 
-                if (data.jurnal_hc) { window.hcDijawab = true; window.togolHC(false); }
+                if (data.jurnal_hc) { window.hcDijawab = true; window.skipIntro = true; }
 
                 document.getElementById('displayKredit').innerText = bakiKredit;
                 document.getElementById('userDisplay').innerText = data.name || "Pengguna";
@@ -452,7 +445,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         // SEMAK URL: Jika datang dari butang Kembali (ada ?bahagian=utama)
         // Kita terus panggil showApp() supaya data timeline & mangga (lock) dilukis dengan sempurna!
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('bahagian') === 'utama') {
+        if (urlParams.get('bahagian') === 'utama' || window.skipIntro) {
             window.showApp();
         }
     }
