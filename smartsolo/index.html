@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jurnal Smart Solo</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fcfcfd;
+            scroll-behavior: smooth;
+            color: #1a202c;
+        }
+
+        h1, h2, h3, .brand-font {
+            font-family: 'Playfair Display', serif;
+            letter-spacing: -0.02em;
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 24px;
+            width: 2px;
+            background-color: #1e3a8a;
+            z-index: 0;
+            opacity: 0.2;
+        }
+
+        @media (min-width: 768px) {
+            .timeline-container::before {
+                left: 50%;
+                margin-left: -1px;
+            }
+        }
+
+        .modal-enter {
+            animation: modalFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.98) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .confetti-icon { animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+        .logo-nav { height: 38px; width: auto; object-fit: contain; }
+        nav { backdrop-filter: blur(10px); background-color: rgba(255, 255, 255, 0.85); }
+
+        .btn-premium {
+            transition: all 0.3s ease;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden">
+
+    <!-- Screen Access Code -->
+    <div id="accessScreen" class="fixed inset-0 bg-[#0f172a] z-[200] flex items-center justify-center p-6 transition-opacity duration-700">
+        <div class="max-w-md w-full text-center">
+            <img src="https://i.postimg.cc/05ZSYPXN/smart-1-removebg-preview.png" alt="Logo" class="h-24 mx-auto mb-8">
+            <h2 class="text-3xl font-bold text-white mb-2">Akses Eksklusif</h2>
+            <p class="text-slate-400 mb-8 font-light">Sila masukkan kod akses anda untuk memulakan perjalanan kewangan solo.</p>
+            
+            <div class="relative group">
+                <input type="text" id="accessInput" placeholder="XXXX" 
+                    class="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-white text-center text-xl tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all uppercase">
+            </div>
+            
+            <button id="verifyBtn" class="w-full mt-6 btn-premium bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl shadow-xl transform active:scale-95 transition-all">
+                Sahkan Kod
+            </button>
+            
+            <div id="accessError" class="mt-4 text-red-400 text-sm hidden font-medium">Kod akses tidak sah. Sila cuba lagi.</div>
+            
+            <p class="mt-12 text-slate-500 text-xs">Belum mempunyai kod? <a href="https://producthch.github.io/landingpagess/" target="_blank" class="text-blue-400 hover:underline">Dapatkan Maklumat Lanjut</a></p>
+        </div>
+    </div>
+
+    <!-- Modal Workflow -->
+    <div id="workflowModal" class="fixed inset-0 bg-slate-900/90 z-[120] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl modal-enter">
+            <div id="workflowIcon" class="w-20 h-20 rounded-full flex items-center justify-center text-3xl mx-auto mb-6"></div>
+            <h3 id="workflowTitle" class="text-2xl font-bold mb-2"></h3>
+            <p id="workflowMsg" class="text-sm text-slate-500 mb-6 leading-relaxed"></p>
+            <div id="workflowButtons" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- Kandungan Utama -->
+    <div id="mainContent" class="opacity-0 pointer-events-none transition-opacity duration-700">
+        <nav class="shadow-sm border-b border-slate-100 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-20 items-center">
+                    <div id="navLogo" class="flex items-center space-x-3 cursor-pointer">
+                        <img src="https://i.postimg.cc/QCRhQFR0/smart-(1).png" alt="Logo" class="logo-nav">
+                        <span class="brand-font font-bold text-2xl tracking-tight text-slate-900">JurnalSmartSolo</span>
+                    </div>
+                    <div class="flex items-center space-x-8 hidden md:flex font-medium text-slate-500">
+                        <a href="#mapa-finance" class="nav-link hover:text-blue-800 transition text-sm uppercase tracking-widest">Kewangan</a>
+                        <a href="#mapa-legacy" class="nav-link hover:text-indigo-700 transition text-sm uppercase tracking-widest">Legasi</a>
+                        <!-- Tukar butang profil ke url Learn Mandarin di sini -->
+                        <a href="https://producthch.github.io/mandarinsolo/" target="_blank" class="hover:text-blue-800 transition flex items-center text-sm uppercase tracking-widest">
+                            <i class="fa-solid fa-language mr-2 opacity-70"></i> Learn Mandarin
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <header id="heroSection" class="bg-[#0f172a] text-white py-24 text-center px-4 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500 blur-[120px] rounded-full"></div>
+                <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500 blur-[120px] rounded-full"></div>
+            </div>
+            <div class="relative z-10">
+                <div class="flex justify-center mb-10">
+                    <img src="https://i.postimg.cc/05ZSYPXN/smart-1-removebg-preview.png" alt="Logo Jurnal Solo" class="h-32 md:h-40 w-auto object-contain drop-shadow-2xl">
+                </div>
+                <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">Perjalanan Kewangan <br><span class="italic font-normal text-blue-400">Bermula Di Sini.</span></h1>
+                <p class="text-lg md:text-xl max-w-3xl mx-auto font-light text-slate-300 mb-12">Setiap perancangan yang anda buat hari ini menentukan kebebasan anda esok. Mulakan dengan langkah asas bagi membina masa depan solo yang lebih bermakna.</p>
+                <div class="flex justify-center">
+                    <a href="#mapa-finance" class="btn-premium bg-white text-slate-900 px-10 py-4 rounded-full shadow-xl hover:bg-blue-50 transition flex items-center transform hover:-translate-y-1">
+                        Mula Langkah Pertama <i class="fa-solid fa-arrow-right ml-3 text-xs"></i>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main id="appBody" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            <section id="profileSection" class="hidden mb-24">
+                <div class="max-w-4xl mx-auto bg-white rounded-[2rem] shadow-sm border border-slate-100 p-12 text-center">
+                    <h3 class="text-4xl font-bold text-slate-900 mb-2">Hasnawi C. Harun</h3>
+                    <p class="text-blue-700 font-bold tracking-[0.2em] uppercase text-xs mb-8">Founder, FinEdu Platform</p>
+                    <p class="text-slate-500 leading-loose text-base mb-10 max-w-2xl mx-auto font-light">
+                        Berpengalaman lebih 20 tahun dalam sektor awam, kewangan, dan pengurusan sumber manusia. Kini aktif sebagai perunding bebas dalam perancangan pelaburan patuh Syariah, pengurusan pewarisan Islam serta pembiayaan kewangan. Beliau juga memfokuskan kepada pembangunan platform interaktif berasaskan AI untuk membantu individu menguruskan pewarisan dan pelaburan secara lebih sistematik.
+                    </p>
+                    <button id="consultBtn" class="btn-premium bg-slate-900 text-white px-10 py-4 rounded-xl shadow-lg hover:bg-slate-800 transition">
+                        Dapatkan Konsultasi Peribadi
+                    </button>
+                </div>
+            </section>
+
+            <div id="timelineContent">
+                <section id="mapa-finance" class="mb-32 relative scroll-mt-24">
+                    <div class="text-center mb-16 px-4">
+                        <h2 class="text-4xl font-bold text-slate-900 mb-4 italic">Kewangan Peribadi</h2>
+                        <p class="text-slate-500 text-xs font-medium uppercase tracking-[0.2em]">Langkah Asas Menuju Kebebasan</p>
+                    </div>
+                    <div class="relative timeline-container" id="finance-timeline"></div>
+                </section>
+
+                <section id="mapa-legacy" class="mb-32 relative scroll-mt-24">
+                    <div class="text-center mb-16 px-4">
+                        <h2 class="text-4xl font-bold text-slate-900 mb-4 italic">Legasi & Masa Depan</h2>
+                        <p class="text-slate-500 text-xs font-medium uppercase tracking-[0.2em]">Melindungi Aset & Persaraan</p>
+                    </div>
+                    <div class="relative timeline-container" id="legacy-timeline"></div>
+                </section>
+            </div>
+        </main>
+
+        <div id="toolModal" class="fixed inset-0 bg-slate-900/95 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-[2.5rem] shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto modal-enter hide-scroll border border-white/20">
+                <div class="p-10 text-center relative" id="modalHeader">
+                    <button id="closeModalBtn" class="absolute top-6 right-8 text-slate-400 hover:text-slate-600 transition text-2xl"><i class="fa-solid fa-xmark"></i></button>
+                    <div class="w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-3xl mb-6 shadow-inner" id="modalIcon"></div>
+                    <h3 class="text-3xl font-bold text-slate-900 mb-3" id="modalTitle"></h3>
+                    <p class="text-slate-500 leading-relaxed max-w-md mx-auto font-light" id="modalDesc"></p>
+                </div>
+                <div class="px-10 pb-10">
+                    <div class="flex flex-col items-center mb-10">
+                        <button class="btn-premium w-full md:w-auto py-5 px-16 rounded-full shadow-2xl transition hover:-translate-y-1" id="modalActionBtn"></button>
+                    </div>
+                    <div class="bg-slate-50 rounded-3xl p-8 border border-slate-100">
+                        <h4 class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-[0.2em] text-center italic">Panduan Eksklusif</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="modalEbooks"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="bg-white border-t border-slate-100 py-16 text-center">
+            <div class="brand-font text-2xl font-bold text-slate-900 mb-4">JurnalSmartSolo</div>
+            <p class="text-slate-400 text-xs tracking-widest uppercase">&copy; 2026 HCH x DAEBOOK.</p>
+        </footer>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    // --- CONFIGURATION ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6EJHOK2ir5L-eyXl1RzN3FH3dyYnWRAs",
+      authDomain: "smartsolo.firebaseapp.com",
+      projectId: "smart-solo",
+      storageBucket: "smart-solo.firebasestorage.app",
+      messagingSenderId: "675228196290",
+      appId: "1:675228196290:web:fc8f384b9a3c4aa5a98a5b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // --- DATA ---
+    const ebooks = {
+        "simpanan": { title: "Formula Simpanan 10k", coverImage: "https://i.postimg.cc/qBCgkcJK/(DB0725_D023)_Formula_Simpanan_RM10_000_Setahun_Walaupun_Gaji_Biasa_Biasa.png", gdriveLink: "https://drive.google.com/file/d/1AZQZfFbxKUthoFAR9EF7mTCLsKQe1ur4/view?usp=sharing" },
+        "pelaburan": { title: "Pelaburan Tanpa Beban", coverImage: "https://i.postimg.cc/BZxsYmZ8/(DB0525_D018)_Pelaburan_Tanpa_Beban.png", gdriveLink: "https://drive.google.com/file/d/_O8D368w74JA5ocX4nEfUOmtmMA6HS4V/view?usp=sharing" },
+        "emas": { title: "Rahsia Pelaburan Emas", coverImage: "https://i.postimg.cc/HxDRbCyS/(DB0525_D017)_Strategi_Bijak_Simpan_Emas_Digital_Fizikal.png", gdriveLink: "https://drive.google.com/file/d/1iqiIj8zA1Vvg7pIjwgV4g1PvIgdbDa60/view?usp=sharing" },
+        "mudah": { title: "5 Sebab Melabur Itu Mudah", coverImage: "https://i.postimg.cc/ZqTynWfc/Screenshot_2025_02_24_114638.png", gdriveLink: "https://drive.google.com/file/d/1paZ_f49l5MDvvJnjkmumBvyq3XZInn-H/view?usp=sharing" },
+        "dibuang": { title: "Langkah Bijak Bertahan", coverImage: "https://i.postimg.cc/mDP3ZckG/Screenshot_2025_02_24_114155.png", gdriveLink: "https://drive.google.com/file/d/1305ZF-j0ns7Qqx0H-bZhHxX6HgYhQe_Y/view?usp=sharing" },
+        "temuduga": { title: "Cemerlang Temuduga", coverImage: "https://i.postimg.cc/sgKYRFy6/(DB0725-D024)-CEMERLANG-DALAM-TEMUDUGA-cover.png", gdriveLink: "https://drive.google.com/file/d/1aP-kll9rQqqp11bOOtjSRJYeJud_fG2o/view?usp=sharing" },
+        "kerjaya": { title: "Rahsia Kerjaya", coverImage: "https://i.postimg.cc/hP1mB8sM/cover.png", gdriveLink: "https://drive.google.com/file/d/1eiklisUH1qLYtfj8fVwuIMTSCMEHHHDf/view?usp=sharing" },
+        "kewangan": { title: "Tips Kewangan Mudah", coverImage: "https://i.postimg.cc/SNL77zBp/Adakah-Simpanan-dan-Pelaburan-Anda-Selari-dengan-Keperluan-Masa-Depan.png", gdriveLink: "https://drive.google.com/file/d/1IyeYJaP_69F8JXonyYFxzXKfZDHRoig5/view?usp=sharing" },
+        "tipsemas": { title: "30 Tips Motivasi Emas", coverImage: "https://i.postimg.cc/vm7cCWtP/TP15-30-tips-Motivasi-Simpan-Emas.png", gdriveLink: "https://drive.google.com/file/d/1soVdPB5rDZmSLvdoaBvQsiWTPg1BoCFA/view?usp=sharing" },
+        "kurus": { title: "Kuruskan Badan", coverImage: "https://i.postimg.cc/hvB24KTX/(DB0525-D015)-Kuruskan-Badan-Bersihkan-Jiwa.png", gdriveLink: "https://drive.google.com/file/d/16TsPbpBjwsBzXd0BHn_xnBasQG2lFat8/view?usp=sharing" },
+        "resipi": { title: "Resepi Sihat", coverImage: "https://i.postimg.cc/KcDNrStj/Resipi-7-Hari-Sihat-cover.png", gdriveLink: "https://drive.google.com/file/d/1TAIf8hb6zZ71kr6N60GhHukFMo3dEcVD/view?usp=sharing" },
+        "ramadhan": { title: "Kurus Ramadhan", coverImage: "https://i.postimg.cc/kgpw6QKf/cover.png", gdriveLink: "https://drive.google.com/file/d/1DOeiQgJbPQK7sMF1LWZ-bb-at5nMbthU/view?usp=sharing" },
+        "hijrah": { title: "Kenapa Manusia Berubah", coverImage: "https://i.postimg.cc/qRCQ0kkx/(DB0825-D025)-Kenapa-Manusia-Berubah-Kisah-Hijrah-Hati-Mencari-Kebenaran.png", gdriveLink: "https://drive.google.com/file/d/1UyRelHlQGuIyXr8n8kGUlXUpl95G4iU-/view?usp=sharing" },
+        "kaboji": { title: "Sifat Kaboji", coverImage: "https://i.postimg.cc/d055RTZx/1.png", gdriveLink: "https://drive.google.com/file/d/1ac9363-IiG2G96MlVYWqsS650bWGk6F0/view?usp=sharing" },
+        "blueprint": { title: "Blueprint Umur 40", coverImage: "https://i.postimg.cc/vHm2Bh16/blueprint-umur-40.png", gdriveLink: "https://drive.google.com/file/d/1Eqt_PLmcMuVOHborhyV5wlIKPzSQ6m_n/view?usp=sharing" },
+        "single": { title: "Single Tapi Power", coverImage: "https://i.postimg.cc/HxWzBVTK/(DB0425-D011)-Single-Tapi-Power-Tips-Hidup-Bahagia-Berjaya-Walau-Belum-Kahwin.png", gdriveLink: "https://drive.google.com/file/d/1TG2IE9eVx_4PsmmJnB0F_v9eFdw42Thk/view?usp=sharing" },
+        "singlem": { title: "Single Tapi Power (Veri Maskulin)", coverImage: "https://i.postimg.cc/y8qT2fV7/(DB0425-D011)-Single-Tapi-Power-Tips-Hidup-Bahagia-Berjaya-Walau-Belum-Kahwin-Maskulin-Edition.png", gdriveLink: "https://drive.google.com/file/d/1oM2cGfANIeWfDvd6RLVBcFiUDrMvVVTx/view?usp=sharing" },
+        "sepi": { title: "Sepi Di Hujung Waktu", coverImage: "https://i.postimg.cc/j258dC9X/1.png", gdriveLink: "https://drive.google.com/file/d/15Res_FJAl9UBitxVsXuO6WPq-zvNUWTr/view?usp=sharing" },
+        "sepim": { title: "Sepi Di Hujung Waktu (Versi Maskulin)", coverImage: "https://i.postimg.cc/0NYXVTDG/1.png", gdriveLink: "https://drive.google.com/file/d/1UPWMLw_EWgs__EQkDn0FFxp8Ve0APxkO/view?usp=sharing" },
+        "legasi": { title: "Legasi Bujang", coverImage: "https://i.postimg.cc/7Pmd8rcN/(DB0226-D032)-LEGASI-BUJANG-STRATEGI-HARTA-SYURGA.png", gdriveLink: "https://drive.google.com/file/d/1yxx5GsoFvvntpr9C9PIT_wLuiA_rVrrC/view?usp=sharing" },
+        "legasim": { title: "Legasi Bujang (Versi Maskulin)", coverImage: "https://i.postimg.cc/HLXRfcDY/(DB0226-D032)-LEGASI-BUJANG-STRATEGI-HARTA-SYURGA-VM.png", gdriveLink: "https://drive.google.com/file/d/11HbLuSTfx1wEx0ZIY5ooBWEodG2wd95i/view?usp=sharing" },
+        "tiada": { title: "Bila Kami Tiada", coverImage: "https://i.postimg.cc/wvsfj6yS/(DB0126_D031)_Bila_Kami_Tiada2.png", gdriveLink: "https://drive.google.com/file/d/1gCAtSXS7XV663XNzXjVV9gWYHpXiTMZO/view?usp=sharing" }
+    };
+
+    const timelineData = {
+        finance: [{ 
+            fasa: "Kewangan Peribadi", icon: "fa-sack-dollar", color: "blue", 
+            tools: [
+                { id: "dchecklist", title: "myCHECKLIST", icon: "fa-list-check", desc: "Penilaian kerjaya dan kestabilan semasa.", reqs: ["temuduga", "kerjaya", "dibuang"], githubLink: "/smartsolo/app/mychecklist.html", nextStep: "ddebt", nextMsg: "Lengkapkan semakan status kewangan dengan kiraan nisbah hutang anda." },
+                { id: "ddebt", title: "myDEBT", icon: "fa-credit-card", desc: "Kira nisbah komitmen dan hutang anda (DSR).", reqs: ["simpanan", "kewangan"], githubLink: "/smartsolo/app/mydebt.html", nextStep: "myfp", nextMsg: "Sekarang, rancang pula matlamat masa depan dan pelaburan anda selepas hutang terurus." },
+                { id: "myfp", title: "myGOAL", icon: "fa-umbrella-beach", desc: "Unjuran masa depan menuju kebebasan kewangan.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "/smartsolo/app/myfinplan.html", nextStep: "darrahnu", nextMsg: "Pelbagaikan instrumen kewangan anda dengan aset seperti emas." },
+                { id: "darrahnu", title: "myEMAS", icon: "fa-coins", desc: "Emas sebagai pelindung nilai kekayaan solo.", reqs: ["emas", "tipsemas"], githubLink: "/smartsolo/app/myemas.html", nextStep: "dhealth", nextMsg: "Aset mantap perlu dijaga oleh tubuh badan yang sihat. Jom semak kesihatan!" },
+                { id: "dhealth", title: "myHEALTH", icon: "fa-stethoscope", desc: "Ukur tahap kesihatan untuk menjamin produktiviti.", reqs: ["resipi", "kurus","ramadhan" ], githubLink: "/smartsolo/app/myhealth.html", nextStep: "dhappiness", nextMsg: "Kesihatan terjaga, duit dah stabil. Kini masa untuk merancang masa depan dan legasi anda!" }
+            ]
+        }],
+        legacy: [{ 
+            fasa: "Legasi & Masa Depan", icon: "fa-seedling", color: "indigo", 
+            tools: [
+                { id: "dhappiness", title: "myHAPPINESS", icon: "fa-heart", desc: "Uji kegembiraan hati anda.", reqs: ["single", "singlem"], githubLink: "/smartsolo/app/myhappiness.html", nextStep: "dchecklist40", nextMsg: "Sejauh mana persediaan mental dan rohani anda menghadapi usia 40 tahun?" },
+                { id: "dchecklist40", title: "myCHECKLIST40", icon: "fa-list-check", desc: "Persediaan strategik sebelum melangkah ke usia 40.", reqs: ["blueprint", "hijrah", "kaboji"], githubLink: "/smartsolo/app/mychecklist40.html", nextStep: "dplan4me", nextMsg: "Bersedia untuk bersara dengan aman?" },
+                { id: "dplan4me", title: "myRETIREMENT", icon: "fa-wallet", desc: "Tabung persaraan eksklusif untuk anda.", reqs: ["sepi", "sepim"], githubLink: "/smartsolo/app/myretirement.html", nextStep: "mywaris", nextMsg: "Sejauh mana persediaan pengurusan harta pusaka anda terurus dengan baik." },
+                { id: "mywaris", title: "myWARIS", icon: "fa-file-contract", desc: "Perancangan dan pengurusan harta.", reqs: ["legasi", "legasim"], githubLink: "/smartsolo/app/mywaris.html", isEndLevel: true, finishMsg: "Perancangan kewangan dan legasi anda kini lengkap. Anda sedia menghadapi masa depan dengan tenang." }
+            ] 
+        }]
+    };
+
+    // --- UI FUNCTIONS ---
+    function renderTimeline(data, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container || !data) return;
+        container.innerHTML = data.map(stage => `
+            <div class="relative z-10 mb-16 flex flex-col items-center px-4">
+                <h3 class="brand-font text-xl font-bold text-slate-800 bg-white px-8 py-3 rounded-full shadow-sm border border-slate-100 mb-10">
+                    <i class="fa-solid ${stage.icon} mr-3 text-${stage.color}-600 opacity-70"></i>${stage.fasa}
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
+                    ${stage.tools.map(tool => `
+                        <div data-tool-id="${tool.id}" data-color="${stage.color}" class="tool-card bg-white p-8 rounded-3xl border border-slate-100 hover:shadow-2xl hover:border-blue-100 transition-all duration-300 cursor-pointer flex items-center group transform hover:-translate-y-1">
+                            <div class="w-16 h-16 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center text-2xl mr-6 group-hover:bg-${stage.color}-600 group-hover:text-white transition-all duration-300">
+                                <i class="fa-solid ${tool.icon}"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="brand-font font-bold text-slate-900 text-lg mb-1">${tool.title}</h4>
+                                <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">${tool.desc}</p>
+                            </div>
+                            <div class="opacity-0 group-hover:opacity-100 transition-opacity ml-4 text-blue-600">
+                                <i class="fa-solid fa-chevron-right text-sm"></i>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderAll() {
+        renderTimeline(timelineData.finance, 'finance-timeline');
+        renderTimeline(timelineData.legacy, 'legacy-timeline');
+        // Add event listeners after rendering
+        document.querySelectorAll('.tool-card').forEach(card => {
+            card.onclick = () => openModal(card.dataset.toolId, card.dataset.color);
+        });
+    }
+
+    function openModal(toolId, color) {
+        let tool = null;
+        Object.values(timelineData).forEach(stages => {
+            stages.forEach(s => {
+                const found = s.tools.find(t => t.id === toolId);
+                if (found) tool = found;
+            });
+        });
+        if (!tool) return;
+
+        document.getElementById('modalTitle').textContent = tool.title;
+        document.getElementById('modalDesc').textContent = tool.desc;
+        const iconEl = document.getElementById('modalIcon');
+        iconEl.innerHTML = `<i class="fa-solid ${tool.icon}"></i>`;
+        iconEl.className = `w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-3xl mb-6 shadow-inner bg-${color}-50 text-${color}-600`;
+        
+        const btn = document.getElementById('modalActionBtn');
+        btn.className = `btn-premium bg-${color}-600 text-white py-5 px-16 rounded-full font-bold shadow-2xl transition hover:-translate-y-1 hover:bg-${color}-700`;
+        btn.textContent = `Akses Modul ${tool.title}`;
+        
+        btn.onclick = () => {
+            window.open(tool.githubLink, '_blank');
+            setTimeout(() => {
+                closeModal();
+                if (tool.isEndLevel) {
+                    showCongratsModal(tool.finishMsg, color);
+                } else if (tool.nextStep) {
+                    showNextStepModal(tool.nextStep, tool.nextMsg, toolId, color);
+                }
+            }, 800);
+        };
+
+        const ebContainer = document.getElementById('modalEbooks');
+        ebContainer.innerHTML = '';
+        tool.reqs.forEach(rid => {
+            const eb = ebooks[rid];
+            if (eb) {
+                const ebDiv = document.createElement('div');
+                ebDiv.className = "bg-white border border-slate-100 rounded-2xl p-4 flex items-center cursor-pointer hover:shadow-md transition-all group";
+                ebDiv.onclick = () => window.open(eb.gdriveLink, '_blank');
+                ebDiv.innerHTML = `
+                    <img src="${eb.coverImage}" class="w-12 h-16 object-cover mr-4 shadow-sm rounded-lg group-hover:scale-105 transition-transform">
+                    <h5 class="font-bold text-xs text-slate-800 leading-tight">${eb.title}</h5>
+                `;
+                ebContainer.appendChild(ebDiv);
+            }
+        });
+        
+        document.getElementById('toolModal').classList.remove('hidden');
+    }
+
+    function closeModal() { document.getElementById('toolModal').classList.add('hidden'); }
+    function closeWorkflowModal() { document.getElementById('workflowModal').classList.add('hidden'); }
+
+    function showCongratsModal(msg, color) {
+        const iconBox = document.getElementById('workflowIcon');
+        iconBox.className = `w-20 h-20 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 confetti-icon`;
+        iconBox.innerHTML = `<i class="fa-solid fa-crown"></i>`;
+        document.getElementById('workflowTitle').textContent = "Pencapaian Selesai";
+        document.getElementById('workflowMsg').textContent = msg;
+        const btnContainer = document.getElementById('workflowButtons');
+        btnContainer.innerHTML = '';
+        const btn = document.createElement('button');
+        btn.className = "btn-premium w-full py-5 bg-slate-900 text-white font-bold rounded-2xl shadow-lg hover:bg-slate-800 transition uppercase text-xs";
+        btn.textContent = "Semoga Allah Rahmati Hidup Anda";
+        btn.onclick = closeWorkflowModal;
+        btnContainer.appendChild(btn);
+        document.getElementById('workflowModal').classList.remove('hidden');
+    }
+
+    function showNextStepModal(nextToolId, msg, currentToolId, currentColor) {
+        let nextTool = null;
+        let nextColor = 'blue';
+        Object.keys(timelineData).forEach(cat => {
+            timelineData[cat].forEach(s => {
+                const found = s.tools.find(t => t.id === nextToolId);
+                if (found) { nextTool = found; nextColor = (cat === 'finance') ? 'blue' : 'indigo'; }
+            });
+        });
+
+        const iconBox = document.getElementById('workflowIcon');
+        iconBox.className = `w-20 h-20 bg-${nextColor}-50 text-${nextColor}-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-6`;
+        iconBox.innerHTML = `<i class="fa-solid fa-arrow-right-long"></i>`;
+        document.getElementById('workflowTitle').textContent = "Langkah Strategik";
+        document.getElementById('workflowMsg').textContent = msg;
+        const btnContainer = document.getElementById('workflowButtons');
+        btnContainer.innerHTML = '';
+        
+        const nextBtn = document.createElement('button');
+        nextBtn.className = `btn-premium w-full py-5 bg-${nextColor}-600 text-white font-bold rounded-2xl shadow-lg transition hover:bg-${nextColor}-700 uppercase text-xs`;
+        nextBtn.textContent = `Mula ${nextTool.title}`;
+        nextBtn.onclick = () => { closeWorkflowModal(); openModal(nextToolId, nextColor); };
+        
+        const backBtn = document.createElement('button');
+        backBtn.className = "w-full py-4 text-slate-400 font-bold text-xs uppercase hover:text-slate-600 transition";
+        backBtn.textContent = "Kembali";
+        backBtn.onclick = closeWorkflowModal;
+        
+        btnContainer.appendChild(nextBtn);
+        btnContainer.appendChild(backBtn);
+        document.getElementById('workflowModal').classList.remove('hidden');
+    }
+
+    // --- FIREBASE LOGIC ---
+    window.onload = async () => {
+        try {
+            await signInAnonymously(auth);
+            console.log("Firebase Auth Success");
+            renderAll();
+        } catch (error) {
+            console.error("Gagal bersambung:", error);
+        }
+    };
+
+    const verifyAccessCode = async () => {
+        const code = document.getElementById('accessInput').value.trim().toUpperCase();
+        const errorEl = document.getElementById('accessError');
+        const btn = document.getElementById('verifyBtn');
+
+        if (!code) return;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Sahkan...';
+        errorEl.classList.add('hidden');
+
+        try {
+            // Sesuai dengan Rules: /access_code/{code}
+            const codeRef = doc(db, 'access_code', code);
+            const codeSnap = await getDoc(codeRef);
+
+            if (codeSnap.exists() && codeSnap.data().active === true) {
+                unlockApp();
+            } else {
+                errorEl.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = 'Sahkan Kod';
+            }
+        } catch (err) {
+            console.error("Ralat Firestore:", err);
+            errorEl.textContent = "Masalah kebenaran. Pastikan Rules di Firebase sudah di-Publish.";
+            errorEl.classList.remove('hidden');
+            btn.disabled = false;
+            btn.textContent = 'Sahkan Kod';
+        }
+    };
+
+    function unlockApp() {
+        const screen = document.getElementById('accessScreen');
+        const main = document.getElementById('mainContent');
+        screen.classList.add('opacity-0');
+        setTimeout(() => {
+            screen.classList.add('hidden');
+            main.classList.remove('opacity-0', 'pointer-events-none');
+        }, 700);
+    }
+
+    // Assign global event handlers
+    document.getElementById('verifyBtn').onclick = verifyAccessCode;
+    document.getElementById('closeModalBtn').onclick = closeModal;
+    document.getElementById('navLogo').onclick = () => { window.scrollTo(0,0); hideProfile(); };
+    document.querySelectorAll('.nav-link').forEach(link => { link.onclick = hideProfile; });
+    
+    // Perhatian: Butang profail (profileBtn) telah ditukar ke elemen pautan <a> "Learn Mandarin"
+    // Oleh itu listener asal telah dipadam untuk mengelakkan ralat.
+    
+    document.getElementById('consultBtn').onclick = () => window.open(`https://wa.me/60129443846?text=Bantuan%20Konsultasi%20Kewangan%20Solo`, '_blank');
+
+    function showProfile() { 
+        document.getElementById('profileSection').classList.remove('hidden'); 
+        document.getElementById('timelineContent').classList.add('hidden'); 
+        document.getElementById('heroSection').classList.add('hidden'); 
+    }
+    function hideProfile() { 
+        document.getElementById('profileSection').classList.add('hidden'); 
+        document.getElementById('timelineContent').classList.remove('hidden'); 
+        document.getElementById('heroSection').classList.remove('hidden'); 
+    }
+</script>
+</body>
+</html>
