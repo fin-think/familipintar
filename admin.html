@@ -21,6 +21,7 @@
                 <button onclick="tab('dash')" class="hover:text-sky-300 transition text-sm font-semibold">P&L</button>
                 <button onclick="tab('list')" class="hover:text-sky-300 transition text-sm font-semibold">Senarai Ejen</button>
                 <button onclick="tab('src')" class="hover:text-sky-300 transition text-sm font-semibold">Sumber</button>
+                <button onclick="tab('sub')" class="hover:text-sky-300 transition text-sm font-semibold">Langganan</button>
                 <button onclick="tab('aff')" class="hover:text-sky-300 transition text-sm font-semibold">Payouts</button>
                 <button onclick="tab('cash')" class="hover:text-sky-300 transition text-sm font-semibold">Expenses</button>
                 <span class="text-slate-600">|</span>
@@ -83,6 +84,18 @@
                     </table>
                 </div>
             </div>
+        </div>
+
+        <!-- TAB: LANGGANAN -->
+        <div id="tab-sub" class="hidden animate-fade-in">
+            <h2 class="text-2xl font-bold mb-2 text-slate-800">Langganan weCare &amp; OurMoney</h2>
+            <p class="text-sm text-slate-500 mb-6">Percubaan percuma 30 hari bermula bila pengguna setuju T&amp;C. Disusun ikut tarikh tamat terdekat.</p>
+            <div id="subCards" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200"><div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-100 text-slate-600"><tr><th class="p-4">Pengguna</th><th class="p-4">Emel</th><th class="p-4">weCare tamat</th><th class="p-4">OurMoney tamat</th><th class="p-4 text-right">Kredit</th></tr></thead>
+                    <tbody id="subBody" class="divide-y"><tr><td colspan="5" class="p-4 text-center">Memuatkan...</td></tr></tbody>
+                </table></div></div>
         </div>
 
         <!-- TAB: SUMBER PENDAFTARAN -->
@@ -169,6 +182,7 @@
         document.getElementById('tab-list').classList.add('hidden');
         document.getElementById('tab-aff').classList.add('hidden');
         document.getElementById('tab-src').classList.add('hidden');
+        document.getElementById('tab-sub').classList.add('hidden');
         document.getElementById('tab-cash').classList.add('hidden');
         document.getElementById('tab-'+id).classList.remove('hidden');
         
@@ -176,6 +190,7 @@
         if(id === 'list') loadAffiliatesList();
         if(id === 'aff') loadPayouts();
         if(id === 'src') loadSumber();
+        if(id === 'sub') loadLangganan();
     };
 
     async function calculatePNL() {
@@ -226,6 +241,31 @@
     }
 
     const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    async function loadLangganan() {
+        const snap = await getDocs(collection(db, "mynasab_users"));
+        const kini = Date.now();
+        const tkh = (ms) => {
+            if (!ms) return '<span class="text-slate-400">Belum mula</span>';
+            const h = Math.ceil((ms - kini) / 86400000);
+            const t = new Date(ms).toLocaleDateString('en-GB');
+            return h > 0 ? `${t} <span class="text-xs ${h <= 5 ? 'text-red-500 font-bold' : 'text-slate-500'}">(${h} hari)</span>` : `<span class="text-red-500">${t} (tamat)</span>`;
+        };
+        const baris = [];
+        let aktifW = 0, aktifO = 0, tamatW = 0, tamatO = 0;
+        snap.forEach(d => {
+            const u = d.data();
+            if (!u.wecare_expiry_date && !u.ourmoney_expiry_date) return;
+            if (u.wecare_expiry_date) (u.wecare_expiry_date > kini ? aktifW++ : tamatW++);
+            if (u.ourmoney_expiry_date) (u.ourmoney_expiry_date > kini ? aktifO++ : tamatO++);
+            baris.push(u);
+        });
+        const dekat = (u) => Math.min(u.wecare_expiry_date || Infinity, u.ourmoney_expiry_date || Infinity);
+        baris.sort((a, b) => dekat(a) - dekat(b));
+        document.getElementById('subCards').innerHTML = [['weCare aktif', aktifW, 'emerald'], ['weCare tamat', tamatW, 'red'], ['OurMoney aktif', aktifO, 'emerald'], ['OurMoney tamat', tamatO, 'red']]
+            .map(k => `<div class="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-${k[2]}-500"><p class="text-xs text-slate-500 font-bold">${k[0]}</p><h3 class="text-2xl font-extrabold">${k[1]}</h3></div>`).join('');
+        document.getElementById('subBody').innerHTML = baris.map(u => `<tr><td class="p-4 font-bold">${esc(u.name || '-')}</td><td class="p-4">${esc(u.email || '-')}</td><td class="p-4">${tkh(u.wecare_expiry_date)}</td><td class="p-4">${tkh(u.ourmoney_expiry_date)}</td><td class="p-4 text-right">${esc(u.credit_balance != null ? u.credit_balance : '-')}</td></tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center">Belum ada langganan.</td></tr>';
+    }
+
     async function loadSumber() {
         const [uSnap, lSnap] = await Promise.all([getDocs(collection(db, "mynasab_users")), getDocs(collection(db, "mynasab_links"))]);
         const dipautkan = new Set(); lSnap.forEach(d => dipautkan.add(d.id));

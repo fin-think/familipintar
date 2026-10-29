@@ -84,6 +84,7 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
     <div class="brand"><span class="we">we</span><span class="care">Care</span></div>
     <div class="who">
       <div id="displayUserName" style="font-weight:800;color:var(--ink);">Pengguna</div>
+      <div id="lencanaTamat" style="display:none;font-size:11px;color:var(--muted);"></div>
       <a href="../index.html" style="font-size:12px;color:var(--muted);text-decoration:none; display:inline-flex; align-items:center;">
         Kembali
         <!-- Ini adalah Lencana Luar weCare -->
@@ -245,12 +246,22 @@ let currentUser = null;
 window.globalTeamMap = new Map();
 
 // --- PAYWALL ---
+const paparTamat = (ms) => {
+  const el = document.getElementById('lencanaTamat'); if (!el) return;
+  if (!ms) { el.style.display = 'none'; return; }
+  const baki = Math.ceil((ms - Date.now()) / 86400000);
+  const tkh = new Date(ms).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  el.style.display = 'block';
+  el.innerText = baki > 0 ? ('Langganan tamat: ' + tkh + ' (' + baki + ' hari lagi)') : ('Langganan tamat pada ' + tkh);
+  el.style.color = baki <= 5 ? '#ef4444' : '';
+};
 window.semakStatusLangganan = async (uid) => {
   try {
     const userDoc = await getDoc(doc(db, "mynasab_users", uid));
     if (userDoc.exists()) {
       const tarikhLuput = userDoc.data().wecare_expiry_date;
       const masaSekarang = new Date().getTime();
+      paparTamat(tarikhLuput);
       document.getElementById('modalPaywall').style.display = (!tarikhLuput || tarikhLuput < masaSekarang) ? 'flex' : 'none';
     }
   } catch (error) {
@@ -288,6 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
             await setDoc(userRef, { wecare_expiry_date: tambah30Hari }, { merge: true });
           }
           await window.semakStatusLangganan(currentUser.uid);
+          const sBaru = await getDoc(userRef); const tm = sBaru.exists() && sBaru.data().wecare_expiry_date;
+          if (tm) alert('Percubaan percuma 30 hari bermula hari ini. Tamat pada ' + new Date(tm).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.');
         } catch (err) { console.error("Ralat mengaktifkan percubaan percuma:", err); }
       }
     });
@@ -393,6 +406,7 @@ window.bayarGunaKredit = async () => {
         await setDoc(userRef, { credit_balance: baki - 20, wecare_expiry_date: tambah30Hari }, { merge: true });
         alert("Pembaharuan berjaya! 20 Kredit telah dipotong dari akaun anda.");
         document.getElementById('modalPaywall').style.display = 'none';
+        paparTamat(tambah30Hari);
       } else {
         alert("Kredit tidak mencukupi. Baki semasa anda: " + baki + " Kredit.\n\nSila tambah nilai kredit di myNasab terlebih dahulu.");
         window.location.href = "../topup.html";
