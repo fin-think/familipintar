@@ -104,7 +104,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteField, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -118,6 +119,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const fungsi = getFunctions(app);
     let currentUser = null;
     let bakiKomisen = 0;
 
@@ -146,9 +148,20 @@
             document.getElementById('refLink').value = `https://familipintar.com/?ref=${refCode}`;
             
             if(data.name) document.getElementById('namaPenuh').value = data.name;
-            if(data.phone) document.getElementById('noTelefon').value = data.phone;
-            if(data.bank_name) document.getElementById('bankName').value = data.bank_name;
-            if(data.bank_acc) document.getElementById('bankAcc').value = data.bank_acc;
+            // Maklumat telefon & bank disimpan dalam dokumen peribadi (hanya pemilik & admin boleh baca)
+            const refPriv = doc(db, "mynasab_affiliate_private", currentUser.uid);
+            const privSnap = await getDoc(refPriv);
+            let priv = privSnap.exists() ? privSnap.data() : null;
+            if (!priv && (data.phone || data.bank_name || data.bank_acc)) {
+                // Pindahkan data lama keluar daripada profil umum
+                priv = { phone: data.phone || '', bank_name: data.bank_name || '', bank_acc: data.bank_acc || '' };
+                await setDoc(refPriv, priv);
+                await updateDoc(doc(db, "mynasab_users", currentUser.uid), { phone: deleteField(), bank_name: deleteField(), bank_acc: deleteField() });
+            }
+            priv = priv || {};
+            if(priv.phone) document.getElementById('noTelefon').value = priv.phone;
+            if(priv.bank_name) document.getElementById('bankName').value = priv.bank_name;
+            if(priv.bank_acc) document.getElementById('bankAcc').value = priv.bank_acc;
             if(data.is_affiliate) document.getElementById('termsCheck').checked = true; // Auto tick jika dah sah
         }
     }
@@ -223,11 +236,9 @@
             return alert("Sila tanda kotak persetujuan Terma & Syarat untuk meneruskan pendaftaran Affiliate.");
         }
         
+        await setDoc(doc(db, "mynasab_affiliate_private", currentUser.uid), { phone: tel, bank_name: bName, bank_acc: bAcc, kemaskini: new Date().toISOString() });
         await updateDoc(doc(db, "mynasab_users", currentUser.uid), {
             name: nama,
-            phone: tel,
-            bank_name: bName, 
-            bank_acc: bAcc,
             is_affiliate: true // Ini yang akan trigger profil dia muncul di Admin
         });
         
@@ -239,17 +250,18 @@
         if(bakiKomisen < 50) {
             return alert("Baki minimum pengeluaran adalah RM 50.00. Baki anda: RM " + bakiKomisen.toFixed(2));
         }
-        
-        await addDoc(collection(db, "mynasab_payouts"), {
-            affiliate_uid: currentUser.uid,
-            amount: bakiKomisen,
-            status: 'pending',
-            timestamp: new Date().toISOString()
-        });
-
-        alert(`Permohonan pengeluaran RM ${bakiKomisen.toFixed(2)} sedang diproses oleh Admin.`);
-        document.getElementById('btnWithdraw').innerText = "Sedang Diproses";
-        document.getElementById('btnWithdraw').disabled = true;
+        const btn = document.getElementById('btnWithdraw');
+        btn.disabled = true;
+        try {
+            // Jumlah dikira oleh pelayan, bukan oleh pelayar
+            const r = (await httpsCallable(fungsi, 'mohonPayout')()).data || {};
+            alert(`Permohonan pengeluaran RM ${Number(r.amount).toFixed(2)} sedang diproses oleh Admin.`);
+            btn.innerText = "Sedang Diproses";
+            await muatJualan();
+        } catch (e) {
+            btn.disabled = false;
+            alert(e.message || "Gagal membuat permohonan. Cuba lagi.");
+        }
     };
 </script>
 </body>

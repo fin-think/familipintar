@@ -140,7 +140,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDocs, collection, updateDoc, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, updateDoc, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -195,13 +195,23 @@
         document.getElementById('dashNet').innerText = (sales - comm - exp).toFixed(2);
     }
     
+    // Telefon & bank ejen disimpan dalam mynasab_affiliate_private (baca admin sahaja selain pemilik)
+    async function bacaPeribadi(ids) {
+        const hasil = {};
+        await Promise.all(ids.map(async id => {
+            try { const s = await getDoc(doc(db, "mynasab_affiliate_private", id)); if (s.exists()) hasil[id] = s.data(); } catch (e) {}
+        }));
+        return hasil;
+    }
+
     async function loadAffiliatesList() {
         const q = query(collection(db, "mynasab_users"), where("is_affiliate", "==", true));
         const snap = await getDocs(q);
+        const priv = await bacaPeribadi(snap.docs.map(d => d.id));
         
         let html = '';
         snap.forEach(docSnap => {
-            const a = docSnap.data();
+            const a = { ...docSnap.data(), ...(priv[docSnap.id] || {}) };
             html += `
                 <tr class="border-b hover:bg-slate-50">
                     <td class="p-4 font-bold text-slate-700">${a.name || '-'}</td>
@@ -248,7 +258,8 @@
 
     async function loadPayouts() {
         const [snap, uSnap] = await Promise.all([getDocs(collection(db, "mynasab_payouts")), getDocs(query(collection(db, "mynasab_users"), where("is_affiliate", "==", true)))]);
-        const ejen = {}; uSnap.forEach(d => ejen[d.id] = d.data());
+        const priv = await bacaPeribadi(uSnap.docs.map(d => d.id));
+        const ejen = {}; uSnap.forEach(d => ejen[d.id] = { ...d.data(), ...(priv[d.id] || {}) });
         const baris = [];
         snap.forEach(d => baris.push([d.id, d.data()]));
         baris.sort((a, b) => (b[1].timestamp || '').localeCompare(a[1].timestamp || ''));
