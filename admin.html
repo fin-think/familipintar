@@ -62,6 +62,14 @@
                     <h3 class="text-3xl font-extrabold text-green-700">RM <span id="dashNet">0</span></h3>
                 </div>
             </div>
+            <p class="text-xs text-slate-500 mb-6 -mt-4">Data sebenar: jualan = semua top-up (mynasab_topups), komisen = mynasab_sales, expenses = rekod perbelanjaan.</p>
+
+            <h3 class="text-lg font-bold mb-3 text-slate-800">Jualan Melalui Ejen (Komisen)</h3>
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200"><div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-100 text-slate-600"><tr><th class="p-4">Tarikh</th><th class="p-4">Ejen</th><th class="p-4">Pembeli</th><th class="p-4">Pakej</th><th class="p-4 text-right">Jualan</th><th class="p-4 text-right">Komisen</th><th class="p-4">Status</th></tr></thead>
+                    <tbody id="salesAdminBody" class="divide-y"><tr><td colspan="7" class="p-4 text-center">Memuatkan...</td></tr></tbody>
+                </table></div></div>
         </div>
         
         <!-- TAB BARU: SENARAI AFFILIATE -->
@@ -199,15 +207,26 @@
         const snapAff = await getDocs(qAff);
         document.getElementById('dashAffCount').innerText = snapAff.size;
 
-        // Dummy data P&L untuk sekarang
-        const sales = 15000;
-        const comm = 4500;
-        const exp = 2000;
-        
+        const [tSnap, sSnap, cSnap, uSnap] = await Promise.all([
+            getDocs(collection(db, "mynasab_topups")), getDocs(collection(db, "mynasab_sales")),
+            getDocs(collection(db, "mynasab_cashflow")), getDocs(query(collection(db, "mynasab_users"), where("is_affiliate", "==", true)))]);
+        let sales = 0, comm = 0, exp = 0;
+        tSnap.forEach(d => sales += Number(d.data().price_rm) || 0);
+        sSnap.forEach(d => { const x = d.data(); comm += Number(x.commission_amount != null ? x.commission_amount : (x.amount || 0) * 0.3) || 0; });
+        cSnap.forEach(d => exp += Number(d.data().amount) || 0);
+
         document.getElementById('dashSales').innerText = sales.toFixed(2);
         document.getElementById('dashComm').innerText = comm.toFixed(2);
         document.getElementById('dashExp').innerText = exp.toFixed(2);
         document.getElementById('dashNet').innerText = (sales - comm - exp).toFixed(2);
+
+        const nama = {}; uSnap.forEach(d => nama[d.id] = d.data().name || d.data().email || d.id);
+        const baris = []; sSnap.forEach(d => baris.push(d.data()));
+        baris.sort((x, y) => (y.timestamp || '').localeCompare(x.timestamp || ''));
+        document.getElementById('salesAdminBody').innerHTML = baris.map(x => {
+            const k = Number(x.commission_amount != null ? x.commission_amount : (x.amount || 0) * 0.3);
+            return `<tr><td class="p-4">${esc((x.timestamp || '').substring(0, 10))}</td><td class="p-4 font-bold">${esc(nama[x.affiliate_uid] || x.affiliate_uid)}</td><td class="p-4">${esc(x.buyer_name || x.buyer_email || '-')}</td><td class="p-4 uppercase text-xs">${esc(x.package_type || '-')}</td><td class="p-4 text-right">RM ${Number(x.amount || 0).toFixed(2)}</td><td class="p-4 text-right font-bold text-yellow-700">RM ${k.toFixed(2)}</td><td class="p-4 text-xs uppercase">${esc(x.payout_status || '-')}</td></tr>`;
+        }).join('') || '<tr><td colspan="7" class="p-4 text-center">Belum ada jualan melalui ejen.</td></tr>';
     }
     
     // Telefon & bank ejen disimpan dalam mynasab_affiliate_private (baca admin sahaja selain pemilik)
