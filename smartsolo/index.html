@@ -68,25 +68,20 @@
 </head>
 <body class="antialiased overflow-x-hidden">
 
-    <!-- Screen Access Code -->
+    <!-- Pintu Akses: log masuk Famili Pintar + 20 kredit sekali bayar (seumur hidup) -->
     <div id="accessScreen" class="fixed inset-0 bg-[#0f172a] z-[200] flex items-center justify-center p-6 transition-opacity duration-700">
         <div class="max-w-md w-full text-center">
             <img src="https://i.postimg.cc/05ZSYPXN/smart-1-removebg-preview.png" alt="Logo" class="h-24 mx-auto mb-8">
-            <h2 class="text-3xl font-bold text-white mb-2">Akses Eksklusif</h2>
-            <p class="text-slate-400 mb-8 font-light">Sila masukkan kod akses anda untuk memulakan perjalanan kewangan solo.</p>
-            
-            <div class="relative group">
-                <input type="text" id="accessInput" placeholder="XXXX" 
-                    class="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-white text-center text-xl tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all uppercase">
+            <div id="gateLoading" class="text-slate-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Menyemak akaun...</div>
+            <div id="gatePay" class="hidden">
+                <h2 class="text-3xl font-bold text-white mb-2">Akses Seumur Hidup</h2>
+                <p class="text-slate-400 mb-6 font-light">Buka JurnalSmartSolo sekali sahaja dengan <b class="text-white">20 Kredit</b>. Tiada yuran bulanan, dan akses kekal pada akaun Famili Pintar anda.</p>
+                <p class="text-slate-500 text-sm mb-6">Baki kredit anda: <b id="gateBaki" class="text-white">0</b></p>
+                <button id="verifyBtn" class="w-full btn-premium bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl shadow-xl transform active:scale-95 transition-all">Buka Akses (20 Kredit)</button>
+                <a id="gateTopup" href="../topup.html" class="hidden block mt-4 text-blue-400 hover:underline text-sm">Kredit tidak cukup &mdash; Tambah Nilai Kredit</a>
+                <div id="accessError" class="mt-4 text-red-400 text-sm hidden font-medium"></div>
+                <a href="../index.html" class="block mt-10 text-slate-500 text-xs hover:text-slate-300">&larr; Kembali ke Famili Pintar</a>
             </div>
-            
-            <button id="verifyBtn" class="w-full mt-6 btn-premium bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl shadow-xl transform active:scale-95 transition-all">
-                Sahkan Kod
-            </button>
-            
-            <div id="accessError" class="mt-4 text-red-400 text-sm hidden font-medium">Kod akses tidak sah. Sila cuba lagi.</div>
-            
-            <p class="mt-12 text-slate-500 text-xs">Belum mempunyai kod? <a href="https://producthch.github.io/landingpagess/" target="_blank" class="text-blue-400 hover:underline">Dapatkan Maklumat Lanjut</a></p>
         </div>
     </div>
 
@@ -112,8 +107,9 @@
                     <div class="flex items-center space-x-8 hidden md:flex font-medium text-slate-500">
                         <a href="#mapa-finance" class="nav-link hover:text-blue-800 transition text-sm uppercase tracking-widest">Kewangan</a>
                         <a href="#mapa-legacy" class="nav-link hover:text-indigo-700 transition text-sm uppercase tracking-widest">Legasi</a>
+                        <a href="../index.html" class="hover:text-blue-800 transition text-sm uppercase tracking-widest">Famili Pintar</a>
                         <!-- Tukar butang profil ke url Learn Mandarin di sini -->
-                        <a href="https://producthch.github.io/mandarinsolo/" target="_blank" class="hover:text-blue-800 transition flex items-center text-sm uppercase tracking-widest">
+                        <a href="../mandarin.html" class="hover:text-blue-800 transition flex items-center text-sm uppercase tracking-widest">
                             <i class="fa-solid fa-language mr-2 opacity-70"></i> Learn Mandarin
                         </a>
                     </div>
@@ -200,23 +196,23 @@
     </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // --- CONFIGURATION ---
+    // --- CONFIGURATION (Firebase Famili Pintar, akaun dikongsi dengan semua alat) ---
     const firebaseConfig = {
-      apiKey: "AIzaSyD6EJHOK2ir5L-eyXl1RzN3FH3dyYnWRAs",
-      authDomain: "smartsolo.firebaseapp.com",
-      projectId: "smart-solo",
-      storageBucket: "smart-solo.firebasestorage.app",
-      messagingSenderId: "675228196290",
-      appId: "1:675228196290:web:fc8f384b9a3c4aa5a98a5b"
+        apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+        authDomain: "familipintar.firebaseapp.com",
+        projectId: "familipintar",
+        storageBucket: "familipintar.firebasestorage.app"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const HARGA_KREDIT = 20;
+    let uidSemasa = null;
 
     // --- DATA ---
     const ebooks = {
@@ -248,20 +244,20 @@
         finance: [{ 
             fasa: "Kewangan Peribadi", icon: "fa-sack-dollar", color: "blue", 
             tools: [
-                { id: "dchecklist", title: "myCHECKLIST", icon: "fa-list-check", desc: "Penilaian kerjaya dan kestabilan semasa.", reqs: ["temuduga", "kerjaya", "dibuang"], githubLink: "/smartsolo/app/mychecklist.html", nextStep: "ddebt", nextMsg: "Lengkapkan semakan status kewangan dengan kiraan nisbah hutang anda." },
-                { id: "ddebt", title: "myDEBT", icon: "fa-credit-card", desc: "Kira nisbah komitmen dan hutang anda (DSR).", reqs: ["simpanan", "kewangan"], githubLink: "/smartsolo/app/mydebt.html", nextStep: "myfp", nextMsg: "Sekarang, rancang pula matlamat masa depan dan pelaburan anda selepas hutang terurus." },
-                { id: "myfp", title: "myGOAL", icon: "fa-umbrella-beach", desc: "Unjuran masa depan menuju kebebasan kewangan.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "/smartsolo/app/myfinplan.html", nextStep: "darrahnu", nextMsg: "Pelbagaikan instrumen kewangan anda dengan aset seperti emas." },
-                { id: "darrahnu", title: "myEMAS", icon: "fa-coins", desc: "Emas sebagai pelindung nilai kekayaan solo.", reqs: ["emas", "tipsemas"], githubLink: "/smartsolo/app/myemas.html", nextStep: "dhealth", nextMsg: "Aset mantap perlu dijaga oleh tubuh badan yang sihat. Jom semak kesihatan!" },
-                { id: "dhealth", title: "myHEALTH", icon: "fa-stethoscope", desc: "Ukur tahap kesihatan untuk menjamin produktiviti.", reqs: ["resipi", "kurus","ramadhan" ], githubLink: "/smartsolo/app/myhealth.html", nextStep: "dhappiness", nextMsg: "Kesihatan terjaga, duit dah stabil. Kini masa untuk merancang masa depan dan legasi anda!" }
+                { id: "dchecklist", title: "myCHECKLIST", icon: "fa-list-check", desc: "Penilaian kerjaya dan kestabilan semasa.", reqs: ["temuduga", "kerjaya", "dibuang"], githubLink: "../app/mychecklist.html", nextStep: "ddebt", nextMsg: "Lengkapkan semakan status kewangan dengan kiraan nisbah hutang anda." },
+                { id: "ddebt", title: "myDEBT", icon: "fa-credit-card", desc: "Kira nisbah komitmen dan hutang anda (DSR).", reqs: ["simpanan", "kewangan"], githubLink: "../app/mydebt.html", nextStep: "myfp", nextMsg: "Sekarang, rancang pula matlamat masa depan dan pelaburan anda selepas hutang terurus." },
+                { id: "myfp", title: "myGOAL", icon: "fa-umbrella-beach", desc: "Unjuran masa depan menuju kebebasan kewangan.", reqs: ["mudah", "pelaburan","kewangan" ], githubLink: "../app/myfinplan.html", nextStep: "darrahnu", nextMsg: "Pelbagaikan instrumen kewangan anda dengan aset seperti emas." },
+                { id: "darrahnu", title: "myEMAS", icon: "fa-coins", desc: "Emas sebagai pelindung nilai kekayaan solo.", reqs: ["emas", "tipsemas"], githubLink: "../app/myemas.html", nextStep: "dhealth", nextMsg: "Aset mantap perlu dijaga oleh tubuh badan yang sihat. Jom semak kesihatan!" },
+                { id: "dhealth", title: "myHEALTH", icon: "fa-stethoscope", desc: "Ukur tahap kesihatan untuk menjamin produktiviti.", reqs: ["resipi", "kurus","ramadhan" ], githubLink: "../app/myhealth.html", nextStep: "dhappiness", nextMsg: "Kesihatan terjaga, duit dah stabil. Kini masa untuk merancang masa depan dan legasi anda!" }
             ]
         }],
         legacy: [{ 
             fasa: "Legasi & Masa Depan", icon: "fa-seedling", color: "indigo", 
             tools: [
-                { id: "dhappiness", title: "myHAPPINESS", icon: "fa-heart", desc: "Uji kegembiraan hati anda.", reqs: ["single", "singlem"], githubLink: "/smartsolo/app/myhappiness.html", nextStep: "dchecklist40", nextMsg: "Sejauh mana persediaan mental dan rohani anda menghadapi usia 40 tahun?" },
-                { id: "dchecklist40", title: "myCHECKLIST40", icon: "fa-list-check", desc: "Persediaan strategik sebelum melangkah ke usia 40.", reqs: ["blueprint", "hijrah", "kaboji"], githubLink: "/smartsolo/app/mychecklist40.html", nextStep: "dplan4me", nextMsg: "Bersedia untuk bersara dengan aman?" },
-                { id: "dplan4me", title: "myRETIREMENT", icon: "fa-wallet", desc: "Tabung persaraan eksklusif untuk anda.", reqs: ["sepi", "sepim"], githubLink: "/smartsolo/app/myretirement.html", nextStep: "mywaris", nextMsg: "Sejauh mana persediaan pengurusan harta pusaka anda terurus dengan baik." },
-                { id: "mywaris", title: "myWARIS", icon: "fa-file-contract", desc: "Perancangan dan pengurusan harta.", reqs: ["legasi", "legasim"], githubLink: "/smartsolo/app/mywaris.html", isEndLevel: true, finishMsg: "Perancangan kewangan dan legasi anda kini lengkap. Anda sedia menghadapi masa depan dengan tenang." }
+                { id: "dhappiness", title: "myHAPPINESS", icon: "fa-heart", desc: "Uji kegembiraan hati anda.", reqs: ["single", "singlem"], githubLink: "../app/myhappiness.html", nextStep: "dchecklist40", nextMsg: "Sejauh mana persediaan mental dan rohani anda menghadapi usia 40 tahun?" },
+                { id: "dchecklist40", title: "myCHECKLIST40", icon: "fa-list-check", desc: "Persediaan strategik sebelum melangkah ke usia 40.", reqs: ["blueprint", "hijrah", "kaboji"], githubLink: "../app/mychecklist40.html", nextStep: "dplan4me", nextMsg: "Bersedia untuk bersara dengan aman?" },
+                { id: "dplan4me", title: "myRETIREMENT", icon: "fa-wallet", desc: "Tabung persaraan eksklusif untuk anda.", reqs: ["sepi", "sepim"], githubLink: "../app/myretirement.html", nextStep: "mywaris", nextMsg: "Sejauh mana persediaan pengurusan harta pusaka anda terurus dengan baik." },
+                { id: "mywaris", title: "myWARIS", icon: "fa-file-contract", desc: "Perancangan dan pengurusan harta.", reqs: ["legasi", "legasim"], githubLink: "../app/mywaris.html", isEndLevel: true, finishMsg: "Perancangan kewangan dan legasi anda kini lengkap. Anda sedia menghadapi masa depan dengan tenang." }
             ] 
         }]
     };
@@ -353,6 +349,10 @@
         });
         
         document.getElementById('toolModal').classList.remove('hidden');
+        // Jika fail alat belum ada dalam Famili Pintar, tunjuk 'Segera Hadir' (hilang sendiri bila fail ditambah)
+        fetch(tool.githubLink, { method: 'HEAD' }).then(res => {
+            if (!res.ok) { btn.textContent = 'Segera Hadir'; btn.onclick = closeModal; }
+        }).catch(() => {});
     }
 
     function closeModal() { document.getElementById('toolModal').classList.add('hidden'); }
@@ -407,47 +407,57 @@
         document.getElementById('workflowModal').classList.remove('hidden');
     }
 
-    // --- FIREBASE LOGIC ---
-    window.onload = async () => {
-        try {
-            await signInAnonymously(auth);
-            console.log("Firebase Auth Success");
-            renderAll();
-        } catch (error) {
-            console.error("Gagal bersambung:", error);
-        }
+    // --- AKAUN & AKSES ---
+    window.onload = () => { renderAll(); };
+
+    const tunjukPintu = (baki) => {
+        document.getElementById('gateLoading').classList.add('hidden');
+        document.getElementById('gatePay').classList.remove('hidden');
+        document.getElementById('gateBaki').textContent = baki;
+        document.getElementById('gateTopup').classList.toggle('hidden', baki >= HARGA_KREDIT);
     };
 
-    const verifyAccessCode = async () => {
-        const code = document.getElementById('accessInput').value.trim().toUpperCase();
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = '../index.html'; return; }
+        uidSemasa = user.uid;
+        try {
+            const snap = await getDoc(doc(db, 'mynasab_users', user.uid));
+            if (!snap.exists()) { alert('Sila daftar akaun Famili Pintar dahulu.'); window.location.href = '../index.html'; return; }
+            const d = snap.data();
+            if (d.smartsolo_unlocked === true) unlockApp();
+            else tunjukPintu(parseInt(d.credit_balance, 10) || 0);
+        } catch (e) {
+            console.error(e);
+            document.getElementById('gateLoading').textContent = 'Gagal menyemak akaun. Muat semula halaman.';
+        }
+    });
+
+    const bukaAkses = async () => {
         const errorEl = document.getElementById('accessError');
         const btn = document.getElementById('verifyBtn');
-
-        if (!code) return;
-
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Sahkan...';
         errorEl.classList.add('hidden');
-
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Memproses...';
         try {
-            // Sesuai dengan Rules: /access_code/{code}
-            const codeRef = doc(db, 'access_code', code);
-            const codeSnap = await getDoc(codeRef);
-
-            if (codeSnap.exists() && codeSnap.data().active === true) {
-                unlockApp();
-            } else {
+            const ref = doc(db, 'mynasab_users', uidSemasa);
+            const snap = await getDoc(ref);
+            const baki = parseInt(snap.data().credit_balance, 10) || 0;
+            if (baki < HARGA_KREDIT) {
+                tunjukPintu(baki);
+                errorEl.textContent = 'Kredit tidak mencukupi. Baki anda: ' + baki + ' Kredit.';
                 errorEl.classList.remove('hidden');
-                btn.disabled = false;
-                btn.textContent = 'Sahkan Kod';
+            } else {
+                await updateDoc(ref, { credit_balance: increment(-HARGA_KREDIT), smartsolo_unlocked: true, smartsolo_tarikh: Date.now() });
+                unlockApp();
+                return;
             }
         } catch (err) {
-            console.error("Ralat Firestore:", err);
-            errorEl.textContent = "Masalah kebenaran. Pastikan Rules di Firebase sudah di-Publish.";
+            console.error(err);
+            errorEl.textContent = 'Gagal memproses: ' + err.message;
             errorEl.classList.remove('hidden');
-            btn.disabled = false;
-            btn.textContent = 'Sahkan Kod';
         }
+        btn.disabled = false;
+        btn.textContent = 'Buka Akses (20 Kredit)';
     };
 
     function unlockApp() {
@@ -461,7 +471,7 @@
     }
 
     // Assign global event handlers
-    document.getElementById('verifyBtn').onclick = verifyAccessCode;
+    document.getElementById('verifyBtn').onclick = bukaAkses;
     document.getElementById('closeModalBtn').onclick = closeModal;
     document.getElementById('navLogo').onclick = () => { window.scrollTo(0,0); hideProfile(); };
     document.querySelectorAll('.nav-link').forEach(link => { link.onclick = hideProfile; });

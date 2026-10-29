@@ -396,7 +396,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         </a>
 
         <!-- 3. myJurnal (Saiz Diseragamkan) -->
-        <a onclick="semakAksesPintu('myjurnal', 'myjurnal.html')" class="cursor-pointer group relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 to-blue-600 text-white p-7 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all flex flex-col justify-between">
+        <a id="kadMyjurnal" onclick="semakAksesPintu('myjurnal', 'myjurnal.html')" class="cursor-pointer group relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 to-blue-600 text-white p-7 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all flex flex-col justify-between">
             <div>
                 <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-2xl mb-5">
                     <i class="fa-solid fa-book-open-reader"></i>
@@ -407,6 +407,21 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             </div>
             <span class="inline-flex items-center gap-2 font-bold bg-white text-sky-700 px-5 py-2.5 rounded-full group-hover:gap-3 transition-all self-start">
                 Mulakan myJurnal <i class="fa-solid fa-arrow-right"></i>
+            </span>
+        </a>
+
+        <!-- 3B. SmartSolo (untuk yang belum berpasangan; ditukar ganti dengan myJurnal ikut status dalam myNasab) -->
+        <a id="kadSmartsolo" onclick="semakAksesPintu('SmartSolo', 'smartsolo/index.html')" class="cursor-pointer group relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-700 text-white p-7 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all flex flex-col justify-between">
+            <div>
+                <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-2xl mb-5">
+                    <i class="fa-solid fa-person-walking-luggage"></i>
+                </div>
+                <h3 class="text-xl font-extrabold mb-1">SmartSolo</h3>
+                <p class="text-indigo-100 text-sm font-semibold mb-3">Jurnal kewangan &amp; legasi untuk bujang</p>
+                <p class="text-white/90 text-sm leading-relaxed mb-5 flex-grow">Bina simpanan, urus hutang, jaga kesihatan dan rancang legasi &mdash; langkah demi langkah, untuk anda yang masih solo.</p>
+            </div>
+            <span class="inline-flex items-center gap-2 font-bold bg-white text-indigo-700 px-5 py-2.5 rounded-full group-hover:gap-3 transition-all self-start">
+                Mulakan SmartSolo <i class="fa-solid fa-arrow-right"></i>
             </span>
         </a>
 
@@ -492,6 +507,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         </a>
 
     </div>
+    <p class="text-center mt-6"><a id="pautanLihatSemua" onclick="togolLihatSemua()" style="display:none" class="cursor-pointer text-sm text-slate-500 hover:text-slate-800 underline"></a></p>
 </section>
            
                 <!-- SEKSYEN TAMBAHAN: BUTANG AFFILIATE & ADMIN -->
@@ -661,6 +677,17 @@ if ('Notification' in window) {
                 if (btnAffiliate) btnAffiliate.style.display = 'inline-flex';
             }
             
+            // --- 1B. SmartSolo (bujang) atau myJurnal (berpasangan) ikut nod Suami/Isteri dalam myNasab ---
+            (async () => {
+                try {
+                    const sN = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", user.uid)));
+                    let berpasangan = false;
+                    sN.forEach(d => { const h = (d.data().relationship || '').trim().toLowerCase(); if (h === 'suami' || h === 'isteri') berpasangan = true; });
+                    window.__berpasangan = berpasangan;
+                    window.aturKadJurnal();
+                } catch (e) { console.warn("Semak status pasangan:", e.message); }
+            })();
+
             // --- 2. AMBIL DATA DARI FIRESTORE (NAMA, WALLET, LENCANA MESEJ) ---
             const snapPengguna = await getDoc(doc(db, "mynasab_users", user.uid));
             if (snapPengguna.exists()) {
@@ -764,6 +791,19 @@ if ('Notification' in window) {
 // ==========================================
     // 4A: FUNGSI TAPIS PINTU & POP-UP
     // ==========================================
+    // Papar myJurnal ATAU SmartSolo (satu sahaja) ikut status pasangan; pelawat belum log masuk nampak kedua-duanya.
+    window.__lihatSemuaJurnal = false;
+    window.aturKadJurnal = () => {
+        const kJ = document.getElementById('kadMyjurnal'), kS = document.getElementById('kadSmartsolo'), pt = document.getElementById('pautanLihatSemua');
+        if (!kJ || !kS) return;
+        const tahu = typeof window.__berpasangan === 'boolean';
+        const semua = !tahu || window.__lihatSemuaJurnal;
+        kJ.style.display = (semua || window.__berpasangan) ? '' : 'none';
+        kS.style.display = (semua || !window.__berpasangan) ? '' : 'none';
+        if (pt) { pt.style.display = tahu ? '' : 'none'; pt.innerText = window.__lihatSemuaJurnal ? 'Tunjuk yang sesuai sahaja' : 'Lihat juga jurnal lain (SmartSolo / myJurnal)'; }
+    };
+    window.togolLihatSemua = () => { window.__lihatSemuaJurnal = !window.__lihatSemuaJurnal; window.aturKadJurnal(); };
+
     window.semakAksesPintu = (namaAplikasi, urlSasaran) => {
         if (window.penggunaSemasa) {
             window.location.href = urlSasaran;
