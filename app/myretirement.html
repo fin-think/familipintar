@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myRETIREMENT</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #f8f9fa;
+            --accent-color: #ffc107;
+            --text-color: #212529;
+            --danger-color: #d90429;
+            --success-color: #198754;
+            --border-radius: 16px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f4f7fa;
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 15px 10px;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1.main-title {
+            text-align: center;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            font-weight: 800;
+            margin: 0 0 5px 0;
+            letter-spacing: 1px;
+            font-size: 1.8rem;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 30px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #edf2f7;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        @media (min-width: 500px) {
+            .form-grid { grid-template-columns: 1fr 1fr; }
+            .full-width { grid-column: span 2; }
+        }
+
+        .form-group { display: flex; flex-direction: column; }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1rem;
+            color: #4a5568;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            background-color: #fafafa;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(0,86,179,0.1);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 30px;
+            box-shadow: 0 4px 12px rgba(0,86,179,0.2);
+            transition: 0.2s;
+        }
+
+        button:active { transform: scale(0.98); }
+
+        .result-section {
+            display: none;
+            margin-top: 40px;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .step-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        .step-header {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid #f7fafc;
+        }
+
+        .data-label { color: #4a5568; font-size: 1rem; padding-right: 10px; }
+        .data-value { font-weight: 700; font-size: 1.1rem; text-align: right; }
+
+        .total-highlight {
+            font-size: 1.6rem;
+            color: var(--primary-color);
+            margin-top: 15px;
+            display: block;
+            text-align: right;
+            font-weight: 800;
+        }
+
+        .status-box {
+            padding: 30px 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .status-box h2 { font-size: 2rem; margin: 10px 0; }
+        .status-box p { font-size: 1.1rem; line-height: 1.5; }
+
+        .shortfall { background-color: #fff5f5; border: 2px solid #feb2b2; color: var(--danger-color); }
+        .surplus { background-color: #f0fff4; border: 2px solid #9ae6b4; color: var(--success-color); }
+
+        .solusi-title {
+            color: var(--primary-color);
+            font-weight: 800;
+            margin-bottom: 20px;
+            display: block;
+            border-left: 5px solid var(--primary-color);
+            padding-left: 12px;
+            font-size: 1.2rem;
+        }
+
+        .solusi-item {
+            background: #f7fafc;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #edf2f7;
+        }
+
+        .solusi-tag {
+            font-size: 0.8rem;
+            font-weight: 800;
+            background: #e2e8f0;
+            padding: 3px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: inline-block;
+            color: #4a5568;
+        }
+
+        .solusi-item p {
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .error-msg {
+            display: none;
+            background: #fff5f5;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            border: 1px solid #feb2b2;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #edf2f7;
+            text-align: center;
+            color: #a0aec0;
+            font-size: 0.75rem;
+        }
+
+        footer p {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 400px) {
+            h1.main-title { font-size: 1.5rem; }
+            .total-highlight { font-size: 1.4rem; }
+            .status-box h2 { font-size: 1.6rem; }
+            input[type="number"] { font-size: 1rem; padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="main-title">myRETIREMENT</h1>
+    <p class="subtitle">Analisis Keperluan & Solusi Persaraan</p>
+    
+    <div id="errorMsg" class="error-msg"></div>
+
+    <div class="form-grid">
+        <div class="section-title full-width">1. Profil & Jangkaan</div>
+        <div class="form-group">
+            <label>Umur Sekarang</label>
+            <input type="number" id="umurSekarang" value="30">
+        </div>
+        <div class="form-group">
+            <label>Sasaran Umur Bersara</label>
+            <input type="number" id="umurPencen" value="60">
+        </div>
+        <div class="form-group">
+            <label>Jangka Hayat (Tahun)</label>
+            <input type="number" id="jangkaHayat" value="80">
+        </div>
+        <div class="form-group">
+            <label>Kadar Inflasi Tahunan (%)</label>
+            <input type="number" id="kadarInflasi" value="3">
+        </div>
+
+        <div class="section-title full-width">2. Gaya Hidup</div>
+        <div class="form-group full-width">
+            <label>Bajet Belanja Bulanan Hari Ini (RM)</label>
+            <input type="number" id="belanjaBulanan" value="3000">
+        </div>
+
+        <div class="section-title full-width">3. Simpanan & Pelaburan (RM)</div>
+        <div class="form-group">
+            <label>KWSP (Akaun 1 & 2)</label>
+            <input type="number" id="simEPF" value="100000">
+        </div>
+        <div class="form-group">
+            <label>ASB / Amanah Saham</label>
+            <input type="number" id="simASB" value="20000">
+        </div>
+        <div class="form-group">
+            <label>Tabung Haji / Bank</label>
+            <input type="number" id="simBank" value="10000">
+        </div>
+        <div class="form-group">
+            <label>Nilai Emas Semasa</label>
+            <input type="number" id="simEmas" value="5000">
+        </div>
+    </div>
+
+    <button onclick="kiraPersaraan()">KIRA ANALISIS SEKARANG</button>
+
+    <div class="result-section" id="resultSection">
+        
+        <div class="step-card">
+            <span class="step-header">Langkah 1: Keperluan Masa Depan</span>
+            <div class="data-row">
+                <span class="data-label">Belanja Bulanan (Kesan Inflasi)</span>
+                <span class="data-value" id="resBelanjaMasaDepan">RM 0</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Tempoh Persaraan</span>
+                <span class="data-value" id="resTempohPencen">0 Tahun</span>
+            </div>
+            <span class="total-highlight" id="resDanaDiperlukan">RM 0</span>
+            <small style="color: #718096; display: block; text-align: right; margin-top: 5px;">Jumlah Dana Persaraan Diperlukan</small>
+        </div>
+
+        <div class="step-card">
+            <span class="step-header">Langkah 2: Unjuran Simpanan Anda</span>
+            <div class="data-row">
+                <span class="data-label">Simpanan Sekarang (Total)</span>
+                <span class="data-value" id="resSimpananSekarang">RM 0</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Tahun Pertumbuhan</span>
+                <span class="data-value" id="resTahunTunggu">0 Tahun</span>
+            </div>
+            <span class="total-highlight" id="resDanaTerkumpul" style="color: #2d3748;">RM 0</span>
+            <small style="color: #718096; display: block; text-align: right; margin-top: 5px;">Unjuran Nilai Pada Umur Bersara</small>
+        </div>
+
+        <div id="gapBox" class="status-box">
+            <h3 id="gapTitle">STATUS DANA</h3>
+            <h2 id="gapAmount">RM 0</h2>
+            <p id="resKetahanan"></p>
+        </div>
+
+        <div class="step-card">
+            <span class="solusi-title">CADANGAN & SOLUSI KHAS</span>
+            <div id="solusiContent"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>DISCLAIMER:Anggaran sahaja untuk rujukan dan panduan. Bukan nasihat kewangan dan hasil sebenar mungkin berbeza.<p>Ingin membangunkan kalkulator interaktif seperti ini mengikut keperluan anda? Hubungi web developer untuk perbincangan lanjut © HCH</p>
+        <p></p>
+    </footer>
+</div>
+
+<script>
+    function formatRM(v) {
+        return new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR', minimumFractionDigits: 0 }).format(v);
+    }
+
+    function kiraPersaraan() {
+        const uSekarang = parseFloat(document.getElementById('umurSekarang').value) || 0;
+        const uPencen = parseFloat(document.getElementById('umurPencen').value) || 0;
+        const jHayat = parseFloat(document.getElementById('jangkaHayat').value) || 0;
+        const bBulanan = parseFloat(document.getElementById('belanjaBulanan').value) || 0;
+        const kInflasi = (parseFloat(document.getElementById('kadarInflasi').value) || 0) / 100;
+
+        const epf = parseFloat(document.getElementById('simEPF').value) || 0;
+        const asb = parseFloat(document.getElementById('simASB').value) || 0;
+        const bank = parseFloat(document.getElementById('simBank').value) || 0;
+        const emas = parseFloat(document.getElementById('simEmas').value) || 0;
+
+        const totalSimpananSekarang = epf + asb + bank + emas;
+        const tahunKumpul = uPencen - uSekarang;
+        const tempohPencen = jHayat - uPencen;
+
+        if (tahunKumpul <= 0 || tempohPencen <= 0) {
+            document.getElementById('errorMsg').innerText = "Ralat: Sila pastikan umur bersara lebih besar daripada umur sekarang.";
+            document.getElementById('errorMsg').style.display = 'block';
+            return;
+        }
+        document.getElementById('errorMsg').style.display = 'none';
+
+        const belanjaMasaDepan = bBulanan * Math.pow((1 + kInflasi), tahunKumpul);
+        const totalKeperluan = belanjaMasaDepan * 12 * tempohPencen;
+
+        const returnAnggaran = 0.05;
+        const unjuranSimpanan = totalSimpananSekarang * Math.pow((1 + returnAnggaran), tahunKumpul);
+
+        const jurang = unjuranSimpanan - totalKeperluan;
+        const ketahananTahun = unjuranSimpanan / (belanjaMasaDepan * 12);
+
+        document.getElementById('resBelanjaMasaDepan').innerText = formatRM(belanjaMasaDepan);
+        document.getElementById('resTempohPencen').innerText = tempohPencen + " Tahun";
+        document.getElementById('resDanaDiperlukan').innerText = formatRM(totalKeperluan);
+
+        document.getElementById('resSimpananSekarang').innerText = formatRM(totalSimpananSekarang);
+        document.getElementById('resTahunTunggu').innerText = tahunKumpul + " Tahun";
+        document.getElementById('resDanaTerkumpul').innerText = formatRM(unjuranSimpanan);
+
+        const gapBox = document.getElementById('gapBox');
+        const solusiContent = document.getElementById('solusiContent');
+
+        if (jurang < 0) {
+            const short = Math.abs(jurang);
+            gapBox.className = "status-box shortfall";
+            document.getElementById('gapTitle').innerText = "KEKURANGAN DANA";
+            document.getElementById('gapAmount').innerText = formatRM(short);
+            document.getElementById('resKetahanan').innerHTML = `Simpanan anda hanya cukup untuk <strong>${ketahananTahun.toFixed(1)} tahun</strong> sahaja selepas bersara.`;
+
+            const r = 0.08 / 12; 
+            const n = tahunKumpul * 12;
+            const pmt = (short * r) / (Math.pow(1 + r, n) - 1);
+            const gramEmas = (pmt * 0.2) / 350; 
+
+            solusiContent.innerHTML = `
+                <div class="solusi-item">
+                    <span class="solusi-tag">UNIT TRUST</span>
+                    <p>Laburkan <strong>${formatRM(pmt * 0.5)}</strong> sebulan ke dalam <strong>Dana Ekuiti (Growth Fund)</strong>. Tempoh ${tahunKumpul} tahun membolehkan anda agresif untuk mengejar sasaran return 8-10%.</p>
+                </div>
+                <div class="solusi-item">
+                    <span class="solusi-tag">EMAS</span>
+                    <p>Simpan sekurang-kurangnya <strong>${gramEmas.toFixed(2)} gram emas</strong> sebulan sebagai pelindung nilai (hedge) terhadap inflasi dan kejatuhan matawang.</p>
+                </div>
+                <div class="solusi-item">
+                    <span class="solusi-tag">ASB / ASB2</span>
+                    <p>Tambah simpanan <strong>${formatRM(pmt * 0.3)}</strong> sebulan. Jika akaun ASB anda mencecah <strong>had RM200,000</strong>, anda wajib buka akaun <strong>ASB 2</strong> atau <strong>ASN</strong> untuk teruskan 'compounding'.</p>
+                </div>
+                <div class="solusi-item">
+                    <span class="solusi-tag">STRATEGI EPF</span>
+                    <p>Manfaatkan <strong>EPF i-Invest</strong> untuk optimumkan pulangan Akaun 1 ke dalam dana Unit Trust terpilih tanpa menggunakan tunai tambahan.</p>
+                </div>
+            `;
+        } else {
+            gapBox.className = "status-box surplus";
+            document.getElementById('gapTitle').innerText = "LEBIHAN DANA";
+            document.getElementById('gapAmount').innerText = formatRM(jurang);
+            document.getElementById('resKetahanan').innerText = `Tahniah! Anda mempunyai dana yang mencukupi untuk menampung seluruh tempoh persaraan.`;
+
+            solusiContent.innerHTML = `
+                <div class="solusi-item">
+                    <span class="solusi-tag">CASH TRUST</span>
+                    <p>Oleh kerana dana sudah cukup, fokus kepada <strong>Perlindungan Kekayaan</strong>. Letakkan sebahagian dana dalam <strong>Cash Trust</strong> supaya dana tidak dibekukan dan waris boleh akses segera jika berlaku kematian.</p>
+                </div>
+                <div class="solusi-item">
+                    <span class="solusi-tag">BOND FUND</span>
+                    <p>Tukar strategi pelaburan anda kepada <strong>Dana Bon (Bond Fund)</strong> atau Pasaran Wang untuk menjaga nilai modal (Capital Preservation).</p>
+                </div>
+            `;
+        }
+
+        document.getElementById('resultSection').style.display = 'block';
+        document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
