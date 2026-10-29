@@ -158,35 +158,47 @@
         const q = query(collection(db, "mynasab_sales"), where("affiliate_uid", "==", currentUser.uid));
         const querySnapshot = await getDocs(q);
         
-        let html = '';
-        let totalUnpaid = 0;
-        let totalPaid = 0;
+        // Baki = jumlah komisen - payout dibayar - payout sedang diproses (elak mohon dua kali)
+        const pSnap = await getDocs(query(collection(db, "mynasab_payouts"), where("affiliate_uid", "==", currentUser.uid)));
+        let payDibayar = 0, payProses = 0;
+        pSnap.forEach(d => { const p = d.data(); if (p.status === 'paid') payDibayar += p.amount || 0; else payProses += p.amount || 0; });
 
+        const jualan = [];
+        let jumlahKomisen = 0;
         querySnapshot.forEach((docSnap) => {
             const sale = docSnap.data();
-            const komisen = sale.commission_amount || (sale.amount * 0.3);
-            
-            if(sale.payout_status === 'paid') totalPaid += komisen;
-            else if(sale.payout_status === 'pending') totalUnpaid += komisen;
-
-            let badgeColor = sale.payout_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
-
-            html += `
+            sale._k = sale.commission_amount || (sale.amount * 0.3);
+            jumlahKomisen += sale._k;
+            jualan.push(sale);
+        });
+        jualan.sort((x, y) => (x.timestamp || '').localeCompare(y.timestamp || ''));
+        // Status setiap jualan: peruntuk bayaran kepada jualan paling lama dahulu
+        let baki = payDibayar, bakiProses = payProses, html = '';
+        jualan.forEach(sale => {
+            let status;
+            if (baki >= sale._k - 0.005) { status = 'paid'; baki -= sale._k; }
+            else if (bakiProses >= sale._k - 0.005) { status = 'diproses'; bakiProses -= sale._k; }
+            else status = 'pending';
+            const badgeColor = status === 'paid' ? 'bg-green-100 text-green-700' : status === 'diproses' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700';
+            html = `
                 <tr class="border-b hover:bg-slate-50">
                     <td class="p-3">${sale.timestamp ? sale.timestamp.substring(0,10) : '-'}</td>
                     <td class="p-3 font-semibold">${sale.buyer_name || sale.buyer_email}</td>
                     <td class="p-3 uppercase">${sale.package_type}</td>
                     <td class="p-3">RM ${sale.amount}</td>
-                    <td class="p-3 font-bold text-green-600">RM ${komisen.toFixed(2)}</td>
-                    <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${badgeColor}">${sale.payout_status}</span></td>
+                    <td class="p-3 font-bold text-green-600">RM ${sale._k.toFixed(2)}</td>
+                    <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${badgeColor}">${status}</span></td>
                 </tr>
-            `;
+            ` + html;
         });
 
+        const tersedia = Math.max(0, jumlahKomisen - payDibayar - payProses);
         document.getElementById('salesTableBody').innerHTML = html || '<tr><td colspan="6" class="p-4 text-center">Tiada jualan lagi. Teruskan usaha!</td></tr>';
-        document.getElementById('totalKomisen').innerText = totalUnpaid.toFixed(2);
-        document.getElementById('totalPaid').innerText = totalPaid.toFixed(2);
-        bakiKomisen = totalUnpaid;
+        document.getElementById('totalKomisen').innerText = tersedia.toFixed(2);
+        document.getElementById('totalPaid').innerText = payDibayar.toFixed(2);
+        bakiKomisen = tersedia;
+        const btn = document.getElementById('btnWithdraw');
+        if (payProses > 0 && btn) btn.title = 'RM ' + payProses.toFixed(2) + ' sedang diproses oleh Admin';
     }
 
     window.salinLink = () => {
@@ -224,8 +236,8 @@
     };
 
     window.mohonPengeluaran = async () => {
-        if(bakiKomisen < 30) {
-            return alert("Baki minimum pengeluaran adalah RM 30.00");
+        if(bakiKomisen < 50) {
+            return alert("Baki minimum pengeluaran adalah RM 50.00. Baki anda: RM " + bakiKomisen.toFixed(2));
         }
         
         await addDoc(collection(db, "mynasab_payouts"), {
