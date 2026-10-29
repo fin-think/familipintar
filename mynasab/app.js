@@ -780,6 +780,7 @@ window.bukaModalEdit = async (idKotak) => {
             const data = docSnap.data();
 
             document.getElementById('editAhliId').value = idKotak;
+            { const fg = document.getElementById('editAhliGambar'); if (fg) fg.value = ''; } // jangan bawa gambar ahli sebelumnya
             document.getElementById('editAhliNama').value = data.name || "";
             document.getElementById('editAhliHubungan').value = data.relationship || "";
             document.getElementById('editAhliDob').value = data.dob || "";
@@ -888,6 +889,7 @@ if (formEdit) {
             }
 
             await updateDoc(doc(db, "mynasab_nodes", idKotak), dataUpdate);
+            { const fg = document.getElementById('editAhliGambar'); if (fg) fg.value = ''; }
 
             // --- JEMPUTAN E-MEL semasa edit (e-mel baharu ditambah kemudian) ---
             let ayatJemput = '';
