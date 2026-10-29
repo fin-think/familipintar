@@ -1930,7 +1930,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
 
         // ===== NASAB KELUARGA BESAR =====
         // Ayah/ibu ke atas; bapa/mak saudara + sepupu; adik-beradik + anak saudara; keturunan ke bawah. Tanpa pasangan.
-        const nasabKhas = mod === 'nasab' && kPusat.diri.anak_saudara_dari ? binaBelahSaudara(true) : null;
+        const nasabKhas = mod === 'nasab' && (kPusat.diri.anak_saudara_dari || adikAnakSaudara) ? binaBelahSaudara(true) : null;
         if (nasabKhas) { nasabKhas.judul = 'Nasab Keluarga Besar'; sisi.push(nasabKhas); }
         else if (mod === 'nasab') {
             const sasaranSebagaiAdik = !sayaInduk && sasaranIdPusat === indukRootId;
