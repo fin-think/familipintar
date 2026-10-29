@@ -382,6 +382,9 @@ window.segerakPokokAnakSaudara = async () => {
         if (!akar) { alert("Akaun ini tiada pautan kepada pokok pengundang."); return; }
         const dari = akar.data.anak_saudara_dari;
         if (!confirm("Salinan pokok keluarga ibu/bapa anda akan dikemas kini daripada pokok pengundang. Ahli yang anda tambah sendiri tidak disentuh. Teruskan?")) return;
+        // Semak boleh baca pautan adik-beradik pengundang SEBELUM memadam salinan lama (elak kehilangan data jika peraturan menghalang)
+        try { await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", dari.uid), where("status", "==", "aktif"))); }
+        catch (e) { alert("Tidak dapat membaca senarai adik-beradik pengundang (" + e.message + "). Tiada perubahan dibuat pada pokok anda."); return; }
         const lama = semua.filter(n => !n.data.is_root && n.data.created_by === dari.uid);
         for (const n of lama) await deleteDoc(doc(db, "mynasab_nodes", n.id));
         await salinPokokAnakSaudara({ owner_uid: dari.uid, sasaran_id: dari.nod, anak_nod: dari.anak_nod }, uid);
