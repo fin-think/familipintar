@@ -83,7 +83,7 @@
 <body class="text-slate-800 antialiased overflow-x-hidden">
 
 <!-- HALAMAN PENGENALAN myJurnal (dipaparkan sebelum log masuk) -->
-<div id="introPage" class="bg-slate-50 flex flex-col w-full min-h-screen">
+<div id="introPage" class="bg-slate-50 flex flex-col w-full min-h-screen" style="visibility:hidden">
 
     <header class="w-full bg-white px-6 py-4 shadow-sm flex justify-between items-center">
         <img src="https://i.postimg.cc/tC37yMGp/my-(1).png" alt="Logo Famili Pintar" class="h-10 w-auto object-contain">
@@ -403,6 +403,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
             window.location.href = "../index.html"; 
         }
     });
+    setTimeout(() => { const ip = document.getElementById('introPage'); if (ip && ip.style.visibility === 'hidden' && !window.skipIntro) ip.style.visibility = ''; }, 6000);
 
     // Financial Health Check: sembunyi jika sudah dijawab; jika belum dan cuba sembunyi, popup kecil
     window.hcDijawab = false;
@@ -448,6 +449,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
         if (urlParams.get('bahagian') === 'utama' || window.skipIntro) {
             window.showApp();
         }
+        else { const ip = document.getElementById('introPage'); if (ip) ip.style.visibility = ''; }
     }
       
     // TAMBAH FUNGSI BARU INI UNTUK BUTANG MASUK
