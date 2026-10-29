@@ -1954,6 +1954,16 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             });
         }
 
+        // Nasab Keluarga Besar: Belah Pasangan - mertua ke atas, pasangan + adik-beradik pasangan (akaun dipautkan) + keturunan. Tanpa pasangan di setiap kotak.
+        if (mod === 'nasab_pasangan') {
+            kPusat.pasangan.forEach((p, i) => {
+                const { senarai } = cariIbuBapa(p.id, [kPusat.mertua], i === 0);
+                const kP = Object.assign({}, kPusat, { diri: p });
+                const s = binaSisi('Nasab Keluarga Besar: Belah ' + p.name, { k: kP, orang: [p], penentu: p }, senarai, [], p.id, { tanpaPasangan: true });
+                if (s.ada) sisi.push(s);
+            });
+        }
+
         // Waris cantuman yang BUKAN adik-beradik: pokok berasingan
         if (mod === 'saya' || mod === 'semua') {
             cantumLain.forEach(c => {
