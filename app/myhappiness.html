@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myHAPPINESS Quiz</title>
+    
+    <!-- Menggunakan font Poppins untuk gaya yang lebih santai dan ceria -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'fade-in-up': 'fadeInUp 0.5s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+        }
+        .option-btn:active {
+            transform: translateY(1px);
+        }
+        /* Custom scrollbar for better look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f472b6;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-yellow-200 via-pink-200 to-purple-300 flex items-center justify-center p-4 antialiased">
+
+    <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl p-6 md:p-8 max-w-lg w-full text-center relative overflow-hidden">
+        
+        <!-- Tajuk Utama -->
+        <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-orange-400 mb-6 drop-shadow-sm tracking-tight">
+            myHAPPINESS
+        </h1>
+
+        <!-- Progress Bar -->
+        <div id="progress-container" class="w-full bg-gray-200 rounded-full h-2 mb-6">
+            <div id="progress-bar" class="bg-gradient-to-r from-pink-400 to-orange-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <!-- Bahagian Kuiz (Soalan) -->
+        <div id="quiz-container" class="animate-fade-in text-left">
+            <div class="flex justify-between items-center mb-4">
+                <span id="question-counter" class="text-sm font-semibold text-pink-500 bg-pink-100 px-3 py-1 rounded-full">
+                    Soalan 1 / 15
+                </span>
+            </div>
+            
+            <h2 id="question-text" class="text-lg md:text-xl font-bold text-gray-800 mb-6 leading-snug">
+                <!-- Teks soalan -->
+            </h2>
+
+            <div id="options-container" class="space-y-3">
+                <!-- Butang pilihan -->
+            </div>
+        </div>
+
+        <!-- Bahagian Keputusan -->
+        <div id="result-container" class="hidden animate-fade-in-up">
+            <div class="text-5xl mb-4">✨</div>
+            <h2 class="text-lg font-medium text-gray-600 mb-2">Keputusan Indeks Korang:</h2>
+            <div id="result-title" class="text-3xl font-bold mb-4">
+                <!-- Tajuk keputusan -->
+            </div>
+            <p id="result-desc" class="text-gray-700 leading-relaxed mb-8">
+                <!-- Deskripsi keputusan -->
+            </p>
+            
+            <div class="space-y-6">
+                <button 
+                    onclick="resetQuiz()"
+                    class="bg-gradient-to-r from-pink-400 to-orange-400 text-white font-bold py-3 px-10 rounded-full hover:scale-105 transition-transform duration-300 shadow-lg w-full sm:w-auto"
+                >
+                    Cuba Lagi
+                </button>
+
+                <!-- Disclaimer Section -->
+                <div class="pt-6 border-t border-gray-200">
+                    <p class="text-[10px] text-gray-400 leading-tight italic">
+                        <strong>Disclaimer:</strong> Kuiz ini direka untuk tujuan hiburan dan kesedaran kendiri sahaja. Keputusan yang diberikan bukanlah penilaian psikologi profesional. Jika anda mengalami tekanan emosi yang berlarutan, sila dapatkan khidmat nasihat daripada pakar atau kaunselor berbertauliah.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Bila makcik-makcik tanya, 'Bila nak makan nasi minyak?', apa reaksi spontan korang?",
+                options: [
+                    { text: "Senyum lebar & minta doa makcik. 'Aminnn'.", points: 3 },
+                    { text: "Ketawa kecil & cakap 'Nanti saya jemput ya'.", points: 2 },
+                    { text: "Hanya tersenyum kelat sambil cari jalan lari.", points: 1 },
+                    { text: "Rasa rimas sangat & buat muka bosan.", points: 0 }
+                ]
+            },
+            {
+                question: "Kenapa korang rasa korang masih 'single' pada saat ini?",
+                options: [
+                    { text: "Fokus diri & nak capai impian hidup dulu.", points: 3 },
+                    { text: "Belum jumpa yang betul-betul 'klik'.", points: 2 },
+                    { text: "Rasa macam susah nak mula balik proses perkenalan.", points: 1 },
+                    { text: "Memang tak ada siapa yang nak agaknya.", points: 0 }
+                ]
+            },
+            {
+                question: "Macam mana korang rasa bila makan sorang-sorang kat kedai/cafe?",
+                options: [
+                    { text: "Lek jer, dapat 'date' dengan diri sendiri.", points: 3 },
+                    { text: "Okay jer, sambil-sambil main phone.", points: 2 },
+                    { text: "Rasa macam orang sekeliling tengah perhati.", points: 1 },
+                    { text: "Sangat segan, rasa nak tapau bawak balik rumah.", points: 0 }
+                ]
+            },
+            {
+                question: "Tengok kawan post gambar 'wedding anniversary', apa dalam kepala?",
+                options: [
+                    { text: "Alhamdulillah, moga dorang kekal ke syurga.", points: 3 },
+                    { text: "Bestnya dorang, harap satu hari nanti giliran aku.", points: 2 },
+                    { text: "Rasa sikit 'jealous' tapi okay jer.", points: 1 },
+                    { text: "Rasa sedih & persoal kenapa bukan aku.", points: 0 }
+                ]
+            },
+            {
+                question: "Apa hobi paling best korang buat bila 'me-time'?",
+                options: [
+                    { text: "Belajar skill baru, exercise atau travel solo.", points: 3 },
+                    { text: "Layan movie, baca buku atau tidur puas-puas.", points: 2 },
+                    { text: "Scrolling socmed sampai habis bateri.", points: 1 },
+                    { text: "Termenung sorang-sorang fikir masa depan.", points: 0 }
+                ]
+            },
+            {
+                question: "Korang rasa terbeban tak dengan status single ni?",
+                options: [
+                    { text: "Langsung tak, hidup ni satu anugerah!", points: 3 },
+                    { text: "Ada masa okay, ada masa rasa macam kurang sikit.", points: 2 },
+                    { text: "Kerap rasa sunyi, terutamanya waktu malam.", points: 1 },
+                    { text: "Sangat terbeban & rasa tak lengkap.", points: 0 }
+                ]
+            },
+            {
+                question: "Macam mana korang handle duit gaji bulanan?",
+                options: [
+                    { text: "Bebas berbelanja untuk diri & simpan untuk masa depan.", points: 3 },
+                    { text: "Boleh beli apa nak, tapi kadang boros sikit.", points: 2 },
+                    { text: "Cukup-cukup makan jer, tak rasa enjoy sangat pun.", points: 1 },
+                    { text: "Belanja untuk hilangkan rasa sedih (retail therapy).", points: 0 }
+                ]
+            },
+            {
+                question: "Bila kawan ajak keluar lepak tapi semua bawa pasangan, korang pergi tak?",
+                options: [
+                    { text: "Pergi jer, saya jadi penyeri majlis (The 3rd wheel legend).", points: 3 },
+                    { text: "Tengok mood, kalau rajin saya join.", points: 2 },
+                    { text: "Rasa awkward, baik saya buat hal sendiri.", points: 1 },
+                    { text: "Memang takkan pergi, rasa terpinggir.", points: 0 }
+                ]
+            },
+            {
+                question: "Adakah korang rasa korang 'attractive'?",
+                options: [
+                    { text: "Mestilah! Single atau tak, saya tetap meletop.", points: 3 },
+                    { text: "Biasa-biasa jer, ada hari rasa handsome/cantik.", points: 2 },
+                    { text: "Rasa kurang yakin sikit dengan penampilan diri.", points: 1 },
+                    { text: "Rasa tak cantik/handsome sebab tu masih single.", points: 0 }
+                ]
+            },
+            {
+                question: "Kalau ada orang nak kenalkan (matchmake), apa reaksi korang?",
+                options: [
+                    { text: "Boleh jer, tambah kawan baru. Kenapa tidak?", points: 3 },
+                    { text: "Tengok dulu rupa & background macam mana.", points: 2 },
+                    { text: "Segan la, rasa macam desperate sangat pula.", points: 1 },
+                    { text: "Tolak terus, biar jodoh datang sendiri (kalau ada).", points: 0 }
+                ]
+            },
+            {
+                question: "Sejauh mana korang kenal diri sendiri sekarang?",
+                options: [
+                    { text: "Sangat kenal! Dah tahu apa nak & apa tak nak dalam hidup.", points: 3 },
+                    { text: "Masih dalam proses meneroka potensi diri.", points: 2 },
+                    { text: "Kadang-kadang rasa keliru dengan hala tuju.", points: 1 },
+                    { text: "Rasa macam dah hilang arah & identiti.", points: 0 }
+                ]
+            },
+            {
+                question: "Bila tengok movie romantic, apa perasaan korang?",
+                options: [
+                    { text: "Layan jer, happy ending tu inspirasi.", points: 3 },
+                    { text: "Berangan sikit-sikit, seronok juga.", points: 2 },
+                    { text: "Rasa macam mustahil benda tu jadi kat realiti.", points: 1 },
+                    { text: "Tukar channel, meluat tengok orang bercinta.", points: 0 }
+                ]
+            },
+            {
+                question: "Apa plan korang untuk 5 tahun akan datang?",
+                options: [
+                    { text: "Capai financial freedom, travel & bahagia dengan diri sendiri.", points: 3 },
+                    { text: "Harap dah berkeluarga, kalau tak ada pun okay jer.", points: 2 },
+                    { text: "Tak berani nak plan, ikut jer mana arus bawa.", points: 1 },
+                    { text: "Plan nak lari dari semua orang & hidup sorang.", points: 0 }
+                ]
+            },
+            {
+                question: "Adakah korang rasa 'bahagia' itu perlukan pasangan?",
+                options: [
+                    { text: "Tak! Bahagia itu dari dalam diri sendiri.", points: 3 },
+                    { text: "Ada pasangan tu bonus, tapi bukan syarat utama.", points: 2 },
+                    { text: "Rasa macam lebih bahagia kalau ada orang teman.", points: 1 },
+                    { text: "Ya, saya takkan bahagia selagi tak kahwin.", points: 0 }
+                ]
+            },
+            {
+                question: "Akhir sekali, apa pesanan korang untuk diri sendiri hari ini?",
+                options: [
+                    { text: "Chill jer, u are doing great! Love yourself more.", points: 3 },
+                    { text: "Sabar, semua benda akan okay pada waktunya.", points: 2 },
+                    { text: "Jangan bandingkan diri dengan orang lain.", points: 1 },
+                    { text: "Cukuplah berharap benda yang tak pasti.", points: 0 }
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        const quizContainer = document.getElementById('quiz-container');
+        const resultContainer = document.getElementById('result-container');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const questionCounter = document.getElementById('question-counter');
+        const progressBar = document.getElementById('progress-bar');
+        const resultTitle = document.getElementById('result-title');
+        const resultDesc = document.getElementById('result-desc');
+
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            questionCounter.innerText = `Soalan ${currentQuestion + 1} / ${questions.length}`;
+            questionText.innerText = q.question;
+            
+            // Update Progress Bar
+            const progress = ((currentQuestion) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            optionsContainer.innerHTML = '';
+            q.options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left bg-white border-2 border-pink-100 hover:border-pink-400 hover:bg-pink-50 text-gray-700 font-medium py-3 px-5 rounded-2xl shadow-sm mb-2 text-sm md:text-base";
+                btn.innerText = option.text;
+                btn.onclick = () => handleAnswer(option.points);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(points) {
+            score += points;
+            currentQuestion++;
+
+            if (currentQuestion < questions.length) {
+                quizContainer.classList.remove('animate-fade-in');
+                void quizContainer.offsetWidth; 
+                quizContainer.classList.add('animate-fade-in');
+                renderQuestion();
+            } else {
+                progressBar.style.width = `100%`;
+                showResultScreen();
+            }
+        }
+
+        function showResultScreen() {
+            quizContainer.classList.add('hidden');
+            document.getElementById('progress-container').classList.add('hidden');
+            resultContainer.classList.remove('hidden');
+
+            // Skor penuh adalah 45 (15 soalan * 3 mata)
+            if (score >= 38) {
+                resultTitle.innerText = "Happiness Legend! 👑";
+                resultTitle.className = "text-3xl font-bold mb-4 text-pink-600";
+                resultDesc.innerText = "Korang adalah bukti hidup bahawa bahagia tak perlukan pasangan! Mentaliti korang sangat positif, yakin diri, dan korang tahu macam mana nak hargai setiap saat dalam hidup. Hidup solo bagi korang adalah satu kebebasan yang indah.";
+            } else if (score >= 25) {
+                resultTitle.innerText = "Chill & Steady 😎";
+                resultTitle.className = "text-3xl font-bold mb-4 text-orange-500";
+                resultDesc.innerText = "Korang sangat rileks dengan status sekarang. Ada masa rasa sunyi itu normal, tapi korang pandai uruskan emosi dengan aktiviti berfaedah. Korang faham bahawa jodoh itu rahsia Tuhan dan korang tak terburu-buru.";
+            } else if (score >= 12) {
+                resultTitle.innerText = "Searching for Light ✨";
+                resultTitle.className = "text-3xl font-bold mb-4 text-purple-600";
+                resultDesc.innerText = "Korang nampaknya tengah dalam fasa mencari ketenangan diri. Mungkin tekanan sekeliling buat korang rasa sikit 'down'. Takpe, ambil masa untuk 'healing' dan mula fokus pada hobi yang korang suka. Bahagiakan diri dulu ya!";
+            } else {
+                resultTitle.innerText = "Need a Big Hug ❤️‍🩹";
+                resultTitle.className = "text-3xl font-bold mb-4 text-indigo-600";
+                resultDesc.innerText = "Nampaknya korang rasa agak sunyi dan tertekan dengan status single sekarang. Jangan sedih-sedih, korang sebenarnya sangat berharga! Cuba kurangkan scroll socmed yang buat korang bandingkan diri dengan orang lain. Start small, do something nice for yourself today!";
+            }
+        }
+
+        function resetQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            resultContainer.classList.add('hidden');
+            quizContainer.classList.remove('hidden');
+            document.getElementById('progress-container').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        renderQuestion();
+    </script>
+</body>
+</html>
