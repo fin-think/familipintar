@@ -762,10 +762,16 @@
         } catch (error) { document.getElementById('modalPaywall').style.display = 'flex'; }
     };
 
-    window.semakTnC = () => {
-        const dahSetuju = localStorage.getItem('ourmoney_tnc_agreed');
-        if (!dahSetuju) { document.getElementById('modalTnC').style.display = 'flex'; } 
-        else { if (currentUser) window.semakStatusLangganan(currentUser.uid); }
+    // Percubaan percuma 30 hari bermula bila pengguna setuju T&C; rujukan ialah akaun, bukan penyemak imbas.
+    window.semakTnC = async () => {
+        if (!currentUser) return;
+        let belumMula = !localStorage.getItem('ourmoney_tnc_agreed');
+        try {
+            const s = await getDoc(doc(db, "mynasab_users", currentUser.uid));
+            if (s.exists()) belumMula = !s.data().ourmoney_expiry_date;
+        } catch (e) { console.warn("Semak T&C:", e.message); }
+        if (belumMula) { document.getElementById('modalPaywall').style.display = 'none'; document.getElementById('modalTnC').style.display = 'flex'; }
+        else window.semakStatusLangganan(currentUser.uid);
     };
 
     document.getElementById('btnSetujuTnC').addEventListener('click', async () => {
