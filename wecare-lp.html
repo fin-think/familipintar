@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Urus jagaan ibu bapa bersama adik-beradik: kalendar temu janji dan ubat, giliran penjaga dan nota handover dalam satu tempat. Percubaan percuma 30 hari.">
+<meta property="og:title" content="weCare - Jaga Ibu Bapa Bersama Adik-beradik">
+<meta property="og:description" content="Siapa bawa ibu ke klinik minggu ini? Satu kalendar, satu papan nota, semua adik-beradik tahu. Cuba percuma 30 hari.">
+<meta property="og:type" content="website">
+<style>html{color-scheme:light dark}body{margin:0}[hidden]{display:none!important}</style>
+<title>weCare - Jaga Ibu Bapa Bersama Adik-beradik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Susun atur AIDA: hero (perhatian), jalur masalah, ujian + ciri (minat), manfaat + harga (keinginan), CTA (tindakan).
+   Warna ikut aplikasi weCare: biru "we", hijau "Care"; kalendar biru = bapa, merah jambu = ibu, hijau = umum. */
+:root {
+  --bg: #f6faf7;
+  --surface: #ffffff;
+  --band: #e6f4ea;
+  --ink: #12261a;
+  --muted: #4a6355;
+  --line: #cfe0d4;
+  --brand: #1f9d55;
+  --brand-text: #166f3c;
+  --on-brand: #ffffff;
+  --blue: #3b82f6;
+  --blue-text: #1d4ed8;
+  --pink: #ec4899;
+  --warm: #f0a22c;
+  --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1510; --surface: #11221a; --band: #0d1c14; --ink: #e8f4ec; --muted: #a0b9a9; --line: #24392d;
+    --brand: #27ae60; --brand-text: #4ade80; --blue: #60a5fa; --blue-text: #93c5fd; --pink: #f472b6; --warm: #f5b84f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a1510; --surface: #11221a; --band: #0d1c14; --ink: #e8f4ec; --muted: #a0b9a9; --line: #24392d;
+  --brand: #27ae60; --brand-text: #4ade80; --blue: #60a5fa; --blue-text: #93c5fd; --pink: #f472b6; --warm: #f5b84f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.12; letter-spacing: -0.015em; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--warm); outline-offset: 3px; }
+
+.wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.eyebrow { font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand-text); }
+
+.btn { display: inline-block; background: var(--brand); color: var(--on-brand); font-weight: 800; font-size: 17px; text-decoration: none; padding: 14px 24px; border-radius: 6px; border: 0; cursor: pointer; font-family: var(--font-body); }
+.btn:hover { filter: brightness(1.1); }
+.btn.alt { background: transparent; color: var(--ink); border: 2px solid var(--line); }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; }
+.logo { font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; text-decoration: none; }
+.logo i { font-style: normal; color: var(--blue); }
+.logo b { color: var(--brand); }
+.fp-f { color: #eab308; }
+.fp-p { color: #0ea5e9; }
+.top .btn { padding: 10px 18px; font-size: 15px; }
+
+/* HERO */
+.hero { padding-block: 32px 72px; }
+.hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
+.hero h1 { font-size: clamp(38px, 6vw, 66px); font-weight: 800; margin: 14px 0 20px; }
+.hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, color-mix(in srgb, var(--warm) 55%, transparent) 62%); }
+.hero .lead { font-size: 20px; color: var(--muted); max-width: 34em; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.hero .note { margin-top: 14px; font-size: 15px; color: var(--muted); }
+
+/* contoh kalendar */
+.demo { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 22px 20px 18px; min-width: 0; }
+.demo-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.demo-head b { font-family: var(--font-display); font-size: 20px; }
+.demo-head span { font-size: 13px; color: var(--muted); font-weight: 700; }
+.minggu { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; font-size: 12px; text-align: center; }
+.minggu .n { font-weight: 800; color: var(--muted); padding-bottom: 4px; }
+.minggu .h { border: 1px solid var(--line); border-radius: 6px; min-height: 74px; padding: 4px 3px; display: flex; flex-direction: column; gap: 3px; text-align: left; }
+.minggu .h > small { font-weight: 800; color: var(--muted); font-size: 11px; }
+.minggu .h.hari-ini { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, var(--surface)); }
+.ev { display: block; font-size: 10.5px; font-weight: 800; line-height: 1.2; color: #fff; border-radius: 3px; padding: 2px 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev.a { background: #3b82f6; } .ev.i { background: #db2777; } .ev.u { background: #16a34a; }
+.demo-nota { margin-top: 14px; border-left: 4px solid var(--brand); background: color-mix(in srgb, var(--brand) 8%, var(--surface)); border-radius: 0 6px 6px 0; padding: 10px 12px; font-size: 14.5px; }
+.demo-nota b { display: block; font-size: 12.5px; color: var(--brand-text); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 2px; }
+.demo-label { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: center; margin-top: 14px; }
+
+section { padding-block: 72px; }
+section .eyebrow + h2 { margin-top: 10px; }
+section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
+.sec-lead { color: var(--muted); font-size: 19px; max-width: 38em; margin-top: 14px; }
+.band { background: var(--band); }
+
+/* PERHATIAN: masalah */
+.masalah-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+.situasi { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.situasi > div { padding: 18px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 8px 1fr; gap: 16px; }
+.situasi > div::before { content: ''; background: var(--warm); border-radius: 2px; }
+.situasi b { display: block; font-size: 18px; }
+.situasi span { color: var(--muted); font-size: 16px; }
+
+/* MINAT: ujian */
+.ujian { margin-top: 32px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 24px 24px; max-width: 760px; }
+.soal { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 20px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.soal p { flex: 1 1 320px; min-width: 0; font-weight: 600; }
+.pilih { display: flex; gap: 8px; }
+.pilih button { font-family: var(--font-body); font-weight: 800; font-size: 15px; padding: 8px 18px; border-radius: 6px; border: 2px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.pilih button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+.keputusan { margin-top: 22px; display: grid; gap: 14px; }
+.keputusan strong { font-family: var(--font-display); font-size: 24px; line-height: 1.2; }
+.keputusan p { color: var(--muted); }
+
+/* CIRI */
+.kelebihan { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 56px; }
+.kelebihan div { padding: 22px 0; border-top: 1px solid var(--line); }
+.kelebihan h3 { font-size: 22px; margin-bottom: 6px; }
+.kelebihan p { color: var(--muted); font-size: 16.5px; }
+
+/* CARA GUNA */
+.langkah { margin-top: 40px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; counter-reset: l; padding: 0; list-style: none; }
+.langkah li { position: relative; padding-top: 24px; border-top: 3px solid var(--brand); counter-increment: l; }
+.langkah li::before { content: counter(l); position: absolute; top: -20px; left: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--brand); color: var(--on-brand); font-family: var(--font-display); font-weight: 800; display: grid; place-items: center; }
+.langkah h3 { font-size: 21px; margin: 8px 0 8px; }
+.langkah p { color: var(--muted); font-size: 16px; }
+
+/* KEINGINAN: manfaat + harga */
+.manfaat { margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.manfaat article { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+.manfaat .jawab { font-size: 12.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--brand-text); }
+.manfaat h3 { font-size: 22px; }
+.manfaat p { color: var(--muted); font-size: 16px; }
+.harga { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 28px; padding: 22px 26px; border: 2px solid var(--brand); border-radius: 10px; background: var(--surface); }
+.harga p { flex: 1 1 320px; min-width: 0; }
+.harga b { font-family: var(--font-display); font-size: 24px; display: block; margin-bottom: 4px; }
+.harga span { color: var(--muted); font-size: 16px; }
+
+/* TINDAKAN */
+.akhir-box { background: var(--brand); color: var(--on-brand); border-radius: 12px; padding: 56px 40px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: center; }
+.akhir h2 { color: var(--on-brand); }
+.akhir p { color: var(--on-brand); opacity: .92; margin-top: 12px; font-size: 18px; }
+.akhir .btns { display: grid; gap: 12px; justify-items: start; }
+.akhir .btn { background: var(--on-brand); color: #14633a; }
+.akhir .btn.alt { background: transparent; color: var(--on-brand); border: 2px solid rgba(255,255,255,.7); }
+.lebih { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 20px 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.lebih p { flex: 1 1 320px; min-width: 0; font-weight: 600; font-size: 17px; margin-top: 0; opacity: 1; color: var(--ink); }
+.lebih a { color: var(--brand-text); font-weight: 800; white-space: nowrap; }
+.baki { padding-block: 32px 48px; color: var(--muted); font-size: 14.5px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+
+@media (max-width: 860px) {
+  .hero-grid, .masalah-grid, .akhir-box { grid-template-columns: minmax(0, 1fr); }
+  .hero-grid { gap: 36px; }
+  .langkah { grid-template-columns: 1fr 1fr; row-gap: 40px; }
+  .kelebihan, .manfaat { grid-template-columns: 1fr; }
+  .akhir-box { padding: 36px 24px; }
+  section { padding-block: 56px; }
+}
+@media (max-width: 520px) {
+  body { font-size: 16px; }
+  .langkah { grid-template-columns: 1fr; }
+  .hero .lead { font-size: 18px; }
+  .ujian { padding: 4px 16px 20px; }
+  .minggu .h { min-height: 64px; }
+  .ev { font-size: 9.5px; padding: 2px 3px; }
+}
+</style>
+
+<script src="sumber.js?v=1"></script>
+</head>
+<body>
+<header class="wrap top">
+  <a class="logo" href="#atas"><i>we</i><b>Care</b></a>
+  <a class="btn" href="https://familipintar.com/mynasab/index.html?daftar=1&amp;utm_source=lp&amp;utm_medium=landing&amp;utm_campaign=wecare">Cuba percuma</a>
+</header>
+
+<main id="atas">
+  <!-- PERHATIAN -->
+  <div class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Jagaan ibu bapa, bersama adik-beradik</p>
+        <h1>Siapa bawa ibu ke klinik <em>minggu ini</em>?</h1>
+        <p class="lead">Satu kalendar untuk temu janji dan ubat, satu papan nota untuk pesanan, supaya semua adik-beradik tahu giliran masing-masing tanpa perlu tanya dalam kumpulan WhatsApp.</p>
+        <div class="cta">
+          <a class="btn" href="https://familipintar.com/mynasab/index.html?daftar=1&amp;utm_source=lp&amp;utm_medium=landing&amp;utm_campaign=wecare">Mula percubaan percuma</a>
+          <a class="btn alt" href="#cara">Lihat cara ia berfungsi</a>
+        </div>
+        <p class="note">Percubaan percuma 30 hari. Tiada kad kredit diperlukan.</p>
+      </div>
+
+      <div>
+        <div class="demo" role="img" aria-label="Contoh kalendar weCare: ubat ayah, temu janji klinik ibu dan giliran adik-beradik menjaga, dengan satu nota untuk penjaga lain.">
+          <div class="demo-head"><b>Kalendar Jagaan &amp; Ubat</b><span>Contoh seminggu</span></div>
+          <div class="minggu">
+            <div class="n">Isn</div><div class="n">Sel</div><div class="n">Rab</div><div class="n">Kha</div><div class="n">Jum</div><div class="n">Sab</div><div class="n">Aha</div>
+            <div class="h"><small>12</small><span class="ev a">Ubat</span></div>
+            <div class="h"><small>13</small><span class="ev i">Klinik</span></div>
+            <div class="h hari-ini"><small>14</small><span class="ev a">Ubat</span><span class="ev u">Along</span></div>
+            <div class="h"><small>15</small><span class="ev i">Ubat</span></div>
+            <div class="h"><small>16</small><span class="ev a">Ubat</span><span class="ev u">Angah</span></div>
+            <div class="h"><small>17</small><span class="ev u">Hospital</span></div>
+            <div class="h"><small>18</small><span class="ev a">Ubat</span></div>
+          </div>
+          <div class="demo-nota"><b>Nota untuk penjaga</b>Ubat tekanan darah ayah tinggal 3 hari. Along, tolong ambil di farmasi sebelum Khamis.</div>
+          <p class="demo-label">Biru = ayah · Merah jambu = ibu · Hijau = umum</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERHATIAN (sambungan): sebab -->
+  <section class="band">
+    <div class="wrap masalah-grid">
+      <div>
+        <p class="eyebrow">Kenapa sekarang</p>
+        <h2>Ibu bapa makin berumur, adik-beradik makin berjauhan.</h2>
+        <p class="sec-lead">Seorang biasanya jadi penjaga utama dan yang lain tak tahu apa yang berlaku. Bila ada yang tertinggal, ibu bapa yang menanggungnya.</p>
+      </div>
+      <div class="situasi">
+        <div><div><b>"Ubat ayah dah habis ke?"</b><span>Tiada siapa pasti, sebab dos dan stok hanya dalam kepala seorang anak.</span></div></div>
+        <div><div><b>Dua orang bawa ibu ke klinik yang sama</b><span>Atau lebih teruk, tiada seorang pun. Semua sangka orang lain yang pergi.</span></div></div>
+        <div><div><b>Maklumat penting tenggelam dalam sembang</b><span>Jenis darah, penyakit kronik dan nama hospital rujukan dicari semula bila kecemasan.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MINAT -->
+  <section id="ujian">
+    <div class="wrap">
+      <p class="eyebrow">Ujian 5 soalan untuk anak-anak</p>
+      <h2>Sudah siapkah keluarga anda jika ibu bapa tiba-tiba sakit?</h2>
+      <p class="sec-lead">Jawab dengan jujur. Jawapan anda tidak disimpan.</p>
+
+      <div class="ujian" id="borang-ujian">
+        <div class="soal"><p>Saya tahu jenis darah dan penyakit kronik ibu bapa saya.</p><div class="pilih" data-q="0"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Adik-beradik saya tahu ubat apa ibu bapa makan dan bila.</p><div class="pilih" data-q="1"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Kami ada jadual siapa bawa ibu bapa ke klinik atau hospital.</p><div class="pilih" data-q="2"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Semua adik-beradik tahu temu janji ibu bapa bulan depan.</p><div class="pilih" data-q="3"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Jika saya tiada, adik-beradik lain boleh sambung jaga tanpa bertanya.</p><div class="pilih" data-q="4"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+
+        <div class="keputusan" id="keputusan" aria-live="polite" hidden>
+          <strong id="k-tajuk"></strong>
+          <p id="k-teks"></p>
+          <div><a class="btn" href="https://familipintar.com/mynasab/index.html?daftar=1&amp;utm_source=lp&amp;utm_medium=landing&amp;utm_campaign=wecare">Cuba weCare percuma</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="ciri">
+    <div class="wrap">
+      <p class="eyebrow">Apa yang ada dalam weCare</p>
+      <h2>Semua yang penjaga perlu, dalam satu tempat.</h2>
+      <div class="kelebihan">
+        <div><h3>Profil kesihatan ibu bapa</h3><p>Simpan jenis darah, penyakit kronik, ubat dan rujukan hospital. Ia sedia dibuka bila kecemasan.</p></div>
+        <div><h3>Kalendar jagaan dan ubat</h3><p>Klik tarikh untuk tambah temu janji atau ubat. Warna berbeza untuk ayah, ibu dan urusan rumah.</p></div>
+        <div><h3>Giliran dan tugasan penjaga</h3><p>Tetapkan siapa bertugas pada hari tertentu, lengkap dengan masa dan dos ubat.</p></div>
+        <div><h3>Papan nota handover</h3><p>Tinggalkan pesanan ringkas untuk adik-beradik dan penjaga lain, dan mereka dapat notifikasi.</p></div>
+        <div><h3>Sync ke Google Calendar</h3><p>Simpan tugasan terus ke kalendar telefon anda supaya tidak terlepas.</p></div>
+        <div><h3>Ingatan hari jadi</h3><p>Lencana hari jadi ahli keluarga muncul sendiri, kerana data diambil daripada pokok keluarga anda.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cara">
+    <div class="wrap">
+      <p class="eyebrow">Cara ia berfungsi</p>
+      <h2>Bermula dalam empat langkah.</h2>
+      <ol class="langkah">
+        <li><h3>Bina pokok keluarga</h3><p>Masukkan ayah, ibu dan adik-beradik dalam myNasab. weCare mengambil data daripada situ.</p></li>
+        <li><h3>Jemput adik-beradik</h3><p>Mereka dapat akses ke kalendar dan nota yang sama selepas akaun mereka dipautkan.</p></li>
+        <li><h3>Isi profil dan jadual</h3><p>Tambah ubat, temu janji dan siapa bertugas bagi setiap tarikh.</p></li>
+        <li><h3>Biar notifikasi bekerja</h3><p>Hidupkan notifikasi supaya pesanan baharu terus sampai ke telefon.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- KEINGINAN -->
+  <section class="band">
+    <div class="wrap">
+      <p class="eyebrow">Apa yang berubah</p>
+      <h2>Kurang bertanya. Lebih tenang.</h2>
+      <div class="manfaat">
+        <article>
+          <span class="jawab">Untuk penjaga utama</span>
+          <h3>Tidak lagi sendirian</h3>
+          <p>Giliran dibahagi dengan jelas, jadi beban tidak jatuh pada seorang sahaja.</p>
+        </article>
+        <article>
+          <span class="jawab">Untuk adik-beradik jauh</span>
+          <h3>Tetap terlibat</h3>
+          <p>Walau di perantauan, anda nampak jadual dan boleh ambil bahagian dalam jagaan.</p>
+        </article>
+        <article>
+          <span class="jawab">Untuk ibu bapa</span>
+          <h3>Dijaga dengan teratur</h3>
+          <p>Ubat tidak terlepas dan temu janji tidak bertindih, kerana semua orang rujuk satu jadual.</p>
+        </article>
+      </div>
+      <div class="harga">
+        <p><b>Cuba percuma 30 hari, kemudian 20 kredit sebulan.</b><span>Percubaan bermula bila anda bersetuju dengan terma weCare. Pendaftaran baru mendapat 20 kredit percuma di myNasab. Kredit digunakan juga untuk alat Famili Pintar yang lain.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TINDAKAN -->
+  <section class="akhir" style="padding-top:72px">
+    <div class="wrap">
+      <div class="akhir-box">
+        <div>
+          <h2>Mulakan dengan satu nama.</h2>
+          <p>Masukkan nama ayah dan ibu, jemput seorang adik-beradik, dan jadual jagaan pertama anda sudah boleh bermula minggu ini.</p>
+        </div>
+        <div class="btns">
+          <a class="btn" href="https://familipintar.com/mynasab/index.html?daftar=1&amp;utm_source=lp&amp;utm_medium=landing&amp;utm_campaign=wecare">Mula percubaan percuma</a>
+          <a class="btn alt" href="https://familipintar.com/wecare.html">Sudah ada akaun? Buka weCare</a>
+        </div>
+      </div>
+      <div class="lebih">
+        <p>Nak explore lebih daripada weCare? Famili Pintar ada lebih banyak alat untuk urus keluarga anda.</p>
+        <a href="https://familipintar.com/famili-lp.html">Lawati <span class="fp-f">Famili</span> <span class="fp-p">Pintar</span> &rarr;</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap baki">
+  <span>weCare, sebahagian daripada <a href="https://familipintar.com/famili-lp.html"><span class="fp-f">Famili</span> <span class="fp-p">Pintar</span></a>.</span>
+  <span>Setiap pendaftaran baru mendapat 20 kredit percuma.</span>
+</footer>
+
+<script>
+(function () {
+  var jawab = [null, null, null, null, null];
+  var hasil = document.getElementById('keputusan');
+  var mesej = [
+    ['Keluarga anda belum bersedia.', 'Tidak mengapa, ramai bermula dari sini. Tuliskan maklumat kesihatan ibu bapa dan bahagikan giliran sebelum kecemasan berlaku.'],
+    ['Sebahagiannya sudah ada.', 'Asas sudah ada. Satu kalendar dan satu papan nota membantu menyambung bahagian yang masih bergantung pada ingatan.'],
+    ['Keluarga anda sudah teratur.', 'Bagus. Simpan semuanya di satu tempat supaya sesiapa boleh sambung jaga bila perlu.']
+  ];
+  document.querySelectorAll('.pilih').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      var q = +g.getAttribute('data-q');
+      jawab[q] = +b.getAttribute('data-v');
+      g.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      if (jawab.every(function (v) { return v !== null; })) {
+        var skor = jawab.reduce(function (a, v) { return a + v; }, 0);
+        var m = mesej[skor <= 1 ? 0 : skor <= 3 ? 1 : 2];
+        document.getElementById('k-tajuk').textContent = skor + ' daripada 5. ' + m[0];
+        document.getElementById('k-teks').textContent = m[1];
+        hasil.hidden = false;
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
