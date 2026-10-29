@@ -546,10 +546,13 @@ window.muatKeluargaRombongan = async () => {
         const akaun = await Promise.all(pautan.map(async p => ({ uid: p.uid, sasaran: p.sasaran_id, nod: p.uid === saya ? nodSaya : await ambil(p.uid) })));
 
         const kelompok = (nod) => {
-            const k = { diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], turun: [[], [], [], [], []], adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [] };
+            const k = { diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], turun: [[], [], [], [], []], adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [], saudaraIbuBapa: [], pasanganSaudara: [], sepupu: [] };
             nod.forEach(d => {
                 const h = (d.relationship || '').toLowerCase();
                 if (d.is_root) k.diri = d;
+                else if (/^pasangan (bapa|mak|ibu) saudara/.test(h)) k.pasanganSaudara.push(d);
+                else if (/^(bapa|mak|ibu) saudara/.test(h)) k.saudaraIbuBapa.push(d);
+                else if (h === 'sepupu') k.sepupu.push(d);
                 else if (h.includes('suami') || h.includes('isteri')) k.pasangan.push(d);
                 else if (h.includes('menantu') || h.includes('pasangan cucu')) k.menantu.push(d);
                 else if (h === 'ayah' || h === 'ibu') k.ibuBapa.push(d);
@@ -604,7 +607,7 @@ window.muatKeluargaRombongan = async () => {
         };
 
         const peranKad = (n) => {
-            const h = n.relationship || ''; const hl = h.toLowerCase();
+            const h = (n.relationship || '').replace(/\s*\(belah[^)]*\)/i, ''); const hl = h.toLowerCase();
             if (n.is_root) {
                 if (n.owner_uid === saya) return 'Anda';
                 if (n.owner_uid === indukUid) return sasaranIsPasangan ? 'Ipar' : 'Adik-beradik';
@@ -651,6 +654,14 @@ if (pilihanBelah === 'saya') { /* isi rumah sahaja */ } else if (pilihanBelah ==
             tambahAdikBerpaut(sasaranIdPusat);
             if (!sayaInduk && kInduk.diri && !sembunyi.includes(indukUid)) { tambahRumah(kInduk, [kInduk.diri, ...kInduk.pasangan], 'sisi'); }
             tambahAdikManual();
+            // Akaun anak saudara (atau adik-beradiknya): bapa/mak saudara + pasangan + sepupu daripada pokok salinan Induk
+            const adikAnakSaudara = !sayaInduk && !!kInduk.diri && sasaranIdPusat === kInduk.diri.id && !!kInduk.diri.anak_saudara_dari && !sembunyi.includes(indukUid);
+            const S = kSaya.diri.anak_saudara_dari ? kSaya : (adikAnakSaudara ? kInduk : null);
+            if (S) S.saudaraIbuBapa.forEach(u => {
+                tambah(u, 'sisi');
+                S.pasanganSaudara.filter(p => p.ref_id === u.id).forEach(p => tambah(p, 'sisi'));
+                S.sepupu.filter(c => c.ref_id === u.id).forEach(c => tambah(c, 'sisi'));
+            });
         } else {
             kSaya.pasangan.forEach((p, i) => { tambahAtasan(p.id, [kSaya.mertua], i === 0); tambahAdikBerpaut(p.id); });
         }
