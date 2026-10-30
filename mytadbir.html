@@ -610,10 +610,12 @@ if (rdb.monthlyBudget === undefined) {
               let simDebts = sortedDebts.map(d => ({ ...d, currentBalance: d.balance, monthsToFinish: 0 }));
               
               let balanceAtRetirement = 0;
+              const balanceByYear = [];
               const retirementMonth = Math.max(0, (retireAge - age) * 12);
 
               if (debtStrategy !== 'consolidation') {
                   while (simDebts.some(d => d.currentBalance > 0) && currentMonth < MAX_MONTHS) {
+                      if (currentMonth % 12 === 0) balanceByYear.push(simDebts.reduce((sum, d) => sum + Math.max(0, d.currentBalance), 0));
                       if (currentMonth === retirementMonth) {
                           balanceAtRetirement = simDebts.reduce((sum, d) => sum + Math.max(0, d.currentBalance), 0);
                       }
@@ -684,7 +686,8 @@ if (rdb.monthlyBudget === undefined) {
                       payoffDetails: [],
                       consolNewMonthly: newMonthlyConsol,
                       consolSavings: savingsConsol,
-                      balanceAtRetirement
+                      balanceAtRetirement,
+                      balanceByYear: Array.from({ length: 101 }, (_, i) => Math.max(0, totalBalance * (1 - i / Math.max(1, consolYear))))
                   };
               }
 
@@ -695,7 +698,8 @@ if (rdb.monthlyBudget === undefined) {
                   payoffDetails: simDebts,
                   consolNewMonthly: 0,
                   consolSavings: 0,
-                  balanceAtRetirement
+                  balanceAtRetirement,
+                  balanceByYear
               };
           }, [debtsList, gajiHakiki, pendapatanSampingan, extraBudget, debtStrategy, consolRate, consolYear, retireAge, age]);
 
@@ -829,35 +833,71 @@ if (rdb.monthlyBudget === undefined) {
           const totalFutureNeeds = unjuranTotalDebts + Math.max(0, eduNetAtRetire) + retirementCorpusNeeded + totalRetirementHealthNeeds;
           const retirementShortfall = Math.max(0, retirementCorpusNeeded - bakiUntukBersara);
 
-          // --- Jadual unjuran dana tahunan (model sama dengan kad Ketahanan Dana) ---
-          // Mengumpul: aset cair bertambah pada kadar pulangan. Pada hari bersara ditolak pendidikan, hutang & kos kesihatan.
-          // Bersara: belanja dikeluarkan pada awal tahun (naik ikut inflasi), baki baki bertambah pada kadar pulangan.
+          // --- Jadual unjuran dana tahunan (butiran penuh, setiap tahun) ---
+          // Kolam pelaburan = aset cair + dana pendidikan anak (SSPN/ASB), tumbuh pada kadar pulangan.
+          // Awal setiap tahun ditolak: kos pengajian (pada tahun anak masuk universiti), baki hutang (pada hari bersara),
+          // kos kesihatan & belanja hidup (selepas bersara, naik ikut inflasi). Baki kemudian bertambah dengan pulangan.
+          // Matematik sama dengan kad Ketahanan Dana (hanya ditunjuk tahun demi tahun, bukan sekali gus).
           const jadualDana = (() => {
             const baris = [];
             const tahunSemasa = new Date().getFullYear();
             const umurMula = Math.max(0, Math.floor(Number(age) || 0));
-            const umurAkhir = Math.min(110, Math.max(Math.floor(Number(lifeExpectancy) || 0), Math.floor(Number(retireAge) || 0)));
-            const pelarasanBersara = (Number.isFinite(eduNetAtRetire) ? eduNetAtRetire : 0) + (unjuranTotalDebts || 0) + (totalRetirementHealthNeeds || 0);
-            const belanjaMula = Number.isFinite(yearlyRetirementExpense) ? yearlyRetirementExpense : 0;
-            let dana = Number.isFinite(totalLiquidAssets) ? totalLiquidAssets : 0;
+            const umurBersara = Number(retireAge) || 0;
+            const umurAkhir = Math.min(110, Math.max(Math.floor(Number(lifeExpectancy) || 0), Math.floor(umurBersara)));
+            const num = (v) => Number.isFinite(v) ? v : 0;
+            const eduMengikutTahun = {};
+            childrenData.forEach((c, idx) => {
+              const yUni = Math.max(0, umurUniAnak(c) - c.age);
+              const kos = num(kosAnak(c) * Math.pow(1 + educationInflation / 100, yUni));
+              const k = Math.round(yUni);
+              if (!eduMengikutTahun[k]) eduMengikutTahun[k] = { jumlah: 0, nama: [] };
+              eduMengikutTahun[k].jumlah += kos;
+              eduMengikutTahun[k].nama.push(c.name || ('Anak ' + (idx + 1)));
+            });
+            const kesihatanSemasa = num(totalCurrentHealthLeakage);
+            const belanjaMula = num(yearlyRetirementExpense);
+            const hutangBersara = num(unjuranTotalDebts);
+            const baki = debtAnalysisResult.balanceByYear || [];
+            let dana = num(totalLiquidAssets) + num(totalEducationFundNow);
             let sudahBersara = false, tahunBersara = 0, sudahHabis = false;
             for (let u = umurMula; u <= umurAkhir; u++) {
+              const i = u - umurMula;
               const awal = dana;
-              let pelarasan = 0, keluar = 0, akhir, fasa = 'Mengumpul', habisTahunIni = false;
-              if (u < retireAge) {
-                akhir = awal * (1 + rA);
+              const bersara = u >= umurBersara;
+              const e = eduMengikutTahun[i];
+              const edu = e ? e.jumlah : 0;
+              let hutang = 0, kes = 0, belanja = 0, akhir, pulangan = 0, habisTahunIni = false;
+              const peristiwa = [];
+              if (e) peristiwa.push('Pengajian: ' + e.nama.join(', '));
+              if (!bersara) {
+                akhir = (awal - edu) * (1 + rA);
+                pulangan = akhir - (awal - edu);
               } else {
-                fasa = 'Bersara';
-                let mula = awal;
-                if (!sudahBersara) { sudahBersara = true; pelarasan = -pelarasanBersara; mula = awal + pelarasan; }
-                const perlu = belanjaMula * Math.pow(1 + inflationRate / 100, tahunBersara);
+                if (!sudahBersara) { sudahBersara = true; hutang = hutangBersara; peristiwa.push('Mula bersara'); }
+                const kesPerlu = kesihatanSemasa * Math.pow(1 + healthInflationRate / 100, (umurBersara - umurMula) + tahunBersara);
+                const belanjaPerlu = belanjaMula * Math.pow(1 + inflationRate / 100, tahunBersara);
                 tahunBersara++;
-                if (mula <= 0) { keluar = 0; akhir = 0; if (!sudahHabis && perlu > 0) { habisTahunIni = true; sudahHabis = true; } }
-                else if (mula < perlu) { keluar = mula; akhir = 0; habisTahunIni = true; sudahHabis = true; }
-                else { keluar = perlu; akhir = (mula - perlu) * (1 + rA); }
+                const ada = awal - edu - hutang;
+                if (ada <= 0) {
+                  akhir = 0;
+                  if (!sudahHabis && (kesPerlu + belanjaPerlu) > 0) { habisTahunIni = true; sudahHabis = true; }
+                } else if (ada < kesPerlu + belanjaPerlu) {
+                  kes = Math.min(kesPerlu, ada); belanja = Math.max(0, ada - kes);
+                  akhir = 0; habisTahunIni = true; sudahHabis = true;
+                } else {
+                  kes = kesPerlu; belanja = belanjaPerlu;
+                  akhir = (ada - kes - belanja) * (1 + rA);
+                  pulangan = akhir - (ada - kes - belanja);
+                }
               }
-              baris.push({ tahun: tahunSemasa + (u - umurMula), umur: u, fasa, awal, pelarasan, keluar, akhir, habisTahunIni, selepasHabis: sudahHabis && !habisTahunIni });
-              dana = Math.max(0, akhir);
+              if (habisTahunIni) peristiwa.push('Dana habis');
+              const bakiHutangAkhir = bersara ? 0 : num(baki[i + 1] !== undefined ? baki[i + 1] : 0);
+              baris.push({
+                tahun: tahunSemasa + i, umur: u, fasa: bersara ? 'Bersara' : 'Bekerja', awal, pulangan, edu, hutang, kes, belanja, akhir,
+                bakiHutang: bakiHutangAkhir, bersih: akhir - bakiHutangAkhir, peristiwa: peristiwa.join(' · '),
+                habisTahunIni, selepasHabis: sudahHabis && !habisTahunIni
+              });
+              dana = bersara ? Math.max(0, akhir) : akhir;
               if (baris.length > 120) break;
             }
             return baris;
@@ -1912,47 +1952,67 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
 
                       <Card>
                         <h3 className="text-lg font-bold text-slate-800 mb-2 border-b pb-2 flex items-center gap-2"><TrendingUp className="text-sky-600" /> Jadual Unjuran Dana Tahunan</h3>
-                        <p className="text-xs text-slate-500 mb-4">Lihat tahun demi tahun bagaimana dana anda bertambah sehingga bersara dan bila ia habis. Merah = dana berkurang.</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                        <p className="text-xs text-slate-500 mb-4">Butiran setiap tahun: apa yang masuk (pulangan) dan apa yang keluar (pendidikan, hutang, kesihatan, belanja hidup). Merah = nilai berkurang / defisit.</p>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                           <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
-                            <p className="text-[11px] font-bold text-slate-500 uppercase">Dana Cair Hari Ini</p>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase">Aset Cair Hari Ini</p>
                             <p className="text-lg font-extrabold text-slate-800">{formatRM(totalLiquidAssets)}</p>
+                            <p className="text-[10px] text-slate-400">KWSP, ASB, simpanan, emas dll.</p>
+                          </div>
+                          <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
+                            <p className="text-[11px] font-bold text-slate-500 uppercase">Dana Pendidikan Anak</p>
+                            <p className="text-lg font-extrabold text-slate-800">{formatRM(totalEducationFundNow)}</p>
+                            <p className="text-[10px] text-slate-400">SSPN &amp; ASB anak (digabung ke kolam)</p>
                           </div>
                           <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
                             <p className="text-[11px] font-bold text-slate-500 uppercase">Baki Bersih Pada Umur {retireAge}</p>
                             <p className="text-lg font-extrabold text-slate-800">{formatRM(bakiPositif)}</p>
+                            <p className="text-[10px] text-slate-400">Selepas pendidikan, hutang &amp; kesihatan</p>
                           </div>
                           <div className={`rounded-xl p-3 text-center border ${retirementShortfall <= 0 ? 'bg-sky-50 border-sky-200' : 'bg-red-50 border-red-200'}`}>
                             <p className="text-[11px] font-bold text-slate-500 uppercase">Dana Bertahan Sehingga</p>
                             <p className={`text-lg font-extrabold ${retirementShortfall <= 0 ? 'text-sky-600' : 'text-red-600'}`}>{retirementShortfall <= 0 ? `Umur ${lifeExpectancy}+` : `Umur ${formatUmur(exhaustAge)} (${new Date().getFullYear() + Math.max(0, Math.floor(exhaustAge) - Math.floor(Number(age) || 0))})`}</p>
                           </div>
                         </div>
-                        <div className="overflow-auto max-h-[28rem] border border-slate-200 rounded-xl">
-                          <table className="w-full text-xs md:text-sm">
+                        <div className="overflow-auto max-h-[32rem] border border-slate-200 rounded-xl">
+                          <table className="w-full text-xs whitespace-nowrap">
                             <thead className="sticky top-0 bg-amber-100 text-slate-700 z-10">
                               <tr>
                                 <th className="p-2 text-left font-bold">Tahun</th>
                                 <th className="p-2 text-left font-bold">Umur</th>
                                 <th className="p-2 text-left font-bold">Fasa</th>
-                                <th className="p-2 text-right font-bold">Dana Awal</th>
-                                <th className="p-2 text-right font-bold">Tolak (Pendidikan, Hutang, Kesihatan)</th>
-                                <th className="p-2 text-right font-bold">Belanja Setahun</th>
-                                <th className="p-2 text-right font-bold">Dana Akhir</th>
+                                <th className="p-2 text-right font-bold">Aset Awal</th>
+                                <th className="p-2 text-right font-bold text-emerald-700">+ Pulangan</th>
+                                <th className="p-2 text-right font-bold">- Pendidikan</th>
+                                <th className="p-2 text-right font-bold">- Hutang</th>
+                                <th className="p-2 text-right font-bold">- Kesihatan</th>
+                                <th className="p-2 text-right font-bold">- Belanja Hidup</th>
+                                <th className="p-2 text-right font-bold">Aset Akhir</th>
+                                <th className="p-2 text-right font-bold">Baki Hutang</th>
+                                <th className="p-2 text-right font-bold">Nilai Bersih</th>
+                                <th className="p-2 text-left font-bold">Catatan</th>
                               </tr>
                             </thead>
                             <tbody>
                               {jadualDana.map((r, i) => {
                                 const turun = i > 0 && r.akhir < jadualDana[i - 1].akhir;
                                 const bg = r.habisTahunIni ? 'bg-red-100' : r.selepasHabis ? 'bg-red-50' : (r.umur === retireAge ? 'bg-amber-50' : (i % 2 === 0 ? 'bg-white' : 'bg-blue-50'));
+                                const sel = (v, merah) => v > 0.005 ? <span className={merah ? 'text-red-600' : 'text-slate-700'}>{formatRM(v)}</span> : <span className="text-slate-300">-</span>;
                                 return (
                                   <tr key={r.umur} className={bg}>
                                     <td className="p-2 text-slate-500 font-medium border-r">{r.tahun}</td>
                                     <td className="p-2 font-medium text-slate-700">{r.umur}</td>
-                                    <td className="p-2 text-slate-600">{r.habisTahunIni ? 'Dana habis' : r.selepasHabis ? 'Dana telah habis' : r.fasa}</td>
+                                    <td className="p-2 text-slate-600">{r.selepasHabis ? 'Dana habis' : r.fasa}</td>
                                     <td className="p-2 text-right text-slate-700">{formatRM(r.awal)}</td>
-                                    <td className="p-2 text-right text-slate-500">{r.pelarasan ? '-' + formatRM(Math.abs(r.pelarasan)) : (r.fasa === 'Mengumpul' ? 'Belum bersara' : '-')}</td>
-                                    <td className="p-2 text-right text-slate-500">{r.keluar ? formatRM(r.keluar) : (r.fasa === 'Mengumpul' ? 'Belum bersara' : '-')}</td>
-                                    <td className={`p-2 text-right font-bold ${turun || r.habisTahunIni ? 'text-red-600' : 'text-slate-800'}`}>{formatRM(r.akhir)}</td>
+                                    <td className="p-2 text-right text-emerald-600">{r.pulangan > 0.005 ? '+' + formatRM(r.pulangan) : <span className="text-slate-300">-</span>}</td>
+                                    <td className="p-2 text-right">{sel(r.edu, true)}</td>
+                                    <td className="p-2 text-right">{sel(r.hutang, true)}</td>
+                                    <td className="p-2 text-right">{sel(r.kes, false)}</td>
+                                    <td className="p-2 text-right">{sel(r.belanja, false)}</td>
+                                    <td className={`p-2 text-right font-bold ${r.akhir < 0 || turun || r.habisTahunIni ? 'text-red-600' : 'text-slate-800'}`}>{formatRM(r.akhir)}</td>
+                                    <td className="p-2 text-right text-slate-500">{r.bakiHutang > 0.005 ? formatRM(r.bakiHutang) : '-'}</td>
+                                    <td className={`p-2 text-right font-semibold ${r.bersih < 0 ? 'text-red-600' : 'text-slate-700'}`}>{formatRM(r.bersih)}</td>
+                                    <td className="p-2 text-left text-slate-500">{r.peristiwa}</td>
                                   </tr>
                                 );
                               })}
@@ -1962,13 +2022,16 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                         <div className="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-600 leading-relaxed">
                             <p className="font-bold mb-1">Cara baca jadual:</p>
                             <ul className="list-disc pl-4 space-y-1">
-                                <li><b>Mengumpul</b>: sebelum bersara, dana hanya bertambah mengikut pulangan setahun. Belum ada tolakan atau belanja.</li>
-                                <li><b>Tolak (Pendidikan, Hutang, Kesihatan)</b>: kos-kos ini ditolak sekali gus pada tahun bersara.</li>
-                                <li><b>Belanja Setahun</b>: selepas bersara, perbelanjaan tahunan (naik mengikut inflasi) ditolak daripada dana setiap tahun. Jika dana mencukupi, lajur ini terisi sehingga akhir jangka hayat.</li>
-                                <li><b>Dana Akhir RM0</b>: dana telah habis. Baris merah menunjukkan tahun dana habis.</li>
+                                <li><b>Aset Awal</b>: kolam pelaburan anda (aset cair + dana pendidikan SSPN/ASB). Rumah dan kereta tidak dikira kerana tidak dibelanjakan untuk hidup.</li>
+                                <li><b>+ Pulangan</b>: keuntungan setahun pada kadar {assetReturnRate}% atas baki selepas tolakan tahun itu.</li>
+                                <li><b>- Pendidikan</b>: kos pengajian (termasuk inflasi pendidikan) ditolak pada tahun anak masuk universiti, bukan sekali gus.</li>
+                                <li><b>- Hutang</b>: semasa bekerja, hutang dibayar daripada gaji (komitmen bulanan). Baki hutang yang masih tinggal pada hari bersara ditolak sekali dari kolam.</li>
+                                <li><b>- Kesihatan</b> dan <b>- Belanja Hidup</b>: bermula pada tahun bersara, naik setiap tahun mengikut inflasi kesihatan dan inflasi umum. Sebelum bersara, kedua-duanya dibayar daripada gaji.</li>
+                                <li><b>Nilai Bersih</b>: Aset Akhir tolak Baki Hutang. Ini nilai sebenar anda pada akhir tahun itu, tetapi hutang tidak ditolak dua kali dalam pengiraan.</li>
+                                <li><b>Aset Akhir RM0</b>: dana telah habis (baris merah).</li>
                             </ul>
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-2">Anggaran berdasarkan pulangan {assetReturnRate}% setahun dan inflasi {inflationRate}%, sama seperti kad Ketahanan Dana di atas. Bukan nasihat kewangan.</p>
+                        <p className="text-[11px] text-slate-400 mt-2">Anggaran berdasarkan pulangan {assetReturnRate}% setahun, inflasi {inflationRate}% dan inflasi kesihatan {healthInflationRate}%. Simpanan tambahan daripada lebihan gaji bulanan tidak dikira (anggaran konservatif). Bukan nasihat kewangan.</p>
                       </Card>
 
                       <Card>
