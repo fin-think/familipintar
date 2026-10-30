@@ -2303,14 +2303,6 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                   
               </main>
 
-              {/* BUTANG CETAK LAPORAN JANGAN DIBUANG */}
-              {activeTab === 6 && (
-                <div className="max-w-6xl mx-auto px-4 mt-8 pb-12 flex justify-center">
-                  <button onClick={() => setShowReport(true)} className="px-8 py-4 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold shadow-lg transition-colors flex items-center gap-3 text-lg">
-                    <FileText size={24} /> Lihat / Cetak Laporan Penuh
-                  </button>
-                </div>
-              )}
             </div>
           );
         }
