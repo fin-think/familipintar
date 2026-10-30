@@ -874,13 +874,13 @@ let currentTripId = null;
 let senaraiPelanTersimpan = [];
 
 const belahSemasa = () => document.getElementById('filterBelah').value;
-const anchorSemasa = () => { const b = belahSemasa(); return b === 'pasangan' ? jangkarCal.pasangan : b === 'induk' ? jangkarCal.induk : null; };
-const padanBelah = (t) => {
-    const b = belahSemasa();
-    if (t.belah === 'saya') return b === 'saya';
-    if (b === 'saya') return !t.anchor_id;                    // pelan lama tanpa belah turut muncul
-    return !t.anchor_id || t.anchor_id === anchorSemasa();
-};
+const anchorDari = (b) => b === 'pasangan' ? jangkarCal.pasangan : b === 'induk' ? jangkarCal.induk : null;
+const anchorSemasa = () => anchorDari(belahSemasa());
+// Belah bagi borang yang sedang disunting (supaya tukar tab belah tidak menyimpan pelan lama ke belah baharu)
+let belahForm = null;
+const belahSimpan = () => belahForm || belahSemasa();
+// Hanya 3 belah (saya / induk / pasangan). Pelan lama tanpa belah tidak dipaparkan lagi.
+const padanBelah = (t) => t.belah === belahSemasa();
 const pelanBelahIni = () => senaraiPelanTersimpan.filter(padanBelah);
 
 // ---- SIMPAN AUTOMATIK (menggantikan butang "Simpan Pelan Percutian Ini") ----
@@ -889,7 +889,7 @@ const kunciTrip = () => {
     const title = document.getElementById('trip-name').value.trim();
     const dateGo = document.getElementById('date-go').value;
     if (!title || !dateGo) return null;
-    const belah = belahSemasa(), jb = anchorSemasa();
+    const belah = belahSimpan(), jb = anchorDari(belah);
     if (belah !== 'saya' && !jb) return null;
     return {
         title, destination: document.getElementById('destination').value, date_go: dateGo, date_back: document.getElementById('date-back').value,
@@ -911,9 +911,11 @@ document.addEventListener('change', () => AS.ubah(), true);
 document.addEventListener('click', () => AS.ubah(), true);
 
 window.tukarBelah = async () => {
+    AS.siram();                 // simpan dahulu pelan semasa di belah lama
+    belahForm = belahSemasa();  // selepas itu barulah borang beralih ke belah baharu
     await window.muatKeluargaRombongan();
     const cur = senaraiPelanTersimpan.find(t => t.id === currentTripId);
-    if (cur && !padanBelah(cur)) {
+    if (!cur || !padanBelah(cur)) {
         const senarai = pelanBelahIni();
         if (senarai.length) window.pilihPelan(senarai[0].id); else window.buatPelanBaru();
     } else renderSenaraiPelan();
@@ -922,6 +924,7 @@ window.tukarBelah = async () => {
   
 window.muatPelanTersimpan = async (idPilih = null) => {
     if (!currentUser) return;
+    if (belahForm === null) belahForm = belahSemasa();
     try {
         const snap = await getDocs(query(collection(db, "jombercuti_trips"), where("owner_uid", "==", currentUser.uid)));
         senaraiPelanTersimpan = snap.docs.map(d => ({ ...d.data(), id: d.id }))
@@ -944,7 +947,7 @@ window.renderSenaraiPelan = () => {
     }
     bekas.innerHTML = label + senarai.map(t => {
         const isAktif = t.id === currentTripId;
-        const lama = (!t.anchor_id && !t.belah) ? `<span style="background:#fef3c7; color:#92400e; font-size:0.65rem; font-weight:800; padding:2px 6px; border-radius:6px; margin-left:6px;">Belum ditetapkan belah</span>` : '';
+        const lama = '';
         return `
         <div style="border: 1px solid ${isAktif ? '#3b82f6' : '#e2e8f0'}; background: ${isAktif ? '#eff6ff' : '#ffffff'}; border-radius: 12px; padding: 12px;">
             <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; margin-bottom: 2px;">${escH(t.title)}${lama}</div>
@@ -965,7 +968,7 @@ window.renderSenaraiPelan = () => {
 window.pilihPelan = (id, scroll = false) => {
     const trip = senaraiPelanTersimpan.find(t => t.id === id); if (!trip) return;
     if (id !== currentTripId) AS.siram();   // simpan dahulu suntingan pelan semasa sebelum bertukar
-    currentTripId = trip.id;
+    currentTripId = trip.id; belahForm = trip.belah || belahSemasa();
     
     document.getElementById('trip-name').value = trip.title || ''; 
     document.getElementById('destination').value = trip.destination || '';
@@ -993,7 +996,7 @@ window.pilihPelan = (id, scroll = false) => {
 
 window.buatPelanBaru = () => {
     AS.siram();
-    currentTripId = null; 
+    currentTripId = null; belahForm = belahSemasa();
     document.getElementById('trip-name').value = ''; 
     document.getElementById('destination').value = '';
     accomList = []; transportList = []; miscList = []; init();
@@ -1012,7 +1015,7 @@ window.simpanPelanKeDatabase = async (senyap = false) => {
     let senaraiAhli = [];
     document.querySelectorAll('.fam-check:checked').forEach(cb => { senaraiAhli.push({ nama: cb.value, uid: cb.dataset.uid, akaun: cb.dataset.akaun === '1' }); });
 
-    const jb = anchorSemasa(), belah = belahSemasa();
+    const belah = belahSimpan(), jb = anchorDari(belah);
     if (belah !== 'saya' && !jb) { if (!senyap) alert('Belah ini belum ada pasangan dalam myNasab. Tambah pasangan dahulu.'); return; }
     const lama = senaraiPelanTersimpan.find(t => t.id === currentTripId);
     const penerima = [...new Set(senaraiAhli.filter(m => m.akaun).map(m => m.uid))].filter(u => u !== currentUser.uid);
