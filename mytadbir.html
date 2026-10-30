@@ -1121,9 +1121,17 @@ if (rdb.monthlyBudget === undefined) {
                       // 1. Dana kecemasan: 6 bulan belanja ditolak tunai sedia ada, sasaran 12 bulan
                       const kecemasan = Math.max(0, currentMonthlyExpenses * 6 - tunai);
                       if (kecemasan > 0) tambah({ id: 'kecemasan', type: 'kecemasan', priority: 1, label: 'Dana Kecemasan (6 bulan belanja)', target_fv: kecemasan, start_balance: 0, rate: 0, months: 12 });
-                      // 2. Dana perubatan segera: kos kesihatan setahun (daripada myHEALTH)
-                      if (totalCurrentHealthLeakage > 0) tambah({ id: 'kesihatan_segera', type: 'kesihatan', priority: 2, label: 'Dana Perubatan Segera (kos setahun)', target_fv: totalCurrentHealthLeakage, start_balance: 0, rate: 0, months: 12 });
-                      // 3. Pendidikan: satu misi bagi setiap anak, dana SSPN/ASB diagih ikut kos
+                      // Aset cair bebas = aset cair BUKAN KWSP (tunai, emas, ASB dll.) tolak peruntukan kecemasan 6 bulan.
+                      // Digunakan dahulu untuk dana perubatan, kemudian pendidikan. Misi hanya muncul jika masih ada kekurangan.
+                      let asetBebas = Math.max(0, jumlahAset(asetList.filter(a => kategoriAset(a.name) !== 'kwsp')) - currentMonthlyExpenses * 6);
+                      // 2. Dana perubatan segera: kos kesihatan setahun (daripada myHEALTH), tolak aset bebas sedia ada
+                      if (totalCurrentHealthLeakage > 0) {
+                          const guna = Math.min(asetBebas, totalCurrentHealthLeakage);
+                          asetBebas -= guna;
+                          const perluKes = totalCurrentHealthLeakage - guna;
+                          if (perluKes > 1) tambah({ id: 'kesihatan_segera', type: 'kesihatan', priority: 2, label: 'Dana Perubatan Segera (kos setahun)', target_fv: perluKes, start_balance: 0, rate: 0, months: 12 });
+                      }
+                      // 3. Pendidikan: satu misi bagi setiap anak. Dana SSPN/ASB anak diagih ikut kos, aset bebas yang tinggal juga diagih
                       const perAnak = childrenData.map((c, i) => {
                           const yUni = Math.max(0, umurUniAnak(c) - c.age);
                           return { c, i, yUni, fv: kosAnak(c) * Math.pow(1 + educationInflation / 100, yUni) };
@@ -1131,8 +1139,11 @@ if (rdb.monthlyBudget === undefined) {
                       const jumlahFv = perAnak.reduce((t, x) => t + x.fv, 0);
                       perAnak.forEach(({ c, i, yUni, fv }) => {
                           const alloc = jumlahFv > 0 ? totalEducationFundNow * fv / jumlahFv : 0;
-                          const perluLagi = fv - alloc * Math.pow(1 + rA, yUni);
-                          if (perluLagi > 1) tambah({ id: 'pendidikan_' + (c.id || i), type: 'pendidikan', priority: 3, label: 'Pendidikan ' + (c.name || 'Anak ' + (i + 1)), child_id: String(c.id || i), target_fv: fv, start_balance: alloc, rate: assetReturnRate, months: bulanKe(yUni) });
+                          const tumbuh = Math.pow(1 + rA, yUni);
+                          const bebasAnak = jumlahFv > 0 ? asetBebas * fv / jumlahFv : 0;
+                          const sasaran = Math.max(0, fv - bebasAnak * tumbuh);
+                          const perluLagi = sasaran - alloc * tumbuh;
+                          if (perluLagi > 1) tambah({ id: 'pendidikan_' + (c.id || i), type: 'pendidikan', priority: 3, label: 'Pendidikan ' + (c.name || 'Anak ' + (i + 1)), child_id: String(c.id || i), target_fv: sasaran, start_balance: alloc, rate: assetReturnRate, months: bulanKe(yUni) });
                       });
                       // 4 & 5. Persaraan: kekurangan selepas pendidikan dibiayai melalui misi sendiri (elak kira dua kali)
                       const kurangTanpaEdu = Math.max(0, unjuranTotalDebts + retirementCorpusNeeded + totalRetirementHealthNeeds - futureLiquidAssets);
