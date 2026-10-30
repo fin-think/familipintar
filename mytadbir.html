@@ -1950,14 +1950,23 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                                     <td className="p-2 font-medium text-slate-700">{r.umur}</td>
                                     <td className="p-2 text-slate-600">{r.habisTahunIni ? 'Dana habis' : r.selepasHabis ? 'Dana telah habis' : r.fasa}</td>
                                     <td className="p-2 text-right text-slate-700">{formatRM(r.awal)}</td>
-                                    <td className="p-2 text-right text-slate-500">{r.pelarasan ? '-' + formatRM(Math.abs(r.pelarasan)) : '-'}</td>
-                                    <td className="p-2 text-right text-slate-500">{r.keluar ? formatRM(r.keluar) : '-'}</td>
+                                    <td className="p-2 text-right text-slate-500">{r.pelarasan ? '-' + formatRM(Math.abs(r.pelarasan)) : (r.fasa === 'Mengumpul' ? 'Belum bersara' : '-')}</td>
+                                    <td className="p-2 text-right text-slate-500">{r.keluar ? formatRM(r.keluar) : (r.fasa === 'Mengumpul' ? 'Belum bersara' : '-')}</td>
                                     <td className={`p-2 text-right font-bold ${turun || r.habisTahunIni ? 'text-red-600' : 'text-slate-800'}`}>{formatRM(r.akhir)}</td>
                                   </tr>
                                 );
                               })}
                             </tbody>
                           </table>
+                        </div>
+                        <div className="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-600 leading-relaxed">
+                            <p className="font-bold mb-1">Cara baca jadual:</p>
+                            <ul className="list-disc pl-4 space-y-1">
+                                <li><b>Mengumpul</b>: sebelum bersara, dana hanya bertambah mengikut pulangan setahun. Belum ada tolakan atau belanja.</li>
+                                <li><b>Tolak (Pendidikan, Hutang, Kesihatan)</b>: kos-kos ini ditolak sekali gus pada tahun bersara.</li>
+                                <li><b>Belanja Setahun</b>: selepas bersara, perbelanjaan tahunan (naik mengikut inflasi) ditolak daripada dana setiap tahun. Jika dana mencukupi, lajur ini terisi sehingga akhir jangka hayat.</li>
+                                <li><b>Dana Akhir RM0</b>: dana telah habis. Baris merah menunjukkan tahun dana habis.</li>
+                            </ul>
                         </div>
                         <p className="text-[11px] text-slate-400 mt-2">Anggaran berdasarkan pulangan {assetReturnRate}% setahun dan inflasi {inflationRate}%, sama seperti kad Ketahanan Dana di atas. Bukan nasihat kewangan.</p>
                       </Card>
