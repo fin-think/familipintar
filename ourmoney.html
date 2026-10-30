@@ -439,7 +439,7 @@
         <!-- Kad Misi Kewangan (sasaran daripada myTADBIR) -->
         <div class="misi-card" id="misi-card">
             <h3>🎯 Misi Kewangan</h3>
-            <div class="misi-sub">Sasaran daripada myTADBIR dan JomBercuti. Untuk menyetor, rekod di <b>Rekod Transaksi Harian → Duit Keluar</b> dan pilih misi atau percutian pada Kategori.</div>
+            <div class="misi-sub">Sasaran daripada myTADBIR dan JomBercuti. Untuk menyimpan, rekod di <b>Rekod Transaksi Harian → Duit Keluar</b> dan pilih misi atau percutian pada Kategori.</div>
             <div id="misi-isi"><div class="misi-kosong">Memuatkan misi...</div></div>
         </div>
 
@@ -1052,7 +1052,7 @@
                 bar = k.pct;
                 meta = `<span>${fmtRM(k.nilai)} / ${fmtRM(a.target_fv)} (${k.pct.toFixed(0)}%)</span><span>Sasaran: ${it.sasaranTarikh}</span>`;
                 bulan = k.siap ? 'Sasaran tercapai. Syabas!'
-                    : `${k.status === 'lewat' ? 'Untuk mengejar, setor' : 'Pelan'} <b>${fmtRM(k.cadangan)}</b>/bulan${k.lepasTarikh ? ' (tarikh sasaran sudah lepas)' : ''} • Bulan ini disetor <b>${fmtRM(k.bulanIni)}</b>`;
+                    : `${k.status === 'lewat' ? 'Untuk mengejar, simpan' : 'Pelan'} <b>${fmtRM(k.cadangan)}</b>/bulan${k.lepasTarikh ? ' (tarikh sasaran sudah lepas)' : ''} • Bulan ini disimpan <b>${fmtRM(k.bulanIni)}</b>`;
                 btn = '';
             } else {
                 pill = '<span class="misi-pill pill-baru">Belum dimulakan</span>' + (it.muat ? '' : ' <span class="misi-pill pill-kemudian">Fasa kemudian</span>');
@@ -1104,7 +1104,7 @@
 
     // Kemas kini pelan: nilai semasa dibawa sebagai baki permulaan (elak kira dua kali setoran lama)
     window.kemaskiniPelanMisi = async () => {
-        if (!confirm("Kemas kini pelan mengikut data terkini myTADBIR?\n\nSetoran lama kekal. Nilai semasa setiap misi dijadikan baki permulaan, dan simpanan bulanan dikira semula.")) return;
+        if (!confirm("Kemas kini pelan mengikut data terkini myTADBIR?\n\nSimpanan lama kekal. Nilai semasa setiap misi dijadikan baki permulaan, dan simpanan bulanan dikira semula.")) return;
         try {
             for (const pg of profilMisi) {
                 const a = misiAktif[pg.id];
@@ -1167,13 +1167,13 @@
         const tajuk = { peringatan: ['📅', 'Peringatan simpanan bulan ini'], amaran: ['⚠️', 'Amaran: hampir hujung bulan'], gagal: ['❌', 'Anda gagal mencapai simpanan bulan ini'] }[tahap];
         const hari = new Date().getDate();
         const ayat = tahap === 'gagal'
-            ? 'Hari ini ' + hari + 'hb dan simpanan berikut masih belum disetor sepenuhnya. Setor sekarang untuk mengejar sebelum bulan tamat:'
-            : (tahap === 'amaran' ? 'Tinggal beberapa hari lagi. Simpanan berikut masih belum cukup:' : 'Simpanan berikut belum disetor sepenuhnya bulan ini:');
+            ? 'Hari ini ' + hari + 'hb dan simpanan berikut masih belum disimpan sepenuhnya. Simpan sekarang untuk mengejar sebelum bulan tamat:'
+            : (tahap === 'amaran' ? 'Tinggal beberapa hari lagi. Simpanan berikut masih belum cukup:' : 'Simpanan berikut belum disimpan sepenuhnya bulan ini:');
         box.innerHTML = `<div class="notif-misi ${tahap}">
             <div class="ikon">${tajuk[0]}</div>
             <div class="isi"><b>${tajuk[1]}</b><br>${ayat}
                 <ul>${tarikhTiada.map(x => `<li>${x.ikon} ${esc(x.nama)}: baki <b>${fmtRM(x.baki)}</b></li>`).join('')}</ul>
-                <button class="setor" onclick="pilihSetor('${esc(tarikhTiada[0].nilai)}')">Setor sekarang ➔</button>
+                <button class="setor" onclick="pilihSetor('${esc(tarikhTiada[0].nilai)}')">Simpan sekarang ➔</button>
             </div>
             ${tahap !== 'gagal' ? '<button class="tutup" onclick="tutupNotifMisi()" title="Tutup">✕</button>' : ''}
         </div>`;
@@ -1209,7 +1209,7 @@
             const kunci = bulanIniStr + '|' + tahap;
             if (sudah === kunci) return;
             const tajuk = { peringatan: 'Peringatan simpanan bulan ini', amaran: 'Amaran: hampir hujung bulan', gagal: 'Simpanan bulan ini belum tercapai' }[tahap] || 'OurMoney';
-            const pilihan = { body: bil + ' misi simpanan belum cukup bulan ini. Setor sekarang.', tag: 'ourmoney-simpanan', renotify: true, data: { app: 'ourmoney', url: '/ourmoney.html' } };
+            const pilihan = { body: bil + ' misi simpanan belum cukup bulan ini. Simpan sekarang.', tag: 'ourmoney-simpanan', renotify: true, data: { app: 'ourmoney', url: '/ourmoney.html' } };
             if (reg) await reg.showNotification(tajuk, pilihan); else new Notification(tajuk, pilihan);
             try { localStorage.setItem('om_notif_hantar', kunci); } catch (e) {}
         } catch (e) { console.warn('Notifikasi gagal:', e); }
