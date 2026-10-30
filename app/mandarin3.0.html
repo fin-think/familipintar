@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script src="/_sdk/element_sdk.js"></script>
+  <script src="../mandarin-progress.js?v=1"></script>
    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
 <style>
   * { font-family: 'Nunito', sans-serif; }
@@ -322,6 +323,7 @@
     function openLesson(id) {
       const topic = topics.find(t => t.id === id);
       const d = data[id];
+      if (window.MandarinProg) MandarinProg.buka(id);
       if (!d) return;
 
       document.getElementById('home-view').classList.add('hidden');
@@ -394,6 +396,7 @@
 
       function showQ() {
         if (qi >= questions.length) {
+          if (window.MandarinProg) MandarinProg.skor(id, score, questions.length);
           area.innerHTML = `<div class="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-8 text-center fade-in">
             <div class="text-5xl mb-4">🎉</div>
             <p class="font-bold text-2xl text-emerald-800 mb-4">Skor Anda: ${score} / ${questions.length}</p>
