@@ -808,11 +808,17 @@ if (rdb.monthlyBudget === undefined) {
 
           const futureLiquidAssets = totalLiquidAssets * Math.pow(1 + rA, yearsToRetire);
 
-          // Pendidikan: kos dikompaun hingga tahun bersara, ditolak dana SSPN/ASB (juga dikompaun)
-          const eduCostAtRetire = childrenData.reduce((t, c) => {
-            const yUni = Math.max(0, umurUniAnak(c) - c.age);
-            return t + kosAnak(c) * Math.pow(1 + educationInflation / 100, yUni) * Math.pow(1 + rA, yearsToRetire - yUni);
-          }, 0);
+          // Pendidikan (model persaraan): jumlah kos (selepas inflasi) dibahagi sama rata sepanjang TEMPOH_PENGAJIAN tahun belajar,
+          // dan dalam paparan Induk/Pasangan setiap pihak menanggung 50% (paparan Gabungan = 100% daripada dana bersama).
+          const TEMPOH_PENGAJIAN = 4;
+          const faktorEdu = (infoPeranan && infoPeranan.ada && mod !== 'gabungan') ? 0.5 : 1;
+          const bayaranPendidikan = (c) => {
+            const yUni = Math.round(Math.max(0, umurUniAnak(c) - c.age));
+            const jumlah = kosAnak(c) * Math.pow(1 + educationInflation / 100, yUni) * faktorEdu;
+            return Array.from({ length: TEMPOH_PENGAJIAN }, (_, k) => ({ tahunKe: yUni + k, jumlah: jumlah / TEMPOH_PENGAJIAN }));
+          };
+          const eduCostAtRetire = childrenData.reduce((t, c) =>
+            t + bayaranPendidikan(c).reduce((u, b) => u + b.jumlah * Math.pow(1 + rA, yearsToRetire - b.tahunKe), 0), 0);
           const eduNetAtRetire = eduCostAtRetire - totalEducationFundNow * Math.pow(1 + rA, yearsToRetire);   // negatif = dana lebih
           const futureAssetsAfterEducation = futureLiquidAssets - eduNetAtRetire;
 
@@ -838,12 +844,12 @@ if (rdb.monthlyBudget === undefined) {
             const num = (v) => Number.isFinite(v) ? v : 0;
             const eduMengikutTahun = {};
             childrenData.forEach((c, idx) => {
-              const yUni = Math.max(0, umurUniAnak(c) - c.age);
-              const kos = num(kosAnak(c) * Math.pow(1 + educationInflation / 100, yUni));
-              const k = Math.round(yUni);
-              if (!eduMengikutTahun[k]) eduMengikutTahun[k] = { jumlah: 0, nama: [] };
-              eduMengikutTahun[k].jumlah += kos;
-              eduMengikutTahun[k].nama.push(c.name || ('Anak ' + (idx + 1)));
+              bayaranPendidikan(c).forEach(b => {
+                if (!eduMengikutTahun[b.tahunKe]) eduMengikutTahun[b.tahunKe] = { jumlah: 0, nama: [] };
+                eduMengikutTahun[b.tahunKe].jumlah += num(b.jumlah);
+                const nm = c.name || ('Anak ' + (idx + 1));
+                if (!eduMengikutTahun[b.tahunKe].nama.includes(nm)) eduMengikutTahun[b.tahunKe].nama.push(nm);
+              });
             });
             const kesihatanSemasa = num(totalCurrentHealthLeakage);
             const belanjaMula = num(yearlyRetirementExpense);
@@ -2025,8 +2031,8 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                             <ul className="list-disc pl-4 space-y-1">
                                 <li><b>Aset Awal</b>: kolam pelaburan anda (aset cair + dana pendidikan SSPN/ASB). Rumah dan kereta tidak dikira kerana tidak dibelanjakan untuk hidup.</li>
                                 <li><b>+ Pulangan</b>: keuntungan setahun pada kadar {assetReturnRate}% atas baki selepas tolakan tahun itu.</li>
-                                <li><b>- Pendidikan</b>: jumlah kos pengajian penuh (semua tahun belajar, sudah termasuk inflasi pendidikan) ditolak <b>sekali gus pada tahun anak mula masuk universiti</b>. Ia tidak dibahagi setahun-setahun mengikut tempoh belajar, jadi anggaran ini sedikit konservatif.</li>
-                                <li><b>Pendidikan: siapa tanggung?</b> Anak dikira sekali sahaja daripada data keluarga. Dalam paparan <b>Induk</b> atau <b>Pasangan</b>, setiap paparan menolak kos penuh itu daripada dana individu masing-masing. Untuk gambaran isi rumah yang tepat (kos ditolak sekali daripada dana bersama), guna paparan <b>Gabungan</b>.</li>
+                                <li><b>- Pendidikan</b>: jumlah kos pengajian penuh (sudah termasuk inflasi pendidikan) dibahagi sama rata sepanjang {TEMPOH_PENGAJIAN} tahun belajar, bermula pada tahun anak masuk universiti.</li>
+                                <li><b>Pendidikan: siapa tanggung?</b> Anak dikira sekali sahaja daripada data keluarga. {faktorEdu === 0.5 ? 'Dalam paparan ini, anda menanggung 50% daripada kos (separuh lagi ditanggung pasangan). Paparan Gabungan menolak 100% kos daripada dana bersama suami isteri.' : 'Dalam paparan ini 100% kos ditolak daripada dana yang dipaparkan.'}</li>
                                 <li><b>- Hutang</b>: semasa bekerja, hutang dibayar daripada gaji (komitmen bulanan). Baki hutang yang masih tinggal pada hari bersara ditolak sekali dari kolam.</li>
                                 <li><b>- Kesihatan</b> dan <b>- Belanja Hidup</b>: bermula pada tahun bersara, naik setiap tahun mengikut inflasi kesihatan dan inflasi umum. Sebelum bersara, kedua-duanya dibayar daripada gaji.</li>
                                 <li><b>Nilai Bersih</b>: Aset Akhir tolak Baki Hutang. Ini nilai sebenar anda pada akhir tahun itu, tetapi hutang tidak ditolak dua kali dalam pengiraan.</li>
