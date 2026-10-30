@@ -820,15 +820,6 @@ if (rdb.monthlyBudget === undefined) {
           const bakiUntukBersara = futureAssetsAfterEducation - unjuranTotalDebts - totalRetirementHealthNeeds;
           const bakiPositif = Math.max(0, bakiUntukBersara);
 
-          // Berapa lama baki mampu menampung sasaran belanja (kadar sebenar, sama model dengan korpus)
-          const yearsItWillLast = (() => {
-            if (yearlyRetirementExpense <= 0) return yearsInRetirement;
-            if (bakiPositif <= 0) return 0;
-            if (Math.abs(realReturn) < 1e-9) return bakiPositif / yearlyRetirementExpense;
-            const x = bakiPositif * realReturn / (yearlyRetirementExpense * (1 + realReturn));
-            return x >= 1 ? 60 : Math.min(60, -Math.log(1 - x) / Math.log(1 + realReturn));
-          })();
-          const exhaustAge = retireAge + yearsItWillLast;
 
           const totalFutureNeeds = unjuranTotalDebts + Math.max(0, eduNetAtRetire) + retirementCorpusNeeded + totalRetirementHealthNeeds;
           const retirementShortfall = Math.max(0, retirementCorpusNeeded - bakiUntukBersara);
@@ -866,7 +857,7 @@ if (rdb.monthlyBudget === undefined) {
               const bersara = u >= umurBersara;
               const e = eduMengikutTahun[i];
               const edu = e ? e.jumlah : 0;
-              let hutang = 0, kes = 0, belanja = 0, akhir, pulangan = 0, habisTahunIni = false;
+              let hutang = 0, kes = 0, belanja = 0, akhir, pulangan = 0, habisTahunIni = false, bahagian = 0;
               const peristiwa = [];
               if (e) peristiwa.push('Pengajian: ' + e.nama.join(', '));
               if (!bersara) {
@@ -882,7 +873,7 @@ if (rdb.monthlyBudget === undefined) {
                   akhir = 0;
                   if (!sudahHabis && (kesPerlu + belanjaPerlu) > 0) { habisTahunIni = true; sudahHabis = true; }
                 } else if (ada < kesPerlu + belanjaPerlu) {
-                  kes = Math.min(kesPerlu, ada); belanja = Math.max(0, ada - kes);
+                  kes = Math.min(kesPerlu, ada); belanja = Math.max(0, ada - kes); bahagian = ada / (kesPerlu + belanjaPerlu);
                   akhir = 0; habisTahunIni = true; sudahHabis = true;
                 } else {
                   kes = kesPerlu; belanja = belanjaPerlu;
@@ -895,7 +886,7 @@ if (rdb.monthlyBudget === undefined) {
               baris.push({
                 tahun: tahunSemasa + i, umur: u, fasa: bersara ? 'Bersara' : 'Bekerja', awal, pulangan, edu, hutang, kes, belanja, akhir,
                 bakiHutang: bakiHutangAkhir, bersih: akhir - bakiHutangAkhir, peristiwa: peristiwa.join(' · '),
-                habisTahunIni, selepasHabis: sudahHabis && !habisTahunIni
+                habisTahunIni, bahagian, selepasHabis: sudahHabis && !habisTahunIni
               });
               dana = bersara ? Math.max(0, akhir) : akhir;
               if (baris.length > 120) break;
@@ -903,6 +894,16 @@ if (rdb.monthlyBudget === undefined) {
             return baris;
           })();
           
+          // Berapa lama dana bertahan: diambil terus daripada jadual tahunan (satu sumber kebenaran, sama dengan kad & jadual)
+          const yearsItWillLast = (() => {
+            if (yearlyRetirementExpense <= 0 && totalCurrentHealthLeakage <= 0) return yearsInRetirement;
+            const habis = jadualDana.find(r => r.habisTahunIni);
+            if (!habis) return yearsInRetirement;
+            return Math.max(0, habis.umur - retireAge) + (habis.bahagian || 0);
+          })();
+          const exhaustAge = retireAge + yearsItWillLast;
+          const asetPadaBersara = (() => { const r = jadualDana.find(x => x.umur === retireAge); return r ? Math.max(0, r.awal - r.edu - r.hutang) : bakiPositif; })();
+
           let financialScore = 0;
 
           if (monthlyBalance >= 3000) financialScore += 25;
@@ -1965,9 +1966,9 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                             <p className="text-[10px] text-slate-400">SSPN &amp; ASB anak (digabung ke kolam)</p>
                           </div>
                           <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
-                            <p className="text-[11px] font-bold text-slate-500 uppercase">Baki Bersih Pada Umur {retireAge}</p>
-                            <p className="text-lg font-extrabold text-slate-800">{formatRM(bakiPositif)}</p>
-                            <p className="text-[10px] text-slate-400">Selepas pendidikan, hutang &amp; kesihatan</p>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase">Aset Pada Umur {retireAge}</p>
+                            <p className="text-lg font-extrabold text-slate-800">{formatRM(asetPadaBersara)}</p>
+                            <p className="text-[10px] text-slate-400">Selepas pendidikan &amp; hutang, sebelum belanja &amp; kesihatan</p>
                           </div>
                           <div className={`rounded-xl p-3 text-center border ${retirementShortfall <= 0 ? 'bg-sky-50 border-sky-200' : 'bg-red-50 border-red-200'}`}>
                             <p className="text-[11px] font-bold text-slate-500 uppercase">Dana Bertahan Sehingga</p>
