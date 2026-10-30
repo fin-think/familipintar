@@ -1577,6 +1577,15 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         const sasaranNodeInduk = nodInduk.find(n => n.id === sasaranIdPusat);
         const sasaranAdalahPasangan = !sayaInduk && !!sasaranNodeInduk && /suami|isteri/i.test(sasaranNodeInduk.relationship || '');
 
+        // Adik-beradik yang berdaftar/dijemput: tentukan Abang/Kakak/Adik berdasarkan jantina & tarikh lahir berbanding saya (jika tak lengkap, kekal "Adik-beradik")
+        const nodSayaRoot = [nodInduk, ...akaun.map(a => a.nod)].flat().find(x => x.is_root && x.owner_uid === saya);
+        const labelSaudara = (n) => {
+            if (!n.gender || !n.dob || !nodSayaRoot || !nodSayaRoot.dob) return 'Adik-beradik';
+            const tn = new Date(n.dob).getTime(), ts = new Date(nodSayaRoot.dob).getTime();
+            if (isNaN(tn) || isNaN(ts) || tn === ts) return 'Adik-beradik';
+            if (tn > ts) return 'Adik';
+            return n.gender === 'L' ? 'Abang' : 'Kakak';
+        };
         const label = (n) => {
             const h = n.relationship || '';
             if (/^pasangan/i.test(h)) return h;
@@ -1585,8 +1594,8 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             // Ibu bapa pasangan induk ialah ibu bapa saya sendiri bila saya dijemput sebagai adik-beradik pasangan
             if (sasaranAdalahPasangan && n.owner_uid === indukUid && /mertua/i.test(h)) return /bapa/i.test(h) ? 'Ayah' : 'Ibu';
             if (uidAdikCantum.has(n.owner_uid)) {
-                if (n.is_root) return 'Adik-beradik';
-                if (/^(abang|kakak|adik|adik-beradik)$/i.test(h)) return 'Adik-beradik';
+                if (n.is_root) return labelSaudara(n);
+                if (/^(abang|kakak|adik|adik-beradik)$/i.test(h)) return labelSaudara(n);
                 if (/suami|isteri|menantu/i.test(h)) return 'Ipar';
                 if (h === 'Anak') return 'Anak saudara';
                 if (h === 'Cucu') return 'Cucu saudara';
@@ -1599,16 +1608,16 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
                 if (n.owner_uid === indukUid) {
                     const sasaranNode = nodInduk.find(x => x.id === sasaranIdPusat);
                     if (sasaranNode && (/suami|isteri/i.test(sasaranNode.relationship || ''))) return 'Ipar';
-                    return 'Adik-beradik';
+                    return labelSaudara(n);
                 }
                 if (sayaInduk) {
-                    return sasaranUid[n.owner_uid] === indukRootId ? 'Adik-beradik' : 'Ipar';
+                    return sasaranUid[n.owner_uid] === indukRootId ? labelSaudara(n) : 'Ipar';
                 } else {
-                    return sasaranUid[n.owner_uid] === sasaranIdPusat ? 'Adik-beradik' : 'Ipar';
+                    return sasaranUid[n.owner_uid] === sasaranIdPusat ? labelSaudara(n) : 'Ipar';
                 }
             }
             if (n.owner_uid !== saya) {
-                if (!sayaInduk && n.id === sasaranIdPusat) return 'Adik-beradik';
+                if (!sayaInduk && n.id === sasaranIdPusat) return labelSaudara(n);
                 if (/suami|isteri/i.test(h)) return 'Ipar';
                 if (h === 'Anak') return 'Anak saudara';
                 if (h === 'Cucu') return 'Cucu saudara';
