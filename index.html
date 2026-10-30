@@ -354,7 +354,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 <!-- PINTU MASUK (KAD) -->
 <section id="pintu-masuk" class="scroll-mt-6 mb-10">
     <div class="text-center mb-8">
-        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-2">Satu ekosistem, sembilan pintu masuk</h2>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-2">Satu ekosistem, tujuh pintu masuk</h2>
         <p class="text-slate-500">Mulakan dari mana-mana yang paling anda perlukan sekarang. Semuanya berhubung dan berkongsi maklumat keluarga yang sama.</p>
     </div>
 
@@ -480,31 +480,25 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             </span>
         </a>
 
-       <!-- 8. Koleksi eBook (Putih) -->
-        <a onclick="semakAksesPintu('Koleksi eBook', 'daebook/index.html')" class="cursor-pointer group bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
-            <div class="w-14 h-14 rounded-2xl bg-yellow-100 text-yellow-600 flex items-center justify-center text-2xl mb-5">
-                <i class="fa-solid fa-book"></i>
+        <!-- 8. Lagi untuk Keluarga (eBook + Mandarin dalam satu kad) -->
+        <div class="bg-white rounded-3xl p-7 border border-slate-100 shadow-sm flex flex-col md:col-span-2">
+            <h3 class="text-xl font-extrabold text-slate-800">Lagi untuk Keluarga</h3>
+            <p class="text-slate-500 text-sm font-semibold mb-5">Bahan bacaan dan pembelajaran tambahan</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-grow">
+                <a onclick="semakAksesPintu('Koleksi eBook', 'daebook/index.html')" class="cursor-pointer group rounded-2xl bg-yellow-50 border border-yellow-100 p-5 flex flex-col hover:shadow-md hover:-translate-y-0.5 transition-all">
+                    <div class="w-11 h-11 rounded-xl bg-yellow-100 text-yellow-600 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-book"></i></div>
+                    <h4 class="font-extrabold text-slate-800">Koleksi eBook</h4>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-3 flex-grow">30+ e-book panduan parenting, kewangan, pelaburan dan motivasi untuk dibaca bila-bila masa.</p>
+                    <span class="inline-flex items-center gap-2 font-bold text-yellow-600 text-sm group-hover:gap-3 transition-all">Terokai eBook <i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+                <a onclick="semakAksesPintu('Belajar Mandarin', 'mandarin.html')" class="cursor-pointer group rounded-2xl bg-orange-50 border border-orange-100 p-5 flex flex-col hover:shadow-md hover:-translate-y-0.5 transition-all">
+                    <div class="w-11 h-11 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-language"></i></div>
+                    <h4 class="font-extrabold text-slate-800">Belajar Mandarin</h4>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-3 flex-grow">Belajar Mandarin setahap demi setahap, ikut kadar anda, dan jadikan ia aktiviti bersama anak-anak.</p>
+                    <span class="inline-flex items-center gap-2 font-bold text-orange-600 text-sm group-hover:gap-3 transition-all">Mula Belajar <i class="fa-solid fa-arrow-right"></i></span>
+                </a>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-800">Koleksi eBook</h3>
-            <p class="text-yellow-600 text-sm font-semibold mb-3">Ilmu praktikal, mudah difahami</p>
-            <p class="text-slate-500 text-sm leading-relaxed mb-5 flex-grow">30+ e-book panduan parenting, kewangan, pelaburan dan motivasi untuk dibaca bila-bila masa.</p>
-            <span class="inline-flex items-center gap-2 font-bold text-yellow-600 group-hover:gap-3 transition-all">
-                Terokai eBook <i class="fa-solid fa-arrow-right"></i>
-            </span>
-        </a>
-
-        <!-- 9. Belajar Mandarin (Putih) -->
-        <a onclick="semakAksesPintu('Belajar Mandarin', 'mandarin.html')" class="cursor-pointer group bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
-            <div class="w-14 h-14 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-2xl mb-5">
-                <i class="fa-solid fa-language"></i>
-            </div>
-            <h3 class="text-xl font-extrabold text-slate-800">Belajar Mandarin</h3>
-            <p class="text-orange-600 text-sm font-semibold mb-3">Bahasa baru bersama keluarga</p>
-            <p class="text-slate-500 text-sm leading-relaxed mb-5 flex-grow">Belajar Mandarin setahap demi setahap, ikut kadar anda, dan jadikan ia aktiviti bersama anak-anak.</p>
-            <span class="inline-flex items-center gap-2 font-bold text-orange-600 group-hover:gap-3 transition-all">
-                Mula Belajar <i class="fa-solid fa-arrow-right"></i>
-            </span>
-        </a>
+        </div>
 
     </div>
     <p class="text-center mt-6"><a id="pautanLihatSemua" onclick="togolLihatSemua()" style="display:none" class="cursor-pointer text-sm text-slate-500 hover:text-slate-800 underline"></a></p>
