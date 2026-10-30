@@ -112,12 +112,11 @@ onAuthStateChanged(auth, async (user) => {
                 
                 // Jika belum dipautkan, pautkan sekarang!
                 if (!linkSnap.exists()) {
-                    await setDoc(linkRef, {
+                    const statusPautan = await cipraPautan(user.uid, {
                         uid: user.uid,
                         owner_uid: jemputan.owner_uid,
                         sasaran_id: jemputan.sasaran_id,
                         kod: kodJemput,
-                        status: 'menunggu',
                         nama: dataPengguna.name,
                         created_at: new Date()
                     });
@@ -133,7 +132,8 @@ onAuthStateChanged(auth, async (user) => {
                         created_at: new Date()
                     }, { merge: true }); // guna merge supaya tak padam data sedia ada
 
-                    alert(`Berjaya! Pautan keluarga anda menunggu kelulusan ${jemputan.nama_pengundang}.`);
+                    if (statusPautan === 'aktif') await tambahAdikKePokokInduk(user.uid);
+                    alert(statusPautan === 'aktif' ? `Berjaya! Anda kini dipautkan dengan keluarga ${jemputan.nama_pengundang}.` : `Berjaya! Pautan keluarga anda menunggu kelulusan ${jemputan.nama_pengundang}.`);
                 }
                 
                 // Padam kod jemputan dari ingatan dan bersihkan URL URL
@@ -273,6 +273,13 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
 }
 
 // Salin ibu bapa & leluhur pengundang ke akaun adik-beradik (dipakai semasa daftar dan butang Kemas Kini Pokok)
+// Pautan adik-beradik terus aktif (tiada kelulusan). Jika peraturan lama masih menolak status 'aktif', jatuh balik ke 'menunggu'.
+async function cipraPautan(uid, data) {
+    const ref = doc(db, "mynasab_links", uid);
+    try { await setDoc(ref, { ...data, status: 'aktif' }); return 'aktif'; }
+    catch (e) { await setDoc(ref, { ...data, status: 'menunggu' }); return 'menunggu'; }
+}
+
 async function salinLeluhurAdik(jem, uidBaru) {
     const user = { uid: uidBaru };
     try {
@@ -436,23 +443,24 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
             catch (e) { console.warn("Gagal menyediakan pokok anak saudara", e); }
             sessionStorage.removeItem('simpanJemput');
         } else if (jem) {
-            await setDoc(doc(db, "mynasab_links", user.uid), {
+            const statusPautanDaftar = await cipraPautan(user.uid, {
                 uid: user.uid,
                 owner_uid: jem.owner_uid,
                 sasaran_id: jem.sasaran_id,
                 kod: kodJemput,
-                status: 'menunggu',
                 nama: namaKeluarga,
                 created_at: new Date()
             });
 
             await salinLeluhurAdik(jem, user.uid);
+            if (statusPautanDaftar === 'aktif') await tambahAdikKePokokInduk(user.uid);
+            window.__statusPautanDaftar = statusPautanDaftar;
         }
         
         alert(jem && jem.jenis === 'anak_saudara'
             ? `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit. Pokok keluarga anda (ibu bapa dan datuk nenek) telah disediakan. Sila semak dan kemas kini maklumat mereka.`
             : jem
-            ? `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit. Pautan keluarga anda menunggu kelulusan ${jem.nama_pengundang}.`
+            ? `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit. ${window.__statusPautanDaftar === 'menunggu' ? 'Pautan keluarga anda menunggu kelulusan' : 'Anda kini dipautkan dengan keluarga'} ${jem.nama_pengundang}.`
             : `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit percuma.`);
         location.href = location.pathname;
     } catch (error) {
