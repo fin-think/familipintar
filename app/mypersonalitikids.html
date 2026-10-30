@@ -97,6 +97,7 @@
         <p class="mt-2">© HCH</p>
     </footer>
 
+<script src="../autosave.js?v=2"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -446,6 +447,7 @@ window.simpanManual = async function () {
 };
 
 function setStatus(t, ok) {
+    try { window.AutoSimpan && window.AutoSimpan.toast(t, ok ? 'tersimpan' : 'gagal'); } catch (e) {}
     const el = $('save-status');
     if (!el) return;
     el.textContent = t;

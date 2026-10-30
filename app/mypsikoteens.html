@@ -75,6 +75,7 @@
     </footer>
 </div>
 
+<script src="../autosave.js?v=2"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -234,7 +235,8 @@ async function selesai() {
 }
 
 // ---------- SIMPAN KE myKids ----------
-function setStatus(t, ok) { const el = $('save-status'); if (el) { el.textContent = t; el.className = 'text-sm font-semibold ' + (ok ? 'text-emerald-600' : 'text-red-600'); }
+function setStatus(t, ok) {
+    try { window.AutoSimpan && window.AutoSimpan.toast(t, ok ? 'tersimpan' : 'gagal'); } catch (e) {} const el = $('save-status'); if (el) { el.textContent = t; el.className = 'text-sm font-semibold ' + (ok ? 'text-emerald-600' : 'text-red-600'); }
     // Simpan berlaku automatik; butang hanya muncul jika gagal, untuk cuba semula
     const b = $('btn-simpan'); if (b) { b.classList.toggle('hidden', ok); if (!ok) { b.disabled = false; b.textContent = '💾 Cuba simpan semula'; } }
 }

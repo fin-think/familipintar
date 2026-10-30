@@ -127,6 +127,7 @@
     </div>
 
     <!-- Skrip Firebase & Logik Aplikasi -->
+<script src="../autosave.js?v=2"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -386,7 +387,8 @@
             await simpan();
         }
 
-        function setStatus(t, ok) { 
+        function setStatus(t, ok) {
+    try { window.AutoSimpan && window.AutoSimpan.toast(t, ok ? 'tersimpan' : 'gagal'); } catch (e) {} 
             const el = $('save-status'); 
             if (el) { 
                 el.textContent = t; 
