@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direktori Servis | Famili Pintar</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; }
+  .chip { padding:.5rem .9rem; border:1px solid #cbd5e1; border-radius:999px; font-size:.82rem; font-weight:700; background:#fff; cursor:pointer; white-space:nowrap; }
+  .chip.on { background:#0f766e; color:#fff; border-color:#0f766e; }
+  .inp { padding:.65rem .85rem; border:1px solid #cbd5e1; border-radius:.75rem; background:#fff; font-size:.9rem; width:100%; }
+  .kad { background:#fff; border:1px solid #e2e8f0; border-radius:1.25rem; overflow:hidden; cursor:pointer; transition:.15s; display:flex; flex-direction:column; }
+  .kad:hover { box-shadow:0 10px 24px rgba(15,23,42,.1); transform:translateY(-2px); }
+  .kad .gambar { height:9.5rem; background:#e2e8f0 center/cover; }
+  .lencana { font-size:.65rem; font-weight:800; padding:.2rem .55rem; border-radius:999px; display:inline-flex; gap:.3rem; align-items:center; }
+  .modal { position:fixed; inset:0; background:rgba(15,23,42,.6); z-index:50; display:none; align-items:flex-end; justify-content:center; }
+  .modal.buka { display:flex; }
+  .lembaran { background:#fff; width:100%; max-width:42rem; max-height:92vh; overflow:auto; border-radius:1.5rem 1.5rem 0 0; }
+  @media (min-width:640px){ .modal{align-items:center} .lembaran{border-radius:1.5rem} }
+</style>
+</head>
+<body class="min-h-screen pb-16">
+<header class="bg-gradient-to-r from-teal-800 to-teal-950 text-white">
+  <div class="max-w-5xl mx-auto px-4 py-6">
+    <a href="index.html" class="text-teal-200 text-sm font-semibold"><i class="fa-solid fa-arrow-left"></i> Famili Pintar</a>
+    <h1 class="text-2xl md:text-3xl font-extrabold mt-2">Direktori Servis Rumah</h1>
+    <p class="text-teal-100 text-sm">Cari tukang dan perkhidmatan di bandar anda. Kenali wajah dan premis mereka sebelum anda menghubungi.</p>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 mt-6">
+  <div id="gate" class="hidden bg-white rounded-2xl border p-8 text-center">
+    <p class="font-bold text-slate-700 mb-3">Sila log masuk akaun Famili Pintar untuk melihat direktori.</p>
+    <a href="index.html" class="inline-block bg-teal-600 text-white font-bold px-6 py-3 rounded-xl">Log masuk / Daftar</a>
+  </div>
+
+  <div id="isi" class="hidden">
+    <div class="flex gap-2 overflow-x-auto pb-2" id="kategori"></div>
+    <div class="grid sm:grid-cols-[1fr_1fr_auto] gap-3 mt-3">
+      <select id="negeri" class="inp"></select>
+      <input id="bandar" class="inp" placeholder="Bandar, cth: Shah Alam">
+      <button id="btnCari" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-3 rounded-xl"><i class="fa-solid fa-magnifying-glass"></i> Cari</button>
+    </div>
+    <p id="ringkasan" class="text-sm text-slate-500 mt-4"></p>
+    <div id="senarai" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-3"></div>
+    <div class="mt-10 bg-white border rounded-2xl p-6 text-center">
+      <p class="font-extrabold text-slate-800">Anda ada perniagaan servis?</p>
+      <p class="text-sm text-slate-500 mb-3">Senaraikan perniagaan anda untuk dilihat keluarga di bandar anda. Bulan pertama percuma.</p>
+      <a href="direktori-daftar.html" class="inline-block bg-slate-800 text-white font-bold px-5 py-2.5 rounded-xl text-sm">Daftar perniagaan</a>
+    </div>
+  </div>
+</main>
+
+<!-- PROFIL PENIAGA -->
+<div class="modal" id="mProfil"><div class="lembaran" id="profil"></div></div>
+<!-- PERSETUJUAN RISIKO -->
+<div class="modal" id="mSetuju"><div class="lembaran p-6" id="setuju"></div></div>
+<!-- LAPOR -->
+<div class="modal" id="mLapor"><div class="lembaran p-6" id="lapor"></div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, where, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { firebaseConfig, VERSI_TERMA, KATEGORI, NEGERI, esc, namaKategori, noWa } from "./kongsi.js";
+
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+let user = null, profilUser = {}, kategoriAktif = '', senarai = [], bandarDicari = '';
+
+onAuthStateChanged(auth, async (u) => {
+  if (!u) { $('gate').classList.remove('hidden'); return; }
+  user = u; $('isi').classList.remove('hidden');
+  await muatLokasiPengguna();
+  binaPenapis(); cari();
+});
+
+// Bandar & negeri pengguna diambil daripada profil sedia ada (myNasab). Boleh ditukar secara manual.
+async function muatLokasiPengguna() {
+  try {
+    const s = await getDoc(doc(db, 'mynasab_users', user.uid)); const d = s.exists() ? s.data() : {};
+    profilUser = { bandar: d.bandar || d.city || '', negeri: d.negeri || d.state || '' };
+    if (!profilUser.bandar) { const r = await getDoc(doc(db, 'mynasab_nodes', 'root_' + user.uid)); if (r.exists()) { const n = r.data(); profilUser = { bandar: n.city || '', negeri: n.state || '' }; } }
+  } catch (e) { console.warn('Lokasi tidak dapat dibaca:', e.message); }
+}
+
+function binaPenapis() {
+  $('kategori').innerHTML = `<span class="chip on" data-k="">Semua</span>` + KATEGORI.map(k => `<span class="chip" data-k="${k[0]}"><i class="fa-solid ${k[2]}"></i> ${k[1]}</span>`).join('');
+  $('kategori').onclick = (e) => { const c = e.target.closest('.chip'); if (!c) return; kategoriAktif = c.dataset.k; document.querySelectorAll('#kategori .chip').forEach(x => x.classList.toggle('on', x === c)); papar(); };
+  $('negeri').innerHTML = NEGERI.map(n => `<option ${n === profilUser.negeri ? 'selected' : ''}>${n}</option>`).join('');
+  $('bandar').value = profilUser.bandar || '';
+  $('btnCari').onclick = cari;
+}
+
+async function cari() {
+  $('senarai').innerHTML = '<p class="text-slate-500 col-span-full">Mencari...</p>';
+  bandarDicari = $('bandar').value.trim().toLowerCase();
+  try {
+    // Hanya peniaga diluluskan di negeri dipilih; bandar & kategori ditapis di pelayar (elak indeks komposit)
+    const s = await getDocs(query(collection(db, 'direktori_peniaga'), where('status', '==', 'diluluskan'), where('negeri', '==', $('negeri').value)));
+    const sekarang = Date.now();
+    senarai = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => (p.langganan_tamat || 0) > sekarang);
+  } catch (e) { $('senarai').innerHTML = `<p class="text-rose-600 col-span-full">Gagal memuatkan: ${esc(e.message)}</p>`; return; }
+  papar();
+}
+
+const sama = (p) => bandarDicari && (p.bandar || '').toLowerCase().includes(bandarDicari) || ((p.liputan || '').toLowerCase().includes(bandarDicari) && bandarDicari);
+function papar() {
+  let h = senarai.filter(p => !kategoriAktif || (p.kategori || []).includes(kategoriAktif));
+  const padan = h.filter(sama), lain = h.filter(p => !sama(p));
+  const adaBandar = !!bandarDicari;
+  $('ringkasan').textContent = h.length === 0 ? '' : (adaBandar ? `${padan.length} peniaga di ${$('bandar').value.trim()}${lain.length ? `, ${lain.length} lagi di negeri ${$('negeri').value}` : ''}.` : `${h.length} peniaga di negeri ${$('negeri').value}.`);
+  if (h.length === 0) { $('senarai').innerHTML = `<div class="col-span-full bg-white border rounded-2xl p-8 text-center text-slate-500">Belum ada peniaga${kategoriAktif ? ' bagi ' + esc(namaKategori(kategoriAktif)) : ''} di kawasan ini. Kami sedang menambah peniaga baru.</div>`; return; }
+  const susun = adaBandar ? [...padan, ...lain] : h;
+  $('senarai').innerHTML = susun.map(p => kad(p, adaBandar && !sama(p))).join('');
+  document.querySelectorAll('.kad').forEach(k => k.onclick = () => bukaProfil(k.dataset.id));
+}
+
+const lencanaHtml = (p) => `<span class="lencana bg-emerald-100 text-emerald-700"><i class="fa-solid fa-circle-check"></i> Disahkan Famili Pintar</span>` + (p.ssm_no ? ` <span class="lencana bg-sky-100 text-sky-700"><i class="fa-solid fa-building"></i> Berdaftar SSM</span>` : '');
+function kad(p, luarBandar) {
+  return `<div class="kad" data-id="${esc(p.id)}"><div class="gambar" style="background-image:url('${esc(p.foto_kedai_url)}')"></div>
+    <div class="p-4 flex flex-col gap-2 flex-grow"><h3 class="font-extrabold text-slate-800 leading-tight">${esc(p.nama_perniagaan)}</h3>
+    <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot"></i> ${esc(p.bandar)}${luarBandar ? ' (di luar bandar anda)' : ''}</p>
+    <div class="flex flex-wrap gap-1">${(p.kategori || []).slice(0, 3).map(k => `<span class="text-[11px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">${esc(namaKategori(k))}</span>`).join('')}</div>
+    <div class="mt-auto pt-1">${lencanaHtml(p)}</div></div></div>`;
+}
+
+function bukaProfil(id) {
+  const p = senarai.find(x => x.id === id); if (!p) return;
+  const foto = (url, tajuk, nama) => `<figure class="text-center"><div class="aspect-square rounded-2xl bg-slate-200 bg-center bg-cover" style="background-image:url('${esc(url)}')"></div><figcaption class="mt-1.5 text-[11px] font-bold text-slate-500 uppercase">${tajuk}</figcaption><p class="text-sm font-bold text-slate-800">${esc(nama)}</p></figure>`;
+  $('profil').innerHTML = `
+    <div class="h-48 bg-slate-200 bg-center bg-cover relative" style="background-image:url('${esc(p.foto_kedai_url)}')"><button class="absolute top-3 right-3 bg-white/90 w-9 h-9 rounded-full font-bold" id="tutupProfil">✕</button></div>
+    <div class="p-6 space-y-5">
+      <div><h2 class="text-2xl font-extrabold text-slate-800">${esc(p.nama_perniagaan)}</h2><p class="text-sm text-slate-500 mt-1"><i class="fa-solid fa-location-dot"></i> ${esc(p.bandar)}, ${esc(p.negeri)}${p.liputan ? ' &middot; Meliputi: ' + esc(p.liputan) : ''}</p><div class="mt-2">${lencanaHtml(p)}</div></div>
+      <div><h3 class="font-extrabold text-slate-700 text-sm uppercase mb-2">Siapa yang akan berurusan dengan anda</h3>
+        <div class="grid grid-cols-2 gap-4">${foto(p.foto_pemilik_url, 'Pemilik', p.nama_pemilik)}${foto(p.foto_juruteknik_url, 'Juruteknik', p.nama_juruteknik)}</div></div>
+      <div><h3 class="font-extrabold text-slate-700 text-sm uppercase mb-1">Tentang perkhidmatan</h3><p class="text-sm text-slate-600 leading-relaxed">${esc(p.huraian)}</p>
+        <div class="flex flex-wrap gap-1 mt-2">${(p.kategori || []).map(k => `<span class="text-[11px] font-bold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-md">${esc(namaKategori(k))}</span>`).join('')}</div></div>
+      <ul class="text-sm text-slate-600 space-y-1"><li><i class="fa-regular fa-calendar w-5"></i> Beroperasi sejak <b>${esc(p.tahun_bermula)}</b></li>${p.jam_operasi ? `<li><i class="fa-regular fa-clock w-5"></i> ${esc(p.jam_operasi)}</li>` : ''}${p.ssm_no ? `<li><i class="fa-solid fa-building w-5"></i> No. SSM: ${esc(p.ssm_no)}</li>` : ''}</ul>
+      <button id="btnHubungi" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 rounded-2xl"><i class="fa-brands fa-whatsapp"></i> Hubungi melalui WhatsApp</button>
+      <button id="btnLapor" class="w-full text-slate-400 text-xs font-semibold underline">Laporkan peniaga ini</button>
+    </div>`;
+  $('mProfil').classList.add('buka');
+  $('tutupProfil').onclick = () => $('mProfil').classList.remove('buka');
+  $('btnHubungi').onclick = () => persetujuan(p);
+  $('btnLapor').onclick = () => lapor(p);
+}
+$('mProfil').onclick = (e) => { if (e.target.id === 'mProfil') e.target.classList.remove('buka'); };
+
+// ---------- PERSETUJUAN RISIKO -> WHATSAPP ----------
+function persetujuan(p) {
+  $('setuju').innerHTML = `<h3 class="text-xl font-extrabold text-slate-800 mb-3">Sebelum anda menghubungi</h3>
+    <ul class="text-sm text-slate-600 space-y-2 list-disc pl-5 mb-4">
+      <li>Famili Pintar hanyalah platform <b>penyenaraian</b>. Kami bukan pihak dalam perjanjian antara anda dan peniaga.</li>
+      <li>Harga, kualiti kerja, waranti dan sebarang pertikaian adalah antara anda dan peniaga. Famili Pintar tidak bertanggungjawab ke atasnya.</li>
+      <li>Minta sebut harga dahulu dan sahkan skop kerja sebelum kerja bermula. Elak bayaran penuh di awal.</li>
+      <li>Hantar laporan jika anda mendapati maklumat peniaga palsu atau tidak jujur.</li>
+    </ul>
+    <label class="flex gap-3 text-sm font-semibold text-slate-700 mb-4"><input type="checkbox" id="cbSetuju" class="mt-1"> <span>Saya faham dan setuju risiko berurusan terus dengan peniaga ini.</span></label>
+    <button id="btnTeruskan" disabled class="w-full bg-emerald-600 disabled:bg-slate-300 text-white font-extrabold py-3.5 rounded-2xl">Saya setuju, teruskan</button>
+    <button id="btnBatal" class="w-full text-slate-400 text-sm font-semibold mt-2">Batal</button>`;
+  $('mSetuju').classList.add('buka');
+  $('cbSetuju').onchange = (e) => $('btnTeruskan').disabled = !e.target.checked;
+  $('btnBatal').onclick = () => $('mSetuju').classList.remove('buka');
+  $('btnTeruskan').onclick = async () => {
+    const b = $('btnTeruskan'); b.disabled = true; b.textContent = 'Merekod persetujuan...';
+    try {
+      await addDoc(collection(db, 'direktori_leads'), { vendor_id: p.id, user_uid: user.uid, ts: Date.now(), versi_terma: VERSI_TERMA, setuju: true, kategori: kategoriAktif || (p.kategori || [])[0] || '', bandar_pengguna: $('bandar').value.trim() });
+    } catch (e) { alert('Gagal merekod persetujuan: ' + e.message); b.disabled = false; b.textContent = 'Saya setuju, teruskan'; return; }
+    const teks = encodeURIComponent(`Salam ${p.nama_pemilik}, saya jumpa ${p.nama_perniagaan} melalui Direktori Servis Famili Pintar. Saya ingin bertanya tentang servis anda.`);
+    $('setuju').innerHTML = `<div class="text-center"><i class="fa-solid fa-circle-check text-emerald-500 text-4xl mb-3"></i><h3 class="text-lg font-extrabold text-slate-800 mb-1">Persetujuan direkodkan</h3><p class="text-sm text-slate-500 mb-5">Tekan butang di bawah untuk membuka WhatsApp.</p>
+      <a href="https://wa.me/${noWa(p.telefon_wa)}?text=${teks}" target="_blank" rel="noopener" class="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 rounded-2xl"><i class="fa-brands fa-whatsapp"></i> Buka WhatsApp</a>
+      <button id="btnTutup2" class="text-slate-400 text-sm font-semibold mt-3">Tutup</button></div>`;
+    $('btnTutup2').onclick = () => $('mSetuju').classList.remove('buka');
+  };
+}
+$('mSetuju').onclick = (e) => { if (e.target.id === 'mSetuju') e.target.classList.remove('buka'); };
+
+// ---------- LAPOR ----------
+function lapor(p) {
+  $('lapor').innerHTML = `<h3 class="text-lg font-extrabold text-slate-800 mb-3">Laporkan ${esc(p.nama_perniagaan)}</h3>
+    <select id="sebabLapor" class="inp mb-3"><option>Maklumat atau gambar palsu</option><option>Tidak jujur / menipu</option><option>Kerja tidak berkualiti atau berbahaya</option><option>Tidak boleh dihubungi</option><option>Lain-lain</option></select>
+    <textarea id="catatanLapor" rows="3" maxlength="300" class="inp mb-3" placeholder="Ceritakan secara ringkas (pilihan)"></textarea>
+    <button id="btnHantarLapor" class="w-full bg-rose-600 text-white font-extrabold py-3 rounded-2xl">Hantar laporan</button>
+    <button id="btnBatalLapor" class="w-full text-slate-400 text-sm font-semibold mt-2">Batal</button>`;
+  $('mLapor').classList.add('buka');
+  $('btnBatalLapor').onclick = () => $('mLapor').classList.remove('buka');
+  $('btnHantarLapor').onclick = async () => {
+    try { await addDoc(collection(db, 'direktori_laporan'), { vendor_id: p.id, user_uid: user.uid, sebab: $('sebabLapor').value, catatan: $('catatanLapor').value.trim(), ts: Date.now(), selesai: false }); alert('Terima kasih. Laporan anda diterima dan akan disemak.'); $('mLapor').classList.remove('buka'); }
+    catch (e) { alert('Gagal menghantar laporan: ' + e.message); }
+  };
+}
+$('mLapor').onclick = (e) => { if (e.target.id === 'mLapor') e.target.classList.remove('buka'); };
+</script>
+</body>
+</html>

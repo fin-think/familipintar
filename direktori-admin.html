@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Direktori | Famili Pintar</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9}</style>
+</head>
+<body class="min-h-screen pb-16">
+<header class="bg-slate-900 text-white"><div class="max-w-5xl mx-auto px-4 py-5"><h1 class="text-xl font-extrabold">Admin Direktori Servis</h1><p class="text-slate-300 text-sm">Semak permohonan peniaga dan laporan pengguna.</p>
+<div class="flex flex-wrap gap-2 mt-3 text-sm font-bold"><a href="admin.html" class="bg-slate-700 px-3 py-1.5 rounded-lg"><i class="fa-solid fa-arrow-left"></i> Admin</a><a href="direktori.html" class="bg-amber-400 text-slate-900 px-3 py-1.5 rounded-lg">Lihat direktori (pengguna)</a><a href="direktori-daftar.html" class="bg-sky-400 text-slate-900 px-3 py-1.5 rounded-lg">Borang peniaga</a></div></div></header>
+<main class="max-w-5xl mx-auto px-4 mt-6">
+  <div id="gate" class="bg-white rounded-2xl border p-6 text-center text-slate-600">Memuatkan...</div>
+  <div id="isi" class="hidden">
+    <div class="flex gap-2 mb-4" id="tab">
+      <button data-t="menunggu" class="px-4 py-2 rounded-xl font-bold text-sm bg-slate-800 text-white">Menunggu</button>
+      <button data-t="diluluskan" class="px-4 py-2 rounded-xl font-bold text-sm bg-white border">Diluluskan</button>
+      <button data-t="lain" class="px-4 py-2 rounded-xl font-bold text-sm bg-white border">Ditolak / Digantung</button>
+      <button data-t="laporan" class="px-4 py-2 rounded-xl font-bold text-sm bg-white border">Laporan</button>
+    </div>
+    <div id="senarai" class="space-y-4"></div>
+  </div>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, collection, doc, getDocs, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { firebaseConfig, HARI_LANGGANAN, esc, namaKategori } from "./kongsi.js";
+const ADMIN_EMEL = 'dae.book89@gmail.com';
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+let tab = 'menunggu', peniaga = [], laporan = [];
+
+onAuthStateChanged(auth, (u) => {
+  if (!u || (u.email || '').toLowerCase() !== ADMIN_EMEL) { $('gate').textContent = 'Akses admin sahaja. Sila log masuk dengan akaun admin.'; return; }
+  $('gate').classList.add('hidden'); $('isi').classList.remove('hidden'); muat();
+});
+$('tab').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; tab = b.dataset.t; document.querySelectorAll('#tab button').forEach(x => { const on = x === b; x.className = 'px-4 py-2 rounded-xl font-bold text-sm ' + (on ? 'bg-slate-800 text-white' : 'bg-white border'); }); papar(); };
+
+async function muat() {
+  const [a, b] = await Promise.all([getDocs(collection(db, 'direktori_peniaga')), getDocs(query(collection(db, 'direktori_laporan'), where('selesai', '==', false)))]);
+  peniaga = a.docs.map(d => ({ id: d.id, ...d.data() })); laporan = b.docs.map(d => ({ id: d.id, ...d.data() }));
+  papar();
+}
+const gambar = (u, t) => u ? `<a href="${esc(u)}" target="_blank" rel="noopener" class="block"><div class="aspect-square rounded-xl bg-slate-200 bg-center bg-cover" style="background-image:url('${esc(u)}')"></div><p class="text-[11px] font-bold text-slate-500 text-center mt-1">${t}</p></a>` : `<div><div class="aspect-square rounded-xl bg-slate-100 flex items-center justify-center text-slate-300 text-xs">tiada</div><p class="text-[11px] font-bold text-slate-400 text-center mt-1">${t}</p></div>`;
+
+function papar() {
+  const s = $('senarai');
+  if (tab === 'laporan') { s.innerHTML = laporan.length ? laporan.map(l => { const p = peniaga.find(x => x.id === l.vendor_id) || {}; return `<div class="bg-white rounded-2xl border p-5"><p class="font-bold text-slate-800">${esc(p.nama_perniagaan || l.vendor_id)}</p><p class="text-sm text-rose-600 font-semibold">${esc(l.sebab)}</p><p class="text-sm text-slate-600">${esc(l.catatan || '')}</p><p class="text-xs text-slate-400 mt-1">${new Date(l.ts).toLocaleString('ms-MY')}</p><div class="flex gap-2 mt-3"><button onclick="selesai('${l.id}')" class="px-3 py-2 rounded-lg bg-slate-800 text-white text-xs font-bold">Tandakan selesai</button>${p.id ? `<button onclick="tindak('${p.id}','gantung')" class="px-3 py-2 rounded-lg bg-rose-600 text-white text-xs font-bold">Gantung peniaga</button>` : ''}</div></div>`; }).join('') : '<p class="text-slate-500">Tiada laporan baharu.</p>'; return; }
+  const tapis = peniaga.filter(p => tab === 'menunggu' ? p.status === 'menunggu' : tab === 'diluluskan' ? p.status === 'diluluskan' : (p.status === 'ditolak' || p.status === 'digantung'));
+  s.innerHTML = tapis.length ? tapis.map(kad).join('') : '<p class="text-slate-500">Tiada rekod.</p>';
+}
+function kad(p) {
+  const tamat = p.langganan_tamat ? new Date(p.langganan_tamat).toLocaleDateString('ms-MY') : '-';
+  return `<div class="bg-white rounded-2xl border p-5 space-y-3">
+    <div class="flex flex-wrap justify-between gap-2"><div><h3 class="font-extrabold text-slate-800">${esc(p.nama_perniagaan)}</h3><p class="text-sm text-slate-500">${esc(p.bandar)}, ${esc(p.negeri)} &middot; ${(p.kategori || []).map(namaKategori).join(', ')}</p></div><span class="text-xs font-bold px-2 py-1 rounded-md bg-slate-100 h-fit">${esc(p.status)}</span></div>
+    <div class="grid grid-cols-4 gap-3">${gambar(p.foto_pemilik_url, 'Pemilik')}${gambar(p.foto_juruteknik_url, 'Juruteknik')}${gambar(p.foto_kedai_url, 'Kedai')}${gambar(p.ssm_foto_url, 'SSM')}</div>
+    <ul class="text-sm text-slate-600"><li>Pemilik: <b>${esc(p.nama_pemilik)}</b> &middot; Juruteknik: <b>${esc(p.nama_juruteknik)}</b></li><li>WhatsApp: <b>${esc(p.telefon_wa)}</b> &middot; Sejak ${esc(p.tahun_bermula)} &middot; SSM: ${esc(p.ssm_no || '-')}</li><li>${esc(p.huraian)}</li><li class="text-xs text-slate-400">Langganan tamat: ${tamat} &middot; UID: ${esc(p.id)}</li></ul>
+    <div class="flex flex-wrap gap-2">
+      ${p.status !== 'diluluskan' ? `<button onclick="tindak('${p.id}','lulus')" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-bold">Luluskan${p.percuma_digunakan ? '' : ' (bulan percuma bermula)'}</button>` : ''}
+      ${p.status === 'menunggu' ? `<button onclick="tindak('${p.id}','tolak')" class="px-4 py-2 rounded-xl bg-amber-500 text-white text-sm font-bold">Tolak</button>` : ''}
+      ${p.status === 'diluluskan' ? `<button onclick="tindak('${p.id}','gantung')" class="px-4 py-2 rounded-xl bg-rose-600 text-white text-sm font-bold">Gantung</button>` : ''}
+    </div></div>`;
+}
+window.tindak = async (id, aksi) => {
+  const p = peniaga.find(x => x.id === id); let ubah = {};
+  if (aksi === 'lulus') { ubah = { status: 'diluluskan', sebab: '' }; if (!p.percuma_digunakan) { ubah.percuma_digunakan = true; ubah.langganan_tamat = Date.now() + HARI_LANGGANAN * 86400000; } }
+  else { const sebab = prompt(aksi === 'tolak' ? 'Sebab penolakan (dipaparkan kepada peniaga):' : 'Sebab penggantungan:'); if (!sebab) return; ubah = { status: aksi === 'tolak' ? 'ditolak' : 'digantung', sebab }; }
+  try { await updateDoc(doc(db, 'direktori_peniaga', id), ubah); Object.assign(p, ubah); papar(); } catch (e) { alert('Gagal: ' + e.message); }
+};
+window.selesai = async (id) => { try { await updateDoc(doc(db, 'direktori_laporan', id), { selesai: true }); laporan = laporan.filter(l => l.id !== id); papar(); } catch (e) { alert('Gagal: ' + e.message); } };
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftar Perniagaan | Direktori Servis Famili Pintar</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; }
+  .lbl { display:block; font-size:.72rem; font-weight:800; text-transform:uppercase; color:#475569; margin:0 0 .35rem .25rem; }
+  .inp { width:100%; padding:.7rem .9rem; border:1px solid #cbd5e1; border-radius:.75rem; background:#fff; font-size:.95rem; }
+  .inp:focus { outline:2px solid #0ea5e9; border-color:#0ea5e9; }
+  .foto-box { border:2px dashed #94a3b8; border-radius:1rem; background:#fff; padding:.75rem; text-align:center; cursor:pointer; min-height:9rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.4rem; position:relative; overflow:hidden; }
+  .foto-box img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .foto-box.ada { border-style:solid; border-color:#10b981; }
+  .chip { padding:.45rem .8rem; border:1px solid #cbd5e1; border-radius:999px; font-size:.82rem; font-weight:700; background:#fff; cursor:pointer; }
+  .chip.on { background:#0ea5e9; color:#fff; border-color:#0ea5e9; }
+</style>
+</head>
+<body class="min-h-screen pb-16">
+<header class="bg-gradient-to-r from-slate-800 to-slate-900 text-white">
+  <div class="max-w-3xl mx-auto px-4 py-6">
+    <a href="direktori.html" class="text-sky-300 text-sm font-semibold"><i class="fa-solid fa-arrow-left"></i> Direktori</a>
+    <h1 class="text-2xl font-extrabold mt-2">Daftar Perniagaan Anda</h1>
+    <p class="text-slate-300 text-sm">Sampaikan servis anda kepada keluarga di bandar anda. Bulan pertama percuma.</p>
+  </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 mt-6 space-y-6" id="kandungan">
+  <div class="bg-white rounded-2xl border p-6 text-center text-slate-500">Memuatkan...</div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+import { firebaseConfig, YURAN_KREDIT, HARI_LANGGANAN, VERSI_TERMA, KATEGORI, NEGERI, esc, noWa, mampatGambar } from "./kongsi.js";
+
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app), storage = getStorage(app);
+const $ = (id) => document.getElementById(id);
+const root = $('kandungan');
+let user = null, sedia = null;
+const fail = { foto_pemilik: null, foto_juruteknik: null, foto_kedai: null, ssm_foto: null };
+const kategoriDipilih = new Set();
+
+onAuthStateChanged(auth, async (u) => {
+  if (!u) { root.innerHTML = `<div class="bg-white rounded-2xl border p-8 text-center"><p class="font-bold text-slate-700 mb-2">Sila log masuk atau daftar akaun Famili Pintar dahulu.</p><p class="text-slate-500 text-sm mb-4">Langganan direktori menggunakan kredit akaun Famili Pintar anda (20 kredit percuma untuk pendaftaran baru).</p><a href="index.html" class="inline-block bg-sky-500 text-white font-bold px-6 py-3 rounded-xl">Log masuk / Daftar</a></div>`; return; }
+  user = u;
+  const s = await getDoc(doc(db, 'direktori_peniaga', u.uid));
+  sedia = s.exists() ? s.data() : null;
+  if (sedia && sedia.status !== 'ditolak') paparStatus(); else paparBorang();
+});
+
+// ---------- STATUS ----------
+async function paparStatus() {
+  const p = sedia, nu = await getDoc(doc(db, 'mynasab_users', user.uid)), baki = parseInt((nu.data() || {}).credit_balance) || 0;
+  const tamat = p.langganan_tamat || 0, aktif = tamat > Date.now();
+  const tarikh = tamat ? new Date(tamat).toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+  let kad = '';
+  if (p.status === 'menunggu') kad = `<div class="bg-amber-50 border border-amber-200 rounded-2xl p-6"><h2 class="font-extrabold text-amber-800 text-lg mb-1"><i class="fa-solid fa-hourglass-half"></i> Menunggu semakan</h2><p class="text-amber-800 text-sm">Pasukan kami sedang menyemak gambar dan maklumat anda. Biasanya dalam 1-3 hari bekerja. Bulan percuma bermula apabila anda diluluskan.</p></div>`;
+  else if (p.status === 'digantung') kad = `<div class="bg-rose-50 border border-rose-200 rounded-2xl p-6"><h2 class="font-extrabold text-rose-800 text-lg mb-1"><i class="fa-solid fa-ban"></i> Akaun digantung</h2><p class="text-rose-800 text-sm">${esc(p.sebab || 'Sila hubungi pasukan Famili Pintar.')}</p></div>`;
+  else kad = `<div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6"><h2 class="font-extrabold text-emerald-800 text-lg mb-1"><i class="fa-solid fa-circle-check"></i> ${aktif ? 'Disenaraikan dalam direktori' : 'Langganan tamat'}</h2>
+    <p class="text-emerald-800 text-sm mb-3">${aktif ? 'Langganan aktif sehingga' : 'Langganan tamat pada'} <b>${tarikh}</b>. ${aktif ? '' : 'Perniagaan anda disembunyikan sehingga disambung.'}</p>
+    <div class="flex flex-wrap items-center gap-3"><button id="btnSambung" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-xl">Sambung 1 bulan (${YURAN_KREDIT} kredit)</button><span class="text-sm text-slate-600">Baki kredit anda: <b>${baki}</b></span>${baki < YURAN_KREDIT ? '<a href="topup.html" class="text-sky-600 font-bold text-sm underline">Tambah nilai kredit</a>' : ''}</div></div>`;
+  root.innerHTML = kad + `<div class="bg-white rounded-2xl border p-6"><h3 class="font-extrabold text-slate-800 mb-1">${esc(p.nama_perniagaan)}</h3><p class="text-sm text-slate-500">${esc(p.bandar)}, ${esc(p.negeri)}</p></div>`;
+  const b = $('btnSambung'); if (b) b.onclick = () => sambung(baki, tamat);
+}
+
+async function sambung(baki, tamatLama) {
+  if (baki < YURAN_KREDIT) { alert('Kredit tidak mencukupi. Sila tambah nilai kredit dahulu.'); location.href = 'topup.html'; return; }
+  if (!confirm(`Tolak ${YURAN_KREDIT} kredit untuk sambung 1 bulan?`)) return;
+  try {
+    const mula = Math.max(Date.now(), tamatLama || 0), baru = mula + HARI_LANGGANAN * 86400000;
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'mynasab_users', user.uid), { credit_balance: baki - YURAN_KREDIT });
+    batch.update(doc(db, 'direktori_peniaga', user.uid), { langganan_tamat: baru, dikemas: Date.now() });
+    batch.set(doc(db, 'direktori_bayaran', user.uid + '_' + Date.now()), { owner_uid: user.uid, kredit: YURAN_KREDIT, dari: mula, hingga: baru, ts: Date.now() });
+    await batch.commit();
+    sedia.langganan_tamat = baru; paparStatus();
+  } catch (e) { alert('Gagal menyambung: ' + e.message); }
+}
+
+// ---------- BORANG ----------
+function kotakFoto(id, tajuk, arahan, ikon) {
+  return `<div><span class="lbl">${tajuk}</span>
+    <label class="foto-box" id="box_${id}"><i class="fa-solid ${ikon} text-2xl text-slate-400"></i><span class="text-xs font-bold text-slate-600">Ambil gambar</span><span class="text-[11px] text-slate-400">${arahan}</span>
+    <input type="file" accept="image/*" capture="environment" class="hidden" id="f_${id}"></label></div>`;
+}
+function paparBorang() {
+  const d = sedia || {};
+  (d.kategori || []).forEach(k => kategoriDipilih.add(k));
+  root.innerHTML = `
+  ${d.status === 'ditolak' ? `<div class="bg-rose-50 border border-rose-200 rounded-2xl p-5 text-rose-800 text-sm"><b>Permohonan sebelum ini tidak diluluskan:</b> ${esc(d.sebab || '-')}. Sila betulkan dan hantar semula.</div>` : ''}
+  <form id="borang" class="space-y-6">
+    <section class="bg-white rounded-2xl border p-6 space-y-4">
+      <h2 class="font-extrabold text-slate-800 text-lg">1. Maklumat perniagaan</h2>
+      <div><label class="lbl">Nama perniagaan / syarikat</label><input class="inp" id="nama_perniagaan" required maxlength="80" value="${esc(d.nama_perniagaan)}"></div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div><label class="lbl">Nama pemilik</label><input class="inp" id="nama_pemilik" required maxlength="60" value="${esc(d.nama_pemilik)}"></div>
+        <div><label class="lbl">Nama juruteknik / pekerja utama</label><input class="inp" id="nama_juruteknik" required maxlength="60" value="${esc(d.nama_juruteknik)}" placeholder="Boleh sama dengan pemilik"></div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div><label class="lbl">No. WhatsApp</label><input class="inp" id="telefon" type="tel" required placeholder="012-3456789" value="${esc(d.telefon_wa || '')}"></div>
+        <div><label class="lbl">Tahun mula beroperasi</label><input class="inp" id="tahun" type="number" min="1980" max="${new Date().getFullYear()}" required value="${esc(d.tahun_bermula || '')}"></div>
+      </div>
+      <div><label class="lbl">Jenis servis (pilih satu atau lebih)</label><div class="flex flex-wrap gap-2" id="kategori">${KATEGORI.map(k => `<span class="chip ${kategoriDipilih.has(k[0]) ? 'on' : ''}" data-k="${k[0]}"><i class="fa-solid ${k[2]}"></i> ${k[1]}</span>`).join('')}</div></div>
+      <div><label class="lbl">Huraian ringkas perkhidmatan</label><textarea class="inp" id="huraian" rows="3" maxlength="400" required placeholder="Cth: Servis, pasang dan baiki aircond rumah. Ada waranti 3 bulan.">${esc(d.huraian)}</textarea></div>
+      <div><label class="lbl">Jam operasi</label><input class="inp" id="jam" maxlength="80" value="${esc(d.jam_operasi || '')}" placeholder="Cth: Isnin-Sabtu, 9 pagi - 6 petang"></div>
+    </section>
+
+    <section class="bg-white rounded-2xl border p-6 space-y-4">
+      <h2 class="font-extrabold text-slate-800 text-lg">2. Kawasan perkhidmatan</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div><label class="lbl">Negeri</label><select class="inp" id="negeri" required><option value="">Pilih negeri</option>${NEGERI.map(n => `<option ${d.negeri === n ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+        <div><label class="lbl">Bandar utama</label><input class="inp" id="bandar" required maxlength="50" value="${esc(d.bandar)}" placeholder="Cth: Shah Alam"></div>
+      </div>
+      <div><label class="lbl">Kawasan liputan (pilihan)</label><input class="inp" id="liputan" maxlength="120" value="${esc(d.liputan || '')}" placeholder="Cth: Shah Alam, Klang, Subang Jaya"></div>
+    </section>
+
+    <section class="bg-white rounded-2xl border p-6 space-y-4">
+      <h2 class="font-extrabold text-slate-800 text-lg">3. Gambar (wajib)</h2>
+      <p class="text-sm text-slate-500">Gambar mesti diambil sendiri menggunakan kamera telefon. Pengguna akan melihat wajah dan premis sebenar sebelum menghubungi anda.</p>
+      <div class="grid sm:grid-cols-3 gap-4">
+        ${kotakFoto('foto_pemilik', 'Pemilik', 'Wajah jelas, pakaian kerja', 'fa-user')}
+        ${kotakFoto('foto_juruteknik', 'Juruteknik di lapangan', 'Sedang bekerja di tapak', 'fa-user-gear')}
+        ${kotakFoto('foto_kedai', 'Kedai / pejabat / van', 'Nampak papan tanda jika ada', 'fa-store')}
+      </div>
+    </section>
+
+    <section class="bg-white rounded-2xl border p-6 space-y-4">
+      <h2 class="font-extrabold text-slate-800 text-lg">4. Pendaftaran SSM (pilihan)</h2>
+      <p class="text-sm text-slate-500">Jika ada, anda mendapat lencana <b>Berdaftar SSM</b> yang meningkatkan kepercayaan pengguna.</p>
+      <div class="grid sm:grid-cols-2 gap-4"><div><label class="lbl">No. pendaftaran SSM</label><input class="inp" id="ssm_no" maxlength="30" value="${esc(d.ssm_no || '')}"></div>
+      ${kotakFoto('ssm_foto', 'Salinan sijil / Borang SSM', 'Gambar atau tangkap layar', 'fa-file-lines')}</div>
+    </section>
+
+    <section class="bg-white rounded-2xl border p-6 space-y-3">
+      <h2 class="font-extrabold text-slate-800 text-lg">5. Terma</h2>
+      <label class="flex gap-3 text-sm text-slate-700"><input type="checkbox" id="t1" class="mt-1"> <span>Saya faham Famili Pintar hanyalah <b>platform penyenaraian</b>. Famili Pintar bukan pihak dalam sebarang perjanjian kerja, dan saya bertanggungjawab sepenuhnya atas kerja, harga, kualiti dan waranti yang saya berikan kepada pelanggan.</span></label>
+      <label class="flex gap-3 text-sm text-slate-700"><input type="checkbox" id="t2" class="mt-1"> <span>Saya bersetuju gambar, nama dan nombor WhatsApp perniagaan saya dipaparkan kepada pengguna. Gambar juruteknik dipaparkan dengan kebenaran juruteknik tersebut. Maklumat saya diproses mengikut PDPA 2010.</span></label>
+      <label class="flex gap-3 text-sm text-slate-700"><input type="checkbox" id="t3" class="mt-1"> <span>Bulan pertama percuma selepas diluluskan. Seterusnya <b>${YURAN_KREDIT} kredit sebulan</b> ditolak daripada akaun Famili Pintar saya apabila saya menyambung. Jika tidak disambung, senarai saya disembunyikan. Tiada bayaran balik.</span></label>
+      <label class="flex gap-3 text-sm text-slate-700"><input type="checkbox" id="t4" class="mt-1"> <span>Famili Pintar boleh menggantung perniagaan yang dilaporkan atau didapati memberi maklumat palsu.</span></label>
+    </section>
+
+    <button type="submit" id="btnHantar" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-extrabold py-4 rounded-2xl shadow-lg">Hantar untuk semakan</button>
+    <p id="mesej" class="text-center text-sm font-semibold text-rose-600"></p>
+  </form>`;
+
+  $('kategori').onclick = (e) => { const c = e.target.closest('.chip'); if (!c) return; const k = c.dataset.k; kategoriDipilih.has(k) ? kategoriDipilih.delete(k) : kategoriDipilih.add(k); c.classList.toggle('on'); };
+  Object.keys(fail).forEach(id => {
+    $('f_' + id).onchange = async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      try { fail[id] = await mampatGambar(f); } catch (er) { alert(er.message); return; }
+      const box = $('box_' + id); box.classList.add('ada');
+      box.querySelectorAll('img').forEach(i => i.remove());
+      const im = document.createElement('img'); im.src = URL.createObjectURL(fail[id]); box.appendChild(im);
+    };
+    if (sedia && sedia[id + '_url']) { const box = $('box_' + id), im = document.createElement('img'); im.src = sedia[id + '_url']; box.classList.add('ada'); box.appendChild(im); }
+  });
+  $('borang').onsubmit = hantar;
+}
+
+async function muatNaik(jenis) {
+  const r = ref(storage, `direktori/${user.uid}/${jenis}_${Date.now()}.jpg`);
+  await uploadBytes(r, fail[jenis], { contentType: 'image/jpeg' });
+  return getDownloadURL(r);
+}
+
+async function hantar(e) {
+  e.preventDefault();
+  const m = $('mesej'); m.textContent = '';
+  if (kategoriDipilih.size === 0) { m.textContent = 'Pilih sekurang-kurangnya satu jenis servis.'; return; }
+  for (const j of ['foto_pemilik', 'foto_juruteknik', 'foto_kedai']) if (!fail[j] && !(sedia && sedia[j + '_url'])) { m.textContent = 'Sila ambil ketiga-tiga gambar wajib (pemilik, juruteknik, kedai).'; return; }
+  if (!['t1', 't2', 't3', 't4'].every(i => $(i).checked)) { m.textContent = 'Sila tandakan semua terma.'; return; }
+  const wa = noWa($('telefon').value);
+  if (wa.length < 10 || wa.length > 13) { m.textContent = 'Nombor WhatsApp tidak sah.'; return; }
+  const b = $('btnHantar'); b.disabled = true; b.textContent = 'Memuat naik gambar...';
+  try {
+    const url = {};
+    for (const j of ['foto_pemilik', 'foto_juruteknik', 'foto_kedai', 'ssm_foto']) url[j + '_url'] = fail[j] ? await muatNaik(j) : ((sedia && sedia[j + '_url']) || '');
+    const data = {
+      owner_uid: user.uid, nama_perniagaan: $('nama_perniagaan').value.trim(), nama_pemilik: $('nama_pemilik').value.trim(), nama_juruteknik: $('nama_juruteknik').value.trim(),
+      telefon_wa: wa, tahun_bermula: parseInt($('tahun').value), kategori: [...kategoriDipilih], huraian: $('huraian').value.trim(), jam_operasi: $('jam').value.trim(),
+      negeri: $('negeri').value, bandar: $('bandar').value.trim(), liputan: $('liputan').value.trim(), ssm_no: $('ssm_no').value.trim(), ...url,
+      status: 'menunggu', sebab: '', versi_terma: VERSI_TERMA, terma_setuju_pada: Date.now(), dikemas: Date.now(),
+      langganan_tamat: (sedia && sedia.langganan_tamat) || 0, percuma_digunakan: !!(sedia && sedia.percuma_digunakan), dicipta: (sedia && sedia.dicipta) || Date.now()
+    };
+    await setDoc(doc(db, 'direktori_peniaga', user.uid), data);
+    sedia = data; paparStatus(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (er) { m.textContent = 'Gagal menghantar: ' + er.message; b.disabled = false; b.textContent = 'Hantar untuk semakan'; }
+}
+</script>
+</body>
+</html>
