@@ -2025,10 +2025,12 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                             <ul className="list-disc pl-4 space-y-1">
                                 <li><b>Aset Awal</b>: kolam pelaburan anda (aset cair + dana pendidikan SSPN/ASB). Rumah dan kereta tidak dikira kerana tidak dibelanjakan untuk hidup.</li>
                                 <li><b>+ Pulangan</b>: keuntungan setahun pada kadar {assetReturnRate}% atas baki selepas tolakan tahun itu.</li>
-                                <li><b>- Pendidikan</b>: kos pengajian (termasuk inflasi pendidikan) ditolak pada tahun anak masuk universiti, bukan sekali gus.</li>
+                                <li><b>- Pendidikan</b>: jumlah kos pengajian penuh (semua tahun belajar, sudah termasuk inflasi pendidikan) ditolak <b>sekali gus pada tahun anak mula masuk universiti</b>. Ia tidak dibahagi setahun-setahun mengikut tempoh belajar, jadi anggaran ini sedikit konservatif.</li>
+                                <li><b>Pendidikan: siapa tanggung?</b> Anak dikira sekali sahaja daripada data keluarga. Dalam paparan <b>Induk</b> atau <b>Pasangan</b>, setiap paparan menolak kos penuh itu daripada dana individu masing-masing. Untuk gambaran isi rumah yang tepat (kos ditolak sekali daripada dana bersama), guna paparan <b>Gabungan</b>.</li>
                                 <li><b>- Hutang</b>: semasa bekerja, hutang dibayar daripada gaji (komitmen bulanan). Baki hutang yang masih tinggal pada hari bersara ditolak sekali dari kolam.</li>
                                 <li><b>- Kesihatan</b> dan <b>- Belanja Hidup</b>: bermula pada tahun bersara, naik setiap tahun mengikut inflasi kesihatan dan inflasi umum. Sebelum bersara, kedua-duanya dibayar daripada gaji.</li>
                                 <li><b>Nilai Bersih</b>: Aset Akhir tolak Baki Hutang. Ini nilai sebenar anda pada akhir tahun itu, tetapi hutang tidak ditolak dua kali dalam pengiraan.</li>
+                                <li><b>Jadual ini hanya menunjuk dana (aset), bukan aliran tunai.</b> Gaji, bonus dan belanja bulanan semasa bekerja tidak dimasukkan: gaji menanggung belanja bulanan dan bayaran hutang, dan lebihan gaji tidak dikira sebagai simpanan tambahan. Selepas bersara, tiada pendapatan lain (pencen, sewa, kerja sambilan) dianggap, jadi semua belanja datang daripada dana ini.</li>
                                 <li><b>Aset Akhir RM0</b>: dana telah habis (baris merah).</li>
                             </ul>
                         </div>
