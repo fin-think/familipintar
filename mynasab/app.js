@@ -320,23 +320,54 @@ async function bawaDataLama() {
         const sN = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
         const nodSaya = sN.docs.map(d => ({ ...d.data(), id: d.id }));
         const akar = nodSaya.find(n => n.is_root);
-        if (!akar || !akar.sibling_of || !akar.link_owner || akar.link_owner === uid || akar.data_lama_dibawa) return;
-        const sudahAda = nodSaya.some(n => /suami|isteri|^anak$/i.test(n.relationship || '') && !n.is_root);
-        if (sudahAda) { await updateDoc(doc(db, "mynasab_nodes", akar.id), { data_lama_dibawa: true }); return; }
+        if (!akar || !akar.sibling_of || !akar.link_owner || akar.link_owner === uid) return;
+        const perluPsg = !akar.data_lama_dibawa && !nodSaya.some(n => !n.is_root && /^(suami|isteri)$/i.test(n.relationship || ''));
+        const perluAnak = !akar.anak_lama_dibawa && !nodSaya.some(n => !n.is_root && /^anak$/i.test(n.relationship || ''));
+        if (!perluPsg && !perluAnak) {
+            if (!akar.data_lama_dibawa || !akar.anak_lama_dibawa) await updateDoc(doc(db, "mynasab_nodes", akar.id), { data_lama_dibawa: true, anak_lama_dibawa: true });
+            return;
+        }
         const sO = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", akar.link_owner)));
         const nodO = sO.docs.map(d => ({ ...d.data(), id: d.id }));
         const nama = (akar.name || '').trim().toLowerCase();
         const lama = nodO.find(n => /^(abang|kakak|adik|adik-beradik)$/i.test(n.relationship || '') && (n.akaun_uid === uid || (n.name || '').trim().toLowerCase() === nama));
         if (!lama) return;
-        const buang = ([k]) => !k.startsWith('jemput') && !k.startsWith('panggilan') && !['ref_id', 'id', 'akaun_uid', 'email'].includes(k);
-        const psg = akar.gender === 'P' ? 'Suami' : 'Isteri';
-        for (const n of nodO.filter(x => x.relationship === 'Ipar' && x.ref_id === lama.id)) {
-            await addDoc(collection(db, "mynasab_nodes"), { ...Object.fromEntries(Object.entries(n).filter(buang)), owner_uid: uid, relationship: psg, is_root: false, created_by: uid, created_at: new Date() });
+        const rujuk = new Set([lama.id, akar.id, 'root_' + uid]);
+        const buang = ([k]) => !k.startsWith('jemput') && !k.startsWith('panggilan') && !['ref_id', 'id', 'akaun_uid', 'email', 'sibling_of', 'link_owner', 'anak_saudara_dari', 'is_root', 'linked_uids', 'linked_adik', 'data_lama_dibawa', 'anak_lama_dibawa'].includes(k);
+        const salin = (n, hubungan) => addDoc(collection(db, "mynasab_nodes"), { ...Object.fromEntries(Object.entries(n).filter(buang)), owner_uid: uid, relationship: hubungan, is_root: false, created_by: uid, created_at: new Date() });
+        if (perluPsg) {
+            const psg = akar.gender === 'P' ? 'Suami' : 'Isteri';
+            for (const n of nodO.filter(x => x.relationship === 'Ipar' && rujuk.has(x.ref_id))) await salin(n, psg);
         }
-        for (const n of nodO.filter(x => x.relationship === 'Anak Saudara' && x.ref_id === lama.id)) {
-            await addDoc(collection(db, "mynasab_nodes"), { ...Object.fromEntries(Object.entries(n).filter(buang)), owner_uid: uid, relationship: 'Anak', is_root: false, created_by: uid, created_at: new Date() });
+        if (perluAnak) {
+            const sudahNama = new Set(nodSaya.map(n => (n.name || '').trim().toLowerCase()));
+            // 1. Anak saudara yang direkod manual
+            for (const n of nodO.filter(x => /^anak saudara$/i.test(x.relationship || '') && rujuk.has(x.ref_id))) {
+                const k = (n.name || '').trim().toLowerCase();
+                if (sudahNama.has(k)) continue; sudahNama.add(k);
+                await salin(n, 'Anak');
+            }
+            // 2. Anak saudara yang dijemput sebagai akaun sendiri (jemputan anak saudara)
+            try {
+                const sL = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", akar.link_owner), where("status", "==", "aktif")));
+                for (const ld of sL.docs) {
+                    const lu = ld.data().uid;
+                    if (!lu || lu === uid) continue;
+                    const sR = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", lu), where("is_root", "==", true)));
+                    sR.forEach(r => {
+                        const d = r.data();
+                        const as = d.anak_saudara_dari;
+                        if (!as || !rujuk.has(as.nod)) return;
+                        const k = (d.name || '').trim().toLowerCase();
+                        if (!k || sudahNama.has(k)) return; sudahNama.add(k);
+                        window.__antrianAnak = (window.__antrianAnak || []).concat([d]);
+                    });
+                }
+                for (const d of (window.__antrianAnak || [])) await salin(d, 'Anak');
+                window.__antrianAnak = [];
+            } catch (e) { console.warn('bawaDataLama anak akaun:', e.message); }
         }
-        await updateDoc(doc(db, "mynasab_nodes", akar.id), { data_lama_dibawa: true });
+        await updateDoc(doc(db, "mynasab_nodes", akar.id), { data_lama_dibawa: true, anak_lama_dibawa: true });
         if (window.muatTurunSalasilah) window.muatTurunSalasilah();
     } catch (e) { console.warn('bawaDataLama:', e.message); }
 }
