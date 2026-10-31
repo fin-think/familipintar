@@ -328,17 +328,11 @@
   </div>
 </div>
 
-      <div class="card hidden" id="dikongsi-card" style="border:2px solid #c7d2fe; background:#eef2ff;">
-        <div class="card-header" style="margin-bottom:10px;">
-          <div class="card-title-wrap"><div class="card-icon" style="background:#4f46e5; color:#fff;">📬</div><h2 style="font-size:1.1rem;">Itinerari Dikongsi Dengan Saya</h2></div>
-          <span id="dikongsi-badge" class="hidden" style="background:#ef4444; color:#fff; border-radius:99px; padding:2px 9px; font-size:0.75rem; font-weight:800;">0</span>
-        </div>
-        <div id="dikongsi-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-      </div>
+
 
       
       <!-- SENARAI PELAN + BAR TINDAKAN -->
-      <div class="card" style="border:2px solid #e2e8f0; margin:0 0 18px;">
+      <div class="card" style="border:2px solid #e2e8f0; margin:0 0 28px;">
         <div class="card-header" style="margin-bottom:10px;">
           <div class="card-title-wrap">
             <div class="card-icon" style="background:#0f172a; color:white;">📂</div>
@@ -350,6 +344,7 @@
           <div style="text-align:center; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; color:#94a3b8; font-size:0.85rem;">Memuatkan senarai pelan...</div>
         </div>
         <div id="bar-pelan" style="margin-top:12px;"></div>
+        <div id="dikongsi-bahagian"></div>
       </div>
   </div>
 
@@ -957,6 +952,25 @@ window.renderBarPelan = () => {
     el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><div style="font-weight:800;color:#1e293b;">${escH(t.title)}</div><span style="font-size:0.7rem;font-weight:800;padding:3px 9px;border-radius:99px;background:${modLihat ? '#e0f2fe' : '#dcfce7'};color:${modLihat ? '#0369a1' : '#166534'};">${modLihat ? '👁️ MOD LIHAT' : '✏️ MOD EDIT'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;">${btnEdit}${btnJ}${btnP}</div>`;
 };
 
+// Bahagian "Dikongsi dengan saya" - hanya dalam belah Keluarga Saya
+const htmlDikongsi = () => {
+    if (belahSemasa() !== 'saya' || !senaraiDikongsi.length) return '';
+    const baris = senaraiDikongsi.map(t => {
+        const baru = !(t.seen_by || []).includes(currentUser.uid);
+        const sudah = senaraiPelanTersimpan.find(x => x.joined_from === t.id);
+        return `<div style="border:1px solid ${baru ? '#818cf8' : '#c7d2fe'};background:#fff;border-radius:12px;padding:10px 12px;">
+            <div style="font-weight:800;color:#1e293b;font-size:0.92rem;">${escH(t.title)} ${baru ? '<span style="color:#ef4444;font-size:0.7rem;">● BARU</span>' : ''}</div>
+            <div style="font-size:0.72rem;color:#64748b;margin-bottom:8px;">📍 ${escH(t.destination || '-')} &nbsp;|&nbsp; 🗓️ ${escH(t.date_go || '-')} &nbsp;|&nbsp; oleh ${escH(t.owner_name || '-')}</div>
+            <div style="display:flex;gap:8px;">
+                <button onclick="bukaPreview('${t.id}')" style="flex:1;background:#e0e7ff;color:#4338ca;border:none;padding:8px;border-radius:8px;font-weight:800;font-size:0.8rem;cursor:pointer;">👁️ Lihat</button>
+                ${sudah ? `<button onclick="joinPelan('${t.id}')" style="flex:1.3;background:#d1fae5;color:#047857;border:none;padding:8px;border-radius:8px;font-weight:800;font-size:0.8rem;cursor:pointer;">✓ Sudah join (buka pelan saya)</button>` : `<button onclick="joinPelan('${t.id}')" style="flex:1.3;background:#4f46e5;color:#fff;border:none;padding:8px;border-radius:8px;font-weight:800;font-size:0.8rem;cursor:pointer;">➕ Join & guna pelan ini</button>`}
+            </div></div>`;
+    }).join('');
+    return `<div style="margin-top:14px;background:#eef2ff;border:2px solid #c7d2fe;border-radius:14px;padding:12px;"><div style="font-size:0.8rem;font-weight:800;color:#4338ca;margin-bottom:8px;">📬 Dikongsi dengan saya</div><div style="display:flex;flex-direction:column;gap:8px;">${baris}</div></div>`;
+};
+
+const isiDikongsi = () => { const el = document.getElementById('dikongsi-bahagian'); if (el) el.innerHTML = htmlDikongsi(); };
+
 // SENARAI PELAN (ringkas); klik untuk lihat
 window.renderSenaraiPelan = () => {
     const bekas = document.getElementById('senarai-pelan-list'); if (!bekas) return;
@@ -965,7 +979,7 @@ window.renderSenaraiPelan = () => {
     const label = `<div style="font-size:0.75rem; font-weight:800; color:#4f46e5;">Belah: ${tajukBelah}</div>`;
     if (!senarai.length) {
         bekas.innerHTML = label + `<div style="text-align:center; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; color:#94a3b8; font-size:0.85rem;">Belum ada pelan untuk ${tajukBelah}. Isi borang di bawah, ia disimpan automatik.</div>`;
-        renderBarPelan(); return;
+        renderBarPelan(); isiDikongsi(); return;
     }
     bekas.innerHTML = label + senarai.map(t => {
         const aktif = t.id === currentTripId;
@@ -974,7 +988,7 @@ window.renderSenaraiPelan = () => {
             <div style="font-size:0.72rem;color:#64748b;">📍 ${escH(t.destination || '-')} &nbsp;|&nbsp; 🗓️ ${escH(t.date_go || '-')}</div></div>
             <div style="font-weight:800;color:#0f766e;font-size:0.85rem;white-space:nowrap;">${rm(t.total_budget)}</div></div>`;
     }).join('');
-    renderBarPelan();
+    renderBarPelan(); isiDikongsi();
 };
 
 window.pilihPelan = (id, scroll = false) => {
@@ -1251,22 +1265,41 @@ window.cetakItin = () => {
     setTimeout(() => window.print(), 150);
 };
   
+let senaraiDikongsi = [];
 window.muatDikongsi = async () => {
     try {
-        const s = await getDocs(query(collection(db, "jombercuti_trips"), where("viewer_uids", "array-contains", currentUser.uid)));
-        const arr = s.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => (b.published_at || 0) - (a.published_at || 0));
-        document.getElementById('dikongsi-card').classList.toggle('hidden', !arr.length);
-        const baru = arr.filter(t => !(t.seen_by || []).includes(currentUser.uid)).length;
-        const bdg = document.getElementById('dikongsi-badge'); bdg.textContent = baru; bdg.classList.toggle('hidden', !baru);
+        const sn = await getDocs(query(collection(db, "jombercuti_trips"), where("viewer_uids", "array-contains", currentUser.uid)));
+        senaraiDikongsi = sn.docs.map(d => ({ ...d.data(), id: d.id })).sort((x, y) => (y.published_at || 0) - (x.published_at || 0));
+        const baru = senaraiDikongsi.filter(t => !(t.seen_by || []).includes(currentUser.uid)).length;
         document.title = (baru ? `(${baru}) ` : '') + 'JomBercuti - Perancang & Kewangan';
-        document.getElementById('dikongsi-list').innerHTML = arr.map(t => {
-            const isBaru = !(t.seen_by || []).includes(currentUser.uid);
-            return `<div style="background:#fff; border:1px solid ${isBaru ? '#818cf8' : '#e2e8f0'}; border-radius:12px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-              <div><div style="font-weight:800; font-size:0.9rem;">${escH(t.title)} ${isBaru ? '<span style="color:#ef4444; font-size:0.7rem;">● BARU</span>' : ''}</div>
-              <div style="font-size:0.72rem; color:#64748b;">📍 ${escH(t.destination || '-')} · 🗓️ ${escH(t.date_go || '-')} · oleh ${escH(t.owner_name || '-')}</div></div>
-              <button onclick="bukaPreview('${t.id}')" style="background:#4f46e5; color:#fff; border:none; border-radius:8px; padding:8px 12px; font-weight:800; font-size:0.8rem; cursor:pointer;">👁️ Lihat</button></div>`;
-        }).join('');
+        renderSenaraiPelan();
     } catch (e) { console.warn("Gagal muat itinerari dikongsi:", e.message); }
+};
+
+// Join: salin pelan yang dikongsi ke "Keluarga Saya" supaya penerima boleh ubah kos ikut keadaan sendiri. Pelan asal tidak berubah.
+window.joinPelan = async (id) => {
+    if (!currentUser) return;
+    const sudah = senaraiPelanTersimpan.find(t => t.joined_from === id);
+    if (sudah) { window.pilihPelan(sudah.id); return; }
+    const src = senaraiDikongsi.find(t => t.id === id); if (!src) return;
+    if (!confirm(`Join pelan "${src.title}"?\n\nSalinan pelan akan masuk dalam Pelan Percutian Saya (Keluarga Saya). Anda boleh ubah kos dan butiran ikut keadaan anda. Pelan asal tidak terjejas.`)) return;
+    try {
+        AS.siram();
+        const salin = (x) => JSON.parse(JSON.stringify(x || []));
+        const idBaru = "TRIP_" + Date.now();
+        const data = {
+            title: src.title || '', destination: src.destination || '', date_go: src.date_go || '', date_back: src.date_back || '',
+            accommodation: salin(src.accommodation), transportation: salin(src.transportation), miscellaneous: salin(src.miscellaneous), itinerary: salin(src.itinerary),
+            total_budget: src.total_budget || 0, monthly_saving: src.monthly_saving || 0, months_left: src.months_left || 0,
+            team_members: [], owner_uid: currentUser.uid, anchor_id: null, belah: 'saya', share_with: [],
+            joined_from: id, joined_dari_nama: src.owner_name || '', owner_name: currentUser.email.split('@')[0],
+            created_at: Date.now(), updated_at: Date.now()
+        };
+        await setDoc(doc(db, "jombercuti_trips", idBaru), data);
+        senaraiPelanTersimpan.unshift({ ...data, id: idBaru });
+        window.pilihPelan(idBaru);
+        showToast('✅ Berjaya join. Tekan Edit untuk ubah kos ikut keadaan anda.');
+    } catch (e) { console.error(e); alert("Gagal join pelan: " + (e.code || '') + " " + (e.message || e)); }
 };
 
 window.binaPaparanCetak = (trip, itinList) => {
