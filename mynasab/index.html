@@ -606,6 +606,8 @@
                         <option value="Isteri">Isteri - Percuma</option>
                         <option value="Bapa Mertua">Bapa Mertua - Tolak 5 Kredit</option>
                         <option value="Ibu Mertua">Ibu Mertua - Tolak 5 Kredit</option>
+                        <option value="Datuk Mertua">Datuk Mertua (Ayah kpd Mertua) - Tolak 5 Kredit</option>
+                        <option value="Nenek Mertua">Nenek Mertua (Ibu kpd Mertua) - Tolak 5 Kredit</option>
                     </optgroup>
                     
                     <optgroup label="Keturunan & Generasi Bawah">
@@ -1104,7 +1106,7 @@ document.getElementById('authForm').addEventListener('submit', function (e) {
             const val = this.value;
             // Kemas kini: Masukkan Abang (L) dan Kakak (P)
 const peta = { 
-                "Datuk":"L", "Ayah":"L", "Suami":"L", "Bapa Mertua":"L", "Abang":"L", 
+                "Datuk":"L", "Ayah":"L", "Suami":"L", "Bapa Mertua":"L", "Datuk Mertua":"L", "Nenek Mertua":"P", "Abang":"L", 
                 "Bapa Saudara (Belah Ayah)":"L", "Bapa Saudara (Belah Ibu)":"L",
                 "Nenek":"P", "Ibu":"P", "Isteri":"P", "Ibu Mertua":"P", "Kakak":"P", 
                 "Mak Saudara (Belah Ayah)":"P", "Mak Saudara (Belah Ibu)":"P",
