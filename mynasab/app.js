@@ -1663,6 +1663,20 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             }
         }
 
+        // Saya dijemput sebagai adik-beradik induk: adik-beradik cantuman milik induk juga adik-beradik saya
+        if (!sayaInduk && sasaranIdPusat === indukRootId) {
+            const sudahAda2 = new Set([saya, indukUid, ...akaun.map(a => a.uid), ...cantumAdik.map(c => c.uid), ...cantumLain.map(c => c.uid)]);
+            for (const u of (kInduk.diri.linked_adik || [])) {
+                if (sudahAda2.has(u)) continue;
+                sudahAda2.add(u);
+                const nodLuar = await ambil(u);
+                const kLuar = kelompok(nodLuar);
+                if (!kLuar.diri) continue;
+                nodLuar.forEach(n => semuaId.add(n.id));
+                uidAdikCantum.add(u); cantumAdik.push({ uid: u, k: kLuar });
+            }
+        }
+
         const sasaranNodeInduk = nodInduk.find(n => n.id === sasaranIdPusat);
         const sasaranAdalahPasangan = !sayaInduk && !!sasaranNodeInduk && /suami|isteri/i.test(sasaranNodeInduk.relationship || '');
 
