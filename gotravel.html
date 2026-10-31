@@ -308,6 +308,52 @@
     <p style="font-size:0.7rem; color:#94a3b8; text-align:center; margin-top:10px;">💡 Tip: Klik pada tugasan di dalam kalendar untuk melihat butiran penuh.</p>
   </div>
   
+  <div>
+<div id="modalJadual" class="hidden" style="position:fixed; inset:0; background:rgba(15,23,42,.75); z-index:5000; display:flex; align-items:flex-start; justify-content:center; padding:16px; overflow-y:auto;">
+  <div style="background:#fff; width:100%; max-width:560px; border-radius:16px; padding:20px; margin:auto;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px;">
+      <div>
+        <h2 style="font-family:'Baloo 2',cursive; font-size:1.2rem;">🗓️ Jadual Itinerari</h2>
+        <div id="jadual-tajuk" style="font-weight:800; color:#1e293b;"></div>
+        <div id="jadual-sub" style="font-size:0.75rem; color:#64748b;"></div>
+      </div>
+      <button onclick="tutupJadual()" style="background:#f1f5f9; border:none; border-radius:8px; width:36px; height:36px; font-size:1rem; cursor:pointer;">✕</button>
+    </div>
+    <div id="jadual-list"></div>
+    <button class="add-row-btn" onclick="tambahJadual()">➕ Tambah Aktiviti</button>
+    <div style="display:flex; gap:8px; margin-top:14px;">
+      <button onclick="simpanJadual()" style="flex:2; background:#27ae60; color:#fff; border:none; padding:13px; border-radius:10px; font-weight:800; cursor:pointer;">💾 Simpan Jadual</button>
+      <button onclick="tutupJadual()" style="flex:1; background:#f1f5f9; color:#475569; border:none; padding:13px; border-radius:10px; font-weight:800; cursor:pointer;">Batal</button>
+    </div>
+  </div>
+</div>
+
+      <div class="card hidden" id="dikongsi-card" style="border:2px solid #c7d2fe; background:#eef2ff;">
+        <div class="card-header" style="margin-bottom:10px;">
+          <div class="card-title-wrap"><div class="card-icon" style="background:#4f46e5; color:#fff;">📬</div><h2 style="font-size:1.1rem;">Itinerari Dikongsi Dengan Saya</h2></div>
+          <span id="dikongsi-badge" class="hidden" style="background:#ef4444; color:#fff; border-radius:99px; padding:2px 9px; font-size:0.75rem; font-weight:800;">0</span>
+        </div>
+        <div id="dikongsi-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
+      
+      <!-- SENARAI PELAN + BAR TINDAKAN -->
+      <div class="card" style="border:2px solid #e2e8f0; margin:0 0 18px;">
+        <div class="card-header" style="margin-bottom:10px;">
+          <div class="card-title-wrap">
+            <div class="card-icon" style="background:#0f172a; color:white;">📂</div>
+            <div><h2 style="font-size:1.1rem;">Pelan Percutian Saya</h2><p style="font-size:0.75rem; color:#64748b;">Klik satu pelan untuk lihat. Tekan Edit untuk ubah.</p></div>
+          </div>
+          <button onclick="buatPelanBaru()" style="background:#e0f2fe; color:#0284c7; border:none; padding:6px 12px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">+ Pelan Baru</button>
+        </div>
+        <div id="senarai-pelan-list" style="display:flex; flex-direction:column; gap:8px;">
+          <div style="text-align:center; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; color:#94a3b8; font-size:0.85rem;">Memuatkan senarai pelan...</div>
+        </div>
+        <div id="bar-pelan" style="margin-top:12px;"></div>
+      </div>
+  </div>
+
+  <fieldset id="fs-borang" style="border:0;padding:0;margin:0;min-width:0;">
   <div class="main-grid-layout">
     <!-- KOLUM KIRI -->
     <div class="left-column">
@@ -373,58 +419,9 @@
         <button class="add-row-btn" onclick="addMisc()">➕ Tambah Item Bajet</button>
       </div>
 
-      <div id="modalJadual" class="hidden" style="position:fixed; inset:0; background:rgba(15,23,42,.75); z-index:5000; display:flex; align-items:flex-start; justify-content:center; padding:16px; overflow-y:auto;">
-  <div style="background:#fff; width:100%; max-width:560px; border-radius:16px; padding:20px; margin:auto;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px;">
-      <div>
-        <h2 style="font-family:'Baloo 2',cursive; font-size:1.2rem;">🗓️ Jadual Itinerari</h2>
-        <div id="jadual-tajuk" style="font-weight:800; color:#1e293b;"></div>
-        <div id="jadual-sub" style="font-size:0.75rem; color:#64748b;"></div>
-      </div>
-      <button onclick="tutupJadual()" style="background:#f1f5f9; border:none; border-radius:8px; width:36px; height:36px; font-size:1rem; cursor:pointer;">✕</button>
-    </div>
-    <div id="jadual-list"></div>
-    <button class="add-row-btn" onclick="tambahJadual()">➕ Tambah Aktiviti</button>
-    <div style="display:flex; gap:8px; margin-top:14px;">
-      <button onclick="simpanJadual()" style="flex:2; background:#27ae60; color:#fff; border:none; padding:13px; border-radius:10px; font-weight:800; cursor:pointer;">💾 Simpan Jadual</button>
-      <button onclick="tutupJadual()" style="flex:1; background:#f1f5f9; color:#475569; border:none; padding:13px; border-radius:10px; font-weight:800; cursor:pointer;">Batal</button>
-    </div>
-  </div>
-</div>
-
-      <div class="card hidden" id="dikongsi-card" style="border:2px solid #c7d2fe; background:#eef2ff;">
-        <div class="card-header" style="margin-bottom:10px;">
-          <div class="card-title-wrap"><div class="card-icon" style="background:#4f46e5; color:#fff;">📬</div><h2 style="font-size:1.1rem;">Itinerari Dikongsi Dengan Saya</h2></div>
-          <span id="dikongsi-badge" class="hidden" style="background:#ef4444; color:#fff; border-radius:99px; padding:2px 9px; font-size:0.75rem; font-weight:800;">0</span>
-        </div>
-        <div id="dikongsi-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-      </div>
-
-      
-      <!-- KAD SENARAI PELAN & CETAKAN PDF -->
-      <div class="card" style="border: 2px solid #e2e8f0; margin-top:10px;">
-        <div class="card-header" style="margin-bottom:10px;">
-          <div class="card-title-wrap">
-            <div class="card-icon" style="background:#0f172a; color:white;">📂</div>
-            <div>
-              <h2 style="font-size:1.1rem;">Senarai Pelan Percutian</h2>
-              <p style="font-size:0.75rem; color:#64748b;">Pilih pelan untuk diedit atau dicetak.</p>
-            </div>
-          </div>
-          <button onclick="buatPelanBaru()" style="background:#e0f2fe; color:#0284c7; border:none; padding:6px 12px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">
-            + Pelan Baru
-          </button>
-        </div>
-        
-        <div id="senarai-pelan-list" style="display:flex; flex-direction:column; gap:10px;">
-           <div style="text-align:center; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; color:#94a3b8; font-size:0.85rem;">
-               Memuatkan senarai pelan...
-           </div>
-        </div>
-      </div>
-      
     </div> <!-- TAMAT KOLUM KANAN -->
   </div> <!-- TAMAT BEKAS GRID UTAMA -->
+  </fieldset>
 
   <!-- Ringkasan Bajet & Financial Planner -->
   <div class="budget-summary">
@@ -449,7 +446,7 @@
             <div class="fin-box highlight"><div class="fin-label">Simpanan Bulanan</div><div class="fin-val" id="plan-monthly">RM 0.00</div></div>
         </div>
     </div>
-    <p id="save-status-trip" style="text-align:center; font-size:0.85rem; font-weight:600; color:#64748b; margin-top:15px;">Perubahan disimpan automatik apabila nama dan tarikh berlepas diisi.</p>
+    <p id="save-status-trip" style="text-align:center; font-size:0.85rem; font-weight:600; color:#64748b; margin-top:15px;">Isi nama dan tarikh berlepas untuk simpan automatik semasa mengedit.</p>
   </div>
 </div>
 
@@ -493,6 +490,7 @@
             await window.muatKeluargaRombongan(); 
             await window.muatPelanTersimpan();
             AS.sedia(kunciTrip());   // auto-save bermula selepas data lama dimuat
+            setMod(modLihat);
             window.muatDikongsi();
         } else {
             currentUser = null;
@@ -901,14 +899,14 @@ const kunciTrip = () => {
 };
 const AS = AutoSimpan.buat({
     el: 'save-status-trip',
-    boleh: () => !!currentUser,
+    boleh: () => !!currentUser && !modLihat,
     mesejTunda: 'Isi nama program dan tarikh berlepas untuk simpan automatik.',
     ambil: kunciTrip,
     simpan: () => window.simpanPelanKeDatabase(true)
 });
-document.addEventListener('input', () => AS.ubah(), true);
-document.addEventListener('change', () => AS.ubah(), true);
-document.addEventListener('click', () => AS.ubah(), true);
+document.addEventListener('input', () => { if (!modLihat) AS.ubah(); }, true);
+document.addEventListener('change', () => { if (!modLihat) AS.ubah(); }, true);
+document.addEventListener('click', () => { if (!modLihat) AS.ubah(); }, true);
 
 window.tukarBelah = async () => {
     AS.siram();                 // simpan dahulu pelan semasa di belah lama
@@ -930,39 +928,53 @@ window.muatPelanTersimpan = async (idPilih = null) => {
         senaraiPelanTersimpan = snap.docs.map(d => ({ ...d.data(), id: d.id }))
             .sort((a, b) => (b.updated_at || b.created_at || 0) - (a.updated_at || a.created_at || 0));
         const pilih = idPilih ? senaraiPelanTersimpan.find(t => t.id === idPilih) : pelanBelahIni()[0];
-        if (pilih) window.pilihPelan(pilih.id); else renderSenaraiPelan();
+        if (pilih) window.pilihPelan(pilih.id); else { setMod(false); renderSenaraiPelan(); }
     } catch (e) { console.error("Gagal memuatkan pelan lama:", e); }
 };
 
-// PAPAR SENARAI PELAN DENGAN BUTANG EDIT & CETAK
+// ---- MOD LIHAT / EDIT ----
+// Pelan yang sudah disimpan dibuka dalam mod lihat (borang dikunci, tiada simpan automatik). Tekan Edit untuk ubah seluruh borang & pelan.
+let modLihat = false;
+const rm = (n) => 'RM ' + (Number(n) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+window.setMod = (lihat) => {
+    modLihat = !!lihat;
+    document.getElementById('fs-borang').disabled = modLihat;
+    document.getElementById('fs-borang').style.opacity = modLihat ? '.92' : '1';
+    const st = document.getElementById('save-status-trip');
+    if (st) { st.textContent = modLihat ? 'Mod lihat. Tekan "Edit" untuk ubah pelan ini.' : 'Mod edit. Perubahan disimpan automatik bila nama dan tarikh berlepas diisi.'; st.style.color = '#64748b'; }
+    renderBarPelan();
+};
+window.mulaEdit = () => { if (!currentTripId) return; setMod(false); AS.sedia(kunciTrip()); };
+window.selesaiEdit = async () => { try { await AS.siram(); } catch (e) {} setMod(true); showToast('✅ Pelan disimpan'); };
+const butangBar = (bg, label, fn, flex) => `<button onclick="${fn}" style="flex:${flex || 1}; background:${bg}; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:800; font-size:0.85rem; cursor:pointer;">${label}</button>`;
+window.renderBarPelan = () => {
+    const el = document.getElementById('bar-pelan'); if (!el) return;
+    const t = senaraiPelanTersimpan.find(x => x.id === currentTripId);
+    if (!t) { el.innerHTML = `<div style="background:#fffbeb;border:1px dashed #fcd34d;border-radius:12px;padding:10px 12px;font-size:0.82rem;font-weight:700;color:#92400e;">✨ Pelan baharu. Isi nama dan tarikh berlepas di bawah, ia akan disimpan automatik.</div>`; return; }
+    const btnEdit = modLihat ? butangBar('#3b82f6', '✏️ Edit Pelan', 'mulaEdit()', 1.2) : butangBar('#16a34a', '✔ Selesai Edit', 'selesaiEdit()', 1.2);
+    const btnJ = butangBar('#6366f1', '🗓️ Jadual', `bukaJadual('${t.id}')`);
+    const btnP = t.published ? butangBar('#10b981', '👁️ Preview & Cetak', `bukaPreview('${t.id}')`, 1.4) : butangBar('#f59e0b', '✨ Jana & Kongsi (1 Kredit)', `janaDanKongsi('${t.id}')`, 1.6);
+    el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><div style="font-weight:800;color:#1e293b;">${escH(t.title)}</div><span style="font-size:0.7rem;font-weight:800;padding:3px 9px;border-radius:99px;background:${modLihat ? '#e0f2fe' : '#dcfce7'};color:${modLihat ? '#0369a1' : '#166534'};">${modLihat ? '👁️ MOD LIHAT' : '✏️ MOD EDIT'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;">${btnEdit}${btnJ}${btnP}</div>`;
+};
+
+// SENARAI PELAN (ringkas); klik untuk lihat
 window.renderSenaraiPelan = () => {
     const bekas = document.getElementById('senarai-pelan-list'); if (!bekas) return;
     const tajukBelah = ({ saya: 'Keluarga Saya', induk: 'Keluarga Induk', pasangan: 'Keluarga Pasangan' })[belahSemasa()];
     const senarai = pelanBelahIni();
     const label = `<div style="font-size:0.75rem; font-weight:800; color:#4f46e5;">Belah: ${tajukBelah}</div>`;
-
     if (!senarai.length) {
-        bekas.innerHTML = label + `<div style="text-align:center; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; color:#94a3b8; font-size:0.85rem;">Belum ada pelan untuk ${tajukBelah}. Isi borang dan tekan Simpan.</div>`;
-        return;
+        bekas.innerHTML = label + `<div style="text-align:center; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; color:#94a3b8; font-size:0.85rem;">Belum ada pelan untuk ${tajukBelah}. Isi borang di bawah, ia disimpan automatik.</div>`;
+        renderBarPelan(); return;
     }
     bekas.innerHTML = label + senarai.map(t => {
-        const isAktif = t.id === currentTripId;
-        const lama = '';
-        return `
-        <div style="border: 1px solid ${isAktif ? '#3b82f6' : '#e2e8f0'}; background: ${isAktif ? '#eff6ff' : '#ffffff'}; border-radius: 12px; padding: 12px;">
-            <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; margin-bottom: 2px;">${escH(t.title)}${lama}</div>
-            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 10px;">📍 ${escH(t.destination || 'Tiada Destinasi')} &nbsp;|&nbsp; 🗓️ ${escH(t.date_go || '-')} &nbsp;|&nbsp; 📋 ${(t.itinerary || []).length} aktiviti</div>
-                        <div style="display:flex; gap:8px;">
-                <button onclick="bukaJadual('${t.id}')" style="flex:1.3; background:#3b82f6; color:white; border:none; padding:8px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">🗓️ Edit Jadual</button>
-                ${t.published
-  ? `<button onclick="bukaPreview('${t.id}')" style="flex:1.5; background:#10b981; color:white; border:none; padding:8px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">👁️ Preview & Cetak</button>`
-  : `<button onclick="janaDanKongsi('${t.id}')" style="flex:1.5; background:#f59e0b; color:white; border:none; padding:8px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">✨ Jana & Kongsi (1 Kredit)</button>`}
-            </div>
-            <div style="text-align:right; margin-top:6px;">
-                <a href="#" onclick="pilihPelan('${t.id}', true); return false;" style="font-size:0.72rem; color:#64748b; font-weight:700;">${isAktif ? 'Pelan ini sedang dalam borang' : 'Buka maklumat pelan dalam borang ↑'}</a>
-            </div>
-        </div>`;
+        const aktif = t.id === currentTripId;
+        return `<div onclick="pilihPelan('${t.id}')" style="cursor:pointer;border:2px solid ${aktif ? '#3b82f6' : '#e2e8f0'};background:${aktif ? '#eff6ff' : '#fff'};border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div style="min-width:0;"><div style="font-weight:800;color:#1e293b;font-size:0.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(t.title)}${t.published ? ' <span style="font-size:0.65rem;background:#d1fae5;color:#047857;padding:1px 6px;border-radius:6px;">dikongsi</span>' : ''}</div>
+            <div style="font-size:0.72rem;color:#64748b;">📍 ${escH(t.destination || '-')} &nbsp;|&nbsp; 🗓️ ${escH(t.date_go || '-')}</div></div>
+            <div style="font-weight:800;color:#0f766e;font-size:0.85rem;white-space:nowrap;">${rm(t.total_budget)}</div></div>`;
     }).join('');
+    renderBarPelan();
 };
 
 window.pilihPelan = (id, scroll = false) => {
@@ -988,8 +1000,9 @@ window.pilihPelan = (id, scroll = false) => {
         document.querySelectorAll('.fam-check').forEach(cb => { cb.checked = namaAhli.has(cb.value); });
     }
     window.updateAll(); 
-    renderSenaraiPelan(); // Kemas kini butang aktif
     AS.sedia(kunciTrip());   // pelan yang baru dimuat sudah sama dengan yang tersimpan
+    setMod(true);            // buka dalam mod lihat (tiada simpan automatik sehingga Edit ditekan)
+    renderSenaraiPelan();
       if (scroll) document.getElementById('trip-name').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
     showToast(`📂 Pelan "${trip.title}" dimuatkan!`);
 };
@@ -1000,8 +1013,9 @@ window.buatPelanBaru = () => {
     document.getElementById('trip-name').value = ''; 
     document.getElementById('destination').value = '';
     accomList = []; transportList = []; miscList = []; init();
-    renderSenaraiPelan();
     AS.sedia(kunciTrip());
+    setMod(false);
+    renderSenaraiPelan();
     showToast('✨ Borang dikosongkan untuk pelan baharu!');
 };
 
