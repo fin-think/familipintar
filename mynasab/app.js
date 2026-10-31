@@ -734,7 +734,7 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
         const hubunganDikecualikan = [
             "Menantu", "Pasangan Cucu", 
             "Cucu", "Cicit", "Piut / Cece", "Oneng-oneng", 
-            "Ipar", "Anak Saudara", "Cucu Saudara",
+            "Ipar", "Anak Saudara", "Cucu Saudara", "Abang Pasangan", "Kakak Pasangan", "Adik Pasangan",
             "Pasangan Bapa Saudara", "Pasangan Mak Saudara", "Sepupu", "Dua Pupuk"
         ];
         
@@ -1271,8 +1271,10 @@ const RUJUKAN = {
     "Piut / Cece": ["Cicit"], 
     "Oneng-oneng": ["Piut / Cece"],
     // 🔥 TAMBAHAN BARU UNTUK CABANG ADIK-BERADIK (MANUAL)
-    "Ipar": ["Abang", "Kakak", "Adik", "Adik-beradik"],
-    "Anak Saudara": ["Abang", "Kakak", "Adik", "Adik-beradik"],
+    "Ipar": ["Abang", "Kakak", "Adik", "Adik-beradik", "Abang Pasangan", "Kakak Pasangan", "Adik Pasangan"],
+    "Anak Saudara": ["Abang", "Kakak", "Adik", "Adik-beradik", "Abang Pasangan", "Kakak Pasangan", "Adik Pasangan"],
+    // Adik-beradik PASANGAN (direkod manual tanpa akaun; ikat pada pasangan yang berkenaan)
+    "Abang Pasangan": ["Isteri", "Suami"], "Kakak Pasangan": ["Isteri", "Suami"], "Adik Pasangan": ["Isteri", "Suami"],
     "Cucu Saudara": ["Anak Saudara"],
     // --- TAMBAH INI TUK FASA 1 ---
     "Sepupu": [
@@ -1296,6 +1298,8 @@ window.siapkanRujukan = async (hubungan) => {
     // Ubah label soalan mengikut jenis hubungan supaya lebih tepat
     if (["Menantu", "Pasangan Cucu", "Ipar", "Pasangan Bapa Saudara", "Pasangan Mak Saudara"].includes(hubungan)) {
         labelRujukan.innerText = `Suami/Isteri kepada siapa?`;
+    } else if (["Abang Pasangan", "Kakak Pasangan", "Adik Pasangan"].includes(hubungan)) {
+        labelRujukan.innerText = `Adik-beradik kepada pasangan yang mana?`;
     } else if (["Cucu", "Cicit", "Piut / Cece", "Oneng-oneng", "Anak Saudara", "Cucu Saudara", "Sepupu", "Dua Pupuk"].includes(hubungan)) {
         // Sepupu & Dua Pupuk ditambah di sini ^
         labelRujukan.innerText = `Anak kepada siapa?`;
@@ -1548,7 +1552,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
 
         const kelompok = (nod) => {
             const k = {
-                diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], datukMertua: [], moyangMertua: [], buyutMertua: [], cakawariMertua: [], cilawagiMertua: [], turun: [[], [], [], [], []],
+                diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], datukMertua: [], moyangMertua: [], buyutMertua: [], cakawariMertua: [], cilawagiMertua: [], adikPasangan: [], turun: [[], [], [], [], []],
                 adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [], saudaraIbuBapa: [], pasanganSaudara: [], sepupu: []
             };
             nod.forEach(d => {
@@ -1572,6 +1576,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
                 else if (h === 'cicit') k.turun[2].push(d);
                 else if (h.includes('piut') || h.includes('cece')) k.turun[3].push(d);
                 else if (h.includes('oneng')) k.turun[4].push(d);
+                else if (/^(abang|kakak|adik) pasangan$/.test(h)) k.adikPasangan.push(d);
                 else if (h.includes('adik') || h.includes('abang') || h.includes('kakak') || h === 'adik-beradik') k.adikBeradik.push(d);
                 else if (h.includes('ipar')) k.ipar.push(d);
                 else if (h.includes('anak saudara')) k.anakSaudara.push(d);
@@ -1968,6 +1973,11 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
                 if (!sayaInduk && sasaranIdPusat === indukRootId && !sembunyi.includes(indukUid)) tambahAdikManual(kInduk);
             }
             
+            // 2b. Adik-beradik pasangan (direkod manual) + anak saudara mereka - belah pasangan
+            if (opsyen.adikPasangan) {
+                tambahAdikManual(Object.assign({}, jangkar.k, { adikBeradik: (jangkar.k.adikPasangan || []).filter(a => a.ref_id === opsyen.adikPasangan) }));
+            }
+
             entri.sort((x, y) => x.t - y.t);
             const idxJangkar = entri.findIndex(e => e.jangkar);
 
@@ -2067,7 +2077,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             kPusat.pasangan.forEach((p, i) => {
                 const { senarai, sisa } = cariIbuBapa(p.id, [kPusat.mertua, ...KUNCI_ATAS_MERTUA.map(k => kPusat[k])], i === 0);
                 let susunanOrangPsg = susunKiri([p, kPusat.diri]);
-                const s = binaSisi('Belah ' + p.name, { k: kPusat, orang: susunanOrangPsg, penentu: p }, senarai, sisa, p.id);
+                const s = binaSisi('Belah ' + p.name, { k: kPusat, orang: susunanOrangPsg, penentu: p }, senarai, sisa, p.id, { adikPasangan: p.id });
                 if (s.ada) sisi.push(s);
             });
         }
@@ -2077,7 +2087,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             kPusat.pasangan.forEach((p, i) => {
                 const { senarai, sisa } = cariIbuBapa(p.id, [kPusat.mertua, ...KUNCI_ATAS_MERTUA.map(k => kPusat[k])], i === 0);
                 const kP = Object.assign({}, kPusat, { diri: p });
-                const s = binaSisi('Nasab Keluarga Besar: Belah ' + p.name, { k: kP, orang: [p], penentu: p }, senarai, sisa, p.id, { tanpaPasangan: true });
+                const s = binaSisi('Nasab Keluarga Besar: Belah ' + p.name, { k: kP, orang: [p], penentu: p }, senarai, sisa, p.id, { tanpaPasangan: true, adikPasangan: p.id });
                 if (s.ada) sisi.push(s);
             });
         }
@@ -2403,7 +2413,7 @@ window.jalankanFaraid = () => {
                 else if (targetRel === 'ibu' && dRel === 'ayah') newRel = 'Suami';
                 else if (dRel === 'datuk') newRel = 'Bapa';
                 else if (dRel === 'nenek') newRel = 'Ibu';
-                else if (dRel.includes('adik') || dRel.includes('abang') || dRel.includes('kakak')) newRel = 'Anak'; // Adik beradik bos adalah Anak kepada ibu bapa bos
+                else if ((dRel.includes('adik') || dRel.includes('abang') || dRel.includes('kakak')) && !dRel.includes('pasangan')) newRel = 'Anak'; // Adik beradik bos adalah Anak kepada ibu bapa bos
             }
             // --- JIKA SI MATI ADALAH MERTUA ---
             else if (targetRel.includes('mertua')) {
@@ -2449,6 +2459,7 @@ window.kiraFaraidAuto = (docs) => {
 
         let rel = (d.relationship || '').toLowerCase();
         let gen = d.gender;
+        if (rel.includes('mertua') || /(abang|kakak|adik) pasangan$/.test(rel)) return; // belah pasangan bukan waris
 
         if (rel === 'isteri') isteriCount++;
         else if (rel === 'suami') suamiCount++;

@@ -624,6 +624,12 @@
                         <option value="Oneng-oneng">Oneng-oneng - Tolak 1 Kredit</option>
                     </optgroup>
 
+                    <optgroup label="Adik-beradik Pasangan (isi sendiri)">
+                        <option value="Abang Pasangan">Abang Pasangan - Tolak 1 Kredit</option>
+                        <option value="Kakak Pasangan">Kakak Pasangan - Tolak 1 Kredit</option>
+                        <option value="Adik Pasangan">Adik Pasangan - Tolak 1 Kredit</option>
+                    </optgroup>
+
                     <optgroup label="Adik Beradik & Keluarganya">
                         <option value="Abang">Abang - Tolak 1 Kredit</option>
                         <option value="Kakak">Kakak - Tolak 1 Kredit</option>
@@ -1110,7 +1116,7 @@ document.getElementById('authForm').addEventListener('submit', function (e) {
             const val = this.value;
             // Kemas kini: Masukkan Abang (L) dan Kakak (P)
 const peta = { 
-                "Datuk":"L", "Ayah":"L", "Suami":"L", "Bapa Mertua":"L", "Datuk Mertua":"L", "Nenek Mertua":"P", "Abang":"L", 
+                "Datuk":"L", "Ayah":"L", "Suami":"L", "Bapa Mertua":"L", "Datuk Mertua":"L", "Nenek Mertua":"P", "Abang":"L", "Abang Pasangan":"L", "Kakak Pasangan":"P", 
                 "Bapa Saudara (Belah Ayah)":"L", "Bapa Saudara (Belah Ibu)":"L",
                 "Nenek":"P", "Ibu":"P", "Isteri":"P", "Ibu Mertua":"P", "Kakak":"P", 
                 "Mak Saudara (Belah Ayah)":"P", "Mak Saudara (Belah Ibu)":"P",
