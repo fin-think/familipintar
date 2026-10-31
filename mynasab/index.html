@@ -195,6 +195,8 @@
         }
         .mh-avatar svg { width: 38px; height: 38px; fill: #9e9e9e; margin-bottom: -5px; }
         .mh-details { padding: 8px 10px; overflow: hidden; flex: 1; display: flex; flex-direction: column; justify-content: center;}
+        .mh-panggilan { margin: 1px 0 0; font-size: 10px; font-style: italic; font-weight: 700; color: #0f766e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+        .mh-card.ada-panggilan { height: 68px; }
         .mh-name { margin: 0; font-size: 13px; font-weight: bold; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
         .mh-info { margin: 3px 0 0 0; font-size: 11px; color: #444; }
         .badge-mini {
@@ -357,6 +359,8 @@
         width: 150px !important; /* Kotak jadi comel sikit di mobile */
         height: 50px !important;
     }
+    .mh-card.ada-panggilan { height: 62px !important; }
+    .mh-panggilan { font-size: 9px !important; }
 
     .mh-avatar {
         width: 35px !important;
@@ -584,6 +588,12 @@
                 <label>Nama Individu (tanpa Bin/Binti kecuali bagi leluhur terakhir di atas)</label>
                 <input type="text" id="tambahNama" required placeholder="Cth: Ahmad">
             </div>
+            <div class="input-group">
+                <label>Panggilan (pilihan)</label>
+                <input type="text" id="tambahPanggilan" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Long, Mak Ngah, Tok Wan">
+                <datalist id="senaraiPanggilan"><option value="Pak Long"><option value="Pak Ngah"><option value="Pak Lang"><option value="Pak Chik"><option value="Pak Su"><option value="Mak Long"><option value="Mak Ngah"><option value="Mak Lang"><option value="Mak Chik"><option value="Mak Su"><option value="Tok Wan"><option value="Tok Ki"><option value="Tok"><option value="Wan"><option value="Opah"><option value="Atuk"><option value="Along"><option value="Angah"><option value="Acik"><option value="Abang Long"><option value="Kak Long"><option value="Kak Ngah"></datalist>
+                <small style="color:#7f8c8d;">Dipaparkan di bawah nama dalam pokok keluarga.</small>
+            </div>
             
             <div class="input-group">
                 <label>Hubungan (dengan anda)</label>
@@ -750,6 +760,10 @@
             <div class="input-group">
                 <label>Nama Individu (tanpa Bin/Binti kecuali bagi leluhur terakhir di atas)</label>
                 <input type="text" id="editAhliNama" required>
+            </div>
+            <div class="input-group">
+                <label>Panggilan (pilihan)</label>
+                <input type="text" id="editAhliPanggilan" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Long, Mak Ngah, Tok Wan">
             </div>
             
             <div class="input-group">
@@ -1182,7 +1196,7 @@ formTambah.onsubmit = function (e) {
     const status = radioStatus ? radioStatus.value : 'hidup';
 
     if (window.tambahAhliBaru) {
-        window.tambahAhliBaru(nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukan, status, email);
+        window.tambahAhliBaru(nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukan, status, email, (document.getElementById('tambahPanggilan') || {}).value || '');
     }
 };
 </script>

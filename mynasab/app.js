@@ -678,7 +678,7 @@ window.padamAhli = async (idAhli) => {
 };
 
 // --- 5. TAMBAH AHLI BARU ---
-window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukanId, status = 'hidup', email = '') => {
+window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukanId, status = 'hidup', email = '', panggilan = '') => {
     if (!penggunaSemasa) return;
 
     const sPautanSaya = await getDoc(doc(db, "mynasab_links", penggunaSemasa.uid));
@@ -771,6 +771,7 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
         const rujukanBaru = await addDoc(collection(db, "mynasab_nodes"), {
             owner_uid: penggunaSemasa.uid,
             name: nama,
+            panggilan: String(panggilan || '').trim(),
             relationship: hubungan,
             gender: jantina,
             ref_id: rujukanId || "",
@@ -856,6 +857,7 @@ window.bukaModalEdit = async (idKotak) => {
             document.getElementById('editAhliId').value = idKotak;
             { const fg = document.getElementById('editAhliGambar'); if (fg) fg.value = ''; } // jangan bawa gambar ahli sebelumnya
             document.getElementById('editAhliNama').value = data.name || "";
+            { const ep = document.getElementById('editAhliPanggilan'); if (ep) ep.value = data.panggilan || ''; }
             document.getElementById('editAhliHubungan').value = data.relationship || "";
             document.getElementById('editAhliDob').value = data.dob || "";
             document.getElementById('editAhliTelefon').value = data.phone || "";
@@ -927,6 +929,7 @@ if (formEdit) {
         try {
             let dataUpdate = {
                 name: document.getElementById('editAhliNama').value,
+                panggilan: (document.getElementById('editAhliPanggilan') ? document.getElementById('editAhliPanggilan').value : '').trim(),
                 dob: document.getElementById('editAhliDob').value,
                 phone: document.getElementById('editAhliTelefon').value,
                 email: document.getElementById('editAhliEmail').value,
@@ -1078,11 +1081,12 @@ window.bukaPreview = async () => {
             }
 
             return `
-                <div class="mh-card ${tema}">
+                <div class="mh-card ${tema}${ahli.panggilan ? ' ada-panggilan' : ''}">
                     <div class="badge-mini">${esc(ahli.relationship)}</div>
                     <div class="mh-avatar">${paparanAvatar}</div>
                     <div class="mh-details">
                         <p class="mh-name" title="${esc(ahli.name)}">${esc(ahli.name)}</p>
+                        ${ahli.panggilan ? `<p class="mh-panggilan" title="${esc(ahli.panggilan)}">${esc(ahli.panggilan)}</p>` : ''}
                         <p class="mh-info" style="font-size: 10px;">${infoLahir(ahli)}</p>
                     </div>
                 </div>
@@ -1717,7 +1721,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             const avatar = a.photo_url ? `<img src="${esc(a.photo_url)}" style="width:100%;height:100%;object-fit:cover;">` : SVG;
             const btn = butangSembunyi ? `<button class="btn-sembunyi" title="Sembunyikan keluarga ini" onclick="window.sembunyiAkaun('${esc(a.owner_uid)}')">✕</button>` : '';
 
-            return `<div class="mh-card ${tema}">${btn}<div class="badge-mini">${esc(label(a))}</div><div class="mh-avatar">${avatar}</div><div class="mh-details"><p class="mh-name" title="${esc(a.name)}">${esc(a.name)}</p><p class="mh-info" style="font-size:10px;">${infoLahir(a)}</p></div></div>`;
+            return `<div class="mh-card ${tema}${a.panggilan ? ' ada-panggilan' : ''}">${btn}<div class="badge-mini">${esc(label(a))}</div><div class="mh-avatar">${avatar}</div><div class="mh-details"><p class="mh-name" title="${esc(a.name)}">${esc(a.name)}</p>${a.panggilan ? `<p class="mh-panggilan" title="${esc(a.panggilan)}">${esc(a.panggilan)}</p>` : ''}<p class="mh-info" style="font-size:10px;">${infoLahir(a)}</p></div></div>`;
         };
 
         const lelaki = x => x.gender ? x.gender === 'L' : /ayah|bapa|datuk|suami|moyang|buyut|cakawari|cilawagi/.test((x.relationship || '').toLowerCase());
