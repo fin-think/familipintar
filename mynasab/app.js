@@ -1925,7 +1925,26 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             const kunci = (n) => String((n && n.name) || '').trim().toLowerCase();
             const sudahAdik = new Set([kunci(jangkar.k.diri)]);
             // Setiap entri: t = tarikh lahir (untuk susun), jangkar = pemilik pokok, bina(sisiKiri) = HTML
-            const entri = [{ t: tarikh(jangkar.penentu), jangkar: true, bina: (kiri) => binaRumahMenegak(kk(jangkar.k), jangkar.k.diri, tp ? [] : jangkar.orang.filter(o => o !== jangkar.k.diri), false, kiri) }];
+            // Bawa data lama: jika saya dijemput sebagai adik-beradik & pokok saya masih kosong,
+            // guna pasangan + anak yang pengundang pernah rekodkan secara manual untuk saya.
+            let kJangkar = jangkar.k, orangJangkar = jangkar.orang;
+            if (!sayaInduk && belahSaya && kInduk && kInduk.diri) {
+                const lamaSaya = (kInduk.adikBeradik || []).find(x => x.akaun_uid === jangkar.k.diri.owner_uid || kunci(x) === kunci(jangkar.k.diri));
+                if (lamaSaya) {
+                    const iparLama = (kInduk.ipar || []).filter(i => i.ref_id === lamaSaya.id);
+                    const anakLama = (kInduk.anakSaudara || []).filter(c => c.ref_id === lamaSaya.id);
+                    const adaTurun = (jangkar.k.turun || []).some(x => x && x.length);
+                    const adaPsg = jangkar.orang.some(o => o !== jangkar.k.diri);
+                    if ((!adaPsg && iparLama.length) || (!adaTurun && anakLama.length)) {
+                        kJangkar = Object.assign({}, jangkar.k, {
+                            menantu: adaPsg ? jangkar.k.menantu : (kInduk.ipar || []),
+                            turun: adaTurun ? jangkar.k.turun : [anakLama, kInduk.cucuSaudara || [], [], [], []]
+                        });
+                        if (!adaPsg) orangJangkar = [jangkar.k.diri].concat(iparLama);
+                    }
+                }
+            }
+            const entri = [{ t: tarikh(jangkar.penentu), jangkar: true, bina: (kiri) => binaRumahMenegak(kk(kJangkar), kJangkar.diri, tp ? [] : orangJangkar.filter(o => o !== kJangkar.diri), false, kiri) }];
 
             // Adik-beradik yang direkod manual dalam sesebuah akaun (abang/kakak/adik + ipar + anak saudara)
             const tambahAdikManual = (kSumber) => {
@@ -1955,7 +1974,27 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
                     return; 
                 }
                 sudahAdik.add(kunci(kAkaun.diri));
-                entri.push({ t: tarikh(kAkaun.diri), bina: (kiri) => binaRumahMenegak(kk(kAkaun), kAkaun.diri, ps(kAkaun.pasangan), a.uid !== saya, kiri) });
+                // Bawa data lama: jika pokok akaun yang dijemput masih kosong (tiada pasangan/anak),
+                // guna rekod manual (ipar + anak saudara) yang pernah dimasukkan dalam pokok pengundang.
+                let kPapar = kAkaun;
+                const sumberManual = [jangkar.k, kInduk].concat(cantumAdik.map(c => c.k)).filter(Boolean);
+                for (const ks of sumberManual) {
+                    const lama = (ks.adikBeradik || []).find(x => x.akaun_uid === a.uid || kunci(x) === kunci(kAkaun.diri));
+                    if (!lama) continue;
+                    const iparLama = (ks.ipar || []).filter(i => i.ref_id === lama.id);
+                    const anakLama = (ks.anakSaudara || []).filter(c => c.ref_id === lama.id);
+                    const adaTurun = (kAkaun.turun || []).some(x => x && x.length);
+                    if (!(kAkaun.pasangan || []).length && iparLama.length || !adaTurun && anakLama.length) {
+                        kPapar = Object.assign({}, kAkaun, {
+                            pasangan: (kAkaun.pasangan || []).length ? kAkaun.pasangan : iparLama,
+                            menantu: (kAkaun.pasangan || []).length ? kAkaun.menantu : (ks.ipar || []),
+                            turun: adaTurun ? kAkaun.turun : (anakLama.length ? [anakLama, ks.cucuSaudara || [], [], [], []] : kAkaun.turun)
+                        });
+                        sudahAdik.add(kunci(lama));
+                    }
+                    break;
+                }
+                entri.push({ t: tarikh(kAkaun.diri), bina: (kiri) => binaRumahMenegak(kk(kPapar), kAkaun.diri, ps(kPapar.pasangan), a.uid !== saya, kiri) });
             });
 
             // 1.5. KELUARGA INDUK JIKA SAYA BUKAN INDUK
