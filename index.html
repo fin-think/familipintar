@@ -328,7 +328,13 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 
                 <!-- Gambar Hero -->
                 <div class="relative order-1 lg:order-2 px-4 lg:px-0">
-                    <img src="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.png" alt="Keluarga" class="rounded-3xl shadow-2xl object-cover h-[350px] md:h-[450px] w-full">
+                    <img id="heroFoto" src="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.png" alt="Keluarga" class="rounded-3xl shadow-2xl object-cover h-[350px] md:h-[450px] w-full">
+                    <!-- Gambar famili sendiri (log masuk sahaja) -->
+                    <div id="heroFotoBtn" class="hidden absolute top-3 right-7 lg:right-3 flex gap-2">
+                        <button type="button" id="heroFotoTukar" class="bg-white/90 hover:bg-white text-slate-700 text-xs font-bold px-3 py-2 rounded-full shadow-md"><i class="fa-solid fa-camera"></i> <span id="heroFotoTeks">Letak gambar famili anda</span></button>
+                        <button type="button" id="heroFotoBuang" class="hidden bg-white/90 hover:bg-white text-rose-600 text-xs font-bold px-3 py-2 rounded-full shadow-md" title="Guna gambar asal"><i class="fa-solid fa-rotate-left"></i></button>
+                        <input type="file" id="heroFotoFail" accept="image/*" class="hidden">
+                    </div>
 
                     <!-- Quote Box Atas Gambar -->
                     <div class="absolute -bottom-6 lg:-bottom-8 left-1/2 transform -translate-x-1/2 w-[90%] bg-[#0B2149] text-white p-5 md:p-6 rounded-2xl shadow-xl flex items-center gap-4">
@@ -1010,6 +1016,48 @@ window.pantauLencanaWeCareUtama = async (user) => {
     });
 };
     
+</script>
+
+<script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+    // Gambar famili sendiri pada hero. Jika tiada, gambar asal (sunset) kekal.
+    const cfg = { apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg", authDomain: "familipintar.firebaseapp.com", projectId: "familipintar", storageBucket: "familipintar.firebasestorage.app", messagingSenderId: "277029764059", appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe" };
+    const app = getApps()[0] || initializeApp(cfg), auth = getAuth(app), storage = getStorage(app);
+    const img = document.getElementById('heroFoto'), kotak = document.getElementById('heroFotoBtn'), fail = document.getElementById('heroFotoFail');
+    const teks = document.getElementById('heroFotoTeks'), buang = document.getElementById('heroFotoBuang'), tukar = document.getElementById('heroFotoTukar');
+    const ASAL = img.getAttribute('src');
+    let uid = null;
+    const laluan = () => ref(storage, 'famili_foto/' + uid + '/hero.jpg');
+    const paparKustom = (ada) => { teks.textContent = ada ? 'Tukar gambar' : 'Letak gambar famili anda'; buang.classList.toggle('hidden', !ada); };
+    onAuthStateChanged(auth, async (u) => {
+        uid = u ? u.uid : null;
+        kotak.classList.toggle('hidden', !u);
+        if (!u) { img.src = ASAL; return; }
+        try { img.src = await getDownloadURL(laluan()); paparKustom(true); } catch (e) { img.src = ASAL; paparKustom(false); }
+    });
+    tukar.onclick = () => fail.click();
+    fail.onchange = async () => {
+        const f = fail.files && fail.files[0]; fail.value = '';
+        if (!f || !uid) return;
+        if (!/^image\//.test(f.type)) { alert('Sila pilih fail gambar.'); return; }
+        const lama = teks.textContent; teks.textContent = 'Memuat naik...'; tukar.disabled = true;
+        try {
+            const bmp = await createImageBitmap(f), skala = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+            const c = document.createElement('canvas'); c.width = Math.round(bmp.width * skala); c.height = Math.round(bmp.height * skala);
+            c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+            const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+            await uploadBytes(laluan(), blob, { contentType: 'image/jpeg' });
+            img.src = (await getDownloadURL(laluan())) + '&t=' + Date.now(); paparKustom(true);
+        } catch (e) { console.error(e); alert('Gagal memuat naik gambar: ' + (e.message || e)); teks.textContent = lama; }
+        tukar.disabled = false;
+    };
+    buang.onclick = async () => {
+        if (!uid || !confirm('Guna semula gambar asal?')) return;
+        try { await deleteObject(laluan()); } catch (e) {}
+        img.src = ASAL; paparKustom(false);
+    };
 </script>
 </body>
 </html>
