@@ -285,6 +285,10 @@ async function cipraPautan(uid, data) {
 // ===== NOTIFIKASI KEMAS KINI POKOK =====
 // Induk menanda masa setiap kali ada perubahan yang mempengaruhi pokok adik-beradik / anak saudara (leluhur, adik-beradik, pasangan, mertua).
 // Keturunan ke bawah (anak, cucu...) tidak dikira. Akaun yang dipautkan akan diberi pop-up supaya menekan Kemas Kini Pokok.
+// Leluhur belah pasangan (mertua ke atas). Tahap 1 = Bapa/Ibu Mertua, kemudian Datuk/Nenek, Moyang, Buyut, Cakawari, Cilawagi (semua percuma kecuali Bapa/Ibu Mertua)
+const KUNCI_ATAS_MERTUA = ['datukMertua', 'moyangMertua', 'buyutMertua', 'cakawariMertua', 'cilawagiMertua'];
+const kunciMertua = (hub) => /^(datuk|nenek) mertua/.test(hub) ? 'datukMertua' : /^moyang mertua/.test(hub) ? 'moyangMertua' : /^buyut mertua/.test(hub) ? 'buyutMertua' : /^cakawari mertua/.test(hub) ? 'cakawariMertua' : /^cilawagi mertua/.test(hub) ? 'cilawagiMertua' : null;
+const labelDariMertua = (hub) => { const k = String(hub || '').trim().toLowerCase().split(' ')[0]; return ({ bapa: 'Ayah', ibu: 'Ibu', datuk: 'Datuk', nenek: 'Nenek', moyang: 'Moyang', buyut: 'Buyut', cakawari: 'Cakawari', cilawagi: 'Cilawagi' })[k] || 'Ibu'; };
 const KEKAL_BAWAH = ['anak', 'cucu', 'cicit', 'piut / cece', 'oneng-oneng', 'menantu', 'pasangan cucu'];
 async function tandaPokokDikemas(hubungan) {
     try {
@@ -356,9 +360,10 @@ async function salinLeluhurAdik(jem, uidBaru) {
                     nodesLama.forEach((n) => {
                         let hub = (n.data.relationship || '').toLowerCase();
                         if (hub.includes('mertua')) {
-                            // Pastikan mertua ini memang terikat pada Anis
-                            if (!n.data.ref_id || n.data.ref_id === jem.sasaran_id) {
-                                let newHub = hub.includes('bapa') ? 'Ayah' : 'Ibu';
+                            // Bapa/Ibu Mertua mesti terikat pada Anis; Datuk/Nenek/Moyang... Mertua ikut rantai (ikatan dipetakan semula di langkah 3)
+                            const tingkatAtas = !!kunciMertua(hub);
+                            if (tingkatAtas || !n.data.ref_id || n.data.ref_id === jem.sasaran_id) {
+                                let newHub = labelDariMertua(hub);
                                 // Ubah 'Bapa Mertua' jadi 'Ayah' sebelum salin
                                 senaraiSalin.push({ idLama: n.idLama, data: { ...n.data, relationship: newHub } });
                             }
@@ -705,7 +710,7 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
             const snapAnak = await getDocs(qAnak);
             if (snapAnak.size >= 5) kosAhli = 1;
         }
-        else if (hubungan === "Bapa Mertua" || hubungan === "Ibu Mertua" || hubungan === "Datuk Mertua" || hubungan === "Nenek Mertua") {
+        else if (hubungan === "Bapa Mertua" || hubungan === "Ibu Mertua") {
             kosAhli = 5;
         }
         // KEMAS KINI: Masukkan sekali Abang, Kakak, Adik, Ipar & Anak Saudara untuk caj 1 Kredit
@@ -1001,7 +1006,8 @@ window.bukaPreview = async () => {
         let diriSendiri = null;
         let pasangan = [];
         let ibuBapa = [], datukNenek = [], moyang = [], buyut = [], cakawari = [], cilawagi = [];
-        let mertua = [], datukMertua = [];
+        let mertua = [];
+        const atasMertua = { datukMertua: [], moyangMertua: [], buyutMertua: [], cakawariMertua: [], cilawagiMertua: [] };
         let anakAnak = [], cucu = [], cicit = [], piut = [], oneng = [];
         let menantuKeturunan = [];
 
@@ -1014,7 +1020,7 @@ window.bukaPreview = async () => {
             if (d.is_root) diriSendiri = d;
             else if (hub.includes("suami") || hub.includes("isteri")) pasangan.push(d);
             else if (hub === "ayah" || hub === "ibu") ibuBapa.push(d);
-            else if (/^(datuk|nenek) mertua/.test(hub)) datukMertua.push(d);
+            else if (kunciMertua(hub)) atasMertua[kunciMertua(hub)].push(d);
             else if (hub.includes("mertua")) mertua.push(d);
             else if (hub.includes("datuk") || hub.includes("nenek")) datukNenek.push(d);
             else if (hub.includes("moyang")) moyang.push(d);
@@ -1199,7 +1205,7 @@ window.bukaPreview = async () => {
             if (p.is_root) {
                 htmlMain += binaTiangAtasan(p, [ibuBapa, datukNenek, moyang, buyut, cakawari, cilawagi], 'diri');
             } else {
-                htmlMain += binaTiangAtasan(p, [mertua, datukMertua], 'pasangan', p === pasangan[0]);
+                htmlMain += binaTiangAtasan(p, [mertua, ...KUNCI_ATAS_MERTUA.map(k => atasMertua[k])], 'pasangan', p === pasangan[0]);
             }
         });
 
@@ -1257,6 +1263,8 @@ const RUJUKAN = {
     "Cakawari": ["Buyut"], "Cilawagi": ["Cakawari"],
     "Bapa Mertua": ["Isteri","Suami"], "Ibu Mertua": ["Isteri","Suami"],
     "Datuk Mertua": ["Bapa Mertua","Ibu Mertua"], "Nenek Mertua": ["Bapa Mertua","Ibu Mertua"],
+    "Moyang Mertua": ["Datuk Mertua","Nenek Mertua"], "Buyut Mertua": ["Moyang Mertua"],
+    "Cakawari Mertua": ["Buyut Mertua"], "Cilawagi Mertua": ["Cakawari Mertua"],
     "Menantu": ["Anak"], "Pasangan Cucu": ["Cucu"],
     "Cucu": ["Anak"], 
     "Cicit": ["Cucu"], 
@@ -1540,7 +1548,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
 
         const kelompok = (nod) => {
             const k = {
-                diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], datukMertua: [], turun: [[], [], [], [], []],
+                diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], datukMertua: [], moyangMertua: [], buyutMertua: [], cakawariMertua: [], cilawagiMertua: [], turun: [[], [], [], [], []],
                 adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [], saudaraIbuBapa: [], pasanganSaudara: [], sepupu: []
             };
             nod.forEach(d => {
@@ -1552,7 +1560,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
                 else if (h.includes('suami') || h.includes('isteri')) k.pasangan.push(d);
                 else if (h.includes('menantu') || h.includes('pasangan cucu')) k.menantu.push(d);
                 else if (h === 'ayah' || h === 'ibu') k.ibuBapa.push(d);
-                else if (/^(datuk|nenek) mertua/.test(h)) k.datukMertua.push(d);
+                else if (kunciMertua(h)) k[kunciMertua(h)].push(d);
                 else if (h.includes('mertua')) k.mertua.push(d);
                 else if (h.includes('datuk') || h.includes('nenek')) k.datukNenek.push(d);
                 else if (h.includes('moyang')) k.moyang.push(d);
@@ -1601,7 +1609,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
                 const rel = (sasaranNode.relationship || '').toLowerCase();
                 if (rel === 'isteri' || rel === 'suami') {
                     ibuBapaPusat = kInduk.mertua;
-                    sisaLeluhurPusat = [kInduk.datukMertua];
+                    sisaLeluhurPusat = KUNCI_ATAS_MERTUA.map(k => kInduk[k]);
                 } else {
                     ibuBapaPusat = kInduk.ibuBapa;
                     sisaLeluhurPusat = [kInduk.datukNenek, kInduk.moyang, kInduk.buyut, kInduk.cakawari, kInduk.cilawagi];
@@ -1655,7 +1663,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             if (/bapa saudara/i.test(h)) return 'Bapa Saudara';
             if (/(mak|ibu) saudara/i.test(h)) return 'Mak Saudara';
             // Ibu bapa pasangan induk ialah ibu bapa saya sendiri bila saya dijemput sebagai adik-beradik pasangan
-            if (sasaranAdalahPasangan && n.owner_uid === indukUid && /mertua/i.test(h)) return /datuk/i.test(h) ? 'Datuk' : /nenek/i.test(h) ? 'Nenek' : /bapa/i.test(h) ? 'Ayah' : 'Ibu';
+            if (sasaranAdalahPasangan && n.owner_uid === indukUid && /mertua/i.test(h)) return labelDariMertua(h);
             if (uidAdikCantum.has(n.owner_uid)) {
                 if (n.is_root) return labelSaudara(n);
                 if (/^(abang|kakak|adik|adik-beradik)$/i.test(h)) return labelSaudara(n);
@@ -2057,7 +2065,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
 
         if (mod === 'pasangan' || mod === 'semua') {
             kPusat.pasangan.forEach((p, i) => {
-                const { senarai, sisa } = cariIbuBapa(p.id, [kPusat.mertua, kPusat.datukMertua], i === 0);
+                const { senarai, sisa } = cariIbuBapa(p.id, [kPusat.mertua, ...KUNCI_ATAS_MERTUA.map(k => kPusat[k])], i === 0);
                 let susunanOrangPsg = susunKiri([p, kPusat.diri]);
                 const s = binaSisi('Belah ' + p.name, { k: kPusat, orang: susunanOrangPsg, penentu: p }, senarai, sisa, p.id);
                 if (s.ada) sisi.push(s);
@@ -2067,7 +2075,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         // Nasab Keluarga Besar: Belah Pasangan - mertua ke atas, pasangan + adik-beradik pasangan (akaun dipautkan) + keturunan. Tanpa pasangan di setiap kotak.
         if (mod === 'nasab_pasangan') {
             kPusat.pasangan.forEach((p, i) => {
-                const { senarai, sisa } = cariIbuBapa(p.id, [kPusat.mertua, kPusat.datukMertua], i === 0);
+                const { senarai, sisa } = cariIbuBapa(p.id, [kPusat.mertua, ...KUNCI_ATAS_MERTUA.map(k => kPusat[k])], i === 0);
                 const kP = Object.assign({}, kPusat, { diri: p });
                 const s = binaSisi('Nasab Keluarga Besar: Belah ' + p.name, { k: kP, orang: [p], penentu: p }, senarai, sisa, p.id, { tanpaPasangan: true });
                 if (s.ada) sisi.push(s);
