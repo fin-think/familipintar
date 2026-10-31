@@ -98,6 +98,7 @@ onAuthStateChanged(auth, async (user) => {
             document.getElementById('creditBalance').innerText = dataPengguna.credit_balance;
             document.getElementById('treeNameDisplay').innerText = dataPengguna.name;
             semakPokokTerkini();
+            bawaDataLama();
             
             // --- LOGIK PAUTAN AUTOMATIK (JEMPUTAN) ---
             if (window.__sedangDaftar) {
@@ -310,6 +311,36 @@ async function tandaDisegerak(ownerUid) {
         if (ts) await updateDoc(doc(db, "mynasab_users", penggunaSemasa.uid), { ['pokok_disegerak.' + ownerUid]: ts });
     } catch (e) { console.warn('tandaDisegerak:', e.message); }
 }
+// Adik-beradik yang dijemput guna emel: bawa pasangan + anak yang pengundang pernah rekodkan (sekali sahaja)
+async function bawaDataLama() {
+    if (!penggunaSemasa || window.__bawaLamaSudah) return;
+    window.__bawaLamaSudah = true;
+    try {
+        const uid = penggunaSemasa.uid;
+        const sN = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid)));
+        const nodSaya = sN.docs.map(d => ({ ...d.data(), id: d.id }));
+        const akar = nodSaya.find(n => n.is_root);
+        if (!akar || !akar.sibling_of || !akar.link_owner || akar.link_owner === uid || akar.data_lama_dibawa) return;
+        const sudahAda = nodSaya.some(n => /suami|isteri|^anak$/i.test(n.relationship || '') && !n.is_root);
+        if (sudahAda) { await updateDoc(doc(db, "mynasab_nodes", akar.id), { data_lama_dibawa: true }); return; }
+        const sO = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", akar.link_owner)));
+        const nodO = sO.docs.map(d => ({ ...d.data(), id: d.id }));
+        const nama = (akar.name || '').trim().toLowerCase();
+        const lama = nodO.find(n => /^(abang|kakak|adik|adik-beradik)$/i.test(n.relationship || '') && (n.akaun_uid === uid || (n.name || '').trim().toLowerCase() === nama));
+        if (!lama) return;
+        const buang = ([k]) => !k.startsWith('jemput') && !k.startsWith('panggilan') && !['ref_id', 'id', 'akaun_uid', 'email'].includes(k);
+        const psg = akar.gender === 'P' ? 'Suami' : 'Isteri';
+        for (const n of nodO.filter(x => x.relationship === 'Ipar' && x.ref_id === lama.id)) {
+            await addDoc(collection(db, "mynasab_nodes"), { ...Object.fromEntries(Object.entries(n).filter(buang)), owner_uid: uid, relationship: psg, is_root: false, created_by: uid, created_at: new Date() });
+        }
+        for (const n of nodO.filter(x => x.relationship === 'Anak Saudara' && x.ref_id === lama.id)) {
+            await addDoc(collection(db, "mynasab_nodes"), { ...Object.fromEntries(Object.entries(n).filter(buang)), owner_uid: uid, relationship: 'Anak', is_root: false, created_by: uid, created_at: new Date() });
+        }
+        await updateDoc(doc(db, "mynasab_nodes", akar.id), { data_lama_dibawa: true });
+        if (window.muatTurunSalasilah) window.muatTurunSalasilah();
+    } catch (e) { console.warn('bawaDataLama:', e.message); }
+}
+
 async function semakPokokTerkini() {
     if (!penggunaSemasa || window.__semakPokokSudah) return;
     window.__semakPokokSudah = true;
