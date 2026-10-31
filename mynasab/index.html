@@ -588,11 +588,16 @@
                 <label>Nama Individu (tanpa Bin/Binti kecuali bagi leluhur terakhir di atas)</label>
                 <input type="text" id="tambahNama" required placeholder="Cth: Ahmad">
             </div>
-            <div class="input-group">
-                <label>Panggilan (pilihan)</label>
-                <input type="text" id="tambahPanggilan" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Long, Mak Ngah, Tok Wan">
+            <div class="input-group" style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:12px;padding:10px 12px;">
+                <label style="color:#0f766e;">Panggilan oleh anak saudara (pilihan)</label>
+                <small style="color:#64748b;display:block;margin:-2px 0 8px;">Cara anak saudara memanggil orang ini, bukan panggilan antara adik-beradik.</small>
+                <div style="display:flex;gap:8px;">
+                    <div style="flex:1;"><small style="font-weight:700;color:#334155;">Anak saudara belah saya</small>
+                        <input type="text" id="tambahPanggilanSaya" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Long"></div>
+                    <div style="flex:1;"><small style="font-weight:700;color:#334155;">Anak saudara belah pasangan</small>
+                        <input type="text" id="tambahPanggilanPasangan" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Lang"></div>
+                </div>
                 <datalist id="senaraiPanggilan"><option value="Pak Long"><option value="Pak Ngah"><option value="Pak Lang"><option value="Pak Chik"><option value="Pak Su"><option value="Mak Long"><option value="Mak Ngah"><option value="Mak Lang"><option value="Mak Chik"><option value="Mak Su"><option value="Tok Wan"><option value="Tok Ki"><option value="Tok"><option value="Wan"><option value="Opah"><option value="Atuk"><option value="Along"><option value="Angah"><option value="Acik"><option value="Abang Long"><option value="Kak Long"><option value="Kak Ngah"></datalist>
-                <small style="color:#7f8c8d;">Dipaparkan di bawah nama dalam pokok keluarga.</small>
             </div>
             
             <div class="input-group">
@@ -761,9 +766,15 @@
                 <label>Nama Individu (tanpa Bin/Binti kecuali bagi leluhur terakhir di atas)</label>
                 <input type="text" id="editAhliNama" required>
             </div>
-            <div class="input-group">
-                <label>Panggilan (pilihan)</label>
-                <input type="text" id="editAhliPanggilan" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Long, Mak Ngah, Tok Wan">
+            <div class="input-group" style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:12px;padding:10px 12px;">
+                <label style="color:#0f766e;">Panggilan oleh anak saudara (pilihan)</label>
+                <small style="color:#64748b;display:block;margin:-2px 0 8px;">Cara anak saudara memanggil orang ini, bukan panggilan antara adik-beradik.</small>
+                <div style="display:flex;gap:8px;">
+                    <div style="flex:1;"><small style="font-weight:700;color:#334155;">Anak saudara belah saya</small>
+                        <input type="text" id="editAhliPanggilanSaya" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Long"></div>
+                    <div style="flex:1;"><small style="font-weight:700;color:#334155;">Anak saudara belah pasangan</small>
+                        <input type="text" id="editAhliPanggilanPasangan" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Lang"></div>
+                </div>
             </div>
             
             <div class="input-group">
@@ -1196,7 +1207,7 @@ formTambah.onsubmit = function (e) {
     const status = radioStatus ? radioStatus.value : 'hidup';
 
     if (window.tambahAhliBaru) {
-        window.tambahAhliBaru(nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukan, status, email, (document.getElementById('tambahPanggilan') || {}).value || '');
+        window.tambahAhliBaru(nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukan, status, email, { saya: (document.getElementById('tambahPanggilanSaya') || {}).value || '', pasangan: (document.getElementById('tambahPanggilanPasangan') || {}).value || '' });
     }
 };
 </script>

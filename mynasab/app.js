@@ -177,7 +177,7 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
     const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", jem.owner_uid)));
     const nodes = [];
     snap.forEach(d => nodes.push({ id: d.id, data: d.data() }));
-    const bersih = (data) => Object.fromEntries(Object.entries(data).filter(([k]) => !k.startsWith('jemput') && !['linked_uids', 'linked_adik', 'sibling_of', 'link_owner', 'anak_saudara_dari', 'dijemput'].includes(k)));
+    const bersih = (data) => Object.fromEntries(Object.entries(data).filter(([k]) => !k.startsWith('jemput') && !k.startsWith('panggilan') && !['linked_uids', 'linked_adik', 'sibling_of', 'link_owner', 'anak_saudara_dari', 'dijemput'].includes(k)));
     const rootBaru = "root_" + uidBaru;
     const tulis = async (data, rel, ref) => {
         const r = await addDoc(collection(db, "mynasab_nodes"), {
@@ -289,6 +289,12 @@ async function cipraPautan(uid, data) {
 const KUNCI_ATAS_MERTUA = ['datukMertua', 'moyangMertua', 'buyutMertua', 'cakawariMertua', 'cilawagiMertua'];
 const kunciMertua = (hub) => /^(datuk|nenek) mertua/.test(hub) ? 'datukMertua' : /^moyang mertua/.test(hub) ? 'moyangMertua' : /^buyut mertua/.test(hub) ? 'buyutMertua' : /^cakawari mertua/.test(hub) ? 'cakawariMertua' : /^cilawagi mertua/.test(hub) ? 'cilawagiMertua' : null;
 const labelDariMertua = (hub) => { const k = String(hub || '').trim().toLowerCase().split(' ')[0]; return ({ bapa: 'Ayah', ibu: 'Ibu', datuk: 'Datuk', nenek: 'Nenek', moyang: 'Moyang', buyut: 'Buyut', cakawari: 'Cakawari', cilawagi: 'Cilawagi' })[k] || 'Ibu'; };
+// Panggilan = cara ANAK SAUDARA memanggil seseorang (bukan antara adik-beradik). Setiap orang ada dua: oleh anak saudara belah saya / belah pasangan.
+// Paparan: dalam pokok belah pasangan guna medan belah pasangan; selainnya medan belah saya. (Data lama 'panggilan' dianggap belah saya.)
+const panggilanBelah = (d, belah) => String((belah === 'pasangan' ? d.panggilan_pasangan : (d.panggilan_saya || d.panggilan)) || '').trim();
+// Pokok utama satu pokok: orang di sebelah pasangan (pasangan, mertua ke atas, adik-beradik pasangan) guna medan belah pasangan
+const belahAsalNod = (d) => (/mertua|pasangan$/i.test(String(d.relationship || '').trim()) || /^(suami|isteri)$/i.test(String(d.relationship || '').trim())) ? 'pasangan' : 'saya';
+let belahPaparan = 'saya';
 const KEKAL_BAWAH = ['anak', 'cucu', 'cicit', 'piut / cece', 'oneng-oneng', 'menantu', 'pasangan cucu'];
 async function tandaPokokDikemas(hubungan) {
     try {
@@ -385,7 +391,7 @@ async function salinLeluhurAdik(jem, uidBaru) {
                 // 2. Salin data yang dah ditapis ke akaun baru (Adi / Hanapi)
                 for (let item of senaraiSalin) {
                     const docRef = await addDoc(collection(db, "mynasab_nodes"), {
-                        ...Object.fromEntries(Object.entries(item.data).filter(([k]) => !k.startsWith('jemput'))),
+                        ...Object.fromEntries(Object.entries(item.data).filter(([k]) => !k.startsWith('jemput') && !k.startsWith('panggilan'))),
                         owner_uid: user.uid,
                         created_by: jem.owner_uid, // Kekalkan hak cipta Awi
                         created_at: new Date()
@@ -678,7 +684,7 @@ window.padamAhli = async (idAhli) => {
 };
 
 // --- 5. TAMBAH AHLI BARU ---
-window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukanId, status = 'hidup', email = '', panggilan = '') => {
+window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, negeri, failGambar, rujukanId, status = 'hidup', email = '', panggilan = {}) => {
     if (!penggunaSemasa) return;
 
     const sPautanSaya = await getDoc(doc(db, "mynasab_links", penggunaSemasa.uid));
@@ -771,7 +777,8 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
         const rujukanBaru = await addDoc(collection(db, "mynasab_nodes"), {
             owner_uid: penggunaSemasa.uid,
             name: nama,
-            panggilan: String(panggilan || '').trim(),
+            panggilan_saya: String((panggilan && panggilan.saya) || '').trim(),
+            panggilan_pasangan: String((panggilan && panggilan.pasangan) || '').trim(),
             relationship: hubungan,
             gender: jantina,
             ref_id: rujukanId || "",
@@ -857,7 +864,7 @@ window.bukaModalEdit = async (idKotak) => {
             document.getElementById('editAhliId').value = idKotak;
             { const fg = document.getElementById('editAhliGambar'); if (fg) fg.value = ''; } // jangan bawa gambar ahli sebelumnya
             document.getElementById('editAhliNama').value = data.name || "";
-            { const ep = document.getElementById('editAhliPanggilan'); if (ep) ep.value = data.panggilan || ''; }
+            { const e1 = document.getElementById('editAhliPanggilanSaya'), e2 = document.getElementById('editAhliPanggilanPasangan'); if (e1) e1.value = data.panggilan_saya || data.panggilan || ''; if (e2) e2.value = data.panggilan_pasangan || ''; }
             document.getElementById('editAhliHubungan').value = data.relationship || "";
             document.getElementById('editAhliDob').value = data.dob || "";
             document.getElementById('editAhliTelefon').value = data.phone || "";
@@ -929,7 +936,9 @@ if (formEdit) {
         try {
             let dataUpdate = {
                 name: document.getElementById('editAhliNama').value,
-                panggilan: (document.getElementById('editAhliPanggilan') ? document.getElementById('editAhliPanggilan').value : '').trim(),
+                panggilan_saya: (document.getElementById('editAhliPanggilanSaya') ? document.getElementById('editAhliPanggilanSaya').value : '').trim(),
+                panggilan_pasangan: (document.getElementById('editAhliPanggilanPasangan') ? document.getElementById('editAhliPanggilanPasangan').value : '').trim(),
+                panggilan: '',
                 dob: document.getElementById('editAhliDob').value,
                 phone: document.getElementById('editAhliTelefon').value,
                 email: document.getElementById('editAhliEmail').value,
@@ -1081,12 +1090,12 @@ window.bukaPreview = async () => {
             }
 
             return `
-                <div class="mh-card ${tema}${ahli.panggilan ? ' ada-panggilan' : ''}">
+                <div class="mh-card ${tema}${panggilanBelah(ahli, belahAsalNod(ahli)) ? ' ada-panggilan' : ''}">
                     <div class="badge-mini">${esc(ahli.relationship)}</div>
                     <div class="mh-avatar">${paparanAvatar}</div>
                     <div class="mh-details">
                         <p class="mh-name" title="${esc(ahli.name)}">${esc(ahli.name)}</p>
-                        ${ahli.panggilan ? `<p class="mh-panggilan" title="${esc(ahli.panggilan)}">${esc(ahli.panggilan)}</p>` : ''}
+                        ${panggilanBelah(ahli, belahAsalNod(ahli)) ? `<p class="mh-panggilan" title="${esc(panggilanBelah(ahli, belahAsalNod(ahli)))}">${esc(panggilanBelah(ahli, belahAsalNod(ahli)))}</p>` : ''}
                         <p class="mh-info" style="font-size: 10px;">${infoLahir(ahli)}</p>
                     </div>
                 </div>
@@ -1721,7 +1730,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
             const avatar = a.photo_url ? `<img src="${esc(a.photo_url)}" style="width:100%;height:100%;object-fit:cover;">` : SVG;
             const btn = butangSembunyi ? `<button class="btn-sembunyi" title="Sembunyikan keluarga ini" onclick="window.sembunyiAkaun('${esc(a.owner_uid)}')">✕</button>` : '';
 
-            return `<div class="mh-card ${tema}${a.panggilan ? ' ada-panggilan' : ''}">${btn}<div class="badge-mini">${esc(label(a))}</div><div class="mh-avatar">${avatar}</div><div class="mh-details"><p class="mh-name" title="${esc(a.name)}">${esc(a.name)}</p>${a.panggilan ? `<p class="mh-panggilan" title="${esc(a.panggilan)}">${esc(a.panggilan)}</p>` : ''}<p class="mh-info" style="font-size:10px;">${infoLahir(a)}</p></div></div>`;
+            return `<div class="mh-card ${tema}${panggilanBelah(a, belahPaparan) ? ' ada-panggilan' : ''}">${btn}<div class="badge-mini">${esc(label(a))}</div><div class="mh-avatar">${avatar}</div><div class="mh-details"><p class="mh-name" title="${esc(a.name)}">${esc(a.name)}</p>${panggilanBelah(a, belahPaparan) ? `<p class="mh-panggilan" title="${esc(panggilanBelah(a, belahPaparan))}">${esc(panggilanBelah(a, belahPaparan))}</p>` : ''}<p class="mh-info" style="font-size:10px;">${infoLahir(a)}</p></div></div>`;
         };
 
         const lelaki = x => x.gender ? x.gender === 'L' : /ayah|bapa|datuk|suami|moyang|buyut|cakawari|cilawagi/.test((x.relationship || '').toLowerCase());
@@ -1908,6 +1917,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         const hiddenList = [];
 
         const binaSisi = (judul, jangkar, ibuBapa, sisa, sasaranIdSisi, opsyen = {}) => {
+            belahPaparan = opsyen.adikPasangan ? 'pasangan' : 'saya';   // medan panggilan yang dipaparkan
             const tp = !!opsyen.tanpaPasangan;                       // paparan nasab: tiada pasangan
             const ps = (arr) => tp ? [] : arr;
             const kk = (k) => tp ? Object.assign({}, k, { menantu: [] }) : k;
@@ -2016,6 +2026,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
 
         // Akaun anak saudara (pokok disalin daripada pengundang): paparkan ibu/bapa yang berkaitan bersama adik-beradik mereka (bapa/mak saudara)
         const binaBelahSaudara = (tanpaPasangan = false) => {
+            belahPaparan = 'saya';
             const d = kPusat.diri;
             // Akaun anak saudara: bapa/mak saudara ada dalam pokok sendiri.
             // Akaun adik-beradik kepada akaun anak saudara (cth. adik yang dijemput oleh anak saudara): guna pokok pengundang (S) sebagai sumber.
