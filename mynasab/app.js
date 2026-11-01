@@ -4,7 +4,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, collection, addDoc, query, where, getDocs, deleteDoc, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, collection, addDoc, query, where, getDocs, deleteDoc, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 
@@ -99,6 +99,7 @@ onAuthStateChanged(auth, async (user) => {
             document.getElementById('treeNameDisplay').innerText = dataPengguna.name;
             semakPokokTerkini();
             bawaDataLama();
+            if (dataPengguna.boleh_dicari) kemasIndeksCarian().catch(() => {});
             
             // --- LOGIK PAUTAN AUTOMATIK (JEMPUTAN) ---
             if (window.__sedangDaftar) {
@@ -1067,7 +1068,9 @@ if (formEdit) {
 window.bukaPreview = async () => {
     if (!penggunaSemasa) return;
 
-    const pp = document.getElementById('pilihanPaparan'); if (pp) pp.value = 'saya';
+    window.__sebagai = null;
+    const pp = document.getElementById('pilihanPaparan'); if (pp) { [...pp.options].forEach(o => { o.hidden = false; o.disabled = false; }); pp.value = 'saya'; }
+    { const bs = document.getElementById('bahagianWarisBerpaut'); if (bs) bs.style.display = 'none'; }
 
     document.getElementById('modalPreview').classList.remove('hidden');
     document.getElementById('ruangAutoLayout').innerHTML = '<p>Sedang melukis pokok keturunan...</p>';
@@ -1573,6 +1576,7 @@ window.tolakPautan = async (uid) => {
 window.tukarPaparan = (kekal = false) => {
     kekalZoom = (kekal === true);
     const v = document.getElementById('pilihanPaparan').value;
+    if (window.__sebagai) return window.bukaPreviewBesar(v.replace('besar_', ''), { sebagai: window.__sebagai.uid, nama: window.__sebagai.nama });
     if (v === 'saya') return window.bukaPreview();
     window.bukaPreviewBesar(v.replace('besar_', ''));
 };
@@ -1586,17 +1590,32 @@ window.paparAkaun = async (uid) => {
     window.tukarPaparan(true);
 };
 
-window.bukaPreviewBesar = async (mod = 'semua') => {
+window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
     if (!penggunaSemasa) return;
-    const saya = penggunaSemasa.uid;
+    // Mod baca sahaja: lihat pokok waris berpaut (keluarga dia + nasab ke atas; tanpa belah pasangan & waris berpaut mereka)
+    const sebagai = (opsyen && opsyen.sebagai && opsyen.sebagai !== penggunaSemasa.uid) ? opsyen.sebagai : null;
+    window.__sebagai = sebagai ? { uid: sebagai, nama: opsyen.nama || 'Waris' } : null;
+    if (sebagai && mod !== 'nasab') mod = 'saya';
+    const saya = sebagai || penggunaSemasa.uid;
     const ruang = document.getElementById('ruangAutoLayout');
+    {
+        const pp = document.getElementById('pilihanPaparan');
+        if (pp) {
+            [...pp.options].forEach(o => {
+                const tutup = !!sebagai && !['besar_saya', 'besar_nasab'].includes(o.value);
+                o.hidden = tutup; o.disabled = tutup;
+            });
+            if (sebagai) pp.value = mod === 'nasab' ? 'besar_nasab' : 'besar_saya';
+        }
+        const bs = document.getElementById('bahagianWarisBerpaut'); if (bs) bs.style.display = sebagai ? 'none' : '';
+    }
 
     document.getElementById('modalPreview').classList.remove('hidden');
     ruang.innerHTML = '<p>Sedang melukis pokok keluarga besar...</p>';
-    document.getElementById('namaAkaunCetak').innerText = document.getElementById('treeNameDisplay').innerText;
+    document.getElementById('namaAkaunCetak').innerText = sebagai ? (window.__sebagai.nama + ' (paparan baca sahaja)') : document.getElementById('treeNameDisplay').innerText;
 
     try {
-        const sLinkSaya = await getDoc(doc(db, "mynasab_links", saya));
+        const sLinkSaya = sebagai ? { exists: () => false } : await getDoc(doc(db, "mynasab_links", saya));
         if (sLinkSaya.exists() && sLinkSaya.data().status !== 'aktif') {
             ruang.innerHTML = '<p>Pautan keluarga anda masih menunggu kelulusan pengundang.</p>';
             return;
@@ -1605,10 +1624,10 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         const indukUid = sLinkSaya.exists() ? sLinkSaya.data().owner_uid : saya;
         const sayaInduk = indukUid === saya;
 
-        const sPautan = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", indukUid), where("status", "==", "aktif")));
+        const sPautan = sebagai ? { docs: [] } : await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", indukUid), where("status", "==", "aktif")));
         const pautan = sPautan.docs.map(d => d.data());
 
-        const sUser = await getDoc(doc(db, "mynasab_users", saya));
+        const sUser = sebagai ? { exists: () => false } : await getDoc(doc(db, "mynasab_users", saya));
 
         const sembunyi = (sUser.exists() && sUser.data().sembunyi) || [];
 
@@ -1713,7 +1732,7 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         {
             const adikSet = new Set(kPusat.diri.linked_adik || []);
             const sudahAda = new Set([saya, indukUid, ...akaun.map(a => a.uid)]);
-            for (const u of (kPusat.diri.linked_uids || [])) {
+            for (const u of (sebagai ? [] : (kPusat.diri.linked_uids || []))) {
                 if (sudahAda.has(u)) continue;
                 sudahAda.add(u);
                 const nodLuar = await ambil(u);
@@ -2392,6 +2411,8 @@ window.bukaPreviewBesar = async (mod = 'semua') => {
         }
 
         ruang.innerHTML = `<div class="tree pokok-besar">${htmlSisi}</div>${htmlBar}`;
+        if (sebagai) { const bt = document.getElementById('btnSegerakPokok'); if (bt) bt.style.display = 'none'; }
+        else window.muatSenaraiWaris('senaraiWarisBesar');
         rapikanNasab();
         rapikanSpine();
         window.autoMuat();
@@ -2745,7 +2766,7 @@ window.renderFaraidHtml = (results) => {
 // ENJIN CARIAN NASAB GLOBAL & MESEJ (VERSI PUSAT FOKUS DINAMIK)
 // =========================================================
 
-window.ujiCarianNasab = async () => {
+window.ujiCarianNasabLama_TIDAK_DIGUNA = async () => {
     const hasilContainer = document.getElementById('hasilCarianNasab');
     const carianAsal = document.getElementById('inputCarianNama').value.trim();
     const namaCari = carianAsal.toLowerCase();
@@ -3365,7 +3386,7 @@ window.bukaPetiMesej = async () => {
                     <small style="color:#64748b; font-size:11px;">${formatTarikh}</small>
                 </div>
                 <p style="font-size:12px; font-weight:bold; color:${isPautan ? '#0ea5e9' : '#8b5cf6'}; text-transform:uppercase; margin:0 0 5px 0;">
-                    ${isPautan ? '🤝 Permohonan Cantuman Pokok' : '💬 Mesej Biasa'}
+                    ${isPautan ? '🤝 Permohonan Cantuman Pokok' : (data.jenis === 'notis' ? '🔔 Notis Pautan' : '💬 Mesej Biasa')}
                 </p>
                 <p style="margin:0 0 15px 0; font-size:14px; font-weight:bold; color:#1e293b; background:#f8fafc; padding:10px; border-radius:8px;">"${data.mesej}"</p>
                 
@@ -3380,7 +3401,7 @@ window.bukaPetiMesej = async () => {
                 `}
                 </div>
 
-                ${!isPautan ? `
+                ${(!isPautan && data.jenis !== 'notis') ? `
                 <div id="kotakBalas_${d.id}" style="display:none; margin-top:15px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
                     <textarea id="teksBalas_${d.id}" rows="2" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-size:12px; margin-bottom:8px; outline:none; box-sizing:border-box; font-family:inherit;" placeholder="Taip balasan..."></textarea>
                     <div style="text-align:right;">
@@ -3484,7 +3505,7 @@ window.bukaPetiMesej = async () => {
                     <small style="color:#64748b; font-size:11px;">${formatTarikh}</small>
                 </div>
                 <p style="font-size:12px; font-weight:bold; color:${isPautan ? '#0ea5e9' : '#8b5cf6'}; text-transform:uppercase; margin:0 0 5px 0;">
-                    ${isPautan ? '🤝 Permohonan Cantuman Pokok' : '💬 Mesej Biasa'}
+                    ${isPautan ? '🤝 Permohonan Cantuman Pokok' : (data.jenis === 'notis' ? '🔔 Notis Pautan' : '💬 Mesej Biasa')}
                 </p>
                 <p style="margin:0 0 15px 0; font-size:14px; font-weight:bold; color:#1e293b; background:#f8fafc; padding:10px; border-radius:8px;">"${esc(data.mesej)}"</p>
                 
@@ -3493,16 +3514,16 @@ window.bukaPetiMesej = async () => {
                     <button onclick="window.terimaPautan('${d.id}', '${data.pemohon_uid}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Terima Salaman</button>
                     <button onclick="window.padamMesej('${d.id}', 'tolak')" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tolak</button>
                 ` : `
-                    <button onclick="window.paparKotakBalas('${d.id}')" style="background:#3b82f6; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">
+                    ${data.jenis === 'notis' ? '' : `<button onclick="window.paparKotakBalas('${d.id}')" style="background:#3b82f6; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">
                         <i class="fa-solid fa-reply"></i> Balas
-                    </button>
+                    </button>`}
                     ${data.status === "belum_baca" ? `<button onclick="window.tandakanMesejDibaca('${d.id}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Tandakan Dibaca ✓</button>` : ''}
                     <button onclick="window.padamMesej('${d.id}', 'padam')" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; flex:1;">Padam 🗑️</button>
                 `}
                 </div>
 
                 <!-- Kotak Balas Tersembunyi (Hanya untuk mesej biasa) -->
-                ${!isPautan ? `
+                ${(!isPautan && data.jenis !== 'notis') ? `
                 <div id="kotakBalas_${d.id}" style="display:none; margin-top:15px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
                     <textarea id="teksBalas_${d.id}" rows="2" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px; font-size:12px; margin-bottom:8px; outline:none; box-sizing:border-box; font-family:inherit;" placeholder="Taip balasan..."></textarea>
                     <div style="text-align:right;">
@@ -3568,28 +3589,6 @@ const cariNodInduk = async (uid) => {
     return s.empty ? null : s.docs[0];
 };
 
-window.terimaPautan = async (requestDocId, pemohonUid) => {
-    try {
-        const rootSaya = await cariNodInduk(penggunaSemasa.uid);
-        const rootPemohon = await cariNodInduk(pemohonUid);
-        if (!rootSaya || !rootPemohon) {
-            alert("Nod 'Diri Sendiri' salah satu pihak tidak dijumpai, jadi pautan tidak dibuat.");
-            return;
-        }
-        const adik = confirm("Adakah pemohon ini ADIK-BERADIK anda?\n\nOK = ya (dipaparkan sebaris di bawah ibu bapa yang sama)\nCancel = bukan (dipaparkan sebagai pokok waris berasingan)");
-        const medan = (uid) => adik ? { linked_uids: arrayUnion(uid), linked_adik: arrayUnion(uid) } : { linked_uids: arrayUnion(uid) };
-        await updateDoc(doc(db, "mynasab_nodes", rootSaya.id), medan(pemohonUid));
-        await updateDoc(doc(db, "mynasab_nodes", rootPemohon.id), medan(penggunaSemasa.uid));
-        await updateDoc(doc(db, "mynasab_requests", requestDocId), { status: "lulus" });
-
-        alert("Berjaya! Pokok keluarga anda berdua kini telah bercantum secara rasmi.");
-        window.bukaPetiMesej();
-    } catch (e) {
-        console.error(e);
-        alert("Ralat ketika cuba menyambungkan pokok keluarga: " + e.message);
-    }
-};
-
 // Untuk pautan yang sudah diterima: tandakan siapa adik-beradik
 window.tandaAdikCantum = async () => {
     const rootSaya = await cariNodInduk(penggunaSemasa.uid);
@@ -3621,6 +3620,285 @@ window.baikiPautanLulus = async () => {
         bilangan++;
     }
 alert(bilangan + " pautan dibaiki. Buka semula Preview.");
+};
+
+
+// =========================================================
+// CARI WARIS (BERINDEKS, PILIH-MASUK) + PAUTAN WARIS DUA HALA
+// - mynasab_carian/{uid}: indeks ringkas, wujud HANYA jika pengguna hidupkan "Boleh dicari"
+// - mynasab_waris/{uidA_uidB}: rekod pautan dua hala (hubungan, status aktif/putus)
+// =========================================================
+const normNama = (t) => String(t || '').toLowerCase()
+    .replace(/\b(bin|binti|bte|bt|b|@)\b\.?/g, ' ')
+    .replace(/[^a-z0-9À-ɏ ]+/g, ' ').replace(/\s+/g, ' ').trim();
+const tokenNama = (t) => normNama(t).split(' ').filter(x => x.length >= 2);
+const pairId = (a, b) => [a, b].sort().join('_');
+const HUBUNGAN_WARIS = {
+    'Adik-beradik': 'Adik-beradik', 'Sepupu': 'Sepupu', 'Bapa/Mak Saudara': 'Anak Saudara',
+    'Anak Saudara': 'Bapa/Mak Saudara', 'Datuk/Nenek': 'Cucu', 'Cucu': 'Datuk/Nenek', 'Saudara Jauh': 'Saudara Jauh'
+};
+const RANTAI_LABEL = [
+    [/mertua|mentua/, null], [/^(ayah|bapa)$/, 'Ayah'], [/^ibu$/, 'Ibu'], [/datuk|nenek|tok /, 'Datuk/Nenek'],
+    [/moyang/, 'Moyang'], [/buyut/, 'Buyut'], [/cakawari/, 'Cakawari'], [/cilawagi/, 'Cilawagi']
+];
+const labelRantai = (rel) => {
+    const h = String(rel || '').toLowerCase().trim();
+    for (const [re, lb] of RANTAI_LABEL) if (re.test(h)) return lb;
+    return null;
+};
+
+async function ambilNodSaya() {
+    const s = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", penggunaSemasa.uid)));
+    return s.docs.map(d => ({ ...d.data(), id: d.id }));
+}
+
+// Bina / kemas kini indeks carian untuk pengguna semasa (hanya jika "Boleh dicari" hidup)
+async function kemasIndeksCarian() {
+    if (!penggunaSemasa) return;
+    const uid = penggunaSemasa.uid;
+    const [nod, su] = await Promise.all([ambilNodSaya(), getDoc(doc(db, "mynasab_users", uid))]);
+    const akar = nod.find(n => n.is_root);
+    if (!akar) return;
+    const ud = su.exists() ? su.data() : {};
+    const rantai = [];
+    nod.forEach(n => {
+        if (n.is_root) return;
+        const lb = labelRantai(n.relationship);
+        if (lb && n.name) rantai.push({ h: lb, n: String(n.name).trim().slice(0, 80) });
+    });
+    const kata = new Set(tokenNama(akar.name));
+    rantai.forEach(r => tokenNama(r.n).forEach(t => kata.add(t)));
+    const th = akar.dob ? parseInt(String(akar.dob).slice(0, 4), 10) : null;
+    await setDoc(doc(db, "mynasab_carian", uid), {
+        uid, nama: String(akar.name || ud.name || '').trim().slice(0, 80),
+        kata: [...kata].slice(0, 60), rantai: rantai.slice(0, 20),
+        negeri: ud.negeri || akar.state || '', daerah: ud.bandar || akar.city || '',
+        tahun: Number.isFinite(th) ? th : null, kemas: Date.now()
+    });
+}
+
+window.tukarBolehDicari = async (chk) => {
+    try {
+        const uid = penggunaSemasa.uid;
+        if (chk.checked) {
+            await updateDoc(doc(db, "mynasab_users", uid), { boleh_dicari: true });
+            await kemasIndeksCarian();
+        } else {
+            await updateDoc(doc(db, "mynasab_users", uid), { boleh_dicari: false });
+            await deleteDoc(doc(db, "mynasab_carian", uid)).catch(() => {});
+        }
+    } catch (e) {
+        chk.checked = !chk.checked;
+        alert("Gagal menukar tetapan: " + e.message);
+    }
+};
+
+// Dipanggil bila modal Cari Waris dibuka
+window.mulaCarianNasab = async () => {
+    try {
+        const su = await getDoc(doc(db, "mynasab_users", penggunaSemasa.uid));
+        const chk = document.getElementById('chkBolehDicari');
+        const hidup = !!(su.exists() && su.data().boleh_dicari);
+        if (chk) chk.checked = hidup;
+        if (hidup) kemasIndeksCarian().catch(() => {});
+    } catch (e) { console.warn('mulaCarianNasab', e.message); }
+    window.muatSenaraiWaris('senaraiWarisModal');
+};
+
+async function senaraiUidBerpaut() {
+    const uid = penggunaSemasa.uid;
+    const set = new Set();
+    try {
+        const s = await getDocs(query(collection(db, "mynasab_waris"), where("uids", "array-contains", uid)));
+        s.forEach(d => { const x = d.data(); if (x.status === 'aktif') (x.uids || []).forEach(u => { if (u !== uid) set.add(u); }); });
+    } catch (e) { console.warn('senaraiUidBerpaut', e.message); }
+    try {
+        const nod = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid), where("is_root", "==", true)));
+        nod.forEach(d => (d.data().linked_uids || []).forEach(u => set.add(u)));
+    } catch (e) {}
+    return set;
+}
+
+window.ujiCarianNasab = async () => {
+    const hasil = document.getElementById('hasilCarianNasab');
+    const token = tokenNama(document.getElementById('inputCarianNama').value);
+    const negeri = document.getElementById('inputCarianNegeri').value;
+    const bandar = document.getElementById('inputCarianBandar').value.trim().toLowerCase();
+    if (!token.length) { alert("Sila taip nama (atau nama datuk / moyang) untuk mula mencari."); return; }
+    hasil.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">Mencari... <i class="fa-solid fa-spinner fa-spin"></i></p>';
+    try {
+        const utama = [...token].sort((a, b) => b.length - a.length)[0];
+        const [snap, berpaut] = await Promise.all([
+            getDocs(query(collection(db, "mynasab_carian"), where("kata", "array-contains", utama), limit(80))),
+            senaraiUidBerpaut()
+        ]);
+        const saya = penggunaSemasa.uid;
+        const baris = [];
+        snap.forEach(d => {
+            const x = d.data();
+            if (x.uid === saya) return;
+            const kata = new Set(x.kata || []);
+            if (!token.every(t => kata.has(t))) return;
+            if (negeri && x.negeri !== negeri) return;
+            if (bandar && !String(x.daerah || '').toLowerCase().includes(bandar)) return;
+            const padan = (x.rantai || []).filter(r => { const tk = new Set(tokenNama(r.n)); return token.some(t => tk.has(t)); });
+            baris.push({ x, padan, sendiri: token.every(t => tokenNama(x.nama).includes(t)) });
+        });
+        if (!baris.length) {
+            hasil.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px; font-weight:bold;">Tiada waris ditemui. Hanya pengguna yang menghidupkan "Boleh dicari" akan muncul.</p>';
+            return;
+        }
+        hasil.innerHTML = baris.slice(0, 30).map(({ x, padan, sendiri }) => {
+            const lokasi = [x.daerah, x.negeri].filter(Boolean).join(', ') || 'Lokasi tidak dinyatakan';
+            const sebabPadan = padan.length ? padan.slice(0, 2).map(r => `${esc(r.h)}: ${esc(r.n)}`).join(' &bull; ') : (sendiri ? 'Nama sendiri sepadan' : '');
+            const sudah = berpaut.has(x.uid);
+            const n = esc(x.nama).replace(/'/g, "\\'");
+            return `<div class="hasil-card">
+                <div style="flex:1; min-width:180px;">
+                    <h4 style="margin:0 0 4px 0; color:#1e293b; font-size:16px;">${esc(x.nama)}${x.tahun ? ` <small style="color:#94a3b8; font-weight:normal;">(${esc(x.tahun)})</small>` : ''}</h4>
+                    <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> ${esc(lokasi)}</small>
+                    ${sebabPadan ? `<div style="margin-top:4px; font-size:12px; color:#047857;"><i class="fa-solid fa-link"></i> Padanan: ${sebabPadan}</div>` : ''}
+                </div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                ${sudah ? '<span style="background:#dcfce7; color:#166534; padding:8px 12px; border-radius:8px; font-weight:bold; font-size:13px;">✓ Berpaut</span>' : `
+                    <button onclick="bukaMesejNasab('${esc(x.uid)}', '${n}')" class="btn-sapa"><i class="fa-regular fa-paper-plane"></i> Sapa</button>
+                    <button onclick="window.mohonPautanWaris('${esc(x.uid)}', '${n}')" class="btn-sapa" style="background:#dbeafe; color:#1d4ed8;"><i class="fa-solid fa-link"></i> Mohon Pautan</button>`}
+                </div>
+            </div>`;
+        }).join('');
+    } catch (e) {
+        console.error('Ralat carian', e);
+        hasil.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">Gagal membuat carian: ' + esc(e.message) + '</p>';
+    }
+};
+
+window.mohonPautanWaris = (uid, nama) => {
+    window.bukaMesejNasab(uid, nama);
+    const j = document.getElementById('jenisMesejNasab'); if (j) j.value = 'pautan';
+    const t = document.getElementById('teksMesejNasab'); if (t && !t.value) t.value = 'Assalamualaikum, saya difikirkan waris sepupu/saudara. Boleh kita pautkan pokok keluarga?';
+};
+
+// ---- Terima pautan: pilih hubungan dahulu ----
+window.terimaPautan = async (requestDocId, pemohonUid) => {
+    window.__terimaPending = { id: requestDocId, uid: pemohonUid };
+    let nama = 'Pemohon';
+    try { const r = await getDoc(doc(db, "mynasab_requests", requestDocId)); if (r.exists()) nama = r.data().penghantar_nama || nama; } catch (e) {}
+    const el = document.getElementById('namaPemohonHubungan'); if (el) el.innerText = nama;
+    const m = document.getElementById('modalHubunganPautan'); if (m) m.style.display = 'flex';
+};
+window.tutupHubunganPautan = () => { const m = document.getElementById('modalHubunganPautan'); if (m) m.style.display = 'none'; };
+
+window.sahkanTerimaPautan = async () => {
+    const pend = window.__terimaPending;
+    if (!pend) return;
+    const hub = document.getElementById('pilihHubunganPautan').value;
+    const btn = document.getElementById('btnSahkanHubungan'); if (btn) btn.disabled = true;
+    try {
+        const saya = penggunaSemasa.uid, lain = pend.uid;
+        const rootSaya = await cariNodInduk(saya);
+        const rootLain = await cariNodInduk(lain);
+        if (!rootSaya || !rootLain) { alert("Nod 'Diri Sendiri' salah satu pihak tidak dijumpai, jadi pautan tidak dibuat."); return; }
+        const adik = hub === 'Adik-beradik';
+        const medan = (u) => adik ? { linked_uids: arrayUnion(u), linked_adik: arrayUnion(u) } : { linked_uids: arrayUnion(u) };
+        await updateDoc(doc(db, "mynasab_nodes", rootSaya.id), medan(lain));
+        await updateDoc(doc(db, "mynasab_nodes", rootLain.id), medan(saya));
+        const namaSaya = rootSaya.data().name || '', namaLain = rootLain.data().name || '';
+        await setDoc(doc(db, "mynasab_waris", pairId(saya, lain)), {
+            uids: [saya, lain], status: 'aktif', tarikh: Date.now(),
+            nama: { [saya]: namaSaya, [lain]: namaLain },
+            hubungan: { [saya]: hub, [lain]: HUBUNGAN_WARIS[hub] || hub }
+        });
+        await updateDoc(doc(db, "mynasab_requests", pend.id), { status: "lulus" });
+        await addDoc(collection(db, "mynasab_requests"), {
+            pemohon_uid: saya, penghantar_nama: namaSaya || (penggunaSemasa.email || '').split('@')[0], penerima_uid: lain,
+            mesej: `${namaSaya || 'Waris'} menerima permohonan pautan anda (anda: ${HUBUNGAN_WARIS[hub] || hub}). Anda berdua kini boleh melihat pokok keluarga masing-masing di bahagian Waris Berpaut. Pautan boleh diputuskan bila-bila masa.`,
+            jenis: 'notis', status: 'belum_baca', tarikh: new Date().toISOString()
+        });
+        window.tutupHubunganPautan();
+        alert("Berjaya! Pautan waris dibuat. Nama mereka kini ada dalam senarai Waris Berpaut.");
+        window.bukaPetiMesej();
+    } catch (e) {
+        console.error(e);
+        alert("Ralat ketika menyambungkan pokok keluarga: " + e.message);
+    } finally { if (btn) btn.disabled = false; }
+};
+
+// ---- Putus pautan (mana-mana pihak) ----
+window.putusWaris = async (lain, nama) => {
+    if (!confirm(`Putuskan pautan dengan ${nama || 'waris ini'}?\n\nKedua-dua pihak tidak lagi dapat melihat pokok masing-masing. ${nama || 'Beliau'} akan dimaklumkan.`)) return;
+    try {
+        const saya = penggunaSemasa.uid;
+        const rootSaya = await cariNodInduk(saya);
+        const rootLain = await cariNodInduk(lain);
+        if (rootSaya) await updateDoc(doc(db, "mynasab_nodes", rootSaya.id), { linked_uids: arrayRemove(lain), linked_adik: arrayRemove(lain) });
+        if (rootLain) await updateDoc(doc(db, "mynasab_nodes", rootLain.id), { linked_uids: arrayRemove(saya), linked_adik: arrayRemove(saya) });
+        await setDoc(doc(db, "mynasab_waris", pairId(saya, lain)), { uids: [saya, lain], status: 'putus', putus_oleh: saya, putus_tarikh: Date.now() }, { merge: true });
+        const namaSaya = (rootSaya && rootSaya.data().name) || (penggunaSemasa.email || '').split('@')[0];
+        await addDoc(collection(db, "mynasab_requests"), {
+            pemohon_uid: saya, penghantar_nama: namaSaya, penerima_uid: lain,
+            mesej: `${namaSaya} telah memutuskan pautan waris dengan anda. Pokok masing-masing tidak lagi dipaparkan.`,
+            jenis: 'notis', status: 'belum_baca', tarikh: new Date().toISOString()
+        });
+        window.muatSenaraiWaris('senaraiWarisModal');
+        window.muatSenaraiWaris('senaraiWarisBesar');
+        const m = document.getElementById('modalPreview');
+        if (m && !m.classList.contains('hidden') && window.__sebagai) { m.classList.add('hidden'); window.__sebagai = null; }
+    } catch (e) { alert("Gagal memutuskan pautan: " + e.message); }
+};
+
+// ---- Senarai Waris Berpaut ----
+window.muatSenaraiWaris = async (idBekas) => {
+    const el = document.getElementById(idBekas);
+    if (!el || !penggunaSemasa) return;
+    el.innerHTML = '<p style="color:#64748b; font-size:13px;">Memuatkan waris berpaut...</p>';
+    try {
+        const saya = penggunaSemasa.uid;
+        const s = await getDocs(query(collection(db, "mynasab_waris"), where("uids", "array-contains", saya)));
+        const baris = [];
+        const dah = new Set();
+        s.forEach(d => {
+            const x = d.data();
+            if (x.status !== 'aktif') return;
+            const lain = (x.uids || []).find(u => u !== saya);
+            if (!lain) return;
+            dah.add(lain);
+            baris.push({ uid: lain, nama: (x.nama || {})[lain] || 'Waris', hub: (x.hubungan || {})[saya] || 'Waris' });
+        });
+        // Pautan lama (sebelum rekod hubungan wujud)
+        try {
+            const rs = await cariNodInduk(saya);
+            for (const u of ((rs && rs.data().linked_uids) || [])) {
+                if (dah.has(u)) continue;
+                const r = await cariNodInduk(u);
+                if (r) { dah.add(u); baris.push({ uid: u, nama: r.data().name || 'Waris', hub: 'Waris' }); }
+            }
+        } catch (e) {}
+        if (!baris.length) {
+            el.innerHTML = '<p style="color:#94a3b8; font-size:13px; margin:0;">Belum ada waris berpaut. Gunakan Cari Waris untuk mula.</p>';
+            return;
+        }
+        baris.sort((a, b) => a.hub.localeCompare(b.hub) || a.nama.localeCompare(b.nama));
+        const tapis = baris.length > 8
+            ? `<input type="text" placeholder="Tapis nama..." oninput="window.tapisSenaraiWaris(this)" style="width:100%; box-sizing:border-box; margin-bottom:8px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px;">` : '';
+        el.innerHTML = tapis + '<div class="waris-senarai">' + baris.map(b => {
+            const n = esc(b.nama).replace(/'/g, "\\'");
+            return `<div class="waris-baris" data-nama="${esc(b.nama.toLowerCase())}">
+                <button type="button" class="waris-lihat" onclick="window.lihatWaris('${esc(b.uid)}', '${n}')"><i class="fa-solid fa-sitemap"></i> <b>${esc(b.nama)}</b> <small>${esc(b.hub)}</small></button>
+                <button type="button" class="waris-putus" title="Putuskan pautan" onclick="window.putusWaris('${esc(b.uid)}', '${n}')">Putus</button>
+            </div>`;
+        }).join('') + '</div>';
+    } catch (e) {
+        el.innerHTML = '<p style="color:#ef4444; font-size:13px;">Gagal memuatkan senarai waris: ' + esc(e.message) + '</p>';
+    }
+};
+window.tapisSenaraiWaris = (inp) => {
+    const q = inp.value.trim().toLowerCase();
+    inp.parentNode.querySelectorAll('.waris-baris').forEach(r => { r.style.display = (!q || r.dataset.nama.includes(q)) ? '' : 'none'; });
+};
+
+window.lihatWaris = (uid, nama) => {
+    const m = document.getElementById('modalCarianNasab'); if (m) m.style.display = 'none';
+    window.bukaPreviewBesar('saya', { sebagai: uid, nama });
 };
 
 // =========================================================

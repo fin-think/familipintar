@@ -947,6 +947,11 @@
                     <p>Memuatkan visual pintar...</p>
                 </div>
             </div>
+            <!-- Waris Berpaut (di luar kertas cetak) -->
+            <div id="bahagianWarisBerpaut" style="display:none; margin-top:14px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px;">
+                <h3 style="margin:0 0 10px 0; font-size:15px; color:#1e293b;"><i class="fa-solid fa-link" style="color:#3b82f6;"></i> Waris Berpaut</h3>
+                <div id="senaraiWarisBesar"></div>
+            </div>
 
         </div>
     </div>
@@ -1217,6 +1222,7 @@ formTambah.onsubmit = function (e) {
 // Buka Modal Carian
 window.bukaCarianNasab = () => {
     document.getElementById('modalCarianNasab').style.display = 'flex';
+    if (window.mulaCarianNasab) window.mulaCarianNasab();
 };
 
 // Tutup Modal Carian
@@ -1226,23 +1232,6 @@ window.tutupCarianNasab = () => {
 };
 
 // Fungsi olok-olok (Mock-up)
-window.ujiCarianNasab = () => {
-    const hasilContainer = document.getElementById('hasilCarianNasab');
-    const namaCari = document.getElementById('inputCarianNama').value || 'Awi';
-    
-    hasilContainer.innerHTML = `
-        <div class="hasil-card">
-            <div>
-                <h4 style="margin:0 0 5px 0; color:#1e293b; font-size:16px;">${namaCari} bin Che Harun bin Padang</h4>
-                <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> Kota Bharu, Kelantan</small>
-            </div>
-            <button onclick="bukaMesejNasab('uid_dummy', '${namaCari} bin Che Harun')" class="btn-sapa">
-                <i class="fa-regular fa-paper-plane"></i> Sapa Waris
-            </button>
-        </div>
-    `;
-};
-
 // Buka Kotak Tulis Mesej
 // Buka Kotak Tulis Mesej
 window.bukaMesejNasab = (uidPenerima, namaPenerima) => {
@@ -1300,6 +1289,11 @@ window.hantarMesejUjian = () => {
     .carian-btn:hover { background: #1d4ed8; }
     .hasil-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     .btn-sapa { background: #d1fae5; color: #047857; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .waris-senarai { display:flex; flex-wrap:wrap; gap:8px; }
+    .waris-baris { display:inline-flex; align-items:stretch; border:1px solid #bfdbfe; border-radius:10px; overflow:hidden; background:#eff6ff; }
+    .waris-lihat { background:none; border:none; padding:8px 12px; cursor:pointer; color:#1e3a8a; font-size:13px; text-align:left; }
+    .waris-lihat small { color:#64748b; margin-left:4px; }
+    .waris-putus { background:#fff; border:none; border-left:1px solid #bfdbfe; color:#dc2626; padding:0 10px; cursor:pointer; font-size:12px; font-weight:bold; }
     .ruang-mesej { background: #ecfdf5; padding: 20px; border-radius: 12px; border: 1px solid #a7f3d0; margin-top: 20px; display: none; }
 </style>
 
@@ -1314,11 +1308,23 @@ window.hantarMesejUjian = () => {
         </div>
         
         <div class="carian-body">
+            <!-- Boleh dicari + Waris Berpaut -->
+            <div class="carian-filter" style="background:#f0fdf4; border-color:#bbf7d0;">
+                <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+                    <input type="checkbox" id="chkBolehDicari" onchange="window.tukarBolehDicari(this)" style="margin-top:3px; width:18px; height:18px;">
+                    <span style="font-size:13px; color:#166534; line-height:1.45;"><b>Benarkan waris menjumpai saya</b><br>
+                    Hanya nama, negeri/daerah, tahun lahir dan nama ayah/datuk/moyang anda dipaparkan dalam carian. Pokok anda tidak boleh dilihat sehingga anda sendiri menerima pautan. Boleh dimatikan bila-bila masa.</span>
+                </label>
+            </div>
+            <div class="carian-filter">
+                <div class="carian-label">Waris Berpaut Saya</div>
+                <div id="senaraiWarisModal"></div>
+            </div>
             <!-- Penapis -->
             <div class="carian-filter">
                 <div class="carian-input-group">
                     <label class="carian-label">Nama Dicari</label>
-                    <input type="text" id="inputCarianNama" class="carian-input" placeholder="Cth: Awi, atau Padang...">
+                    <input type="text" id="inputCarianNama" class="carian-input" placeholder="Cth: nama anda, atau nama datuk / moyang">
                 </div>
                 <div style="display:flex; gap:15px; flex-wrap:wrap;">
                     <div class="carian-input-group" style="flex:1; min-width:120px;">
@@ -1372,6 +1378,23 @@ window.hantarMesejUjian = () => {
                     <i class="fa-solid fa-paper-plane"></i> Hantar
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PILIH HUBUNGAN BILA TERIMA PAUTAN -->
+<div id="modalHubunganPautan" style="position:fixed; inset:0; background:rgba(15,23,42,.75); z-index:2100; display:none; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#fff; border-radius:16px; padding:22px; max-width:380px; width:100%;">
+        <h3 style="margin:0 0 6px 0; color:#1e293b;">Terima pautan waris</h3>
+        <p style="margin:0 0 14px 0; font-size:13px; color:#64748b;"><b id="namaPemohonHubungan"></b> ialah ... anda?</p>
+        <select id="pilihHubunganPautan" style="width:100%; padding:11px; border:1px solid #cbd5e1; border-radius:8px; font-size:15px; margin-bottom:10px;">
+            <option>Adik-beradik</option><option>Sepupu</option><option>Bapa/Mak Saudara</option>
+            <option>Anak Saudara</option><option>Datuk/Nenek</option><option>Cucu</option><option selected>Saudara Jauh</option>
+        </select>
+        <p style="font-size:12px; color:#64748b; margin:0 0 14px 0;">Kedua-dua pihak boleh melihat keluarga dan nasab ke atas masing-masing (baca sahaja). Pautan boleh diputuskan oleh mana-mana pihak bila-bila masa.</p>
+        <div style="display:flex; gap:8px;">
+            <button id="btnSahkanHubungan" onclick="window.sahkanTerimaPautan()" style="flex:1; background:#10b981; color:#fff; border:none; padding:11px; border-radius:8px; font-weight:bold; cursor:pointer;">Terima &amp; Pautkan</button>
+            <button onclick="window.tutupHubunganPautan()" style="background:#f1f5f9; color:#475569; border:none; padding:11px 16px; border-radius:8px; font-weight:bold; cursor:pointer;">Batal</button>
         </div>
     </div>
 </div>
