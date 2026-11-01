@@ -93,3 +93,26 @@ self.addEventListener('notificationclick', (e) => {
     return clients.openWindow('/wecare.html');
   }));
 });
+
+
+// ===== PWA: cache asas + skrin offline (tidak mengganggu FCM) =====
+const CACHE_PWA = 'fp-pwa-v1';
+const ASET_ASAS = ['/offline.html', '/icon-192.png', '/icon-512.png', '/manifest.json'];
+
+self.addEventListener('install', (event) => {
+    event.waitUntil(caches.open(CACHE_PWA).then((c) => c.addAll(ASET_ASAS)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('fp-pwa-') && k !== CACHE_PWA).map((k) => caches.delete(k))))
+            .then(() => self.clients.claim())
+    );
+});
+
+// Navigasi halaman: rangkaian dahulu; jika offline, papar offline.html. Permintaan lain tidak disentuh.
+self.addEventListener('fetch', (event) => {
+    const req = event.request;
+    if (req.method !== 'GET' || req.mode !== 'navigate') return;
+    event.respondWith(fetch(req).catch(() => caches.match('/offline.html')));
+});
