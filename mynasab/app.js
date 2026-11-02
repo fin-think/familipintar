@@ -2880,7 +2880,7 @@ window.ujiCarianNasabLama_TIDAK_DIGUNA = async () => {
 // =========================================================
 // 2. Fungsi Pembantu: Jejak Nasab Berpusatkan Individu Dicari
 // =========================================================
-const binaRantaianNasabFokus = (focusNode, senaraiNodes, rootNode) => {
+const binaRantaianNasabFokus = (focusNode, senaraiNodes, rootNode, mentah) => {
     try {
         if (!focusNode) return "Tiada Maklumat";
 
@@ -3040,6 +3040,7 @@ const binaRantaianNasabFokus = (focusNode, senaraiNodes, rootNode) => {
             teksAnak = anakAnak.map(a => a.name).join(', ');
         }
 
+        if (mentah) return { nb: nasabBapa, ni: nasabIbu, ps: teksPasangan, ak: teksAnak, gl: gelaranIbuBapa };
         return `
             <div style="margin:10px 0; font-size:12px; color:#064e3b; background:#ecfdf5; padding:12px; border-radius:8px; border:1px solid #a7f3d0; line-height:1.7;">
                 <div style="margin-bottom:2px;"><strong style="color:#047857;">1. Nasab Bapa:</strong> ${nasabBapa}</div>
@@ -3652,6 +3653,29 @@ async function ambilNodSaya() {
     return s.docs.map(d => ({ ...d.data(), id: d.id }));
 }
 
+// Ringkasan profil (nasab bapa, nasab ibu, pasangan, anak) untuk dipaparkan dalam hasil carian; sama seperti carian adik-beradik dahulu
+function profilCarian(akar, nod) {
+    try {
+        const p = binaRantaianNasabFokus(akar, nod, akar, true);
+        if (!p || typeof p !== 'object') return null;
+        // Buang nama berganda (nama pokok mungkin sudah ada "bin ...") dan tukar "(Tiada Maklumat)" kepada teks bersih
+        const kemas = (t) => {
+            t = String(t || '');
+            if (/\(Tiada Maklumat\)/.test(t)) return 'Tiada Maklumat';
+            const bahagian = t.split(/\s+(bin\/binti|binti|bin)\s+/i);
+            const out = [];
+            for (let i = 0; i < bahagian.length; i += 2) {
+                const nama = bahagian[i].trim();
+                if (!out.length || out[out.length - 1].nama.toLowerCase() !== nama.toLowerCase()) out.push({ nama, sambung: bahagian[i + 1] || '' });
+                else if (bahagian[i + 1]) out[out.length - 1].sambung = bahagian[i + 1];
+            }
+            return out.map((o, i) => o.nama + (i < out.length - 1 ? ' ' + o.sambung + ' ' : '')).join('');
+        };
+        const potong = (t) => kemas(t).slice(0, 300);
+        return { nb: potong(p.nb), ni: potong(p.ni), ps: potong(p.ps), ak: potong(p.ak), gl: p.gl === 'Ibu' ? 'Ibu' : 'Ayah' };
+    } catch (e) { return null; }
+}
+
 // Bina / kemas kini indeks carian untuk pengguna semasa (hanya jika "Boleh dicari" hidup)
 async function kemasIndeksCarian() {
     if (!penggunaSemasa) return;
@@ -3688,6 +3712,7 @@ async function kemasIndeksCarian() {
     await setDoc(doc(db, "mynasab_carian", uid), {
         uid, nama: String(akar.name || ud.name || '').trim().slice(0, 80),
         kata: [...kata].slice(0, 60), rantai: rantai.slice(0, 20), nasab,
+        profil: profilCarian(akar, nod),
         negeri: ud.negeri || akar.state || '', daerah: ud.bandar || akar.city || '',
         tahun: Number.isFinite(th) ? th : null, kemas: Date.now()
     });
@@ -3774,7 +3799,12 @@ window.ujiCarianNasab = async () => {
                 <div style="flex:1; min-width:180px;">
                     <h4 style="margin:0 0 4px 0; color:#1e293b; font-size:16px;">${esc(x.nama)}${x.tahun ? ` <small style="color:#94a3b8; font-weight:normal;">(${esc(x.tahun)})</small>` : ''}</h4>
                     <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> ${esc(lokasi)}</small>
-                    ${sebabPadan ? `<div style="margin-top:4px; font-size:12px; color:#047857;"><i class="fa-solid fa-sitemap"></i> ${x.nasab ? 'Nasab' : 'Padanan'}: ${sebabPadan}</div>` : ''}
+                    ${x.profil ? `<div style="margin:8px 0 4px; font-size:12px; color:#064e3b; background:#ecfdf5; padding:10px 12px; border-radius:8px; border:1px solid #a7f3d0; line-height:1.7;">
+                        <div><strong style="color:#047857;">1. Nasab Bapa:</strong> ${hiaskan(x.profil.nb)}</div>
+                        <div><strong style="color:#047857;">2. Nasab Ibu:</strong> ${hiaskan(x.profil.ni)}</div>
+                        <div><strong style="color:#047857;">3. Pasangan:</strong> ${esc(x.profil.ps)}</div>
+                        <div><strong style="color:#047857;">4. ${esc(x.profil.gl)} Kepada:</strong> ${esc(x.profil.ak)}</div></div>`
+                      : (sebabPadan ? `<div style="margin-top:4px; font-size:12px; color:#047857;"><i class="fa-solid fa-sitemap"></i> ${x.nasab ? 'Nasab' : 'Padanan'}: ${sebabPadan}</div>` : '')}
                 </div>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 ${sudah ? '<span style="background:#dcfce7; color:#166534; padding:8px 12px; border-radius:8px; font-weight:bold; font-size:13px;">✓ Berpaut</span>' : `
