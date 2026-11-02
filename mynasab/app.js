@@ -135,6 +135,7 @@ onAuthStateChanged(auth, async (user) => {
                         name: dataPengguna.name,
                         relationship: "Diri Sendiri (Induk)",
                         is_root: true,
+                        ...(dataPengguna.dob ? { dob: dataPengguna.dob } : {}),
                         sibling_of: jemputan.sasaran_id,
                         link_owner: jemputan.owner_uid,
                         created_at: new Date()
@@ -638,9 +639,12 @@ window.muatTurunSalasilah = async () => {
         if (querySnapshot.empty) {
             let namaPenuh = (document.getElementById('treeNameDisplay').innerText || '').trim();
             if (!namaPenuh || namaPenuh === 'undefined') namaPenuh = penggunaSemasa.displayName || (penggunaSemasa.email ? penggunaSemasa.email.split('@')[0] : 'Ketua Keluarga');
+            let dobPulih = '';
+            try { const us = await getDoc(doc(db, "mynasab_users", penggunaSemasa.uid)); dobPulih = (us.exists() && us.data().dob) || ''; } catch (e) {}
             await setDoc(doc(db, "mynasab_nodes", "root_" + penggunaSemasa.uid), {
                 owner_uid: penggunaSemasa.uid,
                 name: namaPenuh,
+                ...(dobPulih ? { dob: dobPulih } : {}),
                 relationship: "Diri Sendiri (Induk)",
                 is_root: true,
                 created_at: new Date()

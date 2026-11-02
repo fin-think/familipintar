@@ -589,6 +589,8 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             <!-- Tambah input Nama supaya nampak beza dari Log Masuk -->
             <input type="text" id="daftarNama" placeholder="Nama Panggilan / Akaun" class="w-full border border-slate-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-sky-500 outline-none">
             <input type="email" id="daftarEmel" placeholder="Alamat Emel" class="w-full border border-slate-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-sky-500 outline-none">
+            <label class="block text-xs font-bold text-slate-500 mb-1 ml-1">Tarikh Lahir <span class="text-red-500">*</span></label>
+            <input type="date" id="daftarDob" class="w-full border border-slate-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-sky-500 outline-none text-slate-700">
             <input type="password" id="daftarKatalaluan" placeholder="Cipta Kata Laluan (Min 6 aksara)" class="w-full border border-slate-300 rounded-lg p-3 mb-6 focus:ring-2 focus:ring-sky-500 outline-none">
 
             <button onclick="prosesDaftarAsing()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl shadow-md transition transform hover:-translate-y-0.5">
@@ -900,8 +902,11 @@ if ('Notification' in window) {
         const nama = document.getElementById('daftarNama').value;
         const emel = document.getElementById('daftarEmel').value;
         const pass = document.getElementById('daftarKatalaluan').value;
+        const dob = (document.getElementById('daftarDob') || {}).value || '';
 
         if (nama && emel && pass) {
+            if (!dob) return alert("Tarikh lahir wajib diisi.");
+            if (new Date(dob) > new Date()) return alert("Tarikh lahir tidak boleh pada masa depan.");
             if (pass.length < 6) return alert("Kata laluan mesti sekurang-kurangnya 6 aksara.");
             
             try {
@@ -914,6 +919,7 @@ if ('Notification' in window) {
                 await setDoc(doc(db, "mynasab_users", user.uid), {
                     name: nama,
                     email: emel,
+                    dob: dob,
                     credit_balance: 20, 
                     sumber: sumber,
                     ...(refUid ? { referred_by: refUid } : {}),
@@ -926,7 +932,7 @@ if ('Notification' in window) {
                 alert("Ralat pendaftaran: E-mel ini mungkin telah wujud.");
             }
         } else {
-            alert("Sila isi semua maklumat (Nama, Emel & Kata Laluan).");
+            alert("Sila isi semua maklumat (Nama, Emel, Tarikh Lahir & Kata Laluan).");
         }
     };
 
