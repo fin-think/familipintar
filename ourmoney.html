@@ -669,6 +669,7 @@
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, updateDoc, increment, addDoc, deleteDoc, collection, query, where, getDocs, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -918,7 +919,7 @@
             await muatDataMyTadbir(); 
             await muatTargetPercutian();
             await muatMisi();
-            muatInfaq();
+            muatInfaq(); daftarTokenPush();
             muatDataOurMoney();
         } else {
             currentUser = null;
@@ -1150,9 +1151,37 @@
                 <button class="utama" onclick="infaqHariIni()">🤲 Rekod infaq hari ini</button>
                 <button onclick="ubahInfaq()">Ubah jumlah</button>
             </div>
+            ${barisPeringatanInfaq(d)}
             <div style="font-size:.68rem;color:#64748b;font-weight:600;margin-top:8px">Tamat ${noKeTarikh(akhirNo).split('-').reverse().join('/')} (${hariKurang} hari lagi). Rekod semua infaq di Duit Keluar → kategori "Infaq / Sedekah".</div>
             ${nota}</div></div>`;
     }
+
+    // Daftar token FCM (sama seperti index.html) supaya server boleh hantar push ke telefon ini
+    const daftarTokenPush = async () => {
+        try {
+            if (!currentUser || !('Notification' in window) || Notification.permission !== 'granted') return;
+            const token = await getToken(getMessaging(), { vapidKey: 'BC-vntpi-9WxGGKUPeGopgcykMKc87MODe1aEpwieX096IQ8Hzu3Mh89SI8YxuvvOvPSqhW7Eu2Ziqn4ZjwBugs' });
+            if (token) await setDoc(doc(db, "mynasab_users", currentUser.uid), { fcm_token: token }, { merge: true });
+        } catch (e) { console.log("Gagal daftar token push:", e); }
+    };
+    window.daftarTokenPush = daftarTokenPush;
+    const JAM_INFAQ = [[7, '7 pagi'], [12, '12 tengah hari'], [17, '5 petang'], [20, '8 malam'], [21, '9 malam']];
+    window.tukarPeringatanInfaq = async () => {
+        const on = !!(document.getElementById('infaq-ingat') || {}).checked;
+        const jam = parseInt((document.getElementById('infaq-jam') || {}).value, 10);
+        if (on && 'Notification' in window && Notification.permission === 'default') await Notification.requestPermission();
+        if (on && 'Notification' in window && Notification.permission === 'denied') alert("Notifikasi disekat dalam pelayar/telefon anda. Benarkan notifikasi untuk laman ini, kemudian cuba lagi.");
+        await simpanInfaq({ peringatan: on, peringatan_jam: Number.isFinite(jam) ? jam : 20 });
+        if (on) await daftarTokenPush();
+    };
+    const barisPeringatanInfaq = (d) => {
+        const on = d.peringatan !== false, jam = Number.isFinite(d.peringatan_jam) ? d.peringatan_jam : 20;
+        const tolak = on && 'Notification' in window && Notification.permission === 'denied';
+        return `<div class="infaq-ingat" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;font-size:.78rem;font-weight:700;color:#065F46">
+            <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="infaq-ingat" ${on ? 'checked' : ''} onchange="tukarPeringatanInfaq()"> 🔔 Ingatkan saya setiap hari</label>
+            <select id="infaq-jam" onchange="tukarPeringatanInfaq()" style="border:1px solid #A7F3D0;border-radius:8px;padding:4px 6px;font-weight:700;color:#065F46;background:#fff" ${on ? '' : 'disabled'}>${JAM_INFAQ.map(j => `<option value="${j[0]}" ${j[0] === jam ? 'selected' : ''}>${j[1]}</option>`).join('')}</select>
+            ${tolak ? '<span style="color:#b45309;font-weight:700;width:100%">Notifikasi disekat pada peranti ini. Benarkan dalam tetapan pelayar/telefon.</span>' : ''}</div>`;
+    };
 
     const simpanInfaq = async (data) => {
         await setDoc(doc(db, "ourmoney_goals", currentUser.uid + '_infaq'), { owner_uid: currentUser.uid, jenis: 'infaq_harian', status: 'aktif', ...data }, { merge: true });
@@ -1165,7 +1194,9 @@
     };
     window.mulaInfaq = async () => {
         const v = bacaInfaqInput(); if (v === null) return;
-        await simpanInfaq({ harian: v, mula: localDateStr, tahun_ke: 1, zakat_rujukan: infaqZakat, sumber: infaqZakat > 0 && Math.abs(v - infaqZakat / 365) < 1 ? 'tadbir' : 'manual', sejarah: [] });
+        await simpanInfaq({ harian: v, mula: localDateStr, tahun_ke: 1, zakat_rujukan: infaqZakat, sumber: infaqZakat > 0 && Math.abs(v - infaqZakat / 365) < 1 ? 'tadbir' : 'manual', sejarah: [], peringatan: true, peringatan_jam: 20 });
+        if ('Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch (e) {} }
+        await daftarTokenPush();
     };
     window.sambungInfaq = async () => {
         const v = bacaInfaqInput(); if (v === null || !infaqDoc) return;
