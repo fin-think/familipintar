@@ -1091,6 +1091,41 @@ if (formEdit) {
 }
 
 // --- 7. PREVIEW "KELUARGA SAYA" (HANYA SUSUR GALUR MENEGAK) ---
+// Jarakkan kotak yang bertindih: cari kad sebaris yang rapat/bertindih, tambah ruang antara dua tiang pasangan terdekat yang memisahkan mereka
+window.jarakkanKotak = (akar) => {
+    if (!akar) return;
+    for (let ulang = 0; ulang < 15; ulang++) {
+        const kad = [...akar.querySelectorAll('.mh-card')].filter(k => k.offsetWidth > 0);
+        if (kad.length < 2) return;
+        const skala = kad[0].getBoundingClientRect().width / kad[0].offsetWidth || 1;
+        const r = kad.map(k => ({ k, r: k.getBoundingClientRect() }));
+        let ubah = false;
+        outer: for (let i = 0; i < r.length; i++) {
+            for (let j = 0; j < r.length; j++) {
+                if (i === j) continue;
+                const A = r[i], B = r[j];
+                if (Math.abs(A.r.top - B.r.top) > 8 * skala) continue;      // sebaris sahaja
+                if (A.r.left >= B.r.left) continue;                          // A di kiri B
+                const jurang = (B.r.left - A.r.right) / skala;
+                if (jurang >= 12) continue;                                  // cukup jarak
+                const perlu = Math.ceil(12 - jurang);
+                // cari pembalut pasangan terdekat yang memuatkan kedua-duanya
+                let c = A.k.parentElement;
+                while (c && !(c.classList && c.classList.contains('couple-wrapper') && c.contains(B.k))) c = c.parentElement;
+                if (!c) continue;
+                const anak = [...c.children].filter(ch => ch.classList.contains('pillar'));
+                const pL = anak.find(ch => ch.contains(A.k)), pR = anak.find(ch => ch.contains(B.k));
+                if (!pL || !pR || pL === pR) continue;
+                const tambah = Math.ceil(perlu / 2) + 4;
+                pL.style.paddingRight = ((parseFloat(getComputedStyle(pL).paddingRight) || 0) + tambah) + 'px';
+                pR.style.paddingLeft = ((parseFloat(getComputedStyle(pR).paddingLeft) || 0) + tambah) + 'px';
+                ubah = true; break outer;
+            }
+        }
+        if (!ubah) return;
+    }
+};
+
 window.bukaPreview = async () => {
     if (!penggunaSemasa) return;
 
@@ -1318,6 +1353,7 @@ window.bukaPreview = async () => {
         
         htmlLayout += `<li>${htmlMain}</li></ul></div>`;
         document.getElementById('ruangAutoLayout').innerHTML = htmlLayout;
+        window.jarakkanKotak(document.getElementById('ruangAutoLayout'));
         window.autoMuat();
 
     } catch (error) {
@@ -2441,6 +2477,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
         ruang.innerHTML = `<div class="tree pokok-besar">${htmlSisi}</div>${htmlBar}`;
         if (sebagai) { const bt = document.getElementById('btnSegerakPokok'); if (bt) bt.style.display = 'none'; }
         else window.muatSenaraiWaris('senaraiWarisBesar');
+        window.jarakkanKotak(document.getElementById('ruangAutoLayout'));
         rapikanNasab();
         rapikanSpine();
         window.autoMuat();
