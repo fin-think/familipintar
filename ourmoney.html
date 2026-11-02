@@ -1869,11 +1869,11 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         const HAD = { "Rumah / Sewa": 35, "Kereta / Petrol": 15, "Barang Dapur": 15, "Makan Luar": 10, "Bil Utiliti": 10, "Pakaian": 5 };
         let pend = 0;
         arrCur.forEach(t => { if (t.type !== 'outflow' && t.category !== 'Baki Permulaan') pend += Number(t.amount) || 0; });
-        if (pend <= 0) return '<div class="text-slate-400">Rekod pendapatan bulan ini (selain Baki Permulaan) untuk lihat nisbah dan perancangan.</div>';
+        const adaPend = pend > 0;
 
         let perlu = 0, mahu = 0;
         Object.keys(catSpent).forEach(k => { if (KEPERLUAN.includes(k)) perlu += catSpent[k]; else mahu += catSpent[k]; });
-        const pct = v => (v / pend * 100);
+        const pct = v => (adaPend ? v / pend * 100 : 0);
         const f0 = v => v.toFixed(0);
         const warna = (ok) => ok ? '#34d399' : '#f87171';
         const baris = (label, nilai, sasaran, ok, tanda) =>
@@ -1883,13 +1883,16 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         const kadarSimpan = pct(simpan);
         const sisa = pend - belanja - simpan;
         let h = '';
+        if (!adaPend) h += '<div class="text-sm text-slate-400" style="font-size:.74rem;margin-bottom:8px">Belum ada pendapatan bulan ini (selain Baki Permulaan). Rekod "Duit Masuk" untuk lihat nisbah 50/30/20 dan kadar simpanan.</div>';
+        if (adaPend) {
         h += baris('Keperluan', pct(perlu), '(sasaran ≤50%)', pct(perlu) <= 50);
         h += baris('Kehendak', pct(mahu), '(sasaran ≤30%)', pct(mahu) <= 30);
         h += baris('Simpanan', kadarSimpan, '(sasaran ≥20%)', kadarSimpan >= 20);
-        if (sisa > 0) h += `<div class="text-sm text-slate-400" style="font-size:.72rem;margin:-2px 0 8px">Baki belum diperuntuk: RM ${formatRM(sisa)} (${f0(pct(sisa))}% pendapatan), boleh dialih ke simpanan.</div>`;
+        }
+        if (adaPend && sisa > 0) h += `<div class="text-sm text-slate-400" style="font-size:.72rem;margin:-2px 0 8px">Baki belum diperuntuk: RM ${formatRM(sisa)} (${f0(pct(sisa))}% pendapatan), boleh dialih ke simpanan.</div>`;
 
         // Had kategori
-        const lebih = Object.keys(HAD).filter(k => catSpent[k] && pct(catSpent[k]) > HAD[k])
+        const lebih = !adaPend ? [] : Object.keys(HAD).filter(k => catSpent[k] && pct(catSpent[k]) > HAD[k])
             .map(k => ({ k, p: pct(catSpent[k]), had: HAD[k] })).sort((a, b) => (b.p - b.had) - (a.p - a.had));
         if (lebih.length) {
             h += '<div class="report-label" style="margin-top:10px">Kategori melebihi garis panduan</div>';
@@ -1932,7 +1935,8 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
 
         // Cadangan tindakan
         let cadang;
-        if (sisa < 0) cadang = `Belanja dan simpanan melebihi pendapatan RM ${formatRM(-sisa)}. Semak kategori "${esc(Object.keys(catSpent).sort((a,b)=>catSpent[b]-catSpent[a])[0] || '')}" dahulu.`;
+        if (!adaPend) cadang = 'Rekod gaji/pendapatan bulan ini dahulu supaya sistem boleh menilai nisbah dan beri cadangan simpanan.';
+        else if (sisa < 0) cadang = `Belanja dan simpanan melebihi pendapatan RM ${formatRM(-sisa)}. Semak kategori "${esc(Object.keys(catSpent).sort((a,b)=>catSpent[b]-catSpent[a])[0] || '')}" dahulu.`;
         else if (projBaki !== null && projBaki < 0) cadang = 'Pada kadar semasa, baki akan habis sebelum hujung bulan. Kurangkan belanja harian atau tangguh belian tidak mendesak.';
         else if (lebih.length) cadang = `Kurangkan "${esc(lebih[0].k)}" ke sekitar ${lebih[0].had}% pendapatan (kini ${f0(lebih[0].p)}%).`;
         else if (kadarSimpan < 20) cadang = `Kadar simpanan ${f0(kadarSimpan)}%. Cuba asingkan RM ${formatRM(Math.max(pend * 0.2 - simpan, 0))} lagi ke misi/percutian untuk capai 20%.`;
