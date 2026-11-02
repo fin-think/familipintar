@@ -517,7 +517,12 @@
                             <span id="rep-hab-cash" class="text-emerald-400">0%</span>
                         </div>
                     </div>
-                    
+
+                    <div class="report-box">
+                        <div class="report-label">Perancangan &amp; Nisbah</div>
+                        <div id="rep-plan" class="text-sm text-slate-300">Memuatkan...</div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -1682,6 +1687,7 @@
             // Paparan individu guna setoran sebenar pengguna itu sahaja.
             const komitmen = modPengguna === 'gabungan' ? Math.max(targetPercutian + misiBulananJumlah, totalSimpan) : totalSimpan;
             renderAnalisisKesihatan(totalIn, totalOut - totalSimpan, komitmen);
+            window.__netSemasa = netBalance; window.__bulanPapar = filterVal;
             siapkanLaporanEksekutif(arraySemasa, arrayLepas);
 
         } catch(e) { console.error("Ralat muat transaksi:", e); }
@@ -1852,6 +1858,88 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         let pCash = totalOutBnc > 0 ? (cashOut / totalOutBnc * 100).toFixed(0) : 0;
         document.getElementById('rep-hab-bank').innerText = pBank + '%';
         document.getElementById('rep-hab-cash').innerText = pCash + '%';
+
+        try { document.getElementById('rep-plan').innerHTML = binaPerancangan(arrCur, outCur, simpanCur, catSpent); }
+        catch (e) { console.error('Ralat perancangan:', e); }
+    }
+
+    // Nisbah & perancangan: kadar simpanan, 50/30/20, had kategori, projeksi hujung bulan, dana kecemasan, cadangan
+    function binaPerancangan(arrCur, belanja, simpan, catSpent) {
+        const KEPERLUAN = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Bil Utiliti", "Perubatan", "Pendidikan"];
+        const HAD = { "Rumah / Sewa": 35, "Kereta / Petrol": 15, "Barang Dapur": 15, "Makan Luar": 10, "Bil Utiliti": 10, "Pakaian": 5 };
+        let pend = 0;
+        arrCur.forEach(t => { if (t.type !== 'outflow' && t.category !== 'Baki Permulaan') pend += Number(t.amount) || 0; });
+        if (pend <= 0) return '<div class="text-slate-400">Rekod pendapatan bulan ini (selain Baki Permulaan) untuk lihat nisbah dan perancangan.</div>';
+
+        let perlu = 0, mahu = 0;
+        Object.keys(catSpent).forEach(k => { if (KEPERLUAN.includes(k)) perlu += catSpent[k]; else mahu += catSpent[k]; });
+        const pct = v => (v / pend * 100);
+        const f0 = v => v.toFixed(0);
+        const warna = (ok) => ok ? '#34d399' : '#f87171';
+        const baris = (label, nilai, sasaran, ok, tanda) =>
+            `<div style="margin-bottom:9px;"><div class="report-val"><span class="text-sm text-slate-300">${label}</span><span style="color:${warna(ok)}">${f0(nilai)}% <small class="text-slate-500">${sasaran}</small></span></div>` +
+            `<div style="height:6px;background:#334155;border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.min(nilai,100)}%;background:${warna(ok)}"></div></div></div>`;
+
+        const kadarSimpan = pct(simpan);
+        const sisa = pend - belanja - simpan;
+        let h = '';
+        h += baris('Keperluan', pct(perlu), '(sasaran ≤50%)', pct(perlu) <= 50);
+        h += baris('Kehendak', pct(mahu), '(sasaran ≤30%)', pct(mahu) <= 30);
+        h += baris('Simpanan', kadarSimpan, '(sasaran ≥20%)', kadarSimpan >= 20);
+        if (sisa > 0) h += `<div class="text-sm text-slate-400" style="font-size:.72rem;margin:-2px 0 8px">Baki belum diperuntuk: RM ${formatRM(sisa)} (${f0(pct(sisa))}% pendapatan), boleh dialih ke simpanan.</div>`;
+
+        // Had kategori
+        const lebih = Object.keys(HAD).filter(k => catSpent[k] && pct(catSpent[k]) > HAD[k])
+            .map(k => ({ k, p: pct(catSpent[k]), had: HAD[k] })).sort((a, b) => (b.p - b.had) - (a.p - a.had));
+        if (lebih.length) {
+            h += '<div class="report-label" style="margin-top:10px">Kategori melebihi garis panduan</div>';
+            lebih.slice(0, 3).forEach(x => { h += `<div class="report-val"><span class="text-sm">${esc(x.k)}</span><span style="color:#f87171">${f0(x.p)}% <small class="text-slate-500">(had ~${x.had}%)</small></span></div>`; });
+        }
+
+        // Projeksi hujung bulan (bulan semasa sahaja)
+        const net = Number(window.__netSemasa) || 0;
+        let hariBerlalu = 0, jumHari = 0, bulanSemasa = false;
+        if (window.__bulanPapar && typeof bulanIniStr !== 'undefined' && window.__bulanPapar === bulanIniStr) {
+            const n = new Date(); bulanSemasa = true;
+            hariBerlalu = n.getDate(); jumHari = new Date(n.getFullYear(), n.getMonth() + 1, 0).getDate();
+        }
+        let projBaki = null;
+        if (bulanSemasa && belanja > 0) {
+            h += '<div class="report-label" style="margin-top:10px">Projeksi Hujung Bulan</div>';
+            if (hariBerlalu < 7) {
+                h += '<div class="text-sm text-slate-500" style="font-size:.72rem">Tersedia selepas hari ke-7 supaya anggaran lebih tepat.</div>';
+            } else {
+                // Bil tetap (sewa, utiliti, pendidikan) sudah dibayar sekali, jadi hanya belanja boleh ubah yang dianggar.
+                const TETAP = ["Rumah / Sewa", "Bil Utiliti", "Pendidikan"];
+                let variabel = 0; Object.keys(catSpent).forEach(k => { if (!TETAP.includes(k)) variabel += catSpent[k]; });
+                const harian = variabel / hariBerlalu;
+                projBaki = net - harian * (jumHari - hariBerlalu);
+                h += `<div class="report-val"><span class="text-sm text-slate-300">Purata belanja harian (tidak termasuk bil tetap)</span><span>RM ${formatRM(harian)}</span></div>`;
+                h += `<div class="report-val"><span class="text-sm text-slate-300">Anggaran baki hujung bulan</span><span style="color:${warna(projBaki >= 0)}">${projBaki < 0 ? '- ' : ''}RM ${formatRM(Math.abs(projBaki))}</span></div>`;
+                h += '<div class="text-sm text-slate-500" style="font-size:.68rem">Anggaran kasar; bil tetap yang belum dibayar bulan ini tidak dikira.</div>';
+            }
+        }
+
+        // Dana kecemasan: baki tunai + bank semasa berbanding belanja bulanan
+        let bulanDana = null;
+        if (belanja > 0) {
+            bulanDana = Math.max(net, 0) / belanja;
+            const ok = bulanDana >= 3;
+            h += '<div class="report-label" style="margin-top:10px">Dana Kecemasan</div>';
+            h += `<div class="report-val"><span class="text-sm text-slate-300">Baki tunai &amp; bank cukup untuk</span><span style="color:${warna(ok)}">${bulanDana.toFixed(1)} bulan</span></div>`;
+            h += '<div class="text-sm text-slate-500" style="font-size:.68rem">Sasaran 3–6 bulan belanja. Kira dari baki bersih semasa.</div>';
+        }
+
+        // Cadangan tindakan
+        let cadang;
+        if (sisa < 0) cadang = `Belanja dan simpanan melebihi pendapatan RM ${formatRM(-sisa)}. Semak kategori "${esc(Object.keys(catSpent).sort((a,b)=>catSpent[b]-catSpent[a])[0] || '')}" dahulu.`;
+        else if (projBaki !== null && projBaki < 0) cadang = 'Pada kadar semasa, baki akan habis sebelum hujung bulan. Kurangkan belanja harian atau tangguh belian tidak mendesak.';
+        else if (lebih.length) cadang = `Kurangkan "${esc(lebih[0].k)}" ke sekitar ${lebih[0].had}% pendapatan (kini ${f0(lebih[0].p)}%).`;
+        else if (kadarSimpan < 20) cadang = `Kadar simpanan ${f0(kadarSimpan)}%. Cuba asingkan RM ${formatRM(Math.max(pend * 0.2 - simpan, 0))} lagi ke misi/percutian untuk capai 20%.`;
+        else if (bulanDana !== null && bulanDana < 3) cadang = 'Nisbah baik. Seterusnya, bina dana kecemasan sehingga 3 bulan belanja.';
+        else cadang = 'Nisbah dan simpanan anda baik. Kekalkan, dan pertimbang naikkan sasaran simpanan.';
+        h += `<div style="margin-top:12px;padding:10px;border-radius:10px;background:#1e293b;border:1px solid #334155;font-size:.8rem;color:#fde68a">💡 <b>Cadangan:</b> ${cadang}</div>`;
+        return h;
     }
 
 </script>
