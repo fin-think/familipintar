@@ -2571,6 +2571,8 @@ window.jalankanFaraid = () => {
     
     docsData.forEach(d => {
         let dRel = (d.relationship || '').toLowerCase();
+        // Jantina yang belum diisi diteka daripada hubungan (abang/kakak)
+        if (!d.gender) d = { ...d, gender: /abang/.test(dRel) ? 'L' : (/kakak/.test(dRel) ? 'P' : d.gender) };
         
         if (d.id === targetId) {
             // Mangsa / Si Mati yang dipilih dijadikan Induk
@@ -2599,6 +2601,7 @@ window.jalankanFaraid = () => {
                 if (dRel === 'isteri' || dRel === 'suami') newRel = 'Anak'; // Pasangan bos adalah Anak kepada mertua
                 else if (targetRel === 'bapa mertua' && dRel === 'ibu mertua') newRel = 'Isteri';
                 else if (targetRel === 'ibu mertua' && dRel === 'bapa mertua') newRel = 'Suami';
+                else if (/(abang|kakak|adik)\s*pasangan$/.test(dRel.trim())) newRel = 'Anak'; // adik-beradik pasangan juga anak kepada mertua
             }
             
             // Jika hubungan baru berjaya dikenal pasti, masukkan ke senarai
@@ -2621,6 +2624,8 @@ window.kiraFaraidAuto = (docs) => {
     let al = 0, ap = 0;
     let adikLelaki = 0, adikPerempuan = 0; // Tambahan untuk Waris Kedua
     let jantinaInduk = 'L'; // Asumsi Default Lelaki
+    const tidakDikira = [];  // waris yang tidak dikira beserta sebab, dipaparkan kepada pengguna
+    window.__faraidTakDikira = tidakDikira;
 
     // 1. Imbas seluruh senarai keluarga dari database
    // 1. Imbas seluruh senarai keluarga dari database
@@ -2631,13 +2636,16 @@ window.kiraFaraidAuto = (docs) => {
             return; // Berhenti di sini untuk orang ini, teruskan ke orang seterusnya
         }
         
-       // B: HALANG WARIS MENINGGAL DUNIA (Tapisan Berganda)
-        if (d.status === 'meninggal' || !d.dob || d.dob.trim() === '') {
+       // B: HALANG WARIS MENINGGAL DUNIA. Tarikh lahir tidak diwajibkan (ramai ahli hidup belum diisi tarikh lahir)
+        let rel = (d.relationship || '').toLowerCase();
+        const waris = (/^(anak|abang|kakak|adik|adik-beradik)/.test(rel) || rel.includes('adik')) && !/pasangan/.test(rel) && !rel.includes('mertua');
+        if (d.status === 'meninggal') {
+            if (waris) tidakDikira.push(`${d.name} (meninggal dunia)`);
             return; // Berhenti di sini, dia takkan dikira dalam isteriCount, bapa, dll
         }
 
-        let rel = (d.relationship || '').toLowerCase();
-        let gen = d.gender;
+        let gen = d.gender || (rel.includes('abang') ? 'L' : (rel.includes('kakak') ? 'P' : undefined));
+        if (waris && gen !== 'L' && gen !== 'P' && !(rel.includes('mertua') || /(abang|kakak|adik) pasangan$/.test(rel))) tidakDikira.push(`${d.name} (jantina belum ditetapkan)`);
         if (rel.includes('mertua') || /(abang|kakak|adik) pasangan$/.test(rel)) return; // belah pasangan bukan waris
 
         if (rel === 'isteri') isteriCount++;
@@ -2787,6 +2795,8 @@ window.renderFaraidHtml = (results) => {
         </div>`;
     });
     html += `</div>`;
+    const tak = window.__faraidTakDikira || [];
+    if (tak.length) html += `<div style="margin-top:10px;font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;line-height:1.5;"><b>Tidak dikira:</b> ${tak.map(t => String(t).replace(/[<>&]/g, '')).join('; ')}.<br>Kemas kini status/jantina melalui butang Edit supaya dikira.</div>`;
     box.innerHTML = html;
 };
 
