@@ -1732,7 +1732,8 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
         {
             const adikSet = new Set(kPusat.diri.linked_adik || []);
             const sudahAda = new Set([saya, indukUid, ...akaun.map(a => a.uid)]);
-            for (const u of (sebagai ? [] : (kPusat.diri.linked_uids || []))) {
+            // Paparan baca sahaja waris: hanya adik-beradik (linked_adik) pemilik dimuatkan, supaya sama seperti 'Keluarga Besar: Belah Saya' pemilik itu
+            for (const u of (sebagai ? (kPusat.diri.linked_adik || []) : (kPusat.diri.linked_uids || []))) {
                 if (sudahAda.has(u)) continue;
                 sudahAda.add(u);
                 const nodLuar = await ambil(u);
@@ -2242,7 +2243,8 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
         }
 
         // Waris cantuman yang BUKAN adik-beradik: pokok berasingan
-        if (mod === 'saya' || mod === 'semua') {
+        // Dimatikan: waris berpaut (Cari Waris) hanya disenaraikan di bahagian "Waris Berpaut", tidak dilukis dalam pokok ini.
+        if (false && (mod === 'saya' || mod === 'semua')) {
             cantumLain.forEach(c => {
                 if (sembunyi.includes(c.uid)) { hiddenList.push({ uid: c.uid, nama: c.k.diri.name }); return; }
                 const lv = [c.k.ibuBapa, c.k.datukNenek, c.k.moyang, c.k.buyut, c.k.cakawari, c.k.cilawagi];
