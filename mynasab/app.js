@@ -3708,10 +3708,17 @@ async function kemasIndeksCarian() {
     const nasab = rantaiBin.length ? [peribadi(akar.name), ...rantaiBin.map((n, i) => i === rantaiBin.length - 1 ? n : peribadi(n))].join(' ' + sambung + ' ').slice(0, 300) : '';
     const kata = new Set(tokenNama(akar.name));
     rantai.forEach(r => tokenNama(r.n).forEach(t => kata.add(t)));
+    // Semua ahli lain dalam pokok (abang, kakak, adik, anak, pasangan...) turut boleh dicari; hasil papar akaun pemilik
+    const ahli = [];
+    nod.forEach(n => {
+        if (n.is_root || !n.name) return;
+        tokenNama(n.name).forEach(t => kata.add(t));
+        if (ahli.length < 80) ahli.push({ n: String(n.name).trim().slice(0, 70), h: String(n.relationship || '').trim().slice(0, 30) });
+    });
     const th = akar.dob ? parseInt(String(akar.dob).slice(0, 4), 10) : null;
     await setDoc(doc(db, "mynasab_carian", uid), {
         uid, nama: String(akar.name || ud.name || '').trim().slice(0, 80),
-        kata: [...kata].slice(0, 60), rantai: rantai.slice(0, 20), nasab,
+        kata: [...kata].slice(0, 250), rantai: rantai.slice(0, 20), nasab, ahli,
         profil: profilCarian(akar, nod),
         negeri: ud.negeri || akar.state || '', daerah: ud.bandar || akar.city || '',
         tahun: Number.isFinite(th) ? th : null, kemas: Date.now()
@@ -3782,14 +3789,15 @@ window.ujiCarianNasab = async () => {
             if (!token.every(t => kata.has(t))) return;
             if (negeri && x.negeri !== negeri) return;
             if (bandar && !String(x.daerah || '').toLowerCase().includes(bandar)) return;
+            const dijumpai = (x.ahli || []).filter(r => { const tk = new Set(tokenNama(r.n)); return token.every(t => tk.has(t)); }).slice(0, 3);
             const padan = (x.rantai || []).filter(r => { const tk = new Set(tokenNama(r.n)); return token.some(t => tk.has(t)); });
-            baris.push({ x, padan, sendiri: token.every(t => tokenNama(x.nama).includes(t)) });
+            baris.push({ x, padan, dijumpai, sendiri: token.every(t => tokenNama(x.nama).includes(t)) });
         });
         if (!baris.length) {
             hasil.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px; font-weight:bold;">Tiada waris ditemui. Hanya pengguna yang menghidupkan "Boleh dicari" akan muncul.</p>';
             return;
         }
-        hasil.innerHTML = baris.slice(0, 30).map(({ x, padan, sendiri }) => {
+        hasil.innerHTML = baris.slice(0, 30).map(({ x, padan, dijumpai, sendiri }) => {
             const lokasi = [x.daerah, x.negeri].filter(Boolean).join(', ') || 'Lokasi tidak dinyatakan';
             const hiaskan = (t) => { const tk = new Set(token); return esc(t).split(' ').map(w => tk.has(normNama(w)) ? `<b style="color:#047857">${w}</b>` : w).join(' '); };
             const sebabPadan = x.nasab ? `<span style="color:#334155">${hiaskan(x.nasab)}</span>` : padan.length ? padan.slice(0, 2).map(r => `${esc(r.h)}: ${esc(r.n)}`).join(' &bull; ') : (sendiri ? 'Nama sendiri sepadan' : '');
@@ -3799,6 +3807,7 @@ window.ujiCarianNasab = async () => {
                 <div style="flex:1; min-width:180px;">
                     <h4 style="margin:0 0 4px 0; color:#1e293b; font-size:16px;">${esc(x.nama)}${x.tahun ? ` <small style="color:#94a3b8; font-weight:normal;">(${esc(x.tahun)})</small>` : ''}</h4>
                     <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> ${esc(lokasi)}</small>
+                    ${dijumpai.length ? `<div style="margin-top:5px; font-size:13px; color:#7c3aed;"><i class="fa-solid fa-user-check"></i> Dijumpai dalam keluarga ini: ${dijumpai.map(r => `<b>${esc(r.n)}</b>${r.h ? ' (' + esc(r.h) + ')' : ''}`).join(', ')}</div>` : ''}
                     ${x.profil ? `<div style="margin:8px 0 4px; font-size:12px; color:#064e3b; background:#ecfdf5; padding:10px 12px; border-radius:8px; border:1px solid #a7f3d0; line-height:1.7;">
                         <div><strong style="color:#047857;">1. Nasab Bapa:</strong> ${hiaskan(x.profil.nb)}</div>
                         <div><strong style="color:#047857;">2. Nasab Ibu:</strong> ${hiaskan(x.profil.ni)}</div>
