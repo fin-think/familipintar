@@ -395,6 +395,7 @@
         <div class="dash-balance">
           <div class="dash-label">Baki Bersih Semasa</div>
           <div class="dash-val" id="dash-net">RM 0.00</div>
+          <div id="dash-bawa" style="font-size:0.75rem; color:#94a3b8; font-weight:700; margin-top:2px;"></div>
           
           <div class="balance-split">
              <div>
@@ -1588,6 +1589,8 @@
             
             let arraySemasa = [];
             let arrayLepas = [];
+            // Baki bawa dari bulan-bulan sebelumnya (kumulatif semua rekod sebelum bulan dipilih)
+            let bawaTunai = 0, bawaBank = 0, adaBakiPermulaan = false;
             
             const [yStr, mStr] = filterVal.split('-');
             let mPrev = parseInt(mStr) - 1;
@@ -1601,6 +1604,10 @@
                 if (data.date && data.date.startsWith(filterVal)) {
                     listSemasa.push({ id: d.id, ...data });
                     arraySemasa.push(data);
+                    if (data.type !== 'outflow' && data.category === 'Baki Permulaan') adaBakiPermulaan = true;
+                } else if (data.date && data.date < filterVal) {
+                    const nilai = (data.type === 'outflow' ? -1 : 1) * (Number(data.amount) || 0);
+                    if (data.txnAccount === 'Tunai') bawaTunai += nilai; else bawaBank += nilai;
                 }
                 if (data.date && data.date.startsWith(prevMonthStr)) {
                     arrayLepas.push(data);
@@ -1653,9 +1660,15 @@
             }
             document.getElementById('senarai-transaksi').innerHTML = htmlTxn;
 
-            const netBalance = totalIn - totalOut;
-            const bakiTunai = tunaiIn - tunaiOut;
-            const bakiBank = bankIn - bankOut;
+            // Jika pengguna sudah merekod "Baki Permulaan" bulan ini, jangan bawa lagi (elak kira dua kali)
+            const bawaJumlah = adaBakiPermulaan ? 0 : (bawaTunai + bawaBank);
+            const netBalance = totalIn - totalOut + bawaJumlah;
+            const bakiTunai = tunaiIn - tunaiOut + (adaBakiPermulaan ? 0 : bawaTunai);
+            const bakiBank = bankIn - bankOut + (adaBakiPermulaan ? 0 : bawaBank);
+            const elBawa = document.getElementById('dash-bawa');
+            if (elBawa) elBawa.innerText = adaBakiPermulaan
+                ? 'Baki Permulaan bulan ini digunakan (baki bulan lepas tidak dibawa lagi)'
+                : (bawaJumlah !== 0 ? `Termasuk baki bawaan bulan lepas: ${bawaJumlah < 0 ? '- ' : ''}RM ${formatRM(Math.abs(bawaJumlah))}` : '');
 
             document.getElementById('dash-in').innerText = `RM ${formatRM(totalIn)}`;
             document.getElementById('dash-out').innerText = `RM ${formatRM(totalOut)}`;
