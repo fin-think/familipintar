@@ -96,6 +96,11 @@ onAuthStateChanged(auth, async (user) => {
                 window.__sedangTuntutKredit = false;
             }
             document.getElementById('creditBalance').innerText = dataPengguna.credit_balance;
+            // Akaun daripada produk lain mungkin tiada nama: guna nama paparan / emel, jangan tulis "undefined"
+            if (!dataPengguna.name || String(dataPengguna.name).trim() === 'undefined') {
+                dataPengguna.name = user.displayName || (user.email ? user.email.split('@')[0] : 'Keluarga Saya');
+                updateDoc(refPengguna, { name: dataPengguna.name }).catch(() => {});
+            }
             document.getElementById('treeNameDisplay').innerText = dataPengguna.name;
             semakPokokTerkini();
             bawaDataLama();
@@ -630,7 +635,8 @@ window.muatTurunSalasilah = async () => {
         
         // AUTO-PEMULIHAN: Jika jadual kosong
         if (querySnapshot.empty) {
-            const namaPenuh = document.getElementById('treeNameDisplay').innerText || "Ketua Keluarga";
+            let namaPenuh = (document.getElementById('treeNameDisplay').innerText || '').trim();
+            if (!namaPenuh || namaPenuh === 'undefined') namaPenuh = penggunaSemasa.displayName || (penggunaSemasa.email ? penggunaSemasa.email.split('@')[0] : 'Ketua Keluarga');
             await setDoc(doc(db, "mynasab_nodes", "root_" + penggunaSemasa.uid), {
                 owner_uid: penggunaSemasa.uid,
                 name: namaPenuh,
