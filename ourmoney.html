@@ -225,6 +225,25 @@
   .misi-btn-besar { display: block; width: 100%; font-size: 0.85rem; font-weight: 800; padding: 10px; border-radius: 10px; cursor: pointer; border: none; background: #7C3AED; color: #fff; margin-top: 4px; }
   .misi-btn-besar.sekunder { background: #fff; color: #6D28D9; border: 1px solid #C4B5FD; }
   .misi-kosong { text-align: center; font-size: 0.85rem; color: #5B21B6; background: #fff; border-radius: 10px; padding: 14px; line-height: 1.5; font-weight: 600; }
+  /* ===== TAB DASHBOARD ===== */
+  .om-tabs { display: flex; gap: 6px; margin: 14px 0 10px; background: #f1f5f9; padding: 4px; border-radius: 12px; }
+  .om-tabs button { flex: 1; border: 0; background: transparent; padding: 9px 6px; border-radius: 9px; font-weight: 800; font-size: 0.78rem; color: #64748b; cursor: pointer; position: relative; }
+  .om-tabs button.on { background: #fff; color: #0f172a; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .om-tabs button .titik { display: none; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; position: absolute; top: 6px; right: 10px; }
+  .om-tabs button .titik.ada { display: block; }
+  .om-pane { display: none; }
+  .om-pane.on { display: block; }
+  .ringkas-baris { display: flex; align-items: center; gap: 8px; width: 100%; background: #fff; border: 1px solid #DDD6FE; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; text-align: left; font: inherit; }
+  .ringkas-baris .nm { flex: 1; font-weight: 800; font-size: 0.82rem; color: #1e293b; line-height: 1.25; }
+  .ringkas-baris .mini { width: 52px; height: 6px; background: #EDE9FE; border-radius: 9px; overflow: hidden; flex-shrink: 0; }
+  .ringkas-baris .mini > div { height: 100%; background: #8B5CF6; }
+  .ringkas-baris .pc { font-size: 0.7rem; font-weight: 800; color: #6D28D9; min-width: 32px; text-align: right; }
+  .ringkas-baris .caret { font-size: 0.7rem; color: #94a3b8; transition: transform .15s; }
+  .ringkas-baris.buka .caret { transform: rotate(180deg); }
+  .ringkas-baris.hijau { border-color: #A7F3D0; }
+  .ringkas-baris.hijau .mini { background: #D1FAE5; } .ringkas-baris.hijau .mini > div { background: #10B981; } .ringkas-baris.hijau .pc { color: #047857; }
+  .butiran-lipat { display: none; margin: -2px 0 10px; }
+  .butiran-lipat.buka { display: block; }
   /* ===== MISI AKHIRAT: INFAQ HARIAN ===== */
   .infaq-card { background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border: 2px solid #A7F3D0; border-radius: 12px; padding: 16px; margin-top: 20px; }
   .infaq-card h3 { font-weight: 800; color: #047857; font-size: 0.95rem; text-transform: uppercase; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
@@ -425,6 +444,13 @@
           </div>
         </div>
 
+        <!-- Tab: Ringkasan / Misi / Analisis -->
+        <div class="om-tabs" id="om-tabs">
+          <button class="on" data-tab="ringkasan" onclick="tukarTabOM('ringkasan')">📌 Ringkasan</button>
+          <button data-tab="misi" onclick="tukarTabOM('misi')">🎯 Misi<span class="titik" id="titik-misi"></span></button>
+          <button data-tab="analisis" onclick="tukarTabOM('analisis')">📊 Analisis</button>
+        </div>
+        <div class="om-pane on" id="pane-ringkasan">
         <!-- Kad Integrasi myTADBIR (Sentiasa Papar) -->
         <div class="tadbir-card" id="mytadbir-target" style="border-left: 4px solid #3b82f6;">
             <h3 style="margin-bottom: 12px; color: #1e293b;">🏦 Ringkasan myTADBIR</h3>
@@ -454,17 +480,19 @@
             <a href="mytadbir.html" class="btn-tadbir" id="tadbir-btn-action" style="display: block; text-align: center; margin-top: 12px; text-decoration: none;">Urus Profil myTADBIR ➔</a>
         </div>
 
+        </div>
+        <div class="om-pane" id="pane-misi">
         <!-- Kad Misi Kewangan (sasaran daripada myTADBIR) -->
         <div class="misi-card" id="misi-card">
             <h3>🎯 Misi Kewangan</h3>
-            <div class="misi-sub">Sasaran daripada myTADBIR dan JomBercuti. Untuk menyimpan, rekod di <b>Rekod Transaksi Harian → Duit Keluar</b> dan pilih misi atau percutian pada Kategori.</div>
+            <div class="misi-sub">Sasaran daripada myTADBIR dan JomBercuti. Simpan melalui <b>Duit Keluar</b> → pilih misi pada Kategori.</div>
             <div id="misi-isi"><div class="misi-kosong">Memuatkan misi...</div></div>
         </div>
 
         <!-- Kad Misi Akhirat: Infaq Harian -->
         <div class="infaq-card" id="infaq-card">
             <h3>🤲 Misi Akhirat: Infaq Harian</h3>
-            <div class="infaq-sub">Berinfaq sedikit setiap hari, sepanjang tahun. Nilai harian dicadangkan daripada zakat harta dalam myTADBIR dibahagi 365 hari.</div>
+            <div class="infaq-sub">Berinfaq sedikit setiap hari sepanjang tahun (zakat myTADBIR ÷ 365).</div>
             <div id="infaq-isi"><div class="misi-kosong">Memuatkan...</div></div>
         </div>
 
@@ -478,6 +506,8 @@
           </div>
         </div>
 
+        </div>
+        <div class="om-pane" id="pane-analisis">
         <!-- Analisis Kesihatan Kewangan -->
         <div class="health-card" id="health-card-section">
           <div class="health-title">🩺 Kesihatan Kewangan (Analisis Penutup Bulan)</div>
@@ -548,6 +578,7 @@
 
                 </div>
             </div>
+        </div>
         </div>
 
       </div>
@@ -1009,6 +1040,18 @@
     }
 
 
+    // ===== TAB DASHBOARD & TITIK NOTIFIKASI =====
+    let misiBuka = new Set(), infaqBuka = false, misiPerluTindakan = false, infaqPerluTindakan = false;
+    window.tukarTabOM = (nama) => {
+        document.querySelectorAll('#om-tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === nama));
+        document.querySelectorAll('.om-pane').forEach(p => p.classList.toggle('on', p.id === 'pane-' + nama));
+        try { localStorage.setItem('om_tab', nama); } catch (e) {}
+    };
+    const kemaskiniTitikMisi = () => { const t = document.getElementById('titik-misi'); if (t) t.classList.toggle('ada', misiPerluTindakan || infaqPerluTindakan); };
+    window.togolMisi = (id) => { if (misiBuka.has(id)) misiBuka.delete(id); else misiBuka.add(id); renderMisi(); };
+    window.togolInfaq = () => { infaqBuka = !infaqBuka; renderInfaq(); };
+    try { const t = localStorage.getItem('om_tab'); if (t && ['ringkasan', 'misi', 'analisis'].includes(t)) window.tukarTabOM(t); } catch (e) {}
+
     // ===== MISI AKHIRAT: INFAQ HARIAN =====
     // Nilai harian dicadangkan = zakat harta (myTADBIR) / 365. Infaq sunat sahaja, tidak menggantikan zakat wajib.
     // Disimpan dalam ourmoney_goals/{uid}_infaq (jenis 'infaq_harian'); kemajuan dikira daripada rekod bertanda infaq:true.
@@ -1042,6 +1085,7 @@
         const nota = '<div class="infaq-nota">Ini infaq sunat dan <b>tidak menggantikan zakat wajib</b>. Zakat wajib tetap ditunaikan kepada asnaf apabila cukup haul.</div>';
 
         if (!infaqDoc) {
+            infaqPerluTindakan = true; kemaskiniTitikMisi();
             wrap.innerHTML = `<div class="infaq-box">
                 <div style="font-size:.8rem;font-weight:700;color:#065F46;margin-bottom:8px;line-height:1.5">${cadang
                     ? `Zakat harta anda dalam myTADBIR: <b>RM ${formatRM(infaqZakat)}</b>. Dibahagi 365 hari = <b>RM ${formatRM(infaqZakat / 365)}</b> sehari.`
@@ -1075,6 +1119,7 @@
         const hariKurang = Math.max(0, 365 - hariN);
 
         if (tamat) {
+            infaqPerluTindakan = true; kemaskiniTitikMisi();
             wrap.innerHTML = `<div class="infaq-box">
                 <div style="font-weight:800;color:#047857;margin-bottom:6px">🎉 Misi infaq tahun ke-${d.tahun_ke || 1} tamat</div>
                 <div class="infaq-grid"><div><span>Terkumpul</span><b>RM ${formatRM(jumlah)}</b></div><div><span>Sasaran</span><b>RM ${formatRM(sasaranTahun)}</b></div><div><span>Pencapaian</span><b>${(jumlah / sasaranTahun * 100 || 0).toFixed(0)}%</b></div></div>
@@ -1085,9 +1130,12 @@
             return;
         }
 
+        infaqPerluTindakan = false; kemaskiniTitikMisi();
         const selesaiHariIni = hariIniJumlah >= harian;
         const status = tertinggal <= 0.005 ? `<span style="color:#047857">Anda setanding sasaran 👍</span>` : `<span style="color:#b45309">Tertinggal RM ${formatRM(tertinggal)} berbanding sasaran setakat ini</span>`;
-        wrap.innerHTML = `<div class="infaq-box">
+        const ringkasInfaq = `<button class="ringkas-baris hijau ${infaqBuka ? 'buka' : ''}" onclick="togolInfaq()">
+            <span class="nm">Infaq harian · hari ke-${hariN}${selesaiHariIni ? ' ✅' : ''}</span><div class="mini"><div style="width:${pct}%"></div></div><span class="pc">${pct > 0 && pct < 1 ? "<1" : pct.toFixed(0)}%</span><span class="caret">▾</span></button>`;
+        wrap.innerHTML = ringkasInfaq + `<div class="butiran-lipat ${infaqBuka ? 'buka' : ''}"><div class="infaq-box">
             <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:800;color:#065F46"><span>Tahun ke-${d.tahun_ke || 1} · hari ke-${hariN}/365</span><span>RM ${formatRM(harian)} sehari</span></div>
             <div class="infaq-bar"><div style="width:${pct}%"></div></div>
             <div class="infaq-grid">
@@ -1103,7 +1151,7 @@
                 <button onclick="ubahInfaq()">Ubah jumlah</button>
             </div>
             <div style="font-size:.68rem;color:#64748b;font-weight:600;margin-top:8px">Tamat ${noKeTarikh(akhirNo).split('-').reverse().join('/')} (${hariKurang} hari lagi). Rekod semua infaq di Duit Keluar → kategori "Infaq / Sedekah".</div>
-            ${nota}</div>`;
+            ${nota}</div></div>`;
     }
 
     const simpanInfaq = async (data) => {
@@ -1160,6 +1208,7 @@
 
         if (senarai.length === 0) {
             misiBulananJumlah = 0; misiSenarai = []; kemaskiniSenaraiKategori(); semakNotifMisi();
+            misiPerluTindakan = false; kemaskiniTitikMisi();
             wrap.innerHTML = `<div class="misi-kosong">Belum ada misi.<br>Isi dan simpan profil di <b>myTADBIR</b> untuk menjana sasaran dana kecemasan, pendidikan anak dan kesihatan. Rancang percutian di <b>JomBercuti</b> untuk sasaran percutian.<br><a href="mytadbir.html" class="btn-tadbir" style="margin-top:10px; background:#7C3AED; color:#fff; border-color:#7C3AED;">Buka myTADBIR ➔</a></div>`;
             return;
         }
@@ -1194,6 +1243,7 @@
         const jumlahPerlu = senarai.reduce((t, it) => t + (it.k && it.k.siap ? 0 : it.perlu), 0);
         misiBulananJumlah = senarai.reduce((t, it) => t + (it.act && !it.trip && it.k && !it.k.siap ? it.k.cadangan : 0), 0); // percutian sudah dikira dalam targetPercutian
         const adaBelumMula = senarai.some(it => !it.act && it.pg);
+        misiPerluTindakan = adaBelumMula; kemaskiniTitikMisi();
         const perluKemaskini = senarai.some(it => !it.pg ? false : (!it.act ? false : Math.abs(it.pg.target_fv - it.act.target_fv) > Math.max(1, it.act.target_fv * 0.02)))
             || senarai.some(it => it.act && !it.pg && !it.trip) || (senarai.some(it => it.act && !it.trip) && adaBelumMula);
 
@@ -1233,13 +1283,20 @@
                 bulan = `Perlu <b>${fmtRM(it.perlu)}</b>/bulan selama ${Math.round(it.pg.months)} bulan`;
                 btn = '';
             }
-            html += `<div class="misi-item">
+            const butiran = `<div class="misi-item">
                 <div class="misi-top"><span class="misi-nama">${esc(it.label)}</span><span>${pill}</span></div>
                 <div class="misi-bar"><div style="width:${bar}%"></div></div>
                 <div class="misi-meta">${meta}</div>
                 <div class="misi-bulan">${bulan}</div>
                 ${btn}
             </div>`;
+            if (a) {
+                // Misi yang sudah dimulakan: satu baris ringkas, tekan untuk lihat butiran
+                const bk = misiBuka.has(it.id);
+                html += `<button class="ringkas-baris ${bk ? 'buka' : ''}" data-id="${esc(it.id)}" onclick="togolMisi(this.dataset.id)">
+                    <span class="nm">${esc(it.label)}</span><div class="mini"><div style="width:${Math.min(100, bar)}%"></div></div><span class="pc">${bar.toFixed(0)}%</span><span class="caret">▾</span></button>
+                    <div class="butiran-lipat ${bk ? 'buka' : ''}">${butiran}</div>`;
+            } else html += butiran;
         });
 
         if (adaBelumMula && !senarai.some(it => it.act && !it.trip)) {
