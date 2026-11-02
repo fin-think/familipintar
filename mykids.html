@@ -218,9 +218,17 @@ onAuthStateChanged(auth, async user => {
 
   const s = await getDocs(query(collection(db,"mynasab_nodes"), where("owner_uid","==",user.uid)));
   S.uid = user.uid;
-  S.anak = s.docs.map(d=>({...d.data(),id:d.id})).filter(n=>n.relationship==='Anak' && n.status!=='meninggal')
+  const semuaAnak = s.docs.map(d=>({...d.data(),id:d.id})).filter(n=>n.relationship==='Anak' && n.status!=='meninggal');
+  // Anak berumur 18 tahun ke atas tidak perlu pelan myKids: disembunyikan (data myNasab tidak diubah)
+  const HAD_UMUR = 18;
+  const dewasa = semuaAnak.filter(n => n.dob && !isNaN(new Date(n.dob)) && umurSebenar(n.dob) >= HAD_UMUR);
+  S.anak = semuaAnak.filter(n => !dewasa.includes(n))
     .sort((a,b)=>(a.dob||'9').localeCompare(b.dob||'9'));
   
+  if (!S.anak.length && dewasa.length) {
+      document.getElementById('auth').innerHTML = `Semua anak dalam <b>myNasab</b> berumur ${HAD_UMUR} tahun ke atas, jadi tiada pelan myKids dipaparkan.<br><a class="btn" href="${URL_MYNASAB}">Buka myNasab</a>`;
+      return;
+  }
   if (!S.anak.length) { 
       document.getElementById('auth').innerHTML = `Belum ada anak dalam <b>myNasab</b>.<br>Tambah anak dan tarikh lahir mereka dahulu.<br><a class="btn" href="${URL_MYNASAB}">Buka myNasab</a>`; 
       return; 
