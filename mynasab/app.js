@@ -657,7 +657,7 @@ window.muatTurunSalasilah = async () => {
             let rel = (data.relationship || '').toLowerCase();
             
             // Masukkan Pasangan, Ibubapa, dan Mertua ke dalam Dropdown
-            if(rel === 'isteri' || rel === 'suami' || rel === 'ayah' || rel === 'ibu' || rel.includes('mertua')) {
+            if(rel === 'isteri' || rel === 'suami' || rel === 'ayah' || rel === 'ibu' || /^(bapa|ayah|ibu|mak|abah)\s*mertua$/.test(rel.trim())) {  // belah pasangan: bapa/ibu mertua sahaja, tanpa datuk/leluhur
                 htmlPilihan += `<option value="${data.id}">${data.name} (${data.relationship})</option>`;
             }
             
@@ -725,6 +725,26 @@ else {
             if(tbody) tbody.appendChild(tr);
         });
         
+        // --- Akaun adik-beradik yang dijemput: adik-beradik sebenar ialah adik-beradik pengundang (induk) juga ---
+        try {
+            const akarF = window.dataAhliFaraid.find(n => n.is_root);
+            if (akarF && akarF.sibling_of && akarF.link_owner && akarF.link_owner !== penggunaSemasa.uid) {
+                const sO = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", akarF.link_owner)));
+                const nodO = sO.docs.map(d => ({ ...d.data(), id: d.id }));
+                const kunci = (t) => String(t || '').trim().toLowerCase();
+                const sudah = new Set(window.dataAhliFaraid.filter(n => /^(abang|kakak|adik|adik-beradik)$/i.test(n.relationship || '')).map(n => kunci(n.name)));
+                sudah.add(kunci(akarF.name));
+                const tambah = (n) => {
+                    const k = kunci(n.name);
+                    if (!k || sudah.has(k) || n.akaun_uid === penggunaSemasa.uid) return;
+                    sudah.add(k);
+                    window.dataAhliFaraid.push({ name: n.name, gender: n.gender, dob: n.dob, status: n.status, relationship: 'Adik-beradik', id: 'adik_' + n.id, tiruan: true });
+                };
+                nodO.filter(n => n.is_root).forEach(tambah);   // pengundang (induk) ialah adik-beradik saya
+                nodO.filter(n => /^(abang|kakak|adik|adik-beradik)$/i.test(n.relationship || '')).forEach(tambah);
+            }
+        } catch (e) { console.warn('Faraid: adik-beradik pengundang:', e.message); }
+
         // --- KEMAS KINI DROPDOWN & PANGGIL ENJIN FARAID ---
         const dropdownFaraid = document.getElementById('pilihanMatiFaraid');
         if(dropdownFaraid) {
