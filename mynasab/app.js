@@ -3666,12 +3666,28 @@ async function kemasIndeksCarian() {
         const lb = labelRantai(n.relationship);
         if (lb && n.name) rantai.push({ h: lb, n: String(n.name).trim().slice(0, 80) });
     });
+    // Rantai nasab sebelah bapa: nama sendiri bin ayah bin datuk bin moyang ...
+    const PANGKAT_N = { 'ayah': 1, 'bapa': 1, 'datuk': 2, 'moyang': 3, 'buyut': 4, 'cakawari': 5, 'cilawagi': 6 };
+    const rel = n => String(n.relationship || '').toLowerCase().trim();
+    const lelakiAtas = nod.filter(n => !n.is_root && n.name && PANGKAT_N[rel(n)] && n.gender !== 'P');
+    const rantaiBin = []; let semasa = akar.id, aras = 0;
+    while (aras < 6) {
+        aras++;
+        let c = lelakiAtas.find(n => n.ref_id === semasa && PANGKAT_N[rel(n)] === aras);
+        if (!c) c = lelakiAtas.filter(n => PANGKAT_N[rel(n)] === aras)[0];
+        if (!c) break;
+        rantaiBin.push(String(c.name).trim()); semasa = c.id;
+    }
+    const sambung = akar.gender === 'P' ? 'binti' : (akar.gender === 'L' ? 'bin' : 'bin/binti');
+    // Nama dalam pokok mungkin sudah ada "bin ..."; ambil nama peribadi sahaja supaya tidak berulang
+    const peribadi = (n) => String(n || '').split(/\s+(?:bin|binti|bte|b\.|bt\.)\s+/i)[0].trim();
+    const nasab = rantaiBin.length ? [peribadi(akar.name), ...rantaiBin.map((n, i) => i === rantaiBin.length - 1 ? n : peribadi(n))].join(' ' + sambung + ' ').slice(0, 300) : '';
     const kata = new Set(tokenNama(akar.name));
     rantai.forEach(r => tokenNama(r.n).forEach(t => kata.add(t)));
     const th = akar.dob ? parseInt(String(akar.dob).slice(0, 4), 10) : null;
     await setDoc(doc(db, "mynasab_carian", uid), {
         uid, nama: String(akar.name || ud.name || '').trim().slice(0, 80),
-        kata: [...kata].slice(0, 60), rantai: rantai.slice(0, 20),
+        kata: [...kata].slice(0, 60), rantai: rantai.slice(0, 20), nasab,
         negeri: ud.negeri || akar.state || '', daerah: ud.bandar || akar.city || '',
         tahun: Number.isFinite(th) ? th : null, kemas: Date.now()
     });
@@ -3750,18 +3766,19 @@ window.ujiCarianNasab = async () => {
         }
         hasil.innerHTML = baris.slice(0, 30).map(({ x, padan, sendiri }) => {
             const lokasi = [x.daerah, x.negeri].filter(Boolean).join(', ') || 'Lokasi tidak dinyatakan';
-            const sebabPadan = padan.length ? padan.slice(0, 2).map(r => `${esc(r.h)}: ${esc(r.n)}`).join(' &bull; ') : (sendiri ? 'Nama sendiri sepadan' : '');
+            const hiaskan = (t) => { const tk = new Set(token); return esc(t).split(' ').map(w => tk.has(normNama(w)) ? `<b style="color:#047857">${w}</b>` : w).join(' '); };
+            const sebabPadan = x.nasab ? `<span style="color:#334155">${hiaskan(x.nasab)}</span>` : padan.length ? padan.slice(0, 2).map(r => `${esc(r.h)}: ${esc(r.n)}`).join(' &bull; ') : (sendiri ? 'Nama sendiri sepadan' : '');
             const sudah = berpaut.has(x.uid);
             const n = esc(x.nama).replace(/'/g, "\\'");
             return `<div class="hasil-card">
                 <div style="flex:1; min-width:180px;">
                     <h4 style="margin:0 0 4px 0; color:#1e293b; font-size:16px;">${esc(x.nama)}${x.tahun ? ` <small style="color:#94a3b8; font-weight:normal;">(${esc(x.tahun)})</small>` : ''}</h4>
                     <small style="color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#f87171;"></i> ${esc(lokasi)}</small>
-                    ${sebabPadan ? `<div style="margin-top:4px; font-size:12px; color:#047857;"><i class="fa-solid fa-link"></i> Padanan: ${sebabPadan}</div>` : ''}
+                    ${sebabPadan ? `<div style="margin-top:4px; font-size:12px; color:#047857;"><i class="fa-solid fa-sitemap"></i> ${x.nasab ? 'Nasab' : 'Padanan'}: ${sebabPadan}</div>` : ''}
                 </div>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 ${sudah ? '<span style="background:#dcfce7; color:#166534; padding:8px 12px; border-radius:8px; font-weight:bold; font-size:13px;">✓ Berpaut</span>' : `
-                    <button onclick="bukaMesejNasab('${esc(x.uid)}', '${n}')" class="btn-sapa"><i class="fa-regular fa-paper-plane"></i> Sapa</button>
+                    <button onclick="bukaMesejNasab('${esc(x.uid)}', '${n}')" class="btn-sapa"><i class="fa-regular fa-paper-plane"></i> Mesej</button>
                     <button onclick="window.mohonPautanWaris('${esc(x.uid)}', '${n}')" class="btn-sapa" style="background:#dbeafe; color:#1d4ed8;"><i class="fa-solid fa-link"></i> Mohon Pautan</button>`}
                 </div>
             </div>`;
