@@ -565,6 +565,11 @@
     </select>
 </div>
 
+<div class="input-group hidden" id="groupDobDaftar">
+    <label>Tarikh Lahir Anda <span style="color:#dc2626">*</span></label>
+    <input type="date" id="inputDobDaftar">
+</div>
+
 <div class="input-group hidden" id="groupPDPA">
     <label style="display:flex; gap:8px; align-items:flex-start; font-size:12px; color:#576574; line-height:1.4;">
         <input type="checkbox" id="inputPDPA" style="width:auto; padding:0; margin-top:3px;">
@@ -703,7 +708,7 @@
             
             <div style="display: flex; gap: 10px;">
                 <div class="input-group" style="flex: 1;" id="tambahDobGroup">
-                    <label>Tarikh Lahir</label>
+                    <label>Tarikh Lahir <span style="color:#dc2626">*</span></label>
                     <input type="date" id="tambahDob">
                 </div>
                 <div class="input-group" style="flex: 1;">
@@ -808,7 +813,7 @@
             
             <div style="display: flex; gap: 10px;">
                 <div class="input-group" style="flex: 1;" id="editDobGroup">
-                    <label>Tarikh Lahir</label>
+                    <label>Tarikh Lahir <span style="color:#dc2626">*</span></label>
                     <input type="date" id="editAhliDob">
                 </div>
                 <div class="input-group" style="flex: 1;">
@@ -1120,6 +1125,7 @@ function tukarModAuth() {
     modPendaftaran = !modPendaftaran;
     document.getElementById('groupNama').classList.toggle('hidden', !modPendaftaran);
     document.getElementById('groupJantinaDaftar').classList.toggle('hidden', !modPendaftaran);
+    document.getElementById('groupDobDaftar').classList.toggle('hidden', !modPendaftaran);
     document.getElementById('modalTitle').innerText = modPendaftaran ? "Daftar Akaun" : "Log Masuk";
     document.getElementById('btnSubmit').innerText = modPendaftaran ? "Daftar Sekarang" : "Log Masuk";
     document.getElementById('toggleText').innerText = modPendaftaran ? "Sudah ada akaun?" : "Belum ada akaun?";
@@ -1147,7 +1153,9 @@ document.getElementById('authForm').addEventListener('submit', function (e) {
         const jantina = document.getElementById('inputJantina').value;
         if (!jantina) { alert("Sila pilih jantina anda."); return; }
         if (!document.getElementById('inputPDPA').checked) { alert("Sila setuju dengan syarat PDPA untuk mendaftar."); return; }
-        if (window.daftarPengguna) window.daftarPengguna(emel, laluan, nama, jantina);
+        const dobDaftar = document.getElementById('inputDobDaftar').value;
+        { const r = window.semakDobWajib(dobDaftar, false); if (r) { alert(r); return; } }
+        if (window.daftarPengguna) window.daftarPengguna(emel, laluan, nama, jantina, dobDaftar);
     } else {
         if (window.logMasuk) window.logMasuk(emel, laluan);
     }
@@ -1174,6 +1182,14 @@ const peta = {
         });
         
 // Status Hidup / Meninggal dunia
+// Tarikh lahir wajib bagi yang masih hidup (tidak perlu jika meninggal dunia). Pulangkan mesej ralat atau ''.
+window.semakDobWajib = function (dob, mati) {
+    if (mati) return '';
+    if (!dob) return 'Tarikh lahir wajib diisi (tidak perlu jika ahli sudah meninggal dunia). Ia diperlukan untuk umur, pelan anak dan kiraan faraid.';
+    const d = new Date(dob);
+    if (isNaN(d) || d.getFullYear() < 1850 || d > new Date()) return 'Tarikh lahir tidak sah. Sila semak semula.';
+    return '';
+};
 window.tukarStatus = function (awalan) {
     const radio = document.querySelector('input[name="' + awalan + 'Status"]:checked');
     const mati = radio && radio.value === 'meninggal';
@@ -1212,6 +1228,7 @@ formTambah.onsubmit = function (e) {
 
     
     const dob = document.getElementById('tambahDob').value;
+    { const rs = document.querySelector('input[name="tambahStatus"]:checked'); const r = window.semakDobWajib(dob, rs && rs.value === 'meninggal'); if (r) { alert(r); return; } }
     const telefon = document.getElementById('tambahTelefon').value;
     const email = document.getElementById('tambahEmail') ? document.getElementById('tambahEmail').value : '';
     const bandar = document.getElementById('tambahBandar').value;

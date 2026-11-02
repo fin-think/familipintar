@@ -534,7 +534,7 @@ window.segerakPokokAnakSaudara = async () => {
     } catch (e) { console.error(e); alert("Gagal mengemas kini pokok: " + e.message); }
 };
 
-window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
+window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDaftar) => {
     if (kodJemput && !jemputan) {
         alert("Pautan jemputan tidak sah atau belum siap dimuatkan. Cuba lagi sebentar.");
         return;
@@ -566,6 +566,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina) => {
             name: namaKeluarga,
             relationship: "Diri Sendiri (Induk)",
             gender: jantina,
+            ...(dobDaftar ? { dob: dobDaftar } : {}),
             is_root: true,
             ...(jem && jem.jenis !== 'anak_saudara' ? { sibling_of: jem.sasaran_id, link_owner: jem.owner_uid } : {}),
             ...(jem && jem.jenis === 'anak_saudara' ? { anak_saudara_dari: { uid: jem.owner_uid, nod: jem.sasaran_id, anak_nod: jem.anak_nod || '' } } : {}),
@@ -1062,6 +1063,8 @@ if (formEdit) {
         const groupAkaun = document.getElementById('groupEditAkaun');
         const failGambarEdit = document.getElementById('editAhliGambar').files[0];
         const radioTerpilih = document.querySelector('input[name="editStatus"]:checked');
+
+        { const r = window.semakDobWajib(document.getElementById('editAhliDob').value, radioTerpilih && radioTerpilih.value === 'meninggal'); if (r) { alert(r); return; } }
 
         try {
             let dataUpdate = {
