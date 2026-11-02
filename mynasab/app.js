@@ -1157,13 +1157,14 @@ window.jarakkanKotak = (akar) => {
                 const jurang = (B.r.left - A.r.right) / skala;
                 if (jurang >= 12) continue;                                  // cukup jarak
                 const perlu = Math.ceil(12 - jurang);
-                // cari pembalut pasangan terdekat yang memuatkan kedua-duanya
-                let c = A.k.parentElement;
-                while (c && !(c.classList && c.classList.contains('couple-wrapper') && c.contains(B.k))) c = c.parentElement;
-                if (!c) continue;
-                const anak = [...c.children].filter(ch => ch.classList.contains('pillar'));
-                const pL = anak.find(ch => ch.contains(A.k)), pR = anak.find(ch => ch.contains(B.k));
-                if (!pL || !pR || pL === pR) continue;
+                // cari nenek moyang sepunya terendah; tolak dua cabang (yang memuatkan A dan B) berjauhan
+                let lca = A.k.parentElement;
+                while (lca && !lca.contains(B.k)) lca = lca.parentElement;
+                if (!lca || lca === akar.parentElement) continue;
+                let pL = A.k, pR = B.k;
+                while (pL.parentElement && pL.parentElement !== lca) pL = pL.parentElement;
+                while (pR.parentElement && pR.parentElement !== lca) pR = pR.parentElement;
+                if (!pL || !pR || pL === pR || pL.parentElement !== lca || pR.parentElement !== lca) continue;
                 const tambah = Math.ceil(perlu / 2) + 4;
                 pL.style.paddingRight = ((parseFloat(getComputedStyle(pL).paddingRight) || 0) + tambah) + 'px';
                 pR.style.paddingLeft = ((parseFloat(getComputedStyle(pR).paddingLeft) || 0) + tambah) + 'px';
@@ -1403,6 +1404,7 @@ window.bukaPreview = async () => {
         document.getElementById('ruangAutoLayout').innerHTML = htmlLayout;
         window.jarakkanKotak(document.getElementById('ruangAutoLayout'));
         window.autoMuat();
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { setTimeout(() => { const r = document.getElementById('ruangAutoLayout'); if (r && r.querySelector('.mh-card')) { window.jarakkanKotak(r); window.autoMuat(); } }, 400); });
 
     } catch (error) {
         document.getElementById('ruangAutoLayout').innerHTML = `<p style="color:red;">Gagal menjana visual: ${esc(error.message)}</p>`;
@@ -2529,6 +2531,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
         rapikanNasab();
         rapikanSpine();
         window.autoMuat();
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { setTimeout(() => { const r = document.getElementById('ruangAutoLayout'); if (r && r.querySelector('.mh-card')) { window.jarakkanKotak(r); window.autoMuat(); } }, 400); });
 
     } catch (error) {
         console.error(error);
