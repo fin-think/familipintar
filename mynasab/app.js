@@ -745,6 +745,47 @@ else {
             }
         } catch (e) { console.warn('Faraid: adik-beradik pengundang:', e.message); }
 
+        // --- Induk: adik-beradik yang mempunyai akaun sendiri (dijemput) juga waris. Pokok induk memaparkannya melalui pautan akaun ---
+        try {
+            const akarI = window.dataAhliFaraid.find(n => n.is_root);
+            if (akarI && !(akarI.sibling_of && akarI.link_owner && akarI.link_owner !== penggunaSemasa.uid)) {
+                const peribadi = (t) => String(t || '').toLowerCase().split(/\s+(?:bin|binti|bte|b\.|bt\.)\s+/)[0].trim();
+                const adaSudah = (uid, rootD, jenisRe) => window.dataAhliFaraid.some(n => (n.akaun_uid && n.akaun_uid === uid)
+                    || (jenisRe.test((n.relationship || '').toLowerCase()) && peribadi(n.name) === peribadi(rootD.name) && (!n.dob || !rootD.dob || n.dob === rootD.dob)));
+                const sudahUid = new Set();
+                const bacaRoot = async (uid) => {
+                    const r = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid), where("is_root", "==", true)));
+                    let d = null; r.forEach(x => { d = { ...x.data(), id: x.id }; }); return d;
+                };
+                const REAdik = /^(abang|kakak|adik|adik-beradik)$/, REPsg = /(abang|kakak|adik)\s*pasangan$/;
+                const idPasangan = new Set(window.dataAhliFaraid.filter(n => /^(isteri|suami)$/i.test(n.relationship || '')).map(n => n.id));
+                const tolak = (uid, d, rel) => {
+                    sudahUid.add(uid);
+                    window.dataAhliFaraid.push({ name: d.name, gender: d.gender, dob: d.dob, status: d.status, relationship: rel, id: 'akaun_' + uid, tiruan: true, akaun_uid: uid });
+                };
+                // 1. Adik-beradik induk (cantuman)
+                for (const u of (akarI.linked_adik || [])) {
+                    if (sudahUid.has(u)) continue;
+                    const d = await bacaRoot(u); if (!d || !d.name) continue;
+                    if (adaSudah(u, d, REAdik)) { sudahUid.add(u); continue; }
+                    tolak(u, d, 'Adik-beradik');
+                }
+                // 2. Akaun yang dijemput melalui pautan (adik-beradik induk atau adik-beradik pasangan)
+                const sL = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", penggunaSemasa.uid), where("status", "==", "aktif")));
+                for (const ld of sL.docs) {
+                    const l = ld.data(); const u = l.uid;
+                    if (!u || u === penggunaSemasa.uid || sudahUid.has(u)) continue;
+                    const sasaran = String(l.sasaran_id || '');
+                    const psg = idPasangan.has(sasaran);
+                    const induk = sasaran === akarI.id || sasaran === 'root_' + penggunaSemasa.uid;
+                    if (!psg && !induk) continue;
+                    const d = await bacaRoot(u); if (!d || !d.name) continue;
+                    if (adaSudah(u, d, psg ? REPsg : REAdik)) { sudahUid.add(u); continue; }
+                    tolak(u, d, psg ? 'Adik Pasangan' : 'Adik-beradik');
+                }
+            }
+        } catch (e) { console.warn('Faraid: adik-beradik berakaun:', e.message); }
+
         // --- KEMAS KINI DROPDOWN & PANGGIL ENJIN FARAID ---
         const dropdownFaraid = document.getElementById('pilihanMatiFaraid');
         if(dropdownFaraid) {
