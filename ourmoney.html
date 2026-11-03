@@ -242,6 +242,7 @@
   .ringkas-baris .pc { font-size: 0.7rem; font-weight: 800; color: #6D28D9; min-width: 32px; text-align: right; }
   .ringkas-baris .caret { font-size: 0.7rem; color: #94a3b8; transition: transform .15s; }
   .ringkas-baris.buka .caret { transform: rotate(180deg); }
+  .ringkas-baris.amanah { border-color: #FDE68A; } .ringkas-baris.amanah .mini { background: #FEF3C7; } .ringkas-baris.amanah .mini > div { background: #F59E0B; } .ringkas-baris.amanah .pc { color: #B45309; }
   .ringkas-baris.hijau { border-color: #A7F3D0; }
   .ringkas-baris.hijau .mini { background: #D1FAE5; } .ringkas-baris.hijau .mini > div { background: #10B981; } .ringkas-baris.hijau .pc { color: #047857; }
   .butiran-lipat { display: none; margin: -2px 0 10px; }
@@ -260,6 +261,18 @@
   .infaq-act { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   .infaq-act button { flex: 1; min-width: 110px; font-size: 0.78rem; font-weight: 800; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid #6EE7B7; background: #fff; color: #047857; }
   .infaq-act button.utama { background: #059669; color: #fff; border-color: #059669; }
+  .amanah-card { background: linear-gradient(135deg, #FFFBEB, #FEF3C7); border-color: #FCD34D; }
+  .amanah-card h3 { color: #B45309; }
+  .amanah-card .infaq-sub, .amanah-card .infaq-nota { color: #92400E; }
+  .amanah-card .infaq-box { border-color: #FDE68A; }
+  .amanah-card .infaq-grid > div { background: #FFFBEB; border-color: #FDE68A; }
+  .amanah-card .infaq-grid span { color: #B45309; }
+  .amanah-card .infaq-grid b { color: #78350F; }
+  .amanah-card .infaq-act button { border-color: #FCD34D; color: #B45309; }
+  .amanah-card .infaq-act button.utama { background: #D97706; border-color: #D97706; color: #fff; }
+  .amanah-card .infaq-input { border-color: #FCD34D; }
+  .infaq-bar.amanah { background: #FEF3C7; }
+  .infaq-bar.amanah > div { background: linear-gradient(90deg, #F59E0B, #D97706); }
   .infaq-nota { font-size: 0.7rem; color: #047857; font-weight: 600; line-height: 1.45; margin-top: 10px; }
   .infaq-input { width: 100%; padding: 10px; border: 1px solid #6EE7B7; border-radius: 8px; font-weight: 800; font-size: 1rem; }
   /* ===== NOTIFIKASI MISI ===== */
@@ -500,6 +513,13 @@
             <h3>🤲 Misi Akhirat: Infaq Harian</h3>
             <div class="infaq-sub">Berinfaq sedikit setiap hari sepanjang tahun (zakat myTADBIR ÷ 365).</div>
             <div id="infaq-isi"><div class="misi-kosong">Memuatkan...</div></div>
+        </div>
+
+        <!-- Kad Misi Akhirat: Amanah Ibu Bapa (hanya jika ibu/bapa masih ada) -->
+        <div class="infaq-card amanah-card" id="amanah-card" style="display:none">
+            <h3>🤝 Misi Akhirat: Amanah Ibu Bapa</h3>
+            <div class="infaq-sub">Elaun bulanan untuk ibu bapa, dikira daripada pendapatan anda (kira-kira 5%).</div>
+            <div id="amanah-isi"><div class="misi-kosong">Memuatkan...</div></div>
         </div>
 
         <!-- Kad Integrasi JomBercuti -->
@@ -775,7 +795,9 @@
         if (currentUser) muatDataOurMoney();
     };
     let tripList = [];
-    const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Belanja Sekolah Harian", "Pakaian", "Lain-lain"];
+    let ibuBapaHidup = [], amanahPerluTindakan = false;
+    const AMANAH_KAT0 = '🤝 Amanah Ibu Bapa';
+    const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans / Takaful", "Tol & Parking", "Pakaian", "Lain-lain"];
     const catInflow = ["Baki Permulaan", "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
 
     const btnRadios = document.querySelectorAll('input[name="txnType"]');
@@ -792,7 +814,7 @@
             const t = (typeof misiSenarai !== 'undefined' ? misiSenarai : []).filter(x => x.trip && !(x.k && x.k.siap));
             if (t.length) h += '<optgroup label="✈️ Simpanan Percutian">' + t.map(x => `<option value="${esc(x.id)}">${esc(x.label)}</option>`).join('') + '</optgroup>';
         }
-        if (type === 'outflow') h += '<optgroup label="🤲 Misi Akhirat"><option value="infaq:harian">🤲 Infaq / Sedekah</option></optgroup>';
+        if (type === 'outflow') h += '<optgroup label="🤲 Misi Akhirat"><option value="infaq:harian">🤲 Infaq / Sedekah</option>' + (ibuBapaHidup.length ? '<option value="amanah:ibubapa">🤝 Amanah Ibu Bapa</option>' : '') + '</optgroup>';
         selectCat.innerHTML = h;
         if (dahPilih && [...selectCat.options].some(o => o.value === dahPilih)) selectCat.value = dahPilih;
     }
@@ -806,10 +828,12 @@
             const q = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid));
             const snap = await getDocs(q);
             let dPasangan = null;
+            ibuBapaHidup = [];
             
             snap.forEach(d => {
                 const data = d.data();
                 if(data.is_root || data.relationship === "Diri Sendiri") namaInduk = data.name || "Induk";
+                if (['Ayah', 'Ibu', 'Bapa Mertua', 'Ibu Mertua'].includes(data.relationship) && data.status !== 'meninggal') ibuBapaHidup.push(data.name || data.relationship);
                 if(data.relationship === "Suami" || data.relationship === "Isteri") {
                     namaPasangan = data.name || "Pasangan";
                     dPasangan = true;
@@ -939,7 +963,7 @@
             await muatDataMyTadbir(); 
             await muatTargetPercutian();
             await muatMisi();
-            muatInfaq(); daftarTokenPush();
+            muatInfaq(); muatAmanah(); daftarTokenPush();
             muatDataOurMoney();
         } else {
             currentUser = null;
@@ -1051,7 +1075,7 @@
 
             misiAktif = {};
             const aSnap = await getDocs(query(collection(db, "ourmoney_goals"), where("owner_uid", "==", currentUser.uid)));
-            aSnap.forEach(d => { const x = d.data(); if (x.jenis === 'infaq_harian') return; if (x.status !== 'selesai') misiAktif[x.goal_id] = { docId: d.id, ...x }; });
+            aSnap.forEach(d => { const x = d.data(); if (x.jenis === 'infaq_harian' || x.jenis === 'amanah_ibubapa') return; if (x.status !== 'selesai') misiAktif[x.goal_id] = { docId: d.id, ...x }; });
 
             misiSetoran = [];
             const tSnap = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
@@ -1068,7 +1092,7 @@
         document.querySelectorAll('.om-pane').forEach(p => p.classList.toggle('on', p.id === 'pane-' + nama));
         try { localStorage.setItem('om_tab', nama); } catch (e) {}
     };
-    const kemaskiniTitikMisi = () => { const t = document.getElementById('titik-misi'); if (t) t.classList.toggle('ada', misiPerluTindakan || infaqPerluTindakan); };
+    const kemaskiniTitikMisi = () => { const t = document.getElementById('titik-misi'); if (t) t.classList.toggle('ada', misiPerluTindakan || infaqPerluTindakan || amanahPerluTindakan); };
     window.togolMisi = (id) => { if (misiBuka.has(id)) misiBuka.delete(id); else misiBuka.add(id); renderMisi(); };
     window.togolInfaq = () => { infaqBuka = !infaqBuka; renderInfaq(); };
     try { const t = localStorage.getItem('om_tab'); if (t && ['ringkasan', 'misi', 'analisis'].includes(t)) window.tukarTabOM(t); } catch (e) {}
@@ -1260,6 +1284,113 @@
         const t = document.getElementById('txnDate'); if (t) t.value = localDateStr;
     };
 
+    // ===== MISI AKHIRAT: AMANAH IBU BAPA (bulanan) =====
+    // Konsep sama dengan infaq, tetapi sekali sebulan. Cadangan = ~5% pendapatan bulanan; pengguna boleh tentukan sendiri.
+    // Tidak muncul jika tiada ibu/bapa yang masih hidup dalam myNasab. Disimpan dalam ourmoney_goals/{uid}_amanah.
+    let amanahDoc = null, amanahRekod = [], amanahPendapatan = 0, amanahBuka = false;
+    const AMANAH_KAT = AMANAH_KAT0;
+    const bulanDariRekod = (r) => String(r.date).substring(0, 7);
+    const kiraCadangAmanah = (pend) => pend > 0 ? Math.max(20, Math.round(pend * 0.05 / 10) * 10) : 0;
+    const amanahBulanIni = () => amanahRekod.filter(r => bulanDariRekod(r) === bulanIniStr).reduce((a, r) => a + r.amount, 0);
+    const amanahBaki = () => (amanahDoc && amanahDoc.status === 'aktif') ? Math.max(0, (Number(amanahDoc.bulanan) || 0) - amanahBulanIni()) : 0;
+
+    async function muatAmanah() {
+        if (!currentUser) return;
+        try {
+            const g = await getDoc(doc(db, "ourmoney_goals", currentUser.uid + '_amanah'));
+            amanahDoc = g.exists() && g.data().status !== 'berhenti' ? g.data() : null;
+            amanahRekod = [];
+            const inMap = {};
+            const tSnap = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
+            tSnap.forEach(d => {
+                const x = d.data(); if (!x.date) return;
+                if (x.amanah === true && x.type === 'outflow') amanahRekod.push({ date: x.date, amount: Number(x.amount) || 0 });
+                else if (x.type === 'inflow' && x.category !== 'Baki Permulaan') { const b = String(x.date).substring(0, 7); inMap[b] = (inMap[b] || 0) + (Number(x.amount) || 0); }
+            });
+            const lalu = Object.keys(inMap).filter(b => b < bulanIniStr).sort().slice(-3);
+            const pakai = lalu.length ? lalu : Object.keys(inMap).filter(b => b === bulanIniStr);
+            amanahPendapatan = pakai.length ? pakai.reduce((a, b) => a + inMap[b], 0) / pakai.length : 0;
+            // Tanda ada_ibubapa pada dokumen supaya server tahu bila perlu diam
+            if (amanahDoc && amanahDoc.ada_ibubapa !== (ibuBapaHidup.length > 0)) {
+                await setDoc(doc(db, "ourmoney_goals", currentUser.uid + '_amanah'), { ada_ibubapa: ibuBapaHidup.length > 0 }, { merge: true });
+                amanahDoc.ada_ibubapa = ibuBapaHidup.length > 0;
+            }
+        } catch (e) { console.error("Gagal muat amanah:", e); }
+        renderAmanah(); kemaskiniSenaraiKategori(); semakNotifMisi();
+    }
+
+    function renderAmanah() {
+        const kad = document.getElementById('amanah-card'), wrap = document.getElementById('amanah-isi');
+        if (!kad || !wrap) return;
+        if (ibuBapaHidup.length === 0) { kad.style.display = 'none'; amanahPerluTindakan = false; kemaskiniTitikMisi(); return; }
+        kad.style.display = '';
+        const cadang = kiraCadangAmanah(amanahPendapatan);
+        const nota = '<div class="infaq-nota">Ini sedekah sunat kepada ibu bapa sebagai tanda kasih, satu misi yang <b>berasingan daripada nafkah wajib</b>. Jumlah boleh diubah bila-bila masa.</div>';
+        if (!amanahDoc) {
+            amanahPerluTindakan = true; kemaskiniTitikMisi();
+            const chips = amanahPendapatan > 0 ? [3, 5, 10].map(p => `<button type="button" onclick="pilihPeratusAmanah(${p})">${p}% · RM ${formatRM(Math.round(amanahPendapatan * p / 100))}</button>`).join('') : '';
+            wrap.innerHTML = `<div class="infaq-box">
+                <div style="font-size:.8rem;font-weight:700;color:#92400E;margin-bottom:8px;line-height:1.5">${cadang
+                    ? `Purata pendapatan bulanan anda sekitar <b>RM ${formatRM(amanahPendapatan)}</b>. Cadangan wajar: <b>RM ${formatRM(cadang)}</b> sebulan (kira-kira 5%).`
+                    : 'Belum ada rekod pendapatan untuk membuat cadangan. Tetapkan jumlah sendiri, contohnya RM 100 sebulan.'}</div>
+                ${chips ? `<div class="infaq-act" style="margin:0 0 8px">${chips}</div>` : ''}
+                <label style="font-size:.7rem;font-weight:800;color:#B45309;text-transform:uppercase">Amanah sebulan (RM)</label>
+                <input id="amanah-input" class="infaq-input" type="number" min="1" step="10" value="${cadang || 100}">
+                <div class="infaq-act"><button class="utama" onclick="mulaAmanah()">Mulakan Amanah bulanan</button></div>
+                ${nota}</div>`;
+            return;
+        }
+        const d = amanahDoc, bulanan = Number(d.bulanan) || 0, bayar = amanahBulanIni();
+        const pct = bulanan > 0 ? Math.min(100, bayar / bulanan * 100) : 0;
+        const siap = bayar >= bulanan;
+        amanahPerluTindakan = !siap && new Date().getDate() >= 25; kemaskiniTitikMisi();
+        const ringkas = `<button class="ringkas-baris amanah ${amanahBuka ? 'buka' : ''}" onclick="togolAmanah()">
+            <span class="nm">Amanah Ibu Bapa${siap ? ' ✅' : ''}</span><div class="mini"><div style="width:${pct}%"></div></div><span class="pc">${pct > 0 && pct < 1 ? "<1" : pct.toFixed(0)}%</span><span class="caret">▾</span></button>`;
+        wrap.innerHTML = ringkas + `<div class="butiran-lipat ${amanahBuka ? 'buka' : ''}"><div class="infaq-box">
+            <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:800;color:#92400E"><span>Bulan ini</span><span>RM ${formatRM(bulanan)} sebulan</span></div>
+            <div class="infaq-bar amanah"><div style="width:${pct}%"></div></div>
+            <div class="infaq-grid" style="grid-template-columns:1fr 1fr">
+                <div><span>Diberi bulan ini</span><b>RM ${formatRM(bayar)}</b></div>
+                <div><span>Baki</span><b>RM ${formatRM(Math.max(0, bulanan - bayar))}</b></div>
+            </div>
+            <div style="font-size:.8rem;font-weight:700;line-height:1.5">${siap ? '✅ Amanah bulan ini selesai.' : `Baki <b>RM ${formatRM(bulanan - bayar)}</b> belum diberikan bulan ini.`}</div>
+            <div class="infaq-act">
+                <button class="utama" onclick="amanahBulanIniIsi()">🤝 Rekod Amanah bulan ini</button>
+                <button onclick="ubahAmanah()">Ubah jumlah</button>
+            </div>
+            <div style="font-size:.68rem;color:#64748b;font-weight:600;margin-top:8px">Peringatan keluar bersama misi simpanan lain mulai 25hb jika belum diberi. Rekod di Duit Keluar → kategori "Amanah Ibu Bapa".</div>
+            ${nota}</div></div>`;
+    }
+    window.togolAmanah = () => { amanahBuka = !amanahBuka; renderAmanah(); };
+    const simpanAmanah = async (data) => {
+        await setDoc(doc(db, "ourmoney_goals", currentUser.uid + '_amanah'), { owner_uid: currentUser.uid, jenis: 'amanah_ibubapa', status: 'aktif', ada_ibubapa: ibuBapaHidup.length > 0, ...data }, { merge: true });
+        await muatAmanah();
+    };
+    const bacaAmanahInput = () => {
+        const v = parseFloat((document.getElementById('amanah-input') || {}).value);
+        if (!(v > 0) || v > 1000000) { alert("Masukkan jumlah amanah sebulan yang sah."); return null; }
+        return Math.round(v * 100) / 100;
+    };
+    window.pilihPeratusAmanah = (p) => { const i = document.getElementById('amanah-input'); if (i) i.value = Math.round(amanahPendapatan * p / 100); };
+    window.mulaAmanah = async () => {
+        const v = bacaAmanahInput(); if (v === null) return;
+        await simpanAmanah({ bulanan: v, mula: localDateStr, sumber: cadangSama(v) ? 'cadangan' : 'manual' });
+    };
+    const cadangSama = (v) => { const c = kiraCadangAmanah(amanahPendapatan); return c > 0 && v === c; };
+    window.ubahAmanah = () => {
+        const wrap = document.getElementById('amanah-isi');
+        wrap.innerHTML = `<div class="infaq-box"><label style="font-size:.7rem;font-weight:800;color:#B45309;text-transform:uppercase">Amanah sebulan (RM)</label>
+            <input id="amanah-input" class="infaq-input" type="number" min="1" step="10" value="${amanahDoc.bulanan}">
+            <div class="infaq-act"><button class="utama" onclick="simpanUbahAmanah()">Simpan</button><button onclick="renderAmanah()">Batal</button><button onclick="berhentiAmanah()">Berhenti misi</button></div></div>`;
+    };
+    window.simpanUbahAmanah = async () => { const v = bacaAmanahInput(); if (v === null) return; await simpanAmanah({ bulanan: v, sumber: 'manual' }); };
+    window.berhentiAmanah = async () => {
+        if (!confirm("Berhenti misi Amanah Ibu Bapa? Rekod sedia ada kekal.")) return;
+        await simpanAmanah({ status: 'berhenti' });
+    };
+    window.renderAmanah = renderAmanah;
+    window.amanahBulanIniIsi = () => window.pilihSetor('amanah:ibubapa');
+
     function renderMisi() {
         const wrap = document.getElementById('misi-isi');
         if (!wrap) return;
@@ -1437,6 +1568,10 @@
                 if (baki > 1) tarikhTiada.push({ nilai: it.trip ? it.id : 'misi:' + it.id, nama: it.label, baki, ikon: it.trip ? '' : '🎯' });
             });
         }
+        if (tahap && ibuBapaHidup.length && amanahDoc && amanahDoc.status === 'aktif') {
+            const bk = amanahBaki();
+            if (bk > 1) tarikhTiada.push({ nilai: 'amanah:ibubapa', nama: AMANAH_KAT0, baki: bk, ikon: '' });
+        }
         const bilangan = tarikhTiada.length;
         semakBarNotifOM();
         simpanBilanganNotif(bilangan, tahap);
@@ -1528,6 +1663,7 @@
     selectCat.addEventListener('change', () => {
         const v = selectCat.value, amt = document.getElementById('txnAmount');
         let cadang = 0;
+        if (v === 'amanah:ibubapa') { const bk = amanahBaki() || (amanahDoc ? Number(amanahDoc.bulanan) : 0); if (!amt.value && bk > 0) { amt.type = 'number'; amt.value = (Math.round(bk * 100) / 100).toFixed(2); } return; }
         if (!v.startsWith('misi:') && !v.startsWith('trip:')) return;
         const it = misiSenarai.find(x => (x.trip ? x.id : 'misi:' + x.id) === v);
         if (it) cadang = it.k && it.k.siap ? 0 : Math.max(0, it.perlu - (it.k ? it.k.bulanIni : 0));
@@ -1645,6 +1781,8 @@
                 if (!it) throw new Error("Misi tidak dijumpai. Muat semula halaman.");
                 if (!misiAktif[gid]) { if (!it.pg) throw new Error("Misi ini tiada dalam profil myTADBIR."); await tulisMisi(it.pg, it.pg.start_balance); }
                 kategori = '🎯 ' + it.label; tambahan = { goal_id: gid, is_saving: true };
+            } else if (kategori === 'amanah:ibubapa') {
+                kategori = AMANAH_KAT0; tambahan = { amanah: true };
             } else if (kategori === 'infaq:harian') {
                 kategori = '🤲 Infaq / Sedekah'; tambahan = { infaq: true };
             } else if (kategori.startsWith('trip:')) {
@@ -1674,6 +1812,7 @@
             
             if (tambahan.is_saving) await muatMisi();
             if (tambahan.infaq) await muatInfaq();
+            if (tambahan.amanah) await muatAmanah();
             if(modPaparan === 'tahun') lihatTahunan();
             else muatDataOurMoney();
             
@@ -2289,7 +2428,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
 
     // Nisbah & perancangan: kadar simpanan, 50/30/20, had kategori, projeksi hujung bulan, dana kecemasan, cadangan
     function binaPerancangan(arrCur, belanja, simpan, catSpent) {
-        const KEPERLUAN = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Bil Utiliti", "Perubatan", "Pendidikan", "Belanja Sekolah Harian"];
+        const KEPERLUAN = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Bil Utiliti", "Perubatan", "Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans / Takaful", "Tol & Parking"];
         const HAD = { "Rumah / Sewa": 35, "Kereta / Petrol": 15, "Barang Dapur": 15, "Makan Luar": 10, "Bil Utiliti": 10, "Pakaian": 5 };
         let pend = 0;
         arrCur.forEach(t => { if (t.type !== 'outflow' && t.category !== 'Baki Permulaan') pend += Number(t.amount) || 0; });
@@ -2298,7 +2437,8 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         let perlu = 0, mahu = 0;
         const INFAQ = '🤲 Infaq / Sedekah';
         const infaqBulan = catSpent[INFAQ] || 0;
-        Object.keys(catSpent).forEach(k => { if (k === INFAQ) return; if (KEPERLUAN.includes(k)) perlu += catSpent[k]; else mahu += catSpent[k]; });
+        const amanahBln = catSpent[AMANAH_KAT0] || 0;
+        Object.keys(catSpent).forEach(k => { if (k === INFAQ || k === AMANAH_KAT0) return; if (KEPERLUAN.includes(k)) perlu += catSpent[k]; else mahu += catSpent[k]; });
         const pct = v => (adaPend ? v / pend * 100 : 0);
         const f0 = v => v.toFixed(0);
         const warna = (ok) => ok ? '#34d399' : '#f87171';
@@ -2316,6 +2456,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         h += baris('Simpanan', kadarSimpan, '(sasaran ≥20%)', kadarSimpan >= 20);
         }
         if (adaPend && infaqBulan > 0) h += `<div class="report-val" style="margin-bottom:9px"><span class="text-sm text-slate-300">🤲 Infaq / Sedekah</span><span style="color:#34d399">${f0(pct(infaqBulan))}% <small class="text-slate-500">(RM ${formatRM(infaqBulan)}, tidak dikira kehendak)</small></span></div>`;
+        if (adaPend && amanahBln > 0) h += `<div class="report-val" style="margin-bottom:9px"><span class="text-sm text-slate-300">🤝 Amanah Ibu Bapa</span><span style="color:#fbbf24">${f0(pct(amanahBln))}% <small class="text-slate-500">(RM ${formatRM(amanahBln)}, tidak dikira kehendak)</small></span></div>`;
         if (adaPend && sisa > 0) h += `<div class="text-sm text-slate-400" style="font-size:.72rem;margin:-2px 0 8px">Baki belum diperuntuk: RM ${formatRM(sisa)} (${f0(pct(sisa))}% pendapatan), boleh dialih ke simpanan.</div>`;
 
         // Had kategori
@@ -2340,7 +2481,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
                 h += '<div class="text-sm text-slate-500" style="font-size:.72rem">Tersedia selepas hari ke-7 supaya anggaran lebih tepat.</div>';
             } else {
                 // Bil tetap (sewa, utiliti, pendidikan) sudah dibayar sekali, jadi hanya belanja boleh ubah yang dianggar.
-                const TETAP = ["Rumah / Sewa", "Bil Utiliti", "Pendidikan"];
+                const TETAP = ["Rumah / Sewa", "Bil Utiliti", "Pendidikan", "Ansuran Pinjaman", "Insurans / Takaful", "🤝 Amanah Ibu Bapa"];
                 let variabel = 0; Object.keys(catSpent).forEach(k => { if (!TETAP.includes(k)) variabel += catSpent[k]; });
                 const harian = variabel / hariBerlalu;
                 projBaki = net - harian * (jumHari - hariBerlalu);
