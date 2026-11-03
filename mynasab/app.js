@@ -1437,7 +1437,7 @@ window.cetakSalasilah = () => {
     ruang.style.zoom = 1;
     if (pokok) {
         const lebarMuat = (SAIZ_KERTAS[saiz].w - 20) * MM;
-        const tinggiMuat = (SAIZ_KERTAS[saiz].h - 20) * MM - tajuk.offsetHeight - 40;
+        const tinggiMuat = (SAIZ_KERTAS[saiz].h - 20) * MM - tajuk.offsetHeight - (document.getElementById('kakiCetak')?.offsetHeight || 0) - 40;
         const skala = Math.min(lebarMuat / pokok.scrollWidth, tinggiMuat / pokok.scrollHeight, 3) * 0.95;
         ruang.style.zoom = skala;
     }
