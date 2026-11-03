@@ -1154,6 +1154,7 @@
             ${barisPeringatanInfaq(d)}
             <div style="font-size:.68rem;color:#64748b;font-weight:600;margin-top:8px">Tamat ${noKeTarikh(akhirNo).split('-').reverse().join('/')} (${hariKurang} hari lagi). Rekod semua infaq di Duit Keluar → kategori "Infaq / Sedekah".</div>
             ${nota}</div></div>`;
+        semakStatusPush();
     }
 
     // Daftar token FCM (sama seperti index.html) supaya server boleh hantar push ke telefon ini
@@ -1180,7 +1181,18 @@
         return `<div class="infaq-ingat" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;font-size:.78rem;font-weight:700;color:#065F46">
             <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="infaq-ingat" ${on ? 'checked' : ''} onchange="tukarPeringatanInfaq()"> 🔔 Ingatkan saya setiap hari</label>
             <select id="infaq-jam" onchange="tukarPeringatanInfaq()" style="border:1px solid #A7F3D0;border-radius:8px;padding:4px 6px;font-weight:700;color:#065F46;background:#fff" ${on ? '' : 'disabled'}>${JAM_INFAQ.map(j => `<option value="${j[0]}" ${j[0] === jam ? 'selected' : ''}>${j[1]}</option>`).join('')}</select>
-            ${tolak ? '<span style="color:#b45309;font-weight:700;width:100%">Notifikasi disekat pada peranti ini. Benarkan dalam tetapan pelayar/telefon.</span>' : ''}</div>`;
+            ${tolak ? '<span style="color:#b45309;font-weight:700;width:100%">Notifikasi disekat pada peranti ini. Benarkan dalam tetapan pelayar/telefon.</span>' : ''}
+            <span id="infaq-token-status" style="width:100%;font-size:.68rem;color:#64748b;font-weight:600"></span></div>`;
+    };
+    // Papar status peranti supaya mudah semak kenapa push tak sampai
+    const semakStatusPush = async () => {
+        const el = document.getElementById('infaq-token-status'); if (!el || !currentUser) return;
+        try {
+            const izin = ('Notification' in window) ? Notification.permission : 'tiada';
+            const u = await getDoc(doc(db, "mynasab_users", currentUser.uid));
+            const ada = u.exists() && !!u.data().fcm_token;
+            el.textContent = 'Status: izin notifikasi ' + (izin === 'granted' ? '✅ dibenarkan' : izin === 'denied' ? '❌ disekat' : '⚠️ belum dibenarkan') + ' · telefon ' + (ada ? '✅ didaftar' : '⚠️ belum didaftar');
+        } catch (e) {}
     };
 
     const simpanInfaq = async (data) => {
