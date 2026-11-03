@@ -833,7 +833,7 @@
             snap.forEach(d => {
                 const data = d.data();
                 if(data.is_root || data.relationship === "Diri Sendiri") namaInduk = data.name || "Induk";
-                if (['Ayah', 'Ibu', 'Bapa Mertua', 'Ibu Mertua'].includes(data.relationship) && data.status !== 'meninggal') ibuBapaHidup.push(data.name || data.relationship);
+                if (['Ayah', 'Ibu'].includes(data.relationship) && data.status !== 'meninggal') ibuBapaHidup.push(data.name || data.relationship);
                 if(data.relationship === "Suami" || data.relationship === "Isteri") {
                     namaPasangan = data.name || "Pasangan";
                     dPasangan = true;
