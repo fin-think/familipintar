@@ -193,6 +193,9 @@ function kiraEmas(el) {
             addAsset('Simpanan Emas', 0, 100, 9.0, false);
         }
 
+        // Pendapatan hanya disimpan (dan dikongsi ke myTADBIR) jika pengguna sendiri mengisinya di sini
+        document.addEventListener('DOMContentLoaded', () => { const el = document.getElementById('currentIncome'); if (el) el.addEventListener('input', () => { window._incomeUser = true; }); });
+
         window.onload = function() {
             isiAsetAsas();
         };
@@ -201,7 +204,7 @@ function kiraEmas(el) {
         function getState() {
             const v = id => parseFloat(document.getElementById(id).value) || 0;
             return {
-                retireAge: v('retireAge'), incomeGrowth: v('incomeGrowth'), monthlyExpense: v('monthlyExpense'),
+                retireAge: v('retireAge'), currentIncome: window._incomeUser ? v('currentIncome') : 0, incomeGrowth: v('incomeGrowth'), monthlyExpense: v('monthlyExpense'),
                 inflationRetire: v('inflationRetire'), lifeExpectancy: v('lifeExpectancy'), swrRate: v('swrRate'),
                 instruments: [...document.querySelectorAll('.asset-entry')].map(e => {
     const o = {
@@ -218,6 +221,7 @@ function kiraEmas(el) {
         }
 
         function loadState(s) {
+            if (parseFloat(s.currentIncome) > 0) { document.getElementById('currentIncome').value = s.currentIncome; window._incomeUser = true; }
             ['retireAge','incomeGrowth','monthlyExpense','inflationRetire','lifeExpectancy','swrRate']
                 .forEach(id => { if (s[id] !== undefined && s[id] !== null) document.getElementById(id).value = s[id]; });
 
@@ -534,7 +538,7 @@ function kiraEmas(el) {
         // Tukar Induk / Pasangan: simpan yang sedia ada, kembali ke nilai asal, muat data orang yang dipilih
         async function tukarOrang() {
             try { await AS.siram(); } catch (e) {}
-            adaSimpanan = false; disentuh = false;
+            adaSimpanan = false; disentuh = false; window._incomeUser = false;
             if (stateAsal) window.loadState(stateAsal);
             await muatSimpanan(user.uid);
             await Promise.all([tarikUmur(user.uid), tarikPendapatan(user.uid)]);

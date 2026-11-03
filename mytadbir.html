@@ -450,6 +450,10 @@ if (rdb.monthlyBudget === undefined) {
                               flags.finplan = true;
                           }
                           if ((ff.updated_at || 0) > lastTadbirF && (parseFloat(ff.incomeGrowth) || 0) > 0) mergedData.kenaikanGaji = parseFloat(ff.incomeGrowth);
+                          // Pendapatan yang diisi di myFINPLAN: guna hanya jika gaji belum ada di myDEBT / myTADBIR (tidak menimpa)
+                          if ((parseFloat(ff.currentIncome) || 0) > 0 && !(parseFloat(mergedData.gajiHakiki) > 0) && !(parseFloat(mergedData.pendapatanSampingan) > 0)) {
+                              mergedData.gajiHakiki = parseFloat(ff.currentIncome);
+                          }
                           if ((parseFloat(ff.monthlyExpense) || 0) > 0) {
                           mergedData.monthlyBudget = parseFloat(ff.monthlyExpense);
                           flags.budget = true;
