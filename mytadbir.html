@@ -156,10 +156,31 @@
           )
         };
 
+        // ANGGARAN PENCEN KERAJAAN (skim pencen: 1/600 x bulan perkhidmatan x gaji akhir, had 360 bulan = 60%;
+        // ganjaran = 7.5% x bulan x gaji akhir; layak pencen bulanan jika perkhidmatan >= 10 tahun)
+        const kiraPencen = (d) => {
+          const kosong = { aktif: false, layak: false, gajiAkhir: 0, bulan: 0, pencenBulan: 0, ganjaran: 0, peratus: 0 };
+          if (!d || d.jenisKerja !== 'kerajaan') return kosong;
+          const mula = Number(d.tahunMulaKerja) || 0, gaji = Number(d.gajiHakiki) || 0;
+          if (mula < 1960 || gaji <= 0) return { ...kosong, aktif: true };
+          const thnKeBersara = Math.max(0, (Number(d.retireAge) || 0) - (Number(d.age) || 0));
+          const g = Number(d.kenaikanGaji); const naik = Number.isFinite(g) ? g : 3;
+          const bulanSebenar = Math.max(0, (new Date().getFullYear() - mula + thnKeBersara) * 12);
+          const bulan = Math.min(360, bulanSebenar);
+          const gajiAkhir = gaji * Math.pow(1 + naik / 100, thnKeBersara);
+          const layak = bulanSebenar >= 120;
+          return { aktif: true, layak, gajiAkhir, bulan, bulanSebenar,
+            pencenBulan: layak ? gajiAkhir * bulan / 600 : 0, ganjaran: layak ? gajiAkhir * bulan * 0.075 : 0, peratus: layak ? bulan / 6 : 0 };
+        };
+        const jumPencen = (a, b) => ({ aktif: a.aktif || b.aktif, layak: a.layak || b.layak, gajiAkhir: a.gajiAkhir + b.gajiAkhir,
+          bulan: Math.max(a.bulan, b.bulan), bulanSebenar: Math.max(a.bulanSebenar || 0, b.bulanSebenar || 0),
+          pencenBulan: a.pencenBulan + b.pencenBulan, ganjaran: a.ganjaran + b.ganjaran, peratus: Math.max(a.peratus, b.peratus) });
+
         // DEFAULT DATA (DISETKAN KEPADA 0 SEPERTI DIMINTA)
         const defaultData = {
           userGender: 'lelaki', age: 30, gajiHakiki: 0, pendapatanSampingan: 0,
           kwspPotongan: 11, socsoPotongan: 0, monthlyBudget: 0,
+          jenisKerja: 'swasta', tahunMulaKerja: 0, kenaikanGaji: 3,
           childrenData: [], asetList: [],
           rumahValue: 0, keretaValue: 0, debtsList: [], extraBudget: 0, debtStrategy: 'snowball', consolRate: 4.5, consolYear: 7,
           retireAge: 60, lifeExpectancy: 80, inflationRate: 3, assetReturnRate: 5, uniAge: 18, currentEduCost: 50000,
@@ -428,6 +449,7 @@ if (rdb.monthlyBudget === undefined) {
                               }));
                               flags.finplan = true;
                           }
+                          if ((ff.updated_at || 0) > lastTadbirF && (parseFloat(ff.incomeGrowth) || 0) > 0) mergedData.kenaikanGaji = parseFloat(ff.incomeGrowth);
                           if ((parseFloat(ff.monthlyExpense) || 0) > 0) {
                           mergedData.monthlyBudget = parseFloat(ff.monthlyExpense);
                           flags.budget = true;
@@ -463,6 +485,7 @@ if (rdb.monthlyBudget === undefined) {
                   monthlyBudget: j('monthlyBudget'), extraBudget: j('extraBudget'),
                   rumahValue: j('rumahValue'), keretaValue: j('keretaValue'),
                   sspnFund: j('sspnFund'), asbAnakFund: j('asbAnakFund'), currentTakaful: j('currentTakaful'),
+                  _pencen: jumPencen(kiraPencen(a), kiraPencen(b)),
                   asetList: [...tanda(a.asetList, nA, 'i'), ...tanda(b.asetList, nB, 'p')],
                   debtsList: [...tanda(a.debtsList, nA, 'i'), ...tanda(b.debtsList, nB, 'p')]
               };
@@ -538,7 +561,7 @@ if (rdb.monthlyBudget === undefined) {
             retireAge, lifeExpectancy, inflationRate, assetReturnRate, uniAge, currentEduCost,
             sspnFund, asbAnakFund, educationInflation, universityType,
             funeralCost, sepencarianPercent, wasiatPercent, hasSpouse, hasMother, hasFather, currentTakaful,
-            healthInflationRate = 10
+            healthInflationRate = 10, jenisKerja = 'swasta', tahunMulaKerja = 0, kenaikanGaji = 3
           } = appData;
 
           // HELPER FUNCTIONS 
@@ -546,6 +569,9 @@ if (rdb.monthlyBudget === undefined) {
           const setAge = (val) => setAppData(p => ({...p, age: val}));
           const setGajiHakiki = (val) => setAppData(p => ({...p, gajiHakiki: val}));
           const setPendapatanSampingan = (val) => setAppData(p => ({...p, pendapatanSampingan: val}));
+          const setJenisKerja = (val) => setAppData(p => ({...p, jenisKerja: val}));
+          const setTahunMulaKerja = (val) => setAppData(p => ({...p, tahunMulaKerja: val}));
+          const setKenaikanGaji = (val) => setAppData(p => ({...p, kenaikanGaji: val}));
           const setKwspPotongan = (val) => setAppData(p => ({...p, kwspPotongan: val}));
           const setSocsoPotongan = (val) => setAppData(p => ({...p, socsoPotongan: val}));
           const setMonthlyBudget = (val) => setAppData(p => ({...p, monthlyBudget: val}));
@@ -592,7 +618,6 @@ if (rdb.monthlyBudget === undefined) {
           const numDaughters = childrenData.filter(c => c.gender === 'perempuan').length;
           const spouseGender = userGender === 'lelaki' ? 'isteri' : 'suami';
           
-          const annualIncome = (gajiHakiki + pendapatanSampingan) * 12;
 
           // --- ANALISIS DSR & HUTANG (d'DEBT Core Logic) ---
           const debtAnalysisResult = useMemo(() => {
@@ -705,8 +730,9 @@ if (rdb.monthlyBudget === undefined) {
           }, [debtsList, gajiHakiki, pendapatanSampingan, extraBudget, debtStrategy, consolRate, consolYear, retireAge, age]);
 
           const totalIncomeMonthly = gajiHakiki + pendapatanSampingan;
-          const kwspAmount = gajiHakiki * (kwspPotongan / 100);
+          const kwspAmount = jenisKerja === 'kerajaan' ? 0 : gajiHakiki * (kwspPotongan / 100);
           const netIncomeMonthly = totalIncomeMonthly - kwspAmount - socsoPotongan;
+          const annualIncome = netIncomeMonthly * 12;   // pendapatan bersih (selepas KWSP & SOCSO/PCB)
           const currentMonthlyExpenses = monthlyBudget;
           const totalMonthlyCommitments = debtAnalysisResult.totalCommitment + currentMonthlyExpenses;
           const monthlyBalance = netIncomeMonthly - totalMonthlyCommitments;
@@ -778,13 +804,21 @@ if (rdb.monthlyBudget === undefined) {
           
           const totalRetirementHealthNeeds = futureHealthLeakage * healthFactor;
 
+          // Pencen kerajaan (jika ada): dianggap tetap (tanpa kenaikan) dan menampung belanja dahulu, baki menampung kesihatan
+          const pencen = (mod === 'gabungan' && appData._pencen) ? appData._pencen : kiraPencen(appData);
+          const pencenTahun = pencen.pencenBulan * 12;
+          const ganjaranPencen = pencen.ganjaran;
+
 
             
           const futureMonthlyExpenses = currentMonthlyExpenses * Math.pow(1 + (inflationRate / 100), yearsToRetire);
           const yearlyRetirementExpense = futureMonthlyExpenses * 12;
 
           // Sasaran belanja sehingga umur jangka hayat (kadar sebenar, belanja dikeluarkan pada awal setiap tahun)
-          const retirementCorpusNeeded = yearlyRetirementExpense * annuityDue(realReturn, yearsInRetirement);
+          const belanjaPVAsal = yearlyRetirementExpense * annuityDue(realReturn, yearsInRetirement);
+          const pencenPV = pencenTahun * annuityDue(rA, yearsInRetirement);
+          const retirementCorpusNeeded = Math.max(0, belanjaPVAsal - pencenPV);
+          const kesihatanBersih = Math.max(0, totalRetirementHealthNeeds - Math.max(0, pencenPV - belanjaPVAsal));
           
           const totalEducationFundNow = sspnFund + asbAnakFund;
 
@@ -824,11 +858,11 @@ if (rdb.monthlyBudget === undefined) {
           const futureAssetsAfterEducation = futureLiquidAssets - eduNetAtRetire;
 
           // Baki bersih untuk bersara = aset masa depan - pendidikan - hutang - kos kesihatan
-          const bakiUntukBersara = futureAssetsAfterEducation - unjuranTotalDebts - totalRetirementHealthNeeds;
+          const bakiUntukBersara = futureAssetsAfterEducation + ganjaranPencen - unjuranTotalDebts - kesihatanBersih;
           const bakiPositif = Math.max(0, bakiUntukBersara);
 
 
-          const totalFutureNeeds = unjuranTotalDebts + Math.max(0, eduNetAtRetire) + retirementCorpusNeeded + totalRetirementHealthNeeds;
+          const totalFutureNeeds = unjuranTotalDebts + Math.max(0, eduNetAtRetire) + retirementCorpusNeeded + kesihatanBersih;
           const retirementShortfall = Math.max(0, retirementCorpusNeeded - bakiUntukBersara);
 
           // --- Jadual unjuran dana tahunan (butiran penuh, setiap tahun) ---
@@ -860,8 +894,9 @@ if (rdb.monthlyBudget === undefined) {
             let sudahBersara = false, tahunBersara = 0, sudahHabis = false;
             for (let u = umurMula; u <= umurAkhir; u++) {
               const i = u - umurMula;
-              const awal = dana;
               const bersara = u >= umurBersara;
+              const ganjaranMasuk = (bersara && !sudahBersara) ? ganjaranPencen : 0;
+              const awal = dana + ganjaranMasuk;
               const e = eduMengikutTahun[i];
               const edu = e ? e.jumlah : 0;
               let hutang = 0, kes = 0, belanja = 0, akhir, pulangan = 0, habisTahunIni = false, bahagian = 0;
@@ -871,9 +906,11 @@ if (rdb.monthlyBudget === undefined) {
                 akhir = (awal - edu) * (1 + rA);
                 pulangan = akhir - (awal - edu);
               } else {
-                if (!sudahBersara) { sudahBersara = true; hutang = hutangBersara; peristiwa.push('Mula bersara'); }
-                const kesPerlu = kesihatanSemasa * Math.pow(1 + healthInflationRate / 100, (umurBersara - umurMula) + tahunBersara);
-                const belanjaPerlu = belanjaMula * Math.pow(1 + inflationRate / 100, tahunBersara);
+                if (!sudahBersara) { sudahBersara = true; hutang = hutangBersara; peristiwa.push('Mula bersara'); if (ganjaranMasuk > 0) peristiwa.push('Ganjaran persaraan +RM' + Math.round(ganjaranMasuk).toLocaleString('en-MY')); if (pencenTahun > 0) peristiwa.push('Pencen RM' + Math.round(pencenTahun / 12).toLocaleString('en-MY') + '/bln'); }
+                const kesAsal = kesihatanSemasa * Math.pow(1 + healthInflationRate / 100, (umurBersara - umurMula) + tahunBersara);
+                const belanjaAsal = belanjaMula * Math.pow(1 + inflationRate / 100, tahunBersara);
+                const belanjaPerlu = Math.max(0, belanjaAsal - pencenTahun);
+                const kesPerlu = Math.max(0, kesAsal - Math.max(0, pencenTahun - belanjaAsal));
                 tahunBersara++;
                 const ada = awal - edu - hutang;
                 if (ada <= 0) {
@@ -949,7 +986,7 @@ if (rdb.monthlyBudget === undefined) {
             : 0;
           // Bajet bulanan yang mampu dikekalkan sehingga jangka hayat, dalam nilai RINGGIT HARI INI
           const sustainableMonthlyExpense = annuityDue(realReturn, yearsInRetirement) > 0
-            ? (bakiPositif / annuityDue(realReturn, yearsInRetirement) / 12) / Math.pow(1 + inflationRate / 100, yearsToRetire)
+            ? ((bakiPositif + pencenPV) / annuityDue(realReturn, yearsInRetirement) / 12) / Math.pow(1 + inflationRate / 100, yearsToRetire)
             : 0;
 
           // --- PENGIRAAN FARAID & PENYUCIAN HARTA ---
@@ -1147,8 +1184,8 @@ if (rdb.monthlyBudget === undefined) {
                           if (perluLagi > 1) tambah({ id: 'pendidikan_' + (c.id || i), type: 'pendidikan', priority: 3, label: 'Pendidikan ' + (c.name || 'Anak ' + (i + 1)), child_id: String(c.id || i), target_fv: sasaran, start_balance: alloc, rate: assetReturnRate, months: bulanKe(yUni) });
                       });
                       // 4 & 5. Persaraan: kekurangan selepas pendidikan dibiayai melalui misi sendiri (elak kira dua kali)
-                      const kurangTanpaEdu = Math.max(0, unjuranTotalDebts + retirementCorpusNeeded + totalRetirementHealthNeeds - futureLiquidAssets);
-                      const bhgKesihatan = Math.min(totalRetirementHealthNeeds, kurangTanpaEdu);
+                      const kurangTanpaEdu = Math.max(0, unjuranTotalDebts + retirementCorpusNeeded + kesihatanBersih - ganjaranPencen - futureLiquidAssets);
+                      const bhgKesihatan = Math.min(kesihatanBersih, kurangTanpaEdu);
                       const bhgPersaraan = kurangTanpaEdu - bhgKesihatan;
                       if (bhgKesihatan > 1) tambah({ id: 'kesihatan_persaraan', type: 'kesihatan', priority: 4, label: 'Dana Kesihatan Persaraan', target_fv: bhgKesihatan, start_balance: 0, rate: assetReturnRate, months: bulanKe(yearsToRetire) });
                       if (bhgPersaraan > 1) tambah({ id: 'persaraan', type: 'persaraan', priority: 5, label: 'Dana Persaraan (kekurangan)', target_fv: bhgPersaraan, start_balance: 0, rate: assetReturnRate, months: bulanKe(yearsToRetire) });
@@ -1316,11 +1353,34 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                                 <Input label="Gaji Hakiki (Bln)" value={gajiHakiki} onChange={e => setGajiHakiki(toNumber(e.target.value))} prefix="RM" />
                                 <Input label="Sampingan (Bln)" value={pendapatanSampingan} onChange={e => setPendapatanSampingan(toNumber(e.target.value))} prefix="RM" />
                             </div>
+                            <div className="mt-4 p-4 rounded-xl border border-slate-200 bg-slate-50">
+                              <label className="text-sm font-semibold text-slate-700 block mb-2">Jenis Pekerjaan</label>
+                              <div className="grid grid-cols-2 gap-2">
+                                {[['swasta', 'Swasta'], ['kerajaan', 'Kerajaan (Berpencen)']].map(([k, l]) => (
+                                  <button key={k} type="button" onClick={() => setJenisKerja(k)}
+                                    className={`py-2 px-3 rounded-lg text-sm font-bold border ${jenisKerja === k ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-slate-600 border-slate-300'}`}>{l}</button>
+                                ))}
+                              </div>
+                              {jenisKerja === 'kerajaan' ? (
+                                <div className="mt-3">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <Input label="Tahun Mula Bekerja" integer value={tahunMulaKerja || ''} onChange={e => setTahunMulaKerja(toNumber(e.target.value))} />
+                                    <Input label="Kenaikan Gaji Tahunan (%)" value={kenaikanGaji} onChange={e => setKenaikanGaji(toNumber(e.target.value))} />
+                                  </div>
+                                  <p className="text-[11px] text-slate-500 mt-1">
+                                    <b>Wajib diisi:</b> tahun mula bekerja digunakan untuk mengira tempoh perkhidmatan, manakala kenaikan gaji (diambil daripada myFINPLAN jika ada) untuk menganggar gaji akhir. Dua-dua ini menentukan anggaran pencen bulanan dan ganjaran anda dalam analisis persaraan. Potongan KWSP tidak dipaparkan kerana tidak terpakai untuk skim pencen.
+                                  </p>
+                                  {!(tahunMulaKerja >= 1960) && <p className="text-[11px] text-red-500 font-bold mt-1">Pencen belum dikira. Sila isi tahun mula bekerja.</p>}
+                                </div>
+                              ) : (
+                                <p className="text-[11px] text-slate-500 mt-2">Pekerja swasta: persaraan dibiayai oleh simpanan seperti KWSP dan aset lain.</p>
+                              )}
+                            </div>
                                                                           
                             <div className="mt-6 border-t pt-4">
                               <h3 className="font-semibold text-slate-700 mb-4">Kedudukan Kewangan Bulanan</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Input label="Potongan KWSP (%)" value={kwspPotongan} onChange={e => setKwspPotongan(toNumber(e.target.value))} />
+                                {jenisKerja !== 'kerajaan' && <Input label="Potongan KWSP (%)" value={kwspPotongan} onChange={e => setKwspPotongan(toNumber(e.target.value))} />}
                                 <Input label="SOCSO / PCB" value={socsoPotongan} onChange={e => setSocsoPotongan(toNumber(e.target.value))} prefix="RM" />
                                 <div className="md:col-span-2">
   <Input label="Bajet Bulanan Masa Kini" value={monthlyBudget} onChange={e => setMonthlyBudget(toNumber(e.target.value))} prefix="RM" />
@@ -1933,6 +1993,17 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
 
                       <Card className="border-blue-200 bg-blue-50/30">
                         <h3 className="text-lg font-bold text-blue-900 mb-4 border-b border-blue-200 pb-2 flex items-center gap-2"><TrendingUp className="text-blue-600" /> Ketahanan Dana Masa Depan & Persaraan</h3>
+                        {pencen.aktif && (
+                          <div className="mb-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-900">
+                            <p className="font-bold mb-1">Anggaran Pencen Kerajaan</p>
+                            {pencen.pencenBulan > 0 ? (
+                              <p>Gaji akhir dianggar <b>{formatRM(pencen.gajiAkhir)}</b>, perkhidmatan <b>{Math.round(pencen.bulan / 12 * 10) / 10} tahun</b> ({Math.round(pencen.peratus)}% gaji akhir): pencen <b>{formatRM(pencen.pencenBulan)}/bulan</b> dan ganjaran sekali gus <b>{formatRM(pencen.ganjaran)}</b>. Pencen ini mengurangkan dana yang perlu dikumpul.</p>
+                            ) : (
+                              <p>{pencen.gajiAkhir > 0 || pencen.bulan > 0 ? 'Perkhidmatan kurang 10 tahun: tiada pencen bulanan dikira.' : 'Isi tahun mula bekerja dan gaji untuk mengira pencen.'}</p>
+                            )}
+                            <p className="text-[11px] mt-1 opacity-80">Anggaran sahaja (formula pencen 1/600 x bulan perkhidmatan x gaji akhir, had 60%; ganjaran 7.5% x bulan x gaji akhir). Guna gaji hakiki sebagai gaji pokok dan pencen dianggap tetap. Pegawai kontrak atau yang memilih skim KWSP, pilih "Swasta".</p>
+                          </div>
+                        )}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
                           <div className="lg:col-span-1 bg-white p-6 rounded-xl border border-blue-100 shadow-sm text-center h-full flex flex-col justify-center">
                             <p className="text-slate-600 mb-2 text-sm">Dengan sasaran perbelanjaan <strong>{formatRM(futureMonthlyExpenses)}/bulan</strong> (nilai pada umur bersara), dana persaraan anda mampu bertahan selama:</p>
