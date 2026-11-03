@@ -245,6 +245,7 @@ const db = getFirestore(app);
 
 let currentGroup = null;   // = UID induk (dikongsi semua adik-beradik)
 let currentUser = null;
+let namaSaya = '';
 window.globalTeamMap = new Map();
 
 // --- PAYWALL ---
@@ -340,7 +341,8 @@ onAuthStateChanged(auth, async (user) => {
     await siapkanJangkar(user, currentGroup);
     await migrasiDataLama(user.uid, currentGroup);
 
-    document.getElementById('displayUserName').innerText = uData.name || user.email.split('@')[0];
+    namaSaya = (uData.name && String(uData.name).trim() && uData.name !== 'undefined') ? String(uData.name).trim() : user.email.split('@')[0];
+    document.getElementById('displayUserName').innerText = namaSaya;
 
     semakTnC();
     muatProfilIbuBapa(user.uid);
@@ -467,6 +469,35 @@ async function muatProfilIbuBapa(uidPengguna) {
       }
     });
 
+    // Akaun yang daftar sendiri / dipautkan: ibu bapa mungkin hanya ada dalam pokok adik-beradik berpaut (seperti paparan pokok myNasab)
+    if (!html && pilihanBelah === 'induk') {
+      try {
+        const nodSaya = snapInduk.docs.map(x => ({ ...x.data(), id: x.id }));
+        const akar = nodSaya.find(n => n.is_root) || {};
+        const sumber = new Map();   // uid -> 'kandung' | 'mertua'
+        const sL = await getDoc(doc(db, "mynasab_links", currentUser.uid));
+        if (sL.exists() && sL.data().status === 'aktif' && sL.data().owner_uid) {
+          let jenis = 'kandung';
+          try {
+            const sas = sL.data().sasaran_id ? await getDoc(doc(db, "mynasab_nodes", sL.data().sasaran_id)) : null;
+            if (sas && sas.exists() && /suami|isteri/i.test(sas.data().relationship || '')) jenis = 'mertua';
+          } catch (e) {}
+          sumber.set(sL.data().owner_uid, jenis);
+        }
+        if (akar.link_owner && akar.sibling_of && !sumber.has(akar.link_owner)) sumber.set(akar.link_owner, 'kandung');
+        [...(akar.linked_adik || []), ...(akar.linked_uids || [])].forEach(u => { if (u && u !== currentUser.uid && !sumber.has(u)) sumber.set(u, 'kandung'); });
+        for (const [u, jenis] of sumber) {
+          let nod = [];
+          try { nod = (await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", u)))).docs.map(x => ({ ...x.data(), id: x.id })); } catch (e) { continue; }
+          nod.forEach(d => {
+            const rel = (d.relationship || '').toLowerCase().trim();
+            const ok = jenis === 'mertua' ? /^(bapa|ayah|ibu|mak|abah)\s*mertua$/.test(rel) : /^(ayah|ibu)$/.test(rel);
+            if (ok) html += renderKad(d.id, d, jenis === 'mertua' ? (rel.includes('ibu') || rel.includes('mak') ? 'Ibu' : 'Ayah') : d.relationship);
+          });
+          if (html) break;
+        }
+      } catch (e) { console.warn('Ibu bapa berpaut:', e.message); }
+    }
     document.getElementById('ruangProfilIbuBapa').innerHTML = html || '<div class="empty" style="text-align:center;color:var(--muted);font-size:14px;padding:20px;">Tiada rekod ibu bapa dikesan untuk pilihan keluarga ini.</div>';
   } catch (e) { console.error("Ralat Profil:", e); }
 }
@@ -585,7 +616,7 @@ window.lihatTugas = (id) => {
       <div>📅 ${esc(tempoh)}${t.time ? ' · ⏰ ' + esc(t.time) : ''}</div>
       ${(t.shift_siapa && t.shift_siapa !== 'Umum') ? `<div>👤 Shift: <b>${esc(t.shift_siapa)}</b></div>` : ''}
       ${t.note ? `<div style="margin-top:6px;color:var(--ink);white-space:pre-wrap;">📝 ${esc(t.note)}</div>` : ''}
-      <div style="margin-top:6px;font-size:11px;">Direkod oleh: ${esc(t.author || '-')}</div>
+      <div style="margin-top:6px;font-size:11px;">Direkod oleh: ${esc(namaPenulis(t))}</div>
     </div>`;
   document.getElementById('modalLihat').style.display = 'flex';
 };
@@ -622,13 +653,13 @@ window.simpanTugasKalendar = async (syncGoogle = false) => {
   const jb = jangkarBelah();
   if (!editId && !jb) { alert('Belah ini belum ada pasangan dalam myNasab. Tambah pasangan dahulu.'); return; }
 
-  const author = currentUser.email.split('@')[0];
+  const author = namaSaya || currentUser.email.split('@')[0];
   const dataTugas = { title, date, end_date, time, for_whom, shift_siapa, note };
   try {
     if (editId) {
       await updateDoc(doc(db, "wecare_calendar", editId), { ...dataTugas, updated_at: Date.now() });
     } else {
-      await setDoc(doc(collection(db, "wecare_calendar")), { ...dataTugas, anchor_id: jb, author, group_id: currentGroup, created_at: Date.now() });
+      await setDoc(doc(collection(db, "wecare_calendar")), { ...dataTugas, anchor_id: jb, author, author_uid: currentUser.uid, group_id: currentGroup, created_at: Date.now() });
     }
   } catch (e) { alert("Gagal menyimpan: " + e.message); return; }
 
@@ -693,6 +724,10 @@ async function muatKeluargaDanNota(groupId) {
     };
 
     const kPusat = kelompok(nodSaya);
+    window._namaUid = {};
+    akaun.forEach(a => { const r = kelompok(a.nod).diri; if (r && r.name) window._namaUid[a.uid] = r.name; });
+    { const rI = kelompok(nodInduk).diri; if (rI && rI.name) window._namaUid[indukUid] = rI.name; }
+    if (kPusat.diri && kPusat.diri.name) window._namaUid[saya] = kPusat.diri.name;
     if (!kPusat.diri) {
       document.getElementById('teamList').innerHTML = `<div class="card" style="background:#f8fafc;font-size:13px;color:var(--muted);">Data akaun tidak dijumpai.</div>`;
       muatNotaKeluarga();
@@ -797,6 +832,7 @@ const chipNota = (kunci) => { const n = notaHari(kunci); return n.length ? `<div
 // ===== NOTA KELUARGA: bacaan PER PENGGUNA =====
 // dibaca_oleh = array UID. Nota lama (tiada dibaca_oleh) guna status_baca lama. Penulis tak dimaklumkan nota sendiri.
 const emelPrefix = () => currentUser.email.split('@')[0];
+const namaPenulis = (n) => (n.author_uid && (window._namaUid || {})[n.author_uid]) || n.author || '-';
 const notaSaya = (n) => n.author_uid ? n.author_uid === currentUser.uid : n.author === emelPrefix();
 const adaBaca = (n) => Array.isArray(n.dibaca_oleh) ? n.dibaca_oleh.includes(currentUser.uid) : n.status_baca === true;
 const belumBaca = (n) => !notaSaya(n) && !adaBaca(n);
@@ -812,7 +848,7 @@ window.simpanNotaKeluarga = async () => {
  
   await setDoc(doc(collection(db, "wecare_notes")), {
     note, date, anchor_id: jb,
-    author: emelPrefix(), author_uid: currentUser.uid,
+    author: namaSaya || emelPrefix(), author_uid: currentUser.uid,
     group_id: currentGroup, created_at: Date.now(),
     dibaca_oleh: [currentUser.uid],   // penulis dianggap sudah baca
     status_baca: false                // dikekalkan supaya kiraan lama di muka depan tidak pecah
@@ -839,7 +875,7 @@ async function muatNotaKeluarga() {
     dataNotaGlobal.forEach(n => idNotaDilihat.add(n.id));
     if (notaAwalSiap) {
       baru.filter(n => notaUntukSaya(n) && belumBaca(n))
-          .forEach(n => window.notifTempatan('Pesanan baharu weCare', `${n.author}: ${n.note}`));
+          .forEach(n => window.notifTempatan('Pesanan baharu weCare', `${namaPenulis(n)}: ${n.note}`));
     }
     notaAwalSiap = true;
  
@@ -987,7 +1023,7 @@ window.lihatNota = (kunci) => {
     <div class="card" style="background:${baca ? '#f8fafc' : '#fffbeb'};border-color:${baca ? '#e2e8f0' : '#fde68a'};margin-bottom:8px;">
       <div style="font-size:13.5px;line-height:1.4;white-space:pre-wrap;color:${baca ? '#64748b' : '#000'};">${esc(n.note)}</div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:8px;border-top:1px solid var(--line);padding-top:5px;">
-        <span>Oleh: <b>${esc(n.author)}</b></span>
+        <span>Oleh: <b>${esc(namaPenulis(n))}</b></span>
         <span>${new Date(n.created_at).toLocaleString('ms-MY', { dateStyle: 'medium', timeStyle: 'short' })}</span>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
