@@ -776,9 +776,22 @@ async function muatKeluargaDanNota(groupId) {
       tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa', kPusat.diri.dob);
       kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan', p.dob));
       await tambahAdikBeradik(sayaInduk ? kPusat.diri.id : sasaranIdPusat, 'Adik-beradik', true);
-      // Adik-beradik berakaun yang dicantum (salaman) dengan saya, bukan melalui pautan jemputan
-      for (const u of (kPusat.diri.linked_adik || [])) {
-        if (!u || u === saya || u === indukUid || sembunyi.includes(u) || akaun.some(x => x.uid === u)) continue;
+      // Adik-beradik berakaun yang dicantum (salaman) dengan saya, termasuk adik-beradik kepada adik-beradik itu
+      // (cth. Amri yang dicantum/dijemput oleh Amran, abang Aminah) - sama seperti 'Keluarga Besar: Belah Saya' dalam myNasab
+      const adikSemua = new Set(), baris = [...(kPusat.diri.linked_adik || [])];
+      while (baris.length && adikSemua.size < 30) {
+        const u = baris.shift();
+        if (!u || u === saya || u === indukUid || adikSemua.has(u)) continue;
+        adikSemua.add(u);
+        const nu = await ambil(u), ru = (nu.find(n => n.is_root) || {});
+        (ru.linked_adik || []).forEach(x => baris.push(x));
+        try {
+          const lk = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", u), where("status", "==", "aktif")));
+          lk.docs.forEach(d => { const l = d.data(); if (l.uid && (!l.sasaran_id || l.sasaran_id === ru.id)) baris.push(l.uid); });
+        } catch (e) {}
+      }
+      for (const u of adikSemua) {
+        if (sembunyi.includes(u) || akaun.some(x => x.uid === u)) continue;
         const kl = kelompok(await ambil(u));
         if (!kl.diri || !kl.diri.name) continue;
         window._namaUid[u] = kl.diri.name; masukHJ(kl.diri);
