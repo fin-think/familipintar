@@ -754,10 +754,13 @@ async function muatKeluargaDanNota(groupId) {
       teamListMap.set(key, { uidKunci: kunci, name: nama, email: email || 'Tiada E-mel', role, dob: dob });
     };
 
+    // Sasaran pautan boleh ditulis 'root_<uid>' atau ID sebenar nod induk: anggap sama
+    const idRootInduk = (kelompok(nodInduk).diri || {}).id;
+    const samaSasaran = (x, y) => x === y || (!!x && !!y && [x, y].every(v => v === idRootInduk || v === 'root_' + indukUid));
     const tambahAdikBeradik = async (sasaranId, role, termasukManual) => {
       const calon = [];
       akaun.forEach(a => {
-        if (a.sasaran !== sasaranId || a.uid === saya || sembunyi.includes(a.uid)) return;
+        if (!samaSasaran(a.sasaran, sasaranId) || a.uid === saya || sembunyi.includes(a.uid)) return;
         const k = kelompok(a.nod);
         if (!k.diri) return;
         // KEMAS KINI: Tarik dob
@@ -795,9 +798,13 @@ async function muatKeluargaDanNota(groupId) {
       for (const u of adikSemua) {
         if (sembunyi.includes(u) || akaun.some(x => x.uid === u)) continue;
         const kl = kelompok(await ambil(u));
-        if (!kl.diri || !kl.diri.name) continue;
-        window._namaUid[u] = kl.diri.name; masukHJ(kl.diri);
-        tambah(u, kl.diri.name, await emelAkaun(u), 'Adik-beradik', kl.diri.dob);
+        let nama = kl.diri && kl.diri.name, dob = kl.diri && kl.diri.dob, emel = null;
+        if (!nama) {   // nod tidak boleh dibaca (peraturan akses): guna dokumen pengguna
+          try { const su = await getDoc(doc(db, "mynasab_users", u)); if (su.exists()) { nama = su.data().name; dob = su.data().dob; emel = su.data().email; } } catch (e) {}
+        }
+        if (!nama) continue;
+        window._namaUid[u] = nama; if (kl.diri) masukHJ(kl.diri);
+        tambah(u, nama, emel || await emelAkaun(u), 'Adik-beradik', dob);
       }
 
       if (!sayaInduk && !sembunyi.includes(indukUid)) {
