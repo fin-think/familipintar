@@ -245,8 +245,8 @@
 .kotak-zoom button.muat { width:auto; padding:0 10px; font-size:13px; }
 .kotak-zoom button:hover { background:#e3eefa; }
 .kotak-zoom span { min-width:44px; text-align:center; font-size:13px; font-weight:bold; color:#576574; }
-/* Paparan pokok pada telefon: pengepala dipadatkan, pokok tidak memenuhi seluruh skrin supaya Waris Berpaut nampak tanpa skrol jauh */
-@media screen and (max-width: 768px) {
+/* Paparan pokok pada telefon / skrin sentuh (termasuk mod 'laman desktop'): pengepala dipadatkan, Waris Berpaut disembunyikan */
+@media screen and (max-width: 768px), screen and (pointer: coarse) {
     #modalPreview .modal-preview-box { padding: 8px !important; overflow-y: auto; }
     #kawalanPreview { flex-wrap: wrap !important; gap: 6px !important; padding-bottom: 8px !important; }
     #kawalanPreview .pv-judul { order: 1; flex: 1; font-size: 15px !important; }
@@ -269,10 +269,10 @@
     #kawalanPreview .kotak-zoom button.muat { padding: 0 8px; font-size: 12px; }
     #kawalanPreview .pv-cetak, #btnSegerakPokok { padding: 6px 10px !important; font-size: 12px; }
     #kawalanPreview .pv-cetak .pv-teks { display: none; }
-    #modalPreview .kertas-cetakan { flex: 0 0 auto !important; height: 46vh; margin-top: 8px !important; }
+    #modalPreview .kertas-cetakan { margin-top: 8px !important; }
+    #bahagianWarisBerpaut { display: none !important; }
     #tajukKeluargaCetak { margin-bottom: 12px !important; }
     #namaAkaunCetak { font-size: 18px !important; }
-    #bahagianWarisBerpaut { margin-top: 8px !important; padding: 10px !important; }
 }
 
        
