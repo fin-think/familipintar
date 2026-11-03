@@ -776,6 +776,14 @@ async function muatKeluargaDanNota(groupId) {
       tambah(kPusat.diri.id, kPusat.diri.name, currentUser.email, 'Pengguna Semasa', kPusat.diri.dob);
       kPusat.pasangan.forEach(p => tambah(p.id, p.name, p.email, 'Pasangan', p.dob));
       await tambahAdikBeradik(sayaInduk ? kPusat.diri.id : sasaranIdPusat, 'Adik-beradik', true);
+      // Adik-beradik berakaun yang dicantum (salaman) dengan saya, bukan melalui pautan jemputan
+      for (const u of (kPusat.diri.linked_adik || [])) {
+        if (!u || u === saya || u === indukUid || sembunyi.includes(u) || akaun.some(x => x.uid === u)) continue;
+        const kl = kelompok(await ambil(u));
+        if (!kl.diri || !kl.diri.name) continue;
+        window._namaUid[u] = kl.diri.name; masukHJ(kl.diri);
+        tambah(u, kl.diri.name, await emelAkaun(u), 'Adik-beradik', kl.diri.dob);
+      }
 
       if (!sayaInduk && !sembunyi.includes(indukUid)) {
         const kInduk = kelompok(nodInduk);
