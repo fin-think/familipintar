@@ -182,13 +182,14 @@
 
   /* GAYA CETAK TAHUNAN / MEDIA PRINT */
   .modal-cetak { position: fixed; inset: 0; background: rgba(15,23,42,0.95); z-index: 10000; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; }
-  .cetak-container { background: #fff; width: 100%; max-width: 800px; padding: 40px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); min-height: 1000px; color: #000; }
+  .cetak-container { background: #fff; flex-shrink: 0; width: 210mm; max-width: 100%; box-sizing: border-box; padding: 18mm 12mm; border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); min-height: 297mm; color: #000; margin-bottom: 30px; }
+  .cetak-container.melintang { width: 297mm; min-height: 210mm; }
   
   @media print {
       body * { visibility: hidden; }
       #modalCetakTahunan, #modalCetakTahunan * { visibility: visible; }
       #modalCetakTahunan { position: absolute; left: 0; top: 0; width: 100%; background: white; padding: 0; overflow: visible; display: block !important; }
-      .cetak-container { max-width: 100%; box-shadow: none; border-radius: 0; padding: 0; min-height: auto; }
+      .cetak-container, .cetak-container.melintang { width: auto !important; max-width: 100%; box-shadow: none; border-radius: 0; padding: 0 !important; min-height: auto !important; margin: 0; }
       .no-print { display: none !important; }
   }
 
@@ -614,7 +615,7 @@
 
 <!-- MODAL CETAK LAPORAN TAHUNAN -->
 <div id="modalCetakTahunan" class="modal-cetak">
-    <div style="width:100%; max-width:800px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; padding:0 10px;" class="no-print">
+    <div style="width:210mm; max-width:100%; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; padding:0 4px;" class="no-print">
         <button onclick="document.getElementById('modalCetakTahunan').style.display='none'" style="background: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">✕ Tutup</button>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
             <label style="color:#fff; font-size:13px; font-weight:700;">Saiz Kertas:</label>
@@ -1771,13 +1772,44 @@
     const lapLebar = (a, b) => b > 0 ? Math.max(0, Math.min(100, a / b * 100)) : 0;
     const lapBar = (pct, warna) => `<div class="lap-bar"><i style="width:${pct.toFixed(1)}%;background:${warna}"></i></div>`;
 
+    const LAP_MT = 18, LAP_ML = 12, LAP_MM = 3.7795;     // margin atas/bawah 18mm, kiri/kanan 12mm
+    const lapKertas = () => ((document.getElementById('saizLaporan') || {}).value || 'A4 portrait').includes('landscape') ? { w: 297, h: 210, mel: true } : { w: 210, h: 297, mel: false };
+
+    // Pastikan ringkasan + papan pemuka (muka surat 1) muat dalam satu A4: kecilkan sedikit jika perlu
+    window.muatkanMuka1 = (lebarPx) => {
+        const kont = document.getElementById('print-content'), p1 = kont && kont.querySelector('.lap-p1');
+        if (!p1) return;
+        p1.style.zoom = ''; p1.style.width = '';
+        const k = lapKertas(), tinggi = (k.h - 2 * LAP_MT) * LAP_MM - 6;
+        if (lebarPx) p1.style.width = lebarPx + 'px';
+        const h = p1.scrollHeight;
+        p1.style.width = '';
+        if (h > tinggi) {
+            const z = Math.max(0.55, tinggi / h);
+            p1.style.zoom = z;       // zum standard: peratus lebar sudah ikut bekas, tidak perlu laras lebar
+        }
+    };
+
     window.tukarSaizLaporan = () => {
         const v = (document.getElementById('saizLaporan') || {}).value || 'A4 portrait';
         let st = document.getElementById('stylePageLaporan');
         if (!st) { st = document.createElement('style'); st.id = 'stylePageLaporan'; document.head.appendChild(st); }
-        st.textContent = '@page { size: ' + v + '; margin: 12mm; }';
+        st.textContent = '@page { size: ' + v + '; margin: ' + LAP_MT + 'mm ' + LAP_ML + 'mm; }';
+        const kont = document.getElementById('print-content');
+        if (kont) kont.classList.toggle('melintang', lapKertas().mel);
+        window.muatkanMuka1();
     };
-    window.cetakLaporan = () => { window.tukarSaizLaporan(); setTimeout(() => window.print(), 100); };
+
+    window.cetakLaporan = () => {
+        window.tukarSaizLaporan();
+        const kont = document.getElementById('print-content'), k = lapKertas();
+        const lama = kont.getAttribute('style') || '';
+        // Semasa cetak, ukur muka 1 pada lebar kandungan sebenar kertas (tolak margin) supaya padanan tepat
+        kont.style.width = ((k.w - 2 * LAP_ML) * LAP_MM) + 'px'; kont.style.padding = '0'; kont.style.maxWidth = 'none';
+        window.muatkanMuka1();
+        window.addEventListener('afterprint', () => { kont.setAttribute('style', lama); window.muatkanMuka1(); }, { once: true });
+        setTimeout(() => window.print(), 100);
+    };
 
     function binaHtmlLaporan(mod, tempoh, list) {
         const num = (x) => Number(x) || 0;
@@ -1792,7 +1824,7 @@
                     belanja += a; bulanan[bln].keluar += a;
                     const k = t.category || 'Lain-lain'; kat[k] = (kat[k] || 0) + a;
                     kaedah[t.txnAccount === 'Tunai' ? 'Tunai' : 'Bank'] += a;
-                    const u = t.txnUser || '-'; individu[u] = (individu[u] || 0) + a;
+                    const u = t.txnUser || 'Tidak dinyatakan'; individu[u] = (individu[u] || 0) + a;
                 }
             } else if (t.category === 'Baki Permulaan') bakiAwal += a;
             else { pend += a; bulanan[bln].masuk += a; }
@@ -1825,7 +1857,7 @@
         const htmlKat = teratas.length ? teratas.map(([n, v]) => `<div class="lap-baris"><div class="lap-nm">${esc(n)}</div>${lapBar(lapLebar(v, belanja), '#6366f1')}<div class="lap-nilai">RM ${formatRM(v)} <em>${lapPct(v, belanja)}</em></div></div>`).join('') : '<div class="lap-kosong">Tiada perbelanjaan direkodkan.</div>';
 
         const htmlKaedah = ['Tunai', 'Bank'].map(k => `<div class="lap-baris"><div class="lap-nm">${k === 'Tunai' ? '💵 Tunai' : '🏦 Bank'}</div>${lapBar(lapLebar(kaedah[k], belanja), k === 'Tunai' ? '#10b981' : '#3b82f6')}<div class="lap-nilai">RM ${formatRM(kaedah[k])} <em>${lapPct(kaedah[k], belanja)}</em></div></div>`).join('');
-        const adaIndividu = Object.keys(individu).filter(k => k !== '-').length > 1;
+        const adaIndividu = Object.keys(individu).filter(k => k !== 'Tidak dinyatakan').length >= 1 && Object.keys(individu).length > 1;
         const htmlIndividu = adaIndividu ? Object.entries(individu).sort((a, b) => b[1] - a[1]).map(([n, v]) => `<div class="lap-baris"><div class="lap-nm">👤 ${esc(n)}</div>${lapBar(lapLebar(v, belanja), '#f59e0b')}<div class="lap-nilai">RM ${formatRM(v)} <em>${lapPct(v, belanja)}</em></div></div>`).join('') : '';
 
         // jadual bulanan (tahunan sahaja)
@@ -1887,11 +1919,13 @@
             .lap-jadual tr{page-break-inside:avoid}
             .lap-jadual tfoot td{background:#f1f5f9;font-weight:900}
             .lap-detail.baru{page-break-before:always}
+            @media screen{.lap-detail.baru{border-top:2px dashed #94a3b8;margin-top:26px;padding-top:22px;position:relative}.lap-detail.baru::before{content:'Muka surat 2';position:absolute;top:-10px;right:0;background:#fff;color:#64748b;font-size:11px;font-weight:800;padding:0 8px}}
             .lap-wrap h3{page-break-after:avoid}
             @media (max-width:640px){.lap-kpis{grid-template-columns:1fr 1fr}.lap-grid2{grid-template-columns:1fr}.lap-baris{grid-template-columns:38% 1fr auto}}
-            @media print{.lap-kpis{grid-template-columns:repeat(3,1fr)}.lap-grid2{grid-template-columns:1fr 1fr}}
+            @media print{.lap-kpis{grid-template-columns:repeat(3,1fr)}.lap-grid2{grid-template-columns:1fr 1fr}.lap-sect{margin-bottom:14px}.lap-kpi{padding:7px 10px}.lap-kpi b{font-size:17px}.lap-baris{margin-bottom:5px}.lap-jadual td,.lap-jadual th{padding:4px 7px}}
         </style>
         <div class="lap-wrap">
+            <div class="lap-p1">
             <div style="text-align:center;margin-bottom:18px;border-bottom:3px solid #1e293b;padding-bottom:14px">
                 <div style="font-size:12px;font-weight:800;color:#6366f1;letter-spacing:.08em">OURMONEY · FAMILI PINTAR</div>
                 <h2 style="font-size:24px;font-weight:900;margin:2px 0 4px;color:#1e293b">${tajukJenis}</h2>
@@ -1930,7 +1964,9 @@
             </div>
             ${adaIndividu ? `<div class="lap-sect"><h3>Perbelanjaan Mengikut Individu</h3>${htmlIndividu}</div>` : ''}
 
-            <div class="lap-detail ${mod === 'bulan' ? 'baru' : ''}">
+            </div>
+
+            <div class="lap-detail baru">
                 <h3>Rekod Transaksi Lengkap</h3>
                 <table class="lap-jadual">
                     <thead><tr><th>Tarikh</th><th>Kategori / Nota</th><th>Individu</th><th>Kaedah</th><th class="r">Masuk (RM)</th><th class="r">Keluar (RM)</th></tr></thead>
@@ -1957,6 +1993,7 @@
             snap.forEach(d => { const x = d.data(); if (x.date && String(x.date).startsWith(tempoh) && padanPengguna(x)) list.push(x); });
             list.sort((a, b) => String(a.date).localeCompare(String(b.date)) || (a.created_at || 0) - (b.created_at || 0));
             isi.innerHTML = binaHtmlLaporan(mod, tempoh, list);
+            window.muatkanMuka1();
         } catch (e) {
             isi.innerHTML = `<p style="color:red; text-align:center; padding:30px;">Ralat menjana laporan: ${esc(e.message)}</p>`;
         }
