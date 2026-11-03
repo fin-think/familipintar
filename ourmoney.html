@@ -775,7 +775,7 @@
         if (currentUser) muatDataOurMoney();
     };
     let tripList = [];
-    const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Pakaian", "Lain-lain"];
+    const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Belanja Sekolah Harian", "Pakaian", "Lain-lain"];
     const catInflow = ["Baki Permulaan", "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
 
     const btnRadios = document.querySelectorAll('input[name="txnType"]');
@@ -2289,7 +2289,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
 
     // Nisbah & perancangan: kadar simpanan, 50/30/20, had kategori, projeksi hujung bulan, dana kecemasan, cadangan
     function binaPerancangan(arrCur, belanja, simpan, catSpent) {
-        const KEPERLUAN = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Bil Utiliti", "Perubatan", "Pendidikan"];
+        const KEPERLUAN = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Bil Utiliti", "Perubatan", "Pendidikan", "Belanja Sekolah Harian"];
         const HAD = { "Rumah / Sewa": 35, "Kereta / Petrol": 15, "Barang Dapur": 15, "Makan Luar": 10, "Bil Utiliti": 10, "Pakaian": 5 };
         let pend = 0;
         arrCur.forEach(t => { if (t.type !== 'outflow' && t.category !== 'Baki Permulaan') pend += Number(t.amount) || 0; });
