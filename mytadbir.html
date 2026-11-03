@@ -903,7 +903,7 @@ if (rdb.monthlyBudget === undefined) {
               const awal = dana + ganjaranMasuk;
               const e = eduMengikutTahun[i];
               const edu = e ? e.jumlah : 0;
-              let hutang = 0, kes = 0, belanja = 0, akhir, pulangan = 0, habisTahunIni = false, bahagian = 0;
+              let hutang = 0, kes = 0, belanja = 0, pencenMasuk = 0, kesAsalRow = 0, kesPerluRow = 0, belanjaAsalRow = 0, belanjaPerluRow = 0, akhir, pulangan = 0, habisTahunIni = false, bahagian = 0;
               const peristiwa = [];
               if (e) peristiwa.push('Pengajian: ' + e.nama.join(', '));
               if (!bersara) {
@@ -916,7 +916,9 @@ if (rdb.monthlyBudget === undefined) {
                 const belanjaPerlu = Math.max(0, belanjaAsal - pencenTahun);
                 const kesPerlu = Math.max(0, kesAsal - Math.max(0, pencenTahun - belanjaAsal));
                 tahunBersara++;
+                kesAsalRow = kesAsal; kesPerluRow = kesPerlu; belanjaAsalRow = belanjaAsal; belanjaPerluRow = belanjaPerlu;
                 const ada = awal - edu - hutang;
+                if (ada > 0) pencenMasuk = Math.min(pencenTahun, kesAsal + belanjaAsal);
                 if (ada <= 0) {
                   akhir = 0;
                   if (!sudahHabis && (kesPerlu + belanjaPerlu) > 0) { habisTahunIni = true; sudahHabis = true; }
@@ -932,7 +934,8 @@ if (rdb.monthlyBudget === undefined) {
               if (habisTahunIni) peristiwa.push('Dana habis');
               const bakiHutangAkhir = bersara ? 0 : num(baki[i + 1] !== undefined ? baki[i + 1] : 0);
               baris.push({
-                tahun: tahunSemasa + i, umur: u, fasa: bersara ? 'Bersara' : 'Bekerja', awal, pulangan, edu, hutang, kes, belanja, akhir,
+                tahun: tahunSemasa + i, umur: u, fasa: bersara ? 'Bersara' : 'Bekerja', awal, pulangan, pencen: pencenMasuk, edu, hutang,
+                kes: kes + (pencenMasuk > 0 ? Math.max(0, kesAsalRow - kesPerluRow) : 0), belanja: belanja + (pencenMasuk > 0 ? Math.max(0, belanjaAsalRow - belanjaPerluRow) : 0), akhir,
                 bakiHutang: bakiHutangAkhir, bersih: akhir - bakiHutangAkhir, peristiwa: peristiwa.join(' · '),
                 habisTahunIni, bahagian, selepasHabis: sudahHabis && !habisTahunIni
               });
@@ -2061,7 +2064,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                           <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
                             <p className="text-[11px] font-bold text-slate-500 uppercase">Aset Pada Umur {retireAge}</p>
                             <p className="text-lg font-extrabold text-slate-800">{formatRM(asetPadaBersara)}</p>
-                            <p className="text-[10px] text-slate-400">Selepas pendidikan &amp; hutang, sebelum belanja &amp; kesihatan</p>
+                            <p className="text-[10px] text-slate-400">Selepas pendidikan &amp; hutang{ganjaranPencen > 0 ? ", termasuk ganjaran" : ""}, sebelum belanja &amp; kesihatan</p>
                           </div>
                           <div className={`rounded-xl p-3 text-center border ${retirementShortfall <= 0 ? 'bg-sky-50 border-sky-200' : 'bg-red-50 border-red-200'}`}>
                             <p className="text-[11px] font-bold text-slate-500 uppercase">Dana Bertahan Sehingga</p>
@@ -2077,6 +2080,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                                 <th className="p-2 text-left font-bold">Fasa</th>
                                 <th className="p-2 text-right font-bold">Aset Awal</th>
                                 <th className="p-2 text-right font-bold text-emerald-700">+ Pulangan</th>
+                                {pencenTahun > 0 && <th className="p-2 text-right font-bold text-emerald-700">+ Pencen</th>}
                                 <th className="p-2 text-right font-bold">- Pendidikan</th>
                                 <th className="p-2 text-right font-bold">- Hutang</th>
                                 <th className="p-2 text-right font-bold">- Kesihatan</th>
@@ -2099,6 +2103,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                                     <td className="p-2 text-slate-600">{r.selepasHabis ? 'Dana habis' : r.fasa}</td>
                                     <td className="p-2 text-right text-slate-700">{formatRM(r.awal)}</td>
                                     <td className="p-2 text-right text-emerald-600">{r.pulangan > 0.005 ? '+' + formatRM(r.pulangan) : <span className="text-slate-300">-</span>}</td>
+                                    {pencenTahun > 0 && <td className="p-2 text-right text-emerald-600">{r.pencen > 0.005 ? '+' + formatRM(r.pencen) : <span className="text-slate-300">-</span>}</td>}
                                     <td className="p-2 text-right">{sel(r.edu, true)}</td>
                                     <td className="p-2 text-right">{sel(r.hutang, true)}</td>
                                     <td className="p-2 text-right">{sel(r.kes, false)}</td>
