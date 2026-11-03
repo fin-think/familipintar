@@ -1114,6 +1114,9 @@ window.pantauLencanaWeCareUtama = async (user) => {
   .pd-langkah li { padding-left: 16px; position: relative; margin-top: 3px; }
   .pd-langkah li::before { content: '•'; position: absolute; left: 3px; color: var(--w, #64748b); font-weight: 800; }
   .pd-label { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--w, #64748b); margin-top: 9px; }
+  .pd-guna { margin-top: 10px; padding: 9px 11px; border-radius: 12px; background: rgba(255,255,255,.75); border: 1px dashed var(--w, #94a3b8); }
+  .pd-guna .pd-label { margin-top: 0; }
+  .pd-guna p { font-size: .8rem; color: #334155; line-height: 1.5; margin-top: 3px; font-weight: 500; }
   .pd-anak { display: flex; flex-direction: column; align-items: center; margin: 4px 0; color: #94a3b8; font-size: .7rem; font-weight: 800; }
   .pd-anak .pd-pnh { font-size: 1.4rem; line-height: 1; color: #0ea5e9; }
   .pd-cabang { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -1143,6 +1146,8 @@ window.pantauLencanaWeCareUtama = async (user) => {
           <li>Isi <b>tarikh lahir</b> dan tanda sama ada ahli masih hidup atau telah meninggal.</li>
           <li>Jemput adik-beradik supaya pokok mereka bercantum dengan pokok anda.</li>
         </ul>
+        <div class="pd-guna"><div class="pd-label">✨ Fungsi &amp; kelebihan</div>
+          <p>Salasilah digital dari moyang hingga cucu cicit. Isi sekali sahaja, semua app lain guna data yang sama. Setiap keluarga kekal memiliki pokok sendiri walaupun bercantum. Boleh cetak pokok keluarga besar (A4/A3/A1) dan lihat anggaran faraid daripada pokok anda.</p></div>
       </div>
       <div class="pd-anak"><span class="pd-pnh">⬇</span>data keluarga dikongsi</div>
       <!-- 2 -->
@@ -1156,12 +1161,16 @@ window.pantauLencanaWeCareUtama = async (user) => {
         </ul>
         <div class="pd-label">Yang anda isi di weCare</div>
         <ul><li>Jadual jagaan dan ubat, maklumat kesihatan ibu bapa, serta nota untuk adik-beradik.</li></ul>
+        <div class="pd-guna"><div class="pd-label">✨ Fungsi &amp; kelebihan</div>
+          <p>Jaga ibu bapa bersama adik-beradik walaupun berjauhan. Semua penjaga nampak profil kesihatan (jenis darah, penyakit, alahan, hospital), kalendar jagaan dan ubat, giliran tugasan, serta papan nota supaya tiada maklumat tertinggal. Ada notifikasi, ingatan hari jadi dan sync ke Google Calendar.</p></div>
       </div>
       <div class="pd-anak"><span class="pd-pnh">⬇</span>seterusnya</div>
       <!-- 3 -->
       <div class="pd-langkah" style="--w:#0ea5e9;--b:#f0f9ff">
         <div class="pd-tajuk"><span class="no">3</span> 📓 myJurnal <small>Jawab ujian &amp; kuiz</small></div>
         <ul><li>Pasangan dan anak diambil dari myNasab. Keputusan ujian anda disimpan, dan sebahagiannya dihantar ke app seterusnya.</li></ul>
+        <div class="pd-guna"><div class="pd-label">✨ Fungsi &amp; kelebihan</div>
+          <p>Lebih 20 kalkulator dan ujian tentang kewangan, hubungan, anak dan legasi, disusun langkah demi langkah supaya tak berasa keliru. Jawab sekali, keputusan terus tersimpan dan menjadi bahan untuk myTADBIR dan myKids. (Untuk yang masih bujang, ada PerjalananKu.)</p></div>
         <div class="pd-cabang" style="margin-top:10px">
           <div class="pd-langkah" style="--w:#f97316;--b:#fff7ed">
             <div class="pd-label" style="margin-top:0">Ujian kewangan anda</div>
@@ -1183,14 +1192,17 @@ window.pantauLencanaWeCareUtama = async (user) => {
         <div class="pd-langkah" style="--w:#8b5cf6;--b:#faf5ff">
           <div class="pd-tajuk"><span class="no">4</span> 🧒 myKids</div>
           <ul><li>Anak diambil dari myNasab.</li><li>Keputusan personaliti, psikologi dan integriti anak dipaparkan.</li><li>Bantu pilih laluan kerjaya yang serasi.</li></ul>
+          <div class="pd-guna"><div class="pd-label">✨ Kelebihan</div><p>Panduan dan senarai tugas anak untuk dunia dan akhirat: rancang kerjaya, laluan pendidikan SPM ke universiti, dan didikan rohani ikut peringkat umur. Anda tahu apa perlu dibuat dan bila.</p></div>
         </div>
         <div class="pd-langkah" style="--w:#0f172a;--b:#f8fafc">
           <div class="pd-tajuk"><span class="no">5</span> 🏛️ myTADBIR</div>
           <ul><li>Ahli keluarga dari myNasab, hutang dari myDEBT, persaraan dari myFINPLAN.</li><li>Dikira: harta bersih, DSR, dana persaraan, zakat dan sasaran dana.</li></ul>
+          <div class="pd-guna"><div class="pd-label">✨ Kelebihan</div><p>Nampak gambaran kewangan sebenar keluarga dalam satu skrin: berapa harta bersih, sejauh mana hutang menekan, dan cukupkah untuk bersara. Hasilnya terus menjadi sasaran simpanan di OurMoney.</p></div>
         </div>
         <div class="pd-langkah" style="--w:#6366f1;--b:#eef2ff">
           <div class="pd-tajuk"><span class="no">6</span> 💰 OurMoney</div>
           <ul><li>Sasaran simpanan dan zakat ditarik dari myTADBIR.</li><li>Percutian dari JomBercuti jadi misi simpanan.</li><li>Ibu bapa dari myNasab untuk misi Amanah.</li></ul>
+          <div class="pd-guna"><div class="pd-label">✨ Kelebihan</div><p>Jejak duit masuk dan keluar harian ikut individu (suami, isteri atau gabungan), dengan laporan bulanan dan tahunan boleh cetak PDF, nisbah 50/30/20 dan peringatan simpanan. Ada juga misi akhirat: infaq harian dan Amanah ibu bapa.</p></div>
         </div>
       </div>
       <p style="font-size:.74rem;color:#64748b;font-weight:600;text-align:center;margin:12px 0 4px;line-height:1.5">Tak perlu ikut semua. Mulakan di myNasab, kemudian pilih app yang anda perlukan. Anda boleh buka panduan ini semula bila-bila masa melalui butang <b>Teroka ekosistem</b>.</p>
