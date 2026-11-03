@@ -903,18 +903,19 @@ if ('Notification' in window) {
                 const on = userData.ourmoney_notif, kini = new Date();
                 const bulanKini = kini.getFullYear() + '-' + String(kini.getMonth() + 1).padStart(2, '0');
                 let bilOM = (on && on.bulan === bulanKini && on.bilangan > 0) ? on.bilangan : 0;
-                // Infaq harian: tambah 1 jika misi aktif dan infaq hari ini belum cukup
+                // Infaq harian (induk dan pasangan, masing-masing): tambah 1 jika misi aktif dan infaq hari ini belum cukup
                 try {
                     const tarikhMY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kuala_Lumpur', year: 'numeric', month: '2-digit', day: '2-digit' }).format(kini);
-                    const ig = await getDoc(doc(db, "ourmoney_goals", user.uid + '_infaq'));
-                    if (ig.exists() && ig.data().status === 'aktif' && Number(ig.data().harian) > 0 && ig.data().mula) {
-                        const noHari = (t) => { const [y, m, d] = String(t).split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
+                    const noHari = (t) => { const [y, m, d] = String(t).split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
+                    let hariIniTx = null;
+                    for (const per of ['induk', 'pasangan']) {
+                        const ig = await getDoc(doc(db, "ourmoney_goals", user.uid + '_infaq' + (per === 'pasangan' ? '_pasangan' : '')));
+                        if (!(ig.exists() && ig.data().status === 'aktif' && Number(ig.data().harian) > 0 && ig.data().mula)) continue;
                         const mulaNo = noHari(ig.data().mula), kiniNo = noHari(tarikhMY);
-                        if (kiniNo >= mulaNo && kiniNo <= mulaNo + 364) {
-                            const ts = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", user.uid), where("infaq", "==", true), where("date", "==", tarikhMY)));
-                            let jum = 0; ts.forEach(t => { const x = t.data(); if (x.type === 'outflow') jum += Number(x.amount) || 0; });
-                            if (jum + 0.005 < Number(ig.data().harian)) bilOM += 1;
-                        }
+                        if (kiniNo < mulaNo || kiniNo > mulaNo + 364) continue;
+                        if (hariIniTx === null) hariIniTx = (await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", user.uid), where("infaq", "==", true), where("date", "==", tarikhMY)))).docs.map(t => t.data());
+                        let jum = 0; hariIniTx.forEach(x => { if (x.type === 'outflow' && (x.txnPeranan || 'induk') === per) jum += Number(x.amount) || 0; });
+                        if (jum + 0.005 < Number(ig.data().harian)) bilOM += 1;
                     }
                 } catch (e) { console.log('Semakan lencana infaq gagal:', e); }
                 if (bilOM > 0) { lenOM.innerText = bilOM; lenOM.style.display = 'inline-block'; }

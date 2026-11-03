@@ -44,19 +44,20 @@ async function jalankanPeringatanInfaq(dbRef, messaging, opsi = {}) {
                 if (!udata || !kumpulToken(udata).length) { langkau++; return; }
 
                 const tSnap = await dbRef.collection('ourmoney_transactions').where('owner_uid', '==', uid).where('infaq', '==', true).where('date', '==', tarikh).get();
-                let hariIni = 0; tSnap.forEach(t => { const y = t.data(); if (y.type === 'outflow') hariIni += Number(y.amount) || 0; });
+                const per = x.peranan === 'pasangan' ? 'pasangan' : 'induk';
+                let hariIni = 0; tSnap.forEach(t => { const y = t.data(); if (y.type === 'outflow' && (y.txnPeranan === 'pasangan' ? 'pasangan' : 'induk') === per) hariIni += Number(y.amount) || 0; });
                 const baki = Number(x.harian) - hariIni;
                 if (baki <= 0.005) { langkau++; return; }
 
                 if (!opsi.tanpaLog) {
-                    try { await dbRef.collection('ourmoney_notif_log').doc(`${uid}_infaq_${tarikh}`).create({ uid, jenis: 'infaq', tarikh, timestamp: new Date().toISOString() }); }
+                    try { await dbRef.collection('ourmoney_notif_log').doc(`${uid}_infaq${per === 'pasangan' ? '_pasangan' : ''}_${tarikh}`).create({ uid, jenis: 'infaq', tarikh, timestamp: new Date().toISOString() }); }
                     catch (e) { langkau++; return; }          // sudah dihantar hari ini
                 }
 
                 const hariKe = hariNo - infaqNoHari(x.mula) + 1;
                 const n = await hantarKeSemuaPeranti(dbRef, messaging, uid, udata, {
-                    notification: { title: `🤲 Infaq harian · hari ke-${hariKe}`, body: `Baki hari ini ${omRM(baki)}. ${INFAQ_AYAT[hariKe % INFAQ_AYAT.length]}` },
-                    data: { app: 'ourmoney', url: '/ourmoney.html', badgeCount: '1', tag: 'ourmoney-infaq' }
+                    notification: { title: `🤲 Infaq harian${per === 'pasangan' ? ' (pasangan)' : ''} · hari ke-${hariKe}`, body: `Baki hari ini ${omRM(baki)}. ${INFAQ_AYAT[hariKe % INFAQ_AYAT.length]}` },
+                    data: { app: 'ourmoney', url: '/ourmoney.html', badgeCount: '1', tag: 'ourmoney-infaq-' + per }
                 });
                 if (n > 0) dihantar++; else langkau++;
             } catch (e) { console.error('Infaq: gagal untuk', uid, e.message); }
