@@ -78,6 +78,7 @@
   .pp-btn.aktif { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
   .filter-wrap { display: flex; gap: 10px; margin-bottom: 15px; }
   .filter-wrap input[type="month"] { flex: 1; padding: 10px; border: 1.5px solid var(--line); border-radius: 8px; font-weight: 800; color: var(--ink); outline: none; }
+  .filter-wrap select { flex: 1; padding: 10px; border: 1.5px solid var(--line); border-radius: 8px; font-weight: 800; color: var(--ink); outline: none; background: #fff; font-family: inherit; }
   .filter-wrap button { background: #e0f2fe; color: #0284c7; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; }
   .filter-wrap button:hover { background: #bae6fd; }
 
@@ -395,9 +396,13 @@
       <div class="card">
         <div class="card-header" style="display:block; border-bottom:none; margin-bottom:5px;">
           <h2 id="tajuk-transaksi" style="margin-bottom:10px;">📋 Senarai Transaksi</h2>
+          <div class="filter-wrap" style="margin-bottom:8px">
+              <input type="month" id="filterBulan">
+              <button onclick="tukarBulanPaparan()">Papar</button>
+          </div>
           <div class="filter-wrap">
-              <input type="month" id="filterBulan" onchange="tukarBulanPaparan()">
-              <button onclick="lihatTahunan()">Paparan Tahunan</button>
+              <select id="filterTahun" aria-label="Tahun laporan tahunan"></select>
+              <button onclick="lihatTahunan()">Papar Tahunan</button>
           </div>
         </div>
         <div class="txn-list" id="senarai-transaksi">
@@ -601,7 +606,7 @@
             💳 Potong Kredit
         </button>
         
-        <button onclick="document.getElementById('modalBeliFitur').style.display='none'" style="width:100%; background:transparent; color:var(--muted); padding:10px; border:none; font-weight:600; font-size:14px; cursor:pointer;">
+        <button onclick="batalBeliFitur()" style="width:100%; background:transparent; color:var(--muted); padding:10px; border:none; font-weight:600; font-size:14px; cursor:pointer;">
             Batal
         </button>
     </div>
@@ -710,6 +715,13 @@
     let modPaparan = 'bulan'; 
     
     document.getElementById('filterBulan').value = bulanIniStr;
+    let bulanDipaparkan = bulanIniStr;     // bulan yang sedang dipaparkan (untuk kembalikan pilihan bila beli dibatalkan)
+    (() => {
+        const sel = document.getElementById('filterTahun'), thn = parseInt(bulanIniStr.substring(0, 4), 10);
+        for (let y = thn; y >= thn - 5; y--) sel.insertAdjacentHTML('beforeend', '<option value="' + y + '">Tahun ' + y + '</option>');
+        sel.value = String(thn);
+    })();
+    const tahunDipilih = () => (document.getElementById('filterTahun') || {}).value || bulanIniStr.substring(0, 4);
     document.getElementById('txnDate').value = localDateStr;
 
     const formatRM = (val) => {
@@ -725,7 +737,7 @@
     const namaPeranan = (p) => p === 'pasangan' ? namaPasangan : namaInduk;
     const labelMod = () => modPengguna === 'gabungan' ? 'Gabungan' : namaPeranan(modPengguna);
     const kosTahunan = () => modPengguna === 'gabungan' ? 8 : 5;   // penyata tahunan: setiap kali jana
-    const kunciTahunan = () => 'T|' + modPengguna + '|' + (document.getElementById('filterBulan').value || bulanIniStr).substring(0, 4);
+    const kunciTahunan = () => 'T|' + modPengguna + '|' + tahunDipilih();
     const kunciSesi = () => 'om_laporan_' + (currentUser ? currentUser.uid : '');
     function simpanLaporanSesi() { try { sessionStorage.setItem(kunciSesi(), JSON.stringify([...laporanDijana])); } catch (e) {} }
     function muatLaporanSesi() { try { laporanDijana = new Set(JSON.parse(sessionStorage.getItem(kunciSesi()) || '[]')); } catch (e) { laporanDijana = new Set(); } }
@@ -1676,13 +1688,18 @@
         } else if (jenis === 'yearly') {
             tajuk = "Laporan Tahunan & Cetakan";
             const kos = kosTahunan();
-            desc = "Jana penyata tahunan lengkap (" + (modPengguna === 'gabungan' ? "Gabungan keluarga" : labelMod()) + ", tahun " + (document.getElementById('filterBulan').value || bulanIniStr).substring(0, 4) + ") untuk rekod rasmi atau cetakan. Caj dikenakan setiap kali dijana.";
+            desc = "Jana penyata tahunan lengkap (" + (modPengguna === 'gabungan' ? "Gabungan keluarga" : labelMod()) + ", tahun " + tahunDipilih() + ") untuk rekod rasmi atau cetakan. Caj dikenakan setiap kali dijana.";
             caj = "💳 Potong " + kos + " Kredit";
         }
         document.getElementById('fitur-tajuk').innerText = tajuk;
         document.getElementById('fitur-desc').innerText = desc;
         document.getElementById('btn-bayar-fitur').innerText = caj;
         document.getElementById('modalBeliFitur').style.display = 'flex';
+    };
+
+    window.batalBeliFitur = () => {
+        document.getElementById('modalBeliFitur').style.display = 'none';
+        if (pendingFitur === 'history') document.getElementById('filterBulan').value = bulanDipaparkan;
     };
 
     window.prosesBeliFitur = async () => {
@@ -1723,10 +1740,9 @@
     };
 
     window.tukarBulanPaparan = (skipCheck = false) => {
-        const filterVal = document.getElementById('filterBulan').value;
+        const filterVal = document.getElementById('filterBulan').value || bulanIniStr;
         if (filterVal < bulanIniStr && !window.historyUnlocked && !skipCheck) {
-            document.getElementById('filterBulan').value = bulanIniStr; 
-            window.bukaBeliFitur('history');
+            window.bukaBeliFitur('history');     // pilihan bulan dikekalkan; dipaparkan selepas bayar
             return;
         }
         modPaparan = 'bulan';
@@ -1747,7 +1763,7 @@
         document.getElementById('modalCetakTahunan').style.display = 'flex';
         document.getElementById('print-content').innerHTML = '<div style="text-align:center; padding:50px; font-size:18px;">Menjana laporan tahunan... <br><br> Sila tunggu sebentar.</div>';
         
-        const tahunVal = document.getElementById('filterBulan').value.substring(0, 4);
+        const tahunVal = tahunDipilih();
         
         try {
             const q = query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid));
@@ -1847,6 +1863,7 @@
         try {
             const filterVal = document.getElementById('filterBulan').value || bulanIniStr; 
             const tahunVal = filterVal.substring(0, 4); 
+            bulanDipaparkan = filterVal;
 
             const akhiran = adaPasangan ? " • " + labelMod() : "";
             document.getElementById('tajuk-transaksi').innerText = "📋 Transaksi Bulan " + filterVal + akhiran;
