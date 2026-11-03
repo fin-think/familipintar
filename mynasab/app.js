@@ -1412,7 +1412,7 @@ window.bukaPreview = async () => {
 };
 
 // --- 8. SAIZ KERTAS & CETAK ---
-const SAIZ_KERTAS = { A4: { w: 297, h: 210 }, A3: { w: 420, h: 297 }, A1: { w: 841, h: 594 } };
+const SAIZ_KERTAS = { A4: { w: 297, h: 210 }, A3: { w: 420, h: 297 } };
 const MM = 3.78;
 
 window.tukarSaizKertas = () => {
@@ -2524,7 +2524,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
             htmlBar = `<div class="bar-sembunyi">Disembunyikan: ${senaraiSembunyi}</div>`;
         }
 
-        ruang.innerHTML = `<div class="tree pokok-besar">${htmlSisi}</div>${htmlBar}`;
+        ruang.innerHTML = `<div class="tree pokok-besar${mod === 'semua' ? ' susun-atas-bawah' : ''}">${htmlSisi}</div>${htmlBar}`;
         if (sebagai) { const bt = document.getElementById('btnSegerakPokok'); if (bt) bt.style.display = 'none'; }
         else window.muatSenaraiWaris('senaraiWarisBesar');
         window.jarakkanKotak(document.getElementById('ruangAutoLayout'));
