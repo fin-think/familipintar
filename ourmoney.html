@@ -667,7 +667,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, updateDoc, increment, addDoc, deleteDoc, collection, query, where, getDocs, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, updateDoc, increment, arrayUnion, addDoc, deleteDoc, collection, query, where, getDocs, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
 
@@ -1162,7 +1162,7 @@
         try {
             if (!currentUser || !('Notification' in window) || Notification.permission !== 'granted') return;
             const token = await getToken(getMessaging(), { vapidKey: 'BC-vntpi-9WxGGKUPeGopgcykMKc87MODe1aEpwieX096IQ8Hzu3Mh89SI8YxuvvOvPSqhW7Eu2Ziqn4ZjwBugs' });
-            if (token) await setDoc(doc(db, "mynasab_users", currentUser.uid), { fcm_token: token }, { merge: true });
+            if (token) await setDoc(doc(db, "mynasab_users", currentUser.uid), { fcm_token: token, fcm_tokens: arrayUnion(token) }, { merge: true });
         } catch (e) { console.log("Gagal daftar token push:", e); }
     };
     window.daftarTokenPush = daftarTokenPush;
@@ -1190,7 +1190,7 @@
         try {
             const izin = ('Notification' in window) ? Notification.permission : 'tiada';
             const u = await getDoc(doc(db, "mynasab_users", currentUser.uid));
-            const ada = u.exists() && !!u.data().fcm_token;
+            const dt = u.exists() ? u.data() : {}; const ada = !!dt.fcm_token || (Array.isArray(dt.fcm_tokens) && dt.fcm_tokens.length > 0);
             el.textContent = 'Status: izin notifikasi ' + (izin === 'granted' ? '✅ dibenarkan' : izin === 'denied' ? '❌ disekat' : '⚠️ belum dibenarkan') + ' · telefon ' + (ada ? '✅ didaftar' : '⚠️ belum didaftar');
         } catch (e) {}
     };

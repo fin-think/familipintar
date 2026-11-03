@@ -40,8 +40,8 @@ async function jalankanPeringatanInfaq(dbRef, messaging, opsi = {}) {
             const x = d.data(), uid = x.owner_uid;
             try {
                 const userDoc = await dbRef.collection('mynasab_users').doc(uid).get();
-                const token = userDoc.exists && userDoc.data().fcm_token;
-                if (!token) { langkau++; return; }
+                const udata = userDoc.exists ? userDoc.data() : null;
+                if (!udata || !kumpulToken(udata).length) { langkau++; return; }
 
                 const tSnap = await dbRef.collection('ourmoney_transactions').where('owner_uid', '==', uid).where('infaq', '==', true).where('date', '==', tarikh).get();
                 let hariIni = 0; tSnap.forEach(t => { const y = t.data(); if (y.type === 'outflow') hariIni += Number(y.amount) || 0; });
@@ -54,12 +54,11 @@ async function jalankanPeringatanInfaq(dbRef, messaging, opsi = {}) {
                 }
 
                 const hariKe = hariNo - infaqNoHari(x.mula) + 1;
-                await messaging.send({
+                const n = await hantarKeSemuaPeranti(dbRef, messaging, uid, udata, {
                     notification: { title: `🤲 Infaq harian · hari ke-${hariKe}`, body: `Baki hari ini ${omRM(baki)}. ${INFAQ_AYAT[hariKe % INFAQ_AYAT.length]}` },
-                    data: { app: 'ourmoney', url: '/ourmoney.html', badgeCount: '1', tag: 'ourmoney-infaq' },
-                    token
+                    data: { app: 'ourmoney', url: '/ourmoney.html', badgeCount: '1', tag: 'ourmoney-infaq' }
                 });
-                dihantar++;
+                if (n > 0) dihantar++; else langkau++;
             } catch (e) { console.error('Infaq: gagal untuk', uid, e.message); }
         }));
     }
