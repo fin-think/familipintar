@@ -783,18 +783,30 @@ async function muatKeluargaDanNota(groupId) {
       // (cth. Amri yang dicantum/dijemput oleh Amran, abang Aminah) - sama seperti 'Keluarga Besar: Belah Saya' dalam myNasab
       const kIndukDiri = sayaInduk ? null : kelompok(nodInduk).diri;
       // Saya dijemput sebagai adik-beradik induk: adik-beradik cantuman milik induk juga adik-beradik saya (sama seperti pokok myNasab)
+      // Adik-beradik yang asalnya ditambah sebagai ahli (nod) dalam pokok induk/adik-beradik, kemudian menjadi akaun sendiri melalui e-mel
+      // (cth. Amri ditambah Amran, lalu dijemput): mereka ada dalam nod pokok, bukan dalam linked_adik
+      const adikNod = [];
+      const kumpulAdikNod = (nod) => nod.forEach(n => {
+        const h = (n.relationship || '').toLowerCase();
+        if (n.is_root || /ipar|saudara|pasangan|menantu/.test(h) || !/^(adik|abang|kakak|adik-beradik)\b/.test(h)) return;
+        adikNod.push(n);
+      });
+      if (kIndukDiri && sasaranIdPusat === kIndukDiri.id) kumpulAdikNod(nodInduk);
       const adikSemua = new Set(), baris = [...(kPusat.diri.linked_adik || []), ...((kIndukDiri && sasaranIdPusat === kIndukDiri.id) ? (kIndukDiri.linked_adik || []) : [])];
       while (baris.length && adikSemua.size < 30) {
         const u = baris.shift();
         if (!u || u === saya || u === indukUid || adikSemua.has(u)) continue;
         adikSemua.add(u);
         const nu = await ambil(u), ru = (nu.find(n => n.is_root) || {});
+        kumpulAdikNod(nu);
         (ru.linked_adik || []).forEach(x => baris.push(x));
         try {
           const lk = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", u), where("status", "==", "aktif")));
           lk.docs.forEach(d => { const l = d.data(); if (l.uid && (!l.sasaran_id || l.sasaran_id === ru.id)) baris.push(l.uid); });
         } catch (e) {}
       }
+      const namaSaya2 = (kPusat.diri.name || '').trim().toLowerCase();
+      // (dilengkapkan selepas senarai akaun supaya e-mel akaun diutamakan)
       for (const u of adikSemua) {
         if (sembunyi.includes(u) || akaun.some(x => x.uid === u)) continue;
         const kl = kelompok(await ambil(u));
@@ -806,6 +818,7 @@ async function muatKeluargaDanNota(groupId) {
         window._namaUid[u] = nama; if (kl.diri) masukHJ(kl.diri);
         tambah(u, nama, emel || await emelAkaun(u), 'Adik-beradik', dob);
       }
+      adikNod.forEach(n => { if ((n.name || '').trim().toLowerCase() !== namaSaya2) tambah(n.id, n.name, n.email, 'Adik-beradik', n.dob); });
 
       if (!sayaInduk && !sembunyi.includes(indukUid)) {
         const kInduk = kelompok(nodInduk);
