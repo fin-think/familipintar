@@ -271,6 +271,18 @@
   .amanah-card .infaq-act button { border-color: #FCD34D; color: #B45309; }
   .amanah-card .infaq-act button.utama { background: #D97706; border-color: #D97706; color: #fff; }
   .amanah-card .infaq-input { border-color: #FCD34D; }
+  .haji-card { background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border-color: #6EE7B7; }
+  .haji-card h3 { color: #047857; }
+  .haji-card .infaq-sub, .haji-card .infaq-nota { color: #065F46; }
+  .haji-card .infaq-box { border-color: #A7F3D0; }
+  .haji-card .infaq-grid > div { background: #ECFDF5; border-color: #A7F3D0; }
+  .haji-card .infaq-grid span { color: #047857; }
+  .haji-card .infaq-grid b { color: #064E3B; }
+  .haji-card .infaq-act button { border-color: #6EE7B7; color: #047857; }
+  .haji-card .infaq-act button.utama { background: #059669; border-color: #059669; color: #fff; }
+  .haji-card .infaq-input { border-color: #6EE7B7; }
+  .infaq-bar.haji { background: #D1FAE5; }
+  .infaq-bar.haji > div { background: linear-gradient(90deg, #34D399, #059669); }
   .infaq-bar.amanah { background: #FEF3C7; }
   .infaq-bar.amanah > div { background: linear-gradient(90deg, #F59E0B, #D97706); }
   .infaq-nota { font-size: 0.7rem; color: #047857; font-weight: 600; line-height: 1.45; margin-top: 10px; }
@@ -520,6 +532,13 @@
             <h3>🤝 Misi Akhirat: Amanah Ibu Bapa</h3>
             <div class="infaq-sub">Elaun bulanan untuk ibu bapa (pasangan: mertua), dikira daripada pendapatan (kira-kira 5%).</div>
             <div id="amanah-isi"><div id="amanah-w-induk"><div id="amanah-h-induk"></div><div id="amanah-isi-induk"></div></div><div id="amanah-w-pasangan" style="display:none;margin-top:10px"><div id="amanah-h-pasangan"></div><div id="amanah-isi-pasangan"></div></div></div>
+        </div>
+
+        <!-- Kad Misi Akhirat: Haji (induk & pasangan masing-masing; disorok jika sudah tunai / Tabung Haji sudah cukup) -->
+        <div class="infaq-card haji-card" id="haji-card" style="display:none">
+            <h3>🕋 Misi Akhirat: Haji</h3>
+            <div class="infaq-sub">Menyimpan untuk menunaikan haji. Tetapkan tahun sasaran, kami kira simpanan bulanan.</div>
+            <div id="haji-isi"><div id="haji-w-induk"><div id="haji-h-induk"></div><div id="haji-isi-induk"></div></div><div id="haji-w-pasangan" style="display:none;margin-top:10px"><div id="haji-h-pasangan"></div><div id="haji-isi-pasangan"></div></div></div>
         </div>
 
         <!-- Kad Integrasi JomBercuti -->
@@ -793,13 +812,16 @@
         modPengguna = m;
         try { localStorage.setItem('om_pengguna', m); } catch (e) {}
         renderPemilih(); segerakBorangPengguna();
-        if (currentUser) { muatDataOurMoney(); renderInfaqSemua(); renderAmanahSemua(); }
+        if (currentUser) { muatDataOurMoney(); renderInfaqSemua(); renderAmanahSemua(); renderHajiSemua(); }
     };
     let tripList = [];
     let ibuBapaHidup = { induk: [], pasangan: [] };
-    const perluInfaq = { induk: false, pasangan: false }, perluAmanah = { induk: false, pasangan: false };
+    const perluInfaq = { induk: false, pasangan: false }, perluAmanah = { induk: false, pasangan: false }, perluHaji = { induk: false, pasangan: false };
     const senaraiPeranan = () => modPengguna === 'gabungan' && adaPasangan ? ['induk', 'pasangan'] : [modPengguna === 'pasangan' && adaPasangan ? 'pasangan' : 'induk'];
-    const AMANAH_KAT0 = '🤝 Amanah Ibu Bapa';
+    const AMANAH_KAT0 = '🤝 Amanah Ibu Bapa', HAJI_KAT0 = '🕋 Haji';
+    const HJ = { induk: { doc: null, rekod: [], th: 0 }, pasangan: { doc: null, rekod: [], th: 0 } };
+    const hajiAktif = (p) => !!(HJ[p] && HJ[p].doc && HJ[p].doc.status === 'aktif');
+
     const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans / Takaful", "Tol & Parking", "Pakaian", "Lain-lain"];
     const catInflow = ["Baki Permulaan", "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
 
@@ -818,7 +840,7 @@
             const t = (typeof misiSenarai !== 'undefined' ? misiSenarai : []).filter(x => x.trip && !(x.k && x.k.siap));
             if (t.length) h += '<optgroup label="✈️ Simpanan Percutian">' + t.map(x => `<option value="${esc(x.id)}">${esc(x.label)}</option>`).join('') + '</optgroup>';
         }
-        if (type === 'outflow') h += '<optgroup label="🤲 Misi Akhirat"><option value="infaq:harian">🤲 Infaq / Sedekah</option>' + (perananBorang() && (ibuBapaHidup[perananBorang()] || []).length ? '<option value="amanah:ibubapa">🤝 Amanah Ibu Bapa</option>' : '') + '</optgroup>';
+        if (type === 'outflow') h += '<optgroup label="🤲 Misi Akhirat"><option value="infaq:harian">🤲 Infaq / Sedekah</option>' + (perananBorang() && (ibuBapaHidup[perananBorang()] || []).length ? '<option value="amanah:ibubapa">🤝 Amanah Ibu Bapa</option>' : '') + (hajiAktif(perananBorang()) ? '<option value="haji:misi">🕋 Simpanan Haji</option>' : '') + '</optgroup>';
         selectCat.innerHTML = h;
         if (dahPilih && [...selectCat.options].some(o => o.value === dahPilih)) selectCat.value = dahPilih;
     }
@@ -971,7 +993,7 @@
             await muatDataMyTadbir(); 
             await muatTargetPercutian();
             await muatMisi();
-            muatInfaq(); muatAmanah(); daftarTokenPush();
+            muatInfaq(); muatAmanah(); muatHaji(); daftarTokenPush();
             muatDataOurMoney();
         } else {
             currentUser = null;
@@ -1083,7 +1105,7 @@
 
             misiAktif = {};
             const aSnap = await getDocs(query(collection(db, "ourmoney_goals"), where("owner_uid", "==", currentUser.uid)));
-            aSnap.forEach(d => { const x = d.data(); if (x.jenis === 'infaq_harian' || x.jenis === 'amanah_ibubapa') return; if (x.status !== 'selesai') misiAktif[x.goal_id] = { docId: d.id, ...x }; });
+            aSnap.forEach(d => { const x = d.data(); if (x.jenis === 'infaq_harian' || x.jenis === 'amanah_ibubapa' || x.jenis === 'haji') return; if (x.status !== 'selesai') misiAktif[x.goal_id] = { docId: d.id, ...x }; });
 
             misiSetoran = [];
             const tSnap = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
@@ -1100,7 +1122,7 @@
         document.querySelectorAll('.om-pane').forEach(p => p.classList.toggle('on', p.id === 'pane-' + nama));
         try { localStorage.setItem('om_tab', nama); } catch (e) {}
     };
-    const kemaskiniTitikMisi = () => { const t = document.getElementById('titik-misi'); if (t) t.classList.toggle('ada', misiPerluTindakan || perluInfaq.induk || perluInfaq.pasangan || perluAmanah.induk || perluAmanah.pasangan); };
+    const kemaskiniTitikMisi = () => { const t = document.getElementById('titik-misi'); if (t) t.classList.toggle('ada', misiPerluTindakan || perluInfaq.induk || perluInfaq.pasangan || perluAmanah.induk || perluAmanah.pasangan || perluHaji.induk || perluHaji.pasangan); };
     window.togolMisi = (id) => { if (misiBuka.has(id)) misiBuka.delete(id); else misiBuka.add(id); renderMisi(); };
     try { const t = localStorage.getItem('om_tab'); if (t && ['ringkasan', 'misi', 'analisis'].includes(t)) window.tukarTabOM(t); } catch (e) {}
 
@@ -1441,6 +1463,151 @@
     window.renderAmanah = renderAmanah;
     window.amanahBulanIniIsi = (p) => window.pilihSetor('amanah:' + p);
 
+
+    // ===== MISI AKHIRAT: HAJI (induk & pasangan masing-masing) =====
+    // Disimpan dalam ourmoney_goals/{uid}_haji[_pasangan]: sasaran, baki_awal, tahun_target, status (aktif | tunai | berhenti).
+    // Baki awal dicadangkan daripada instrumen "Tabung Haji" dalam myFINPLAN. Kad disorok jika sudah tunai, atau Tabung Haji sudah cukup.
+    let hajiBuka = { induk: false, pasangan: false };
+    const SASARAN_HAJI = 15000;
+    // Kiraan sasaran: terkumpul sebelum bulan ini = baki awal + simpanan haji bulan-bulan lepas; baki bulan = (sasaran - terkumpul) / bulan tinggal (termasuk bulan ini, hingga Dis tahun sasaran)
+    const hajiBulanTinggal = (tahun) => { const n = new Date(); return Math.max(1, (Number(tahun) - n.getFullYear()) * 12 + (12 - n.getMonth())); };
+    const hajiKira = (p) => {
+        const d = HJ[p].doc; if (!d) return null;
+        const mula = String(d.mula || '');
+        const rek = HJ[p].rekod.filter(r => !mula || String(r.date) >= mula);
+        const sebelum = (Number(d.baki_awal) || 0) + rek.filter(r => String(r.date).substring(0, 7) < bulanIniStr).reduce((a, r) => a + r.amount, 0);
+        const bulanIni = rek.filter(r => String(r.date).substring(0, 7) === bulanIniStr).reduce((a, r) => a + r.amount, 0);
+        const sasaran = Number(d.sasaran) || SASARAN_HAJI;
+        const bt = hajiBulanTinggal(d.tahun_target);
+        const perlu = Math.max(0, sasaran - sebelum) / bt;
+        const jumlah = sebelum + bulanIni;
+        return { sasaran, sebelum, bulanIni, bt, perlu, jumlah, capai: jumlah >= sasaran, siapBulan: bulanIni >= perlu - 0.5, baki: Math.max(0, perlu - bulanIni), lepas: Number(d.tahun_target) < new Date().getFullYear() };
+    };
+    const hajiBakiBulan = (p) => { const k = hajiAktif(p) ? hajiKira(p) : null; return k && !k.capai ? k.baki : 0; };
+    window.hajiAktif = hajiAktif;
+
+    async function muatHaji() {
+        if (!currentUser) return;
+        try {
+            HJ.induk.rekod = []; HJ.pasangan.rekod = [];
+            const tSnap = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
+            tSnap.forEach(d => { const x = d.data(); if (x.haji === true && x.type === 'outflow' && x.date) HJ[peranRekod(x)].rekod.push({ date: x.date, amount: Number(x.amount) || 0 }); });
+            for (const p of ['induk', 'pasangan']) {
+                const g = await getDoc(doc(db, "ourmoney_goals", idDok('haji', p)));
+                HJ[p].doc = g.exists() && g.data().status !== 'berhenti' ? g.data() : null;
+                HJ[p].th = 0;
+                try {
+                    const f = await getDoc(doc(db, "myfinplan_plans", p === 'pasangan' ? currentUser.uid + '_pasangan' : currentUser.uid));
+                    if (f.exists()) (f.data().instruments || []).forEach(i => { if (/tabung\s*haji/i.test(i.name || '')) HJ[p].th += parseFloat(i.value) || 0; });
+                } catch (e) {}
+            }
+        } catch (e) { console.error("Gagal muat haji:", e); }
+        renderHajiSemua(); kemaskiniSenaraiKategori(); semakNotifMisi();
+    }
+
+    const hajiPapar = (p) => { const d = HJ[p].doc; if (d) return d.status === 'aktif'; return HJ[p].th < SASARAN_HAJI; };
+
+    function renderHajiSemua() {
+        const lihat = senaraiPeranan(); let adaPapar = false;
+        ['induk', 'pasangan'].forEach(p => {
+            const w = document.getElementById('haji-w-' + p), h = document.getElementById('haji-h-' + p);
+            if (!w) return;
+            const papar = lihat.includes(p) && hajiPapar(p);
+            w.style.display = papar ? '' : 'none';
+            if (h) h.innerHTML = lihat.length > 1 ? `<div style="font-weight:800;font-size:.78rem;margin:2px 0 6px;color:#065F46">👤 ${esc(namaPeranan(p))}</div>` : '';
+            if (papar) adaPapar = true;
+            renderHaji(p);
+        });
+        const kad = document.getElementById('haji-card'); if (kad) kad.style.display = adaPapar ? '' : 'none';
+    }
+    window.renderHajiSemua = renderHajiSemua; window.muatHaji = muatHaji;
+
+    function borangHaji(p, nilai) {
+        const th = HJ[p].th, d = nilai || {};
+        const sasaran = d.sasaran || SASARAN_HAJI, baki = d.baki_awal != null ? d.baki_awal : th, tahun = d.tahun_target || (new Date().getFullYear() + 5);
+        return `<div class="infaq-box">
+            ${th > 0 ? `<div style="font-size:.78rem;font-weight:700;color:#065F46;margin-bottom:8px;line-height:1.5">Baki Tabung Haji dalam myFINPLAN: <b>RM ${formatRM(th)}</b>. Misi ini bermula daripada baki ini.</div>` : `<div style="font-size:.78rem;font-weight:700;color:#065F46;margin-bottom:8px;line-height:1.5">Tiada Tabung Haji dalam myFINPLAN. Isi baki simpanan haji sedia ada (jika ada) di bawah.</div>`}
+            <label style="font-size:.7rem;font-weight:800;color:#047857;text-transform:uppercase">Sasaran dana haji (RM)</label>
+            <input id="haji-sasaran-${p}" class="infaq-input" type="number" min="1" step="100" value="${sasaran}" oninput="pratonjolHaji('${p}')">
+            <label style="font-size:.7rem;font-weight:800;color:#047857;text-transform:uppercase">Baki awal (RM)</label>
+            <input id="haji-baki-${p}" class="infaq-input" type="number" min="0" step="100" value="${baki}" oninput="pratonjolHaji('${p}')">
+            <label style="font-size:.7rem;font-weight:800;color:#047857;text-transform:uppercase">Tahun mahu menunaikan haji</label>
+            <input id="haji-tahun-${p}" class="infaq-input" type="number" min="${new Date().getFullYear()}" max="${new Date().getFullYear() + 60}" step="1" value="${tahun}" oninput="pratonjolHaji('${p}')">
+            <div id="haji-pratonjol-${p}" style="font-size:.85rem;font-weight:800;color:#064E3B;margin:6px 0"></div>`;
+    }
+    window.pratonjolHaji = (p) => {
+        const el = document.getElementById('haji-pratonjol-' + p); if (!el) return;
+        const sas = parseFloat(document.getElementById('haji-sasaran-' + p).value) || 0, bk = parseFloat(document.getElementById('haji-baki-' + p).value) || 0, th = parseInt(document.getElementById('haji-tahun-' + p).value, 10) || 0;
+        if (!(sas > 0) || th < new Date().getFullYear()) { el.innerHTML = ''; return; }
+        const perlu = Math.max(0, sas - bk) / hajiBulanTinggal(th);
+        el.innerHTML = perlu > 0 ? `Perlu simpan <b>RM ${formatRM(perlu)}</b> sebulan (${hajiBulanTinggal(th)} bulan).` : 'Baki awal sudah mencapai sasaran. 🎉';
+    };
+
+    function renderHaji(p) {
+        const wrap = document.getElementById('haji-isi-' + p);
+        if (!wrap) return;
+        if (!hajiPapar(p)) { perluHaji[p] = false; kemaskiniTitikMisi(); wrap.innerHTML = ''; return; }
+        const nota = `<div class="infaq-nota">Anggaran sahaja, tidak termasuk keuntungan simpanan. Tahun ini ialah tahun sasaran anda, bukan tarikh giliran Tabung Haji.</div>`;
+        const d = HJ[p].doc;
+        if (!d) {
+            perluHaji[p] = true; kemaskiniTitikMisi();
+            wrap.innerHTML = borangHaji(p) + `<div class="infaq-act"><button class="utama" onclick="mulaHaji('${p}')">Mulakan Misi Haji</button></div>
+                <label style="display:flex;gap:8px;align-items:center;font-size:.78rem;font-weight:700;color:#065F46;margin-top:10px"><input type="checkbox" onchange="if(this.checked) tandaTunaiHaji('${p}', this)"> Saya sudah menunaikan haji</label>${nota}</div>`;
+            setTimeout(() => pratonjolHaji(p), 0);
+            return;
+        }
+        const k = hajiKira(p);
+        const pct = Math.min(100, k.jumlah / k.sasaran * 100);
+        perluHaji[p] = !k.capai && !k.siapBulan && new Date().getDate() >= 25; kemaskiniTitikMisi();
+        const buka = hajiBuka[p];
+        const ringkas = `<button class="ringkas-baris hijau ${buka ? 'buka' : ''}" onclick="togolHaji('${p}')">
+            <span class="nm">Haji ${d.tahun_target}${k.capai ? ' ✅' : ''}</span><div class="mini"><div style="width:${pct}%"></div></div><span class="pc">${pct > 0 && pct < 1 ? "<1" : pct.toFixed(0)}%</span><span class="caret">▾</span></button>`;
+        wrap.innerHTML = ringkas + `<div class="butiran-lipat ${buka ? 'buka' : ''}"><div class="infaq-box">
+            <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:800;color:#065F46"><span>Terkumpul</span><span>RM ${formatRM(k.jumlah)} / RM ${formatRM(k.sasaran)}</span></div>
+            <div class="infaq-bar haji"><div style="width:${pct}%"></div></div>
+            <div class="infaq-grid" style="grid-template-columns:1fr 1fr">
+                <div><span>Perlu sebulan</span><b>RM ${formatRM(k.perlu)}</b></div>
+                <div><span>Disimpan bulan ini</span><b>RM ${formatRM(k.bulanIni)}</b></div>
+            </div>
+            <div style="font-size:.8rem;font-weight:700;line-height:1.5">${k.capai ? '🎉 Sasaran dana haji tercapai. Semoga dipermudahkan.' : k.lepas ? `⚠️ Tahun sasaran ${d.tahun_target} sudah lepas. Ubah tahun sasaran supaya simpanan bulanan dikira semula.` : k.siapBulan ? '✅ Simpanan haji bulan ini selesai.' : `Baki <b>RM ${formatRM(k.baki)}</b> belum disimpan bulan ini. ${k.bt} bulan lagi hingga ${d.tahun_target}.`}</div>
+            <div class="infaq-act">
+                <button class="utama" onclick="hajiBulanIniIsi('${p}')">🕋 Rekod simpanan Haji</button>
+                <button onclick="ubahHaji('${p}')">Ubah</button>
+            </div>
+            <div style="font-size:.68rem;color:#64748b;font-weight:600;margin-top:8px">Peringatan keluar bersama misi simpanan lain mulai 25hb jika belum disimpan. Rekod di Duit Keluar → kategori "Simpanan Haji".</div>
+            ${nota}</div></div>`;
+    }
+    window.togolHaji = (p) => { hajiBuka[p] = !hajiBuka[p]; renderHaji(p); };
+    window.renderHaji = renderHaji;
+    const simpanHaji = async (p, data) => {
+        await setDoc(doc(db, "ourmoney_goals", idDok('haji', p)), { owner_uid: currentUser.uid, peranan: p, jenis: 'haji', status: 'aktif', ...data }, { merge: true });
+        await muatHaji();
+    };
+    const bacaHajiInput = (p) => {
+        const sasaran = parseFloat(document.getElementById('haji-sasaran-' + p).value), baki = parseFloat(document.getElementById('haji-baki-' + p).value) || 0, tahun = parseInt(document.getElementById('haji-tahun-' + p).value, 10);
+        const ths = new Date().getFullYear();
+        if (!(sasaran > 0) || sasaran > 10000000) { alert("Masukkan sasaran dana haji yang sah."); return null; }
+        if (baki < 0) { alert("Baki awal tidak sah."); return null; }
+        if (!(tahun >= ths && tahun <= ths + 60)) { alert("Masukkan tahun haji antara " + ths + " dan " + (ths + 60) + "."); return null; }
+        return { sasaran: Math.round(sasaran * 100) / 100, baki_awal: Math.round(baki * 100) / 100, tahun_target: tahun };
+    };
+    window.mulaHaji = async (p) => { const v = bacaHajiInput(p); if (!v) return; await simpanHaji(p, { ...v, mula: localDateStr }); };
+    window.ubahHaji = (p) => {
+        const d = HJ[p].doc, wrap = document.getElementById('haji-isi-' + p);
+        wrap.innerHTML = borangHaji(p, d) + `<div class="infaq-act"><button class="utama" onclick="simpanUbahHaji('${p}')">Simpan</button><button onclick="renderHaji('${p}')">Batal</button><button onclick="tandaTunaiHaji('${p}')">Sudah tunai haji</button><button onclick="berhentiHaji('${p}')">Berhenti misi</button></div></div>`;
+        setTimeout(() => pratonjolHaji(p), 0);
+    };
+    window.simpanUbahHaji = async (p) => { const v = bacaHajiInput(p); if (!v) return; await simpanHaji(p, v); };
+    window.berhentiHaji = async (p) => {
+        if (!confirm("Berhenti misi Haji? Rekod sedia ada kekal.")) return;
+        await simpanHaji(p, { status: 'berhenti' });
+    };
+    window.tandaTunaiHaji = async (p, cb) => {
+        if (!confirm("Alhamdulillah. Tandakan sudah menunaikan haji? Kad Misi Haji untuk " + namaPeranan(p) + " akan disembunyikan.")) { if (cb) cb.checked = false; return; }
+        await simpanHaji(p, { status: 'tunai', tunai_pada: localDateStr });
+    };
+    window.hajiBulanIniIsi = (p) => window.pilihSetor('haji:' + p);
+
     function renderMisi() {
         const wrap = document.getElementById('misi-isi');
         if (!wrap) return;
@@ -1625,6 +1792,12 @@
                 if (bk > 1) tarikhTiada.push({ nilai: 'amanah:' + pr, nama: AMANAH_KAT0 + (adaPasangan ? ' (' + namaPeranan(pr) + ')' : ''), baki: bk, ikon: '' });
             });
         }
+        if (tahap) {
+            ['induk', 'pasangan'].forEach(pr => {
+                const bk = hajiBakiBulan(pr);
+                if (bk > 1) tarikhTiada.push({ nilai: 'haji:' + pr, nama: HAJI_KAT0 + (adaPasangan ? ' (' + namaPeranan(pr) + ')' : ''), baki: bk, ikon: '' });
+            });
+        }
         const bilangan = tarikhTiada.length;
         semakBarNotifOM();
         simpanBilanganNotif(bilangan, tahap);
@@ -1705,6 +1878,7 @@
     window.pilihSetor = (nilai) => {
         document.getElementById('type-out').checked = true;
         if (nilai.startsWith('amanah:')) { pilihPenggunaBorang(nilai.slice(7)); nilai = 'amanah:ibubapa'; }
+        if (nilai.startsWith('haji:')) { pilihPenggunaBorang(nilai.slice(5)); nilai = 'haji:misi'; }
         kemaskiniSenaraiKategori();
         selectCat.value = nilai;
         selectCat.dispatchEvent(new Event('change'));
@@ -1717,6 +1891,7 @@
     selectCat.addEventListener('change', () => {
         const v = selectCat.value, amt = document.getElementById('txnAmount');
         let cadang = 0;
+        if (v === 'haji:misi') { const pr = perananBorang(); const bk = hajiBakiBulan(pr) || (hajiAktif(pr) ? hajiKira(pr).perlu : 0); if (!amt.value && bk > 0) { amt.type = 'number'; amt.value = (Math.round(bk * 100) / 100).toFixed(2); } return; }
         if (v === 'amanah:ibubapa') { const pr = perananBorang(); const bk = amanahBaki(pr) || (AMS[pr].doc ? Number(AMS[pr].doc.bulanan) : 0); if (!amt.value && bk > 0) { amt.type = 'number'; amt.value = (Math.round(bk * 100) / 100).toFixed(2); } return; }
         if (!v.startsWith('misi:') && !v.startsWith('trip:')) return;
         const it = misiSenarai.find(x => (x.trip ? x.id : 'misi:' + x.id) === v);
@@ -1837,6 +2012,8 @@
                 kategori = '🎯 ' + it.label; tambahan = { goal_id: gid, is_saving: true };
             } else if (kategori === 'amanah:ibubapa') {
                 kategori = AMANAH_KAT0; tambahan = { amanah: true };
+            } else if (kategori === 'haji:misi') {
+                kategori = HAJI_KAT0; tambahan = { haji: true, is_saving: true };
             } else if (kategori === 'infaq:harian') {
                 kategori = '🤲 Infaq / Sedekah'; tambahan = { infaq: true };
             } else if (kategori.startsWith('trip:')) {
@@ -1867,6 +2044,7 @@
             if (tambahan.is_saving) await muatMisi();
             if (tambahan.infaq) await muatInfaq();
             if (tambahan.amanah) await muatAmanah();
+            if (tambahan.haji) await muatHaji();
             if(modPaparan === 'tahun') lihatTahunan();
             else muatDataOurMoney();
             
@@ -2492,7 +2670,8 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         const INFAQ = '🤲 Infaq / Sedekah';
         const infaqBulan = catSpent[INFAQ] || 0;
         const amanahBln = catSpent[AMANAH_KAT0] || 0;
-        Object.keys(catSpent).forEach(k => { if (k === INFAQ || k === AMANAH_KAT0) return; if (KEPERLUAN.includes(k)) perlu += catSpent[k]; else mahu += catSpent[k]; });
+        const hajiBln = catSpent[HAJI_KAT0] || 0;
+        Object.keys(catSpent).forEach(k => { if (k === INFAQ || k === AMANAH_KAT0 || k === HAJI_KAT0) return; if (KEPERLUAN.includes(k)) perlu += catSpent[k]; else mahu += catSpent[k]; });
         const pct = v => (adaPend ? v / pend * 100 : 0);
         const f0 = v => v.toFixed(0);
         const warna = (ok) => ok ? '#34d399' : '#f87171';
@@ -2511,6 +2690,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         }
         if (adaPend && infaqBulan > 0) h += `<div class="report-val" style="margin-bottom:9px"><span class="text-sm text-slate-300">🤲 Infaq / Sedekah</span><span style="color:#34d399">${f0(pct(infaqBulan))}% <small class="text-slate-500">(RM ${formatRM(infaqBulan)}, tidak dikira kehendak)</small></span></div>`;
         if (adaPend && amanahBln > 0) h += `<div class="report-val" style="margin-bottom:9px"><span class="text-sm text-slate-300">🤝 Amanah Ibu Bapa</span><span style="color:#fbbf24">${f0(pct(amanahBln))}% <small class="text-slate-500">(RM ${formatRM(amanahBln)}, tidak dikira kehendak)</small></span></div>`;
+        if (adaPend && hajiBln > 0) h += `<div class="report-val" style="margin-bottom:9px"><span class="text-sm text-slate-300">🕋 Simpanan Haji</span><span style="color:#34d399">${f0(pct(hajiBln))}% <small class="text-slate-500">(RM ${formatRM(hajiBln)}, simpanan, tidak dikira kehendak)</small></span></div>`;
         if (adaPend && sisa > 0) h += `<div class="text-sm text-slate-400" style="font-size:.72rem;margin:-2px 0 8px">Baki belum diperuntuk: RM ${formatRM(sisa)} (${f0(pct(sisa))}% pendapatan), boleh dialih ke simpanan.</div>`;
 
         // Had kategori
@@ -2535,7 +2715,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
                 h += '<div class="text-sm text-slate-500" style="font-size:.72rem">Tersedia selepas hari ke-7 supaya anggaran lebih tepat.</div>';
             } else {
                 // Bil tetap (sewa, utiliti, pendidikan) sudah dibayar sekali, jadi hanya belanja boleh ubah yang dianggar.
-                const TETAP = ["Rumah / Sewa", "Bil Utiliti", "Pendidikan", "Ansuran Pinjaman", "Insurans / Takaful", "🤝 Amanah Ibu Bapa"];
+                const TETAP = ["Rumah / Sewa", "Bil Utiliti", "Pendidikan", "Ansuran Pinjaman", "Insurans / Takaful", "🤝 Amanah Ibu Bapa", "🕋 Haji"];
                 let variabel = 0; Object.keys(catSpent).forEach(k => { if (!TETAP.includes(k)) variabel += catSpent[k]; });
                 const harian = variabel / hariBerlalu;
                 projBaki = net - harian * (jumHari - hariBerlalu);
