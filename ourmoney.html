@@ -1814,7 +1814,7 @@
     function binaHtmlLaporan(mod, tempoh, list) {
         const num = (x) => Number(x) || 0;
         let pend = 0, belanja = 0, simpan = 0, bakiAwal = 0, bil = list.length;
-        const kat = {}, kaedah = { Tunai: 0, Bank: 0 }, individu = {}, bulanan = {};
+        const kat = {}, kaedah = { Tunai: 0, Bank: 0 }, bulanan = {};
         list.forEach(t => {
             const a = num(t.amount), bln = String(t.date).substring(0, 7);
             bulanan[bln] = bulanan[bln] || { masuk: 0, keluar: 0, simpan: 0 };
@@ -1824,7 +1824,6 @@
                     belanja += a; bulanan[bln].keluar += a;
                     const k = t.category || 'Lain-lain'; kat[k] = (kat[k] || 0) + a;
                     kaedah[t.txnAccount === 'Tunai' ? 'Tunai' : 'Bank'] += a;
-                    const u = t.txnUser || 'Tidak dinyatakan'; individu[u] = (individu[u] || 0) + a;
                 }
             } else if (t.category === 'Baki Permulaan') bakiAwal += a;
             else { pend += a; bulanan[bln].masuk += a; }
@@ -1857,8 +1856,6 @@
         const htmlKat = teratas.length ? teratas.map(([n, v]) => `<div class="lap-baris"><div class="lap-nm">${esc(n)}</div>${lapBar(lapLebar(v, belanja), '#6366f1')}<div class="lap-nilai">RM ${formatRM(v)} <em>${lapPct(v, belanja)}</em></div></div>`).join('') : '<div class="lap-kosong">Tiada perbelanjaan direkodkan.</div>';
 
         const htmlKaedah = ['Tunai', 'Bank'].map(k => `<div class="lap-baris"><div class="lap-nm">${k === 'Tunai' ? '💵 Tunai' : '🏦 Bank'}</div>${lapBar(lapLebar(kaedah[k], belanja), k === 'Tunai' ? '#10b981' : '#3b82f6')}<div class="lap-nilai">RM ${formatRM(kaedah[k])} <em>${lapPct(kaedah[k], belanja)}</em></div></div>`).join('');
-        const adaIndividu = Object.keys(individu).filter(k => k !== 'Tidak dinyatakan').length >= 1 && Object.keys(individu).length > 1;
-        const htmlIndividu = adaIndividu ? Object.entries(individu).sort((a, b) => b[1] - a[1]).map(([n, v]) => `<div class="lap-baris"><div class="lap-nm">👤 ${esc(n)}</div>${lapBar(lapLebar(v, belanja), '#f59e0b')}<div class="lap-nilai">RM ${formatRM(v)} <em>${lapPct(v, belanja)}</em></div></div>`).join('') : '';
 
         // jadual bulanan (tahunan sahaja)
         let htmlBulanan = '';
@@ -1883,7 +1880,7 @@
         // jadual terperinci
         let htmlJadual = list.map(t => {
             const keluar = t.type === 'outflow';
-            return `<tr><td>${String(t.date).split('-').reverse().join('/')}</td><td><b>${esc(t.category || '')}</b>${t.is_saving ? ' <small>(simpanan)</small>' : ''}${t.note ? `<br><small>${esc(t.note)}</small>` : ''}</td><td>${esc(t.txnUser || '-')}</td><td>${esc(t.txnAccount || '-')}</td><td class="r" style="color:#10b981;font-weight:700">${keluar ? '-' : formatRM(num(t.amount))}</td><td class="r" style="color:#ef4444;font-weight:700">${keluar ? formatRM(num(t.amount)) : '-'}</td></tr>`;
+            return `<tr><td>${String(t.date).split('-').reverse().join('/')}</td><td><b>${esc(t.category || '')}</b>${t.is_saving ? ' <small>(simpanan)</small>' : ''}${t.note ? `<br><small>${esc(t.note)}</small>` : ''}</td><td>${esc(t.txnAccount || '-')}</td><td class="r" style="color:#10b981;font-weight:700">${keluar ? '-' : formatRM(num(t.amount))}</td><td class="r" style="color:#ef4444;font-weight:700">${keluar ? formatRM(num(t.amount)) : '-'}</td></tr>`;
         }).join('');
         const jumIn = list.filter(t => t.type !== 'outflow').reduce((s, t) => s + num(t.amount), 0);
         const jumOut = list.filter(t => t.type === 'outflow').reduce((s, t) => s + num(t.amount), 0);
@@ -1962,16 +1959,15 @@
                 <div><h3>Kaedah Bayaran</h3>${htmlKaedah}</div>
                 <div><h3>5 Perbelanjaan Terbesar</h3>${htmlTerbesar}</div>
             </div>
-            ${adaIndividu ? `<div class="lap-sect"><h3>Perbelanjaan Mengikut Individu</h3>${htmlIndividu}</div>` : ''}
 
             </div>
 
             <div class="lap-detail baru">
                 <h3>Rekod Transaksi Lengkap</h3>
                 <table class="lap-jadual">
-                    <thead><tr><th>Tarikh</th><th>Kategori / Nota</th><th>Individu</th><th>Kaedah</th><th class="r">Masuk (RM)</th><th class="r">Keluar (RM)</th></tr></thead>
-                    <tbody>${htmlJadual || '<tr><td colspan="6" style="text-align:center;padding:26px;font-style:italic">Tiada rekod kewangan bagi tempoh ini.</td></tr>'}</tbody>
-                    ${htmlJadual ? `<tfoot><tr><td colspan="4">Jumlah</td><td class="r" style="color:#10b981">${formatRM(jumIn)}</td><td class="r" style="color:#ef4444">${formatRM(jumOut)}</td></tr></tfoot>` : ''}
+                    <thead><tr><th>Tarikh</th><th>Kategori / Nota</th><th>Kaedah</th><th class="r">Masuk (RM)</th><th class="r">Keluar (RM)</th></tr></thead>
+                    <tbody>${htmlJadual || '<tr><td colspan="5" style="text-align:center;padding:26px;font-style:italic">Tiada rekod kewangan bagi tempoh ini.</td></tr>'}</tbody>
+                    ${htmlJadual ? `<tfoot><tr><td colspan="3">Jumlah</td><td class="r" style="color:#10b981">${formatRM(jumIn)}</td><td class="r" style="color:#ef4444">${formatRM(jumOut)}</td></tr></tfoot>` : ''}
                 </table>
             </div>
 
