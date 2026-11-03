@@ -512,14 +512,14 @@
         <div class="infaq-card" id="infaq-card">
             <h3>🤲 Misi Akhirat: Infaq Harian</h3>
             <div class="infaq-sub">Berinfaq sedikit setiap hari sepanjang tahun (zakat myTADBIR ÷ 365).</div>
-            <div id="infaq-isi"><div class="misi-kosong">Memuatkan...</div></div>
+            <div id="infaq-isi"><div id="infaq-w-induk"><div id="infaq-h-induk"></div><div id="infaq-isi-induk"><div class="misi-kosong">Memuatkan...</div></div></div><div id="infaq-w-pasangan" style="display:none;margin-top:10px"><div id="infaq-h-pasangan"></div><div id="infaq-isi-pasangan"></div></div></div>
         </div>
 
         <!-- Kad Misi Akhirat: Amanah Ibu Bapa (hanya jika ibu/bapa masih ada) -->
         <div class="infaq-card amanah-card" id="amanah-card" style="display:none">
             <h3>🤝 Misi Akhirat: Amanah Ibu Bapa</h3>
-            <div class="infaq-sub">Elaun bulanan untuk ibu bapa, dikira daripada pendapatan anda (kira-kira 5%).</div>
-            <div id="amanah-isi"><div class="misi-kosong">Memuatkan...</div></div>
+            <div class="infaq-sub">Elaun bulanan untuk ibu bapa (pasangan: mertua), dikira daripada pendapatan (kira-kira 5%).</div>
+            <div id="amanah-isi"><div id="amanah-w-induk"><div id="amanah-h-induk"></div><div id="amanah-isi-induk"></div></div><div id="amanah-w-pasangan" style="display:none;margin-top:10px"><div id="amanah-h-pasangan"></div><div id="amanah-isi-pasangan"></div></div></div>
         </div>
 
         <!-- Kad Integrasi JomBercuti -->
@@ -785,6 +785,7 @@
             if (opt) sel.value = opt.value;
         }
         sel.disabled = modPengguna !== 'gabungan';
+        try { kemaskiniSenaraiKategori(); } catch (e) {}
     }
     window.tukarPengguna = (m) => {
         if (m === 'gabungan' && !adaPasangan) m = 'induk';
@@ -792,10 +793,12 @@
         modPengguna = m;
         try { localStorage.setItem('om_pengguna', m); } catch (e) {}
         renderPemilih(); segerakBorangPengguna();
-        if (currentUser) muatDataOurMoney();
+        if (currentUser) { muatDataOurMoney(); renderInfaqSemua(); renderAmanahSemua(); }
     };
     let tripList = [];
-    let ibuBapaHidup = [], amanahPerluTindakan = false;
+    let ibuBapaHidup = { induk: [], pasangan: [] };
+    const perluInfaq = { induk: false, pasangan: false }, perluAmanah = { induk: false, pasangan: false };
+    const senaraiPeranan = () => modPengguna === 'gabungan' && adaPasangan ? ['induk', 'pasangan'] : [modPengguna === 'pasangan' && adaPasangan ? 'pasangan' : 'induk'];
     const AMANAH_KAT0 = '🤝 Amanah Ibu Bapa';
     const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans / Takaful", "Tol & Parking", "Pakaian", "Lain-lain"];
     const catInflow = ["Baki Permulaan", "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
@@ -803,6 +806,7 @@
     const btnRadios = document.querySelectorAll('input[name="txnType"]');
     const selectCat = document.getElementById('txnCat');
 
+    function perananBorang() { const o = ((document.getElementById('txnUser') || {}).selectedOptions || [])[0]; return (o && o.dataset.peranan) || 'induk'; }
     function kemaskiniSenaraiKategori() {
         const type = document.querySelector('input[name="txnType"]:checked').value;
         const options = type === 'outflow' ? catOutflow : catInflow;
@@ -814,12 +818,13 @@
             const t = (typeof misiSenarai !== 'undefined' ? misiSenarai : []).filter(x => x.trip && !(x.k && x.k.siap));
             if (t.length) h += '<optgroup label="✈️ Simpanan Percutian">' + t.map(x => `<option value="${esc(x.id)}">${esc(x.label)}</option>`).join('') + '</optgroup>';
         }
-        if (type === 'outflow') h += '<optgroup label="🤲 Misi Akhirat"><option value="infaq:harian">🤲 Infaq / Sedekah</option>' + (ibuBapaHidup.length ? '<option value="amanah:ibubapa">🤝 Amanah Ibu Bapa</option>' : '') + '</optgroup>';
+        if (type === 'outflow') h += '<optgroup label="🤲 Misi Akhirat"><option value="infaq:harian">🤲 Infaq / Sedekah</option>' + (perananBorang() && (ibuBapaHidup[perananBorang()] || []).length ? '<option value="amanah:ibubapa">🤝 Amanah Ibu Bapa</option>' : '') + '</optgroup>';
         selectCat.innerHTML = h;
         if (dahPilih && [...selectCat.options].some(o => o.value === dahPilih)) selectCat.value = dahPilih;
     }
 
     btnRadios.forEach(radio => radio.addEventListener('change', kemaskiniSenaraiKategori));
+    document.getElementById('txnUser').addEventListener('change', kemaskiniSenaraiKategori);
     kemaskiniSenaraiKategori(); 
 
     async function muatNamaPengguna() {
@@ -828,12 +833,15 @@
             const q = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", currentUser.uid));
             const snap = await getDocs(q);
             let dPasangan = null;
-            ibuBapaHidup = [];
+            ibuBapaHidup = { induk: [], pasangan: [] };
             
             snap.forEach(d => {
                 const data = d.data();
                 if(data.is_root || data.relationship === "Diri Sendiri") namaInduk = data.name || "Induk";
-                if (['Ayah', 'Ibu'].includes(data.relationship) && data.status !== 'meninggal') ibuBapaHidup.push(data.name || data.relationship);
+                if (data.status !== 'meninggal') {
+                    if (['Ayah', 'Ibu'].includes(data.relationship)) ibuBapaHidup.induk.push(data.name || data.relationship);
+                    else if (['Bapa Mertua', 'Ibu Mertua'].includes(data.relationship)) ibuBapaHidup.pasangan.push(data.name || data.relationship);
+                }
                 if(data.relationship === "Suami" || data.relationship === "Isteri") {
                     namaPasangan = data.name || "Pasangan";
                     dPasangan = true;
@@ -1086,21 +1094,22 @@
 
 
     // ===== TAB DASHBOARD & TITIK NOTIFIKASI =====
-    let misiBuka = new Set(), infaqBuka = false, misiPerluTindakan = false, infaqPerluTindakan = false;
+    let misiBuka = new Set(), misiPerluTindakan = false;
     window.tukarTabOM = (nama) => {
         document.querySelectorAll('#om-tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === nama));
         document.querySelectorAll('.om-pane').forEach(p => p.classList.toggle('on', p.id === 'pane-' + nama));
         try { localStorage.setItem('om_tab', nama); } catch (e) {}
     };
-    const kemaskiniTitikMisi = () => { const t = document.getElementById('titik-misi'); if (t) t.classList.toggle('ada', misiPerluTindakan || infaqPerluTindakan || amanahPerluTindakan); };
+    const kemaskiniTitikMisi = () => { const t = document.getElementById('titik-misi'); if (t) t.classList.toggle('ada', misiPerluTindakan || perluInfaq.induk || perluInfaq.pasangan || perluAmanah.induk || perluAmanah.pasangan); };
     window.togolMisi = (id) => { if (misiBuka.has(id)) misiBuka.delete(id); else misiBuka.add(id); renderMisi(); };
-    window.togolInfaq = () => { infaqBuka = !infaqBuka; renderInfaq(); };
     try { const t = localStorage.getItem('om_tab'); if (t && ['ringkasan', 'misi', 'analisis'].includes(t)) window.tukarTabOM(t); } catch (e) {}
 
     // ===== MISI AKHIRAT: INFAQ HARIAN =====
     // Nilai harian dicadangkan = zakat harta (myTADBIR) / 365. Infaq sunat sahaja, tidak menggantikan zakat wajib.
     // Disimpan dalam ourmoney_goals/{uid}_infaq (jenis 'infaq_harian'); kemajuan dikira daripada rekod bertanda infaq:true.
-    let infaqDoc = null, infaqRekod = [], infaqZakat = 0;
+    const IFS = { induk: { doc: null, rekod: [], zakat: 0 }, pasangan: { doc: null, rekod: [], zakat: 0 } };
+    const infaqBukaP = { induk: false, pasangan: false };
+    const idDok = (jenis, p) => currentUser.uid + '_' + jenis + (p === 'pasangan' ? '_pasangan' : '');
     const HARI_MS = 86400000;
     const tarikhKeNo = (str) => { const [y, m, d] = String(str).split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / HARI_MS); };
     const noKeTarikh = (no) => new Date(no * HARI_MS).toISOString().slice(0, 10);
@@ -1108,36 +1117,47 @@
     async function muatInfaq() {
         if (!currentUser) return;
         try {
-            infaqZakat = 0;
-            for (const id of [currentUser.uid, currentUser.uid + '_pasangan']) {
-                const p = await getDoc(doc(db, "mytadbir_profiles", id));
-                if (p.exists()) infaqZakat += Number((p.data().summary || {}).zakat_payable) || 0;
+            for (const [p, id] of [['induk', currentUser.uid], ['pasangan', currentUser.uid + '_pasangan']]) {
+                IFS[p].zakat = 0; IFS[p].rekod = [];
+                const pr = await getDoc(doc(db, "mytadbir_profiles", id));
+                if (pr.exists()) IFS[p].zakat = Number((pr.data().summary || {}).zakat_payable) || 0;
+                const g = await getDoc(doc(db, "ourmoney_goals", idDok('infaq', p)));
+                IFS[p].doc = g.exists() && g.data().status !== 'berhenti' ? g.data() : null;
             }
-            const g = await getDoc(doc(db, "ourmoney_goals", currentUser.uid + '_infaq'));
-            infaqDoc = g.exists() && g.data().status !== 'berhenti' ? g.data() : null;
-
-            infaqRekod = [];
             const tSnap = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
-            tSnap.forEach(d => { const x = d.data(); if (x.infaq === true && x.type === 'outflow' && x.date) infaqRekod.push({ date: x.date, amount: Number(x.amount) || 0 }); });
+            tSnap.forEach(d => { const x = d.data(); if (x.infaq === true && x.type === 'outflow' && x.date) IFS[peranRekod(x)].rekod.push({ date: x.date, amount: Number(x.amount) || 0 }); });
         } catch (e) { console.error("Gagal muat infaq:", e); }
-        renderInfaq();
+        renderInfaqSemua(); semakNotifMisi();
     }
 
-    function renderInfaq() {
-        const wrap = document.getElementById('infaq-isi');
+    function renderInfaqSemua() {
+        const lihat = senaraiPeranan();
+        ['induk', 'pasangan'].forEach(p => {
+            const w = document.getElementById('infaq-w-' + p), h = document.getElementById('infaq-h-' + p);
+            if (!w) return;
+            w.style.display = lihat.includes(p) ? '' : 'none';
+            if (h) h.innerHTML = lihat.length > 1 ? `<div style="font-weight:800;font-size:.78rem;margin:2px 0 6px;color:#047857">👤 ${esc(namaPeranan(p))}</div>` : '';
+            renderInfaq(p);
+        });
+    }
+    window.renderInfaqSemua = renderInfaqSemua;
+
+    function renderInfaq(p) {
+        const wrap = document.getElementById('infaq-isi-' + p);
         if (!wrap) return;
+        const S = IFS[p], infaqDoc = S.doc, infaqZakat = S.zakat, infaqRekod = S.rekod, infaqBuka = infaqBukaP[p];
         const cadang = infaqZakat > 0 ? Math.max(1, Math.ceil(infaqZakat / 365)) : 0;
         const nota = '<div class="infaq-nota">Ini infaq sunat dan <b>tidak menggantikan zakat wajib</b>. Zakat wajib tetap ditunaikan kepada asnaf apabila cukup haul.</div>';
 
         if (!infaqDoc) {
-            infaqPerluTindakan = true; kemaskiniTitikMisi();
+            perluInfaq[p] = true; kemaskiniTitikMisi();
             wrap.innerHTML = `<div class="infaq-box">
                 <div style="font-size:.8rem;font-weight:700;color:#065F46;margin-bottom:8px;line-height:1.5">${cadang
                     ? `Zakat harta anda dalam myTADBIR: <b>RM ${formatRM(infaqZakat)}</b>. Dibahagi 365 hari = <b>RM ${formatRM(infaqZakat / 365)}</b> sehari.`
                     : 'Belum ada nilai zakat dalam myTADBIR (atau harta di bawah nisab). Anda boleh tetapkan nilai sendiri, contohnya RM 1 sehari.'}</div>
                 <label style="font-size:.7rem;font-weight:800;color:#059669;text-transform:uppercase">Infaq sehari (RM)</label>
-                <input id="infaq-input" class="infaq-input" type="number" min="0.5" step="0.5" value="${cadang || 1}">
-                <div class="infaq-act"><button class="utama" onclick="mulaInfaq()">Mulakan misi 365 hari</button></div>
+                <input id="infaq-input-${p}" class="infaq-input" type="number" min="0.5" step="0.5" value="${cadang || 1}">
+                <div class="infaq-act"><button class="utama" onclick=\"mulaInfaq('${p}')\">Mulakan misi 365 hari</button></div>
                 ${nota}</div>`;
             return;
         }
@@ -1164,21 +1184,21 @@
         const hariKurang = Math.max(0, 365 - hariN);
 
         if (tamat) {
-            infaqPerluTindakan = true; kemaskiniTitikMisi();
+            perluInfaq[p] = true; kemaskiniTitikMisi();
             wrap.innerHTML = `<div class="infaq-box">
                 <div style="font-weight:800;color:#047857;margin-bottom:6px">🎉 Misi infaq tahun ke-${d.tahun_ke || 1} tamat</div>
                 <div class="infaq-grid"><div><span>Terkumpul</span><b>RM ${formatRM(jumlah)}</b></div><div><span>Sasaran</span><b>RM ${formatRM(sasaranTahun)}</b></div><div><span>Pencapaian</span><b>${(jumlah / sasaranTahun * 100 || 0).toFixed(0)}%</b></div></div>
                 <div style="font-size:.78rem;font-weight:600;color:#065F46;line-height:1.5">Sambung tahun depan: nilai harian dikira semula daripada zakat terkini myTADBIR${cadang ? ` (cadangan RM ${formatRM(infaqZakat / 365)} sehari)` : ''}.</div>
                 <label style="font-size:.7rem;font-weight:800;color:#059669;text-transform:uppercase;display:block;margin-top:8px">Infaq sehari tahun depan (RM)</label>
-                <input id="infaq-input" class="infaq-input" type="number" min="0.5" step="0.5" value="${cadang || harian}">
-                <div class="infaq-act"><button class="utama" onclick="sambungInfaq()">Sambung tahun ke-${(d.tahun_ke || 1) + 1}</button><button onclick="berhentiInfaq()">Berhenti</button></div>${nota}</div>`;
+                <input id="infaq-input-${p}" class="infaq-input" type="number" min="0.5" step="0.5" value="${cadang || harian}">
+                <div class="infaq-act"><button class="utama" onclick=\"sambungInfaq('${p}')\">Sambung tahun ke-${(d.tahun_ke || 1) + 1}</button><button onclick=\"berhentiInfaq('${p}')\">Berhenti</button></div>${nota}</div>`;
             return;
         }
 
-        infaqPerluTindakan = false; kemaskiniTitikMisi();
+        perluInfaq[p] = false; kemaskiniTitikMisi();
         const selesaiHariIni = hariIniJumlah >= harian;
         const status = tertinggal <= 0.005 ? `<span style="color:#047857">Anda setanding sasaran 👍</span>` : `<span style="color:#b45309">Tertinggal RM ${formatRM(tertinggal)} berbanding sasaran setakat ini</span>`;
-        const ringkasInfaq = `<button class="ringkas-baris hijau ${infaqBuka ? 'buka' : ''}" onclick="togolInfaq()">
+        const ringkasInfaq = `<button class="ringkas-baris hijau ${infaqBuka ? 'buka' : ''}" onclick=\"togolInfaq('${p}')\">
             <span class="nm">Infaq harian · hari ke-${hariN}${selesaiHariIni ? ' ✅' : ''}</span><div class="mini"><div style="width:${pct}%"></div></div><span class="pc">${pct > 0 && pct < 1 ? "<1" : pct.toFixed(0)}%</span><span class="caret">▾</span></button>`;
         wrap.innerHTML = ringkasInfaq + `<div class="butiran-lipat ${infaqBuka ? 'buka' : ''}"><div class="infaq-box">
             <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:800;color:#065F46"><span>Tahun ke-${d.tahun_ke || 1} · hari ke-${hariN}/365</span><span>RM ${formatRM(harian)} sehari</span></div>
@@ -1192,13 +1212,13 @@
                 ? `✅ Infaq hari ini selesai (RM ${formatRM(hariIniJumlah)}).`
                 : `Hari ini: baki <b>RM ${formatRM(Math.max(0, harian - hariIniJumlah))}</b> belum diinfaqkan.`}<br>${status}</div>
             <div class="infaq-act">
-                <button class="utama" onclick="infaqHariIni()">🤲 Rekod infaq hari ini</button>
-                <button onclick="ubahInfaq()">Ubah jumlah</button>
+                <button class="utama" onclick=\"infaqHariIni('${p}')\">🤲 Rekod infaq hari ini</button>
+                <button onclick=\"ubahInfaq('${p}')\">Ubah jumlah</button>
             </div>
-            ${barisPeringatanInfaq(d)}
+            ${barisPeringatanInfaq(d, p)}
             <div style="font-size:.68rem;color:#64748b;font-weight:600;margin-top:8px">Tamat ${noKeTarikh(akhirNo).split('-').reverse().join('/')} (${hariKurang} hari lagi). Rekod semua infaq di Duit Keluar → kategori "Infaq / Sedekah".</div>
             ${nota}</div></div>`;
-        semakStatusPush();
+        semakStatusPush(p);
     }
 
     // Daftar token FCM (sama seperti index.html) supaya server boleh hantar push ke telefon ini
@@ -1211,26 +1231,26 @@
     };
     window.daftarTokenPush = daftarTokenPush;
     const JAM_INFAQ = [[7, '7 pagi'], [12, '12 tengah hari'], [17, '5 petang'], [20, '8 malam'], [21, '9 malam']];
-    window.tukarPeringatanInfaq = async () => {
-        const on = !!(document.getElementById('infaq-ingat') || {}).checked;
-        const jam = parseInt((document.getElementById('infaq-jam') || {}).value, 10);
+    window.tukarPeringatanInfaq = async (p) => {
+        const on = !!(document.getElementById('infaq-ingat-' + p) || {}).checked;
+        const jam = parseInt((document.getElementById('infaq-jam-' + p) || {}).value, 10);
         if (on && 'Notification' in window && Notification.permission === 'default') await Notification.requestPermission();
         if (on && 'Notification' in window && Notification.permission === 'denied') alert("Notifikasi disekat dalam pelayar/telefon anda. Benarkan notifikasi untuk laman ini, kemudian cuba lagi.");
-        await simpanInfaq({ peringatan: on, peringatan_jam: Number.isFinite(jam) ? jam : 20 });
+        await simpanInfaq(p, { peringatan: on, peringatan_jam: Number.isFinite(jam) ? jam : 20 });
         if (on) await daftarTokenPush();
     };
-    const barisPeringatanInfaq = (d) => {
+    const barisPeringatanInfaq = (d, p) => {
         const on = d.peringatan !== false, jam = Number.isFinite(d.peringatan_jam) ? d.peringatan_jam : 20;
         const tolak = on && 'Notification' in window && Notification.permission === 'denied';
         return `<div class="infaq-ingat" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;font-size:.78rem;font-weight:700;color:#065F46">
-            <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="infaq-ingat" ${on ? 'checked' : ''} onchange="tukarPeringatanInfaq()"> 🔔 Ingatkan saya setiap hari</label>
-            <select id="infaq-jam" onchange="tukarPeringatanInfaq()" style="border:1px solid #A7F3D0;border-radius:8px;padding:4px 6px;font-weight:700;color:#065F46;background:#fff" ${on ? '' : 'disabled'}>${JAM_INFAQ.map(j => `<option value="${j[0]}" ${j[0] === jam ? 'selected' : ''}>${j[1]}</option>`).join('')}</select>
+            <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="infaq-ingat-${p}" ${on ? 'checked' : ''} onchange="tukarPeringatanInfaq('${p}')"> 🔔 Ingatkan setiap hari</label>
+            <select id="infaq-jam-${p}" onchange="tukarPeringatanInfaq('${p}')" style="border:1px solid #A7F3D0;border-radius:8px;padding:4px 6px;font-weight:700;color:#065F46;background:#fff" ${on ? '' : 'disabled'}>${JAM_INFAQ.map(j => `<option value="${j[0]}" ${j[0] === jam ? 'selected' : ''}>${j[1]}</option>`).join('')}</select>
             ${tolak ? '<span style="color:#b45309;font-weight:700;width:100%">Notifikasi disekat pada peranti ini. Benarkan dalam tetapan pelayar/telefon.</span>' : ''}
-            <span id="infaq-token-status" style="width:100%;font-size:.68rem;color:#64748b;font-weight:600"></span></div>`;
+            <span id="infaq-token-status-${p}" style="width:100%;font-size:.68rem;color:#64748b;font-weight:600"></span></div>`;
     };
     // Papar status peranti supaya mudah semak kenapa push tak sampai
-    const semakStatusPush = async () => {
-        const el = document.getElementById('infaq-token-status'); if (!el || !currentUser) return;
+    const semakStatusPush = async (p) => {
+        const el = document.getElementById('infaq-token-status-' + p); if (!el || !currentUser) return;
         try {
             const izin = ('Notification' in window) ? Notification.permission : 'tiada';
             const u = await getDoc(doc(db, "mynasab_users", currentUser.uid));
@@ -1239,114 +1259,145 @@
         } catch (e) {}
     };
 
-    const simpanInfaq = async (data) => {
-        await setDoc(doc(db, "ourmoney_goals", currentUser.uid + '_infaq'), { owner_uid: currentUser.uid, jenis: 'infaq_harian', status: 'aktif', ...data }, { merge: true });
+    const simpanInfaq = async (p, data) => {
+        await setDoc(doc(db, "ourmoney_goals", idDok('infaq', p)), { owner_uid: currentUser.uid, peranan: p, jenis: 'infaq_harian', status: 'aktif', ...data }, { merge: true });
         await muatInfaq();
     };
-    const bacaInfaqInput = () => {
-        const v = parseFloat((document.getElementById('infaq-input') || {}).value);
+    const bacaInfaqInput = (p) => {
+        const v = parseFloat((document.getElementById('infaq-input-' + p) || {}).value);
         if (!(v > 0) || v > 100000) { alert("Masukkan jumlah infaq sehari yang sah."); return null; }
         return Math.round(v * 100) / 100;
     };
-    window.mulaInfaq = async () => {
-        const v = bacaInfaqInput(); if (v === null) return;
-        await simpanInfaq({ harian: v, mula: localDateStr, tahun_ke: 1, zakat_rujukan: infaqZakat, sumber: infaqZakat > 0 && Math.abs(v - infaqZakat / 365) < 1 ? 'tadbir' : 'manual', sejarah: [], peringatan: true, peringatan_jam: 20 });
+    window.togolInfaq = (p) => { infaqBukaP[p] = !infaqBukaP[p]; renderInfaq(p); };
+    window.mulaInfaq = async (p) => {
+        const v = bacaInfaqInput(p); if (v === null) return;
+        const zk = IFS[p].zakat;
+        await simpanInfaq(p, { harian: v, mula: localDateStr, tahun_ke: 1, zakat_rujukan: zk, sumber: zk > 0 && Math.abs(v - zk / 365) < 1 ? 'tadbir' : 'manual', sejarah: [], peringatan: true, peringatan_jam: 20 });
         if ('Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch (e) {} }
         await daftarTokenPush();
     };
-    window.sambungInfaq = async () => {
-        const v = bacaInfaqInput(); if (v === null || !infaqDoc) return;
-        const mulaNo = tarikhKeNo(infaqDoc.mula);
-        const jumlah = infaqRekod.filter(r => { const n = tarikhKeNo(r.date); return n >= mulaNo && n <= mulaNo + 364; }).reduce((a, r) => a + r.amount, 0);
-        const sejarah = (infaqDoc.sejarah || []).concat([{ tahun_ke: infaqDoc.tahun_ke || 1, mula: infaqDoc.mula, harian: infaqDoc.harian, terkumpul: jumlah }]);
-        await simpanInfaq({ harian: v, mula: noKeTarikh(mulaNo + 365), tahun_ke: (infaqDoc.tahun_ke || 1) + 1, zakat_rujukan: infaqZakat, sumber: 'tadbir', sejarah });
+    window.sambungInfaq = async (p) => {
+        const v = bacaInfaqInput(p), S = IFS[p]; if (v === null || !S.doc) return;
+        const mulaNo = tarikhKeNo(S.doc.mula);
+        const jumlah = S.rekod.filter(r => { const n = tarikhKeNo(r.date); return n >= mulaNo && n <= mulaNo + 364; }).reduce((a, r) => a + r.amount, 0);
+        const sejarah = (S.doc.sejarah || []).concat([{ tahun_ke: S.doc.tahun_ke || 1, mula: S.doc.mula, harian: S.doc.harian, terkumpul: jumlah }]);
+        await simpanInfaq(p, { harian: v, mula: noKeTarikh(mulaNo + 365), tahun_ke: (S.doc.tahun_ke || 1) + 1, zakat_rujukan: S.zakat, sumber: 'tadbir', sejarah });
     };
-    window.berhentiInfaq = async () => {
+    window.berhentiInfaq = async (p) => {
         if (!confirm("Berhenti misi infaq harian? Rekod infaq sedia ada kekal.")) return;
-        await simpanInfaq({ status: 'berhenti' });
+        await simpanInfaq(p, { status: 'berhenti' });
     };
-    window.ubahInfaq = () => {
-        const wrap = document.getElementById('infaq-isi');
+    window.ubahInfaq = (p) => {
+        const wrap = document.getElementById('infaq-isi-' + p);
         wrap.innerHTML = `<div class="infaq-box"><label style="font-size:.7rem;font-weight:800;color:#059669;text-transform:uppercase">Infaq sehari (RM)</label>
-            <input id="infaq-input" class="infaq-input" type="number" min="0.5" step="0.5" value="${infaqDoc.harian}">
-            <div class="infaq-act"><button class="utama" onclick="simpanUbahInfaq()">Simpan</button><button onclick="renderInfaq()">Batal</button><button onclick="berhentiInfaq()">Berhenti misi</button></div></div>`;
+            <input id="infaq-input-${p}" class="infaq-input" type="number" min="0.5" step="0.5" value="${IFS[p].doc.harian}">
+            <div class="infaq-act"><button class="utama" onclick="simpanUbahInfaq('${p}')">Simpan</button><button onclick="renderInfaq('${p}')">Batal</button><button onclick="berhentiInfaq('${p}')">Berhenti misi</button></div></div>`;
     };
-    window.simpanUbahInfaq = async () => { const v = bacaInfaqInput(); if (v === null) return; await simpanInfaq({ harian: v, sumber: 'manual' }); };
+    window.simpanUbahInfaq = async (p) => { const v = bacaInfaqInput(p); if (v === null) return; await simpanInfaq(p, { harian: v, sumber: 'manual' }); };
     window.renderInfaq = renderInfaq;
-    window.infaqHariIni = () => {
+    // Pilih pengguna pada borang rekod (mesti pengguna yang berkenaan, bukan semestinya induk)
+    const pilihPenggunaBorang = (p) => {
+        const sel = document.getElementById('txnUser'); if (!sel) return;
+        const opt = [...sel.options].find(o => o.dataset.peranan === p);
+        if (opt) sel.value = opt.value;
+        kemaskiniSenaraiKategori();
+    };
+    window.infaqHariIni = (p) => {
         const out = document.querySelector('input[name="txnType"][value="outflow"]');
         if (out) { out.checked = true; out.dispatchEvent(new Event('change')); }
+        pilihPenggunaBorang(p);
         const cat = document.getElementById('txnCat'); if (cat) cat.value = 'infaq:harian';
-        const j = document.getElementById('txnAmount');
-        const harian = Number(infaqDoc && infaqDoc.harian) || 0;
-        const sudah = infaqRekod.filter(r => r.date === localDateStr).reduce((a, r) => a + r.amount, 0);
+        const j = document.getElementById('txnAmount'), S = IFS[p];
+        const harian = Number(S.doc && S.doc.harian) || 0;
+        const sudah = S.rekod.filter(r => r.date === localDateStr).reduce((a, r) => a + r.amount, 0);
         if (j) { j.value = Math.max(0, harian - sudah) || harian; j.focus(); j.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
         const t = document.getElementById('txnDate'); if (t) t.value = localDateStr;
     };
 
-    // ===== MISI AKHIRAT: AMANAH IBU BAPA (bulanan) =====
-    // Konsep sama dengan infaq, tetapi sekali sebulan. Cadangan = ~5% pendapatan bulanan; pengguna boleh tentukan sendiri.
-    // Tidak muncul jika tiada ibu/bapa yang masih hidup dalam myNasab. Disimpan dalam ourmoney_goals/{uid}_amanah.
-    let amanahDoc = null, amanahRekod = [], amanahPendapatan = 0, amanahBuka = false;
+    // ===== MISI AKHIRAT: AMANAH IBU BAPA (bulanan, ikut induk / pasangan) =====
+    // Induk: Ayah/Ibu sendiri. Pasangan: Bapa/Ibu Mertua (ibu bapa pasangan). Cadangan = ~5% pendapatan bulanan orang itu.
+    // Tidak muncul jika tiada ibu/bapa yang masih hidup. Disimpan dalam ourmoney_goals/{uid}_amanah[_pasangan].
+    const AMS = { induk: { doc: null, rekod: [], pend: 0 }, pasangan: { doc: null, rekod: [], pend: 0 } };
+    let amanahBuka = { induk: false, pasangan: false };
     const AMANAH_KAT = AMANAH_KAT0;
-    const bulanDariRekod = (r) => String(r.date).substring(0, 7);
     const kiraCadangAmanah = (pend) => pend > 0 ? Math.max(20, Math.round(pend * 0.05 / 10) * 10) : 0;
-    const amanahBulanIni = () => amanahRekod.filter(r => bulanDariRekod(r) === bulanIniStr).reduce((a, r) => a + r.amount, 0);
-    const amanahBaki = () => (amanahDoc && amanahDoc.status === 'aktif') ? Math.max(0, (Number(amanahDoc.bulanan) || 0) - amanahBulanIni()) : 0;
+    const amanahBulanIni = (p) => AMS[p].rekod.filter(r => String(r.date).substring(0, 7) === bulanIniStr).reduce((a, r) => a + r.amount, 0);
+    const amanahBaki = (p) => { const d = AMS[p].doc; return (d && d.status === 'aktif') ? Math.max(0, (Number(d.bulanan) || 0) - amanahBulanIni(p)) : 0; };
+    const adaIbuBapa = (p) => (ibuBapaHidup[p] || []).length > 0;
 
     async function muatAmanah() {
         if (!currentUser) return;
         try {
-            const g = await getDoc(doc(db, "ourmoney_goals", currentUser.uid + '_amanah'));
-            amanahDoc = g.exists() && g.data().status !== 'berhenti' ? g.data() : null;
-            amanahRekod = [];
-            const inMap = {};
+            const inMap = { induk: {}, pasangan: {} };
+            AMS.induk.rekod = []; AMS.pasangan.rekod = [];
             const tSnap = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
             tSnap.forEach(d => {
                 const x = d.data(); if (!x.date) return;
-                if (x.amanah === true && x.type === 'outflow') amanahRekod.push({ date: x.date, amount: Number(x.amount) || 0 });
-                else if (x.type === 'inflow' && x.category !== 'Baki Permulaan') { const b = String(x.date).substring(0, 7); inMap[b] = (inMap[b] || 0) + (Number(x.amount) || 0); }
+                const pr = peranRekod(x);
+                if (x.amanah === true && x.type === 'outflow') AMS[pr].rekod.push({ date: x.date, amount: Number(x.amount) || 0 });
+                else if (x.type === 'inflow' && x.category !== 'Baki Permulaan') { const b = String(x.date).substring(0, 7); inMap[pr][b] = (inMap[pr][b] || 0) + (Number(x.amount) || 0); }
             });
-            const lalu = Object.keys(inMap).filter(b => b < bulanIniStr).sort().slice(-3);
-            const pakai = lalu.length ? lalu : Object.keys(inMap).filter(b => b === bulanIniStr);
-            amanahPendapatan = pakai.length ? pakai.reduce((a, b) => a + inMap[b], 0) / pakai.length : 0;
-            // Tanda ada_ibubapa pada dokumen supaya server tahu bila perlu diam
-            if (amanahDoc && amanahDoc.ada_ibubapa !== (ibuBapaHidup.length > 0)) {
-                await setDoc(doc(db, "ourmoney_goals", currentUser.uid + '_amanah'), { ada_ibubapa: ibuBapaHidup.length > 0 }, { merge: true });
-                amanahDoc.ada_ibubapa = ibuBapaHidup.length > 0;
+            for (const p of ['induk', 'pasangan']) {
+                const g = await getDoc(doc(db, "ourmoney_goals", idDok('amanah', p)));
+                AMS[p].doc = g.exists() && g.data().status !== 'berhenti' ? g.data() : null;
+                const lalu = Object.keys(inMap[p]).filter(b => b < bulanIniStr).sort().slice(-3);
+                const pakai = lalu.length ? lalu : Object.keys(inMap[p]).filter(b => b === bulanIniStr);
+                AMS[p].pend = pakai.length ? pakai.reduce((a, b) => a + inMap[p][b], 0) / pakai.length : 0;
+                // Tanda ada_ibubapa pada dokumen supaya server tahu bila perlu diam
+                if (AMS[p].doc && AMS[p].doc.ada_ibubapa !== adaIbuBapa(p)) {
+                    await setDoc(doc(db, "ourmoney_goals", idDok('amanah', p)), { ada_ibubapa: adaIbuBapa(p) }, { merge: true });
+                    AMS[p].doc.ada_ibubapa = adaIbuBapa(p);
+                }
             }
         } catch (e) { console.error("Gagal muat amanah:", e); }
-        renderAmanah(); kemaskiniSenaraiKategori(); semakNotifMisi();
+        renderAmanahSemua(); kemaskiniSenaraiKategori(); semakNotifMisi();
     }
 
-    function renderAmanah() {
-        const kad = document.getElementById('amanah-card'), wrap = document.getElementById('amanah-isi');
-        if (!kad || !wrap) return;
-        if (ibuBapaHidup.length === 0) { kad.style.display = 'none'; amanahPerluTindakan = false; kemaskiniTitikMisi(); return; }
-        kad.style.display = '';
-        const cadang = kiraCadangAmanah(amanahPendapatan);
-        const nota = '<div class="infaq-nota">Ini sedekah sunat kepada ibu bapa sebagai tanda kasih, satu misi yang <b>berasingan daripada nafkah wajib</b>. Jumlah boleh diubah bila-bila masa.</div>';
+    function renderAmanahSemua() {
+        const lihat = senaraiPeranan(); let adaPapar = false;
+        ['induk', 'pasangan'].forEach(p => {
+            const w = document.getElementById('amanah-w-' + p), h = document.getElementById('amanah-h-' + p);
+            if (!w) return;
+            const papar = lihat.includes(p) && adaIbuBapa(p);
+            w.style.display = papar ? '' : 'none';
+            if (h) h.innerHTML = lihat.length > 1 ? `<div style="font-weight:800;font-size:.78rem;margin:2px 0 6px;color:#92400E">👤 ${esc(namaPeranan(p))}</div>` : '';
+            if (papar) adaPapar = true;
+            renderAmanah(p);
+        });
+        const kad = document.getElementById('amanah-card'); if (kad) kad.style.display = adaPapar ? '' : 'none';
+    }
+    window.renderAmanahSemua = renderAmanahSemua;
+
+    function renderAmanah(p) {
+        const wrap = document.getElementById('amanah-isi-' + p);
+        if (!wrap) return;
+        const S = AMS[p], amanahDoc = S.doc;
+        if (!adaIbuBapa(p)) { perluAmanah[p] = false; kemaskiniTitikMisi(); wrap.innerHTML = ''; return; }
+        const rujuk = p === 'pasangan' ? 'ibu bapa pasangan (mertua anda)' : 'ibu bapa anda';
+        const cadang = kiraCadangAmanah(S.pend);
+        const nota = `<div class="infaq-nota">Ini sedekah sunat kepada ${rujuk} sebagai tanda kasih, <b>berasingan daripada nafkah wajib</b>. Jumlah boleh diubah bila-bila masa.</div>`;
         if (!amanahDoc) {
-            amanahPerluTindakan = true; kemaskiniTitikMisi();
-            const chips = amanahPendapatan > 0 ? [3, 5, 10].map(p => `<button type="button" onclick="pilihPeratusAmanah(${p})">${p}% · RM ${formatRM(Math.round(amanahPendapatan * p / 100))}</button>`).join('') : '';
+            perluAmanah[p] = true; kemaskiniTitikMisi();
+            const chips = S.pend > 0 ? [3, 5, 10].map(q => `<button type="button" onclick="pilihPeratusAmanah('${p}',${q})">${q}% · RM ${formatRM(Math.round(S.pend * q / 100))}</button>`).join('') : '';
             wrap.innerHTML = `<div class="infaq-box">
                 <div style="font-size:.8rem;font-weight:700;color:#92400E;margin-bottom:8px;line-height:1.5">${cadang
-                    ? `Purata pendapatan bulanan anda sekitar <b>RM ${formatRM(amanahPendapatan)}</b>. Cadangan wajar: <b>RM ${formatRM(cadang)}</b> sebulan (kira-kira 5%).`
+                    ? `Purata pendapatan bulanan sekitar <b>RM ${formatRM(S.pend)}</b>. Cadangan wajar: <b>RM ${formatRM(cadang)}</b> sebulan (kira-kira 5%).`
                     : 'Belum ada rekod pendapatan untuk membuat cadangan. Tetapkan jumlah sendiri, contohnya RM 100 sebulan.'}</div>
                 ${chips ? `<div class="infaq-act" style="margin:0 0 8px">${chips}</div>` : ''}
                 <label style="font-size:.7rem;font-weight:800;color:#B45309;text-transform:uppercase">Amanah sebulan (RM)</label>
-                <input id="amanah-input" class="infaq-input" type="number" min="1" step="10" value="${cadang || 100}">
-                <div class="infaq-act"><button class="utama" onclick="mulaAmanah()">Mulakan Amanah bulanan</button></div>
+                <input id="amanah-input-${p}" class="infaq-input" type="number" min="1" step="10" value="${cadang || 100}">
+                <div class="infaq-act"><button class="utama" onclick="mulaAmanah('${p}')">Mulakan Amanah bulanan</button></div>
                 ${nota}</div>`;
             return;
         }
-        const d = amanahDoc, bulanan = Number(d.bulanan) || 0, bayar = amanahBulanIni();
+        const d = amanahDoc, bulanan = Number(d.bulanan) || 0, bayar = amanahBulanIni(p);
         const pct = bulanan > 0 ? Math.min(100, bayar / bulanan * 100) : 0;
         const siap = bayar >= bulanan;
-        amanahPerluTindakan = !siap && new Date().getDate() >= 25; kemaskiniTitikMisi();
-        const ringkas = `<button class="ringkas-baris amanah ${amanahBuka ? 'buka' : ''}" onclick="togolAmanah()">
+        perluAmanah[p] = !siap && new Date().getDate() >= 25; kemaskiniTitikMisi();
+        const buka = amanahBuka[p];
+        const ringkas = `<button class="ringkas-baris amanah ${buka ? 'buka' : ''}" onclick="togolAmanah('${p}')">
             <span class="nm">Amanah Ibu Bapa${siap ? ' ✅' : ''}</span><div class="mini"><div style="width:${pct}%"></div></div><span class="pc">${pct > 0 && pct < 1 ? "<1" : pct.toFixed(0)}%</span><span class="caret">▾</span></button>`;
-        wrap.innerHTML = ringkas + `<div class="butiran-lipat ${amanahBuka ? 'buka' : ''}"><div class="infaq-box">
+        wrap.innerHTML = ringkas + `<div class="butiran-lipat ${buka ? 'buka' : ''}"><div class="infaq-box">
             <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:800;color:#92400E"><span>Bulan ini</span><span>RM ${formatRM(bulanan)} sebulan</span></div>
             <div class="infaq-bar amanah"><div style="width:${pct}%"></div></div>
             <div class="infaq-grid" style="grid-template-columns:1fr 1fr">
@@ -1355,41 +1406,40 @@
             </div>
             <div style="font-size:.8rem;font-weight:700;line-height:1.5">${siap ? '✅ Amanah bulan ini selesai.' : `Baki <b>RM ${formatRM(bulanan - bayar)}</b> belum diberikan bulan ini.`}</div>
             <div class="infaq-act">
-                <button class="utama" onclick="amanahBulanIniIsi()">🤝 Rekod Amanah bulan ini</button>
-                <button onclick="ubahAmanah()">Ubah jumlah</button>
+                <button class="utama" onclick="amanahBulanIniIsi('${p}')">🤝 Rekod Amanah bulan ini</button>
+                <button onclick="ubahAmanah('${p}')">Ubah jumlah</button>
             </div>
             <div style="font-size:.68rem;color:#64748b;font-weight:600;margin-top:8px">Peringatan keluar bersama misi simpanan lain mulai 25hb jika belum diberi. Rekod di Duit Keluar → kategori "Amanah Ibu Bapa".</div>
             ${nota}</div></div>`;
     }
-    window.togolAmanah = () => { amanahBuka = !amanahBuka; renderAmanah(); };
-    const simpanAmanah = async (data) => {
-        await setDoc(doc(db, "ourmoney_goals", currentUser.uid + '_amanah'), { owner_uid: currentUser.uid, jenis: 'amanah_ibubapa', status: 'aktif', ada_ibubapa: ibuBapaHidup.length > 0, ...data }, { merge: true });
+    window.togolAmanah = (p) => { amanahBuka[p] = !amanahBuka[p]; renderAmanah(p); };
+    const simpanAmanah = async (p, data) => {
+        await setDoc(doc(db, "ourmoney_goals", idDok('amanah', p)), { owner_uid: currentUser.uid, peranan: p, jenis: 'amanah_ibubapa', status: 'aktif', ada_ibubapa: adaIbuBapa(p), ...data }, { merge: true });
         await muatAmanah();
     };
-    const bacaAmanahInput = () => {
-        const v = parseFloat((document.getElementById('amanah-input') || {}).value);
+    const bacaAmanahInput = (p) => {
+        const v = parseFloat((document.getElementById('amanah-input-' + p) || {}).value);
         if (!(v > 0) || v > 1000000) { alert("Masukkan jumlah amanah sebulan yang sah."); return null; }
         return Math.round(v * 100) / 100;
     };
-    window.pilihPeratusAmanah = (p) => { const i = document.getElementById('amanah-input'); if (i) i.value = Math.round(amanahPendapatan * p / 100); };
-    window.mulaAmanah = async () => {
-        const v = bacaAmanahInput(); if (v === null) return;
-        await simpanAmanah({ bulanan: v, mula: localDateStr, sumber: cadangSama(v) ? 'cadangan' : 'manual' });
+    window.pilihPeratusAmanah = (p, q) => { const i = document.getElementById('amanah-input-' + p); if (i) i.value = Math.round(AMS[p].pend * q / 100); };
+    window.mulaAmanah = async (p) => {
+        const v = bacaAmanahInput(p); if (v === null) return;
+        await simpanAmanah(p, { bulanan: v, mula: localDateStr, sumber: v === kiraCadangAmanah(AMS[p].pend) ? 'cadangan' : 'manual' });
     };
-    const cadangSama = (v) => { const c = kiraCadangAmanah(amanahPendapatan); return c > 0 && v === c; };
-    window.ubahAmanah = () => {
-        const wrap = document.getElementById('amanah-isi');
+    window.ubahAmanah = (p) => {
+        const wrap = document.getElementById('amanah-isi-' + p);
         wrap.innerHTML = `<div class="infaq-box"><label style="font-size:.7rem;font-weight:800;color:#B45309;text-transform:uppercase">Amanah sebulan (RM)</label>
-            <input id="amanah-input" class="infaq-input" type="number" min="1" step="10" value="${amanahDoc.bulanan}">
-            <div class="infaq-act"><button class="utama" onclick="simpanUbahAmanah()">Simpan</button><button onclick="renderAmanah()">Batal</button><button onclick="berhentiAmanah()">Berhenti misi</button></div></div>`;
+            <input id="amanah-input-${p}" class="infaq-input" type="number" min="1" step="10" value="${AMS[p].doc.bulanan}">
+            <div class="infaq-act"><button class="utama" onclick="simpanUbahAmanah('${p}')">Simpan</button><button onclick="renderAmanah('${p}')">Batal</button><button onclick="berhentiAmanah('${p}')">Berhenti misi</button></div></div>`;
     };
-    window.simpanUbahAmanah = async () => { const v = bacaAmanahInput(); if (v === null) return; await simpanAmanah({ bulanan: v, sumber: 'manual' }); };
-    window.berhentiAmanah = async () => {
+    window.simpanUbahAmanah = async (p) => { const v = bacaAmanahInput(p); if (v === null) return; await simpanAmanah(p, { bulanan: v, sumber: 'manual' }); };
+    window.berhentiAmanah = async (p) => {
         if (!confirm("Berhenti misi Amanah Ibu Bapa? Rekod sedia ada kekal.")) return;
-        await simpanAmanah({ status: 'berhenti' });
+        await simpanAmanah(p, { status: 'berhenti' });
     };
     window.renderAmanah = renderAmanah;
-    window.amanahBulanIniIsi = () => window.pilihSetor('amanah:ibubapa');
+    window.amanahBulanIniIsi = (p) => window.pilihSetor('amanah:' + p);
 
     function renderMisi() {
         const wrap = document.getElementById('misi-isi');
@@ -1568,9 +1618,12 @@
                 if (baki > 1) tarikhTiada.push({ nilai: it.trip ? it.id : 'misi:' + it.id, nama: it.label, baki, ikon: it.trip ? '' : '🎯' });
             });
         }
-        if (tahap && ibuBapaHidup.length && amanahDoc && amanahDoc.status === 'aktif') {
-            const bk = amanahBaki();
-            if (bk > 1) tarikhTiada.push({ nilai: 'amanah:ibubapa', nama: AMANAH_KAT0, baki: bk, ikon: '' });
+        if (tahap) {
+            ['induk', 'pasangan'].forEach(pr => {
+                if (!adaIbuBapa(pr) || !AMS[pr].doc || AMS[pr].doc.status !== 'aktif') return;
+                const bk = amanahBaki(pr);
+                if (bk > 1) tarikhTiada.push({ nilai: 'amanah:' + pr, nama: AMANAH_KAT0 + (adaPasangan ? ' (' + namaPeranan(pr) + ')' : ''), baki: bk, ikon: '' });
+            });
         }
         const bilangan = tarikhTiada.length;
         semakBarNotifOM();
@@ -1651,6 +1704,7 @@
     // Pilih misi / percutian daripada butang kad -> terus ke borang Rekod Transaksi
     window.pilihSetor = (nilai) => {
         document.getElementById('type-out').checked = true;
+        if (nilai.startsWith('amanah:')) { pilihPenggunaBorang(nilai.slice(7)); nilai = 'amanah:ibubapa'; }
         kemaskiniSenaraiKategori();
         selectCat.value = nilai;
         selectCat.dispatchEvent(new Event('change'));
@@ -1663,7 +1717,7 @@
     selectCat.addEventListener('change', () => {
         const v = selectCat.value, amt = document.getElementById('txnAmount');
         let cadang = 0;
-        if (v === 'amanah:ibubapa') { const bk = amanahBaki() || (amanahDoc ? Number(amanahDoc.bulanan) : 0); if (!amt.value && bk > 0) { amt.type = 'number'; amt.value = (Math.round(bk * 100) / 100).toFixed(2); } return; }
+        if (v === 'amanah:ibubapa') { const pr = perananBorang(); const bk = amanahBaki(pr) || (AMS[pr].doc ? Number(AMS[pr].doc.bulanan) : 0); if (!amt.value && bk > 0) { amt.type = 'number'; amt.value = (Math.round(bk * 100) / 100).toFixed(2); } return; }
         if (!v.startsWith('misi:') && !v.startsWith('trip:')) return;
         const it = misiSenarai.find(x => (x.trip ? x.id : 'misi:' + x.id) === v);
         if (it) cadang = it.k && it.k.siap ? 0 : Math.max(0, it.perlu - (it.k ? it.k.bulanIni : 0));
