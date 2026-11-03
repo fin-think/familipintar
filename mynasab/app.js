@@ -849,7 +849,7 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
         if (hubungan === "Anak") {
             const qAnak = query(collection(db, "mynasab_nodes"), where("owner_uid", "==", penggunaSemasa.uid), where("relationship", "==", "Anak"));
             const snapAnak = await getDocs(qAnak);
-            if (snapAnak.size >= 5) kosAhli = 1;
+            if (snapAnak.size >= 3) kosAhli = 1;
         }
         else if (hubungan === "Bapa Mertua" || hubungan === "Ibu Mertua") {
             kosAhli = 5;
