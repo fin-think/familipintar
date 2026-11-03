@@ -778,7 +778,9 @@ async function muatKeluargaDanNota(groupId) {
       await tambahAdikBeradik(sayaInduk ? kPusat.diri.id : sasaranIdPusat, 'Adik-beradik', true);
       // Adik-beradik berakaun yang dicantum (salaman) dengan saya, termasuk adik-beradik kepada adik-beradik itu
       // (cth. Amri yang dicantum/dijemput oleh Amran, abang Aminah) - sama seperti 'Keluarga Besar: Belah Saya' dalam myNasab
-      const adikSemua = new Set(), baris = [...(kPusat.diri.linked_adik || [])];
+      const kIndukDiri = sayaInduk ? null : kelompok(nodInduk).diri;
+      // Saya dijemput sebagai adik-beradik induk: adik-beradik cantuman milik induk juga adik-beradik saya (sama seperti pokok myNasab)
+      const adikSemua = new Set(), baris = [...(kPusat.diri.linked_adik || []), ...((kIndukDiri && sasaranIdPusat === kIndukDiri.id) ? (kIndukDiri.linked_adik || []) : [])];
       while (baris.length && adikSemua.size < 30) {
         const u = baris.shift();
         if (!u || u === saya || u === indukUid || adikSemua.has(u)) continue;
