@@ -322,9 +322,9 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                         <span class="bg-white border border-slate-200 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-full"><i class="fa-solid fa-seedling text-indigo-500 mr-1"></i> Legasi &amp; Pusaka</span>
                     </div>
 
-                    <a href="#pintu-masuk" class="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-7 rounded-full shadow-md transition">
-                        Teroka ekosistem <i class="fa-solid fa-arrow-down"></i>
-                    </a>
+                    <button type="button" onclick="bukaPanduanFP()" class="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-7 rounded-full shadow-md transition">
+                        Teroka ekosistem <i class="fa-solid fa-circle-info"></i>
+                    </button>
                 </div>
 
                 <!-- Gambar Hero -->
@@ -1095,5 +1095,124 @@ window.pantauLencanaWeCareUtama = async (user) => {
         img.src = ASAL; paparKustom(false);
     };
 </script>
+
+<!-- ===== PANDUAN EKOSISTEM (popup selamat datang) ===== -->
+<style>
+  #panduanFP { position: fixed; inset: 0; z-index: 9000; display: none; align-items: flex-start; justify-content: center; background: rgba(15,23,42,.72); padding: 16px; overflow-y: auto; }
+  #panduanFP.buka { display: flex; }
+  .pd-kotak { background: #fff; border-radius: 24px; max-width: 760px; width: 100%; margin: auto; box-shadow: 0 25px 60px rgba(0,0,0,.35); overflow: hidden; }
+  .pd-kepala { background: linear-gradient(135deg,#0ea5e9,#10b981); color: #fff; padding: 22px 24px; position: relative; }
+  .pd-kepala h2 { font-size: 1.35rem; font-weight: 800; line-height: 1.25; }
+  .pd-kepala p { font-size: .88rem; opacity: .95; margin-top: 6px; line-height: 1.5; }
+  .pd-x { position: absolute; top: 12px; right: 14px; width: 34px; height: 34px; border-radius: 50%; border: none; background: rgba(255,255,255,.25); color: #fff; font-size: 18px; cursor: pointer; }
+  .pd-isi { padding: 18px 20px 6px; }
+  .pd-langkah { border: 2px solid var(--w, #e2e8f0); border-radius: 18px; padding: 14px 16px; background: var(--b, #fff); }
+  .pd-tajuk { display: flex; align-items: center; gap: 10px; font-weight: 800; color: #0f172a; font-size: 1rem; }
+  .pd-tajuk .no { width: 26px; height: 26px; border-radius: 50%; background: var(--w, #64748b); color: #fff; font-size: .78rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pd-tajuk small { font-weight: 700; color: #64748b; font-size: .72rem; margin-left: auto; text-align: right; }
+  .pd-langkah ul { margin: 8px 0 0 4px; padding: 0; list-style: none; font-size: .82rem; color: #334155; line-height: 1.5; }
+  .pd-langkah li { padding-left: 16px; position: relative; margin-top: 3px; }
+  .pd-langkah li::before { content: '•'; position: absolute; left: 3px; color: var(--w, #64748b); font-weight: 800; }
+  .pd-label { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--w, #64748b); margin-top: 9px; }
+  .pd-anak { display: flex; flex-direction: column; align-items: center; margin: 4px 0; color: #94a3b8; font-size: .7rem; font-weight: 800; }
+  .pd-anak .pd-pnh { font-size: 1.4rem; line-height: 1; color: #0ea5e9; }
+  .pd-cabang { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 640px) { .pd-cabang { grid-template-columns: 1fr; } .pd-kepala h2 { font-size: 1.15rem; } }
+  .pd-cabang .pd-langkah { padding: 12px 13px; }
+  .pd-cabang-tiga { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 760px) { .pd-cabang-tiga { grid-template-columns: 1fr; } }
+  .pd-kaki { padding: 14px 20px 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; }
+  .pd-btn { border: none; border-radius: 999px; padding: 11px 22px; font-weight: 800; font-size: .88rem; cursor: pointer; }
+  .pd-btn.utama { background: #0ea5e9; color: #fff; }
+  .pd-btn.senyap { background: #f1f5f9; color: #475569; }
+</style>
+
+<div id="panduanFP" role="dialog" aria-modal="true" aria-labelledby="pdTajuk" onclick="if(event.target===this)tutupPanduanFP()">
+  <div class="pd-kotak">
+    <div class="pd-kepala">
+      <button class="pd-x" onclick="tutupPanduanFP()" aria-label="Tutup">✕</button>
+      <h2 id="pdTajuk">Selamat datang ke Famili Pintar 👋</h2>
+      <p>Mulakan dengan <b>myNasab</b>. Maklumat yang anda isi sekali itu mengalir sendiri ke app lain, jadi tak perlu isi berulang kali. Ikut anak panah.</p>
+    </div>
+    <div class="pd-isi">
+      <!-- 1 -->
+      <div class="pd-langkah" style="--w:#10b981;--b:#ecfdf5">
+        <div class="pd-tajuk"><span class="no">1</span> 🌳 myNasab <small>Mula di sini</small></div>
+        <ul>
+          <li>Bina pokok keluarga: diri, pasangan, ibu bapa, adik-beradik dan anak.</li>
+          <li>Isi <b>tarikh lahir</b> dan tanda sama ada ahli masih hidup atau telah meninggal.</li>
+          <li>Jemput adik-beradik supaya pokok mereka bercantum dengan pokok anda.</li>
+        </ul>
+      </div>
+      <div class="pd-anak"><span class="pd-pnh">⬇</span>data keluarga dikongsi</div>
+      <!-- 2 -->
+      <div class="pd-langkah" style="--w:#f43f5e;--b:#fff1f2">
+        <div class="pd-tajuk"><span class="no">2</span> 🤝 weCare <small>Jaga ibu bapa</small></div>
+        <div class="pd-label">Data yang ditarik dari myNasab</div>
+        <ul>
+          <li><b>Ibu bapa</b> (dan ibu bapa pasangan) beserta status hidup atau meninggal.</li>
+          <li><b>Pasangan dan adik-beradik</b> sebagai senarai penjaga yang berkongsi kalendar.</li>
+          <li><b>Tarikh lahir</b> ahli keluarga untuk peringatan hari jadi.</li>
+        </ul>
+        <div class="pd-label">Yang anda isi di weCare</div>
+        <ul><li>Jadual jagaan dan ubat, maklumat kesihatan ibu bapa, serta nota untuk adik-beradik.</li></ul>
+      </div>
+      <div class="pd-anak"><span class="pd-pnh">⬇</span>seterusnya</div>
+      <!-- 3 -->
+      <div class="pd-langkah" style="--w:#0ea5e9;--b:#f0f9ff">
+        <div class="pd-tajuk"><span class="no">3</span> 📓 myJurnal <small>Jawab ujian &amp; kuiz</small></div>
+        <ul><li>Pasangan dan anak diambil dari myNasab. Keputusan ujian anda disimpan, dan sebahagiannya dihantar ke app seterusnya.</li></ul>
+        <div class="pd-cabang" style="margin-top:10px">
+          <div class="pd-langkah" style="--w:#f97316;--b:#fff7ed">
+            <div class="pd-label" style="margin-top:0">Ujian kewangan anda</div>
+            <ul><li><b>myDEBT</b> (hutang dan DSR)</li><li><b>myFINPLAN</b> (perancangan persaraan)</li></ul>
+            <div class="pd-label">Dihantar ke</div>
+            <ul><li>➜ <b>myTADBIR</b></li></ul>
+          </div>
+          <div class="pd-langkah" style="--w:#8b5cf6;--b:#f5f3ff">
+            <div class="pd-label" style="margin-top:0">Ujian untuk anak (pilih nama anak)</div>
+            <ul><li><b>myPERSONALITIkids</b></li><li><b>myPSIKOkids</b> (bawah 12 tahun)</li><li><b>myPSIKOteens</b> (12 tahun ke atas)</li><li><b>myINTEGRITY</b></li></ul>
+            <div class="pd-label">Dihantar ke</div>
+            <ul><li>➜ <b>myKids</b></li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="pd-anak"><span class="pd-pnh">⬇</span>hasilnya muncul di</div>
+      <!-- 4 -->
+      <div class="pd-cabang pd-cabang-tiga">
+        <div class="pd-langkah" style="--w:#8b5cf6;--b:#faf5ff">
+          <div class="pd-tajuk"><span class="no">4</span> 🧒 myKids</div>
+          <ul><li>Anak diambil dari myNasab.</li><li>Keputusan personaliti, psikologi dan integriti anak dipaparkan.</li><li>Bantu pilih laluan kerjaya yang serasi.</li></ul>
+        </div>
+        <div class="pd-langkah" style="--w:#0f172a;--b:#f8fafc">
+          <div class="pd-tajuk"><span class="no">5</span> 🏛️ myTADBIR</div>
+          <ul><li>Ahli keluarga dari myNasab, hutang dari myDEBT, persaraan dari myFINPLAN.</li><li>Dikira: harta bersih, DSR, dana persaraan, zakat dan sasaran dana.</li></ul>
+        </div>
+        <div class="pd-langkah" style="--w:#6366f1;--b:#eef2ff">
+          <div class="pd-tajuk"><span class="no">6</span> 💰 OurMoney</div>
+          <ul><li>Sasaran simpanan dan zakat ditarik dari myTADBIR.</li><li>Percutian dari JomBercuti jadi misi simpanan.</li><li>Ibu bapa dari myNasab untuk misi Amanah.</li></ul>
+        </div>
+      </div>
+      <p style="font-size:.74rem;color:#64748b;font-weight:600;text-align:center;margin:12px 0 4px;line-height:1.5">Tak perlu ikut semua. Mulakan di myNasab, kemudian pilih app yang anda perlukan. Anda boleh buka panduan ini semula bila-bila masa melalui butang <b>Teroka ekosistem</b>.</p>
+    </div>
+    <div class="pd-kaki">
+      <button class="pd-btn senyap" onclick="sembunyiPanduanFP()">Jangan papar lagi</button>
+      <button class="pd-btn utama" onclick="tutupPanduanFP()">Faham, jom mula</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var KUNCI = 'fp_panduan_sembunyi';
+  var baca = function () { try { return localStorage.getItem(KUNCI) === '1'; } catch (e) { return false; } };
+  window.bukaPanduanFP = function () { var el = document.getElementById('panduanFP'); if (el) { el.classList.add('buka'); document.body.style.overflow = 'hidden'; el.scrollTop = 0; } };
+  window.tutupPanduanFP = function () { var el = document.getElementById('panduanFP'); if (el) el.classList.remove('buka'); document.body.style.overflow = ''; };
+  window.sembunyiPanduanFP = function () { try { localStorage.setItem(KUNCI, '1'); } catch (e) {} window.tutupPanduanFP(); };
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') window.tutupPanduanFP(); });
+  // Papar sendiri setiap kali buka laman, sehingga pengguna pilih "Jangan papar lagi"
+  window.addEventListener('load', function () { if (!baca()) setTimeout(window.bukaPanduanFP, 900); });
+})();
+</script>
+
 </body>
 </html>
