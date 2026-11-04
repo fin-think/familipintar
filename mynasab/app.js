@@ -535,6 +535,31 @@ window.segerakPokokAnakSaudara = async () => {
     } catch (e) { console.error(e); alert("Gagal mengemas kini pokok: " + e.message); }
 };
 
+// Selepas anak saudara berdaftar: paparkan dia dalam pokok pengundang (di bawah ibu/bapanya).
+async function tambahAnakSaudaraKePokokInduk(jem, uid, nama, jantina) {
+    try {
+        if (jem.anak_nod) {
+            // Nod sedia ada (jemputan lama): kaitkan dengan akaunnya
+            try { await updateDoc(doc(db, "mynasab_nodes", jem.anak_nod), { akaun_uid: uid }); } catch (e) { console.warn("Kaitan nod anak saudara:", e.message); }
+            return;
+        }
+        const k = (nama || '').trim().toLowerCase();
+        const sedia = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", jem.owner_uid), where("ref_id", "==", jem.sasaran_id)));
+        const ada = sedia.docs.find(d => d.data().akaun_uid === uid || (d.data().name || '').trim().toLowerCase() === k);
+        let id;
+        if (ada) { id = ada.id; try { await updateDoc(doc(db, "mynasab_nodes", id), { akaun_uid: uid }); } catch (e) {} }
+        else {
+            const r = await addDoc(collection(db, "mynasab_nodes"), {
+                owner_uid: jem.owner_uid, name: nama, relationship: 'Anak Saudara', gender: jantina || '',
+                ref_id: jem.sasaran_id, dob: '', status: 'hidup', phone: '', email: '', city: '', state: '', photo_url: '',
+                is_root: false, created_by: jem.owner_uid, akaun_uid: uid, created_at: new Date()
+            });
+            id = r.id;
+        }
+        await updateDoc(doc(db, "mynasab_nodes", "root_" + uid), { "anak_saudara_dari.anak_nod": id });
+    } catch (e) { console.warn("Tak dapat tambah anak saudara ke pokok pengundang:", e.message); }
+}
+
 window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDaftar) => {
     if (kodJemput && !jemputan) {
         alert("Pautan jemputan tidak sah atau belum siap dimuatkan. Cuba lagi sebentar.");
@@ -577,6 +602,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDafta
         if (jem && jem.jenis === 'anak_saudara') {
             try { await salinPokokAnakSaudara(jem, user.uid); }
             catch (e) { console.warn("Gagal menyediakan pokok anak saudara", e); }
+            await tambahAnakSaudaraKePokokInduk(jem, user.uid, namaKeluarga, jantina);
             sessionStorage.removeItem('simpanJemput');
         } else if (jem) {
             const statusPautanDaftar = await cipraPautan(user.uid, {
@@ -1543,7 +1569,7 @@ window.tukarSasaranJemput = async () => {
     blok.classList.remove('hidden');
     const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", penggunaSemasa.uid)));
     const sedia = snap.docs.filter(s => /^anak saudara$/i.test((s.data().relationship || '').trim()) && s.data().ref_id === sel.value);
-    document.getElementById('jemputAnakSedia').innerHTML = '<option value="">+ Anak saudara baharu</option>' +
+    document.getElementById('jemputAnakSedia').innerHTML = '<option value="">+ Anak saudara baharu (dia isi nama sendiri)</option>' +
         sedia.map(s => `<option value="${esc(s.id)}" data-nama="${esc(s.data().name)}">${esc(s.data().name)}</option>`).join('');
     window.segerakAnakBaru();
 };
@@ -1562,27 +1588,9 @@ window.janaPautan = async () => {
         if (sedia.value) {
             anakNod = sedia.value;
             namaAnak = sedia.options[sedia.selectedIndex].dataset.nama || '';
-        } else {
-            const nama = document.getElementById('jemputAnakNama').value.trim();
-            if (!nama) { alert("Sila isi nama anak saudara."); return; }
-            const refP = doc(db, "mynasab_users", penggunaSemasa.uid);
-            const sp = await getDoc(refP);
-            const baki = parseInt(sp.exists() ? sp.data().credit_balance : 0, 10) || 0;
-            if (baki < 1) { alert(`Baki kredit tidak mencukupi!\n\nMenambah anak saudara memerlukan 1 Kredit.\nBaki semasa anda: ${baki} Kredit.`); return; }
-            const rujukBaru = await addDoc(collection(db, "mynasab_nodes"), {
-                owner_uid: penggunaSemasa.uid, name: nama, relationship: 'Anak Saudara',
-                gender: document.getElementById('jemputAnakJantina').value, ref_id: sel.value, dob: '', status: 'hidup',
-                phone: '', email: '', city: '', state: '', photo_url: '', is_root: false,
-                created_by: penggunaSemasa.uid, created_at: new Date()
-            });
-            await updateDoc(refP, { credit_balance: increment(-1) });
-            const paparan = document.getElementById('creditBalance'); if (paparan) paparan.innerText = baki - 1;
-            anakNod = rujukBaru.id; namaAnak = nama;
-            document.getElementById('jemputAnakNama').value = '';
-            if (window.muatTurunSalasilah) window.muatTurunSalasilah();
-            await window.tukarSasaranJemput();
-            document.getElementById('jemputAnakSedia').value = anakNod; window.segerakAnakBaru();
         }
+        // Anak saudara baharu: tiada nod dicipta di sini. Nama diisi sendiri oleh anak saudara semasa daftar,
+        // dan nod hanya muncul dalam pokok ini selepas dia berdaftar.
     }
     const kod = crypto.randomUUID().replace(/-/g, '').slice(0, 12);
     await setDoc(doc(db, "mynasab_invites", kod), {
