@@ -17,6 +17,7 @@
     
     <!-- Simpan automatik (kongsi) -->
     <script src="autosave.js?v=2"></script>
+    <script src="faraid.js?v=1"></script>
     <script src="peranan.js?v=2"></script>
 
     <!-- Babel -->
@@ -185,7 +186,7 @@
           rumahValue: 0, keretaValue: 0, debtsList: [], extraBudget: 0, debtStrategy: 'snowball', consolRate: 4.5, consolYear: 7,
           retireAge: 60, lifeExpectancy: 80, inflationRate: 3, assetReturnRate: 5, uniAge: 18, currentEduCost: 50000,
           sspnFund: 0, asbAnakFund: 0, educationInflation: 6, universityType: 'local', funeralCost: 2000, sepencarianPercent: 50,
-          wasiatPercent: 0, hasSpouse: false, hasMother: false, hasFather: false, currentTakaful: 0,
+          wasiatPercent: 0, hasSpouse: false, hasMother: false, hasFather: false, numBrothers: 0, numSisters: 0, currentTakaful: 0,
           healthInflationRate: 10
         };
 
@@ -308,7 +309,7 @@ if (rdb.monthlyBudget === undefined) {
                   const nasabSnap = await window.fbGetDocs(q);
                   
                   let childrenList = [];
-                  let spouse = false, mother = false, father = false;
+                  let spouse = false, mother = false, father = false, sdrL = 0, sdrP = 0;
                   let selfAge = mergedData.age;
                   let selfGender = mergedData.userGender;
 
@@ -356,6 +357,12 @@ if (rdb.monthlyBudget === undefined) {
                       }
                       
                       const bukanSaudara = !rel.includes('saudara') && !rel.includes('sepupu') && !rel.includes('pupuk');
+                      // Adik-beradik si mati (untuk faraid). Pasangan: adik-beradik pasangan dalam myNasab.
+                      const relSdr = peranan === 'pasangan' ? /^(abang|kakak|adik) pasangan$/ : /^(abang|kakak|adik|adik-beradik)$/;
+                      if (!isMeninggal && relSdr.test(rel)) {
+                          const gS = (gText === 'l' || gText === 'lelaki') ? 'L' : ((gText === 'p' || gText === 'perempuan') ? 'P' : (rel.startsWith('abang') ? 'L' : (rel.startsWith('kakak') ? 'P' : '')));
+                          if (gS === 'L') sdrL++; else if (gS === 'P') sdrP++;
+                      }
                       if (peranan === 'pasangan') {
                           // Ibu bapa pasangan = mertua dalam myNasab
                           if (!isMeninggal && isMertua) {
@@ -405,6 +412,8 @@ if (rdb.monthlyBudget === undefined) {
                   mergedData.hasSpouse = peranan === 'pasangan' ? true : spouse;
                   mergedData.hasMother = mother;
                   mergedData.hasFather = father;
+                  mergedData.numBrothers = sdrL;
+                  mergedData.numSisters = sdrP;
                   
                   if (childrenList.length > 0) {
                       mergedData.childrenData = childrenList;
@@ -565,6 +574,7 @@ if (rdb.monthlyBudget === undefined) {
             retireAge, lifeExpectancy, inflationRate, assetReturnRate, uniAge, currentEduCost,
             sspnFund, asbAnakFund, educationInflation, universityType,
             funeralCost, sepencarianPercent, wasiatPercent, hasSpouse, hasMother, hasFather, currentTakaful,
+            numBrothers = 0, numSisters = 0,
             healthInflationRate = 10, jenisKerja = 'swasta', tahunMulaKerja = 0, kenaikanGaji = 3
           } = appData;
 
@@ -608,6 +618,8 @@ if (rdb.monthlyBudget === undefined) {
           const setHasSpouse = (val) => setAppData(p => ({...p, hasSpouse: val}));
           const setHasMother = (val) => setAppData(p => ({...p, hasMother: val}));
           const setHasFather = (val) => setAppData(p => ({...p, hasFather: val}));
+          const setNumBrothers = (val) => setAppData(p => ({...p, numBrothers: Math.max(0, Math.floor(val) || 0)}));
+          const setNumSisters = (val) => setAppData(p => ({...p, numSisters: Math.max(0, Math.floor(val) || 0)}));
           const setCurrentTakaful = (val) => setAppData(p => ({...p, currentTakaful: val}));
 
           const toNumber = (v) => {
@@ -1009,74 +1021,21 @@ if (rdb.monthlyBudget === undefined) {
           const wasiatAmount = actualNetEstate * (Math.min(wasiatPercent, 33.33) / 100);
           const faraidPool = actualNetEstate - wasiatAmount;
 
+          // Pembahagian faraid guna enjin kongsi faraid.js (sama dengan myWARIS)
           const calculateFaraid = () => {
-            let distribution = [];
-            let pool = faraidPool;
-            if (pool <= 0) return [];
-
-            let spouseShare = 0; let motherShare = 0; let fatherShare = 0; let daughtersShare = 0;
-            
-            if (hasSpouse) {
-              if (spouseGender === 'isteri') {
-                spouseShare = (numSons > 0 || numDaughters > 0) ? 1/8 : 1/4;
-                distribution.push({ name: 'Isteri', amount: pool * spouseShare, percent: spouseShare * 100, isSpouse: true });
-              } else {
-                spouseShare = (numSons > 0 || numDaughters > 0) ? 1/4 : 1/2;
-                distribution.push({ name: 'Suami', amount: pool * spouseShare, percent: spouseShare * 100, isSpouse: true });
-              }
-            }
-
-            if (hasMother) {
-              motherShare = (numSons > 0 || numDaughters > 0) ? 1/6 : 1/3;
-              distribution.push({ name: 'Ibu', amount: pool * motherShare, percent: motherShare * 100 });
-            }
-
-            if (hasFather) {
-              fatherShare = (numSons > 0 || numDaughters > 0) ? 1/6 : 0;
-              distribution.push({ name: 'Bapa', amount: pool * fatherShare, percent: fatherShare * 100 });
-            }
-
-            if (numSons === 0 && numDaughters > 0) {
-              daughtersShare = numDaughters === 1 ? 1/2 : 2/3;
-              distribution.push({ name: `Anak Perempuan (${numDaughters} orang)`, amount: pool * daughtersShare, percent: daughtersShare * 100 });
-            }
-
-            let allocatedFraction = spouseShare + motherShare + fatherShare + daughtersShare;
-            
-            if (allocatedFraction > 1) {
-              distribution = distribution.map(d => {
-                let newFraction = (d.percent / 100) / allocatedFraction;
-                return { ...d, amount: pool * newFraction, percent: newFraction * 100 };
-              });
-              allocatedFraction = 1;
-            }
-
-            let remainingFraction = 1 - allocatedFraction;
-            let remainingAmount = pool * remainingFraction;
-
-            if (remainingFraction > 0.0001) {
-              if (numSons > 0) {
-                const totalParts = (numSons * 2) + numDaughters;
-                const valuePerPart = remainingAmount / totalParts;
-                distribution.push({ name: `Anak Lelaki (${numSons} orang)`, amount: valuePerPart * 2 * numSons, percent: (valuePerPart * 2 * numSons / pool) * 100 });
-                if (numDaughters > 0) {
-                  distribution.push({ name: `Anak Perempuan (${numDaughters} orang)`, amount: valuePerPart * numDaughters, percent: (valuePerPart * numDaughters / pool) * 100 });
-                }
-              } else if (hasFather) {
-                let fatherIndex = distribution.findIndex(d => d.name === 'Bapa');
-                if(fatherIndex !== -1) {
-                    distribution[fatherIndex].amount += remainingAmount;
-                    distribution[fatherIndex].percent += (remainingFraction * 100);
-                    distribution[fatherIndex].name = 'Bapa (Fardu + Asabah)';
-                } else {
-                    distribution.push({ name: 'Bapa (Asabah)', amount: remainingAmount, percent: remainingFraction * 100 });
-                }
-              } else {
-                distribution.push({ name: 'Baitulmal / Waris Lain (Adik Beradik)', amount: remainingAmount, percent: remainingFraction * 100 });
-              }
-            }
-
-            return distribution;
+            if (faraidPool <= 0 || !window.Faraid) return [];
+            const isteriAtauSuami = hasSpouse ? 1 : 0;
+            const keputusan = window.Faraid.kira({
+              jantina: userGender === 'perempuan' ? 'P' : 'L',
+              isteri: spouseGender === 'isteri' ? isteriAtauSuami : 0,
+              suami: spouseGender === 'suami' ? isteriAtauSuami : 0,
+              ibu: hasMother ? 1 : 0, bapa: hasFather ? 1 : 0,
+              AL: numSons, AP: numDaughters, SIBL: numBrothers, SIBP: numSisters
+            });
+            return window.Faraid.agihRM(keputusan, faraidPool).map(w => ({
+              name: w.nama + (w.bil > 1 ? ` (${w.bil} orang)` : '') + (w.kod === 'bapa' && /Asabah/.test(w.jenis) && /Fardu/.test(w.jenis) ? ' (Fardu + Asabah)' : ''),
+              amount: w.amaun, percent: w.peratus, fraction: w.teks, isSpouse: w.kod === 'isteri' || w.kod === 'suami'
+            }));
           };
 
           const faraidDistribution = calculateFaraid();
@@ -1688,6 +1647,11 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                               <label className="flex items-center gap-3 text-sm font-medium text-slate-700"><input type="checkbox" checked={hasMother} onChange={e => setHasMother(e.target.checked)} className="w-4 h-4" /> Ibu Hidup</label>
                               <label className="flex items-center gap-3 text-sm font-medium text-slate-700"><input type="checkbox" checked={hasFather} onChange={e => setHasFather(e.target.checked)} className="w-4 h-4" /> Bapa Hidup</label>
                             </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <label className="text-sm font-medium text-slate-700">Adik-beradik lelaki (hidup)<input type="number" min="0" value={numBrothers} onChange={e => setNumBrothers(toNumber(e.target.value))} className="mt-1 w-full p-2 border border-slate-300 rounded-lg" /></label>
+                              <label className="text-sm font-medium text-slate-700">Adik-beradik perempuan (hidup)<input type="number" min="0" value={numSisters} onChange={e => setNumSisters(toNumber(e.target.value))} className="mt-1 w-full p-2 border border-slate-300 rounded-lg" /></label>
+                            </div>
+                            <p className="text-xs text-slate-500">Kiraan guna enjin faraid yang sama dengan myWARIS (mazhab Syafi'i, baki tanpa asabah kepada Baitulmal seperti K-Faraid MAIS). Adik-beradik dianggap seibu sebapa; untuk kes sebapa/seibu, datuk atau cucu, guna myWARIS.</p>
                           </div>
                         </Card>
                       </div>
@@ -2170,7 +2134,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                                         <span className="text-slate-700 font-medium leading-tight">{item.name}</span>
                                       </div>
                                       <div className="text-right">
-                                        <span className="text-xs text-slate-400 block">{item.percent.toFixed(1)}%</span>
+                                        <span className="text-xs text-slate-400 block">{item.fraction ? item.fraction + " · " : ""}{item.percent.toFixed(1)}%</span>
                                         <span className="font-bold text-sky-700">{formatRM(item.amount)}</span>
                                       </div>
                                     </div>

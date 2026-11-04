@@ -758,8 +758,10 @@ else {
             if(tbody) tbody.appendChild(tr);
         });
         
+        // Panel faraid sudah dipindahkan ke myWARIS (myJurnal). Bacaan tambahan di bawah hanya dijalankan jika panel masih ada.
+        const adaPanelFaraid = !!document.getElementById('pilihanMatiFaraid');
         // --- Akaun adik-beradik yang dijemput: adik-beradik sebenar ialah adik-beradik pengundang (induk) juga ---
-        try {
+        if (adaPanelFaraid) try {
             const akarF = window.dataAhliFaraid.find(n => n.is_root);
             if (akarF && akarF.sibling_of && akarF.link_owner && akarF.link_owner !== penggunaSemasa.uid) {
                 const sO = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", akarF.link_owner)));
@@ -779,7 +781,7 @@ else {
         } catch (e) { console.warn('Faraid: adik-beradik pengundang:', e.message); }
 
         // --- Induk: adik-beradik yang mempunyai akaun sendiri (dijemput) juga waris. Pokok induk memaparkannya melalui pautan akaun ---
-        try {
+        if (adaPanelFaraid) try {
             const akarI = window.dataAhliFaraid.find(n => n.is_root);
             if (akarI && !(akarI.sibling_of && akarI.link_owner && akarI.link_owner !== penggunaSemasa.uid)) {
                 const peribadi = (t) => String(t || '').toLowerCase().split(/\s+(?:bin|binti|bte|b\.|bt\.)\s+/)[0].trim();
@@ -827,7 +829,7 @@ else {
             if(htmlPilihan.includes(`value="${nilaiSemasa}"`)) dropdownFaraid.value = nilaiSemasa; 
         }
         
-        if(window.jalankanFaraid) window.jalankanFaraid();
+        if(adaPanelFaraid && window.jalankanFaraid) window.jalankanFaraid();
         
     } catch (error) { console.error("Gagal memuat turun senarai:", error); }
 };
@@ -2658,6 +2660,7 @@ document.addEventListener('wheel', (e) => {
 // 11.5 ENJIN PENUKARAN IDENTITI (PIVOT KELUARGA) - DIBETULKAN
 // ==========================================
 window.jalankanFaraid = () => {
+    if (!document.getElementById('pilihanMatiFaraid')) return;
     if (!window.dataAhliFaraid || window.dataAhliFaraid.length === 0) return;
     
     let targetId = document.getElementById('pilihanMatiFaraid').value;
