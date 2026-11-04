@@ -823,8 +823,10 @@
     const HJ = { induk: { doc: null, rekod: [], th: 0 }, pasangan: { doc: null, rekod: [], th: 0 } };
     const hajiAktif = (p) => !!(HJ[p] && HJ[p].doc && HJ[p].doc.status === 'aktif');
 
-    const catOutflow = [“-- Pilih kategori --”, "Rumah/ Sewa", "Kereta/ Petrol", "Barang Dapur", "Makan Luar (Keluarga)", "Makan Luar (Sendiri)", "Bil Utiliti", "Perubatan", "Yuran/ Kos Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans/ Takaful", "Tol & Parking", "Pakaian", "Lain-lain"];
-    const catInflow = [“-- Pilih kategori --”, "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
+    // Nama kategori kekal sama dengan rekod lama (analisis 50/30/20 & had kategori bergantung pada nama ini).
+    // "Makan Luar" dipecah kepada Keluarga & Sendiri; rekod lama "Makan Luar" / "Pendidikan" masih dikira dalam analisis.
+    const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar (Keluarga)", "Makan Luar (Sendiri)", "Bil Utiliti", "Perubatan", "Yuran / Kos Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans / Takaful", "Tol & Parking", "Pakaian", "Lain-lain"];
+    const catInflow = ["Baki Permulaan", "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
 
     const btnRadios = document.querySelectorAll('input[name="txnType"]');
     const selectCat = document.getElementById('txnCat');
@@ -834,7 +836,8 @@
         const type = document.querySelector('input[name="txnType"]:checked').value;
         const options = type === 'outflow' ? catOutflow : catInflow;
         const dahPilih = selectCat.value;
-        let h = options.map(c => `<option value="${c}">${c}</option>`).join('');
+        // Tiada kategori dipilih secara lalai: pengguna mesti pilih sendiri supaya rekod tidak tersalah kategori
+        let h = '<option value="" disabled selected>-- Pilih kategori --</option>' + options.map(c => `<option value="${c}">${c}</option>`).join('');
         if (type === 'outflow') {
             const m = (typeof misiSenarai !== 'undefined' ? misiSenarai : []).filter(x => !x.trip && !(x.k && x.k.siap));
             if (m.length) h += '<optgroup label="🎯 Simpanan Misi Kewangan">' + m.map(x => `<option value="misi:${esc(x.id)}">🎯 ${esc(x.label)}</option>`).join('') + '</optgroup>';
@@ -2005,6 +2008,7 @@
     document.getElementById('form-transaksi').addEventListener('submit', async (e) => {
         e.preventDefault();
         if(!currentUser) return;
+        if (!document.getElementById('txnCat').value) { alert("Sila pilih kategori dahulu."); document.getElementById('txnCat').focus(); return; }
 
         const btn = document.getElementById('btn-save-txn');
         btn.disabled = true; btn.innerText = "Memuat Naik & Menyimpan...";
@@ -2052,6 +2056,7 @@
             
             document.getElementById('txnAmount').value = '';
             document.getElementById('txnNote').value = '';
+            document.getElementById('txnCat').value = '';
             window.buangGambar();
             
             if (tambahan.is_saving) await muatMisi();
@@ -2693,8 +2698,8 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
 
     // Nisbah & perancangan: kadar simpanan, 50/30/20, had kategori, projeksi hujung bulan, dana kecemasan, cadangan
     function binaPerancangan(arrCur, belanja, simpan, catSpent) {
-        const KEPERLUAN = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Bil Utiliti", "Perubatan", "Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans / Takaful", "Tol & Parking"];
-        const HAD = { "Rumah / Sewa": 35, "Kereta / Petrol": 15, "Barang Dapur": 15, "Makan Luar (Keluarga)": 10, "Makan Luar (Sendiri)": 10, "Bil Utiliti": 10, "Pakaian": 5 };
+        const KEPERLUAN = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Bil Utiliti", "Perubatan", "Yuran / Kos Pendidikan", "Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans / Takaful", "Tol & Parking"];
+        const HAD = { "Rumah / Sewa": 35, "Kereta / Petrol": 15, "Barang Dapur": 15, "Makan Luar (Keluarga)": 10, "Makan Luar (Sendiri)": 10, "Makan Luar": 10, "Bil Utiliti": 10, "Pakaian": 5 };
         let pend = 0;
         arrCur.forEach(t => { if (t.type !== 'outflow' && t.category !== 'Baki Permulaan') pend += Number(t.amount) || 0; });
         const adaPend = pend > 0;
@@ -2748,7 +2753,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
                 h += '<div class="text-sm text-slate-500" style="font-size:.72rem">Tersedia selepas hari ke-7 supaya anggaran lebih tepat.</div>';
             } else {
                 // Bil tetap (sewa, utiliti, pendidikan) sudah dibayar sekali, jadi hanya belanja boleh ubah yang dianggar.
-                const TETAP = ["Rumah / Sewa", "Bil Utiliti", "Pendidikan", "Ansuran Pinjaman", "Insurans / Takaful", "🤝 Amanah Ibu Bapa", "🕋 Haji"];
+                const TETAP = ["Rumah / Sewa", "Bil Utiliti", "Yuran / Kos Pendidikan", "Pendidikan", "Ansuran Pinjaman", "Insurans / Takaful", "🤝 Amanah Ibu Bapa", "🕋 Haji"];
                 let variabel = 0; Object.keys(catSpent).forEach(k => { if (!TETAP.includes(k)) variabel += catSpent[k]; });
                 const harian = variabel / hariBerlalu;
                 projBaki = net - harian * (jumHari - hariBerlalu);
