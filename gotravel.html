@@ -172,6 +172,13 @@
   .dt-num { font-weight: 800; font-size: 0.75rem; color: #334155; margin-bottom: 3px; text-align: right; }
   .cal-event { font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; color: #fff; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; cursor: pointer; }
   .evt-ayah { background: #3b82f6; } .evt-ibu { background: #ec4899; } .evt-umum { background: #10b981; } .evt-bday { background: #f43f5e; } .evt-trip { background: #f59e0b; color: #fff; }
+  .cal-date.cuti-umum .dt-num { color: #dc2626; }
+  .cal-date.cuti-sekolah { background: #f0f9ff; }
+  .cal-date.cuti-sekolah.trip-range { background: #fffbeb; }
+  .cal-event.evt-cuti { background: #fee2e2; color: #b91c1c; cursor: default; }
+  .cal-event.evt-sekolah { background: #e0f2fe; color: #0369a1; cursor: default; }
+  .pilih-cuti { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 12px; }
+  .pilih-cuti select { border: 1px solid #e2e8f0; border-radius: 6px; padding: 3px 6px; font-size: 0.75rem; font-weight: 700; background: #fff; }
   .cal-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 12px; justify-content: center; }
 
    #itinPreviewModal { position: fixed; inset: 0; background: rgba(15,23,42,.8); z-index: 6000; overflow-y: auto; padding: 16px; display: flex; justify-content: center; }
@@ -293,7 +300,13 @@
       <span><b style="color:#10b981;">🟢 Umum</b></span>
       <span><b style="color:#f43f5e;">🎂 Hari Jadi</b></span>
       <span><b style="color:#f59e0b;">🏖️ Tarikh Cuti</b></span>
+      <span><b style="color:#b91c1c;">🇲🇾 Cuti Umum</b></span>
+      <span><b style="color:#0369a1;">🏫 Cuti Sekolah</b></span>
     </div>
+    <div class="pilih-cuti"><span>Cuti umum ikut negeri:</span>
+      <select id="pilihNegeriCuti" onchange="tukarNegeriCuti(this.value)"><option value="">Persekutuan sahaja</option><option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Pulau Pinang">Pulau Pinang</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option></select>
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="paparCutiSekolah" onchange="tukarPaparSekolah(this.checked)" checked> 🏫 Cuti sekolah</label>
+      <span id="infoNegeriCuti" style="font-weight:600"></span></div>
     <div class="cal-header">
       <button onclick="tukarBulanCal(-1)">❮</button>
       <h3 id="paparanBulanTahunCal">Bulan Tahun</h3>
@@ -1112,6 +1125,39 @@ window.muatKalendarIntegrasi = async (groupUid, nodSaya, nodInduk, sayaInduk, sa
     } catch (e) { console.warn("Gagal muat kalendar weCare:", e); }
 };
 
+// =================== CUTI UMUM & CUTI SEKOLAH (sama seperti weCare; data /cuti-malaysia.json) ===================
+// Pilihan negeri & papar cuti sekolah dikongsi dengan weCare (kunci localStorage yang sama).
+let dataCuti = { umum: [], sekolah: {}, kumpulanA: ['Kedah', 'Kelantan', 'Terengganu'] };
+let negeriMyNasab = '';
+const KUNCI_NEG = 'wecare_negeri_cuti', KUNCI_SEK = 'wecare_papar_sekolah';
+const bacaLS = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const tulisLS = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+const negeriCuti = () => { const v = bacaLS(KUNCI_NEG); return v !== null ? v : negeriMyNasab; };
+const kumpulanSekolah = () => (dataCuti.kumpulanA || []).includes(negeriCuti()) ? 'A' : 'B';
+const paparSekolah = () => bacaLS(KUNCI_SEK) !== '0';
+function segarkanPilihanCuti() {
+    const n = negeriCuti(), el = document.getElementById('pilihNegeriCuti'), cb = document.getElementById('paparCutiSekolah'), inf = document.getElementById('infoNegeriCuti');
+    if (el) el.value = n; if (cb) cb.checked = paparSekolah();
+    if (inf) inf.textContent = (n ? 'Kumpulan ' + kumpulanSekolah() : '') + (negeriMyNasab ? (n === negeriMyNasab ? ' · dari myNasab' : '') : ' · isi negeri anda di myNasab');
+}
+window.tukarNegeriCuti = (v) => { tulisLS(KUNCI_NEG, v === negeriMyNasab ? null : v); segarkanPilihanCuti(); window.renderKalendarWeCare(); };
+window.tukarPaparSekolah = (on) => { tulisLS(KUNCI_SEK, on ? '1' : '0'); window.renderKalendarWeCare(); };
+(async () => {
+    try {
+        const r = await fetch('/cuti-malaysia.json?v=' + new Date().toISOString().slice(0, 10));
+        if (r.ok) { const d = await r.json(); dataCuti = { umum: d.umum || [], sekolah: d.sekolah || {}, kumpulanA: d.kumpulanA || dataCuti.kumpulanA }; }
+    } catch (e) { console.log('Data cuti tidak dapat dimuatkan:', e); }
+    segarkanPilihanCuti(); try { window.renderKalendarWeCare(); } catch (e) {}
+})();
+onAuthStateChanged(auth, async (u) => {
+    if (!u) return;
+    try { const r = await getDoc(doc(db, "mynasab_nodes", "root_" + u.uid)); negeriMyNasab = (r.exists() && r.data().state) || ''; } catch (e) {}
+    segarkanPilihanCuti(); try { window.renderKalendarWeCare(); } catch (e) {}
+});
+const cutiBerlaku = (c, n) => n ? ((!c.negeri || c.negeri.includes(n)) && !(c.kecuali || []).includes(n)) : !c.negeri;
+const cutiUmumPada = (k) => { const n = negeriCuti(); return dataCuti.umum.filter(c => c.t === k && cutiBerlaku(c, n)); };
+const cutiSekolahPada = (k) => { if (!paparSekolah()) return []; const n = negeriCuti(); return (dataCuti.sekolah[kumpulanSekolah()] || []).filter(c => k >= c.m && k <= c.h && cutiBerlaku(c, n)); };
+
 window.renderKalendarWeCare = () => {
     const grid = document.getElementById('gridKalendarWeCare'); if (!grid) return;
     const goVal = document.getElementById('date-go')?.value || ''; const backVal = document.getElementById('date-back')?.value || goVal;
@@ -1132,6 +1178,9 @@ window.renderKalendarWeCare = () => {
         const isTrip = (goVal && tkhKunci >= goVal && tkhKunci <= (backVal || goVal));
 
         let htmlEvents = '';
+        const cU = cutiUmumPada(tkhKunci), cS = cutiSekolahPada(tkhKunci);
+        cU.forEach(c => { htmlEvents += `<div class="cal-event evt-cuti" title="${esc(c.n + (c.nota ? ' · ' + c.nota : ''))}">🇲🇾 ${esc(c.n)}</div>`; });
+        cS.forEach(c => { if (c.m === tkhKunci || i === 1) htmlEvents += `<div class="cal-event evt-sekolah" title="${esc(c.n + ' (' + c.m.split('-').reverse().join('/') + ' – ' + c.h.split('-').reverse().join('/') + ')')}">🏫 ${esc(c.n)}</div>`; });
         if ( isTrip && (tkhKunci === goVal || tkhKunci === backVal) ) { htmlEvents += `<div class="cal-event evt-trip">🏖️ ${tkhKunci === goVal ? 'Pergi' : 'Balik'}</div>`; }
         globalTeamMap.forEach(v => { if (v.dob && v.dob.substring(5) === mmdd) { htmlEvents += `<div class="cal-event evt-bday" title="Hari Jadi ${esc(v.name)}">🎂 ${esc(v.name.split(' ')[0])}</div>`; } });
 
@@ -1146,7 +1195,7 @@ window.renderKalendarWeCare = () => {
             const infoPenuh = `weCare (${t.for_whom.toUpperCase()}) - ${t.title} (Masa: ${t.time || 'Sepanjang hari'})`;
             htmlEvents += `<div class="cal-event ${warna}" onclick="alert('${esc(infoPenuh).replace(/'/g, "\\'")}')">${t.time ? t.time + ' ' : ''}${esc(shift)}${esc(t.title)}</div>`;
         });
-        html += `<div class="cal-date ${isToday ? 'today' : ''} ${isTrip ? 'trip-range' : ''}"><div class="dt-num">${i}</div>${htmlEvents}</div>`;
+        html += `<div class="cal-date ${isToday ? 'today' : ''} ${isTrip ? 'trip-range' : ''}${cU.length ? ' cuti-umum' : ''}${cS.length ? ' cuti-sekolah' : ''}"><div class="dt-num">${i}</div>${htmlEvents}</div>`;
     }
     grid.innerHTML = html;
 };
