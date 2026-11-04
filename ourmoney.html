@@ -190,6 +190,7 @@
       #modalCetakTahunan, #modalCetakTahunan * { visibility: visible; }
       #modalCetakTahunan { position: absolute; left: 0; top: 0; width: 100%; background: white; padding: 0; overflow: visible; display: block !important; }
       .cetak-container, .cetak-container.melintang { width: auto !important; max-width: 100%; box-shadow: none; border-radius: 0; padding: 0 !important; min-height: auto !important; margin: 0; }
+      .cetak-container { transform: none !important; margin-bottom: 0 !important; }
       .no-print { display: none !important; }
   }
 
@@ -2171,7 +2172,27 @@
             const z = Math.max(0.55, tinggi / h);
             p1.style.zoom = z;       // zum standard: peratus lebar sudah ikut bekas, tidak perlu laras lebar
         }
+        skalaPratontonLaporan();
     };
+
+    // Telefon: papar kertas pada lebar sebenar (A4/A3) dan kecilkan keseluruhannya supaya muat skrin,
+    // jadi susun atur sama seperti desktop/cetakan. Desktop (skrin cukup lebar) tidak terjejas.
+    function skalaPratontonLaporan() {
+        const kont = document.getElementById('print-content'), modal = document.getElementById('modalCetakTahunan');
+        if (!kont || !modal) return;
+        kont.style.transform = ''; kont.style.transformOrigin = ''; kont.style.marginBottom = ''; kont.style.maxWidth = ''; kont.style.marginLeft = kont.style.marginRight = '';
+        if (kont.style.width) return;                          // sedang cetak (cetakLaporan tetapkan lebar sendiri)
+        const ruang = modal.clientWidth - 40;                  // tolak padding modal 20px kiri/kanan
+        const lebar = lapKertas().w * LAP_MM;
+        if (!(ruang > 0) || ruang >= lebar) return;
+        const s = ruang / lebar;
+        kont.style.maxWidth = 'none';
+        kont.style.transformOrigin = 'top center';
+        kont.style.transform = 'scale(' + s + ')';
+        kont.style.marginBottom = (30 - kont.offsetHeight * (1 - s)) + 'px';
+        kont.style.marginLeft = kont.style.marginRight = (-(lebar - ruang) / 2) + 'px';   // elak ruang kosong boleh diseret ke tepi
+    }
+    window.addEventListener('resize', () => { const m = document.getElementById('modalCetakTahunan'); if (m && m.style.display !== 'none' && m.style.display) skalaPratontonLaporan(); });
 
     window.tukarSaizLaporan = () => {
         const v = (document.getElementById('saizLaporan') || {}).value || 'A4 portrait';
