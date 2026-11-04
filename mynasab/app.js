@@ -1453,6 +1453,7 @@ window.tukarSaizKertas = () => {
     const tinggiMm = (SAIZ_KERTAS[saiz] || SAIZ_KERTAS.A4).h - 23;
     st.textContent = `@page { size: ${saiz} landscape; margin: 10mm; }
 @media print {
+  #modalPreview .modal-preview-box, #modalPreview .kertas-cetakan { max-height: none !important; height: auto !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; }
   #kertasCetak { display: flex !important; flex-direction: column; min-height: ${tinggiMm}mm; box-sizing: border-box; }
   #kakiCetak { margin-top: auto !important; break-inside: avoid; }
 }`;
