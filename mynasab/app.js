@@ -1466,6 +1466,8 @@ window.tukarSaizKertas = () => {
 @media print {
   #modalPreview .modal-preview-box, #modalPreview .kertas-cetakan { max-height: none !important; height: auto !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; }
   #kertasCetak { display: flex !important; flex-direction: column; min-height: ${tinggiMm}mm; box-sizing: border-box; }
+  #modalPreview { background: #fff !important; }
+  #ruangAutoLayout { flex: 1 1 auto; justify-content: center; }
   #kakiCetak { margin-top: auto !important; break-inside: avoid; }
 }`;
 };
@@ -1482,8 +1484,24 @@ window.cetakSalasilah = () => {
     if (pokok) {
         const lebarMuat = (SAIZ_KERTAS[saiz].w - 20) * MM;
         const tinggiMuat = (SAIZ_KERTAS[saiz].h - 20) * MM - tajuk.offsetHeight - (document.getElementById('kakiCetak')?.offsetHeight || 0) - 40;
-        const skala = Math.min(lebarMuat / pokok.scrollWidth, tinggiMuat / pokok.scrollHeight, 3) * 0.95;
-        ruang.style.zoom = skala;
+        // Ukur kotak sebenar kandungan (semua kad + tajuk belah), bukan scrollWidth .tree pertama yang termasuk ruang kosong.
+        // Ini supaya pokok memenuhi lebar/tinggi kertas, termasuk paparan Keluarga Besar yang ada lebih daripada satu pokok.
+        const ukur = () => {
+            let L = Infinity, R = -Infinity, T = Infinity, B = -Infinity;
+            ruang.querySelectorAll('.mh-card, .nasab-tajuk, .tajuk-belah, h3, h4').forEach(el => {
+                const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
+                L = Math.min(L, r.left); R = Math.max(R, r.right); T = Math.min(T, r.top); B = Math.max(B, r.bottom);
+            });
+            return isFinite(L) ? { w: R - L, h: B - T } : { w: pokok.scrollWidth, h: pokok.scrollHeight };
+        };
+        let skala = 1;
+        for (let i = 0; i < 3; i++) {
+            const k = ukur();                                   // ukuran pada zoom semasa
+            const lebar1 = k.w / skala, tinggi1 = k.h / skala;  // ukuran pada zoom 1
+            const baru = Math.min(lebarMuat / lebar1, tinggiMuat / tinggi1, 3) * 0.97;
+            if (Math.abs(baru - skala) < 0.005) break;
+            skala = baru; ruang.style.zoom = skala;
+        }
     }
 
     window.addEventListener('afterprint', () => { ruang.style.zoom = zoomSemasa; }, { once: true });
