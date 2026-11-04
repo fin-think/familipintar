@@ -129,12 +129,10 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
         </p>
         <div id="aktivitiHariIni" class="card" style="margin-bottom:15px;background:#f0fdf4;border-color:#bbf7d0;"></div>
         <p class="section-sub" style="margin-top:-8px;">👆 Klik tarikh = tambah · klik tugas = lihat/edit/padam · 💊 ubat · 🗒️ nota</p>
-        <div class="pilih-cuti"><span>🇲🇾 Cuti umum · 🏫 Cuti sekolah:</span>
-          <select id="pilihCutiSekolah" onchange="tukarCutiSekolah(this.value)">
-            <option value="B">Kumpulan B (selain Kedah, Kelantan, Terengganu)</option>
-            <option value="A">Kumpulan A (Kedah, Kelantan, Terengganu)</option>
-            <option value="">Jangan papar cuti sekolah</option>
-          </select></div>
+        <div class="pilih-cuti"><span>🇲🇾 Cuti umum ikut negeri:</span>
+          <select id="pilihNegeriCuti" onchange="tukarNegeriCuti(this.value)"><option value="">Persekutuan sahaja</option><option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Pulau Pinang">Pulau Pinang</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option></select>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="paparCutiSekolah" onchange="tukarPaparSekolah(this.checked)" checked> 🏫 Cuti sekolah</label>
+          <span id="infoNegeriCuti" style="font-weight:600"></span></div>
         <div class="cal-header">
           <button onclick="tukarBulan(-1)">❮</button>
           <h3 id="paparanBulanTahun">Bulan Tahun</h3>
@@ -536,20 +534,39 @@ async function muatDataKalendar() {
 }
 
 // --- CUTI UMUM & CUTI SEKOLAH MALAYSIA (data: /cuti-malaysia.json, dikemas kini dari semasa ke semasa) ---
-let dataCuti = { umum: [], sekolah: {} };
-const KUNCI_CUTI_SEK = 'wecare_cuti_sekolah';
-const kumpulanCutiSek = () => { try { const v = localStorage.getItem(KUNCI_CUTI_SEK); return v === null ? 'B' : v; } catch (e) { return 'B'; } };
-window.tukarCutiSekolah = (v) => { try { localStorage.setItem(KUNCI_CUTI_SEK, v); } catch (e) {} window.renderKalendar(); };
+let dataCuti = { umum: [], sekolah: {}, kumpulanA: ['Kedah', 'Kelantan', 'Terengganu'] };
+let negeriMyNasab = '';
+const KUNCI_NEG = 'wecare_negeri_cuti', KUNCI_SEK = 'wecare_papar_sekolah';
+const bacaLS = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const tulisLS = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+// Negeri: pilihan manual pada peranti ini (jika ada), jika tidak ikut negeri Induk dalam myNasab
+const negeriCuti = () => { const v = bacaLS(KUNCI_NEG); return v !== null ? v : negeriMyNasab; };
+const kumpulanSekolah = () => (dataCuti.kumpulanA || []).includes(negeriCuti()) ? 'A' : 'B';
+const paparSekolah = () => bacaLS(KUNCI_SEK) !== '0';
+function segarkanPilihanCuti() {
+  const n = negeriCuti(), el = document.getElementById('pilihNegeriCuti'), cb = document.getElementById('paparCutiSekolah'), inf = document.getElementById('infoNegeriCuti');
+  if (el) el.value = n; if (cb) cb.checked = paparSekolah();
+  if (inf) inf.textContent = (n ? 'Kumpulan ' + kumpulanSekolah() : '') + (negeriMyNasab ? (n === negeriMyNasab ? ' · dari myNasab' : '') : ' · isi negeri anda di myNasab');
+}
+window.tukarNegeriCuti = (v) => { tulisLS(KUNCI_NEG, v === negeriMyNasab ? null : v); segarkanPilihanCuti(); window.renderKalendar(); };
+window.tukarPaparSekolah = (on) => { tulisLS(KUNCI_SEK, on ? '1' : '0'); window.renderKalendar(); };
 (async () => {
   try {
     const r = await fetch('/cuti-malaysia.json?v=' + new Date().toISOString().slice(0, 10));
-    if (r.ok) { const d = await r.json(); dataCuti = { umum: d.umum || [], sekolah: d.sekolah || {} }; }
+    if (r.ok) { const d = await r.json(); dataCuti = { umum: d.umum || [], sekolah: d.sekolah || {}, kumpulanA: d.kumpulanA || dataCuti.kumpulanA }; }
   } catch (e) { console.log('Data cuti tidak dapat dimuatkan:', e); }
-  const el = document.getElementById('pilihCutiSekolah'); if (el) el.value = kumpulanCutiSek();
+  segarkanPilihanCuti();
   if (window.renderKalendar) window.renderKalendar();
 })();
-const cutiUmumPada = (k) => dataCuti.umum.filter(c => c.t === k);
-const cutiSekolahPada = (k) => { const g = kumpulanCutiSek(); return g ? (dataCuti.sekolah[g] || []).filter(c => k >= c.m && k <= c.h) : []; };
+// Negeri pengguna diambil daripada nod Induk (root_<uid>) dalam myNasab
+onAuthStateChanged(auth, async (u) => {
+  if (!u) return;
+  try { const r = await getDoc(doc(db, "mynasab_nodes", "root_" + u.uid)); negeriMyNasab = (r.exists() && r.data().state) || ''; } catch (e) {}
+  segarkanPilihanCuti(); window.renderKalendar();
+});
+const cutiBerlaku = (c, n) => n ? ((!c.negeri || c.negeri.includes(n)) && !(c.kecuali || []).includes(n)) : !c.negeri;
+const cutiUmumPada = (k) => { const n = negeriCuti(); return dataCuti.umum.filter(c => c.t === k && cutiBerlaku(c, n)); };
+const cutiSekolahPada = (k) => { if (!paparSekolah()) return []; const n = negeriCuti(); return (dataCuti.sekolah[kumpulanSekolah()] || []).filter(c => k >= c.m && k <= c.h && cutiBerlaku(c, n)); };
 
 window.renderKalendar = () => {
   const senaraiBulan = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
@@ -588,8 +605,8 @@ window.renderKalendar = () => {
     
     // Cuti umum (setiap hari berkenaan) & cuti sekolah (label pada hari pertama tempoh atau 1hb bulan; hari lain diwarnakan)
     const cU = cutiUmumPada(tarikhKunci), cS = cutiSekolahPada(tarikhKunci);
-    let htmlCuti = cU.map(c => `<div class="cal-event cal-cuti" title="${esc(c.n + (c.neg ? ' · ' + c.neg : ''))}">🇲🇾 ${esc(c.n)}</div>`).join('');
-    cS.forEach(c => { if (c.m === tarikhKunci || i === 1) htmlCuti += `<div class="cal-event cal-sekolah" title="${esc(c.n + ' (' + c.m.split('-').reverse().join('/') + ' – ' + c.h.split('-').reverse().join('/') + ')' + (c.neg ? ' · ' + c.neg : ''))}">🏫 ${esc(c.n)}</div>`; });
+    let htmlCuti = cU.map(c => `<div class="cal-event cal-cuti" title="${esc(c.n + (c.nota ? ' · ' + c.nota : ''))}">🇲🇾 ${esc(c.n)}</div>`).join('');
+    cS.forEach(c => { if (c.m === tarikhKunci || i === 1) htmlCuti += `<div class="cal-event cal-sekolah" title="${esc(c.n + ' (' + c.m.split('-').reverse().join('/') + ' – ' + c.h.split('-').reverse().join('/') + ')' + (c.nota ? ' · ' + c.nota : ''))}">🏫 ${esc(c.n)}</div>`; });
     const kelasCuti = (cU.length ? ' cuti-umum' : '') + (cS.length ? ' cuti-sekolah' : '');
 
     // Masukkan htmlBirthday di atas tugasan biasa

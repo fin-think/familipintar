@@ -560,7 +560,7 @@ async function tambahAnakSaudaraKePokokInduk(jem, uid, nama, jantina) {
     } catch (e) { console.warn("Tak dapat tambah anak saudara ke pokok pengundang:", e.message); }
 }
 
-window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDaftar) => {
+window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDaftar, lokasi = {}) => {
     if (kodJemput && !jemputan) {
         alert("Pautan jemputan tidak sah atau belum siap dimuatkan. Cuba lagi sebentar.");
         return;
@@ -593,6 +593,8 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDafta
             relationship: "Diri Sendiri (Induk)",
             gender: jantina,
             ...(dobDaftar ? { dob: dobDaftar } : {}),
+            ...(lokasi.city ? { city: lokasi.city } : {}),
+            ...(lokasi.state ? { state: lokasi.state } : {}),
             is_root: true,
             ...(jem && jem.jenis !== 'anak_saudara' ? { sibling_of: jem.sasaran_id, link_owner: jem.owner_uid } : {}),
             ...(jem && jem.jenis === 'anak_saudara' ? { anak_saudara_dari: { uid: jem.owner_uid, nod: jem.sasaran_id, anak_nod: jem.anak_nod || '' } } : {}),
@@ -1031,7 +1033,7 @@ window.bukaModalEdit = async (idKotak) => {
             document.getElementById('editAhliTelefon').value = data.phone || "";
             document.getElementById('editAhliEmail').value = data.email || "";
             document.getElementById('editAhliBandar').value = data.city || "";
-            document.getElementById('editAhliNegeri').value = data.state || "";
+            document.getElementById('editAhliNegeri').value = window.normalNegeri ? window.normalNegeri(data.state) : (data.state || "");
             document.getElementById('editAhliJantina').value = data.gender || "";
 
             const statusVal = data.status === 'meninggal' ? 'meninggal' : 'hidup';
@@ -1095,6 +1097,7 @@ if (formEdit) {
         const radioTerpilih = document.querySelector('input[name="editStatus"]:checked');
 
         { const r = window.semakDobWajib(document.getElementById('editAhliDob').value, radioTerpilih && radioTerpilih.value === 'meninggal'); if (r) { alert(r); return; } }
+        { const r = window.semakLokasiWajib(document.getElementById('editAhliBandar').value, document.getElementById('editAhliNegeri').value, radioTerpilih && radioTerpilih.value === 'meninggal'); if (r) { alert(r); return; } }
 
         try {
             let dataUpdate = {
@@ -1105,7 +1108,7 @@ if (formEdit) {
                 dob: document.getElementById('editAhliDob').value,
                 phone: document.getElementById('editAhliTelefon').value,
                 email: document.getElementById('editAhliEmail').value,
-                city: document.getElementById('editAhliBandar').value,
+                city: document.getElementById('editAhliBandar').value.trim(),
                 state: document.getElementById('editAhliNegeri').value,
                 gender: document.getElementById('editAhliJantina').value,
                 status: radioTerpilih ? radioTerpilih.value : 'hidup',
