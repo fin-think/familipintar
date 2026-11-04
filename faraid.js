@@ -352,7 +352,66 @@
     return { input: inp, nota: nota };
   }
 
-  var Faraid = { kira: kira, agihRM: agihRM, dariNasab: dariNasab, NAMA: NAMA, KOD: KOD, pecahan: P };
+  // ---------- muat nod myNasab lengkap (sama seperti paparan myNasab) ----------
+  // Selain nod sendiri, tambah:
+  //  - leluhur (ayah, ibu, datuk, nenek, moyang) dipinjam daripada adik-beradik berakaun yang bercantum (linked_adik)
+  //    jika akaun ini tiada ibu bapa sendiri, sama seperti pokok myNasab
+  //  - adik-beradik berakaun: akaun bercantum (linked_adik), pengundang (sibling_of/link_owner) dan akaun yang dijemput (mynasab_links)
+  // fs = { collection, query, where, getDocs }. Nod tambahan ditanda luar: true.
+  async function muatNod(fs, db, uid) {
+    var ambil = function (s) { return s.docs.map(function (d) { return Object.assign({}, d.data(), { id: d.id }); }); };
+    var q = function (owner, lagi) { var a = [fs.collection(db, 'mynasab_nodes'), fs.where('owner_uid', '==', owner)].concat(lagi || []); return fs.getDocs(fs.query.apply(null, a)); };
+    var rel = function (n) { return String(n.relationship || '').trim().toLowerCase(); };
+    var kunci = function (t) { return String(t || '').toLowerCase().split(/\s+(?:bin|binti|bte|b\.|bt\.)\s+/)[0].trim(); };
+    var SDR = /^(abang|kakak|adik|adik-beradik)$/, SDRP = /^(abang|kakak|adik) pasangan$/;
+    var LELUHUR = /^(ayah|ibu)$|datuk|nenek|moyang|buyut/;
+    var nod = ambil(await q(uid));
+    var akar = nod.filter(function (n) { return n.is_root; })[0] || {};
+    var sudah = {}, sudahP = {};
+    nod.forEach(function (n) { if (SDR.test(rel(n))) sudah[kunci(n.name)] = 1; if (SDRP.test(rel(n))) sudahP[kunci(n.name)] = 1; });
+    sudah[kunci(akar.name)] = 1;
+    nod.filter(function (n) { return /^(isteri|suami)$/.test(rel(n)); }).forEach(function (n) { sudahP[kunci(n.name)] = 1; });
+    function tambah(d, relBaru) {
+      var psg = relBaru === 'Adik Pasangan', set = psg ? sudahP : sudah, k = kunci(d.name);
+      if (!k || set[k] || d.owner_uid === uid && d.is_root) return;
+      set[k] = 1;
+      nod.push({ id: 'luar_' + d.id, name: d.name, gender: d.gender || '', dob: d.dob || '', status: d.status || 'hidup', relationship: relBaru, luar: true });
+    }
+    var adaIbuBapa = function () { return nod.some(function (n) { return /^(ayah|ibu)$/.test(rel(n)); }); };
+    function pinjamLeluhur(nu) {
+      if (adaIbuBapa()) return;
+      var L = nu.filter(function (n) { return !n.is_root && LELUHUR.test(rel(n)) && !/mertua|mentua|saudara/.test(rel(n)); });
+      if (L.some(function (n) { return /^(ayah|ibu)$/.test(rel(n)); })) L.forEach(function (n) { nod.push(Object.assign({}, n, { luar: true })); });
+    }
+    function dariPokok(nu) {
+      nu.filter(function (n) { return n.is_root; }).forEach(function (r) { tambah(r, 'Adik-beradik'); });
+      nu.filter(function (n) { return SDR.test(rel(n)); }).forEach(function (n) { tambah(n, 'Adik-beradik'); });
+      pinjamLeluhur(nu);
+    }
+    var linked = Array.isArray(akar.linked_adik) ? akar.linked_adik : [];
+    for (var i = 0; i < linked.length; i++) {
+      if (!linked[i] || linked[i] === uid) continue;
+      try { dariPokok(ambil(await q(linked[i]))); } catch (e) { console.warn('Faraid.muatNod linked_adik:', e.message); }
+    }
+    if (akar.sibling_of && akar.link_owner && akar.link_owner !== uid) {
+      try { dariPokok(ambil(await q(akar.link_owner))); } catch (e) { console.warn('Faraid.muatNod pengundang:', e.message); }
+    }
+    try {
+      var sl = await fs.getDocs(fs.query(fs.collection(db, 'mynasab_links'), fs.where('owner_uid', '==', uid), fs.where('status', '==', 'aktif')));
+      var idPas = {}; nod.forEach(function (n) { if (/^(isteri|suami)$/.test(rel(n))) idPas[n.id] = 1; });
+      for (var j = 0; j < sl.docs.length; j++) {
+        var l = sl.docs[j].data(), u = l.uid, sas = String(l.sasaran_id || '');
+        if (!u || u === uid) continue;
+        var psg = !!idPas[sas], induk = sas === akar.id || sas === 'root_' + uid;
+        if (!psg && !induk) continue;
+        var rr = ambil(await q(u, [fs.where('is_root', '==', true)]))[0];
+        if (rr) tambah(rr, psg ? 'Adik Pasangan' : 'Adik-beradik');
+      }
+    } catch (e) { console.warn('Faraid.muatNod pautan:', e.message); }
+    return nod;
+  }
+
+  var Faraid = { kira: kira, agihRM: agihRM, dariNasab: dariNasab, muatNod: muatNod, NAMA: NAMA, KOD: KOD, pecahan: P };
   if (typeof module !== 'undefined' && module.exports) module.exports = Faraid;
   root.Faraid = Faraid;
 })(typeof window !== 'undefined' ? window : globalThis);

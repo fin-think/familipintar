@@ -120,7 +120,7 @@
     </footer>
 </div>
 
-<script src="../faraid.js?v=1"></script>
+<script src="../faraid.js?v=2"></script>
 <script>
     const KUMP = [
         { tajuk: 'Pasangan', item: [['suami', 'Suami', '', 1], ['isteri', 'Isteri', 'Sehingga 4', 4]] },
@@ -205,7 +205,11 @@
         kunci: 'mywaris',
         letak: 'main',
         isi: async (F, mod) => {
-            const r = Faraid.dariNasab(F.nod, mod === 'pasangan' ? 'pasangan' : 'induk');
+            // Nod lengkap seperti paparan myNasab: termasuk leluhur adik-beradik bercantum dan adik-beradik berakaun
+            let nodPenuh = F.nod;
+            try { nodPenuh = await Faraid.muatNod(F.fs, F.db, F.user.uid); } catch (e) { console.warn('myWARIS: muatNod', e); }
+            const r = Faraid.dariNasab(nodPenuh, mod === 'pasangan' ? 'pasangan' : 'induk');
+            if (nodPenuh.some(n => n.luar)) r.nota.push('Sebahagian ahli (ibu bapa / adik-beradik) diambil daripada pokok adik-beradik yang berakaun, sama seperti paparan myNasab.');
             dariNasab = r.input; notaNasab = r.nota;
             input = Object.assign({}, r.input); semak = {}; disentuh = false;
             const o = F.orang();
@@ -213,11 +217,13 @@
             F.maklumat('Waris jika <b>' + esc(o.nama || 'anda') + '</b> meninggal dunia, ditarik daripada myNasab.');
             kira();
         },
-        ambil: () => (!disentuh && !FP.sudahSimpan) ? null : { input, semak },
+        ambil: () => (!disentuh && !FP.sudahSimpan) ? null : { input, semak, asal: dariNasab },
         pulih: (d) => {
             if (!d) return;
             // Format lama (myWARIS versi harta & hutang) tidak dipulihkan; senarai waris diambil semula dari myNasab
-            if (d.input) input = Object.assign({ jantina: input.jantina }, d.input);
+            // Ubahan pengguna dipulihkan hanya jika data myNasab belum berubah sejak disimpan; jika berubah, guna data myNasab terkini
+            const sama = (x, y) => JSON.stringify(Faraid.KOD.concat('jantina').map(k => (x || {})[k] || 0)) === JSON.stringify(Faraid.KOD.concat('jantina').map(k => (y || {})[k] || 0));
+            if (d.input && d.asal && sama(d.asal, dariNasab)) input = Object.assign({ jantina: input.jantina }, d.input);
             if (d.semak) semak = d.semak;
             kira();
         }

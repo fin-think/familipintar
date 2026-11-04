@@ -17,7 +17,7 @@
     
     <!-- Simpan automatik (kongsi) -->
     <script src="autosave.js?v=2"></script>
-    <script src="faraid.js?v=1"></script>
+    <script src="faraid.js?v=2"></script>
     <script src="peranan.js?v=2"></script>
 
     <!-- Babel -->
@@ -306,7 +306,12 @@ if (rdb.monthlyBudget === undefined) {
 
                   const q = window.fbQuery(window.fbCollection(window.fbDb, "mynasab_nodes"), window.fbWhere("owner_uid", "==", uid));
                   ['asb', 'th', 'unitTrust', 'tunai', 'kwsp', 'emas'].forEach(k => delete mergedData[k]);
-                  const nasabSnap = await window.fbGetDocs(q);
+                  // Nod lengkap seperti paparan myNasab (leluhur adik-beradik bercantum + adik-beradik berakaun); jatuh balik ke nod sendiri jika gagal
+                  let nasabSnap;
+                  try {
+                      const nodPenuh = await window.Faraid.muatNod({ collection: window.fbCollection, query: window.fbQuery, where: window.fbWhere, getDocs: window.fbGetDocs }, window.fbDb, uid);
+                      nasabSnap = { forEach: (cb) => nodPenuh.forEach(n => cb({ id: n.id, data: () => n })) };
+                  } catch (e) { console.warn('myTADBIR: muatNod', e); nasabSnap = await window.fbGetDocs(q); }
                   
                   let childrenList = [];
                   let spouse = false, mother = false, father = false, sdrL = 0, sdrP = 0;
