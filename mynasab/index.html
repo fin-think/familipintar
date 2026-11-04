@@ -250,7 +250,6 @@
 
 .kotak-zoom { background:#f1f2f6; padding:5px 10px; border-radius:6px; display:flex; align-items:center; gap:6px; }
 .kotak-zoom button { width:30px; height:30px; border:none; border-radius:5px; background:#fff; color:#2c3e50; font-size:18px; font-weight:bold; line-height:1; cursor:pointer; }
-.kotak-zoom button.muat { width:auto; padding:0 10px; font-size:13px; }
 .kotak-zoom button:hover { background:#e3eefa; }
 .kotak-zoom span { min-width:44px; text-align:center; font-size:13px; font-weight:bold; color:#576574; }
 /* Paparan pokok pada telefon / skrin sentuh (termasuk mod 'laman desktop'): pengepala dipadatkan, Waris Berpaut disembunyikan */
@@ -261,20 +260,19 @@
     #kawalanPreview .pv-tutup { order: 2; padding: 6px 12px !important; font-size: 12px; }
     #kawalanPreview .pv-kawal { display: contents !important; }
     #kawalanPreview .pv-paparan { order: 3; }
-    #kawalanPreview .kotak-zoom { order: 4; }
+    #kawalanPreview .kotak-zoom { order: 4; flex: 0 0 auto; }
     #kawalanPreview .pv-saiz { order: 5; min-width: 0; }
     #kawalanPreview .pv-cetak { order: 6; white-space: nowrap; }
     #btnSegerakPokok { order: 7; }
     #kawalanPreview .pv-kotak { padding: 3px 8px !important; gap: 6px !important; }
     #kawalanPreview .pv-kotak label { display: none; }
     #kawalanPreview .pv-kotak select { font-size: 12px; max-width: 100%; }
-    #kawalanPreview .pv-paparan { flex: 1 1 100%; }
+    #kawalanPreview .pv-paparan { flex: 1 1 0; min-width: 0; }
     #kawalanPreview .pv-paparan select { width: 100%; }
     #kawalanPreview .pv-saiz { flex: 1; }
     #kawalanPreview .pv-saiz select { width: 100%; min-width: 0; }
     #kawalanPreview .kotak-zoom { padding: 3px 6px; gap: 4px; }
     #kawalanPreview .kotak-zoom button { width: 26px; height: 26px; font-size: 15px; }
-    #kawalanPreview .kotak-zoom button.muat { padding: 0 8px; font-size: 12px; }
     #kawalanPreview .pv-cetak, #btnSegerakPokok { padding: 6px 10px !important; font-size: 12px; }
     #kawalanPreview .pv-cetak .pv-teks { display: none; }
     #modalPreview .kertas-cetakan { margin-top: 8px !important; }
@@ -370,8 +368,8 @@
         overflow-x: auto !important; /* Tambah tatalan mendatar jika jadual panjang */
     }
 
-    /* Senarai ahli dahulu di telefon (sebelum Info Kuota & Cara Guna) */
-    .main-panel { order: -1; overflow-x: visible !important; }
+    /* Susunan di telefon: Tindakan Pintar, Info Kuota, Cara Guna, Senarai Ahli, Siapa Waris Anda */
+    .main-panel { overflow-x: visible !important; }
 
     /* Senarai ahli sebagai kad: nama + hubungan, butiran ringkas, butang Edit/Padam kelihatan tanpa skrol ke tepi */
     .member-list { min-width: 0 !important; font-size: 13px !important; }
@@ -970,7 +968,6 @@
     <button type="button" title="Kecilkan" onclick="window.zoomKeluar()">−</button>
     <span id="labelZoom">100%</span>
     <button type="button" title="Besarkan" onclick="window.zoomMasuk()">+</button>
-    <button type="button" class="muat" title="Muat ikut skrin" onclick="window.autoMuat(true)">Muat</button>
 </div>
 
                     
@@ -983,7 +980,7 @@
                     </div>
 
                     <button id="btnSegerakPokok" title="Salin semula pokok keluarga ibu/bapa anda daripada pokok pengundang" class="btn-primary" onclick="window.segerakPokokAnakSaudara()" style="display:none; background: #16a085; width: auto; padding: 10px 20px;">🔄 Kemas Kini Pokok</button>
-                    <button class="btn-primary pv-cetak" title="Simpan PDF / Cetak" onclick="window.cetakSalasilah()" style="background: #8e44ad; width: auto; padding: 10px 20px;">🖨️ <span class="pv-teks">Simpan PDF / Cetak</span></button>
+                    <button class="btn-primary pv-cetak" disabled title="Cetak / Simpan PDF dilumpuhkan buat sementara" onclick="window.cetakSalasilah()" style="background: #8e44ad; width: auto; padding: 10px 20px; opacity:.45; cursor:not-allowed;">🖨️ <span class="pv-teks">Simpan PDF / Cetak</span></button>
                     <button class="pv-tutup" onclick="document.getElementById('modalPreview').classList.add('hidden')" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">Tutup</button>
                 </div>
             </div>
