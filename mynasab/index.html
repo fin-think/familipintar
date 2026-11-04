@@ -47,7 +47,7 @@
             margin: 40px 0; /* Buang margin auto supaya tak ke tengah */
             padding: 0 30px; /* Jarak sikit dari tepi skrin (sama macam top-bar) */
             display: grid; 
-            grid-template-columns: 250px 1fr 350px; /* Kiri tetap 250px, Tengah anjal (1fr), Kanan tetap 350px */
+            grid-template-columns: 250px minmax(0, 1fr) 320px; /* Kiri 250px, Tengah anjal (boleh mengecil, jadual skrol dalam kad), Kanan 320px */
             gap: 25px; 
             align-items: start; 
             box-sizing: border-box; /* Pastikan padding tak kacau lebar */
@@ -58,8 +58,14 @@
         }
 
         /* Responsif untuk skrin tablet/telefon */
+        /* Laptop biasa (1366px dan ke bawah): 2 lajur supaya jadual ahli tidak terhimpit; kad waris turun ke bawah */
+        @media (max-width: 1440px) {
+            .dashboard-container { grid-template-columns: 240px minmax(0, 1fr); }
+            .faraid-panel { grid-column: 1 / -1; }
+            .faraid-panel .card { position: static !important; }
+        }
         @media (max-width: 1024px) {
-            .dashboard-container { grid-template-columns: 1fr 2fr; }
+            .dashboard-container { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
             .faraid-panel { grid-column: 1 / -1; } 
         }
         @media (max-width: 768px) {
@@ -86,6 +92,7 @@
         .member-list th, .member-list td { padding: 15px; text-align: left; border-bottom: 1px solid #ecf0f1; }
         .member-list th { color: #7f8c8d; font-size: 14px; text-transform: uppercase; }
         .member-list tr:hover { background-color: #f8f9f9; }
+        .member-list td.c-ringkas { display: none; }
         .action-link { color: #3498db; text-decoration: none; font-weight: bold; cursor: pointer; margin-right: 10px; }
 
         /* Screen & Modal Utilities (Sembunyikan buat masa ni) */
@@ -363,14 +370,19 @@
         overflow-x: auto !important; /* Tambah tatalan mendatar jika jadual panjang */
     }
 
-    .member-list {
-        min-width: 500px !important; /* Pastikan teks jadual tak terhimpit rapat */
-        font-size: 13px !important;
-    }
+    /* Senarai ahli dahulu di telefon (sebelum Info Kuota & Cara Guna) */
+    .main-panel { order: -1; overflow-x: visible !important; }
 
-    .member-list th, .member-list td {
-        padding: 10px 8px !important;
-    }
+    /* Senarai ahli sebagai kad: nama + hubungan, butiran ringkas, butang Edit/Padam kelihatan tanpa skrol ke tepi */
+    .member-list { min-width: 0 !important; font-size: 13px !important; }
+    .member-list thead { display: none; }
+    .member-list tbody tr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 12px 2px; border-bottom: 1px solid #ecf0f1; }
+    .member-list td { padding: 0 !important; border: none !important; }
+    .member-list td.c-nama { flex: 1 1 0; min-width: 0; order: 1; }
+    .member-list td.c-hub { flex: 0 0 auto; order: 2; }
+    .member-list td.c-jan, .member-list td.c-umur, .member-list td.c-tel, .member-list td.c-lok { display: none; }
+    .member-list td.c-ringkas { display: block; order: 3; flex: 1 1 100%; padding-left: 44px !important; font-size: 12px; color: #576574; line-height: 1.5; }
+    .member-list td.c-tind { order: 4; flex: 1 1 100%; padding-left: 44px !important; padding-top: 4px !important; }
 
     /* 4. Modal Pop-up (Skrin Pengenalan / Edit) Kemas Di Tengah Phone */
     .modal-box {
@@ -1056,7 +1068,7 @@
                 <div class="card" style="background: #e8f8f5; border: 1px solid #a3e4d7;">
                     <h3 style="border-bottom: none; color: #117a65; font-size: 16px;">Info Kuota</h3>
                     <p style="font-size:13px; color:#148f77; margin:6px 0;">🆓 <b>Percuma:</b> Pasangan, Ayah, Ibu, Datuk, Nenek, Moyang dan leluhur ke atas</p>
-                    <p style="font-size:13px; color:#148f77; margin:6px 0;">👶 <b>Anak:</b> 5 pertama percuma, seterusnya 1 Kredit</p>
+                    <p style="font-size:13px; color:#148f77; margin:6px 0;">👶 <b>Anak:</b> 3 pertama percuma, seterusnya 1 Kredit</p>
                     <p style="font-size:13px; color:#148f77; margin:6px 0;">1️⃣ <b>1 Kredit seorang:</b> Adik-beradik, Ipar, Anak Saudara, Sepupu, Bapa/Mak Saudara, Cucu dan ke bawah, Menantu</p>
                     <p style="font-size:13px; color:#148f77; margin:6px 0;">👨‍👩‍👧 <b>Mertua:</b> 5 Kredit</p>
                     <p style="font-size:13px; color:#148f77; margin:6px 0;">🖼️ <b>Gambar profil:</b> 1 Kredit setiap kali muat naik</p>
@@ -1140,7 +1152,7 @@
     </div> <!-- Ini penutup dashboardUtama -->
 
     <!-- Muatkan app.js -->
-    <script type="module" src="app.js?v=51"></script>
+    <script type="module" src="app.js?v=52"></script>
     
     <!-- Skrip UI Mudah -->
     <script>

@@ -742,18 +742,19 @@ else {
             // ---------------------------------------------------------
 
             tr.innerHTML = `
-                <td>
+                <td class="c-nama">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         ${gambarMini}
                         <strong style="color: #2c3e50;">${nama}</strong>
                     </div>
                 </td>
-                <td><span style="background: #e8f8f5; color: #117a65; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; white-space: nowrap;">${hubungan}</span></td>
-                <td style="color: #576574;">${jantina}</td>
-                <td style="color: #576574; font-size: 13px;">${paparanUmur}</td>
-                <td style="color: #576574; font-size: 13px;">${telefon}</td>
-                <td style="color: #576574; font-size: 13px;">${lokasi}</td>
-                <td style="white-space: nowrap;">${butangTindakan}</td>
+                <td class="c-hub"><span style="background: #e8f8f5; color: #117a65; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; white-space: nowrap;">${hubungan}</span></td>
+                <td class="c-jan${jantina === '-' ? ' kosong' : ''}" style="color: #576574;">${jantina}</td>
+                <td class="c-umur${paparanUmur === '-' ? ' kosong' : ''}" style="color: #576574; font-size: 13px;">${paparanUmur}</td>
+                <td class="c-tel${telefon === '-' ? ' kosong' : ''}" style="color: #576574; font-size: 13px;">${telefon}</td>
+                <td class="c-lok${lokasi === '-' ? ' kosong' : ''}" style="color: #576574; font-size: 13px;">${lokasi}</td>
+                <td class="c-tind" style="white-space: nowrap;">${butangTindakan}</td>
+                <td class="c-ringkas">${[jantina !== '-' ? jantina : '', data.status === 'meninggal' ? paparanUmur : (paparanUmur !== '-' ? paparanUmur.replace(/^\S+\s*<br>\s*/, '').replace(/<[^>]+>/g, '').replace(/[()]/g, '') : ''), lokasi !== '-' ? lokasi : '', telefon !== '-' ? telefon : ''].filter(Boolean).join(' · ')}</td>
             `;
             if(tbody) tbody.appendChild(tr);
         });
