@@ -1449,7 +1449,13 @@ window.tukarSaizKertas = () => {
         st.id = 'stylePage';
         document.head.appendChild(st);
     }
-    st.textContent = `@page { size: ${saiz} landscape; margin: 10mm; }`;
+    // Footer dipaku di bawah kertas: kertas cetak setinggi halaman (tolak margin 10mm atas/bawah + 3mm ruang selamat elak tumpah ke halaman 2)
+    const tinggiMm = (SAIZ_KERTAS[saiz] || SAIZ_KERTAS.A4).h - 23;
+    st.textContent = `@page { size: ${saiz} landscape; margin: 10mm; }
+@media print {
+  #kertasCetak { display: flex !important; flex-direction: column; min-height: ${tinggiMm}mm; box-sizing: border-box; }
+  #kakiCetak { margin-top: auto !important; break-inside: avoid; }
+}`;
 };
 
 window.cetakSalasilah = () => {
