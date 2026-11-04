@@ -823,7 +823,7 @@
     const HJ = { induk: { doc: null, rekod: [], th: 0 }, pasangan: { doc: null, rekod: [], th: 0 } };
     const hajiAktif = (p) => !!(HJ[p] && HJ[p].doc && HJ[p].doc.status === 'aktif');
 
-    const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar", "Bil Utiliti", "Perubatan", "Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans / Takaful", "Tol & Parking", "Pakaian", "Lain-lain"];
+    const catOutflow = ["Rumah/ Sewa", "Kereta/ Petrol", "Barang Dapur", "Makan Luar (Keluarga)", "Makan Luar (Sendiri)", "Bil Utiliti", "Perubatan", "Yuran/ Kos Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans/ Takaful", "Tol & Parking", "Pakaian", "Lain-lain"];
     const catInflow = ["Baki Permulaan", "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
 
     const btnRadios = document.querySelectorAll('input[name="txnType"]');
