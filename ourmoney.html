@@ -1276,8 +1276,20 @@
         try {
             const izin = ('Notification' in window) ? Notification.permission : 'tiada';
             const u = await getDoc(doc(db, "mynasab_users", currentUser.uid));
-            const dt = u.exists() ? u.data() : {}; const ada = !!dt.fcm_token || (Array.isArray(dt.fcm_tokens) && dt.fcm_tokens.length > 0);
-            el.textContent = 'Status: izin notifikasi ' + (izin === 'granted' ? '✅ dibenarkan' : izin === 'denied' ? '❌ disekat' : '⚠️ belum dibenarkan') + ' · telefon ' + (ada ? '✅ didaftar' : '⚠️ belum didaftar');
+            const dt = u.exists() ? u.data() : {};
+            const senarai = [].concat(Array.isArray(dt.fcm_tokens) ? dt.fcm_tokens : [], dt.fcm_token || []);
+            // Semak token PERANTI INI (bukan sebarang token akaun). Jika belum ada dalam senarai, daftar terus.
+            let ada = false;
+            if (izin === 'granted') {
+                try {
+                    const tokenIni = await getToken(getMessaging(), { vapidKey: 'BC-vntpi-9WxGGKUPeGopgcykMKc87MODe1aEpwieX096IQ8Hzu3Mh89SI8YxuvvOvPSqhW7Eu2Ziqn4ZjwBugs' });
+                    if (tokenIni) {
+                        if (!senarai.includes(tokenIni)) await setDoc(doc(db, "mynasab_users", currentUser.uid), { fcm_token: tokenIni, fcm_tokens: arrayUnion(tokenIni) }, { merge: true });
+                        ada = true;
+                    }
+                } catch (e) { console.log("Semak token peranti:", e); }
+            }
+            el.textContent = 'Status: izin notifikasi ' + (izin === 'granted' ? '✅ dibenarkan' : izin === 'denied' ? '❌ disekat' : '⚠️ belum dibenarkan') + ' · peranti ini ' + (ada ? '✅ didaftar' : '⚠️ belum didaftar');
         } catch (e) {}
     };
 
