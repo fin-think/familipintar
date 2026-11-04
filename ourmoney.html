@@ -680,7 +680,7 @@
             <p>Selamat datang ke <b>OurMoney</b>, modul kewangan komprehensif yang dihubungkan dengan <b>myNasab</b> & <b>JomBercuti</b>.</p>
             
             <b style="color:var(--ink); display:block; margin-top:12px;">1. Langganan Premium</b>
-            <p style="margin-top:4px;">OurMoney adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar kewangan, integrasi percutian, analisis bulanan dan storan gambar (resit) tertakluk kepada caj langganan sebanyak <b>20 Kredit / Sebulan</b>.</p>
+            <p style="margin-top:4px;">OurMoney adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar kewangan, integrasi percutian, analisis bulanan dan storan gambar (resit) tertakluk kepada caj langganan sebanyak <b>20 Kredit / Sebulan</b>. Anda mendapat <b>percubaan percuma 30 hari</b> bermula sebaik sahaja anda menekan "Saya Faham &amp; Bersetuju". Selepas tempoh percubaan tamat, langganan diteruskan dengan 20 Kredit sebulan.</p>
 
             <b style="color:var(--ink); display:block; margin-top:12px;">2. Akses Tambahan (Seumur Hidup)</b>
             <p style="margin-top:4px;">Laporan Eksekutif (10 Kredit), Arkib Sejarah Bulan Lepas (1 Kredit) dan Cetakan Laporan Tahunan (5 Kredit) adalah akses seumur hidup yang dicaj sekali sahaja.</p>
@@ -2412,9 +2412,12 @@
             const tahunVal = filterVal.substring(0, 4); 
             bulanDipaparkan = filterVal;
 
-            const akhiran = adaPasangan ? " • " + labelMod() : "";
-            document.getElementById('tajuk-transaksi').innerText = "📋 Transaksi Bulan " + filterVal + akhiran;
-            document.getElementById('tajuk-dashboard').innerText = "📊 Aliran Tunai Bulan " + filterVal + akhiran;
+            // Tajuk: bulan dalam perkataan, nama pengguna sebagai baris kecil (tidak lagi pecah di tengah nama)
+            const NAMA_BLN = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
+            const lblBulan = (NAMA_BLN[parseInt(filterVal.substring(5, 7), 10) - 1] || filterVal.substring(5, 7)) + ' ' + tahunVal;
+            const subNama = adaPasangan ? `<small style="display:block;font-size:.78rem;font-weight:700;color:#64748b;margin-top:2px">${esc(labelMod())}</small>` : '';
+            document.getElementById('tajuk-transaksi').innerHTML = "📋 Transaksi " + lblBulan + subNama;
+            document.getElementById('tajuk-dashboard').innerHTML = "📊 Aliran Tunai " + lblBulan + subNama;
             
             const q = query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid));
             const snap = await getDocs(q);
