@@ -18,21 +18,23 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
     console.log('[firebase-messaging-sw.js] Mesej Diterima: ', payload);
     
-    const jumlahLencana = parseInt(payload.data.badgeCount || 1);
+    // Guard: mesej tanpa `data` tidak lagi menyebabkan ralat (sebelum ini payload.data.badgeCount akan crash).
+    const d = (payload && payload.data) || {};
+    const jumlahLencana = parseInt(d.badgeCount || 1, 10) || 1;
     
-    // 1. Naikkan App Badge
-    if (navigator.setAppBadge) {
-        navigator.setAppBadge(jumlahLencana);
+    // 1. Naikkan App Badge (Android Chrome tidak sokong; lencana di Android datang daripada notifikasi dalam tray)
+    if (self.navigator && navigator.setAppBadge) {
+        try { navigator.setAppBadge(jumlahLencana).catch(() => {}); } catch (e) {}
     }
 
     // [OURMONEY - TAMBAHAN] Mesej OurMoney (data sahaja) perlu dipaparkan sendiri.
     // Mesej lain (myNasab, weCare) tidak terjejas kerana hanya jalan bila data.app === 'ourmoney'.
-    if (payload.data.app === 'ourmoney' && !payload.notification) {
-        return self.registration.showNotification(payload.data.title || 'OurMoney', {
-            body: payload.data.body || '',
+    if (d.app === 'ourmoney' && !payload.notification) {
+        return self.registration.showNotification(d.title || 'OurMoney', {
+            body: d.body || '',
             icon: '/icon-192.png',
-            tag: payload.data.tag || 'ourmoney-simpanan',
-            data: { app: 'ourmoney', url: payload.data.url || '/ourmoney.html' }
+            tag: d.tag || 'ourmoney-simpanan',
+            data: { app: 'ourmoney', url: d.url || '/ourmoney.html' }
         });
     }
 });
