@@ -60,6 +60,12 @@ body{margin:0;background:var(--bg-color);color:var(--ink);font-family:'Nunito',s
 .cal-date.cuti-sekolah{background:#fffbeb}.cal-date.cuti-sekolah.today{background:#f0fdf4}
 .cal-cuti{background:#fee2e2;color:#b91c1c;cursor:default}.cal-cuti:hover{filter:none}
 .cal-sekolah{background:#fef3c7;color:#92400e;cursor:default}.cal-sekolah:hover{filter:none}
+.senarai-cuti{margin-top:10px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:12px;color:#334155}
+.senarai-cuti b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;margin-bottom:4px}
+.senarai-cuti div{padding:3px 0;border-bottom:1px dashed #f1f5f9}.senarai-cuti div:last-child{border-bottom:none}
+.senarai-cuti span{display:inline-block;min-width:92px;font-weight:800;color:#0f172a}
+.senarai-cuti .sc-u span{color:#b91c1c}
+@media (max-width:768px){.cal-date .cal-cuti,.cal-date .cal-sekolah{font-size:0!important;padding:0!important;width:8px;height:8px;min-height:0;border-radius:50%;margin:2px auto 0!important;overflow:hidden}}
 .pilih-cuti{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:700;color:var(--muted);margin:-4px 0 10px}
 .pilih-cuti select{width:auto!important;max-width:100%;border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:12px;font-weight:700;background:#fff}
 .pilih-cuti label{display:inline-flex!important;align-items:center;gap:4px;white-space:nowrap;margin:0}.pilih-cuti input[type=checkbox]{width:auto!important;margin:0}
@@ -146,6 +152,7 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
           <div class="cal-day-name">Sab</div>
         </div>
         <div class="cal-grid" id="gridKalendar"></div>
+        <div id="senaraiCutiBulan"></div>
       </div>
 
       <div class="kolum-waris">
@@ -569,6 +576,19 @@ const cutiBerlaku = (c, n) => n ? ((!c.negeri || c.negeri.includes(n)) && !(c.ke
 const cutiUmumPada = (k) => { const n = negeriCuti(); return dataCuti.umum.filter(c => c.t === k && cutiBerlaku(c, n)); };
 const cutiSekolahPada = (k) => { if (!paparSekolah()) return []; const n = negeriCuti(); return (dataCuti.sekolah[kumpulanSekolah()] || []).filter(c => k >= c.m && k <= c.h && cutiBerlaku(c, n)); };
 
+// Senarai cuti bulan ini (nama penuh; di telefon label dalam petak kalendar dipendekkan menjadi titik)
+function binaSenaraiCuti(tahun, bulan0) {
+  const BLN = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis'];
+  const awal = `${tahun}-${String(bulan0 + 1).padStart(2, '0')}-01`, akhir = `${tahun}-${String(bulan0 + 1).padStart(2, '0')}-31`;
+  const fmt = (k) => { const [y, m, d] = k.split('-').map(Number); return d + ' ' + BLN[m - 1]; };
+  const n = negeriCuti(), item = [];
+  dataCuti.umum.filter(c => c.t >= awal && c.t <= akhir && cutiBerlaku(c, n)).forEach(c => item.push({ k: c.t, t: '🇲🇾 ' + c.n, cls: 'u' }));
+  if (paparSekolah()) (dataCuti.sekolah[kumpulanSekolah()] || []).filter(c => c.m <= akhir && c.h >= awal && cutiBerlaku(c, n)).forEach(c => item.push({ k: c.m, t: '🏫 ' + c.n, cls: 's', h: c.h }));
+  item.sort((a, b) => a.k.localeCompare(b.k));
+  if (!item.length) return '';
+  return '<div class="senarai-cuti"><b>Cuti bulan ini</b>' + item.map(x => `<div class="sc-${x.cls}"><span>${fmt(x.k)}${x.h && x.h !== x.k ? ' – ' + fmt(x.h) : ''}</span> ${esc(x.t)}</div>`).join('') + '</div>';
+}
+
 window.renderKalendar = () => {
   const senaraiBulan = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
   document.getElementById('paparanBulanTahun').innerText = `${senaraiBulan[bulanSemasa]} ${tahunSemasa}`;
@@ -614,6 +634,7 @@ window.renderKalendar = () => {
     htmlGrid += `<div class="cal-date ${kelasToday}${kelasCuti}" onclick="bukaModalTarikh('${tarikhKunci}')"><div class="dt-num">${i}</div>${htmlCuti}${chipNota(tarikhKunci)}${htmlBirthday}${htmlTugas}</div>`;
   }
   document.getElementById('gridKalendar').innerHTML = htmlGrid;
+  { const sc = document.getElementById('senaraiCutiBulan'); if (sc) sc.innerHTML = binaSenaraiCuti(tahunSemasa, bulanSemasa); }
   window.renderAktivitiHariIni();
 };
 

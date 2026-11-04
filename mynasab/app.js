@@ -96,6 +96,11 @@ onAuthStateChanged(auth, async (user) => {
                 window.__sedangTuntutKredit = false;
             }
             document.getElementById('creditBalance').innerText = dataPengguna.credit_balance;
+            // Sudah setuju PDPA (semasa daftar atau sebelum ini): pop-up Selamat Datang tidak perlu dipaparkan lagi pada peranti baharu
+            if (dataPengguna.pdpa && dataPengguna.pdpa.setuju) {
+                try { localStorage.setItem('pdpa_mynasab_agreed', 'true'); } catch (e) {}
+                const ws = document.getElementById('welcomeScreen'); if (ws) ws.style.display = 'none';
+            }
             // Akaun daripada produk lain mungkin tiada nama: guna nama paparan / emel, jangan tulis "undefined"
             if (!dataPengguna.name || String(dataPengguna.name).trim() === 'undefined') {
                 dataPengguna.name = user.displayName || (user.email ? user.email.split('@')[0] : 'Keluarga Saya');

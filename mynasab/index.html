@@ -651,37 +651,34 @@
                 <label>Nama Individu (tanpa Bin/Binti kecuali bagi leluhur terakhir di atas)</label>
                 <input type="text" id="tambahNama" required placeholder="Cth: Ahmad">
             </div>
-            <div class="input-group" style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:12px;padding:10px 12px;">
-                <label style="color:#0f766e;">Panggilan oleh anak saudara (pilihan)</label>
-                <small style="color:#64748b;display:block;margin:-2px 0 8px;">Cara anak saudara memanggil orang ini, bukan panggilan antara adik-beradik.</small>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;">
-                    <div style="min-width:0;"><small style="font-weight:700;color:#334155;display:block;min-height:2.6em;line-height:1.3;">Anak saudara belah saya</small>
-                        <input type="text" id="tambahPanggilanSaya" style="width:100%;box-sizing:border-box;margin:0;" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Long"></div>
-                    <div style="min-width:0;"><small style="font-weight:700;color:#334155;display:block;min-height:2.6em;line-height:1.3;">Anak saudara belah pasangan</small>
-                        <input type="text" id="tambahPanggilanPasangan" style="width:100%;box-sizing:border-box;margin:0;" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Lang"></div>
-                </div>
-                <datalist id="senaraiPanggilan"><option value="Pak Long"><option value="Pak Ngah"><option value="Pak Lang"><option value="Pak Chik"><option value="Pak Su"><option value="Mak Long"><option value="Mak Ngah"><option value="Mak Lang"><option value="Mak Chik"><option value="Mak Su"><option value="Tok Wan"><option value="Tok Ki"><option value="Tok"><option value="Wan"><option value="Opah"><option value="Atuk"><option value="Along"><option value="Angah"><option value="Acik"><option value="Abang Long"><option value="Kak Long"><option value="Kak Ngah"></datalist>
-            </div>
+
             
             <div class="input-group">
                 <label>Hubungan (dengan anda)</label>
                 <select id="tambahHubungan" required>
                     <option value="">-- Pilih Hubungan --</option>
-                    
-                    <optgroup label="Leluhur & Moyang (Percuma)">
-                        <option value="Cilawagi">Cilawagi (Peringkat ke-5) - Percuma</option>
-                        <option value="Cakawari">Cakawari (Datuk kpd Moyang) - Percuma</option>
-                        <option value="Buyut">Buyut (Ibubapa kpd Moyang) - Percuma</option>
-                        <option value="Moyang">Moyang (Ibubapa kpd Datuk) - Percuma</option>
-                        <option value="Datuk">Datuk - Percuma</option>
-                        <option value="Nenek">Nenek - Percuma</option>
+
+                    <optgroup label="Keluarga Terdekat">
                         <option value="Ayah">Ayah - Percuma</option>
                         <option value="Ibu">Ibu - Percuma</option>
-                    </optgroup>
-                    
-                    <optgroup label="Keluarga Utama & In-Law">
                         <option value="Suami">Suami - Percuma</option>
                         <option value="Isteri">Isteri - Percuma</option>
+                        <option value="Anak">Anak (3 Terawal Percuma, Ke-4: 1 Kredit)</option>
+                        <option value="Abang">Abang - Tolak 1 Kredit</option>
+                        <option value="Kakak">Kakak - Tolak 1 Kredit</option>
+                        <option value="Adik">Adik - Tolak 1 Kredit</option>
+                    </optgroup>
+
+                    <optgroup label="Leluhur (Percuma)">
+                        <option value="Datuk">Datuk - Percuma</option>
+                        <option value="Nenek">Nenek - Percuma</option>
+                        <option value="Moyang">Moyang (Ibubapa kpd Datuk) - Percuma</option>
+                        <option value="Buyut">Buyut (Ibubapa kpd Moyang) - Percuma</option>
+                        <option value="Cakawari">Cakawari (Datuk kpd Moyang) - Percuma</option>
+                        <option value="Cilawagi">Cilawagi (Peringkat ke-5) - Percuma</option>
+                    </optgroup>
+
+                    <optgroup label="Belah Pasangan">
                         <option value="Bapa Mertua">Bapa Mertua - Tolak 5 Kredit</option>
                         <option value="Ibu Mertua">Ibu Mertua - Tolak 5 Kredit</option>
                         <option value="Datuk Mertua">Datuk Mertua (Ayah kpd Mertua) - Percuma</option>
@@ -690,10 +687,12 @@
                         <option value="Buyut Mertua">Buyut Mertua - Percuma</option>
                         <option value="Cakawari Mertua">Cakawari Mertua - Percuma</option>
                         <option value="Cilawagi Mertua">Cilawagi Mertua - Percuma</option>
+                        <option value="Abang Pasangan">Abang Pasangan - Tolak 1 Kredit</option>
+                        <option value="Kakak Pasangan">Kakak Pasangan - Tolak 1 Kredit</option>
+                        <option value="Adik Pasangan">Adik Pasangan - Tolak 1 Kredit</option>
                     </optgroup>
-                    
+
                     <optgroup label="Keturunan & Generasi Bawah">
-                        <option value="Anak">Anak (3 Terawal Percuma, Ke-4: 1 Kredit)</option>
                         <option value="Menantu">Menantu (Pasangan Anak) - Tolak 1 Kredit</option>
                         <option value="Cucu">Cucu - Tolak 1 Kredit</option>
                         <option value="Pasangan Cucu">Pasangan Cucu - Tolak 1 Kredit</option>
@@ -702,16 +701,7 @@
                         <option value="Oneng-oneng">Oneng-oneng - Tolak 1 Kredit</option>
                     </optgroup>
 
-                    <optgroup label="Adik-beradik Pasangan (isi sendiri)">
-                        <option value="Abang Pasangan">Abang Pasangan - Tolak 1 Kredit</option>
-                        <option value="Kakak Pasangan">Kakak Pasangan - Tolak 1 Kredit</option>
-                        <option value="Adik Pasangan">Adik Pasangan - Tolak 1 Kredit</option>
-                    </optgroup>
-
-                    <optgroup label="Adik Beradik & Keluarganya">
-                        <option value="Abang">Abang - Tolak 1 Kredit</option>
-                        <option value="Kakak">Kakak - Tolak 1 Kredit</option>
-                        <option value="Adik">Adik - Tolak 1 Kredit</option>
+                    <optgroup label="Keluarga Adik-beradik">
                         <option value="Ipar">Ipar - Tolak 1 Kredit</option>
                         <option value="Anak Saudara">Anak Saudara - Tolak 1 Kredit</option>
                         <option value="Cucu Saudara">Cucu Saudara - Tolak 1 Kredit</option>
@@ -732,6 +722,17 @@
                     </optgroup> -->
                     
                 </select>
+            </div>
+            <div class="input-group hidden" id="groupPanggilanTambah" style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:12px;padding:10px 12px;">
+                <label style="color:#0f766e;">Panggilan oleh anak saudara (pilihan)</label>
+                <small style="color:#64748b;display:block;margin:-2px 0 8px;">Cara anak saudara memanggil orang ini, bukan panggilan antara adik-beradik.</small>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;">
+                    <div style="min-width:0;"><small style="font-weight:700;color:#334155;display:block;min-height:2.6em;line-height:1.3;">Anak saudara belah saya</small>
+                        <input type="text" id="tambahPanggilanSaya" style="width:100%;box-sizing:border-box;margin:0;" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Long"></div>
+                    <div style="min-width:0;"><small style="font-weight:700;color:#334155;display:block;min-height:2.6em;line-height:1.3;">Anak saudara belah pasangan</small>
+                        <input type="text" id="tambahPanggilanPasangan" style="width:100%;box-sizing:border-box;margin:0;" list="senaraiPanggilan" maxlength="30" placeholder="Cth: Pak Lang"></div>
+                </div>
+                <datalist id="senaraiPanggilan"><option value="Pak Long"><option value="Pak Ngah"><option value="Pak Lang"><option value="Pak Chik"><option value="Pak Su"><option value="Mak Long"><option value="Mak Ngah"><option value="Mak Lang"><option value="Mak Chik"><option value="Mak Su"><option value="Tok Wan"><option value="Tok Ki"><option value="Tok"><option value="Wan"><option value="Opah"><option value="Atuk"><option value="Along"><option value="Angah"><option value="Acik"><option value="Abang Long"><option value="Kak Long"><option value="Kak Ngah"></datalist>
             </div>
             
             <div class="input-group">
@@ -1152,7 +1153,7 @@
     </div> <!-- Ini penutup dashboardUtama -->
 
     <!-- Muatkan app.js -->
-    <script type="module" src="app.js?v=52"></script>
+    <script type="module" src="app.js?v=53"></script>
     
     <!-- Skrip UI Mudah -->
     <script>
@@ -1254,6 +1255,26 @@ window.tukarStatus = function (awalan) {
 document.getElementById('formTambahAhli').addEventListener('reset', function () {
     setTimeout(function () { window.tukarStatus('tambah'); }, 0);
 });
+
+// Kotak panggilan hanya muncul selepas hubungan dipilih
+document.getElementById('tambahHubungan').addEventListener('change', function () {
+    document.getElementById('groupPanggilanTambah').classList.toggle('hidden', !this.value);
+});
+document.getElementById('formTambahAhli').addEventListener('reset', function () {
+    setTimeout(function () { document.getElementById('groupPanggilanTambah').classList.add('hidden'); }, 0);
+});
+// Mesej semakan borang dalam Bahasa Melayu (ganti mesej lalai pelayar seperti "Please select an item in the list")
+document.addEventListener('invalid', function (e) {
+    const el = e.target; if (!el || !el.setCustomValidity) return;
+    const v = el.validity;
+    let m = '';
+    if (v.valueMissing) m = el.tagName === 'SELECT' ? 'Sila pilih satu daripada senarai.' : (el.type === 'checkbox' ? 'Sila tandakan kotak ini untuk meneruskan.' : (el.type === 'date' ? 'Sila isi tarikh.' : 'Sila isi ruangan ini.'));
+    else if (v.typeMismatch && el.type === 'email') m = 'Sila masukkan alamat e-mel yang sah.';
+    else if (v.tooShort) m = 'Terlalu pendek: sekurang-kurangnya ' + el.minLength + ' aksara.';
+    else if (v.patternMismatch || v.badInput) m = 'Format tidak sah.';
+    if (m) el.setCustomValidity(m);
+}, true);
+['input', 'change'].forEach(function (ev) { document.addEventListener(ev, function (e) { if (e.target && e.target.setCustomValidity) e.target.setCustomValidity(''); }, true); });
 
 // Buka & tutup borang Tambah Ahli
 window.bukaModalBorang = function () {

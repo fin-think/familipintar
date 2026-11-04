@@ -177,6 +177,12 @@
   .cal-date.cuti-sekolah.trip-range { background: #fffbeb; }
   .cal-event.evt-cuti { background: #fee2e2; color: #b91c1c; cursor: default; }
   .cal-event.evt-sekolah { background: #e0f2fe; color: #0369a1; cursor: default; }
+.senarai-cuti{margin-top:10px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:12px;color:#334155}
+.senarai-cuti b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;margin-bottom:4px}
+.senarai-cuti div{padding:3px 0;border-bottom:1px dashed #f1f5f9}.senarai-cuti div:last-child{border-bottom:none}
+.senarai-cuti span{display:inline-block;min-width:92px;font-weight:800;color:#0f172a}
+.senarai-cuti .sc-u span{color:#b91c1c}
+@media (max-width:768px){.cal-date .evt-cuti,.cal-date .evt-sekolah{font-size:0!important;padding:0!important;width:8px;height:8px;min-height:0;border-radius:50%;margin:2px auto 0!important;overflow:hidden}}
   .pilih-cuti { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 12px; }
   .pilih-cuti select { border: 1px solid #e2e8f0; border-radius: 6px; padding: 3px 6px; font-size: 0.75rem; font-weight: 700; background: #fff; }
   .cal-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 12px; justify-content: center; }
@@ -319,6 +325,7 @@
       <div class="cal-day-name">Sab</div>
     </div>
     <div class="cal-grid" id="gridKalendarWeCare"></div>
+    <div id="senaraiCutiBulan"></div>
     <p style="font-size:0.7rem; color:#94a3b8; text-align:center; margin-top:10px;">💡 Tip: Klik pada tugasan di dalam kalendar untuk melihat butiran penuh.</p>
   </div>
   
@@ -821,7 +828,7 @@ function updateSummary() {
   document.getElementById('sum-total').textContent = 'RM ' + grand.toFixed(2);
 
   const goDateStr = document.getElementById('date-go').value;
-  if(goDateStr && grand > 0) {
+  if(goDateStr) {
       const goDate = new Date(goDateStr); const today = new Date();
       let monthsLeft = (goDate.getFullYear() - today.getFullYear()) * 12 + (goDate.getMonth() - today.getMonth());
       if (goDate.getDate() < today.getDate()) monthsLeft--; 
@@ -836,7 +843,17 @@ function updateSummary() {
 }
 
 function updateCountdown() {
-  const go = document.getElementById('date-go').value; if (!go) return;
+  const go = document.getElementById('date-go').value;
+  // Pelan baharu yang belum diisi: jangan papar kiraan detik daripada tarikh contoh (+180 hari)
+  let adaId = false; try { adaId = !!currentTripId; } catch (e) {}
+  const adaNama = !!(document.getElementById('trip-name').value || '').trim();
+  if (!go || (!adaId && !adaNama)) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    document.getElementById('cd-boxes').style.display = 'none';
+    document.getElementById('cd-title-label').textContent = 'Kiraan Detik Bercuti';
+    document.getElementById('cd-main').textContent = 'Isi nama & tarikh percutian untuk mula kiraan detik';
+    return;
+  }
   if (countdownInterval) clearInterval(countdownInterval);
   countdownInterval = setInterval(() => {
     const diff = new Date(go + 'T00:00:00') - new Date();
@@ -1158,6 +1175,19 @@ const cutiBerlaku = (c, n) => n ? ((!c.negeri || c.negeri.includes(n)) && !(c.ke
 const cutiUmumPada = (k) => { const n = negeriCuti(); return dataCuti.umum.filter(c => c.t === k && cutiBerlaku(c, n)); };
 const cutiSekolahPada = (k) => { if (!paparSekolah()) return []; const n = negeriCuti(); return (dataCuti.sekolah[kumpulanSekolah()] || []).filter(c => k >= c.m && k <= c.h && cutiBerlaku(c, n)); };
 
+// Senarai cuti bulan ini (nama penuh; di telefon label dalam petak kalendar dipendekkan menjadi titik)
+function binaSenaraiCuti(tahun, bulan0) {
+  const BLN = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis'];
+  const awal = `${tahun}-${String(bulan0 + 1).padStart(2, '0')}-01`, akhir = `${tahun}-${String(bulan0 + 1).padStart(2, '0')}-31`;
+  const fmt = (k) => { const [y, m, d] = k.split('-').map(Number); return d + ' ' + BLN[m - 1]; };
+  const n = negeriCuti(), item = [];
+  dataCuti.umum.filter(c => c.t >= awal && c.t <= akhir && cutiBerlaku(c, n)).forEach(c => item.push({ k: c.t, t: '🇲🇾 ' + c.n, cls: 'u' }));
+  if (paparSekolah()) (dataCuti.sekolah[kumpulanSekolah()] || []).filter(c => c.m <= akhir && c.h >= awal && cutiBerlaku(c, n)).forEach(c => item.push({ k: c.m, t: '🏫 ' + c.n, cls: 's', h: c.h }));
+  item.sort((a, b) => a.k.localeCompare(b.k));
+  if (!item.length) return '';
+  return '<div class="senarai-cuti"><b>Cuti bulan ini</b>' + item.map(x => `<div class="sc-${x.cls}"><span>${fmt(x.k)}${x.h && x.h !== x.k ? ' – ' + fmt(x.h) : ''}</span> ${String(x.t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</div>`).join('') + '</div>';
+}
+
 window.renderKalendarWeCare = () => {
     const grid = document.getElementById('gridKalendarWeCare'); if (!grid) return;
     const goVal = document.getElementById('date-go')?.value || ''; const backVal = document.getElementById('date-back')?.value || goVal;
@@ -1198,6 +1228,7 @@ window.renderKalendarWeCare = () => {
         html += `<div class="cal-date ${isToday ? 'today' : ''} ${isTrip ? 'trip-range' : ''}${cU.length ? ' cuti-umum' : ''}${cS.length ? ' cuti-sekolah' : ''}"><div class="dt-num">${i}</div>${htmlEvents}</div>`;
     }
     grid.innerHTML = html;
+    { const sc = document.getElementById('senaraiCutiBulan'); if (sc) sc.innerHTML = binaSenaraiCuti(calTahun, calBulan); }
 };
 
 // =================== EDITOR JADUAL ITINERARI (tetingkap) ===================

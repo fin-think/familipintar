@@ -258,7 +258,8 @@ async function pilih(i) {
 const simpan = () => setDoc(doc(db,"mykids_plans",S.anak[S.i].id), { owner_uid:S.uid, kerjaya:S.plan.ker, tier:S.plan.tier||'awam', tick:S.plan.tick, updated_at:Date.now() }, { merge:true });
 
 function render() {
-  const a = S.anak[S.i];
+  const a = S.anak && S.anak[S.i];
+  if (!a) return;   // data anak belum dimuat (contoh kos_pengajian.json siap dahulu); render dipanggil semula selepas data siap
   document.getElementById('anak').innerHTML = S.anak.map((x,i)=>`<button class="${i===S.i?'on':''}" data-i="${i}">${esc(x.name)}</button>`).join('');
   if (!a.dob) {
     document.getElementById('ringkas').innerHTML = `<h1>${esc(a.name)}</h1><p>Tarikh lahir belum diisi. Kemas kini di myNasab (Edit) untuk melihat pelan mengikut umur.</p>`;
