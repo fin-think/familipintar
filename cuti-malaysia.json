@@ -1,0 +1,84 @@
+{
+  "dikemaskini": "2026-11-04",
+  "nota": "Cuti umum peringkat Persekutuan (dan beberapa cuti negeri yang meluas). Tarikh perayaan Islam tertakluk pengisytiharan rasmi. Cuti sekolah ikut Kalendar Akademik KPM: Kumpulan A = Kedah, Kelantan, Terengganu; Kumpulan B = negeri lain.",
+  "sumber": [
+    "https://www.kabinet.gov.my/hari-kelepasan-am/",
+    "https://www.moe.gov.my/kalendar-akademik"
+  ],
+  "umum": [
+    { "t": "2026-01-01", "n": "Tahun Baharu", "neg": "Kecuali Johor, Kedah, Kelantan, Perlis, Terengganu" },
+    { "t": "2026-02-01", "n": "Thaipusam", "neg": "KL, Putrajaya, Johor, N. Sembilan, Perak, P. Pinang, Selangor" },
+    { "t": "2026-02-17", "n": "Tahun Baharu Cina" },
+    { "t": "2026-02-18", "n": "Tahun Baharu Cina (Hari Kedua)" },
+    { "t": "2026-03-07", "n": "Nuzul Al-Quran", "neg": "Negeri tertentu" },
+    { "t": "2026-03-20", "n": "Cuti Tambahan Aidilfitri" },
+    { "t": "2026-03-21", "n": "Hari Raya Aidilfitri" },
+    { "t": "2026-03-22", "n": "Hari Raya Aidilfitri (Hari Kedua)" },
+    { "t": "2026-05-01", "n": "Hari Pekerja" },
+    { "t": "2026-05-27", "n": "Hari Raya Aidiladha" },
+    { "t": "2026-05-31", "n": "Hari Wesak" },
+    { "t": "2026-06-01", "n": "Hari Keputeraan YDP Agong" },
+    { "t": "2026-06-17", "n": "Awal Muharram" },
+    { "t": "2026-08-25", "n": "Maulidur Rasul" },
+    { "t": "2026-08-31", "n": "Hari Kebangsaan" },
+    { "t": "2026-09-16", "n": "Hari Malaysia" },
+    { "t": "2026-11-08", "n": "Deepavali", "neg": "Kecuali Sarawak" },
+    { "t": "2026-11-09", "n": "Cuti Ganti Deepavali", "neg": "Negeri cuti Sabtu-Ahad, kecuali Sarawak" },
+    { "t": "2026-12-25", "n": "Hari Krismas" },
+
+    { "t": "2027-01-01", "n": "Tahun Baharu", "neg": "Negeri tertentu" },
+    { "t": "2027-01-22", "n": "Thaipusam", "neg": "Negeri tertentu" },
+    { "t": "2027-02-06", "n": "Tahun Baharu Cina" },
+    { "t": "2027-02-07", "n": "Tahun Baharu Cina (Hari Kedua)" },
+    { "t": "2027-03-10", "n": "Hari Raya Aidilfitri", "neg": "Tertakluk pengisytiharan" },
+    { "t": "2027-03-11", "n": "Hari Raya Aidilfitri (Hari Kedua)", "neg": "Tertakluk pengisytiharan" },
+    { "t": "2027-05-01", "n": "Hari Pekerja" },
+    { "t": "2027-05-17", "n": "Hari Raya Aidiladha", "neg": "Tertakluk pengisytiharan" },
+    { "t": "2027-05-20", "n": "Hari Wesak" },
+    { "t": "2027-06-06", "n": "Awal Muharram", "neg": "Tertakluk pengisytiharan" },
+    { "t": "2027-06-07", "n": "Hari Keputeraan YDP Agong" },
+    { "t": "2027-08-15", "n": "Maulidur Rasul", "neg": "Tertakluk pengisytiharan" },
+    { "t": "2027-08-31", "n": "Hari Kebangsaan" },
+    { "t": "2027-09-16", "n": "Hari Malaysia" },
+    { "t": "2027-10-28", "n": "Deepavali", "neg": "Kecuali Sarawak" },
+    { "t": "2027-12-25", "n": "Hari Krismas" }
+  ],
+  "sekolah": {
+    "A": [
+      { "m": "2026-02-15", "h": "2026-02-19", "n": "Cuti Tahun Baharu Cina" },
+      { "m": "2026-03-19", "h": "2026-03-19", "n": "Cuti Tambahan Aidilfitri" },
+      { "m": "2026-03-20", "h": "2026-03-28", "n": "Cuti Penggal 1" },
+      { "m": "2026-05-22", "h": "2026-06-06", "n": "Cuti Pertengahan Tahun" },
+      { "m": "2026-08-28", "h": "2026-09-05", "n": "Cuti Penggal 2" },
+      { "m": "2026-11-09", "h": "2026-11-09", "n": "Cuti Tambahan Deepavali" },
+      { "m": "2026-12-04", "h": "2026-12-31", "n": "Cuti Akhir Persekolahan" },
+
+      { "m": "2027-02-09", "h": "2027-02-11", "n": "Cuti Tambahan Tahun Baharu Cina", "neg": "Kelantan & Terengganu mula 8 Feb" },
+      { "m": "2027-03-05", "h": "2027-03-13", "n": "Cuti Penggal 1" },
+      { "m": "2027-05-21", "h": "2027-06-05", "n": "Cuti Pertengahan Tahun" },
+      { "m": "2027-08-27", "h": "2027-09-04", "n": "Cuti Penggal 2" },
+      { "m": "2027-10-27", "h": "2027-10-27", "n": "Cuti Tambahan Deepavali" },
+      { "m": "2027-12-03", "h": "2027-12-31", "n": "Cuti Akhir Persekolahan" }
+    ],
+    "B": [
+      { "m": "2026-02-16", "h": "2026-02-20", "n": "Cuti Tahun Baharu Cina" },
+      { "m": "2026-03-19", "h": "2026-03-20", "n": "Cuti Tambahan Aidilfitri" },
+      { "m": "2026-03-21", "h": "2026-03-29", "n": "Cuti Penggal 1" },
+      { "m": "2026-05-23", "h": "2026-06-07", "n": "Cuti Pertengahan Tahun" },
+      { "m": "2026-08-29", "h": "2026-09-06", "n": "Cuti Penggal 2" },
+      { "m": "2026-11-10", "h": "2026-11-10", "n": "Cuti Tambahan Deepavali", "neg": "Kecuali Sarawak (Sarawak: 9 Nov)" },
+      { "m": "2026-12-05", "h": "2026-12-31", "n": "Cuti Akhir Persekolahan" },
+
+      { "m": "2027-02-05", "h": "2027-02-05", "n": "Cuti Tambahan Tahun Baharu Cina" },
+      { "m": "2027-02-09", "h": "2027-02-12", "n": "Cuti Tambahan Tahun Baharu Cina" },
+      { "m": "2027-03-06", "h": "2027-03-14", "n": "Cuti Penggal 1" },
+      { "m": "2027-05-18", "h": "2027-05-19", "n": "Cuti Tambahan Aidiladha" },
+      { "m": "2027-05-21", "h": "2027-05-21", "n": "Cuti Tambahan Wesak" },
+      { "m": "2027-05-22", "h": "2027-06-06", "n": "Cuti Pertengahan Tahun" },
+      { "m": "2027-08-28", "h": "2027-09-05", "n": "Cuti Penggal 2" },
+      { "m": "2027-10-27", "h": "2027-10-27", "n": "Cuti Tambahan Deepavali", "neg": "Kecuali Sarawak (Sarawak: 28 Okt)" },
+      { "m": "2027-10-29", "h": "2027-10-29", "n": "Cuti Tambahan Deepavali", "neg": "Kecuali Sarawak" },
+      { "m": "2027-12-04", "h": "2027-12-31", "n": "Cuti Akhir Persekolahan" }
+    ]
+  }
+}

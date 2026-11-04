@@ -56,6 +56,12 @@ body{margin:0;background:var(--bg-color);color:var(--ink);font-family:'Nunito',s
 .cal-event{font-size:10px;padding:3px 5px;border-radius:4px;color:#fff;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
 .evt-ayah{background:var(--ayah-color)}.evt-ibu{background:var(--ibu-color)}.evt-umum{background:var(--umum-color)}
 .cal-event{cursor:pointer}.cal-event:hover{filter:brightness(.92)}.cal-note{background:#fde68a;color:#92400e;width:fit-content}
+.cal-date.cuti-umum .dt-num{color:#dc2626}
+.cal-date.cuti-sekolah{background:#fffbeb}.cal-date.cuti-sekolah.today{background:#f0fdf4}
+.cal-cuti{background:#fee2e2;color:#b91c1c;cursor:default}.cal-cuti:hover{filter:none}
+.cal-sekolah{background:#fef3c7;color:#92400e;cursor:default}.cal-sekolah:hover{filter:none}
+.pilih-cuti{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:700;color:var(--muted);margin:-4px 0 10px}
+.pilih-cuti select{border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:12px;font-weight:700;background:#fff}
 button.primary{background:var(--primary);color:#fff;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;width:100%;transition:.2s}
 button.primary:hover{opacity:.9}
 button.ghost{background:transparent;border:1px solid var(--muted);color:var(--ink);padding:8px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700}
@@ -123,6 +129,12 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
         </p>
         <div id="aktivitiHariIni" class="card" style="margin-bottom:15px;background:#f0fdf4;border-color:#bbf7d0;"></div>
         <p class="section-sub" style="margin-top:-8px;">👆 Klik tarikh = tambah · klik tugas = lihat/edit/padam · 💊 ubat · 🗒️ nota</p>
+        <div class="pilih-cuti"><span>🇲🇾 Cuti umum · 🏫 Cuti sekolah:</span>
+          <select id="pilihCutiSekolah" onchange="tukarCutiSekolah(this.value)">
+            <option value="B">Kumpulan B (selain Kedah, Kelantan, Terengganu)</option>
+            <option value="A">Kumpulan A (Kedah, Kelantan, Terengganu)</option>
+            <option value="">Jangan papar cuti sekolah</option>
+          </select></div>
         <div class="cal-header">
           <button onclick="tukarBulan(-1)">❮</button>
           <h3 id="paparanBulanTahun">Bulan Tahun</h3>
@@ -523,6 +535,22 @@ async function muatDataKalendar() {
   window.renderKalendar();
 }
 
+// --- CUTI UMUM & CUTI SEKOLAH MALAYSIA (data: /cuti-malaysia.json, dikemas kini dari semasa ke semasa) ---
+let dataCuti = { umum: [], sekolah: {} };
+const KUNCI_CUTI_SEK = 'wecare_cuti_sekolah';
+const kumpulanCutiSek = () => { try { const v = localStorage.getItem(KUNCI_CUTI_SEK); return v === null ? 'B' : v; } catch (e) { return 'B'; } };
+window.tukarCutiSekolah = (v) => { try { localStorage.setItem(KUNCI_CUTI_SEK, v); } catch (e) {} window.renderKalendar(); };
+(async () => {
+  try {
+    const r = await fetch('/cuti-malaysia.json?v=' + new Date().toISOString().slice(0, 10));
+    if (r.ok) { const d = await r.json(); dataCuti = { umum: d.umum || [], sekolah: d.sekolah || {} }; }
+  } catch (e) { console.log('Data cuti tidak dapat dimuatkan:', e); }
+  const el = document.getElementById('pilihCutiSekolah'); if (el) el.value = kumpulanCutiSek();
+  if (window.renderKalendar) window.renderKalendar();
+})();
+const cutiUmumPada = (k) => dataCuti.umum.filter(c => c.t === k);
+const cutiSekolahPada = (k) => { const g = kumpulanCutiSek(); return g ? (dataCuti.sekolah[g] || []).filter(c => k >= c.m && k <= c.h) : []; };
+
 window.renderKalendar = () => {
   const senaraiBulan = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
   document.getElementById('paparanBulanTahun').innerText = `${senaraiBulan[bulanSemasa]} ${tahunSemasa}`;
@@ -558,8 +586,14 @@ window.renderKalendar = () => {
       htmlTugas += `<div class="cal-event ${warnaKelas}" onclick="event.stopPropagation();lihatTugas('${t.id}')">${isUbat(t) ? '💊 ' : ''}${t.time ? t.time + ' ' : ''}${esc(shiftLabel)}${esc(t.title)}</div>`;
     });
     
+    // Cuti umum (setiap hari berkenaan) & cuti sekolah (label pada hari pertama tempoh atau 1hb bulan; hari lain diwarnakan)
+    const cU = cutiUmumPada(tarikhKunci), cS = cutiSekolahPada(tarikhKunci);
+    let htmlCuti = cU.map(c => `<div class="cal-event cal-cuti" title="${esc(c.n + (c.neg ? ' · ' + c.neg : ''))}">🇲🇾 ${esc(c.n)}</div>`).join('');
+    cS.forEach(c => { if (c.m === tarikhKunci || i === 1) htmlCuti += `<div class="cal-event cal-sekolah" title="${esc(c.n + ' (' + c.m.split('-').reverse().join('/') + ' – ' + c.h.split('-').reverse().join('/') + ')' + (c.neg ? ' · ' + c.neg : ''))}">🏫 ${esc(c.n)}</div>`; });
+    const kelasCuti = (cU.length ? ' cuti-umum' : '') + (cS.length ? ' cuti-sekolah' : '');
+
     // Masukkan htmlBirthday di atas tugasan biasa
-    htmlGrid += `<div class="cal-date ${kelasToday}" onclick="bukaModalTarikh('${tarikhKunci}')"><div class="dt-num">${i}</div>${chipNota(tarikhKunci)}${htmlBirthday}${htmlTugas}</div>`;
+    htmlGrid += `<div class="cal-date ${kelasToday}${kelasCuti}" onclick="bukaModalTarikh('${tarikhKunci}')"><div class="dt-num">${i}</div>${htmlCuti}${chipNota(tarikhKunci)}${htmlBirthday}${htmlTugas}</div>`;
   }
   document.getElementById('gridKalendar').innerHTML = htmlGrid;
   window.renderAktivitiHariIni();
