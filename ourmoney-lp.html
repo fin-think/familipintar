@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Urus aliran tunai keluarga, capai misi percutian, dan laksana misi akhirat bersama pasangan dalam satu tempat. Percubaan percuma 30 hari.">
+<meta property="og:title" content="OurMoney - Urus Kewangan Keluarga Tanpa Drama">
+<meta property="og:description" content="Gaji masuk terus lesap? Jejak perbelanjaan, simpanan, dan amanah ibu bapa bersama pasangan. Cuba percuma 30 hari.">
+<meta property="og:type" content="website">
+<style>html{color-scheme:light dark}body{margin:0}[hidden]{display:none!important}</style>
+<title>OurMoney - Penjejak Aliran Tunai Keluarga</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
+<style>
+/* Susun atur AIDA. Tema OurMoney: Indigo, Sky Blue, Slate & Emerald (untuk duit masuk) */
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --band: #eef2ff; /* Indigo cair */
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --brand: #4f46e5; /* Indigo 600 */
+  --brand-text: #4338ca;
+  --on-brand: #ffffff;
+  --blue: #0ea5e9; /* Sky 500 */
+  --blue-text: #0369a1;
+  --pink: #ec4899;
+  --warm: #f59e0b;
+  --green: #10b981;
+  --red: #ef4444;
+  --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f172a; --surface: #1e293b; --band: #172554; --ink: #f8fafc; --muted: #94a3b8; --line: #334155;
+    --brand: #6366f1; --brand-text: #818cf8; --blue: #38bdf8; --blue-text: #7dd3fc; --warm: #fbbf24;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.12; letter-spacing: -0.015em; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--warm); outline-offset: 3px; }
+
+.wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.eyebrow { font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand-text); }
+
+.btn { display: inline-block; background: var(--brand); color: var(--on-brand); font-weight: 800; font-size: 17px; text-decoration: none; padding: 14px 24px; border-radius: 6px; border: 0; cursor: pointer; font-family: var(--font-body); transition: .2s; }
+.btn:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+.btn.alt { background: transparent; color: var(--ink); border: 2px solid var(--line); box-shadow: none; }
+.btn.alt:hover { border-color: var(--muted); transform: none; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; }
+.logo { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; text-decoration: none; }
+.logo i { font-style: normal; color: var(--blue); }
+.logo b { color: var(--brand); }
+.fp-f { color: #eab308; }
+.fp-p { color: #0ea5e9; }
+.top .btn { padding: 10px 18px; font-size: 15px; }
+
+/* HERO */
+.hero { padding-block: 32px 72px; }
+.hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
+.hero h1 { font-size: clamp(38px, 6vw, 66px); font-weight: 800; margin: 14px 0 20px; }
+.hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, color-mix(in srgb, var(--blue) 35%, transparent) 62%); }
+.hero .lead { font-size: 20px; color: var(--muted); max-width: 34em; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.hero .note { margin-top: 14px; font-size: 15px; color: var(--muted); }
+
+/* DEMO UI OURMONEY */
+.demo { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; min-width: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+.demo-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.demo-head b { font-family: var(--font-display); font-size: 20px; }
+.demo-head span { background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 800; }
+.demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.demo-box { background: var(--bg); padding: 16px; border-radius: 12px; text-align: center; border: 1px solid var(--line); }
+.demo-box.in { border-bottom: 4px solid var(--green); }
+.demo-box.out { border-bottom: 4px solid var(--red); }
+.demo-label { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; }
+.demo-val { font-size: 20px; font-weight: 800; color: var(--ink); margin-top: 4px; line-height: 1; }
+.demo-balance { background: var(--ink); color: #fff; padding: 16px; border-radius: 12px; text-align: center; margin-bottom: 16px; }
+.demo-balance .demo-label { color: #94a3b8; }
+.demo-balance .demo-val { color: #fff; font-size: 28px; }
+.demo-misi { background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.demo-misi-text { font-size: 13px; font-weight: 700; color: #065f46; }
+.demo-misi-btn { font-size: 11px; font-weight: 800; background: #10b981; color: #fff; padding: 4px 8px; border-radius: 6px; }
+
+section { padding-block: 72px; }
+section .eyebrow + h2 { margin-top: 10px; }
+section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
+.sec-lead { color: var(--muted); font-size: 19px; max-width: 38em; margin-top: 14px; }
+.band { background: var(--band); }
+
+/* MASALAH */
+.masalah-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+.situasi { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.situasi > div { padding: 18px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 8px 1fr; gap: 16px; }
+.situasi > div::before { content: ''; background: var(--brand); border-radius: 2px; }
+.situasi b { display: block; font-size: 18px; }
+.situasi span { color: var(--muted); font-size: 16px; }
+
+/* UJIAN */
+.ujian { margin-top: 32px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 24px 24px; max-width: 760px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+.soal { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 20px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.soal p { flex: 1 1 320px; min-width: 0; font-weight: 600; }
+.pilih { display: flex; gap: 8px; }
+.pilih button { font-family: var(--font-body); font-weight: 800; font-size: 15px; padding: 8px 18px; border-radius: 6px; border: 2px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; transition: .2s; }
+.pilih button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+.keputusan { margin-top: 22px; display: grid; gap: 14px; }
+.keputusan strong { font-family: var(--font-display); font-size: 24px; line-height: 1.2; }
+.keputusan p { color: var(--muted); }
+
+/* CIRI */
+.kelebihan { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 56px; }
+.kelebihan div { padding: 22px 0; border-top: 1px solid var(--line); }
+.kelebihan h3 { font-size: 20px; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.kelebihan p { color: var(--muted); font-size: 16.5px; }
+
+/* LANGKAH */
+.langkah { margin-top: 40px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; counter-reset: l; padding: 0; list-style: none; }
+.langkah li { position: relative; padding-top: 24px; border-top: 3px solid var(--brand); counter-increment: l; }
+.langkah li::before { content: counter(l); position: absolute; top: -20px; left: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--brand); color: var(--on-brand); font-family: var(--font-display); font-weight: 800; display: grid; place-items: center; }
+.langkah h3 { font-size: 21px; margin: 8px 0 8px; }
+.langkah p { color: var(--muted); font-size: 16px; }
+
+/* MANFAAT & HARGA */
+.manfaat { margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.manfaat article { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+.manfaat .jawab { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--brand-text); }
+.manfaat h3 { font-size: 22px; }
+.manfaat p { color: var(--muted); font-size: 16px; }
+.harga { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 28px; padding: 22px 26px; border: 2px solid var(--brand); border-radius: 12px; background: var(--surface); }
+.harga p { flex: 1 1 320px; min-width: 0; }
+.harga b { font-family: var(--font-display); font-size: 24px; display: block; margin-bottom: 4px; color: var(--brand); }
+.harga span { color: var(--muted); font-size: 15px; }
+
+/* TINDAKAN AKHIR */
+.akhir-box { background: linear-gradient(135deg, var(--brand), #312e81); color: var(--on-brand); border-radius: 16px; padding: 56px 40px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: center; box-shadow: 0 20px 40px rgba(79, 70, 229, 0.2); }
+.akhir h2 { color: var(--on-brand); }
+.akhir p { color: var(--on-brand); opacity: .92; margin-top: 12px; font-size: 18px; }
+.akhir .btns { display: grid; gap: 12px; justify-items: start; }
+.akhir .btn { background: var(--on-brand); color: var(--brand); }
+.akhir .btn.alt { background: transparent; color: var(--on-brand); border: 2px solid rgba(255,255,255,.5); }
+.akhir .btn.alt:hover { border-color: #fff; }
+.lebih { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 20px 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.lebih p { flex: 1 1 320px; min-width: 0; font-weight: 600; font-size: 17px; margin-top: 0; opacity: 1; color: var(--ink); }
+.lebih a { color: var(--brand-text); font-weight: 800; white-space: nowrap; }
+.baki { padding-block: 32px 48px; color: var(--muted); font-size: 14.5px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+
+@media (max-width: 860px) {
+  .hero-grid, .masalah-grid, .akhir-box { grid-template-columns: minmax(0, 1fr); }
+  .hero-grid { gap: 36px; }
+  .langkah { grid-template-columns: 1fr 1fr; row-gap: 40px; }
+  .kelebihan, .manfaat { grid-template-columns: 1fr; }
+  .akhir-box { padding: 36px 24px; }
+  section { padding-block: 56px; }
+}
+@media (max-width: 520px) {
+  body { font-size: 16px; }
+  .langkah { grid-template-columns: 1fr; }
+  .hero .lead { font-size: 18px; }
+  .ujian { padding: 4px 16px 20px; }
+}
+</style>
+</head>
+<body>
+
+<header class="wrap top">
+  <a class="logo" href="#atas">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #0ea5e9;">
+        <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0-0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
+        <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-3" />
+        <circle cx="18" cy="12" r="1" fill="currentColor" />
+    </svg>
+    <span>Our<b>Money</b></span>
+  </a>
+  <a class="btn" href="ourmoney.html">Cuba percuma</a>
+</header>
+
+<main id="atas">
+  <!-- PERHATIAN -->
+  <div class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Penjejak Aliran Tunai Keluarga</p>
+        <h1>Urus kewangan keluarga, <em>tanpa drama</em> hujung bulan.</h1>
+        <p class="lead">Satu aplikasi untuk jejak duit masuk keluar, asingkan rekod peribadi/pasangan, dan laksanakan misi akhirat tanpa bocor bajet.</p>
+        <div class="cta">
+          <a class="btn" href="ourmoney.html">Mula percubaan percuma</a>
+          <a class="btn alt" href="#cara">Lihat cara ia berfungsi</a>
+        </div>
+        <p class="note">Percubaan percuma 30 hari. Tiada kad kredit diperlukan.</p>
+      </div>
+
+      <div>
+        <div class="demo" role="img" aria-label="Demo Paparan OurMoney">
+          <div class="demo-head"><b>📊 Aliran Tunai</b><span>Gabungan Keluarga</span></div>
+          
+          <div class="demo-grid">
+            <div class="demo-box in">
+              <div class="demo-label">Jumlah Masuk</div>
+              <div class="demo-val">RM 8,450.00</div>
+            </div>
+            <div class="demo-box out">
+              <div class="demo-label">Jumlah Keluar</div>
+              <div class="demo-val">RM 4,210.00</div>
+            </div>
+          </div>
+
+          <div class="demo-balance">
+            <div class="demo-label">Baki Bersih Semasa</div>
+            <div class="demo-val">RM 4,240.00</div>
+          </div>
+
+          <div class="demo-misi">
+            <span class="demo-misi-text">🤝 Amanah Ibu Bapa</span>
+            <span class="demo-misi-btn">Selesai ✅</span>
+          </div>
+          <div class="demo-misi" style="background:#fef3c7; border-color:#fde68a;">
+            <span class="demo-misi-text" style="color:#92400e;">🕋 Simpanan Haji (Suami)</span>
+            <span class="demo-misi-btn" style="background:#d97706;">Baki RM 150</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MASALAH -->
+  <section class="band">
+    <div class="wrap masalah-grid">
+      <div>
+        <p class="eyebrow">Realiti Kewangan</p>
+        <h2>Gaji besar, tapi akaun bank selalu nyawa-nyawa ikan.</h2>
+        <p class="sec-lead">Apabila suami isteri belanja tanpa rekod berpusat, wang tunai lesap entah ke mana, dan perancangan persaraan terabai.</p>
+      </div>
+      <div class="situasi">
+        <div><div><b>"Duit RM50 dalam dompet tadi pergi mana?"</b><span>Pengeluaran ATM tak dijejak, menyebabkan 'kebocoran' tunai yang tidak disedari.</span></div></div>
+        <div><div><b>Suami isteri belanja benda yang sama</b><span>Beli barang dapur *double* sebab tiada penyelarasan rekod perbelanjaan keluarga.</span></div></div>
+        <div><div><b>Terlupa beri elaun mak ayah</b><span>Sibuk bayar hutang kereta dan rumah sampai misi akhirat dan kebajikan ibu bapa tertangguh.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UJIAN (MINAT) -->
+  <section id="ujian">
+    <div class="wrap">
+      <p class="eyebrow">Ujian 5 soalan untuk keluarga</p>
+      <h2>Adakah kewangan keluarga anda sedang 'bocor'?</h2>
+      <p class="sec-lead">Jawab dengan jujur. Jawapan anda tidak disimpan.</p>
+
+      <div class="ujian" id="borang-ujian">
+        <div class="soal"><p>Saya tahu baki sebenar kewangan saya selepas tolak semua komitmen bulan ini.</p><div class="pilih" data-q="0"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Saya tahu perbezaan tepat antara baki Tunai di tangan dan baki di Bank.</p><div class="pilih" data-q="1"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Pasangan saya boleh rujuk ringkasan perbelanjaan keluarga bersama.</p><div class="pilih" data-q="2"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Saya konsisten menyimpan untuk Tabung Haji dan misi percutian keluarga.</p><div class="pilih" data-q="3"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+        <div class="soal"><p>Saya tidak pernah 'terlepas' memberi elaun bulanan kepada ibu bapa.</p><div class="pilih" data-q="4"><button type="button" aria-pressed="false" data-v="1">Ya</button><button type="button" aria-pressed="false" data-v="0">Tidak</button></div></div>
+
+        <div class="keputusan" id="keputusan" aria-live="polite" hidden>
+          <strong id="k-tajuk"></strong>
+          <p id="k-teks"></p>
+          <div><a class="btn" href="ourmoney.html">Urus Kewangan Sekarang</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CIRI-CIRI -->
+  <section class="band" id="ciri">
+    <div class="wrap">
+      <p class="eyebrow">Apa yang ada dalam OurMoney</p>
+      <h2>Bukan sekadar rekod, tapi penganalisis kewangan peribadi.</h2>
+      <div class="kelebihan">
+        <div><h3>📱 Rekod Harian (Tunai & Bank)</h3><p>Asingkan perbelanjaan fizikal dan digital dengan mudah. Muat naik gambar resit terus sebagai rujukan masa depan.</p></div>
+        <div><h3>📊 Integrasi myTADBIR & JomBercuti</h3><p>Sasaran percutian, hutang, dan unjuran persaraan anda di-sync secara automatik menjadi matlamat bulanan.</p></div>
+        <div><h3>👥 Mod Individu atau Gabungan</h3><p>Suami dan isteri boleh merekod dari telefon masing-masing, dan melihat Laporan Gabungan untuk gambaran sebenar bajet isi rumah.</p></div>
+        <div><h3>🤲 Misi Akhirat Terkawal</h3><p>Sistem peringatan automatik untuk Infaq harian, Amanah (elaun ibu bapa), dan simpanan Haji sebelum bajet bulanan habis.</p></div>
+        <div><h3>📑 Laporan Eksekutif Premium</h3><p>Jana analisis bulanan mendalam (Trend, Top 3 Kategori Bocor, Nisbah 50/30/20) dan PDF Laporan Tahunan.</p></div>
+        <div><h3>🩺 Kesihatan Kewangan Masa Nyata</h3><p>Sistem akan memberi amaran automatik jika perbelanjaan anda menghampiri zon defisit sebelum hujung bulan.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CARA GUNA -->
+  <section id="cara">
+    <div class="wrap">
+      <p class="eyebrow">Cara ia berfungsi</p>
+      <h2>Bermula dalam empat langkah.</h2>
+      <ol class="langkah">
+        <li><h3>Bina profil di myTADBIR</h3><p>Tetapkan gaji, komitmen, hutang, dan sasaran persaraan anda terlebih dahulu.</p></li>
+        <li><h3>Rekod transaksi harian</h3><p>Buka OurMoney dan masukkan perbelanjaan masuk/keluar anda (Tunai atau Bank).</p></li>
+        <li><h3>Aktifkan Misi Bulanan</h3><p>Mulakan misi Amanah Ibu Bapa atau Infaq, dan biarkan sistem menjejak progress harian anda.</p></li>
+        <li><h3>Jana Laporan Eksekutif</h3><p>Tebus kredit hujung bulan untuk melihat laporan A4 terperinci dan kenal pasti tabiat kewangan keluarga.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- KEINGINAN: MANFAAT & HARGA -->
+  <section class="band">
+    <div class="wrap">
+      <p class="eyebrow">Kenapa anda memerlukannya</p>
+      <h2>Kurang gaduh. Lebih tenang.</h2>
+      <div class="manfaat">
+        <article>
+          <span class="jawab">Untuk Anda (Induk)</span>
+          <h3>Kawal kebocoran</h3>
+          <p>Kesan dari mana duit hilang (adakah dari tunai dompet atau e-wallet) dan perbaiki nisbah 50/30/20 anda.</p>
+        </article>
+        <article>
+          <span class="jawab">Untuk Pasangan</span>
+          <h3>Transparensi penuh</h3>
+          <p>Hanya tekan "Paparan Gabungan" untuk lihat sumbangan dan komitmen bersama tanpa perlu simpan fail Excel.</p>
+        </article>
+        <article>
+          <span class="jawab">Untuk Akhirat</span>
+          <h3>Bakti yang konsisten</h3>
+          <p>Misi Amanah Ibu Bapa dan Haji tidak akan terlepas pandang lagi berkat sistem peringatan pintar (Push Notification).</p>
+        </article>
+      </div>
+      <div class="harga">
+        <p><b>Cuba percuma 30 hari, kemudian 20 kredit sebulan.</b><span>Pendaftaran baru myNasab menerima 20 kredit percuma. Penggunaan rekod adalah bulanan, namun fitur Laporan Eksekutif (10 Kredit) dan Laporan Tahunan (5 Kredit) adalah akses seumur hidup selepas ditebus!</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TINDAKAN AKHIR -->
+  <section class="akhir" style="padding-top:72px">
+    <div class="wrap">
+      <div class="akhir-box">
+        <div>
+          <h2>Kawal masa depan kewangan anda hari ini.</h2>
+          <p>Bina profil myTADBIR, mula merekod aliran tunai di OurMoney, dan lindungi matlamat kewangan keluarga anda.</p>
+        </div>
+        <div class="btns">
+          <a class="btn" href="ourmoney.html">Mula percubaan percuma</a>
+        </div>
+      </div>
+      <div class="lebih">
+        <p>Perlukan alat urus waris dan faraid yang terhubung?</p>
+        <a href="https://familipintar.com/famili-lp.html">Lawati <span class="fp-f">Famili</span> <span class="fp-p">Pintar</span> &rarr;</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap baki">
+  <span>OurMoney, sebahagian daripada <a href="https://familipintar.com/famili-lp.html"><span class="fp-f">Famili</span> <span class="fp-p">Pintar</span></a>.</span>
+  <span>Hak Cipta © 2026 HCH x DAEBOOK</span>
+</footer>
+
+<script>
+(function () {
+  var jawab = [null, null, null, null, null];
+  var hasil = document.getElementById('keputusan');
+  var mesej = [
+    ['Kewangan anda dalam bahaya.', 'Tidak mengapa, kesedaran adalah langkah pertama. Mula jejak perbelanjaan harian anda secara visual untuk tutup kebocoran bajet segera.'],
+    ['Kewangan anda separuh teratur.', 'Asas sudah ada. Menggunakan aplikasi berpusat seperti OurMoney akan membantu anda dan pasangan menyelaras bajet dan misi akhirat tanpa terlepas pandang.'],
+    ['Kewangan keluarga anda cemerlang.', 'Tahniah! Anda seorang perancang yang teliti. Gunakan Laporan Eksekutif OurMoney untuk menyimpan rekod tahunan secara rasmi dan optimumkan lagi simpanan.']
+  ];
+  document.querySelectorAll('.pilih').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      var q = +g.getAttribute('data-q');
+      jawab[q] = +b.getAttribute('data-v');
+      g.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      if (jawab.every(function (v) { return v !== null; })) {
+        var skor = jawab.reduce(function (a, v) { return a + v; }, 0);
+        var m = mesej[skor <= 1 ? 0 : skor <= 3 ? 1 : 2];
+        document.getElementById('k-tajuk').textContent = skor + ' daripada 5. ' + m[0];
+        document.getElementById('k-teks').textContent = m[1];
+        hasil.hidden = false;
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
