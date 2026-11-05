@@ -266,18 +266,29 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
         for (const a of anakSd) await tulis(ringkas(a.data), 'Sepupu', idSaudara);
     }
 
-    // Adik-beradik pengundang yang berdaftar sendiri (akaun terpaut): akar, pasangan dan anak mereka
+    // Adik-beradik pengundang yang berdaftar sendiri: akar, pasangan dan anak mereka.
+    // Dua sumber: (1) akaun dijemput (mynasab_links) dan (2) akaun yang disambung melalui Salam Paut sebagai adik-beradik (linked_adik).
     try {
         const idRootInduk = rootInduk ? rootInduk.id : '';
-        const sLink = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", jem.owner_uid), where("status", "==", "aktif")));
+        const uidAdik = [];
+        try {
+            const sLink = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", jem.owner_uid), where("status", "==", "aktif")));
+            for (const ld of sLink.docs) {
+                const lk = ld.data();
+                if (lk.sasaran_id !== idRootInduk && lk.sasaran_id !== 'root_' + jem.owner_uid) continue;
+                if (lk.uid && !uidAdik.includes(lk.uid)) uidAdik.push(lk.uid);
+            }
+        } catch (e) { console.warn("Tak dapat baca pautan adik-beradik:", e.message); }
+        for (const u of ((rootInduk && rootInduk.data.linked_adik) || [])) if (u && !uidAdik.includes(u)) uidAdik.push(u);
         const sudah = new Set(nodes.map(n => (n.data.name || '').trim().toLowerCase()));
-        for (const ld of sLink.docs) {
-            const lk = ld.data();
-            if (lk.sasaran_id !== idRootInduk && lk.sasaran_id !== 'root_' + jem.owner_uid) continue;
-            const sN = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", lk.uid)));
+        for (const u of uidAdik) {
+            if (u === uidBaru) continue;
+            const sN = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", u)));
             const nd = sN.docs.map(x => ({ id: x.id, data: x.data() }));
             const akar = nd.find(n => n.data.is_root);
-            if (!akar || sudah.has((akar.data.name || '').trim().toLowerCase())) continue;
+            const kunciAkar = akar ? (akar.data.name || '').trim().toLowerCase() : '';
+            if (!akar || sudah.has(kunciAkar)) continue;
+            sudah.add(kunciAkar);
             const L = akar.data.gender === 'L';
             const idS = await tulis(ringkas(akar.data), `${L ? 'Bapa Saudara' : 'Mak Saudara'} (Belah ${belah})`, '');
             for (const p of nd.filter(n => adaRel(n, /^(suami|isteri)$/i))) await tulis(ringkas(p.data), L ? 'Pasangan Bapa Saudara' : 'Pasangan Mak Saudara', idS);
@@ -3839,6 +3850,7 @@ window.tandaAdikCantum = async () => {
         if (!confirm(`Tandakan "${r.data().name}" sebagai ADIK-BERADIK anda?`)) continue;
         await updateDoc(doc(db, "mynasab_nodes", rootSaya.id), { linked_adik: arrayUnion(u) });
         await updateDoc(doc(db, "mynasab_nodes", r.id), { linked_adik: arrayUnion(penggunaSemasa.uid) });
+        tandaPokokDikemas();
         bil++;
     }
     alert(bil + " ditandakan. Buka semula Preview.");
@@ -4096,6 +4108,7 @@ window.sahkanTerimaPautan = async () => {
         const medan = (u) => adik ? { linked_uids: arrayUnion(u), linked_adik: arrayUnion(u) } : { linked_uids: arrayUnion(u) };
         await updateDoc(doc(db, "mynasab_nodes", rootSaya.id), medan(lain));
         await updateDoc(doc(db, "mynasab_nodes", rootLain.id), medan(saya));
+        if (adik) tandaPokokDikemas();   // anak saudara akaun saya akan dapat pop-up Kemas Kini Pokok
         const namaSaya = rootSaya.data().name || '', namaLain = rootLain.data().name || '';
         await setDoc(doc(db, "mynasab_waris", pairId(saya, lain)), {
             uids: [saya, lain], status: 'aktif', tarikh: Date.now(),
