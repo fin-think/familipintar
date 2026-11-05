@@ -1799,20 +1799,52 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
 
         // Anak saudara yang dah daftar akaun sendiri (jemputan 'anak saudara'): tarik pasangan, anak & cucu yang dia isi
         // dalam akaunnya, dan sambung ke nod anak saudara itu dalam pokok ini (ref_id -> nod anak saudara).
-        const kayakan = async (nod) => {
+        const peta = new Map();   // cache: uid pengundang -> senarai akar akaun anak saudara
+        const akarAnakSaudara = (uidPengundang) => {
+            if (!peta.has(uidPengundang)) {
+                peta.set(uidPengundang, getDocs(query(collection(db, "mynasab_nodes"),
+                    where("is_root", "==", true), where("anak_saudara_dari.uid", "==", uidPengundang)))
+                    .then(sr => sr.docs.map(d => d.data()))
+                    .catch(e => { console.warn("Cari akaun anak saudara:", e.message); return []; }));
+            }
+            return peta.get(uidPengundang);
+        };
+        const kayakan = async (nodAsal) => {
+            let nod = nodAsal;
             const tambah = [];
+            const ganti = new Map();
             const lc = (x) => String(x || '').trim().toLowerCase();
+            // Akaun anak saudara yang dah berdaftar tapi nodnya tiada dalam pokok pengundang (cth. tulis nod ditolak peraturan): cipta nod paparan
+            const pemilik = (nod.find(n => n.is_root) || {}).owner_uid;
+            if (pemilik) {
+                for (const r of await akarAnakSaudara(pemilik)) {
+                    const d = r.anak_saudara_dari || {};
+                    const sudah = nod.some(n => lc(n.relationship) === 'anak saudara' && (n.akaun_uid === r.owner_uid || n.id === d.anak_nod || (n.ref_id === d.nod && lc(n.name) === lc(r.name))));
+                    if (!sudah && d.nod && nod.some(n => n.id === d.nod)) {
+                        nod = nod.concat([{ id: 'as_' + r.owner_uid, owner_uid: pemilik, name: r.name, relationship: 'Anak Saudara', ref_id: d.nod, akaun_uid: r.owner_uid, is_root: false, gender: r.gender || '', dob: r.dob || '', photo_url: r.photo_url || '', status: r.status || 'hidup', city: r.city || '', state: r.state || '' }]);
+                    }
+                }
+            }
             for (const as of nod) {
                 if (lc(as.relationship) !== 'anak saudara') continue;
+                // Cari akaun anak saudara ini: ikut akaun_uid pada nod, kalau tiada ikut rujukan pada akar akaun mereka (anak_nod / nama + ibu bapa)
                 let uid = as.akaun_uid;
                 if (!uid) {
-                    try {
-                        const sr = await getDocs(query(collection(db, "mynasab_nodes"), where("anak_saudara_dari.anak_nod", "==", as.id)));
-                        sr.forEach(d => { if (d.data().is_root && d.data().owner_uid) uid = d.data().owner_uid; });
-                    } catch (e) { console.warn("Cari akaun anak saudara:", e.message); }
+                    const akar = (await akarAnakSaudara(as.owner_uid)).find(r => {
+                        const d = r.anak_saudara_dari || {};
+                        return d.anak_nod === as.id || (d.nod === as.ref_id && lc(r.name) === lc(as.name));
+                    });
+                    if (akar) uid = akar.owner_uid;
                 }
                 if (!uid || uid === as.owner_uid) continue;
-                const dalam = (await ambil(uid)).filter(n => !n.is_root && n.created_by === uid);
+                const semuaNod = await ambil(uid);
+                // Kad anak saudara guna data terkini akaunnya (tarikh lahir, gambar, jantina, status, lokasi)
+                const akarSendiri = semuaNod.find(n => n.is_root);
+                if (akarSendiri) {
+                    const ambilNilai = (k) => akarSendiri[k] || as[k] || '';
+                    ganti.set(as.id, { ...as, akaun_uid: uid, dob: ambilNilai('dob'), photo_url: ambilNilai('photo_url'), gender: ambilNilai('gender'), city: ambilNilai('city'), state: ambilNilai('state'), status: akarSendiri.status || as.status });
+                }
+                const dalam = semuaNod.filter(n => !n.is_root && n.created_by === uid);
                 const ada = (rel, nama) => nod.some(n => n.ref_id === rel && lc(n.name) === lc(nama));
                 dalam.forEach(n => {
                     const h = lc(n.relationship);
@@ -1827,7 +1859,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
                     }
                 });
             }
-            return tambah.length ? nod.concat(tambah) : nod;
+            return (tambah.length || ganti.size) ? nod.map(n => ganti.get(n.id) || n).concat(tambah) : nod;
         };
 
         const nodInduk = await kayakan(await ambil(indukUid));
