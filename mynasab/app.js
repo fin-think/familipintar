@@ -1797,13 +1797,46 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
             }
         };
 
-        const nodInduk = await ambil(indukUid);
-        const akaun = await Promise.all(pautan.map(async p => ({ uid: p.uid, sasaran: p.sasaran_id, nod: await ambil(p.uid) })));
+        // Anak saudara yang dah daftar akaun sendiri (jemputan 'anak saudara'): tarik pasangan, anak & cucu yang dia isi
+        // dalam akaunnya, dan sambung ke nod anak saudara itu dalam pokok ini (ref_id -> nod anak saudara).
+        const kayakan = async (nod) => {
+            const tambah = [];
+            const lc = (x) => String(x || '').trim().toLowerCase();
+            for (const as of nod) {
+                if (lc(as.relationship) !== 'anak saudara') continue;
+                let uid = as.akaun_uid;
+                if (!uid) {
+                    try {
+                        const sr = await getDocs(query(collection(db, "mynasab_nodes"), where("anak_saudara_dari.anak_nod", "==", as.id)));
+                        sr.forEach(d => { if (d.data().is_root && d.data().owner_uid) uid = d.data().owner_uid; });
+                    } catch (e) { console.warn("Cari akaun anak saudara:", e.message); }
+                }
+                if (!uid || uid === as.owner_uid) continue;
+                const dalam = (await ambil(uid)).filter(n => !n.is_root && n.created_by === uid);
+                const ada = (rel, nama) => nod.some(n => n.ref_id === rel && lc(n.name) === lc(nama));
+                dalam.forEach(n => {
+                    const h = lc(n.relationship);
+                    if (/suami|isteri/.test(h) && !/pasangan|mertua|ipar/.test(h)) {
+                        if (!ada(as.id, n.name)) tambah.push({ ...n, relationship: 'Ipar', _papar: n.relationship, ref_id: as.id });
+                    } else if (h === 'anak') {
+                        if (!ada(as.id, n.name)) tambah.push({ ...n, relationship: 'Cucu Saudara', _papar: 'Cucu saudara', ref_id: as.id });
+                    } else if (h === 'cucu') {
+                        tambah.push({ ...n, relationship: 'Cicit Saudara', _papar: 'Cicit saudara' });
+                    } else if (h.includes('menantu')) {
+                        tambah.push({ ...n, relationship: 'Ipar', _papar: n.relationship });
+                    }
+                });
+            }
+            return tambah.length ? nod.concat(tambah) : nod;
+        };
+
+        const nodInduk = await kayakan(await ambil(indukUid));
+        const akaun = await Promise.all(pautan.map(async p => ({ uid: p.uid, sasaran: p.sasaran_id, nod: await kayakan(await ambil(p.uid)) })));
 
         const kelompok = (nod) => {
             const k = {
                 diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], datukMertua: [], moyangMertua: [], buyutMertua: [], cakawariMertua: [], cilawagiMertua: [], adikPasangan: [], turun: [[], [], [], [], []],
-                adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [], saudaraIbuBapa: [], pasanganSaudara: [], sepupu: []
+                adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [], cicitSaudara: [], saudaraIbuBapa: [], pasanganSaudara: [], sepupu: []
             };
             nod.forEach(d => {
                 const h = (d.relationship || '').toLowerCase();
@@ -1830,6 +1863,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
                 else if (h.includes('adik') || h.includes('abang') || h.includes('kakak') || h === 'adik-beradik') k.adikBeradik.push(d);
                 else if (h.includes('ipar')) k.ipar.push(d);
                 else if (h.includes('anak saudara')) k.anakSaudara.push(d);
+                else if (h.includes('cicit saudara')) k.cicitSaudara.push(d);
                 else if (h.includes('cucu saudara')) k.cucuSaudara.push(d);
             });
             return k;
@@ -1892,7 +1926,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
             for (const u of (sebagai ? (kPusat.diri.linked_adik || []) : (kPusat.diri.linked_uids || []))) {
                 if (sudahAda.has(u)) continue;
                 sudahAda.add(u);
-                const nodLuar = await ambil(u);
+                const nodLuar = await kayakan(await ambil(u));
                 const kLuar = kelompok(nodLuar);
                 if (!kLuar.diri) continue;
                 nodLuar.forEach(n => semuaId.add(n.id));
@@ -1907,7 +1941,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
             for (const u of (kInduk.diri.linked_adik || [])) {
                 if (sudahAda2.has(u)) continue;
                 sudahAda2.add(u);
-                const nodLuar = await ambil(u);
+                const nodLuar = await kayakan(await ambil(u));
                 const kLuar = kelompok(nodLuar);
                 if (!kLuar.diri) continue;
                 nodLuar.forEach(n => semuaId.add(n.id));
@@ -1929,6 +1963,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
         };
         const label = (n) => {
             const h = n.relationship || '';
+            if (n._papar) return n._papar;
             if (/^pasangan/i.test(h)) return h;
             if (/bapa saudara/i.test(h)) return 'Bapa Saudara';
             if (/(mak|ibu) saudara/i.test(h)) return 'Mak Saudara';
@@ -2190,7 +2225,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
                     if ((!adaPsg && iparLama.length) || (!adaTurun && anakLama.length)) {
                         kJangkar = Object.assign({}, jangkar.k, {
                             menantu: adaPsg ? jangkar.k.menantu : (kInduk.ipar || []),
-                            turun: adaTurun ? jangkar.k.turun : [anakLama, kInduk.cucuSaudara || [], [], [], []]
+                            turun: adaTurun ? jangkar.k.turun : [anakLama, kInduk.cucuSaudara || [], kInduk.cicitSaudara || [], [], []]
                         });
                         if (!adaPsg) orangJangkar = [jangkar.k.diri].concat(iparLama);
                     }
@@ -2210,7 +2245,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
                         pasangan: ps(kSumber.ipar.filter(i => i.ref_id === adik.id)),
                         menantu: tp ? [] : kSumber.ipar,
                         // cucu saudara hanya dipaparkan jika adik-beradik ini ada anak (elak cucu tergantung tanpa ibu bapa)
-                        turun: anakAdik.length ? [anakAdik, kSumber.cucuSaudara, [], [], []] : [[], [], [], [], []]
+                        turun: anakAdik.length ? [anakAdik, kSumber.cucuSaudara, kSumber.cicitSaudara, [], []] : [[], [], [], [], []]
                     };
                     entri.push({ t: tarikh(adik), bina: (kiri) => binaRumahMenegak(kAdik, adik, kAdik.pasangan, false, kiri) });
                 });
@@ -2240,7 +2275,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
                         kPapar = Object.assign({}, kAkaun, {
                             pasangan: (kAkaun.pasangan || []).length ? kAkaun.pasangan : iparLama,
                             menantu: (kAkaun.pasangan || []).length ? kAkaun.menantu : (ks.ipar || []),
-                            turun: adaTurun ? kAkaun.turun : (anakLama.length ? [anakLama, ks.cucuSaudara || [], [], [], []] : kAkaun.turun)
+                            turun: adaTurun ? kAkaun.turun : (anakLama.length ? [anakLama, ks.cucuSaudara || [], ks.cicitSaudara || [], [], []] : kAkaun.turun)
                         });
                         sudahAdik.add(kunci(lama));
                     }
@@ -2345,7 +2380,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
             const kP = {
                 diri: P,
                 menantu: tanpaPasangan ? [] : [...sendiri(kPusat.pasangan, d.id), ...kPusat.ipar, ...pasanganAkaun],
-                turun: [[d, ...adik, ...akarAkaun], [...sendiri(kPusat.turun[0], d.id), ...kPusat.anakSaudara, ...anakAkaun], [...kPusat.turun[1], ...kPusat.cucuSaudara], kPusat.turun[2], kPusat.turun[3]]
+                turun: [[d, ...adik, ...akarAkaun], [...sendiri(kPusat.turun[0], d.id), ...kPusat.anakSaudara, ...anakAkaun], [...kPusat.turun[1], ...kPusat.cucuSaudara], [...kPusat.turun[2], ...kPusat.cicitSaudara], kPusat.turun[3]]
             };
             const entri = [{ t: tarikh(P), bina: (kiri) => binaRumahMenegak(kP, P, tanpaPasangan ? [] : lain, false, kiri), jangkar: true }];
             unc.forEach(u => {
