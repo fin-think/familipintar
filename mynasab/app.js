@@ -163,12 +163,17 @@ onAuthStateChanged(auth, async (user) => {
                 const bk = new URLSearchParams(location.search).get('buka');
                 if (bk && !window.__bukaSudah) {
                     window.__bukaSudah = true;
-                    setTimeout(() => {
-                        if (bk === 'pokok' && window.bukaPreviewBesar) window.bukaPreviewBesar('saya');
-                        else if (bk === 'profil' && window.bukaModalEdit) window.bukaModalEdit('root_' + user.uid);
-                    }, 1200);
-                }
-            } catch (e) {}
+                    const tutup = () => { const t = document.getElementById('bukaTutup'); if (t) t.remove(); };
+                    setTimeout(tutup, 6000);
+                    (async () => {
+                        try {
+                            if (bk === 'pokok' && window.bukaPreview) await window.bukaPreview();
+                            else if (bk === 'profil' && window.bukaModalEdit) await window.bukaModalEdit('root_' + user.uid);
+                        } catch (e) { console.error(e); }
+                        setTimeout(tutup, 150);
+                    })();
+                } else if (!bk) { const t = document.getElementById('bukaTutup'); if (t) t.remove(); }
+            } catch (e) { const t = document.getElementById('bukaTutup'); if (t) t.remove(); }
 
             if (window.pantauMesejBaru) {
                 window.pantauMesejBaru(user.uid);
