@@ -1836,17 +1836,49 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
                     }
                 }
             }
+            // Cari akaun anak saudara ini: ikut akaun_uid pada nod, kalau tiada ikut rujukan pada akar akaun mereka (anak_nod / nama + ibu bapa)
+            const cariUid = async (as) => {
+                if (as.akaun_uid) return as.akaun_uid;
+                const akar = (await akarAnakSaudara(as.owner_uid)).find(r => {
+                    const d = r.anak_saudara_dari || {};
+                    return d.anak_nod === as.id || (d.nod === as.ref_id && lc(r.name) === lc(as.name));
+                });
+                return akar ? akar.owner_uid : '';
+            };
+            // Akaun adik-beradik kepada akaun anak saudara (dijemput oleh anak saudara itu, atau disambung melalui Salam Paut)
+            const akarAdikBeradik = async (u) => {
+                const hasil = [];
+                try {
+                    const sr = await getDocs(query(collection(db, "mynasab_nodes"), where("is_root", "==", true), where("link_owner", "==", u)));
+                    sr.forEach(d => hasil.push(d.data()));
+                    const diri = await getDoc(doc(db, "mynasab_nodes", "root_" + u));
+                    for (const lu of ((diri.exists() && diri.data().linked_adik) || [])) {
+                        const ra = await getDoc(doc(db, "mynasab_nodes", "root_" + lu));
+                        if (ra.exists() && ra.data().is_root) hasil.push(ra.data());
+                    }
+                } catch (e) { console.warn("Cari adik-beradik anak saudara:", e.message); }
+                return hasil;
+            };
+            for (const as0 of nod.slice()) {
+                if (lc(as0.relationship) !== 'anak saudara') continue;
+                const u0 = await cariUid(as0);
+                if (!u0 || u0 === as0.owner_uid) continue;
+                const lihat = new Set([u0, as0.owner_uid]);
+                const barisan = [u0];
+                while (barisan.length && lihat.size < 40) {
+                    for (const r of await akarAdikBeradik(barisan.shift())) {
+                        const ru = r.owner_uid;
+                        if (!ru || lihat.has(ru)) continue;
+                        lihat.add(ru); barisan.push(ru);
+                        const idx = nod.findIndex(n => lc(n.relationship) === 'anak saudara' && (n.akaun_uid === ru || (n.ref_id === as0.ref_id && lc(n.name) === lc(r.name))));
+                        if (idx >= 0) { if (!nod[idx].akaun_uid) nod = nod.map((n, i) => i === idx ? { ...n, akaun_uid: ru } : n); }
+                        else nod = nod.concat([{ id: 'as_' + ru, owner_uid: as0.owner_uid, name: r.name, relationship: 'Anak Saudara', ref_id: as0.ref_id, akaun_uid: ru, is_root: false, gender: r.gender || '', dob: r.dob || '', photo_url: r.photo_url || '', status: r.status || 'hidup', city: r.city || '', state: r.state || '' }]);
+                    }
+                }
+            }
             for (const as of nod) {
                 if (lc(as.relationship) !== 'anak saudara') continue;
-                // Cari akaun anak saudara ini: ikut akaun_uid pada nod, kalau tiada ikut rujukan pada akar akaun mereka (anak_nod / nama + ibu bapa)
-                let uid = as.akaun_uid;
-                if (!uid) {
-                    const akar = (await akarAnakSaudara(as.owner_uid)).find(r => {
-                        const d = r.anak_saudara_dari || {};
-                        return d.anak_nod === as.id || (d.nod === as.ref_id && lc(r.name) === lc(as.name));
-                    });
-                    if (akar) uid = akar.owner_uid;
-                }
+                const uid = await cariUid(as);
                 if (!uid || uid === as.owner_uid) continue;
                 const semuaNod = await ambil(uid);
                 // Kad anak saudara guna data terkini akaunnya (tarikh lahir, gambar, jantina, status, lokasi)
