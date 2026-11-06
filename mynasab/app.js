@@ -327,6 +327,19 @@ async function tandaPokokDikemas(hubungan) {
         await updateDoc(doc(db, "mynasab_users", penggunaSemasa.uid), { pokok_dikemas: Date.now() });
     } catch (e) { console.warn('tandaPokokDikemas:', e.message); }
 }
+// Log aktiviti untuk admin (koleksi mynasab_aktiviti). Senyap jika peraturan Firestore belum membenarkan.
+function logAktiviti(jenis, butiran, pengguna, namaPaksa) {
+    try {
+        const pg = pengguna || penggunaSemasa;
+        if (!pg) return;
+        const tajuk = document.getElementById('treeNameDisplay');
+        addDoc(collection(db, "mynasab_aktiviti"), {
+            uid: pg.uid,
+            nama: namaPaksa || (tajuk && tajuk.innerText && tajuk.innerText.trim()) || pg.displayName || (pg.email || '').split('@')[0],
+            jenis, butiran: String(butiran || '').slice(0, 300), masa: Date.now()
+        }).catch(() => {});
+    } catch (e) {}
+}
 async function tandaDisegerak(ownerUid) {
     try {
         const so = await getDoc(doc(db, "mynasab_users", ownerUid));
@@ -546,6 +559,7 @@ window.segerakPokokAnakSaudara = async () => {
         for (const n of lama) await deleteDoc(doc(db, "mynasab_nodes", n.id));
         await salinPokokAnakSaudara({ owner_uid: dari.uid, sasaran_id: dari.nod, anak_nod: dari.anak_nod }, uid);
         await tandaDisegerak(dari.uid);
+        logAktiviti('kemas_kini_pokok', 'Kemas kini pokok anak saudara');
         alert("Pokok berjaya dikemas kini.");
         window.bukaPreviewBesar('saya');
     } catch (e) { console.error(e); alert("Gagal mengemas kini pokok: " + e.message); }
@@ -637,6 +651,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDafta
             window.__statusPautanDaftar = statusPautanDaftar;
         }
         
+        logAktiviti('daftar', jem ? `Daftar melalui jemputan ${jem.jenis === 'anak_saudara' ? 'anak saudara' : 'adik-beradik'} oleh ${jem.nama_pengundang || ''}` : 'Daftar sendiri', user, namaKeluarga);
         alert(jem && jem.jenis === 'anak_saudara'
             ? `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit. Pokok keluarga anda (ibu bapa dan datuk nenek) telah disediakan. Sila semak dan kemas kini maklumat mereka.`
             : jem
@@ -855,9 +870,10 @@ else {
 window.padamAhli = async (idAhli) => {
     if (confirm("Anda pasti mahu memadam rekod ahli ini?")) {
         try {
-            let relPadam = ''; try { const sp = await getDoc(doc(db, "mynasab_nodes", idAhli)); relPadam = sp.exists() ? sp.data().relationship : ''; } catch (e) {}
+            let relPadam = '', namaPadam = ''; try { const sp = await getDoc(doc(db, "mynasab_nodes", idAhli)); relPadam = sp.exists() ? sp.data().relationship : ''; namaPadam = sp.exists() ? (sp.data().name || '') : ''; } catch (e) {}
             await deleteDoc(doc(db, "mynasab_nodes", idAhli));
             tandaPokokDikemas(relPadam);
+            logAktiviti('padam_ahli', `${namaPadam} (${relPadam})`);
             window.muatTurunSalasilah();
         } catch (e) {
             alert("Gagal memadam ahli: " + e.message);
@@ -976,6 +992,7 @@ window.tambahAhliBaru = async (nama, hubungan, jantina, dob, telefon, bandar, ne
             created_at: new Date()
         });
         tandaPokokDikemas(hubungan);
+        logAktiviti('tambah_ahli', `${nama} (${hubungan})`);
 
         if (jumlahKos > 0) {
             await updateDoc(refPengguna, { credit_balance: increment(-jumlahKos) });
@@ -1160,7 +1177,7 @@ if (formEdit) {
             }
 
             await updateDoc(doc(db, "mynasab_nodes", idKotak), dataUpdate);
-            { let relEdit = dataUpdate.relationship || ''; if (!relEdit) { try { const se = await getDoc(doc(db, "mynasab_nodes", idKotak)); relEdit = se.exists() ? se.data().relationship : ''; } catch (e) {} } tandaPokokDikemas(relEdit); }
+            { let relEdit = dataUpdate.relationship || ''; if (!relEdit) { try { const se = await getDoc(doc(db, "mynasab_nodes", idKotak)); relEdit = se.exists() ? se.data().relationship : ''; } catch (e) {} } tandaPokokDikemas(relEdit); logAktiviti('edit_ahli', `${dataUpdate.name || ''} (${relEdit})`); }
             { const fg = document.getElementById('editAhliGambar'); if (fg) fg.value = ''; }
 
             // --- JEMPUTAN E-MEL semasa edit (e-mel baharu ditambah kemudian) ---
@@ -1649,6 +1666,7 @@ window.janaPautan = async () => {
         nama_pengundang: document.getElementById('treeNameDisplay').innerText,
         created_at: new Date()
     });
+    logAktiviti('jana_pautan', `${anak ? 'Anak saudara' : 'Adik-beradik'} untuk ${sel.options[sel.selectedIndex].dataset.nama || sel.options[sel.selectedIndex].text}${namaAnak ? ' (' + namaAnak + ')' : ''}`);
     document.getElementById('inputPautan').value = `${location.origin}${location.pathname}?jemput=${kod}`;
     document.getElementById('hasilPautan').classList.remove('hidden');
 };
@@ -1725,6 +1743,7 @@ window.luluskanPautan = async (uid) => {
     try {
         await updateDoc(doc(db, "mynasab_links", uid), { status: 'aktif' });
         await tambahAdikKePokokInduk(uid);
+        logAktiviti('terima_pautan', 'Lulus pautan adik-beradik ' + uid.slice(0, 6));
         alert("Adik-beradik diterima. Mereka kini boleh dilihat dalam Keluarga Besar.");
     } catch (e) { alert("Gagal meluluskan: " + e.message); }
     window.muatMenunggu();
@@ -4141,6 +4160,7 @@ window.sahkanTerimaPautan = async () => {
         await updateDoc(doc(db, "mynasab_nodes", rootSaya.id), medan(lain));
         await updateDoc(doc(db, "mynasab_nodes", rootLain.id), medan(saya));
         if (adik) tandaPokokDikemas();   // anak saudara akaun saya akan dapat pop-up Kemas Kini Pokok
+        logAktiviti('salam_paut', `Terima pautan ${(rootLain.data().name || '')} sebagai ${hub}`);
         const namaSaya = rootSaya.data().name || '', namaLain = rootLain.data().name || '';
         await setDoc(doc(db, "mynasab_waris", pairId(saya, lain)), {
             uids: [saya, lain], status: 'aktif', tarikh: Date.now(),

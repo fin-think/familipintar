@@ -22,6 +22,8 @@
                 <button onclick="tab('list')" class="hover:text-sky-300 transition text-sm font-semibold">Senarai Ejen</button>
                 <button onclick="tab('src')" class="hover:text-sky-300 transition text-sm font-semibold">Sumber</button>
                 <button onclick="tab('sub')" class="hover:text-sky-300 transition text-sm font-semibold">Langganan</button>
+                <button onclick="tab('reg')" class="hover:text-sky-300 transition text-sm font-semibold">Pendaftaran</button>
+                <button onclick="tab('act')" class="hover:text-sky-300 transition text-sm font-semibold">Aktiviti</button>
                 <button onclick="tab('aff')" class="hover:text-sky-300 transition text-sm font-semibold">Payouts</button>
                 <button onclick="tab('cash')" class="hover:text-sky-300 transition text-sm font-semibold">Expenses</button>
                 <button onclick="window.location.href='direktori-admin.html'" class="bg-slate-800 border border-slate-600 hover:border-amber-300 px-4 py-1.5 rounded-lg text-sm transition font-extrabold flex items-center gap-2" title="Direktori servis rumah (fasa 2)"><i class="fa-solid fa-address-book text-amber-300"></i><span><span class="text-amber-300">yellow</span><span class="text-sky-400">BLUE</span><span class="text-amber-300">pages</span></span></button>
@@ -107,6 +109,58 @@
                 </table></div></div>
         </div>
 
+        <!-- TAB: PENDAFTARAN BAHARU (siapa jemput / rantaian) -->
+        <div id="tab-reg" class="hidden animate-fade-in">
+            <h2 class="text-2xl font-bold mb-2 text-slate-800">Pendaftaran Akaun Baharu</h2>
+            <p class="text-sm text-slate-500 mb-4">Setiap akaun, cara ia berdaftar, siapa yang menjemput, dan rantaian sehingga induk teratas (akaun yang pokoknya memaparkan mereka dalam Keluarga Besar).</p>
+            <div class="flex flex-wrap gap-3 mb-4">
+                <select id="regTapis" onchange="paparPendaftaran()" class="border rounded-lg px-3 py-2 text-sm">
+                    <option value="">Semua cara daftar</option>
+                    <option value="anak_saudara">Jemputan anak saudara</option>
+                    <option value="adik_beradik">Jemputan adik-beradik</option>
+                    <option value="emel">Jemputan e-mel (ditambah oleh induk)</option>
+                    <option value="affiliate">Affiliate / kempen</option>
+                    <option value="sendiri">Daftar sendiri / lain</option>
+                    <option value="masalah">Perlu semakan (rantaian putus / menunggu)</option>
+                </select>
+                <input id="regCari" oninput="paparPendaftaran()" placeholder="Cari nama / emel" class="border rounded-lg px-3 py-2 text-sm">
+                <button onclick="loadPendaftaran()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold">Muat semula</button>
+                <span id="regRingkas" class="text-sm text-slate-500 self-center"></span>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"><div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-100 text-slate-600"><tr><th class="p-3">Tarikh daftar</th><th class="p-3">Akaun</th><th class="p-3">Cara daftar</th><th class="p-3">Dijemput oleh</th><th class="p-3">Rantaian ke induk teratas</th><th class="p-3">Status</th></tr></thead>
+                    <tbody id="regBody" class="divide-y"><tr><td colspan="6" class="p-4 text-center">Memuatkan...</td></tr></tbody>
+                </table></div></div>
+        </div>
+
+        <!-- TAB: LOG AKTIVITI -->
+        <div id="tab-act" class="hidden animate-fade-in">
+            <h2 class="text-2xl font-bold mb-2 text-slate-800">Log Aktiviti</h2>
+            <p class="text-sm text-slate-500 mb-4">Daftar, tambah / edit / padam ahli, jana pautan jemputan, terima pautan dan kemas kini pokok. Hanya aktiviti selepas log dipasang akan direkod.</p>
+            <div class="flex flex-wrap gap-3 mb-4">
+                <select id="actTapis" onchange="paparAktiviti()" class="border rounded-lg px-3 py-2 text-sm">
+                    <option value="">Semua aktiviti</option>
+                    <option value="daftar">Daftar akaun</option>
+                    <option value="tambah_ahli">Tambah ahli</option>
+                    <option value="edit_ahli">Edit ahli</option>
+                    <option value="padam_ahli">Padam ahli</option>
+                    <option value="jana_pautan">Jana pautan jemputan</option>
+                    <option value="terima_pautan">Terima / lulus pautan</option>
+                    <option value="salam_paut">Salam paut</option>
+                    <option value="kemas_kini_pokok">Kemas kini pokok</option>
+                </select>
+                <input id="actCari" oninput="paparAktiviti()" placeholder="Cari akaun / butiran" class="border rounded-lg px-3 py-2 text-sm">
+                <button onclick="loadAktiviti()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold">Muat semula</button>
+                <span id="actRingkas" class="text-sm text-slate-500 self-center"></span>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"><div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-100 text-slate-600"><tr><th class="p-3">Masa</th><th class="p-3">Akaun</th><th class="p-3">Aktiviti</th><th class="p-3">Butiran</th></tr></thead>
+                    <tbody id="actBody" class="divide-y"><tr><td colspan="4" class="p-4 text-center">Memuatkan...</td></tr></tbody>
+                </table></div></div>
+        </div>
+
         <!-- TAB: SUMBER PENDAFTARAN -->
         <div id="tab-src" class="hidden animate-fade-in">
             <h2 class="text-2xl font-bold mb-2 text-slate-800">Sumber Pendaftaran</h2>
@@ -162,7 +216,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, getDocs, collection, updateDoc, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, updateDoc, addDoc, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -193,6 +247,8 @@
         document.getElementById('tab-src').classList.add('hidden');
         document.getElementById('tab-sub').classList.add('hidden');
         document.getElementById('tab-cash').classList.add('hidden');
+        document.getElementById('tab-reg').classList.add('hidden');
+        document.getElementById('tab-act').classList.add('hidden');
         document.getElementById('tab-'+id).classList.remove('hidden');
         
         if(id === 'dash') calculatePNL();
@@ -200,6 +256,8 @@
         if(id === 'aff') loadPayouts();
         if(id === 'src') loadSumber();
         if(id === 'sub') loadLangganan();
+        if(id === 'reg') loadPendaftaran();
+        if(id === 'act') loadAktiviti();
     };
 
     async function calculatePNL() {
@@ -362,6 +420,89 @@
         alert("Perbelanjaan direkodkan!");
         document.getElementById('expDesc').value = '';
         document.getElementById('expAmount').value = '';
+    };
+
+    // ===== PENDAFTARAN BAHARU: cara daftar, siapa jemput, rantaian ke induk teratas =====
+    let dataReg = [];
+    const tarikhMs = (t) => !t ? 0 : (t.toMillis ? t.toMillis() : (t.seconds ? t.seconds * 1000 : (+new Date(t) || 0)));
+    const fmtMasa = (ms) => ms ? new Date(ms).toLocaleString('ms-MY', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
+    window.loadPendaftaran = async () => {
+        document.getElementById('regBody').innerHTML = '<tr><td colspan="6" class="p-4 text-center">Memuatkan...</td></tr>';
+        const [uSnap, rSnap, lSnap] = await Promise.all([
+            getDocs(collection(db, "mynasab_users")),
+            getDocs(query(collection(db, "mynasab_nodes"), where("is_root", "==", true))),
+            getDocs(collection(db, "mynasab_links"))]);
+        const user = {}, akar = {}, pautan = {};
+        uSnap.forEach(d => user[d.id] = d.data());
+        rSnap.forEach(d => { const x = d.data(); if (x.owner_uid) akar[x.owner_uid] = x; });
+        lSnap.forEach(d => pautan[d.id] = d.data());
+        const nama = (u) => (user[u] && user[u].name) || (akar[u] && akar[u].name) || (u ? u.slice(0, 6) + '…' : '-');
+        const pengundang = (u) => {
+            const r = akar[u] || {}, l = pautan[u];
+            if (r.anak_saudara_dari && r.anak_saudara_dari.uid) return { jenis: 'anak_saudara', oleh: r.anak_saudara_dari.uid };
+            if (r.link_owner && r.link_owner !== u) return { jenis: 'adik_beradik', oleh: r.link_owner };
+            if (l && l.owner_uid) return { jenis: 'adik_beradik', oleh: l.owner_uid };
+            return null;
+        };
+        const sumberUmum = (u) => { const s = (user[u] || {}).sumber || {}; return s.jenis || ''; };
+        dataReg = Object.keys(user).map(u => {
+            const info = pengundang(u);
+            let jenis, oleh = '', rantai = [], status = '-', masalah = false;
+            if (info) {
+                jenis = info.jenis; oleh = info.oleh;
+                // jejak ke atas sehingga induk teratas (maksimum 8 peringkat, elak pusingan)
+                const lihat = new Set([u]); let cur = oleh, putus = false;
+                while (cur && rantai.length < 8) {
+                    if (lihat.has(cur)) { putus = true; break; }
+                    lihat.add(cur); rantai.push(cur);
+                    if (!user[cur] && !akar[cur]) { putus = true; break; }
+                    const n = pengundang(cur); cur = n ? n.oleh : '';
+                }
+                if (putus) { status = 'Rantaian putus'; masalah = true; }
+                else if (pautan[u] && pautan[u].status === 'menunggu') { status = 'Menunggu kelulusan'; masalah = true; }
+                else if (!akar[u]) { status = 'Tiada nod Diri Sendiri'; masalah = true; }
+                else status = 'OK';
+            } else {
+                const sj = sumberUmum(u);
+                jenis = (sj === 'affiliate' || sj === 'kempen') ? 'affiliate' : (akar[u] && (akar[u].dijemput || akar[u].jemput_emel)) ? 'emel' : 'sendiri';
+            }
+            const em = (user[u] || {}).email || '';
+            return { uid: u, nama: nama(u), emel: em, masa: tarikhMs((user[u] || {}).created_at), jenis, oleh: oleh ? nama(oleh) : '', rantai: rantai.map(nama), status, masalah };
+        }).sort((a, b) => b.masa - a.masa);
+        paparPendaftaran();
+    };
+    window.paparPendaftaran = () => {
+        const t = document.getElementById('regTapis').value, c = document.getElementById('regCari').value.trim().toLowerCase();
+        const label = { anak_saudara: ['Jemputan anak saudara', 'emerald'], adik_beradik: ['Jemputan adik-beradik', 'sky'], emel: ['Jemputan e-mel', 'purple'], affiliate: ['Affiliate / kempen', 'yellow'], sendiri: ['Daftar sendiri / lain', 'slate'] };
+        const senarai = dataReg.filter(r => (!t || (t === 'masalah' ? r.masalah : r.jenis === t)) && (!c || (r.nama + ' ' + r.emel).toLowerCase().includes(c)));
+        document.getElementById('regRingkas').textContent = `${senarai.length} daripada ${dataReg.length} akaun`;
+        document.getElementById('regBody').innerHTML = senarai.map(r => {
+            const l = label[r.jenis] || label.sendiri;
+            const rantai = r.rantai.length ? [r.nama, ...r.rantai].map(esc).join(' <span class="text-slate-400">&larr;</span> ') : '<span class="text-slate-400">-</span>';
+            const sk = r.status === 'OK' ? 'text-emerald-600' : (r.status === '-' ? 'text-slate-400' : 'text-red-600 font-bold');
+            return `<tr><td class="p-3 whitespace-nowrap">${fmtMasa(r.masa)}</td><td class="p-3"><b>${esc(r.nama)}</b><br><span class="text-xs text-slate-500">${esc(r.emel)}</span></td><td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-bold bg-${l[1]}-100 text-${l[1]}-700">${l[0]}</span></td><td class="p-3">${esc(r.oleh) || '-'}</td><td class="p-3 text-xs">${rantai}</td><td class="p-3 ${sk}">${esc(r.status)}</td></tr>`;
+        }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">Tiada rekod.</td></tr>';
+    };
+
+    // ===== LOG AKTIVITI =====
+    let dataAkt = [];
+    window.loadAktiviti = async () => {
+        document.getElementById('actBody').innerHTML = '<tr><td colspan="4" class="p-4 text-center">Memuatkan...</td></tr>';
+        try {
+            const s = await getDocs(query(collection(db, "mynasab_aktiviti"), orderBy("masa", "desc"), limit(500)));
+            dataAkt = s.docs.map(d => d.data());
+        } catch (e) { dataAkt = []; document.getElementById('actBody').innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-600">Gagal memuatkan: ${esc(e.message)}</td></tr>`; return; }
+        paparAktiviti();
+    };
+    window.paparAktiviti = () => {
+        const t = document.getElementById('actTapis').value, c = document.getElementById('actCari').value.trim().toLowerCase();
+        const label = { daftar: ['Daftar akaun', 'emerald'], tambah_ahli: ['Tambah ahli', 'sky'], edit_ahli: ['Edit ahli', 'yellow'], padam_ahli: ['Padam ahli', 'red'], jana_pautan: ['Jana pautan', 'purple'], terima_pautan: ['Terima pautan', 'emerald'], salam_paut: ['Salam paut', 'sky'], kemas_kini_pokok: ['Kemas kini pokok', 'slate'] };
+        const senarai = dataAkt.filter(a => (!t || a.jenis === t) && (!c || ((a.nama || '') + ' ' + (a.butiran || '')).toLowerCase().includes(c)));
+        document.getElementById('actRingkas').textContent = `${senarai.length} rekod (500 terkini)`;
+        document.getElementById('actBody').innerHTML = senarai.map(a => {
+            const l = label[a.jenis] || [a.jenis || '-', 'slate'];
+            return `<tr><td class="p-3 whitespace-nowrap">${fmtMasa(a.masa)}</td><td class="p-3 font-bold">${esc(a.nama || (a.uid || '').slice(0, 6))}</td><td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-bold bg-${l[1]}-100 text-${l[1]}-700">${l[0]}</span></td><td class="p-3">${esc(a.butiran || '')}</td></tr>`;
+        }).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-400">Tiada rekod lagi. Pastikan rule <code>mynasab_aktiviti</code> telah ditambah dalam Firestore Rules.</td></tr>';
     };
 
     // Auto-load dash
