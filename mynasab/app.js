@@ -158,6 +158,17 @@ onAuthStateChanged(auth, async (user) => {
 
             window.muatTurunSalasilah();
             window.muatMenunggu();
+            // Pintasan dari muka depan (mobile): ?buka=pokok -> Keluarga Saya, ?buka=profil -> borang edit induk
+            try {
+                const bk = new URLSearchParams(location.search).get('buka');
+                if (bk && !window.__bukaSudah) {
+                    window.__bukaSudah = true;
+                    setTimeout(() => {
+                        if (bk === 'pokok' && window.bukaPreviewBesar) window.bukaPreviewBesar('saya');
+                        else if (bk === 'profil' && window.bukaModalEdit) window.bukaModalEdit('root_' + user.uid);
+                    }, 1200);
+                }
+            } catch (e) {}
 
             if (window.pantauMesejBaru) {
                 window.pantauMesejBaru(user.uid);

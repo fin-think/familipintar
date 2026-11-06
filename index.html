@@ -300,9 +300,9 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
   .fpm-dompet small { display: block; font-size: 13px; opacity: .8; font-weight: 600; }
   .fpm-dompet strong { font-size: 38px; font-weight: 800; line-height: 1.1; }
   .fpm-dompet button { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.7); border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 14px; }
-  .fpm-pintas { margin: -56px 16px 0; background: #fff; border-radius: 22px; padding: 16px 8px 12px; display: grid; grid-template-columns: repeat(4, 1fr); box-shadow: 0 8px 24px rgba(15,23,42,.1); position: relative; }
-  .fpm-pintas button { background: none; border: 0; display: flex; flex-direction: column; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: #334155; position: relative; }
-  .fpm-ik { width: 52px; height: 52px; border-radius: 17px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .fpm-pintas { margin: -56px 16px 0; background: #fff; border-radius: 22px; padding: 16px 6px 10px; display: grid; grid-template-columns: repeat(4, 1fr); row-gap: 14px; box-shadow: 0 8px 24px rgba(15,23,42,.1); position: relative; }
+  .fpm-pintas button { background: none; border: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11.5px; line-height: 1.15; font-weight: 700; color: #334155; position: relative; }
+  .fpm-ik { width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
   .fpm-lencana { position: absolute; top: -4px; right: 6px; background: #ef4444; color: #fff; border-radius: 10px; font-size: 10px; padding: 1px 5px; display: none; }
   .fpm-hero { margin: 18px 16px 0; border-radius: 24px; overflow: hidden; position: relative; height: 210px; box-shadow: 0 8px 22px rgba(15,23,42,.15); }
   .fpm-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -310,13 +310,11 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
   .fpm-hero b { font-size: 22px; font-weight: 800; } .fpm-hero span { font-size: 13.5px; opacity: .92; margin-top: 2px; }
   .fpm-daftar { display: none; margin: 14px 16px 0; width: calc(100% - 32px); background: linear-gradient(90deg, #0ea5e9, #2563eb); color: #fff; border: 0; border-radius: 18px; padding: 15px; font-size: 16px; font-weight: 800; box-shadow: 0 8px 20px rgba(14,165,233,.35); }
   .fpm-tajuk { margin: 24px 18px 10px; font-size: 19px; font-weight: 800; color: #0f172a; }
-  .fpm-jalur { display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 6px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
-  .fpm-jalur::-webkit-scrollbar { display: none; }
-  .fpm-kad { flex: 0 0 46%; min-width: 165px; scroll-snap-align: start; border-radius: 22px; padding: 16px; color: #fff; display: flex; flex-direction: column; text-align: left; border: 0; }
+  .fpm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px 8px; }
+  .fpm-kad { min-width: 0; border-radius: 22px; padding: 16px; color: #fff; display: flex; flex-direction: column; text-align: left; border: 0; }
   .fpm-kad .fpm-ik { width: 42px; height: 42px; font-size: 18px; border-radius: 13px; background: rgba(255,255,255,.22); color: #fff; margin-bottom: 12px; }
   .fpm-kad h4 { margin: 0 0 4px; font-size: 16px; font-weight: 800; line-height: 1.2; }
-  .fpm-kad p { margin: 0 0 12px; font-size: 12px; line-height: 1.4; opacity: .92; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .fpm-kad span { background: #fff; border-radius: 999px; padding: 8px 0; text-align: center; font-size: 13px; font-weight: 800; }
+  .fpm-kad p { margin: 0; font-size: 12px; line-height: 1.4; opacity: .92; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
   #fpBawah { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; background: #fff; border-radius: 22px 22px 0 0; display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); box-shadow: 0 -6px 20px rgba(15,23,42,.08); }
   #fpBawah button { background: none; border: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; font-size: 11px; font-weight: 700; color: #94a3b8; padding: 4px 0; }
   #fpBawah button i { font-size: 21px; }
@@ -328,31 +326,32 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 </style>
 <div id="fpMobile">
   <div class="fpm-dompet"><div><small>Baki Kredit</small><strong id="fpmKredit">0</strong></div><button type="button" onclick="window.location.href='topup.html'">Tambah &rsaquo;</button></div>
-  <div class="fpm-pintas">
-    <button type="button" data-pintu="myNasab" data-lencana="lencanaLuarNasab"><span class="fpm-ik" style="background:#d1fae5;color:#059669"><i class="fa-solid fa-sitemap"></i></span>myNasab<em class="fpm-lencana"></em></button>
-    <button type="button" data-pintu="wecare" data-lencana="lencanaLuarWeCareUtama"><span class="fpm-ik" style="background:#ffe4e6;color:#e11d48"><i class="fa-solid fa-hand-holding-medical"></i></span>weCare<em class="fpm-lencana"></em></button>
-    <button type="button" data-pintu="mytadbir"><span class="fpm-ik" style="background:#e2e8f0;color:#1e293b"><i class="fa-solid fa-building-columns"></i></span>myTADBIR</button>
-    <button type="button" data-pintu="ourmoney"><span class="fpm-ik" style="background:#e0e7ff;color:#4338ca"><i class="fa-solid fa-wallet"></i></span>OurMoney</button>
-  </div>
+  <div class="fpm-pintas" id="fpmPintas"></div>
   <div class="fpm-hero"><img src="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.png" alt="Keluarga"><div><b>Keluarga Yang Kukuh</b><span>Dibina bersama, satu langkah demi satu langkah.</span></div></div>
   <button type="button" class="fpm-daftar" id="fpmDaftar" onclick="bukaModalAuth('daftar')"><i class="fa-solid fa-gift"></i> Daftar &amp; Tebus 20 Kredit Percuma</button>
-  <div class="fpm-tajuk">Lagi untuk Keluarga</div>
-  <div class="fpm-jalur" id="fpmJalur"></div>
+  <div class="fpm-tajuk">Teroka Bersama</div>
+  <div class="fpm-grid" id="fpmJalur"></div>
   <nav id="fpBawah" aria-label="Navigasi utama">
     <button type="button" class="aktif" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fa-solid fa-house"></i>Utama</button>
-    <button type="button" data-pintu="myNasab"><i class="fa-solid fa-sitemap"></i>Nasab</button>
+    <button type="button" id="fpbNasab"><i class="fa-solid fa-sitemap"></i>Nasab</button>
     <button type="button" class="fpb-tengah" onclick="bukaPanduanFP()"><i class="fa-solid fa-compass"></i><span>Ekosistem</span></button>
-    <button type="button" data-pintu-tulis="Koleksi eBook|daebook/index.html"><i class="fa-solid fa-book"></i>eBook</button>
-    <button type="button" onclick="toggleFrontPageMobileMenu()"><i class="fa-solid fa-user"></i>Profil</button>
+    <button type="button" id="fpbAff"><i class="fa-solid fa-handshake"></i><span id="fpbAffTeks">Affiliate</span></button>
+    <button type="button" id="fpbProfil"><i class="fa-solid fa-user"></i>Profil</button>
   </nav>
 </div>
 <script>
 (function () {
-  var PINTU = { myNasab: ['myNasab', 'mynasab/index.html'], wecare: ['wecare', 'wecare.html'], mytadbir: ['mytadbir', 'mytadbir.html'], ourmoney: ['ourmoney', 'ourmoney.html'] };
-  var KAD = [ // [selektor kad asal, warna]
-    ['#kadMyjurnal', 'linear-gradient(135deg,#0ea5e9,#2563eb)'], ['#kadSmartsolo', 'linear-gradient(135deg,#8b5cf6,#6d28d9)'],
-    ['#kadMykids', 'linear-gradient(135deg,#f59e0b,#ea580c)'], ['a[onclick*="gotravel"]', 'linear-gradient(135deg,#14b8a6,#0f766e)'],
-    ['a[onclick*="daebook"]', 'linear-gradient(135deg,#eab308,#a16207)'], ['a[onclick*="mandarin.html"]', 'linear-gradient(135deg,#f97316,#c2410c)']];
+  // [selektor kad asal, label ikon, ikon, latar ikon, warna ikon, latar kad, id lencana]
+  var DEF = [
+    ['a[onclick*="mynasab/index"]', 'myNasab', 'fa-sitemap', '#d1fae5', '#059669', 'linear-gradient(135deg,#10b981,#047857)', 'lencanaLuarNasab'],
+    ['a[onclick*="\'wecare\'"]', 'weCare', 'fa-hand-holding-medical', '#ffe4e6', '#e11d48', 'linear-gradient(135deg,#fb7185,#be123c)', 'lencanaLuarWeCareUtama'],
+    ['#kadMyjurnal', 'myJurnal', 'fa-book-open-reader', '#e0f2fe', '#0369a1', 'linear-gradient(135deg,#0ea5e9,#2563eb)'],
+    ['#kadSmartsolo', 'SmartSolo', 'fa-person-walking-luggage', '#ede9fe', '#6d28d9', 'linear-gradient(135deg,#8b5cf6,#6d28d9)'],
+    ['#kadMykids', 'myKids', 'fa-child-reaching', '#fef3c7', '#b45309', 'linear-gradient(135deg,#f59e0b,#ea580c)'],
+    ['a[onclick*="gotravel"]', 'JomBercuti', 'fa-plane-departure', '#ccfbf1', '#0f766e', 'linear-gradient(135deg,#14b8a6,#0f766e)'],
+    ['a[onclick*="mytadbir"]', 'myTADBIR', 'fa-building-columns', '#e2e8f0', '#1e293b', 'linear-gradient(135deg,#475569,#0f172a)'],
+    ['a[onclick*="\'ourmoney\'"]', 'OurMoney', 'fa-wallet', '#e0e7ff', '#4338ca', 'linear-gradient(135deg,#6366f1,#4338ca)']];
+  var TAMBAH = [['a[onclick*="daebook"]', 'fa-book', 'linear-gradient(135deg,#eab308,#a16207)'], ['a[onclick*="mandarin.html"]', 'fa-language', 'linear-gradient(135deg,#f97316,#c2410c)']];
   var $ = function (id) { return document.getElementById(id); };
   function nampak(el) { return el && getComputedStyle(el).display !== 'none' && !el.closest('[style*="display: none"]'); }
   function tajukHuraian(el) {
@@ -361,30 +360,40 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     var d = ''; el.querySelectorAll('p').forEach(function (p) { if (p.textContent.trim().length > d.length) d = p.textContent.trim(); });
     return [t, d];
   }
-  document.querySelectorAll('#fpMobile [data-pintu]').forEach(function (b) {
-    b.onclick = function () { var x = PINTU[b.getAttribute('data-pintu')]; if (window.semakAksesPintu) window.semakAksesPintu(x[0], x[1]); };
-  });
-  document.querySelectorAll('#fpMobile [data-pintu-tulis]').forEach(function (b) {
-    b.onclick = function () { var x = b.getAttribute('data-pintu-tulis').split('|'); if (window.semakAksesPintu) window.semakAksesPintu(x[0], x[1]); };
-  });
+  $('fpbNasab').onclick = function () { if (window.semakAksesPintu) window.semakAksesPintu('myNasab', 'mynasab/index.html?buka=pokok'); };
+  $('fpbProfil').onclick = function () { if (window.penggunaSemasa) window.location.href = 'mynasab/index.html?buka=profil'; else if (window.bukaModalAuth) window.bukaModalAuth('login'); };
+  $('fpbAff').onclick = function () { var ad = $('btnAdmin') && getComputedStyle($('btnAdmin')).display !== 'none'; if (ad) window.location.href = 'admin.html'; else if (window.pergiAffiliate) window.pergiAffiliate(); };
   var tanda = '';
   function segerak() {
     var k = $('bakiKreditHeaderMobile') || $('bakiKreditHeader'); if (k) $('fpmKredit').textContent = k.textContent;
     var masuk = !($('userGreetingBox') && $('userGreetingBox').classList.contains('hidden'));
     $('fpmDaftar').style.display = masuk ? 'none' : 'block';
-    document.querySelectorAll('#fpMobile [data-lencana]').forEach(function (b) {
-      var o = $(b.getAttribute('data-lencana')), l = b.querySelector('.fpm-lencana'), a = o && o.style.display !== 'none' && o.textContent.trim() && o.textContent.trim() !== '0';
-      l.style.display = a ? 'block' : 'none'; if (a) l.textContent = o.textContent.trim();
+    $('fpbAffTeks').textContent = ($('btnAdmin') && getComputedStyle($('btnAdmin')).display !== 'none') ? 'Admin' : 'Affiliate';
+    var pin = [], kad = [], sig = '';
+    DEF.forEach(function (d) {
+      var el = document.querySelector(d[0]); if (!el || !nampak(el)) return;
+      var th = tajukHuraian(el), ik = el.querySelector('.w-14 i, i');
+      var lb = d[6] ? ($(d[6]) && $(d[6]).style.display !== 'none' ? $(d[6]).textContent.trim() : '') : '';
+      pin.push({ el: el, l: d[1], i: d[2], bg: d[3], fg: d[4], b: lb && lb !== '0' ? lb : '' });
+      kad.push({ el: el, w: d[5], t: th[0], d: th[1], i: d[2] });
+      sig += d[1] + '|' + (lb && lb !== '0' ? lb : '') + '|';
     });
-    var kad = [], sig = '';
-    KAD.forEach(function (k) { var el = document.querySelector(k[0]); if (!el || !nampak(el)) return; var th = tajukHuraian(el); var ik = el.querySelector('.w-14 i, i'); kad.push({ el: el, w: k[1], t: th[0], d: th[1], i: ik ? ik.className : 'fa-solid fa-star' }); sig += th[0] + '|'; });
+    TAMBAH.forEach(function (d) { var el = document.querySelector(d[0]); if (!el || !nampak(el)) return; var th = tajukHuraian(el); kad.push({ el: el, w: d[2], t: th[0], d: th[1], i: d[1] }); sig += th[0] + '|'; });
     if (sig === tanda) return; tanda = sig;
+    var P = $('fpmPintas'); P.innerHTML = '';
+    pin.forEach(function (c) {
+      var b = document.createElement('button'); b.type = 'button';
+      var ik = document.createElement('span'); ik.className = 'fpm-ik'; ik.style.background = c.bg; ik.style.color = c.fg; var i = document.createElement('i'); i.className = 'fa-solid ' + c.i; ik.appendChild(i);
+      b.appendChild(ik); b.appendChild(document.createTextNode(c.l));
+      if (c.b) { var l = document.createElement('em'); l.className = 'fpm-lencana'; l.style.display = 'block'; l.textContent = c.b; b.appendChild(l); }
+      b.onclick = function () { c.el.click(); }; P.appendChild(b);
+    });
     var j = $('fpmJalur'); j.innerHTML = '';
     kad.forEach(function (c) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'fpm-kad'; b.style.background = c.w;
-      var ik = document.createElement('span'); ik.className = 'fpm-ik'; var i = document.createElement('i'); i.className = c.i; ik.appendChild(i);
-      var h = document.createElement('h4'); h.textContent = c.t; var p = document.createElement('p'); p.textContent = c.d; var s = document.createElement('span'); s.textContent = 'Buka';
-      b.appendChild(ik); b.appendChild(h); b.appendChild(p); b.appendChild(s); b.onclick = function () { c.el.click(); }; j.appendChild(b);
+      var ik = document.createElement('span'); ik.className = 'fpm-ik'; var i = document.createElement('i'); i.className = (c.i.indexOf('fa-solid') === 0 ? '' : 'fa-solid ') + c.i; ik.appendChild(i);
+      var h = document.createElement('h4'); h.textContent = c.t; var p = document.createElement('p'); p.textContent = c.d;
+      b.appendChild(ik); b.appendChild(h); b.appendChild(p); b.onclick = function () { c.el.click(); }; j.appendChild(b);
     });
   }
   segerak(); setInterval(segerak, 1200);
