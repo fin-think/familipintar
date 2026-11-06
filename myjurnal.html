@@ -80,6 +80,30 @@
     </style>
 <script src="huruf.js?v=1"></script>
 <script src="/pwa.js" defer></script>
+<style id="fpMobilePadat">
+/* ===== MOBILE (<=767px): padatkan utiliti Tailwind asas. Kelas md:/lg: tak disentuh, jadi desktop kekal. ===== */
+@media (max-width:767px){
+  body .p-8,body .p-10,body .p-12{padding:16px}
+  body .p-6{padding:14px} body .p-5{padding:12px}
+  body .px-8,body .px-10,body .px-6{padding-left:14px;padding-right:14px}
+  body .py-16,body .py-20,body .py-24{padding-top:28px;padding-bottom:28px}
+  body .py-12,body .py-10{padding-top:20px;padding-bottom:20px}
+  body .py-8{padding-top:14px;padding-bottom:14px} body .py-6{padding-top:12px;padding-bottom:12px}
+  body .mb-16,body .mb-12{margin-bottom:20px} body .mb-10,body .mb-8{margin-bottom:14px} body .mb-6{margin-bottom:12px}
+  body .mt-16,body .mt-12{margin-top:20px} body .mt-10,body .mt-8{margin-top:14px}
+  body .gap-8,body .gap-10,body .gap-12{gap:14px} body .gap-6{gap:12px}
+  body .space-y-8>*+*,body .space-y-6>*+*{margin-top:12px}
+  body .text-5xl,body .text-6xl{font-size:28px;line-height:1.2}
+  body .text-4xl{font-size:24px;line-height:1.25} body .text-3xl{font-size:21px;line-height:1.3}
+  body .text-2xl{font-size:18px;line-height:1.35} body .text-xl{font-size:16.5px}
+  body .text-lg{font-size:15px}
+  body .rounded-3xl{border-radius:18px}
+  body .shadow-2xl,body .shadow-xl{box-shadow:0 6px 18px rgba(15,23,42,.10)}
+  body .h-\[450px\],body .h-\[400px\],body .h-\[350px\]{height:220px}
+  body table{font-size:13px}
+  body input,body select,body textarea{font-size:16px}
+}
+</style>
 </head>
 <body class="text-slate-800 antialiased overflow-x-hidden">
 
