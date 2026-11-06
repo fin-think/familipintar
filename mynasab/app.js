@@ -327,6 +327,17 @@ async function tandaPokokDikemas(hubungan) {
         await updateDoc(doc(db, "mynasab_users", penggunaSemasa.uid), { pokok_dikemas: Date.now() });
     } catch (e) { console.warn('tandaPokokDikemas:', e.message); }
 }
+// anak_saudara_dari yang tak lengkap (tiada uid / nod): pulihkan daripada nod anak saudara dalam pokok pengundang (anak_nod), dan baiki rekod.
+async function lengkapkanDari(uidAkar, dari) {
+    if (!dari || (dari.uid && dari.nod) || !dari.anak_nod) return dari;
+    try {
+        const nn = await getDoc(doc(db, "mynasab_nodes", dari.anak_nod));
+        if (!nn.exists() || !nn.data().owner_uid) return dari;
+        const baru = { ...dari, uid: nn.data().owner_uid, nod: nn.data().ref_id || '' };
+        updateDoc(doc(db, "mynasab_nodes", "root_" + uidAkar), { "anak_saudara_dari.uid": baru.uid, "anak_saudara_dari.nod": baru.nod }).catch(() => {});
+        return baru;
+    } catch (e) { return dari; }
+}
 // Log aktiviti untuk admin (koleksi mynasab_aktiviti). Senyap jika peraturan Firestore belum membenarkan.
 function logAktiviti(jenis, butiran, pengguna, namaPaksa) {
     try {
@@ -415,7 +426,7 @@ async function semakPokokTerkini() {
         const uid = penggunaSemasa.uid;
         const snap = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", uid), where("is_root", "==", true)));
         let owner = null;
-        snap.forEach(d => { const x = d.data(); if (x.anak_saudara_dari && x.anak_saudara_dari.uid) owner = x.anak_saudara_dari.uid; else if (x.sibling_of && x.link_owner) owner = x.link_owner; });
+        for (const d of snap.docs) { const x = d.data(); if (x.anak_saudara_dari) { const dl = await lengkapkanDari(uid, x.anak_saudara_dari); if (dl && dl.uid) owner = dl.uid; } else if (x.sibling_of && x.link_owner) owner = x.link_owner; }
         if (!owner) { const pl = await pautanPengundang(uid); if (pl) owner = pl.owner; }
         if (!owner || owner === uid) return;
         const [so, sm] = await Promise.all([getDoc(doc(db, "mynasab_users", owner)), getDoc(doc(db, "mynasab_users", uid))]);
@@ -550,7 +561,8 @@ window.segerakPokokAnakSaudara = async () => {
         }
         const akar = semua.find(n => n.data.is_root && n.data.anak_saudara_dari);
         if (!akar) { alert("Akaun ini tiada pautan kepada pokok pengundang."); return; }
-        const dari = akar.data.anak_saudara_dari;
+        const dari = await lengkapkanDari(uid, akar.data.anak_saudara_dari);
+        if (!dari || !dari.uid || !dari.nod) { alert("Rekod jemputan akaun ini tidak lengkap. Sila hubungi admin."); return; }
         if (!confirm("Salinan pokok keluarga ibu/bapa anda akan dikemas kini daripada pokok pengundang. Ahli yang anda tambah sendiri tidak disentuh. Teruskan?")) return;
         // Semak boleh baca pautan adik-beradik pengundang SEBELUM memadam salinan lama (elak kehilangan data jika peraturan menghalang)
         try { await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", dari.uid), where("status", "==", "aktif"))); }
@@ -1719,7 +1731,7 @@ async function tambahAdikKePokokInduk(uidAdik) {
             const r = await getDoc(doc(db, "mynasab_nodes", "root_" + pemilik));
             if (!r.exists()) return;
             const rd = r.data();
-            if (rd.anak_saudara_dari) { dari = rd.anak_saudara_dari; break; }
+            if (rd.anak_saudara_dari) { dari = await lengkapkanDari(pemilik, rd.anak_saudara_dari); break; }
             pemilik = (rd.sibling_of && rd.link_owner) ? rd.link_owner : null;
         }
         if (!dari || !dari.uid || !dari.nod) return;
@@ -1862,7 +1874,14 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
                     const d = r.anak_saudara_dari || {};
                     return d.anak_nod === as.id || (d.nod === as.ref_id && lc(r.name) === lc(as.name));
                 });
-                return akar ? akar.owner_uid : '';
+                if (akar) return akar.owner_uid;
+                // Rekod jemputan tak lengkap (tiada uid pengundang): cari ikut anak_nod, kemudian baiki rekod itu
+                try {
+                    const sr = await getDocs(query(collection(db, "mynasab_nodes"), where("is_root", "==", true), where("anak_saudara_dari.anak_nod", "==", as.id)));
+                    const r = sr.docs.length ? sr.docs[0].data() : null;
+                    if (r && r.owner_uid) { lengkapkanDari(r.owner_uid, r.anak_saudara_dari); return r.owner_uid; }
+                } catch (e) { console.warn("Cari akaun anak saudara (anak_nod):", e.message); }
+                return '';
             };
             // Akaun adik-beradik kepada akaun anak saudara (dijemput oleh anak saudara itu, atau disambung melalui Salam Paut)
             const akarAdikBeradik = async (u) => {

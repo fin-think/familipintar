@@ -423,7 +423,12 @@
     };
 
     // ===== PENDAFTARAN BAHARU: cara daftar, siapa jemput, rantaian ke induk teratas =====
-    let dataReg = [];
+    let dataReg = [], pulihDari = {};
+    window.betulkanAnakSaudara = async (u) => {
+        const t = pulihDari[u]; if (!t) return;
+        await updateDoc(doc(db, "mynasab_nodes", "root_" + u), { "anak_saudara_dari.uid": t.uid, "anak_saudara_dari.nod": t.nod });
+        alert('Rekod jemputan dibaiki.'); loadPendaftaran();
+    };
     const tarikhMs = (t) => !t ? 0 : (t.toMillis ? t.toMillis() : (t.seconds ? t.seconds * 1000 : (+new Date(t) || 0)));
     const fmtMasa = (ms) => ms ? new Date(ms).toLocaleString('ms-MY', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
     window.loadPendaftaran = async () => {
@@ -433,13 +438,22 @@
             getDocs(query(collection(db, "mynasab_nodes"), where("is_root", "==", true))),
             getDocs(collection(db, "mynasab_links"))]);
         const user = {}, akar = {}, pautan = {};
+        pulihDari = {};
         uSnap.forEach(d => user[d.id] = d.data());
         rSnap.forEach(d => { const x = d.data(); if (x.owner_uid) akar[x.owner_uid] = x; });
         lSnap.forEach(d => pautan[d.id] = d.data());
+        // Rekod anak_saudara_dari tak lengkap (tiada uid/nod): cari pengundang melalui nod anak saudara (anak_nod)
+        await Promise.all(Object.values(akar).filter(x => x.anak_saudara_dari && !(x.anak_saudara_dari.uid && x.anak_saudara_dari.nod) && x.anak_saudara_dari.anak_nod).map(async x => {
+            try { const n = await getDoc(doc(db, "mynasab_nodes", x.anak_saudara_dari.anak_nod)); if (n.exists() && n.data().owner_uid) pulihDari[x.owner_uid] = { uid: n.data().owner_uid, nod: n.data().ref_id || '' }; } catch (e) {}
+        }));
         const nama = (u) => (user[u] && user[u].name) || (akar[u] && akar[u].name) || (u ? u.slice(0, 6) + '…' : '-');
         const pengundang = (u) => {
             const r = akar[u] || {}, l = pautan[u];
-            if (r.anak_saudara_dari && r.anak_saudara_dari.uid) return { jenis: 'anak_saudara', oleh: r.anak_saudara_dari.uid };
+            if (r.anak_saudara_dari) {
+                const lengkap = !!(r.anak_saudara_dari.uid && r.anak_saudara_dari.nod);
+                const oleh = r.anak_saudara_dari.uid || (pulihDari[u] || {}).uid || '';
+                return { jenis: 'anak_saudara', oleh, tidakLengkap: !lengkap };
+            }
             if (r.link_owner && r.link_owner !== u) return { jenis: 'adik_beradik', oleh: r.link_owner };
             if (l && l.owner_uid) return { jenis: 'adik_beradik', oleh: l.owner_uid };
             return null;
@@ -450,6 +464,7 @@
             let jenis, oleh = '', rantai = [], status = '-', masalah = false;
             if (info) {
                 jenis = info.jenis; oleh = info.oleh;
+                if (info.jenis === 'anak_saudara' && !oleh) { status = 'Rekod jemputan rosak'; masalah = true; }
                 // jejak ke atas sehingga induk teratas (maksimum 8 peringkat, elak pusingan)
                 const lihat = new Set([u]); let cur = oleh, putus = false;
                 while (cur && rantai.length < 8) {
@@ -458,7 +473,8 @@
                     if (!user[cur] && !akar[cur]) { putus = true; break; }
                     const n = pengundang(cur); cur = n ? n.oleh : '';
                 }
-                if (putus) { status = 'Rantaian putus'; masalah = true; }
+                if (info.tidakLengkap) { status = pulihDari[u] ? 'Perlu dibaiki' : 'Rekod jemputan rosak'; masalah = true; }
+                else if (putus) { status = 'Rantaian putus'; masalah = true; }
                 else if (pautan[u] && pautan[u].status === 'menunggu') { status = 'Menunggu kelulusan'; masalah = true; }
                 else if (!akar[u]) { status = 'Tiada nod Diri Sendiri'; masalah = true; }
                 else status = 'OK';
@@ -467,7 +483,8 @@
                 jenis = (sj === 'affiliate' || sj === 'kempen') ? 'affiliate' : (akar[u] && (akar[u].dijemput || akar[u].jemput_emel)) ? 'emel' : 'sendiri';
             }
             const em = (user[u] || {}).email || '';
-            return { uid: u, nama: nama(u), emel: em, masa: tarikhMs((user[u] || {}).created_at), jenis, oleh: oleh ? nama(oleh) : '', rantai: rantai.map(nama), status, masalah };
+            const butiran = JSON.stringify({ anak_saudara_dari: (akar[u] || {}).anak_saudara_dari || null, link_owner: (akar[u] || {}).link_owner || null, sibling_of: (akar[u] || {}).sibling_of || null, pautan: pautan[u] ? { owner_uid: pautan[u].owner_uid, status: pautan[u].status } : null });
+            return { butiran, uid: u, nama: nama(u), emel: em, masa: tarikhMs((user[u] || {}).created_at), jenis, oleh: oleh ? nama(oleh) : '', rantai: rantai.map(nama), status, masalah };
         }).sort((a, b) => b.masa - a.masa);
         paparPendaftaran();
     };
@@ -480,7 +497,7 @@
             const l = label[r.jenis] || label.sendiri;
             const rantai = r.rantai.length ? [r.nama, ...r.rantai].map(esc).join(' <span class="text-slate-400">&larr;</span> ') : '<span class="text-slate-400">-</span>';
             const sk = r.status === 'OK' ? 'text-emerald-600' : (r.status === '-' ? 'text-slate-400' : 'text-red-600 font-bold');
-            return `<tr><td class="p-3 whitespace-nowrap">${fmtMasa(r.masa)}</td><td class="p-3"><b>${esc(r.nama)}</b><br><span class="text-xs text-slate-500">${esc(r.emel)}</span></td><td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-bold bg-${l[1]}-100 text-${l[1]}-700">${l[0]}</span></td><td class="p-3">${esc(r.oleh) || '-'}</td><td class="p-3 text-xs">${rantai}</td><td class="p-3 ${sk}">${esc(r.status)}</td></tr>`;
+            return `<tr><td class="p-3 whitespace-nowrap">${fmtMasa(r.masa)}</td><td class="p-3"><b>${esc(r.nama)}</b><br><span class="text-xs text-slate-500">${esc(r.emel)}</span></td><td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-bold bg-${l[1]}-100 text-${l[1]}-700">${l[0]}</span></td><td class="p-3">${esc(r.oleh) || '-'}</td><td class="p-3 text-xs">${rantai}</td><td class="p-3 ${sk}" title="${esc(r.butiran)}">${esc(r.status)}${r.status === 'Perlu dibaiki' ? ` <button onclick="betulkanAnakSaudara('${esc(r.uid)}')" class="ml-2 bg-sky-600 text-white px-2 py-1 rounded text-xs">Betulkan</button>` : ''}</td></tr>`;
         }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">Tiada rekod.</td></tr>';
     };
 
