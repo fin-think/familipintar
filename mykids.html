@@ -63,6 +63,7 @@ select{width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;f
 .pbar div.b i{display:block;height:100%;background:var(--akh)}
   
 
+.mk-kepala,.mk-anak-pilih{display:none}
 /* ===== MOBILE (<=767px): lebih padat; tab Dunia/Akhirat naik ke atas & melekat; kad ujian skrol mendatar. Desktop tak terjejas. ===== */
 @media (max-width:767px){
 body{font-size:14.5px;line-height:1.5}
@@ -80,12 +81,21 @@ main{padding:12px 12px 60px}
 .tab{position:sticky;top:var(--hd,53px);z-index:4;margin-bottom:12px;border-width:1.5px;box-shadow:0 4px 12px rgba(15,23,42,.08)}
 .tab button{padding:10px;font-size:14.5px}
 .tab button svg{width:16px;height:16px;margin-right:2px!important}
-#pers{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:12px;margin:0 -12px 12px;padding:0 12px 4px;scrollbar-width:none}
-#pers::-webkit-scrollbar{display:none}
+#pers{margin-bottom:12px}
 #pers:empty{display:none}
-#pers>.pers{flex:0 0 86%;scroll-snap-align:start;margin:0;padding:12px 14px;display:flex;flex-direction:column}
-#pers>.pers:only-child{flex-basis:100%}
-#pers>.pers>a.btn{margin-top:auto}
+#pers>.pers{margin:0 0 8px;padding:0;overflow:hidden}
+.mk-kepala{display:flex!important;align-items:center;gap:8px;width:100%;background:none;border:0;padding:11px 14px;font-family:inherit;text-align:left;cursor:pointer;color:var(--ink)}
+.mk-kepala .mk-t{flex:1;min-width:0;font-weight:800;font-size:14.5px;line-height:1.3}
+.mk-kepala .mk-skor{flex:none;background:var(--akh);color:#fff;border-radius:99px;padding:2px 10px;font-size:12.5px;font-weight:800}
+.mk-kepala .mk-skor.belum{background:#e2e8f0;color:#64748b}
+.mk-kepala .mk-chev{flex:none;color:var(--mut);transition:transform .2s}
+.pers.mk-buka .mk-chev{transform:rotate(180deg)}
+.pers>.mk-badan{display:none;padding:0 14px 12px}
+.pers.mk-buka>.mk-badan{display:block}
+.pers>.mk-badan>h2{display:none}
+#anak{display:none}
+.mk-anak-pilih{display:block!important;order:1;padding:10px 12px;font-size:14.5px;border-radius:12px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 14px center;-webkit-appearance:none;appearance:none}
+.mk-anak-pilih.satu{display:none!important}
 .pers h2{font-size:15.5px;line-height:1.3}.pers .s{font-size:12.5px;margin:2px 0 8px}
 .pbar{margin:6px 0}.pbar div.t{font-size:12.5px}.pbar div.b{height:6px}
 .box{padding:12px 14px;margin-bottom:10px;border-radius:14px}
@@ -111,6 +121,7 @@ select{padding:9px 10px;font-size:14px;border-width:1.5px}
 <main>
   <div id="auth">Memuatkan data anak daripada myNasab...</div>
   <div id="app" class="hidden">
+    <select id="anakPilih" class="mk-anak-pilih" aria-label="Pilih anak"></select>
     <div class="anak" id="anak"></div>
     <div class="ringkas" id="ringkas"></div>
     <div id="pers"></div>
@@ -493,6 +504,47 @@ document.addEventListener('change', e => {
     }
   });
 });
+</script>
+<script>
+// Mobile: pilihan anak sebagai drop-down (mencerminkan butang #anak), dan kad ujian dilipat: skor sahaja, klik untuk butiran.
+(function () {
+  var A = document.getElementById('anak'), sel = document.getElementById('anakPilih');
+  if (A && sel) {
+    var segerakAnak = function () {
+      var bs = A.querySelectorAll('button[data-i]');
+      sel.innerHTML = ''; var aktif = 0;
+      bs.forEach(function (b, n) { var o = document.createElement('option'); o.value = b.dataset.i; o.textContent = '👶 ' + b.textContent; sel.appendChild(o); if (b.classList.contains('on')) aktif = n; });
+      sel.selectedIndex = aktif; sel.classList.toggle('satu', bs.length <= 1);
+    };
+    sel.addEventListener('change', function () { var b = A.querySelector('button[data-i="' + sel.value + '"]'); if (b) b.click(); });
+    new MutationObserver(segerakAnak).observe(A, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    segerakAnak();
+  }
+  var P = document.getElementById('pers');
+  if (P) {
+    var lipat = function () {
+      P.querySelectorAll(':scope > .pers:not([data-mk])').forEach(function (k) {
+        k.setAttribute('data-mk', '1');
+        var h = k.querySelector('h2'), s = k.querySelector('.s'), skor = '', belum = false;
+        var m = s && s.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+        if (m) skor = m[1] + '/' + m[2];
+        else if (s && /Belum ada ujian/i.test(s.textContent)) { skor = 'Belum diuji'; belum = true; }
+        else { var pt = k.querySelector('.pbar .t span:last-child'); if (pt) skor = pt.textContent; }
+        var badan = document.createElement('div'); badan.className = 'mk-badan';
+        while (k.firstChild) badan.appendChild(k.firstChild);
+        var kp = document.createElement('button'); kp.type = 'button'; kp.className = 'mk-kepala'; kp.setAttribute('aria-expanded', 'false');
+        var t = document.createElement('span'); t.className = 'mk-t'; t.textContent = h ? h.textContent : '';
+        kp.appendChild(t);
+        if (skor) { var c = document.createElement('span'); c.className = 'mk-skor' + (belum ? ' belum' : ''); c.textContent = skor; kp.appendChild(c); }
+        var v = document.createElement('span'); v.className = 'mk-chev'; v.textContent = '▾'; kp.appendChild(v);
+        kp.onclick = function () { var b = k.classList.toggle('mk-buka'); kp.setAttribute('aria-expanded', b ? 'true' : 'false'); };
+        k.appendChild(kp); k.appendChild(badan);
+      });
+    };
+    new MutationObserver(lipat).observe(P, { childList: true });
+    lipat();
+  }
+})();
 </script>
 </body>
 </html>
