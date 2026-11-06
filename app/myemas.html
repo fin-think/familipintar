@@ -15,6 +15,34 @@ body { font-family: 'Inter', sans-serif; }
 .btn-overlap:hover { background: #fbbf24; color: #1e293b; }
 </style>
 <script src="/pwa.js" defer></script>
+<style id="fpMobilePadat">
+/* ===== MOBILE (<=767px) sahaja. Desktop tak terjejas. ===== */
+@media (max-width:767px){
+  /* bar 'Untuk' & kad log masuk (peranan.js, fpapp.js) */
+  body .fp-peranan{padding:5px 8px!important;margin:0 0 6px!important;gap:6px!important;border-radius:12px!important;flex-wrap:nowrap!important}
+  body .fp-peranan .fp-l{font-size:10px!important;white-space:nowrap}
+  body .fp-peranan .fp-b{gap:5px!important;min-width:0}
+  body .fp-peranan button{padding:6px 8px!important;font-size:12.5px!important;border-radius:9px!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  body #fp-kad{margin:6px auto!important;padding:8px 10px!important;border-radius:12px!important}
+  body #fp-kad .fp-kecil{font-size:10.5px!important;margin-top:2px!important;line-height:1.35}
+  body #fp-kad #fp-info{display:none}
+  body{padding-bottom:30px!important}
+  body>div.gradient-bg{padding:12px 14px!important;margin-bottom:10px!important}
+  body>div.gradient-bg h1{font-size:17px;line-height:1.25;margin-bottom:2px}
+  body>div.gradient-bg p{font-size:11px;line-height:1.4}
+  body>div.max-w-5xl{gap:12px!important}
+  body .space-y-6>*+*{margin-top:12px!important} body .space-y-4>*+*{margin-top:8px!important} body .space-y-3>*+*{margin-top:6px!important}
+  body .card.p-5,body .card.p-6{padding:12px!important}
+  body .card h2.text-lg{font-size:15px;margin-bottom:8px}
+  body .card h2.text-sm{margin-bottom:6px}
+  body .mb-4{margin-bottom:8px}
+  body .flex.gap-2.mb-4 button{padding:8px 10px}
+  body input.p-3,body select.p-3{padding:7px 10px!important;font-size:16px;border-radius:10px!important}
+  body button.py-4{padding-top:12px!important;padding-bottom:12px!important;font-size:13px}
+  body .text-3xl{font-size:22px} body .py-5{padding-top:12px;padding-bottom:12px}
+  body .step-number{width:20px;height:20px;font-size:11px}
+}
+</style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-12">
 

@@ -24,6 +24,36 @@
         .hint { display: block; font-size: 11px; color: #94a3b8; margin-top: 2px; }
     </style>
 <script src="/pwa.js" defer></script>
+<style id="fpMobilePadat">
+/* ===== MOBILE (<=767px) sahaja. Desktop tak terjejas. ===== */
+@media (max-width:767px){
+  /* bar 'Untuk' & kad log masuk (peranan.js, fpapp.js) */
+  body .fp-peranan{padding:5px 8px!important;margin:0 0 6px!important;gap:6px!important;border-radius:12px!important;flex-wrap:nowrap!important}
+  body .fp-peranan .fp-l{font-size:10px!important;white-space:nowrap}
+  body .fp-peranan .fp-b{gap:5px!important;min-width:0}
+  body .fp-peranan button{padding:6px 8px!important;font-size:12.5px!important;border-radius:9px!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  body #fp-kad{margin:6px auto!important;padding:8px 10px!important;border-radius:12px!important}
+  body #fp-kad .fp-kecil{font-size:10.5px!important;margin-top:2px!important;line-height:1.35}
+  body #fp-kad #fp-info{display:none}
+  body{padding:8px!important}
+  body header.text-center{margin-bottom:8px}
+  body header h1{font-size:17px;line-height:1.25}
+  body header p{font-size:11.5px}
+  body .grid.gap-8{gap:10px}
+  body .grid.gap-4{gap:8px}
+  body .card{padding:12px!important;border-radius:14px}
+  body .section-title{font-size:15px;margin-bottom:8px;padding-left:8px;border-left-width:3px}
+  body .card h2.text-2xl{font-size:17px;margin-bottom:8px}
+  body label{font-size:11.5px}
+  body input,body select{padding:7px 10px!important;font-size:16px;border-radius:10px!important;margin-top:2px!important}
+  body .hint{font-size:10px}
+  body .result-box{padding:10px!important}
+  body .asset-entry{padding:8px!important;margin-bottom:8px}
+  body .btn-primary{padding:11px 14px!important;font-size:14px}
+  body .btn-outline{padding:6px 10px!important;font-size:12px}
+  body .mb-4{margin-bottom:8px}
+}
+</style>
 </head>
 <body class="p-4 md:p-8">
     <div class="max-w-5xl mx-auto">

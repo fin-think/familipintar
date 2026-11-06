@@ -15,6 +15,39 @@
         .smooth-transition { transition: all 0.3s ease-in-out; }
     </style>
 <script src="/pwa.js" defer></script>
+<style id="fpMobilePadat">
+/* ===== MOBILE (<=767px) sahaja. Desktop tak terjejas. ===== */
+@media (max-width:767px){
+  /* bar 'Untuk' & kad log masuk (peranan.js, fpapp.js) */
+  body .fp-peranan{padding:5px 8px!important;margin:0 0 6px!important;gap:6px!important;border-radius:12px!important;flex-wrap:nowrap!important}
+  body .fp-peranan .fp-l{font-size:10px!important;white-space:nowrap}
+  body .fp-peranan .fp-b{gap:5px!important;min-width:0}
+  body .fp-peranan button{padding:6px 8px!important;font-size:12.5px!important;border-radius:9px!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  body #fp-kad{margin:6px auto!important;padding:8px 10px!important;border-radius:12px!important}
+  body #fp-kad .fp-kecil{font-size:10.5px!important;margin-top:2px!important;line-height:1.35}
+  body #fp-kad #fp-info{display:none}
+  body{padding-bottom:40px!important}
+  body nav>div{padding-top:9px;padding-bottom:9px}
+  body nav span.text-3xl{font-size:22px;line-height:1.1}
+  body>div.max-w-5xl{margin-top:10px!important}
+  body>div.max-w-5xl.space-y-6>*+*{margin-top:12px!important}
+  body .p-5{padding:12px!important}
+  body .space-y-8>*+*{margin-top:14px!important} body .space-y-6>*+*{margin-top:12px!important} body .space-y-4>*+*{margin-top:8px!important}
+  body h2.text-xl{font-size:16.5px;margin-bottom:2px}
+  body h3.text-base{font-size:14px}
+  body .p-5 p.text-sm{font-size:11.5px;line-height:1.4}
+  body .mb-4{margin-bottom:8px} body .mb-2{margin-bottom:4px}
+  body .gap-4{gap:8px} body .gap-3{gap:8px}
+  body .w-8.h-8{width:24px;height:24px;font-size:12px}
+  body label.text-xs{font-size:10px;letter-spacing:.03em}
+  body .relative.mt-2{margin-top:3px}
+  body .relative .absolute{top:9px!important;left:12px!important;font-size:13px!important}
+  body input.py-3\.5,body select.py-3\.5,body input.py-3{padding-top:8px!important;padding-bottom:8px!important;font-size:16px;border-radius:10px!important}
+  body input.pl-12{padding-left:38px!important}
+  body button.py-4{padding-top:12px!important;padding-bottom:12px!important;font-size:14px}
+  body .rounded-2xl{border-radius:14px}
+}
+</style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-12 text-slate-800 antialiased">
 
