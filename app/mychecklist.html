@@ -46,25 +46,33 @@
 <style id="fpMobilePadat">
 /* ===== MOBILE (<=767px) sahaja. Kelas md:/lg: tak disentuh, jadi desktop kekal. ===== */
 @media (max-width:767px){
-  body{padding:10px 10px 24px}
+  /* bar 'Untuk' & kad log masuk (peranan.js, fpapp.js) */
+  body .fp-peranan{padding:5px 8px!important;margin:0 0 6px!important;gap:6px!important;border-radius:12px!important;flex-wrap:nowrap!important}
+  body .fp-peranan .fp-l{font-size:10px!important;white-space:nowrap}
+  body .fp-peranan .fp-b{gap:5px!important;min-width:0}
+  body .fp-peranan button{padding:6px 8px!important;font-size:12.5px!important;border-radius:9px!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  body #fp-kad{margin:6px auto!important;padding:8px 10px!important;border-radius:12px!important}
+  body #fp-kad .fp-kecil{font-size:10.5px!important;margin-top:2px!important;line-height:1.35}
+  body #fp-kad #fp-info{display:none}
+  body{padding:8px 8px 20px!important}
   body>div{max-width:100%}
-  body .mb-4.text-center{margin-bottom:6px}
-  body .mb-8{margin-bottom:12px}
-  body .age-btn{padding-top:9px;padding-bottom:9px;font-size:13px}
-  body .bg-white.p-2.rounded-2xl{padding:5px;border-radius:14px}
-  body .rounded-\[2\.5rem\],body .rounded-\[2rem\]{border-radius:20px}
-  body .bg-slate-900.p-8,body .p-8{padding:16px}
-  body #ageGroupLabel{margin-bottom:12px}
-  body .text-5xl{font-size:34px;line-height:1.1} body .text-2xl{font-size:19px}
-  body .p-6{padding:14px} body .p-4{padding:12px}
-  body #checklistContent{padding:14px}
-  body #checklistContent.space-y-10>*+*{margin-top:18px}
-  body .space-y-4>*+*{margin-top:10px} body .space-y-3>*+*{margin-top:8px} body .space-y-2>*+*{margin-top:6px} body .space-y-6>*+*{margin-top:14px}
-  body .gap-3{gap:9px} body .mb-4{margin-bottom:10px} body .mt-8{margin-top:16px}
-  body .py-4{padding-top:11px;padding-bottom:11px}
-  body .text-mobile-sm{font-size:.88rem;line-height:1.4} body .text-mobile-xs{font-size:.78rem}
-  body .text-xl{font-size:16.5px} body .text-lg{font-size:15px}
-
+  body .mb-4.text-center{margin-bottom:4px}
+  body .mb-8{margin-bottom:10px}
+  body .age-btn{padding-top:8px!important;padding-bottom:8px!important;font-size:12.5px}
+  body .bg-white.p-2.rounded-2xl{padding:4px;border-radius:12px;margin-bottom:10px}
+  body .rounded-\[2\.5rem\],body .rounded-\[2rem\]{border-radius:18px}
+  body .bg-slate-900.p-8{padding:14px!important}
+  body #ageGroupLabel{margin-bottom:10px;font-size:10px;letter-spacing:.18em}
+  body .text-5xl{font-size:30px;line-height:1.1} body h1.text-2xl{font-size:17px}
+  body #checklistContent{padding:10px!important}
+  body #checklistContent.space-y-10>*+*{margin-top:14px}
+  body #checklistContent .space-y-3>*+*,body #checklistContent .space-y-4>*+*{margin-top:6px}
+  body #checklistContent label.p-6{padding:10px 12px!important;border-radius:14px;border-width:1.5px}
+  body #checklistContent .text-mobile-sm{font-size:.76rem;line-height:1.3}
+  body #checklistContent .check-box{width:22px;height:22px;border-radius:8px}
+  body #checklistContent .check-icon{width:14px;height:14px}
+  body #checklistContent h2,body #checklistContent h3{font-size:11px}
+  body .p-6{padding:12px} body .p-4{padding:10px}
 }
 </style>
 </head>

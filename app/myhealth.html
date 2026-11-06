@@ -34,27 +34,34 @@
 <style id="fpMobilePadat">
 /* ===== MOBILE (<=767px) sahaja. Kelas md:/lg: tak disentuh, jadi desktop kekal. ===== */
 @media (max-width:767px){
-  body{padding:6px}
-  body>div.max-w-4xl{border-radius:18px;min-height:0;box-shadow:0 6px 18px rgba(15,23,42,.10)}
-  /* bar sisi jadi pengepala nipis */
-  body>div.max-w-4xl>div:first-child{padding:12px 16px;flex-direction:row;justify-content:flex-start}
-  body>div.max-w-4xl>div:first-child>div>div:first-child{margin-bottom:0}
-  body>div.max-w-4xl>div:first-child h1{font-size:22px}
-  body>div.max-w-4xl>div:first-child svg{width:24px;height:24px}
+  /* bar 'Untuk' & kad log masuk (peranan.js, fpapp.js) */
+  body .fp-peranan{padding:5px 8px!important;margin:0 0 6px!important;gap:6px!important;border-radius:12px!important;flex-wrap:nowrap!important}
+  body .fp-peranan .fp-l{font-size:10px!important;white-space:nowrap}
+  body .fp-peranan .fp-b{gap:5px!important;min-width:0}
+  body .fp-peranan button{padding:6px 8px!important;font-size:12.5px!important;border-radius:9px!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  body #fp-kad{margin:6px auto!important;padding:8px 10px!important;border-radius:12px!important}
+  body #fp-kad .fp-kecil{font-size:10.5px!important;margin-top:2px!important;line-height:1.35}
+  body #fp-kad #fp-info{display:none}
+  body{padding:0}
+  body>div.max-w-4xl{border-radius:0;min-height:100vh;box-shadow:none}
+  body>div.max-w-4xl>div:first-child{padding:10px 14px!important;flex-direction:row}
+  body>div.max-w-4xl>div:first-child>div>div:first-child{margin:0}
+  body>div.max-w-4xl>div:first-child h1{font-size:20px}
+  body>div.max-w-4xl>div:first-child svg{width:22px;height:22px}
   body>div.max-w-4xl>div:first-child p{display:none}
-  /* tab */
-  body .flex.border-b>button{padding:11px 4px;font-size:10.5px;letter-spacing:.02em}
-  /* kandungan */
-  body .p-6,body .p-8{padding:14px} body .p-5{padding:12px}
-  body .space-y-4>*+*{margin-top:10px} body .space-y-6>*+*{margin-top:12px} body .space-y-1>*+*{margin-top:3px}
-  body .mb-6{margin-bottom:12px} body .mb-8{margin-bottom:14px} body .mb-4{margin-bottom:10px}
-  body .gap-4{gap:10px} body .gap-6{gap:12px}
-  body label,body .text-xs.uppercase{font-size:10.5px;letter-spacing:.04em}
-  body input,body select{padding:9px 10px;font-size:16px;border-radius:10px}
-  body .text-5xl,body .text-6xl{font-size:34px;line-height:1.1} body .text-4xl{font-size:28px} body .text-3xl{font-size:22px}
-  body .rounded-3xl{border-radius:18px} body .rounded-2xl{border-radius:14px}
-  body button.py-4{padding-top:12px;padding-bottom:12px}
-
+  body .flex.border-b>button{padding:9px 4px!important;font-size:10px!important;letter-spacing:.02em}
+  body div.p-4.overflow-y-auto{padding:10px 12px!important;max-height:none!important}
+  body #health-form.space-y-6>*+*{margin-top:10px}
+  body #health-form .space-y-4>*+*{margin-top:8px} body #health-form .space-y-1>*+*{margin-top:2px}
+  body #health-form .gap-4,body #health-form .gap-6{gap:8px}
+  body #health-form h3{font-size:10px;padding-bottom:4px}
+  body #health-form label{font-size:10px;letter-spacing:.03em}
+  body #health-form input:not([type=radio]):not([type=checkbox]),body #health-form select{padding:7px 10px!important;font-size:16px;line-height:1.25;border-radius:10px!important}
+  body #health-form input[type=radio]{width:16px;height:16px}
+  body #health-form button[type=submit],body #health-form button.w-full{padding:11px!important;font-size:14px;border-radius:12px!important}
+  body #view-results .p-6,body #view-results .p-8{padding:12px!important}
+  body #view-results .text-5xl,body #view-results .text-6xl{font-size:34px}
+  body #view-results .space-y-6>*+*,body #view-results .space-y-4>*+*{margin-top:10px}
 }
 </style>
 </head>
