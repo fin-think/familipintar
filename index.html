@@ -296,23 +296,29 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 @media (max-width: 767px) {
   #fpKandunganAsal { display: none !important; }
   #fpMobile { display: block; padding-bottom: 96px; background: #f8fafc; }
-  .fpm-dompet { background: linear-gradient(135deg, #0B2149 0%, #075985 55%, #0284c7 100%); color: #fff; padding: 22px 20px 78px; border-radius: 0 0 36px 36px; display: flex; align-items: flex-end; justify-content: space-between; }
-  .fpm-dompet small { display: block; font-size: 13px; opacity: .8; font-weight: 600; }
-  .fpm-dompet strong { font-size: 38px; font-weight: 800; line-height: 1.1; }
-  .fpm-dompet button { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.7); border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 14px; }
+  .fpm-dompet { background: linear-gradient(135deg, #0B2149 0%, #075985 55%, #0284c7 100%); color: #fff; padding: 22px 20px 78px; border-radius: 0 0 36px 36px; }
+  .fpm-dompet small { display: block; font-size: 13px; font-style: italic; font-weight: 600; color: #7dd3fc; }
+  .fpm-dompet strong { display: block; font-size: 24px; font-weight: 800; line-height: 1.2; margin-top: 2px; }
+  .fpm-dompet p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.45; opacity: .85; }
   .fpm-pintas { margin: -56px 16px 0; background: #fff; border-radius: 22px; padding: 16px 6px 10px; display: grid; grid-template-columns: repeat(4, 1fr); row-gap: 14px; box-shadow: 0 8px 24px rgba(15,23,42,.1); position: relative; }
   .fpm-pintas button { background: none; border: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11.5px; line-height: 1.15; font-weight: 700; color: #334155; position: relative; }
-  .fpm-ik { width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-  .fpm-lencana { position: absolute; top: -4px; right: 6px; background: #ef4444; color: #fff; border-radius: 10px; font-size: 10px; padding: 1px 5px; display: none; }
+  .fpm-ik { width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; position: relative; }
+  .fpm-lencana { position: absolute; top: -6px; right: -8px; min-width: 20px; height: 20px; background: #ef4444; color: #fff; border: 2px solid #fff; border-radius: 10px; font-size: 10.5px; font-style: normal; font-weight: 800; line-height: 16px; padding: 0 5px; text-align: center; box-shadow: 0 2px 6px rgba(239,68,68,.45); }
+  .fpm-lain { grid-column: 1 / -1; font-size: 11.5px !important; color: #0284c7 !important; text-decoration: underline; padding: 2px 0 0; }
   .fpm-hero { margin: 18px 16px 0; border-radius: 24px; overflow: hidden; position: relative; height: 210px; box-shadow: 0 8px 22px rgba(15,23,42,.15); }
   .fpm-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .fpm-hero div { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,33,73,0) 35%, rgba(11,33,73,.88)); color: #fff; display: flex; flex-direction: column; justify-content: flex-end; padding: 18px; }
-  .fpm-hero b { font-size: 22px; font-weight: 800; } .fpm-hero span { font-size: 13.5px; opacity: .92; margin-top: 2px; }
+  .fpm-hero .fpm-foto { position: absolute; top: 10px; right: 10px; z-index: 2; display: none; gap: 6px; }
+  .fpm-hero .fpm-foto button { background: rgba(255,255,255,.92); border: 0; border-radius: 999px; padding: 7px 12px; font-size: 12px; font-weight: 700; color: #334155; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+  .fpm-hero .fpm-foto button + button { color: #e11d48; }
+  .fpm-hero b { font-size: 22px; font-weight: 800; } .fpm-hero div span { font-size: 13.5px; opacity: .92; margin-top: 2px; }
   .fpm-daftar { display: none; margin: 14px 16px 0; width: calc(100% - 32px); background: linear-gradient(90deg, #0ea5e9, #2563eb); color: #fff; border: 0; border-radius: 18px; padding: 15px; font-size: 16px; font-weight: 800; box-shadow: 0 8px 20px rgba(14,165,233,.35); }
   .fpm-tajuk { margin: 24px 18px 10px; font-size: 19px; font-weight: 800; color: #0f172a; }
-  .fpm-grid { display: flex; gap: 12px; padding: 0 16px 10px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .fpm-grid { display: flex; align-items: center; gap: 6px; padding: 0 16px 10px; scroll-padding-inline: 16px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .fpm-grid::-webkit-scrollbar { display: none; }
-  .fpm-kad { flex: 0 0 62%; scroll-snap-align: start; min-height: 190px; min-width: 0; border-radius: 22px; padding: 16px; color: #fff; display: flex; flex-direction: column; text-align: left; border: 0; }
+  .fpm-grid::after { content: ''; flex: 0 0 10px; }
+  .fpm-panah { flex: 0 0 26px; height: 26px; border-radius: 50%; background: #fff; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 2px 8px rgba(15,23,42,.15); }
+  .fpm-kad { flex: 0 0 66%; align-self: stretch; scroll-snap-align: start; position: relative; min-height: 190px; min-width: 0; border-radius: 22px; padding: 16px; color: #fff; display: flex; flex-direction: column; text-align: left; border: 0; }
   .fpm-kad .fpm-ik { width: 42px; height: 42px; font-size: 18px; border-radius: 13px; background: rgba(255,255,255,.22); color: #fff; margin-bottom: 12px; }
   .fpm-kad h4 { margin: 0 0 4px; font-size: 16px; font-weight: 800; line-height: 1.2; }
   .fpm-kad p { margin: 0; font-size: 12px; line-height: 1.4; opacity: .92; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
@@ -326,9 +332,9 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 }
 </style>
 <div id="fpMobile">
-  <div class="fpm-dompet"><div><small>Baki Kredit</small><strong id="fpmKredit">0</strong></div><button type="button" onclick="window.location.href='topup.html'">Tambah &rsaquo;</button></div>
+  <div class="fpm-dompet"><small>Famili Pintar</small><strong>Satu keluarga, satu ekosistem</strong><p>Setiap ahli ada peranan sendiri, tetapi semuanya berhubung dan berkongsi satu gambaran keluarga yang sama.</p></div>
   <div class="fpm-pintas" id="fpmPintas"></div>
-  <div class="fpm-hero"><img src="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.png" alt="Keluarga"><div><b>Keluarga Yang Kukuh</b><span>Dibina bersama, satu langkah demi satu langkah.</span></div></div>
+  <div class="fpm-hero"><img id="fpmHeroImg" src="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.png" alt="Keluarga"><span class="fpm-foto" id="fpmFoto"><button type="button" onclick="document.getElementById('heroFotoTukar').click()"><i class="fa-solid fa-camera"></i> <span id="fpmFotoTeks">Letak gambar famili anda</span></button><button type="button" id="fpmFotoBuang" onclick="document.getElementById('heroFotoBuang').click()" title="Guna gambar asal"><i class="fa-solid fa-rotate-left"></i></button></span><div><b>Keluarga Yang Kukuh</b><span>Dibina bersama, satu langkah demi satu langkah.</span></div></div>
   <button type="button" class="fpm-daftar" id="fpmDaftar" onclick="bukaModalAuth('daftar')"><i class="fa-solid fa-gift"></i> Daftar &amp; Tebus 20 Kredit Percuma</button>
   <div class="fpm-tajuk">Teroka Bersama</div>
   <div class="fpm-grid" id="fpmJalur"></div>
@@ -351,7 +357,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     ['#kadMykids', 'myKids', 'fa-child-reaching', '#fef3c7', '#b45309', 'linear-gradient(135deg,#f59e0b,#ea580c)'],
     ['a[onclick*="gotravel"]', 'JomBercuti', 'fa-plane-departure', '#ccfbf1', '#0f766e', 'linear-gradient(135deg,#14b8a6,#0f766e)'],
     ['a[onclick*="mytadbir"]', 'myTADBIR', 'fa-building-columns', '#e2e8f0', '#1e293b', 'linear-gradient(135deg,#475569,#0f172a)'],
-    ['a[onclick*="\'ourmoney\'"]', 'OurMoney', 'fa-wallet', '#e0e7ff', '#4338ca', 'linear-gradient(135deg,#6366f1,#4338ca)']];
+    ['a[onclick*="\'ourmoney\'"]', 'OurMoney', 'fa-wallet', '#e0e7ff', '#4338ca', 'linear-gradient(135deg,#6366f1,#4338ca)', 'lencanaLuarOurMoney']];
   var TAMBAH = [['a[onclick*="daebook"]', 'fa-book', 'linear-gradient(135deg,#eab308,#a16207)'], ['a[onclick*="mandarin.html"]', 'fa-language', 'linear-gradient(135deg,#f97316,#c2410c)']];
   var $ = function (id) { return document.getElementById(id); };
   function nampak(el) { return el && getComputedStyle(el).display !== 'none' && !el.closest('[style*="display: none"]'); }
@@ -366,9 +372,14 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
   $('fpbAff').onclick = function () { var ad = $('btnAdmin') && getComputedStyle($('btnAdmin')).display !== 'none'; if (ad) window.location.href = 'admin.html'; else if (window.pergiAffiliate) window.pergiAffiliate(); };
   var tanda = '';
   function segerak() {
-    var k = $('bakiKreditHeaderMobile') || $('bakiKreditHeader'); if (k) $('fpmKredit').textContent = k.textContent;
     var masuk = !($('userGreetingBox') && $('userGreetingBox').classList.contains('hidden'));
     $('fpmDaftar').style.display = masuk ? 'none' : 'block';
+    // Gambar hero ikut desktop (#heroFoto), termasuk gambar famili sendiri
+    var hf = $('heroFoto'), mi = $('fpmHeroImg');
+    if (hf && mi && mi.src !== hf.src) mi.src = hf.src;
+    var hk = $('heroFotoBtn'); $('fpmFoto').style.display = hk && !hk.classList.contains('hidden') ? 'flex' : 'none';
+    if ($('heroFotoTeks')) $('fpmFotoTeks').textContent = $('heroFotoTeks').textContent;
+    if ($('heroFotoBuang')) $('fpmFotoBuang').style.display = $('heroFotoBuang').classList.contains('hidden') ? 'none' : '';
     $('fpbAffTeks').textContent = ($('btnAdmin') && getComputedStyle($('btnAdmin')).display !== 'none') ? 'Admin' : 'Affiliate';
     var pin = [], kad = [], sig = '';
     DEF.forEach(function (d) {
@@ -376,24 +387,30 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
       var th = tajukHuraian(el), ik = el.querySelector('.w-14 i, i');
       var lb = d[6] ? ($(d[6]) && $(d[6]).style.display !== 'none' ? $(d[6]).textContent.trim() : '') : '';
       pin.push({ el: el, l: d[1], i: d[2], bg: d[3], fg: d[4], b: lb && lb !== '0' ? lb : '' });
-      kad.push({ el: el, w: d[5], t: th[0], d: th[1], i: d[2] });
+      kad.push({ el: el, w: d[5], t: th[0], d: th[1], i: d[2], b: lb && lb !== '0' ? lb : '' });
       sig += d[1] + '|' + (lb && lb !== '0' ? lb : '') + '|';
     });
     TAMBAH.forEach(function (d) { var el = document.querySelector(d[0]); if (!el || !nampak(el)) return; var th = tajukHuraian(el); kad.push({ el: el, w: d[2], t: th[0], d: th[1], i: d[1] }); sig += th[0] + '|'; });
+    var ptS = $('pautanLihatSemua'); if (ptS) sig += ptS.style.display + ptS.innerText;
     if (sig === tanda) return; tanda = sig;
     var P = $('fpmPintas'); P.innerHTML = '';
     pin.forEach(function (c) {
       var b = document.createElement('button'); b.type = 'button';
       var ik = document.createElement('span'); ik.className = 'fpm-ik'; ik.style.background = c.bg; ik.style.color = c.fg; var i = document.createElement('i'); i.className = 'fa-solid ' + c.i; ik.appendChild(i);
+      if (c.b) { var l = document.createElement('em'); l.className = 'fpm-lencana'; l.textContent = c.b; ik.appendChild(l); }
       b.appendChild(ik); b.appendChild(document.createTextNode(c.l));
-      if (c.b) { var l = document.createElement('em'); l.className = 'fpm-lencana'; l.style.display = 'block'; l.textContent = c.b; b.appendChild(l); }
       b.onclick = function () { c.el.click(); }; P.appendChild(b);
     });
+    // Sama seperti desktop: pautan "Lihat juga jurnal lain" bila status pasangan sudah diketahui
+    var pt = $('pautanLihatSemua');
+    if (pt && pt.style.display !== 'none' && window.togolLihatSemua) { var lk = document.createElement('button'); lk.type = 'button'; lk.className = 'fpm-lain'; lk.textContent = pt.innerText; lk.onclick = function () { window.togolLihatSemua(); }; P.appendChild(lk); }
     var j = $('fpmJalur'); j.innerHTML = '';
-    kad.forEach(function (c) {
+    kad.forEach(function (c, n) {
+      if (n) { var a = document.createElement('span'); a.className = 'fpm-panah'; a.setAttribute('aria-hidden', 'true'); a.innerHTML = '<i class="fa-solid fa-arrow-right"></i>'; j.appendChild(a); }
       var b = document.createElement('button'); b.type = 'button'; b.className = 'fpm-kad'; b.style.background = c.w;
       var ik = document.createElement('span'); ik.className = 'fpm-ik'; var i = document.createElement('i'); i.className = (c.i.indexOf('fa-solid') === 0 ? '' : 'fa-solid ') + c.i; ik.appendChild(i);
       var h = document.createElement('h4'); h.textContent = c.t; var p = document.createElement('p'); p.textContent = c.d;
+      if (c.b) { var lc = document.createElement('em'); lc.className = 'fpm-lencana'; lc.textContent = c.b; ik.appendChild(lc); }
       b.appendChild(ik); b.appendChild(h); b.appendChild(p); b.onclick = function () { c.el.click(); }; j.appendChild(b);
     });
   }
