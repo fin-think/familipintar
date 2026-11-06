@@ -299,11 +299,76 @@
   .notif-misi ul { margin: 6px 0 8px 18px; padding: 0; font-weight: 700; }
   .notif-misi button.setor { background: #7C3AED; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-weight: 800; font-size: 0.78rem; cursor: pointer; }
   .notif-misi button.tutup { background: none; border: none; color: inherit; opacity: .6; cursor: pointer; font-size: 1.1rem; padding: 0 2px; }
+
+  /* ===== MOBILE (<=767px): borang Rekod Transaksi muat satu skrin; Senarai Transaksi boleh tunjuk/sorok. Desktop tak terjejas. ===== */
+  .om-baris { display: contents; }
+  .om-pendek { display: none; }
+  .btn-togol-senarai { display: none; }
+  @media (max-width: 767px) {
+    .top-nav { padding: 10px 0 !important; margin-bottom: 12px; }
+    .top-nav .nav-container { padding: 0 14px !important; }
+    .top-nav h1 { font-size: 1.3rem !important; gap: 8px !important; }
+    .top-nav h1 svg { width: 24px; height: 24px; }
+    .top-nav .btn-kembali { padding: 7px 14px; font-size: 0.78rem; }
+    .container { padding: 0 12px 80px; }
+    .kolum-kiri { gap: 10px; }
+    .layout-utama { gap: 16px; }
+
+    .pilih-pengguna { padding: 8px 10px; gap: 6px; margin-bottom: 10px; }
+    .pilih-pengguna .pp-label { width: 100%; font-size: 0.65rem; }
+    .pilih-pengguna .pp-btns { min-width: 0; gap: 6px; }
+    .pp-btn { padding: 7px 6px; font-size: 0.8rem; border-radius: 8px; overflow: hidden; text-overflow: ellipsis; }
+
+    .kolum-kiri > .card:first-child { padding: 14px; }
+    .kolum-kiri > .card:first-child .card-header { margin-bottom: 10px; padding-bottom: 8px; }
+    .kolum-kiri > .card:first-child .card-header h2 { font-size: 1.02rem; }
+    #form-transaksi.form-grid { gap: 8px; }
+    #form-transaksi .grid-2 { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; }
+    #form-transaksi .type-toggle { margin-bottom: 2px; }
+    #form-transaksi .type-toggle label { padding: 9px; font-size: 0.85rem; }
+    #form-transaksi .field { gap: 3px; }
+    #form-transaksi .field label { font-size: 0.62rem; letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #form-transaksi .field input, #form-transaksi .field select { padding: 9px 10px; font-size: 0.88rem; border-radius: 9px; }
+    #form-transaksi .input-prefix span { left: 10px; font-size: 0.8rem; }
+    #form-transaksi .input-prefix input { padding-left: 36px; font-size: 1rem; }
+    #form-transaksi .om-baris { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: end; }
+    #form-transaksi .om-baris .btn-ghost { padding: 9px 12px; font-size: 0.85rem; white-space: nowrap; }
+    #form-transaksi .om-penuh { display: none; }
+    #form-transaksi .om-pendek { display: inline; }
+    #form-transaksi #previewContainer { grid-column: 1 / -1; margin-top: 4px !important; }
+    #form-transaksi #imgPreview { max-height: 110px; width: 100%; object-fit: cover; }
+    #form-transaksi .btn-submit { padding: 12px; margin-top: 4px; }
+
+    .btn-togol-senarai { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: #fff; color: var(--ink); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px; font-size: 0.9rem; font-weight: 800; cursor: pointer; box-shadow: var(--shadow); }
+    .btn-togol-senarai b { background: #e0f2fe; color: #0284c7; border-radius: 99px; padding: 1px 8px; font-size: 0.75rem; }
+    .btn-togol-senarai .om-chev { transition: transform .2s; display: inline-block; }
+    .btn-togol-senarai[aria-expanded="true"] .om-chev { transform: rotate(180deg); }
+    #kadSenaraiTxn.om-tutup { display: none; }
+  }
 </style>
 <script src="huruf.js?v=1"></script>
 <script src="/pwa.js" defer></script>
 </head>
 <body>
+
+<script>
+  // Mobile: tunjuk/sorok kad Senarai Transaksi. Desktop sentiasa nampak (peraturan CSS hanya dalam media query).
+  function togolSenaraiTxn(paksa) {
+    var k = document.getElementById('kadSenaraiTxn'), b = document.getElementById('btnTogolSenarai'); if (!k || !b) return;
+    var buka = typeof paksa === 'boolean' ? paksa : k.classList.contains('om-tutup');
+    k.classList.toggle('om-tutup', !buka);
+    b.setAttribute('aria-expanded', buka ? 'true' : 'false');
+    document.getElementById('togolSenaraiTeks').textContent = buka ? 'Sorok Senarai Transaksi' : 'Tunjuk Senarai Transaksi';
+    try { localStorage.setItem('om_senarai_buka', buka ? '1' : '0'); } catch (e) {}
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var bukaDulu = false; try { bukaDulu = localStorage.getItem('om_senarai_buka') === '1'; } catch (e) {}
+    togolSenaraiTxn(bukaDulu);
+    var s = document.getElementById('senarai-transaksi'), bil = document.getElementById('togolSenaraiBil');
+    var kira = function () { bil.textContent = s.querySelectorAll('.txn-item').length; };
+    if (s && bil) { kira(); new MutationObserver(kira).observe(s, { childList: true, subtree: true }); }
+  });
+</script>
 
 <div id="authScreen" class="gate hidden" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--bg-color); position: fixed; inset:0; z-index:9999;">
     <div style="background:var(--card-bg); border-radius:16px; padding:40px 30px; max-width:400px; width:100%; box-shadow:var(--shadow); text-align:center;">
@@ -399,28 +464,35 @@
             <select id="txnCat" required></select>
           </div>
 
+          <div class="om-baris">
           <div class="field">
-            <label>Nota Perbelanjaan (Pilihan)</label>
+            <label><span class="om-penuh">Nota Perbelanjaan (Pilihan)</span><span class="om-pendek">Nota (Pilihan)</span></label>
             <input type="text" id="txnNote" placeholder="Cth: Barang Dapur Lotus">
           </div>
 
           <!-- GAMBAR RESIT -->
           <div class="field">
-            <label>Resit / Gambar Bukti (Pilihan)</label>
+            <label><span class="om-penuh">Resit / Gambar Bukti (Pilihan)</span><span class="om-pendek">Resit</span></label>
             <input type="file" id="txnImage" accept="image/*" capture="environment" style="display:none;" onchange="pilihGambar(event)">
-            <button type="button" class="btn-ghost" onclick="document.getElementById('txnImage').click()">📸 Ambil Gambar / Upload Resit</button>
+            <button type="button" class="btn-ghost" onclick="document.getElementById('txnImage').click()">📸 <span class="om-penuh">Ambil Gambar / Upload Resit</span><span class="om-pendek">Resit</span></button>
             <div id="previewContainer" style="display:none; position:relative; margin-top:10px;">
               <img id="imgPreview" style="max-width:100%; border-radius:8px; border:1px solid #cbd5e1;" />
               <button type="button" onclick="buangGambar()" style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">✕</button>
             </div>
+          </div>
           </div>
 
           <button type="submit" class="btn-submit" id="btn-save-txn">💾 Simpan Rekod</button>
         </form>
       </div>
 
+      <!-- Butang tunjuk/sorok Senarai Transaksi (mobile sahaja) -->
+      <button type="button" class="btn-togol-senarai" id="btnTogolSenarai" aria-expanded="false" aria-controls="kadSenaraiTxn" onclick="togolSenaraiTxn()">
+        <span id="togolSenaraiTeks">Tunjuk Senarai Transaksi</span> <b id="togolSenaraiBil">0</b> <span class="om-chev">▾</span>
+      </button>
+
       <!-- Kad Senarai Transaksi -->
-      <div class="card">
+      <div class="card om-tutup" id="kadSenaraiTxn">
         <div class="card-header" style="display:block; border-bottom:none; margin-bottom:5px;">
           <h2 id="tajuk-transaksi" style="margin-bottom:10px;">📋 Senarai Transaksi</h2>
           <div class="filter-wrap" style="margin-bottom:8px">
