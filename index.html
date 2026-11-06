@@ -1243,5 +1243,129 @@ window.pantauLencanaWeCareUtama = async (user) => {
 })();
 </script>
 
+
+<!-- ===== PAPARAN MOBILE ala aplikasi (desktop tidak terjejas) ===== -->
+<style>
+#fpBawah, #fpTur, #fpTurLubang, #fpTurGelembung, .fp-tunjuk-cara { display: none; }
+@media (max-width: 767px) {
+  body { padding-bottom: 78px; }
+  /* Pintu masuk: grid ikon 4 lajur, warna tema kad dikekalkan */
+  #pintu-masuk { margin-bottom: 20px; }
+  #pintu-masuk > .text-center { margin-bottom: 10px !important; text-align: left; }
+  #pintu-masuk > .text-center h2 { font-size: 1.05rem !important; margin: 0 !important; }
+  #pintu-masuk > .text-center p { display: none; }
+  #pintu-masuk > .grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 8px !important; }
+  #pintu-masuk > .grid > a { padding: 12px 4px 10px !important; border-radius: 18px !important; align-items: center !important; text-align: center !important; box-shadow: none !important; transform: none !important; min-height: 0 !important; justify-content: flex-start !important; }
+  #pintu-masuk > .grid > a:active { transform: scale(.96) !important; }
+  #pintu-masuk > .grid > a p, #pintu-masuk > .grid > a > span.inline-flex, #pintu-masuk > .grid > a > span.inline-block { display: none !important; }
+  #pintu-masuk > .grid > a .w-14 { width: 42px !important; height: 42px !important; font-size: 19px !important; margin: 0 auto 6px !important; border-radius: 13px !important; }
+  #pintu-masuk > .grid > a > div:not(.w-14) { text-align: center; }
+  #pintu-masuk > .grid > a h3 { font-size: 11px !important; line-height: 1.2 !important; margin: 0 !important; justify-content: center !important; flex-wrap: wrap; }
+  #pintu-masuk > .grid > a h3 span { margin-left: 3px !important; font-size: 9px !important; padding: 1px 4px !important; }
+  #pintu-masuk > .grid > div { grid-column: 1 / -1 !important; padding: 16px !important; border-radius: 18px !important; }
+  .fp-tunjuk-cara { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px; background: #e0f2fe; color: #0369a1; border: 0; border-radius: 999px; padding: 7px 14px; font-size: 12px; font-weight: 800; }
+
+  /* Bar navigasi bawah */
+  #fpBawah { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; background: #fff; border-top: 1px solid #e2e8f0; padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 16px rgba(15,23,42,.06); }
+  #fpBawah button { flex: 1; background: none; border: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; color: #64748b; padding: 4px 0; }
+  #fpBawah button i { font-size: 19px; }
+  #fpBawah button.aktif, #fpBawah button:active { color: #0284c7; }
+
+  /* Tutorial terapung */
+  #fpTur.buka { display: block; position: fixed; inset: 0; z-index: 99990; }
+  #fpTurLubang.buka { display: block; position: fixed; z-index: 99991; border-radius: 18px; box-shadow: 0 0 0 9999px rgba(15,23,42,.72); background: #fff; pointer-events: none; transition: all .25s ease; }
+  #fpTurGelembung.buka { display: block; position: fixed; z-index: 99992; left: 14px; right: 14px; background: #0284c7; color: #fff; border-radius: 20px; padding: 16px 18px 14px; box-shadow: 0 12px 32px rgba(2,132,199,.45); font-family: inherit; }
+  #fpTurGelembung h4 { margin: 0 0 4px; font-size: 16px; font-weight: 800; }
+  #fpTurGelembung p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.5; opacity: .95; }
+  #fpTurGelembung .fp-baris { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  #fpTurGelembung .fp-bil { font-size: 13px; font-weight: 700; opacity: .85; }
+  #fpTurGelembung .fp-langkau { background: none; border: 0; color: #fff; font-weight: 700; font-size: 14px; margin-left: auto; padding: 8px 6px; }
+  #fpTurGelembung .fp-seterus { background: #fff; color: #0284c7; border: 0; border-radius: 999px; font-weight: 800; font-size: 14px; padding: 10px 24px; }
+  #fpTurGelembung::before { content: ''; position: absolute; left: var(--sx, 50%); width: 18px; height: 18px; background: #0284c7; transform: translateX(-50%) rotate(45deg); }
+  #fpTurGelembung.bawah::before { top: -7px; }
+  #fpTurGelembung.atas::before { bottom: -7px; }
+}
+</style>
+
+<nav id="fpBawah" aria-label="Navigasi utama">
+  <button type="button" class="aktif" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fa-solid fa-house"></i>Utama</button>
+  <button type="button" data-tur="panduan" onclick="bukaPanduanFP()"><i class="fa-solid fa-book-open"></i>Panduan</button>
+  <button type="button" onclick="window.location.href='topup.html'"><i class="fa-solid fa-coins"></i>Top Up</button>
+  <button type="button" onclick="toggleFrontPageMobileMenu()"><i class="fa-solid fa-circle-user"></i>Akaun</button>
+</nav>
+
+<div id="fpTur"></div>
+<div id="fpTurLubang"></div>
+<div id="fpTurGelembung" role="dialog" aria-live="polite">
+  <h4 id="fpTurTajuk"></h4><p id="fpTurHuraian"></p>
+  <div class="fp-baris"><span class="fp-bil" id="fpTurBil"></span><button type="button" class="fp-langkau" id="fpTurLangkau">Langkau</button><button type="button" class="fp-seterus" id="fpTurSeterus">Seterusnya</button></div>
+</div>
+
+<script>
+(function () {
+  var KUNCI = 'fp_tur_mobile_v1';
+  var mobile = function () { return window.matchMedia('(max-width: 767px)').matches; };
+  var SEL = ['a[onclick*="mynasab/index"]', 'a[onclick*="\'wecare\'"]', '#kadMyjurnal', '#kadSmartsolo', 'a[onclick*="mykids"]', 'a[onclick*="gotravel"]', 'a[onclick*="mytadbir"]', 'a[onclick*="\'ourmoney\'"]', '#fpBawah [data-tur="panduan"]'];
+  var senarai = [], i = 0, aktif = false;
+  var $ = function (id) { return document.getElementById(id); };
+  function nampak(el) { return el && el.offsetParent !== null && el.getBoundingClientRect().width > 0; }
+  function teks(el) {
+    if (el.getAttribute('data-tur') === 'panduan') return ['Panduan', 'Buka semula panduan ekosistem bila-bila masa. Tekan "Tunjuk cara guna" untuk ulang tutorial ini.'];
+    var h = el.querySelector('h3'), tajuk = '';
+    if (h) { for (var n = h.firstChild; n; n = n.nextSibling) { if (n.nodeType === 3 && n.textContent.trim()) { tajuk = n.textContent.trim(); break; } } if (!tajuk) tajuk = h.textContent.trim(); }
+    var huraian = ''; el.querySelectorAll('p').forEach(function (p) { if (p.textContent.trim().length > huraian.length) huraian = p.textContent.trim(); });
+    return [tajuk, huraian];
+  }
+  function tutup(simpan) {
+    aktif = false;
+    ['fpTur', 'fpTurLubang', 'fpTurGelembung'].forEach(function (x) { $(x).classList.remove('buka'); });
+    document.body.style.overflow = '';
+    if (simpan) { try { localStorage.setItem(KUNCI, '1'); } catch (e) {} }
+  }
+  function tunjuk() {
+    var el = senarai[i];
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    setTimeout(function () {
+      var r = el.getBoundingClientRect(), pad = 5, l = $('fpTurLubang'), g = $('fpTurGelembung');
+      l.style.left = (r.left - pad) + 'px'; l.style.top = (r.top - pad) + 'px'; l.style.width = (r.width + pad * 2) + 'px'; l.style.height = (r.height + pad * 2) + 'px';
+      var t = teks(el); $('fpTurTajuk').textContent = t[0]; $('fpTurHuraian').textContent = t[1];
+      $('fpTurBil').textContent = (i + 1) + '/' + senarai.length;
+      $('fpTurSeterus').textContent = i === senarai.length - 1 ? 'Selesai' : 'Seterusnya';
+      $('fpTurLangkau').style.display = i === senarai.length - 1 ? 'none' : '';
+      var bawahRuang = window.innerHeight - r.bottom;
+      g.classList.remove('atas', 'bawah');
+      if (bawahRuang > 190) { g.style.top = (r.bottom + 16) + 'px'; g.style.bottom = 'auto'; g.classList.add('bawah'); }
+      else { g.style.bottom = (window.innerHeight - r.top + 16) + 'px'; g.style.top = 'auto'; g.classList.add('atas'); }
+      g.style.setProperty('--sx', Math.min(Math.max(r.left + r.width / 2, 36), window.innerWidth - 36) + 'px');
+    }, 380);
+  }
+  window.mulaTutorialFP = function () {
+    if (!mobile() || aktif) return;
+    senarai = SEL.map(function (s) { return document.querySelector(s); }).filter(nampak);
+    if (!senarai.length) return;
+    var p = $('panduanFP'); if (p && p.classList.contains('buka') && window.tutupPanduanFP) window.tutupPanduanFP();
+    aktif = true; i = 0; document.body.style.overflow = 'hidden';
+    ['fpTur', 'fpTurLubang', 'fpTurGelembung'].forEach(function (x) { $(x).classList.add('buka'); });
+    tunjuk();
+  };
+  $('fpTurSeterus').onclick = function () { if (i >= senarai.length - 1) { tutup(true); window.scrollTo({ top: 0, behavior: 'smooth' }); } else { i++; tunjuk(); } };
+  $('fpTurLangkau').onclick = function () { tutup(true); };
+  $('fpTur').onclick = function () { tutup(true); };
+  // Butang "Tunjuk cara guna" di bawah tajuk pintu masuk
+  var tajuk = document.querySelector('#pintu-masuk > .text-center');
+  if (tajuk) { var b = document.createElement('button'); b.type = 'button'; b.className = 'fp-tunjuk-cara'; b.innerHTML = '<i class="fa-solid fa-circle-play"></i> Tunjuk cara guna'; b.onclick = window.mulaTutorialFP; tajuk.insertAdjacentElement('afterend', b); }
+  // Mula sendiri sekali sahaja, selepas panduan ditutup (jangan bertindih dengan panduan)
+  function sekali() { try { if (localStorage.getItem(KUNCI)) return; } catch (e) {} setTimeout(window.mulaTutorialFP, 500); }
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      var p = $('panduanFP');
+      if (p && p.classList.contains('buka')) {
+        var asal = window.tutupPanduanFP;
+        if (asal && !asal.__tur) { window.tutupPanduanFP = function () { asal.apply(this, arguments); sekali(); window.tutupPanduanFP = asal; }; window.tutupPanduanFP.__tur = 1; }
+      } else sekali();
+    }, 1600);
+  });
+})();
+</script>
 </body>
 </html>
