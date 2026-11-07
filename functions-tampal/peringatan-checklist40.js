@@ -2,11 +2,12 @@
 // 7. PERINGATAN HARIAN myCHECKLIST40 (PUSH 8 MALAM: IBADAH & LEGASI, 10 MALAM: TAZKIYAH JIWA)
 // ==========================================
 // TAMPAL selepas exports.peringatanInfaqHarian dalam functions/index.js
-// (guna OM_TZ, kumpulToken dan hantarKeSemuaPeranti yang sedia ada).
+// (guna OM_TZ yang sedia ada; tidak lagi memerlukan kumpulToken/hantarKeSemuaPeranti).
 // Berjalan setiap jam (minit 0, waktu Malaysia), tetapi hanya bertindak pada jam 20 dan 22.
 // Syarat hantar:
 //   - pengguna menghidupkan peringatan di app: mynasab_users.fp_mychecklist40_ingat === true
 //     (pasangan: fp_pasangan_mychecklist40_ingat === true)
+//   - peranti didaftar untuk orang itu: mynasab_users.fcm_checklist40_induk / fcm_checklist40_pasangan (peringatan hanya ke peranti orang itu)
 //   - checklist sudah disimpan: mynasab_users.fp_mychecklist40.dicentang (pasangan: fp_pasangan_mychecklist40)
 //   - ada sekurang-kurangnya satu item belum ditanda dalam kumpulan jam itu
 // Satu peringatan sehari bagi setiap kumpulan. Item dipusing ikut hari supaya ayat tidak berulang setiap malam.
@@ -75,6 +76,24 @@ const CL40_TAJUK = {
 
 function cl40NoHari(now) { return Math.floor(now / 86400000); }
 
+// Hantar hanya kepada peranti yang didaftar untuk orang itu (induk atau pasangan). Token mati dibuang daripada senarai orang itu.
+async function cl40Hantar(dbRef, messaging, uid, medanToken, tokens, payload) {
+    let berjaya = 0; const mati = [];
+    for (const token of tokens) {
+        try { await messaging.send({ ...payload, token }); berjaya++; }
+        catch (e) {
+            const kod = (e && e.code) || '';
+            if (kod.includes('registration-token-not-registered') || kod.includes('invalid-registration-token')) mati.push(token);
+            else console.error('Checklist40: gagal hantar push:', uid, kod || (e && e.message));
+        }
+    }
+    if (mati.length) {
+        try { await dbRef.collection('mynasab_users').doc(uid).update({ [medanToken]: admin.firestore.FieldValue.arrayRemove(...mati), fcm_tokens: admin.firestore.FieldValue.arrayRemove(...mati) }); }
+        catch (e) { console.error('Checklist40: gagal buang token mati:', e.message); }
+    }
+    return berjaya;
+}
+
 async function jalankanPeringatanChecklist40(dbRef, messaging, opsi = {}) {
     const now = opsi.now || Date.now();
     const jamKini = opsi.jamPaksa != null ? opsi.jamPaksa : parseInt(new Intl.DateTimeFormat('en-GB', { timeZone: OM_TZ, hour: '2-digit', hour12: false }).format(new Date(now)), 10) % 24;
@@ -95,7 +114,9 @@ async function jalankanPeringatanChecklist40(dbRef, messaging, opsi = {}) {
         try {
             const u = dilihat.get(uid), medanData = per ? 'fp_pasangan_mychecklist40' : 'fp_mychecklist40';
             const data = u[medanData];
-            if (!data || !Array.isArray(data.dicentang) || !kumpulToken(u).length) { langkau++; continue; }
+            const medanToken = 'fcm_checklist40_' + (per || 'induk');
+            const token = Array.isArray(u[medanToken]) ? u[medanToken].filter(Boolean) : [];   // hanya peranti orang ini
+            if (!data || !Array.isArray(data.dicentang) || !token.length) { langkau++; continue; }
             const ditanda = new Set(data.dicentang);
             const tiadaAnak = ditanda.has('tiadaAnak');
             // 'tersedia' = soalan yang dipaparkan kepada orang itu (soalan jantina berbeza). Data lama tanpa 'tersedia': langkau soalan khusus jantina.
@@ -110,8 +131,8 @@ async function jalankanPeringatanChecklist40(dbRef, messaging, opsi = {}) {
             }
 
             const pilih = belum[cl40NoHari(now) % belum.length];
-            const n = await hantarKeSemuaPeranti(dbRef, messaging, uid, u, {
-                notification: { title: CL40_TAJUK[jamKini](belum.length) + (per ? ' (pasangan)' : ''), body: CL40_AYAT[pilih] },
+            const n = await cl40Hantar(dbRef, messaging, uid, medanToken, token, {
+                notification: { title: CL40_TAJUK[jamKini](belum.length), body: CL40_AYAT[pilih] },
                 data: { app: 'checklist40', url: '/app/mychecklist40.html', badgeCount: '1', tag: 'checklist40-' + jamKini },
                 webpush: { fcmOptions: { link: '/app/mychecklist40.html' } }
             });

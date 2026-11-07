@@ -457,34 +457,46 @@
 
     <script>
         // ---- Peringatan harian (push) untuk item yang belum ditanda ----
-        // Pilihan disimpan dalam mynasab_users: fp_[pasangan_]mychecklist40_ingat (true/false). Server hantar jam 8 & 10 malam.
+        // Bendera: mynasab_users.fp_[pasangan_]mychecklist40_ingat. Token peranti: fcm_checklist40_induk / fcm_checklist40_pasangan (ikut orang yang dipilih pada bar Untuk). Server hantar jam 8 & 10 malam.
         (function () {
             var VAPID = 'BC-vntpi-9WxGGKUPeGopgcykMKc87MODe1aEpwieX096IQ8Hzu3Mh89SI8YxuvvOvPSqhW7Eu2Ziqn4ZjwBugs';
             var $ = function (id) { return document.getElementById(id); };
             function medanIngat() { return 'fp_' + Peranan.awalan() + 'mychecklist40_ingat'; }
             function nota(t, ralat) { var e = $('ingat-status'); if (e) { e.textContent = t || ''; e.style.color = ralat ? '#b91c1c' : '#64748b'; } }
-            async function daftarToken() {
+            function perKey(mod) { return (mod || Peranan.mod) === 'pasangan' ? 'pasangan' : 'induk'; }
+            function medanToken(mod) { return 'fcm_checklist40_' + perKey(mod); }
+            var TUTUP = 'fp_ingat40_tutup_';   // pilihan matikan disimpan pada peranti ini sahaja
+            async function ambilToken() {
                 var B = 'https://www.gstatic.com/firebasejs/10.8.1/';
                 var m = await Promise.all([import(B + 'firebase-app.js'), import(B + 'firebase-messaging.js')]);
                 var reg = await navigator.serviceWorker.getRegistration('/');
                 var token = await m[1].getToken(m[1].getMessaging(m[0].getApp()), { vapidKey: VAPID, serviceWorkerRegistration: reg || undefined });
                 if (!token) throw new Error('tiada token');
-                var Fs = FP.fs;
-                await Fs.setDoc(Fs.doc(FP.db, 'mynasab_users', FP.user.uid), { fcm_token: token, fcm_tokens: Fs.arrayUnion(token) }, { merge: true });
+                return token;
+            }
+            // Token peranti didaftar mengikut ORANG yang dipilih pada bar "Untuk" (induk/pasangan), jadi peringatan sampai ke telefon orang itu sahaja.
+            async function daftarToken() {
+                var token = await ambilToken(), Fs = FP.fs, mod = Peranan.mod, lain = perKey(mod) === 'induk' ? 'pasangan' : 'induk';
+                var u = { fcm_token: token, fcm_tokens: Fs.arrayUnion(token) };
+                u[medanToken(mod)] = Fs.arrayUnion(token);
+                await Fs.setDoc(Fs.doc(FP.db, 'mynasab_users', FP.user.uid), u, { merge: true });
+                var b = {}; b['fcm_checklist40_' + lain] = Fs.arrayRemove(token);     // peranti ini kini milik orang yang dipilih
+                await Fs.updateDoc(Fs.doc(FP.db, 'mynasab_users', FP.user.uid), b);
             }
             var bukaSuis = function (on) { var a = $('ingat-suis'); if (a) a.textContent = on ? 'Matikan peringatan' : 'Hidupkan peringatan'; };
             async function simpan(on) {
                 var u = {}; u[medanIngat()] = on;
                 await FP.fs.updateDoc(FP.fs.doc(FP.db, 'mynasab_users', FP.user.uid), u);
             }
+            function dimatikan() { try { return localStorage.getItem(TUTUP + perKey()) === '1'; } catch (e) { return false; } }
+            function tandaMati(v) { try { if (v) localStorage.setItem(TUTUP + perKey(), '1'); else localStorage.removeItem(TUTUP + perKey()); } catch (e) {} }
             // Dipanggil apabila pengguna menekan "Lihat Keputusan & Saranan" (gerak isyarat pengguna, supaya kebenaran notifikasi boleh diminta).
             window.aktifIngat = async function () {
                 var kad = $('ingat-kad'); if (kad) kad.style.display = '';
                 nota(''); bukaSuis(false);
                 if (!FP.user || !FP.fs) return;
                 try {
-                    var d = await FP.baca('mynasab_users', FP.user.uid);
-                    if (d && d[medanIngat()] === false) { nota('Peringatan dimatikan.'); bukaSuis(false); return; }   // hormati pilihan matikan
+                    if (dimatikan()) { nota('Peringatan dimatikan pada peranti ini.'); bukaSuis(false); return; }   // hormati pilihan matikan
                     if (!('Notification' in window) || !('serviceWorker' in navigator)) { nota('Peranti ini tidak menyokong notifikasi. Di iPhone, pasang app ke Skrin Utama dahulu.', true); return; }
                     var p = Notification.permission;
                     if (p === 'default') p = await Notification.requestPermission();
@@ -497,15 +509,31 @@
             // Paparan semula (muat halaman dengan keputusan tersimpan): tunjuk status sahaja, tanpa meminta kebenaran
             window.muatIngat = async function () {
                 if (!FP.user || !FP.fs) return;
-                var d = await FP.baca('mynasab_users', FP.user.uid), on = !!(d && d[medanIngat()]);
-                var kad = $('ingat-kad'); if (kad) kad.style.display = (on || (d && d[medanIngat()] === false)) ? '' : 'none';
-                nota(on ? 'Peringatan dihidupkan.' : 'Peringatan dimatikan.'); bukaSuis(on);
+                var kad = $('ingat-kad'), on = false;
+                try {
+                    if (!dimatikan() && 'Notification' in window && Notification.permission === 'granted') {
+                        var d = await FP.baca('mynasab_users', FP.user.uid), token = await ambilToken();
+                        on = !!(d && Array.isArray(d[medanToken()]) && d[medanToken()].indexOf(token) >= 0);
+                    }
+                } catch (e) { on = false; }
+                if (kad) kad.style.display = '';
+                nota(on ? 'Peringatan dihidupkan untuk peranti ini.' : 'Peringatan belum dihidupkan pada peranti ini.'); bukaSuis(on);
             };
             window.suisIngat = async function (e) {
                 e.preventDefault();
-                var d = await FP.baca('mynasab_users', FP.user.uid), on = !!(d && d[medanIngat()]);
-                if (on) { await simpan(false); nota('Peringatan dimatikan.'); bukaSuis(false); }
-                else { await simpan(true); await window.aktifIngat(); }
+                try {
+                    var Fs = FP.fs;
+                    if (dimatikan()) { tandaMati(false); await window.aktifIngat(); return; }
+                    // matikan: buang token peranti ini daripada senarai orang ini; bendera hanya padam bila tiada peranti lain
+                    tandaMati(true);
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        var token = await ambilToken(), u = {}; u[medanToken()] = Fs.arrayRemove(token);
+                        await Fs.updateDoc(Fs.doc(FP.db, 'mynasab_users', FP.user.uid), u);
+                        var d = await FP.baca('mynasab_users', FP.user.uid);
+                        if (!(d && Array.isArray(d[medanToken()]) && d[medanToken()].length)) await simpan(false);
+                    }
+                    nota('Peringatan dimatikan pada peranti ini.'); bukaSuis(false);
+                } catch (err) { console.warn('ingat', err); nota('Gagal. Semak sambungan internet.', true); }
             };
         })();
     </script>
