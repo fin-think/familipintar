@@ -483,7 +483,9 @@
                 var b = {}; b['fcm_checklist40_' + lain] = Fs.arrayRemove(token);     // peranti ini kini milik orang yang dipilih
                 await Fs.updateDoc(Fs.doc(FP.db, 'mynasab_users', FP.user.uid), b);
             }
-            var bukaSuis = function (on) { var a = $('ingat-suis'); if (a) a.textContent = on ? 'Matikan peringatan' : 'Hidupkan peringatan'; };
+            var kini = false;
+            var bukaSuis = function (on) { kini = !!on; var a = $('ingat-suis'); if (a) a.textContent = on ? 'Matikan peringatan' : 'Hidupkan peringatan'; };
+            function sebab(e) { return ' (' + String((e && (e.code || e.message)) || e).slice(0, 90) + ')'; }
             async function simpan(on) {
                 var u = {}; u[medanIngat()] = on;
                 await FP.fs.updateDoc(FP.fs.doc(FP.db, 'mynasab_users', FP.user.uid), u);
@@ -504,7 +506,7 @@
                     await daftarToken();
                     await simpan(true);
                     nota('Peringatan dihidupkan untuk peranti ini.'); bukaSuis(true);
-                } catch (e) { console.warn('ingat', e); nota('Peringatan gagal dihidupkan. Semak sambungan internet.', true); }
+                } catch (e) { console.warn('ingat', e); nota('Peringatan gagal dihidupkan' + sebab(e), true); }
             };
             // Paparan semula (muat halaman dengan keputusan tersimpan): tunjuk status sahaja, tanpa meminta kebenaran
             window.muatIngat = async function () {
@@ -523,7 +525,7 @@
                 e.preventDefault();
                 try {
                     var Fs = FP.fs;
-                    if (dimatikan()) { tandaMati(false); await window.aktifIngat(); return; }
+                    if (!kini) { tandaMati(false); await window.aktifIngat(); return; }
                     // matikan: buang token peranti ini daripada senarai orang ini; bendera hanya padam bila tiada peranti lain
                     tandaMati(true);
                     if ('Notification' in window && Notification.permission === 'granted') {
@@ -533,7 +535,7 @@
                         if (!(d && Array.isArray(d[medanToken()]) && d[medanToken()].length)) await simpan(false);
                     }
                     nota('Peringatan dimatikan pada peranti ini.'); bukaSuis(false);
-                } catch (err) { console.warn('ingat', err); nota('Gagal. Semak sambungan internet.', true); }
+                } catch (err) { console.warn('ingat', err); nota('Gagal' + sebab(err), true); }
             };
         })();
     </script>
