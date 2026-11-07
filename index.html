@@ -389,7 +389,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
       kad.push({ el: el, w: d[5], t: th[0], d: th[1], i: d[2], b: lb && lb !== '0' ? lb : '' });
       sig += d[1] + '|' + (lb && lb !== '0' ? lb : '') + '|';
     });
-    TAMBAH.forEach(function (d) { var el = document.querySelector(d[0]); if (!el || !nampak(el)) return; var th = tajukHuraian(el); kad.push({ el: el, w: d[2], t: th[0], d: th[1], i: d[1] }); sig += th[0] + '|'; });
+    TAMBAH.forEach(function (d) { var el = document.querySelector(d[0]); if (!el || !nampak(el)) return; var th = tajukHuraian(el); kad.push({ el: el, w: d[2], t: th[0], d: th[1], i: d[1], tb: 1 }); sig += th[0] + '|'; });
     if (sig === tanda) return; tanda = sig;
     var P = $('fpmPintas'); P.innerHTML = '';
     pin.forEach(function (c) {
@@ -401,7 +401,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     });
     var j = $('fpmJalur'); j.innerHTML = '';
     kad.forEach(function (c, n) {
-      if (n) { var a = document.createElement('span'); a.className = 'fpm-panah'; a.setAttribute('aria-hidden', 'true'); a.innerHTML = '<i class="fa-solid fa-arrow-right"></i>'; j.appendChild(a); }
+      if (n) { var a = document.createElement('span'); a.className = 'fpm-panah'; a.setAttribute('aria-hidden', 'true'); a.innerHTML = '<i class="fa-solid ' + (c.tb && kad[n - 1].tb ? 'fa-plus' : 'fa-arrow-right') + '"></i>'; j.appendChild(a); }
       var b = document.createElement('button'); b.type = 'button'; b.className = 'fpm-kad'; b.style.background = c.w;
       var ik = document.createElement('span'); ik.className = 'fpm-ik'; var i = document.createElement('i'); i.className = (c.i.indexOf('fa-solid') === 0 ? '' : 'fa-solid ') + c.i; ik.appendChild(i);
       var h = document.createElement('h4'); h.textContent = c.t; var p = document.createElement('p'); p.textContent = c.d;
