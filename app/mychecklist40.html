@@ -75,7 +75,7 @@
                         <input type="checkbox" id="solat5" class="checkbox-custom mt-1" data-score="15">
                         <label for="solat5" class="text-gray-700 font-medium">Cukup Solat Fardu 5 Waktu sehari semalam.</label>
                     </div>
-                    <div class="flex items-start gap-3">
+                    <div class="flex items-start gap-3" data-jantina="L" style="display:none">
                         <input type="checkbox" id="berjemaah" class="checkbox-custom mt-1" data-score="5">
                         <label for="berjemaah" class="text-gray-700">Sentiasa mengutamakan Solat Berjemaah (Masjid/Surau).</label>
                     </div>
@@ -247,6 +247,10 @@
                         <input type="checkbox" id="maaf" class="checkbox-custom mt-1" data-score="5">
                         <label for="maaf" class="text-gray-700">Sudah meminta maaf & menjaga silaturrahim.</label>
                     </div>
+                    <div class="flex items-start gap-3" data-jantina="P" style="display:none">
+                        <input type="checkbox" id="taatSuami" class="checkbox-custom mt-1" data-score="5">
+                        <label for="taatSuami" class="text-gray-700">Taat dan menghormati suami dalam perkara yang makruf, serta menjaga adab dan tutur kata dengannya.</label>
+                    </div>
                 </div>
             </section>
 
@@ -304,6 +308,7 @@
             };
 
             checkboxes.forEach(cb => {
+                if (cb.closest('[data-sembunyi]')) return;   // soalan khusus jantina yang tidak berkenaan
                 const val = parseInt(cb.getAttribute('data-score'));
                 if (cb.id === 'danaPendidikan' && legasi.tiadaAnak) return;   // tiada anak: item dilangkau
                 maxScore += val;
@@ -402,6 +407,19 @@
             return `<div class="mt-6 p-4 rounded-xl bg-amber-50 border border-amber-200"><p class="font-bold text-amber-700 mb-2">🏛️ Analisis Legasi</p><ul class="list-disc pl-5 space-y-3">${tip.join('')}</ul></div>`;
         }
 
+        // Soalan khusus jantina: berjemaah (L) dan taat suami (P). Jantina tidak diketahui: kedua-duanya disembunyikan.
+        function terapkanJantina(j) {
+            const g = String(j || '').trim().toUpperCase().charAt(0);
+            document.querySelectorAll('[data-jantina]').forEach(el => {
+                const tunjuk = el.dataset.jantina === g;
+                el.style.display = tunjuk ? '' : 'none';
+                if (tunjuk) delete el.dataset.sembunyi; else el.dataset.sembunyi = '1';
+                if (!tunjuk) { const cb = el.querySelector('input'); if (cb) cb.checked = false; }
+            });
+        }
+        // sembunyi awal (belum log masuk / jantina belum diketahui)
+        document.querySelectorAll('[data-jantina]').forEach(el => { el.dataset.sembunyi = '1'; });
+
         function resetForm() {
             const checkboxes = document.querySelectorAll('.checkbox-custom');
             checkboxes.forEach(cb => cb.checked = false);
@@ -466,13 +484,16 @@
             isi: (F) => {
                 resetForm();
                 const o = F.orang();
+                terapkanJantina(o.jantina);
                 F.maklumat(o.umur ? 'Checklist untuk <b>' + o.nama + '</b> (' + o.umur + ' tahun).' : '');
             },
             ambil: () => {
-                const dicentang = [...document.querySelectorAll('.checkbox-custom')].filter(c => c.checked).map(c => c.id);
+                const semua = [...document.querySelectorAll('.checkbox-custom')].filter(c => !c.closest('[data-sembunyi]'));
+                const dicentang = semua.filter(c => c.checked).map(c => c.id);
+                const tersedia = semua.map(c => c.id);
                 const selesai = !document.getElementById('result-container').classList.contains('hidden');
                 if (!dicentang.length && !selesai && !FP.sudahSimpan) return null;
-                return { dicentang, selesai };
+                return { dicentang, selesai, tersedia };
             },
             pulih: (d) => {
                 if (!d) return;

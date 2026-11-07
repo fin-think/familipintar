@@ -19,42 +19,43 @@ const CL40_KUMPULAN = {
          'puasaWajib', 'qadhaPuasa', 'puasaIsninKhamis', 'puasaHariPutih',
          'zakat', 'sedekah', 'wakaf',
          'wasiat', 'hibah', 'sepencarian', 'tunaiAmanah', 'danaPendidikan'],
-    22: ['mengumpat', 'riya', 'ujub', 'hasad', 'sabar', 'zikir', 'taubat', 'maaf']
+    22: ['mengumpat', 'riya', 'ujub', 'hasad', 'sabar', 'zikir', 'taubat', 'maaf', 'taatSuami']
 };
 
 const CL40_AYAT = {
-    solat5: 'Solat ialah amalan pertama yang dihisab. Jika ia baik, baiklah amalan yang lain. Malam ini, berapa waktu yang benar-benar kamu tunaikan, dan berapa yang sekadar tertinggal tanpa disedari?',
-    berjemaah: 'Solat berjemaah bukan sekadar pahala berganda. Ia latihan menyahut seruan Allah sebelum menyahut urusan dunia. Esok, yang manakah akan kamu dahulukan?',
-    awalwaktu: 'Menangguhkan solat lama-lama menjadikan hati terbiasa menganggapnya beban. Solat di awal waktu ialah cara paling jujur untuk berkata: Engkau yang pertama, ya Allah.',
-    qadha: 'Hutang solat tidak luput kerana kita lupa. Ia tetap tercatat, sedangkan umur terus berkurang. Mulakan satu qadha malam ini, kerana hutang kecil yang dibayar lebih baik daripada hutang besar yang dibiarkan.',
-    tahajjud: 'Di sepertiga malam, doa lebih dekat dan hati lebih jujur. Dua rakaat sebelum tidur pun sudah menjadi permulaan hubungan yang tidak diketahui sesiapa kecuali Allah.',
-    bacaanHarian: 'Al-Quran yang tidak dibuka tidak dapat memberi petunjuk, sebagaimana peta yang disimpan dalam laci tidak dapat menunjukkan jalan. Satu muka surat malam ini sudah cukup untuk bermula.',
-    lazim: 'Surah-surah pendek yang kamu hafal hari ini ialah bekalan solat sepanjang hayat. Anak-anak belajar daripada apa yang mereka dengar kamu baca, jadi hafalan itu juga pusaka untuk mereka.',
-    pilihan: 'Yasin, Al-Waqiah dan Al-Mulk bukan bacaan untuk majlis kematian sahaja. Ia teman yang dibaca ketika masih sempat memahaminya. Pilih satu dan mulakan malam ini.',
-    tadabbur: 'Membaca tanpa memahami umpama menerima surat tanpa membukanya. Ambil satu ayat malam ini, baca terjemahannya perlahan-lahan dan tanya diri: apa yang Allah mahu daripada aku melalui ayat ini?',
-    daftarHaji: 'Giliran Haji tidak menunggu kita bersedia. Setiap tahun yang ditangguhkan menambah tahun menunggu, sedangkan usia tidak menambah panjang. Mendaftar hari ini ialah langkah yang paling mudah untuk satu niat yang besar.',
-    umrah: 'Tanah suci memanggil sesiapa yang dikehendaki-Nya. Jika kamu mampu, jangan tunggu sehingga mampu menjadi alasan yang paling lama kamu pelihara.',
-    tabungan: 'Niat tanpa perancangan jarang sampai ke Tanah Suci. Asingkan jumlah kecil setiap bulan untuk tujuan itu supaya suatu hari panggilan itu bertemu dengan kesiapan.',
-    puasaWajib: 'Puasa Ramadan yang belum diganti ialah hutang dengan Allah, dan hutang dengan Allah lebih berhak dilunaskan. Tetapkan satu tarikh yang pasti, kerana "nanti" tidak pernah wujud dalam kalendar.',
-    qadhaPuasa: 'Setiap hari puasa yang tertinggal menunggu giliran kamu. Menunda tidak menghapuskannya, hanya menambah beban di hujung usia. Pilih satu hari minggu ini dan niatkan sekarang.',
-    puasaIsninKhamis: 'Isnin dan Khamis ialah dua hari amalan diangkat kepada Allah. Biar amalan kamu diangkat ketika kamu sedang berpuasa dan hati sedang merendah diri.',
-    puasaHariPutih: 'Tiga hari dalam sebulan, dengan malam yang terang, ialah cara lembut untuk melatih diri sebelum Ramadan datang lagi. Tandakan 13, 14 dan 15 Hijrah dalam kalendar kamu.',
-    zakat: 'Harta yang belum dizakatkan masih bercampur dengan hak orang lain. Ia terasa milik kita sepenuhnya, tetapi sebahagiannya ialah amanah untuk mereka yang memerlukan. Bersihkan harta kamu sebelum ia membersihkan kamu daripada rezeki yang berkat.',
-    sedekah: 'Apa yang kamu sedekahkan itulah yang benar-benar kekal. Selebihnya akan ditinggalkan. Satu sedekah kecil sebelum tidur malam ini ialah simpanan yang tidak boleh dituntut oleh sesiapa.',
-    wakaf: 'Wakaf ialah pahala yang terus mengalir ketika kamu sudah tidak mampu beramal. Pintu itu terbuka kepada sesiapa yang mahu, walau sekecil RM10 sebulan.',
-    wasiat: 'Kematian tidak memberi notis. Waris yang kamu sayangi akan menanggung kesulitan jika harta tidak tersusun, dan pertelingkahan selalunya bermula daripada perkara yang tidak sempat dijelaskan. Satu wasiat hari ini ialah kasih sayang yang paling praktikal.',
-    hibah: 'Faraid hanya berjalan selepas kamu pergi, tetapi apa yang mahu kamu beri kepada insan tertentu perlu dirancang ketika masih hidup. Hibah ialah hadiah yang sempat kamu lihat diterima.',
-    sepencarian: 'Rumah, simpanan dan pelaburan yang dikumpul bersama perlu diketahui bersama. Susun senarainya dan simpan dokumen di tempat yang pasangan tahu, supaya pada hari yang sukar tiada yang tertinggal tanpa jawapan.',
-    tunaiAmanah: 'Akaun yang dibekukan sementara pusaka diuruskan menyebabkan keluarga tercari-cari wang untuk perkara yang paling mendesak, seperti pengurusan jenazah. Sediakan dana segera supaya mereka dapat berduka tanpa tertekan.',
-    danaPendidikan: 'Anak sulung membesar lebih cepat daripada simpanan kita. Setiap bulan yang berlalu tanpa dana khas bermakna beban yang lebih berat kelak, dan mungkin pilihan yang menyakitkan antara persaraan dan pengajian mereka. Mulakan auto-debit kecil malam ini.',
-    mengumpat: 'Mengumpat bermakna memakan daging saudara sendiri tanpa kita merasainya. Malam ini ingat semula perbualan hari ini: adakah ada nama yang disebut dengan cara yang kamu tidak sanggup sebut di hadapannya? Mohonlah maaf dan tutuplah hari dengan lidah yang lebih bersih.',
-    riya: 'Amal yang dilakukan supaya dilihat akan hilang nilainya apabila pandangan manusia hilang. Semak niat kamu hari ini. Jika tiada siapa tahu, adakah kamu masih akan melakukannya?',
-    ujub: 'Rasa diri lebih baik ialah penyakit yang halus kerana ia datang selepas kita berbuat baik. Ingatlah bahawa segala taufik hanya pinjaman daripada Allah, dan kita tidak memiliki walau satu pun amal yang pasti diterima.',
-    hasad: 'Hasad membakar kebaikan sendiri sebagaimana api memakan kayu. Apabila hati sempit melihat nikmat orang lain, doakan mereka dengan nama mereka. Hati yang berlapang tidak mampu menyimpan dengki.',
-    sabar: 'Sabar yang sebenar diuji pada saat pertama kita marah, bukan selepas reda. Ingat satu keadaan hari ini yang membuat kamu naik suara, dan bayangkan jawapan yang akan kamu pilih jika Allah menyaksikannya dengan jelas.',
-    zikir: 'Hati yang tidak diisi dengan zikir akan diisi dengan bunyi lain sepanjang hari. Sebelum tidur, basahkan lidah kamu dengan istighfar dan tasbih, kerana ia menjadi kata terakhir yang kamu bawa ke dalam tidur.',
-    taubat: 'Tidur ialah mati kecil. Kita tidak pasti akan bangun semula. Sebelum mata terpejam, akui satu kesalahan hari ini dengan sebenar-benarnya, dan mohon ampun dengan hati yang berniat tidak mengulanginya.',
-    maaf: 'Hubungan yang retak tidak sembuh dengan menunggu. Pilih satu nama yang kamu tahu masih ada sakit antara kamu berdua, dan hantar mesej pendek malam ini. Memohon maaf lebih ringan daripada membawanya ke hari penghisaban.'
+    solat5: 'Kenapa masih belum jaga solat? Awak tahu ke nak mati bila? Solat yang dihisab dulu.',
+    berjemaah: 'Azan dah berkumandang, awak tunggu apa lagi? Jemaah dulu, urusan kemudian.',
+    awalwaktu: 'Allah dulu atau urusan dulu? Solat di awal waktu tanda awak letak Dia di tempat pertama.',
+    qadha: 'Hutang solat tak hilang sebab awak lupa. Bayar satu malam ni, sebelum terlambat.',
+    tahajjud: 'Sepertiga malam itu sunyi dan doa paling dekat. Dua rakaat pun cukup untuk mula.',
+    bacaanHarian: 'Al-Quran dalam rak tak boleh tunjuk jalan. Buka satu muka surat malam ni.',
+    lazim: 'Anak awak belajar solat daripada bacaan awak. Surah lazim dah lancar?',
+    pilihan: 'Yasin, Al-Waqiah, Al-Mulk. Awak nak baca bila, bila dah tak sempat?',
+    tadabbur: 'Awak baca surat Allah, tapi faham apa yang Dia nak? Satu ayat dengan terjemahan malam ni.',
+    daftarHaji: 'Giliran Haji makin panjang, umur makin pendek. Awak tunggu apa lagi?',
+    umrah: 'Mampu hari ni belum tentu mampu esok. Jangan tunggu sampai terlambat.',
+    tabungan: 'Niat tanpa simpanan tak sampai ke Mekah. Asingkan sedikit, mulakan bulan ni.',
+    puasaWajib: 'Hutang puasa dengan Allah, awak nak langsaikan bila? Tetapkan satu tarikh yang pasti.',
+    qadhaPuasa: 'Hari puasa yang tertinggal tak hilang sendiri. Pilih satu hari minggu ni dan niat sekarang.',
+    puasaIsninKhamis: 'Isnin dan Khamis, amal diangkat kepada Allah. Biar awak sedang berpuasa waktu itu.',
+    puasaHariPutih: 'Tiga hari sebulan, 13, 14 dan 15 Hijrah. Cukup mudah untuk mula. Tandakan dalam kalendar.',
+    zakat: 'Harta yang belum dizakat masih ada hak orang lain di dalamnya. Awak sanggup bawa ke akhirat?',
+    sedekah: 'Yang awak sedekahkan itu yang kekal, selebihnya ditinggalkan. Satu sedekah kecil sebelum tidur?',
+    wakaf: 'Bila awak dah tiada, wakaf masih mengalir. RM10 sebulan pun dikira.',
+    wasiat: 'Kalau awak pergi malam ni, harta awak jadi pertelingkahan atau ketenangan? Sediakan wasiat sekarang.',
+    hibah: 'Apa yang awak nak beri kepada seseorang, rancang masa hidup. Faraid hanya selepas awak tiada.',
+    sepencarian: 'Pasangan awak tahu di mana harta dan dokumen disimpan? Kalau awak tiada esok, mereka nak cari ke mana?',
+    tunaiAmanah: 'Akaun dibekukan, jenazah perlu diuruskan. Duit segera untuk keluarga, dah sedia?',
+    danaPendidikan: 'Anak sulung membesar lebih cepat daripada simpanan awak. Mulakan auto-debit dana pengajian malam ni.',
+    mengumpat: 'Hari ni awak sebut nama siapa tanpa dia tahu? Mohon maaf sebelum tidur.',
+    riya: 'Kalau tiada siapa nampak, awak masih buat amal itu?',
+    ujub: 'Amal awak nampak baik? Itu taufik Allah, bukan hebat awak.',
+    hasad: 'Dengki membakar kebaikan sendiri. Doakan orang yang awak iri, malam ni.',
+    sabar: 'Waktu awak marah hari ni, itulah ujian sabar. Lulus atau gagal?',
+    zikir: 'Hati yang tak berzikir akan diisi benda lain. Istighfar dulu sebelum tidur.',
+    taubat: 'Tidur itu mati kecil. Kalau tak bangun lagi, awak dah bertaubat?',
+    maaf: 'Siapa yang awak belum maafkan atau belum minta maaf? Hantar satu mesej malam ni.',
+    taatSuami: 'Taat dan hormat suami dalam perkara makruf. Hari ni, tutur kata dan layanan awak macam mana?'
 };
 
 // Jam (MYT) ke kumpulan: 20 = ibadah & legasi, 22 = tazkiyah jiwa
@@ -88,7 +89,10 @@ async function jalankanPeringatanChecklist40(dbRef, messaging, opsi = {}) {
             if (!data || !Array.isArray(data.dicentang) || !kumpulToken(u).length) { langkau++; continue; }
             const ditanda = new Set(data.dicentang);
             const tiadaAnak = ditanda.has('tiadaAnak');
-            const belum = kump.filter(id => !ditanda.has(id) && !(id === 'danaPendidikan' && tiadaAnak));
+            // 'tersedia' = soalan yang dipaparkan kepada orang itu (soalan jantina berbeza). Data lama tanpa 'tersedia': langkau soalan khusus jantina.
+            const tersedia = Array.isArray(data.tersedia) ? new Set(data.tersedia) : null;
+            const sesuai = (id) => tersedia ? tersedia.has(id) : (id !== 'berjemaah' && id !== 'taatSuami');
+            const belum = kump.filter(id => sesuai(id) && !ditanda.has(id) && !(id === 'danaPendidikan' && tiadaAnak));
             if (!belum.length) { langkau++; continue; }
 
             if (!opsi.tanpaLog) {
