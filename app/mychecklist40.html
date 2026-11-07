@@ -470,7 +470,10 @@
                 var B = 'https://www.gstatic.com/firebasejs/10.8.1/';
                 var m = await Promise.all([import(B + 'firebase-app.js'), import(B + 'firebase-messaging.js')]);
                 var reg = await navigator.serviceWorker.getRegistration('/');
-                var token = await m[1].getToken(m[1].getMessaging(m[0].getApp()), { vapidKey: VAPID, serviceWorkerRegistration: reg || undefined });
+                // Konfigurasi kongsi fpapp.js tiada messagingSenderId, jadi guna app khas untuk FCM
+                var cfg = { apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg", authDomain: "familipintar.firebaseapp.com", projectId: "familipintar", storageBucket: "familipintar.firebasestorage.app", messagingSenderId: "277029764059", appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe" };
+                var app = m[0].getApps().filter(function (a) { return a.name === 'fcm40'; })[0] || m[0].initializeApp(cfg, 'fcm40');
+                var token = await m[1].getToken(m[1].getMessaging(app), { vapidKey: VAPID, serviceWorkerRegistration: reg || undefined });
                 if (!token) throw new Error('tiada token');
                 return token;
             }
