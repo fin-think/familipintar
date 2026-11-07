@@ -247,9 +247,37 @@
                         <input type="checkbox" id="maaf" class="checkbox-custom mt-1" data-score="5">
                         <label for="maaf" class="text-gray-700">Sudah meminta maaf & menjaga silaturrahim.</label>
                     </div>
-                    <div class="flex items-start gap-3" data-jantina="P" style="display:none">
+                </div>
+            </section>
+
+            <!-- 7. HAK SUAMI ISTERI (soalan ikut jantina; hanya jika ada pasangan dalam myNasab) -->
+            <section class="card p-6" id="seksyen-hak" style="display:none">
+                <h2 class="section-title text-xl font-semibold text-emerald-700">Hak Suami Isteri</h2>
+                <p class="text-xs text-emerald-600 mb-4">* Tandakan jika anda TELAH menunaikan tanggungjawab berikut dalam rumah tangga:</p>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3" data-jantina="L" data-hak="1" style="display:none">
+                        <input type="checkbox" id="nafkahSuami" class="checkbox-custom mt-1" data-score="5">
+                        <label for="nafkahSuami" class="text-gray-700">Menunaikan nafkah isteri dan anak, zahir (belanja, tempat tinggal) dan batin (kasih sayang, perhatian).</label>
+                    </div>
+                    <div class="flex items-start gap-3" data-jantina="L" data-hak="1" style="display:none">
+                        <input type="checkbox" id="nasihatSuami" class="checkbox-custom mt-1" data-score="5">
+                        <label for="nasihatSuami" class="text-gray-700">Membimbing dan mendidik isteri serta anak dalam agama dengan nasihat yang lembut, bukan dengan kemarahan.</label>
+                    </div>
+                    <div class="flex items-start gap-3" data-jantina="L" data-hak="1" style="display:none">
+                        <input type="checkbox" id="layanSuami" class="checkbox-custom mt-1" data-score="5">
+                        <label for="layanSuami" class="text-gray-700">Bergaul dengan isteri secara makruf: berlemah-lembut, adil, dan tidak menyakiti hati atau fizikalnya.</label>
+                    </div>
+                    <div class="flex items-start gap-3" data-jantina="P" data-hak="1" style="display:none">
                         <input type="checkbox" id="taatSuami" class="checkbox-custom mt-1" data-score="5">
                         <label for="taatSuami" class="text-gray-700">Taat dan menghormati suami dalam perkara yang makruf, serta menjaga adab dan tutur kata dengannya.</label>
+                    </div>
+                    <div class="flex items-start gap-3" data-jantina="P" data-hak="1" style="display:none">
+                        <input type="checkbox" id="jagaMaruah" class="checkbox-custom mt-1" data-score="5">
+                        <label for="jagaMaruah" class="text-gray-700">Menjaga maruah diri, rumah tangga dan harta suami, ketika dia ada mahupun tiada.</label>
+                    </div>
+                    <div class="flex items-start gap-3" data-jantina="P" data-hak="1" style="display:none">
+                        <input type="checkbox" id="syukurIsteri" class="checkbox-custom mt-1" data-score="5">
+                        <label for="syukurIsteri" class="text-gray-700">Bersyukur atas nafkah dan layanan suami, serta tidak membuka keburukannya kepada orang lain.</label>
                     </div>
                 </div>
             </section>
@@ -273,7 +301,7 @@
                     <label class="flex items-start gap-3 cursor-pointer">
                         <input type="checkbox" id="ingat-on" class="mt-1" onchange="tukarIngat()">
                         <span><span class="ingat-tajuk font-bold text-sky-800 block">🔔 Ingatkan saya setiap hari</span>
-                        <span class="block mt-1">8 malam: item <b>Solat hingga Legasi</b> yang belum ditanda. 10 malam: item <b>Tazkiyah Jiwa</b> yang belum ditanda. Satu peringatan ringkas sehari bagi setiap waktu, dan berhenti bila semua sudah ditanda.</span></span>
+                        <span class="block mt-1">8 malam: item <b>Solat hingga Legasi</b> yang belum ditanda. 10 malam: item <b>Tazkiyah Jiwa dan Hak Suami Isteri</b> yang belum ditanda. Satu peringatan ringkas sehari bagi setiap waktu, dan berhenti bila semua sudah ditanda.</span></span>
                     </label>
                     <p id="ingat-status" class="mt-2 text-xs text-gray-500"></p>
                 </div>
@@ -407,15 +435,17 @@
             return `<div class="mt-6 p-4 rounded-xl bg-amber-50 border border-amber-200"><p class="font-bold text-amber-700 mb-2">🏛️ Analisis Legasi</p><ul class="list-disc pl-5 space-y-3">${tip.join('')}</ul></div>`;
         }
 
-        // Soalan khusus jantina: berjemaah (L) dan taat suami (P). Jantina tidak diketahui: kedua-duanya disembunyikan.
-        function terapkanJantina(j) {
+        // Soalan khusus jantina: berjemaah (L) dan seksyen Hak Suami Isteri (L/P, hanya jika ada pasangan). Jantina tidak diketahui: disembunyikan.
+        function terapkanJantina(j, adaPasangan) {
             const g = String(j || '').trim().toUpperCase().charAt(0);
             document.querySelectorAll('[data-jantina]').forEach(el => {
-                const tunjuk = el.dataset.jantina === g;
+                const tunjuk = el.dataset.jantina === g && (!el.dataset.hak || adaPasangan);
                 el.style.display = tunjuk ? '' : 'none';
                 if (tunjuk) delete el.dataset.sembunyi; else el.dataset.sembunyi = '1';
                 if (!tunjuk) { const cb = el.querySelector('input'); if (cb) cb.checked = false; }
             });
+            const hak = document.getElementById('seksyen-hak');
+            if (hak) hak.style.display = hak.querySelector('[data-jantina]:not([data-sembunyi])') ? '' : 'none';
         }
         // sembunyi awal (belum log masuk / jantina belum diketahui)
         document.querySelectorAll('[data-jantina]').forEach(el => { el.dataset.sembunyi = '1'; });
@@ -484,7 +514,7 @@
             isi: (F) => {
                 resetForm();
                 const o = F.orang();
-                terapkanJantina(o.jantina);
+                terapkanJantina(o.jantina, F.adaPasangan());
                 F.maklumat(o.umur ? 'Checklist untuk <b>' + o.nama + '</b> (' + o.umur + ' tahun).' : '');
             },
             ambil: () => {

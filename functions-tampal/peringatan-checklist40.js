@@ -19,8 +19,12 @@ const CL40_KUMPULAN = {
          'puasaWajib', 'qadhaPuasa', 'puasaIsninKhamis', 'puasaHariPutih',
          'zakat', 'sedekah', 'wakaf',
          'wasiat', 'hibah', 'sepencarian', 'tunaiAmanah', 'danaPendidikan'],
-    22: ['mengumpat', 'riya', 'ujub', 'hasad', 'sabar', 'zikir', 'taubat', 'maaf', 'taatSuami']
+    22: ['mengumpat', 'riya', 'ujub', 'hasad', 'sabar', 'zikir', 'taubat', 'maaf',
+         'nafkahSuami', 'nasihatSuami', 'layanSuami', 'taatSuami', 'jagaMaruah', 'syukurIsteri']
 };
+
+// Soalan khusus jantina (dipaparkan ikut jantina): data lama tanpa 'tersedia' melangkaunya
+const CL40_JANTINA = new Set(['berjemaah', 'nafkahSuami', 'nasihatSuami', 'layanSuami', 'taatSuami', 'jagaMaruah', 'syukurIsteri']);
 
 const CL40_AYAT = {
     solat5: 'Kenapa masih belum jaga solat? Awak tahu ke nak mati bila? Solat yang dihisab dulu.',
@@ -55,7 +59,12 @@ const CL40_AYAT = {
     zikir: 'Hati yang tak berzikir akan diisi benda lain. Istighfar dulu sebelum tidur.',
     taubat: 'Tidur itu mati kecil. Kalau tak bangun lagi, awak dah bertaubat?',
     maaf: 'Siapa yang awak belum maafkan atau belum minta maaf? Hantar satu mesej malam ni.',
-    taatSuami: 'Taat dan hormat suami dalam perkara makruf. Hari ni, tutur kata dan layanan awak macam mana?'
+    nafkahSuami: 'Nafkah isteri dan anak, zahir dan batin, awak dah cukupkan? Duit sahaja belum cukup, hati mereka pun perlu diisi.',
+    nasihatSuami: 'Awak pemimpin rumah. Bila kali terakhir awak nasihatkan isteri dan anak tentang Allah, dengan lembut?',
+    layanSuami: 'Isteri itu amanah, bukan pesaing. Hari ni awak layan dia dengan lembut atau dengan marah?',
+    taatSuami: 'Taat dan hormat suami dalam perkara makruf. Hari ni, tutur kata dan layanan awak macam mana?',
+    jagaMaruah: 'Waktu suami tiada, rumah dan harta dia awak jaga macam dia ada? Itulah ukuran amanah.',
+    syukurIsteri: 'Awak syukur dengan apa yang suami beri, atau sibuk bandingkan? Keburukannya jangan dibuka kepada orang.'
 };
 
 // Jam (MYT) ke kumpulan: 20 = ibadah & legasi, 22 = tazkiyah jiwa
@@ -91,7 +100,7 @@ async function jalankanPeringatanChecklist40(dbRef, messaging, opsi = {}) {
             const tiadaAnak = ditanda.has('tiadaAnak');
             // 'tersedia' = soalan yang dipaparkan kepada orang itu (soalan jantina berbeza). Data lama tanpa 'tersedia': langkau soalan khusus jantina.
             const tersedia = Array.isArray(data.tersedia) ? new Set(data.tersedia) : null;
-            const sesuai = (id) => tersedia ? tersedia.has(id) : (id !== 'berjemaah' && id !== 'taatSuami');
+            const sesuai = (id) => tersedia ? tersedia.has(id) : !CL40_JANTINA.has(id);
             const belum = kump.filter(id => sesuai(id) && !ditanda.has(id) && !(id === 'danaPendidikan' && tiadaAnak));
             if (!belum.length) { langkau++; continue; }
 
