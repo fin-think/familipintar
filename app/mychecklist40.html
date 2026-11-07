@@ -35,6 +35,25 @@
   body #checklist-form .space-y-4>*+*,body #checklist-form .space-y-2>*+*{margin-top:7px}
   body #checklist-form .gap-3{gap:8px}
   body #checklist-form label{font-size:13px;line-height:1.35}
+  /* ---- paparan keputusan & saranan ---- */
+  body #result-container{margin-top:10px!important;padding-bottom:30px!important}
+  body #result-container.space-y-6>*+*{margin-top:10px}
+  body #result-container .card{padding:12px 12px 10px!important;border-radius:14px}
+  body #result-container h3{font-size:17px!important;margin-bottom:0!important}
+  body #score-display{font-size:34px!important;line-height:1.1!important;margin-bottom:6px!important}
+  body #suggestion-text{font-size:13px!important;line-height:1.45!important}
+  body #suggestion-text.space-y-4>*+*{margin-top:8px}
+  body #suggestion-text .text-lg{font-size:14.5px!important;line-height:1.3}
+  body #suggestion-text ul{padding-left:16px!important}
+  body #suggestion-text ul.space-y-2>*+*{margin-top:6px}
+  body #suggestion-text ul.space-y-3>*+*{margin-top:8px}
+  body #suggestion-text ol{font-size:12px!important;padding-left:16px!important;margin-top:4px!important}
+  body #suggestion-text .mt-6{margin-top:10px!important;padding:10px!important;border-radius:12px}
+  body #suggestion-text .mt-6>p.font-bold{font-size:13.5px;margin-bottom:4px!important}
+  body #result-container button[onclick="resetForm()"]{margin-top:10px!important;font-size:12.5px}
+  body #ingat-kad{margin-top:10px!important;padding:10px!important;font-size:12.5px!important;border-radius:12px!important}
+  body #ingat-kad .ingat-tajuk{font-size:13.5px!important}
+  body #ingat-kad p{line-height:1.4!important}
   body #checklist-form .checkbox-custom{width:1.1rem;height:1.1rem;margin-top:2px}
 }
 </style>
@@ -246,6 +265,14 @@
                 <div id="suggestion-text" class="text-gray-700 leading-relaxed space-y-4">
                     <!-- Suggestions will be injected here -->
                 </div>
+                <div id="ingat-kad" class="mt-6 p-4 rounded-xl bg-sky-50 border border-sky-200 text-sm text-gray-700">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="ingat-on" class="mt-1" onchange="tukarIngat()">
+                        <span><span class="ingat-tajuk font-bold text-sky-800 block">🔔 Ingatkan saya setiap hari</span>
+                        <span class="block mt-1">8 malam: item <b>Solat hingga Legasi</b> yang belum ditanda. 10 malam: item <b>Tazkiyah Jiwa</b> yang belum ditanda. Satu peringatan ringkas sehari bagi setiap waktu, dan berhenti bila semua sudah ditanda.</span></span>
+                    </label>
+                    <p id="ingat-status" class="mt-2 text-xs text-gray-500"></p>
+                </div>
                 <button onclick="resetForm()" class="mt-8 text-emerald-600 underline text-sm block mx-auto">Isi Semula Checklist</button>
             </div>
         </div>
@@ -343,6 +370,7 @@
             content += analisisLegasi(stats.legasi);
             sug.innerHTML = content;
             window.scrollTo(0, 0);
+            if (window.muatIngat) window.muatIngat();
         }
 
         // Analisis Legasi: wasiat, hibah, tunai amanah dan dana pendidikan anak sulung
@@ -383,6 +411,51 @@
         }
     </script>
 
+    <script>
+        // ---- Peringatan harian (push) untuk item yang belum ditanda ----
+        // Pilihan disimpan dalam mynasab_users: fp_[pasangan_]mychecklist40_ingat (true/false). Server hantar jam 8 & 10 malam.
+        (function () {
+            var VAPID = 'BC-vntpi-9WxGGKUPeGopgcykMKc87MODe1aEpwieX096IQ8Hzu3Mh89SI8YxuvvOvPSqhW7Eu2Ziqn4ZjwBugs';
+            var $ = function (id) { return document.getElementById(id); };
+            function medanIngat() { return 'fp_' + Peranan.awalan() + 'mychecklist40_ingat'; }
+            function nota(t, ralat) { var e = $('ingat-status'); if (e) { e.textContent = t || ''; e.style.color = ralat ? '#b91c1c' : '#64748b'; } }
+            async function daftarToken() {
+                var B = 'https://www.gstatic.com/firebasejs/10.8.1/';
+                var m = await Promise.all([import(B + 'firebase-app.js'), import(B + 'firebase-messaging.js')]);
+                var reg = await navigator.serviceWorker.getRegistration('/');
+                var token = await m[1].getToken(m[1].getMessaging(m[0].getApp()), { vapidKey: VAPID, serviceWorkerRegistration: reg || undefined });
+                if (!token) throw new Error('tiada token');
+                var Fs = FP.fs;
+                await Fs.setDoc(Fs.doc(FP.db, 'mynasab_users', FP.user.uid), { fcm_token: token, fcm_tokens: Fs.arrayUnion(token) }, { merge: true });
+            }
+            window.muatIngat = async function () {
+                var c = $('ingat-on'); if (!c) return;
+                c.checked = false; nota('');
+                if (!FP.user || !FP.fs) { nota('Log masuk dahulu untuk menghidupkan peringatan.'); c.disabled = true; return; }
+                c.disabled = false;
+                var d = await FP.baca('mynasab_users', FP.user.uid);
+                var on = !!(d && d[medanIngat()]);
+                c.checked = on;
+                if (on && 'Notification' in window && Notification.permission === 'denied') nota('Notifikasi disekat pada peranti ini. Benarkan notifikasi untuk familipintar.com dalam tetapan pelayar/telefon.', true);
+            };
+            window.tukarIngat = async function () {
+                var c = $('ingat-on'), on = c.checked;
+                if (!FP.user || !FP.fs) { c.checked = false; nota('Log masuk dahulu.', true); return; }
+                try {
+                    if (on) {
+                        if (!('Notification' in window) || !('serviceWorker' in navigator)) { c.checked = false; nota('Pelayar ini tidak menyokong notifikasi. Di iPhone, pasang app ke Skrin Utama dahulu.', true); return; }
+                        var p = Notification.permission;
+                        if (p === 'default') p = await Notification.requestPermission();
+                        if (p !== 'granted') { c.checked = false; nota('Notifikasi tidak dibenarkan. Benarkan dalam tetapan pelayar/telefon, kemudian cuba lagi.', true); return; }
+                        await daftarToken();
+                    }
+                    var u = {}; u[medanIngat()] = on;
+                    await FP.fs.updateDoc(FP.fs.doc(FP.db, 'mynasab_users', FP.user.uid), u);
+                    nota(on ? 'Peringatan dihidupkan untuk peranti ini.' : 'Peringatan dimatikan.');
+                } catch (e) { console.warn('ingat', e); c.checked = !on; nota('Gagal menyimpan. Semak sambungan internet dan cuba lagi.', true); }
+            };
+        })();
+    </script>
     <script src="../peranan.js?v=2"></script>
     <script src="../autosave.js?v=2"></script>
     <script src="../fpapp.js?v=1"></script>
