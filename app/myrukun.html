@@ -67,6 +67,43 @@
         }
     </style>
 <script src="/pwa.js" defer></script>
+<style id="fpMobilePadat">
+/* ===== MOBILE (<=767px) sahaja. Kelas md:/lg: tak disentuh, jadi desktop kekal. ===== */
+@media (max-width:767px){
+  /* bar 'Anak/Untuk' & kad log masuk (peranan.js, fpapp.js) */
+  .fp-peranan{padding:5px 8px!important;margin:0 0 6px!important;gap:6px!important;border-radius:12px!important;flex-wrap:nowrap!important}
+  .fp-peranan .fp-l{font-size:10px!important;white-space:nowrap}
+  .fp-peranan .fp-b{gap:5px!important;min-width:0}
+  .fp-peranan button{padding:6px 8px!important;font-size:12.5px!important;border-radius:9px!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #fp-kad{margin:0 auto 8px!important;padding:7px 10px!important;border-radius:12px!important;font-size:12px!important}
+  #fp-kad .fp-kecil{font-size:10.5px!important;margin-top:2px!important;line-height:1.35}
+  #fp-kad #fp-info{display:none}
+  #fp-kad select{padding:6px 28px 6px 10px!important;font-size:14px!important;border-radius:10px!important;min-width:0;max-width:100%}
+  #fp-kad #fp-pilih{margin-bottom:2px!important}
+  /* ruang halaman & kad */
+  body{padding:10px!important}
+  body .p-8,body .p-10,body .p-12{padding:16px!important}
+  body .p-6{padding:14px!important} body .p-5{padding:12px!important}
+  body .px-8,body .px-10{padding-left:16px!important;padding-right:16px!important}
+  body .py-16,body .py-20{padding-top:24px!important;padding-bottom:24px!important}
+  body .py-10,body .py-12{padding-top:16px!important;padding-bottom:16px!important}
+  body .py-8{padding-top:12px!important;padding-bottom:12px!important}
+  body .mb-10,body .mb-12{margin-bottom:16px!important} body .mb-8{margin-bottom:14px!important} body .mb-6{margin-bottom:12px!important} body .mb-4{margin-bottom:8px!important}
+  body .mt-10,body .mt-12{margin-top:16px!important} body .mt-8{margin-top:14px!important} body .mt-6{margin-top:12px!important}
+  body .space-y-8>*+*,body .space-y-6>*+*{margin-top:12px!important} body .space-y-5>*+*,body .space-y-4>*+*{margin-top:10px!important} body .space-y-3>*+*{margin-top:8px!important}
+  body .gap-6,body .gap-8{gap:12px!important} body .gap-4{gap:10px!important}
+  body .rounded-3xl,body .rounded-\[2rem\],body .rounded-\[2\.5rem\]{border-radius:18px!important}
+  /* tajuk & ikon besar */
+  body .text-7xl{font-size:44px!important;line-height:1.1!important} body .text-6xl{font-size:38px!important;line-height:1.1!important}
+  body .text-5xl{font-size:30px!important;line-height:1.15!important} body .text-4xl{font-size:25px!important;line-height:1.2!important}
+  body .text-3xl{font-size:21px!important;line-height:1.25!important} body .text-2xl{font-size:18px!important;line-height:1.3!important}
+  body .text-xl{font-size:16px!important}
+  body .w-32.h-32{width:72px!important;height:72px!important} body .w-24.h-24{width:56px!important;height:56px!important} body .w-20.h-20{width:48px!important;height:48px!important} body .w-16.h-16{width:42px!important;height:42px!important}
+  body svg.w-16,body svg.w-20,body svg.w-24{width:36px!important;height:36px!important}
+  body .shadow-2xl,body .shadow-xl{box-shadow:0 6px 18px rgba(15,23,42,.10)!important}
+  body input,body select,body textarea{font-size:16px}
+}
+</style>
 </head>
 <body class="p-4 md:p-8">
 
