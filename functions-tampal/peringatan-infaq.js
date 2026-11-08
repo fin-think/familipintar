@@ -6,7 +6,7 @@
 //   - ada misi infaq aktif (ourmoney_goals/{uid}_infaq, status 'aktif', dalam tempoh 365 hari)
 //   - peringatan tidak dimatikan (peringatan !== false) dan jam pilihan (peringatan_jam, lalai 20) == jam sekarang
 //   - belum merekod infaq hari ini mencukupi sasaran harian
-// Token FCM: mynasab_users.fcm_token (sama seperti myNasab / weCare / OurMoney simpanan).
+// Token FCM: ke peranti orang itu (fcm_induk / fcm_pasangan) jika ada, jika tidak semua peranti akaun (fcm_tokens).
 
 const INFAQ_MS_HARI = 86400000;
 const infaqNoHari = (str) => { const [y, m, d] = String(str).split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / INFAQ_MS_HARI); };
@@ -58,7 +58,7 @@ async function jalankanPeringatanInfaq(dbRef, messaging, opsi = {}) {
                 const n = await hantarKeSemuaPeranti(dbRef, messaging, uid, udata, {
                     notification: { title: `🤲 Infaq harian${per === 'pasangan' ? ' (pasangan)' : ''} · hari ke-${hariKe}`, body: `Baki hari ini ${omRM(baki)}. ${INFAQ_AYAT[hariKe % INFAQ_AYAT.length]}` },
                     data: { app: 'ourmoney', url: '/ourmoney.html', badgeCount: '1', tag: 'ourmoney-infaq-' + per }
-                });
+                }, per);       // hanya ke peranti orang yang berkenaan (jatuh balik ke semua peranti jika belum didaftar)
                 if (n > 0) dihantar++; else langkau++;
             } catch (e) { console.error('Infaq: gagal untuk', uid, e.message); }
         }));
