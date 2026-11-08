@@ -156,6 +156,16 @@ onAuthStateChanged(auth, async (user) => {
             }
             // ----------------------------------------
 
+            // Beritahu pengundang (induk + pasangan) bahawa ahli ini sudah sertai: sekali sahaja, senyap jika gagal
+            try {
+                const kunciNotis = 'fp_notis_sertai_' + user.uid;
+                if (!localStorage.getItem(kunciNotis) && !dataPengguna.notis_sertai_dihantar && !window.__sedangDaftar) {
+                    httpsCallable(fungsi, 'beritahuPengundang')({}).then(() => { try { localStorage.setItem(kunciNotis, '1'); } catch (e) {} }).catch(() => {});
+                }
+            } catch (e) {}
+            // Pengundang: papar ahli yang baru sertai
+            paparAhliBaru(dataPengguna, refPengguna);
+
             window.muatTurunSalasilah();
             window.muatMenunggu();
             // Pintasan dari muka depan (mobile): ?buka=pokok -> Keluarga Saya, ?buka=profil -> borang edit induk
@@ -435,6 +445,26 @@ async function bawaDataLama() {
     } catch (e) { console.warn('bawaDataLama:', e.message); }
 }
 
+
+// Popup untuk pengundang: ahli yang dijemput sudah sertai (ditulis oleh fungsi beritahuPengundang)
+function paparAhliBaru(d, ref) {
+    try {
+        const senarai = Array.isArray(d.ahli_baru_notis) ? d.ahli_baru_notis : [];
+        if (!senarai.length || document.getElementById('popupAhliBaru')) return;
+        const esc = (t) => String(t || '').replace(/[<>&"']/g, '');
+        const k = document.createElement('div');
+        k.id = 'popupAhliBaru';
+        k.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+        k.innerHTML = `<div style="background:#fff;max-width:380px;width:100%;border-radius:18px;padding:24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.35);font-family:inherit;">
+            <div style="font-size:42px;">🌳🎉</div>
+            <h3 style="margin:8px 0 6px;color:#1e293b;">Ahli keluarga dah sertai</h3>
+            <p style="color:#475569;font-size:14px;line-height:1.6;margin:0 0 16px;">${senarai.map(x => `<b>${esc(x.nama)}</b> (${esc(x.jenis)})`).join('<br>')}<br>sudah menjadi sebahagian daripada Famili Pintar.</p>
+            <button id="btnAhliBaruOk" style="width:100%;background:#16a34a;color:#fff;border:none;padding:13px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;">Alhamdulillah</button></div>`;
+        document.body.appendChild(k);
+        document.getElementById('btnAhliBaruOk').onclick = () => { k.remove(); updateDoc(ref, { ahli_baru_notis: [] }).catch(() => {}); };
+    } catch (e) { console.warn('paparAhliBaru:', e.message); }
+}
+
 async function semakPokokTerkini() {
     if (!penggunaSemasa || window.__semakPokokSudah) return;
     window.__semakPokokSudah = true;
@@ -685,6 +715,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDafta
             : jem
             ? `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit. ${window.__statusPautanDaftar === 'menunggu' ? 'Pautan keluarga anda menunggu kelulusan' : 'Anda kini dipautkan dengan keluarga'} ${jem.nama_pengundang}.`
             : `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit percuma.`);
+        if (jem) { try { await httpsCallable(fungsi, 'beritahuPengundang')({}); localStorage.setItem('fp_notis_sertai_' + user.uid, '1'); } catch (e) {} }
         location.href = location.pathname;
     } catch (error) {
         window.__sedangDaftar = false;
