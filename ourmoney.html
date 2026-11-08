@@ -900,7 +900,7 @@
         modPengguna = m;
         try { localStorage.setItem('om_pengguna', m); } catch (e) {}
         renderPemilih(); segerakBorangPengguna();
-        if (currentUser) { muatDataOurMoney(); renderInfaqSemua(); renderAmanahSemua(); renderHajiSemua(); }
+        if (currentUser) { muatDataOurMoney(); muatDataMyTadbir(); renderInfaqSemua(); renderAmanahSemua(); renderHajiSemua(); }
     };
     let tripList = [];
     let ibuBapaHidup = { induk: [], pasangan: [] };
@@ -2018,56 +2018,46 @@
     async function muatDataMyTadbir() {
         try {
             if (!currentUser) return;
-            const docRef = doc(db, "mytadbir_profiles", currentUser.uid);
-            const snap = await getDoc(docRef);
-
             const contentWrapper = document.getElementById('tadbir-content-wrapper');
             const emptyState = document.getElementById('tadbir-empty-state');
             const btnAction = document.getElementById('tadbir-btn-action');
-
             document.getElementById('mytadbir-target').style.display = 'block';
 
-            if (snap.exists() && snap.data().summary) {
-                const data = snap.data();
-                let netWorth = data.summary.net_worth || 0;
-                let debts = data.summary.total_debts || 0;
-                let eduDeficit = data.summary.education_fund_needed || 0;
+            let netWorth = 0, debts = 0, eduDeficit = 0, bayarHutang = 0, simpanEdu = 0, adaProfil = false;
+            const tS = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
+            const semuaTxn = []; tS.forEach(d => semuaTxn.push(d.data()));
+            // Ikut pemilih Induk / Pasangan / Gabungan
+            for (const per of senaraiPeranan()) {
+                const snap = await getDoc(doc(db, "mytadbir_profiles", per === 'pasangan' ? currentUser.uid + '_pasangan' : currentUser.uid));
+                if (!snap.exists() || !snap.data().summary) continue;
+                adaProfil = true;
+                const sm = snap.data().summary;
+                let nw = sm.net_worth || 0, db_ = sm.total_debts || 0, ed = sm.education_fund_needed || 0, bh = 0, se = 0;
                 // Baki sentiasa terkini: tolak bayaran hutang & simpanan pendidikan yang direkod SELEPAS myTADBIR dikemas kini.
-                let bayarHutang = 0, simpanEdu = 0;
-                try {
-                    const lu = Number(data.summary.last_updated) || 0;
-                    const hariLu = lu ? new Date(lu - new Date(lu).getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '';
-                    const tS = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
-                    tS.forEach(d => {
-                        const x = d.data();
-                        if (x.type !== 'outflow') return;
-                        if ((x.txnPeranan || 'induk') !== 'induk') return;
-                        const baru = x.created_at ? Number(x.created_at) > lu : String(x.date || '') > hariLu;
-                        if (!baru) return;
-                        const amt = Number(x.amount) || 0;
-                        if (/ansuran pinjaman|byr hutang|bayar hutang/i.test(x.category || '')) bayarHutang += amt;
-                        else if (String(x.goal_id || '').startsWith('pendidikan_')) simpanEdu += amt;
-                    });
-                } catch (e) { console.error("Gagal kira baki myTADBIR:", e); }
-                debts = Math.max(0, debts - bayarHutang);
-                eduDeficit = Math.max(0, eduDeficit - simpanEdu);
+                const lu = Number(sm.last_updated) || 0;
+                const hariLu = lu ? new Date(lu - new Date(lu).getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '';
+                semuaTxn.forEach(x => {
+                    if (x.type !== 'outflow' || peranRekod(x) !== per) return;
+                    const baru = x.created_at ? Number(x.created_at) > lu : String(x.date || '') > hariLu;
+                    if (!baru) return;
+                    const amt = Number(x.amount) || 0;
+                    if (/ansuran pinjaman|byr hutang|bayar hutang/i.test(x.category || '')) bh += amt;
+                    else if (String(x.goal_id || '').startsWith('pendidikan_')) se += amt;
+                });
+                netWorth += nw; debts += Math.max(0, db_ - bh); eduDeficit += Math.max(0, ed - se);
+                bayarHutang += bh; simpanEdu += se;
+            }
 
-                if (netWorth === 0 && debts === 0 && eduDeficit === 0) {
-                    if (contentWrapper) contentWrapper.style.display = 'none';
-                    if (emptyState) emptyState.classList.remove('hidden');
-                    if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang 🚀';
-                } else {
-                    document.getElementById('tadbir-networth').innerText = `RM ${formatRM(netWorth)}`;
-                    document.getElementById('tadbir-debts').innerText = `RM ${formatRM(debts)}`;
-                    document.getElementById('tadbir-edu').innerText = `RM ${formatRM(eduDeficit)}`;
-                    let nota = document.getElementById('tadbir-nota');
-                    if (!nota) { nota = document.createElement('div'); nota.id = 'tadbir-nota'; nota.style.cssText = 'font-size:11px;color:#64748b;line-height:1.4;margin-top:8px;'; document.getElementById('tadbir-content-wrapper').appendChild(nota); }
-                    nota.innerHTML = (bayarHutang || simpanEdu) ? `✅ Dikemas kini automatik: bayaran hutang <b>RM ${formatRM(bayarHutang)}</b>, simpanan pendidikan <b>RM ${formatRM(simpanEdu)}</b> sejak myTADBIR terakhir dikemas kini.` : 'Baki akan berkurang automatik bila anda rekod bayaran <b>Ansuran Pinjaman</b> atau simpan untuk misi pendidikan anak.';
-                  
-                    if (contentWrapper) contentWrapper.style.display = 'block';
-                    if (emptyState) emptyState.classList.add('hidden');
-                    if (btnAction) btnAction.innerText = 'Urus Profil myTADBIR ➔';
-                }
+            if (adaProfil && !(netWorth === 0 && debts === 0 && eduDeficit === 0)) {
+                document.getElementById('tadbir-networth').innerText = `RM ${formatRM(netWorth)}`;
+                document.getElementById('tadbir-debts').innerText = `RM ${formatRM(debts)}`;
+                document.getElementById('tadbir-edu').innerText = `RM ${formatRM(eduDeficit)}`;
+                let nota = document.getElementById('tadbir-nota');
+                if (!nota) { nota = document.createElement('div'); nota.id = 'tadbir-nota'; nota.style.cssText = 'font-size:11px;color:#64748b;line-height:1.4;margin-top:8px;'; contentWrapper.appendChild(nota); }
+                nota.innerHTML = (bayarHutang || simpanEdu) ? `✅ Dikemas kini automatik (${esc(labelMod())}): bayaran hutang <b>RM ${formatRM(bayarHutang)}</b>, simpanan pendidikan <b>RM ${formatRM(simpanEdu)}</b> sejak myTADBIR terakhir dikemas kini.` : 'Baki akan berkurang automatik bila anda rekod bayaran <b>Ansuran Pinjaman</b> atau simpan untuk misi pendidikan anak.';
+                if (contentWrapper) contentWrapper.style.display = 'block';
+                if (emptyState) emptyState.classList.add('hidden');
+                if (btnAction) btnAction.innerText = 'Urus Profil myTADBIR ➔';
             } else {
                 if (contentWrapper) contentWrapper.style.display = 'none';
                 if (emptyState) emptyState.classList.remove('hidden');
