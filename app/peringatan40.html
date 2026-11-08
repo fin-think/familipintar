@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peringatan myCHECKLIST40 | Famili Pintar</title>
+<meta name="robots" content="noindex">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f1f5f9;color:#0f172a;line-height:1.5}
+  .bungkus{max-width:560px;margin:0 auto;padding:16px 14px 40px}
+  .kepala{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:13px;font-weight:800;color:#64748b}
+  .kepala a{color:#0d9488;text-decoration:none}
+  .utama{border-radius:18px;padding:22px 20px;color:#fff;box-shadow:0 10px 25px rgba(15,23,42,.18)}
+  .utama.j20{background:linear-gradient(135deg,#0f766e,#134e4a)}
+  .utama.j22{background:linear-gradient(135deg,#312e81,#1e1b4b)}
+  .utama small{display:block;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;opacity:.75;margin-bottom:8px}
+  .utama p{margin:0;font-size:21px;line-height:1.45;font-weight:800}
+  .utama .tajuk-i{margin-top:12px;font-size:12px;opacity:.8;font-weight:700}
+  h2{font-size:14px;margin:22px 0 4px;font-weight:800}
+  .sub{font-size:12px;color:#64748b;margin:0 0 10px}
+  .item{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px 14px;margin-bottom:8px}
+  .item b{display:block;font-size:12px;color:#0d9488;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+  .item span{font-size:14px}
+  .kosong{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:14px;padding:14px;font-weight:700;font-size:14px}
+  .btn{display:block;text-align:center;background:#0d9488;color:#fff;text-decoration:none;font-weight:800;padding:14px;border-radius:12px;margin-top:18px;font-size:15px}
+  .btn.sek{background:#fff;color:#0f172a;border:1.5px solid #e2e8f0}
+  .nota{font-size:12px;color:#64748b;margin-top:10px;text-align:center}
+</style>
+</head>
+<body>
+<div class="bungkus">
+  <div class="kepala"><span>Famili Pintar · Peringatan</span><a href="/index.html">Laman utama</a></div>
+
+  <div class="utama j20" id="utama">
+    <small id="u-kecil">Peringatan hari ini</small>
+    <p id="u-ayat">Memuatkan…</p>
+    <div class="tajuk-i" id="u-tajuk"></div>
+  </div>
+
+  <h2 id="h-senarai" style="display:none"></h2>
+  <p class="sub" id="s-senarai" style="display:none">Ayat untuk setiap perkara yang belum anda tandakan.</p>
+  <div id="senarai"></div>
+
+  <a class="btn" id="btn-buka" href="/app/mychecklist40.html">Buka myCHECKLIST40 ➔</a>
+  <div class="nota" id="nota"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+// Ayat & label setiap perkara (sama dengan ayat push di pelayan)
+const AYAT = {
+  solat5: ['Solat 5 waktu', 'Kenapa masih belum jaga solat? Awak tahu ke nak mati bila? Solat yang dihisab dulu.'],
+  berjemaah: ['Solat berjemaah', 'Azan dah berkumandang, awak tunggu apa lagi? Jemaah dulu, urusan kemudian.'],
+  awalwaktu: ['Solat awal waktu', 'Allah dulu atau urusan dulu? Solat di awal waktu tanda awak letak Dia di tempat pertama.'],
+  qadha: ['Qadha solat', 'Hutang solat tak hilang sebab awak lupa. Bayar satu malam ni, sebelum terlambat.'],
+  tahajjud: ['Tahajjud', 'Sepertiga malam itu sunyi dan doa paling dekat. Dua rakaat pun cukup untuk mula.'],
+  bacaanHarian: ['Bacaan Al-Quran harian', 'Al-Quran dalam rak tak boleh tunjuk jalan. Buka satu muka surat malam ni.'],
+  lazim: ['Surah lazim', 'Anak awak belajar solat daripada bacaan awak. Surah lazim dah lancar?'],
+  pilihan: ['Surah pilihan', 'Yasin, Al-Waqiah, Al-Mulk. Awak nak baca bila, bila dah tak sempat?'],
+  tadabbur: ['Tadabbur', 'Awak baca surat Allah, tapi faham apa yang Dia nak? Satu ayat dengan terjemahan malam ni.'],
+  daftarHaji: ['Daftar Haji', 'Giliran Haji makin panjang, umur makin pendek. Awak tunggu apa lagi?'],
+  umrah: ['Umrah', 'Mampu hari ni belum tentu mampu esok. Jangan tunggu sampai terlambat.'],
+  tabungan: ['Tabungan Haji/Umrah', 'Niat tanpa simpanan tak sampai ke Mekah. Asingkan sedikit, mulakan bulan ni.'],
+  puasaWajib: ['Puasa wajib', 'Hutang puasa dengan Allah, awak nak langsaikan bila? Tetapkan satu tarikh yang pasti.'],
+  qadhaPuasa: ['Qadha puasa', 'Hari puasa yang tertinggal tak hilang sendiri. Pilih satu hari minggu ni dan niat sekarang.'],
+  puasaIsninKhamis: ['Puasa Isnin & Khamis', 'Isnin dan Khamis, amal diangkat kepada Allah. Biar awak sedang berpuasa waktu itu.'],
+  puasaHariPutih: ['Puasa Hari Putih', 'Tiga hari sebulan, 13, 14 dan 15 Hijrah. Cukup mudah untuk mula. Tandakan dalam kalendar.'],
+  zakat: ['Zakat', 'Harta yang belum dizakat masih ada hak orang lain di dalamnya. Awak sanggup bawa ke akhirat?'],
+  sedekah: ['Sedekah', 'Yang awak sedekahkan itu yang kekal, selebihnya ditinggalkan. Satu sedekah kecil sebelum tidur?'],
+  wakaf: ['Wakaf', 'Bila awak dah tiada, wakaf masih mengalir. RM10 sebulan pun dikira.'],
+  wasiat: ['Wasiat', 'Kalau awak pergi malam ni, harta awak jadi pertelingkahan atau ketenangan? Sediakan wasiat sekarang.'],
+  hibah: ['Hibah', 'Apa yang awak nak beri kepada seseorang, rancang masa hidup. Faraid hanya selepas awak tiada.'],
+  sepencarian: ['Maklumat harta & dokumen', 'Pasangan awak tahu di mana harta dan dokumen disimpan? Kalau awak tiada esok, mereka nak cari ke mana?'],
+  tunaiAmanah: ['Tunai segera keluarga', 'Akaun dibekukan, jenazah perlu diuruskan. Duit segera untuk keluarga, dah sedia?'],
+  danaPendidikan: ['Dana pendidikan anak', 'Anak sulung membesar lebih cepat daripada simpanan awak. Mulakan auto-debit dana pengajian malam ni.'],
+  mengumpat: ['Mengumpat', 'Hari ni awak sebut nama siapa tanpa dia tahu? Mohon maaf sebelum tidur.'],
+  riya: ['Riya’', 'Kalau tiada siapa nampak, awak masih buat amal itu?'],
+  ujub: ['Ujub', 'Amal awak nampak baik? Itu taufik Allah, bukan hebat awak.'],
+  hasad: ['Hasad', 'Dengki membakar kebaikan sendiri. Doakan orang yang awak iri, malam ni.'],
+  sabar: ['Sabar', 'Waktu awak marah hari ni, itulah ujian sabar. Lulus atau gagal?'],
+  zikir: ['Zikir & istighfar', 'Hati yang tak berzikir akan diisi benda lain. Istighfar dulu sebelum tidur.'],
+  taubat: ['Taubat', 'Tidur itu mati kecil. Kalau tak bangun lagi, awak dah bertaubat?'],
+  maaf: ['Memaafkan & minta maaf', 'Siapa yang awak belum maafkan atau belum minta maaf? Hantar satu mesej malam ni.'],
+  nafkahSuami: ['Hak isteri · Nafkah', 'Nafkah isteri dan anak, zahir dan batin, awak dah cukupkan? Duit sahaja belum cukup, hati mereka pun perlu diisi.'],
+  nasihatSuami: ['Hak isteri · Nasihat', 'Awak pemimpin rumah. Bila kali terakhir awak nasihatkan isteri dan anak tentang Allah, dengan lembut?'],
+  layanSuami: ['Hak isteri · Layanan', 'Isteri itu amanah, bukan pesaing. Hari ni awak layan dia dengan lembut atau dengan marah?'],
+  taatSuami: ['Hak suami · Taat', 'Taat dan hormat suami dalam perkara makruf. Hari ni, tutur kata dan layanan awak macam mana?'],
+  jagaMaruah: ['Hak suami · Amanah', 'Waktu suami tiada, rumah dan harta dia awak jaga macam dia ada? Itulah ukuran amanah.'],
+  syukurIsteri: ['Hak suami · Syukur', 'Awak syukur dengan apa yang suami beri, atau sibuk bandingkan? Keburukannya jangan dibuka kepada orang.']
+};
+const KUMP = {
+  20: ['solat5','berjemaah','awalwaktu','qadha','tahajjud','bacaanHarian','lazim','pilihan','tadabbur','daftarHaji','umrah','tabungan','puasaWajib','qadhaPuasa','puasaIsninKhamis','puasaHariPutih','zakat','sedekah','wakaf','wasiat','hibah','sepencarian','tunaiAmanah','danaPendidikan'],
+  22: ['mengumpat','riya','ujub','hasad','sabar','zikir','taubat','maaf','nafkahSuami','nasihatSuami','layanSuami','taatSuami','jagaMaruah','syukurIsteri']
+};
+const JANTINA = new Set(['berjemaah','nafkahSuami','nasihatSuami','layanSuami','taatSuami','jagaMaruah','syukurIsteri']);
+const TAJUK = { 20: '🕌 Semak amal hari ini', 22: '🌙 Muhasabah jiwa sebelum tidur' };
+
+const q = new URLSearchParams(location.search);
+let jam = parseInt(q.get('jam'), 10);
+if (jam !== 20 && jam !== 22) jam = (new Date().getHours() >= 21 || new Date().getHours() < 5) ? 22 : 20;
+const per = q.get('per') === 'pasangan' ? 'pasangan' : 'induk';
+const id = q.get('i');
+const $ = (x) => document.getElementById(x);
+const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+$('utama').className = 'utama j' + jam;
+$('u-kecil').textContent = TAJUK[jam];
+$('btn-buka').href = '/app/mychecklist40.html';
+
+// Ayat daripada notifikasi dipaparkan serta-merta (tanpa perlu log masuk)
+if (id && AYAT[id]) { $('u-ayat').textContent = AYAT[id][1]; $('u-tajuk').textContent = AYAT[id][0]; }
+else { $('u-ayat').textContent = 'Semak amalan anda hari ini dan tandakan yang telah dilakukan.'; }
+
+const app = initializeApp({ apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg", authDomain: "familipintar.firebaseapp.com", projectId: "familipintar", storageBucket: "familipintar.firebasestorage.app", appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe" }, 'peringatan40');
+const auth = getAuth(app), db = getFirestore(app);
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { $('nota').innerHTML = 'Log masuk di <a href="/app/mychecklist40.html">myCHECKLIST40</a> untuk lihat senarai penuh yang belum ditanda.'; return; }
+  try {
+    const s = await getDoc(doc(db, 'mynasab_users', user.uid));
+    const d = s.exists() ? s.data()[per === 'pasangan' ? 'fp_pasangan_mychecklist40' : 'fp_mychecklist40'] : null;
+    if (!d || !Array.isArray(d.dicentang)) { $('nota').textContent = 'Belum ada checklist yang disimpan.'; return; }
+    const tanda = new Set(d.dicentang), tiadaAnak = tanda.has('tiadaAnak');
+    const tersedia = Array.isArray(d.tersedia) ? new Set(d.tersedia) : null;
+    const belum = KUMP[jam].filter(k => (tersedia ? tersedia.has(k) : !JANTINA.has(k)) && !tanda.has(k) && !(k === 'danaPendidikan' && tiadaAnak));
+    $('h-senarai').style.display = ''; $('s-senarai').style.display = '';
+    if (!belum.length) {
+      $('h-senarai').textContent = 'Alhamdulillah';
+      $('s-senarai').style.display = 'none';
+      $('senarai').innerHTML = '<div class="kosong">✅ Semua perkara dalam kumpulan ini sudah ditanda. Teruskan istiqamah.</div>';
+      return;
+    }
+    $('h-senarai').textContent = belum.length + ' perkara belum ditanda';
+    $('senarai').innerHTML = belum.map(k => '<div class="item"><b>' + esc(AYAT[k][0]) + '</b><span>' + esc(AYAT[k][1]) + '</span></div>').join('');
+  } catch (e) { $('nota').textContent = 'Tidak dapat memuat senarai penuh.'; }
+});
+</script>
+</body>
+</html>

@@ -133,10 +133,12 @@ async function jalankanPeringatanChecklist40(dbRef, messaging, opsi = {}) {
             }
 
             const pilih = belum[cl40NoHari(now) % belum.length];
+            // Klik notifikasi buka halaman baca khas (ayat penuh + senarai belum ditanda), bukan terus ke app
+            const pautan = `/app/peringatan40.html?jam=${jamKini}&per=${per || 'induk'}&i=${pilih}`;
             const n = await cl40Hantar(dbRef, messaging, uid, medanToken, token, {
                 notification: { title: CL40_TAJUK[jamKini](belum.length), body: CL40_AYAT[pilih] },
-                data: { app: 'checklist40', url: '/app/mychecklist40.html', badgeCount: '1', tag: 'checklist40-' + jamKini },
-                webpush: { fcmOptions: { link: '/app/mychecklist40.html' } }
+                data: { app: 'checklist40', url: pautan, badgeCount: '1', tag: 'checklist40-' + jamKini },
+                webpush: { fcmOptions: { link: pautan } }
             });
             if (n > 0) dihantar++; else langkau++;
         } catch (e) { console.error('Checklist40: gagal untuk', uid, e.message); }
