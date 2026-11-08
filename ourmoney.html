@@ -344,6 +344,21 @@
     .btn-togol-senarai .om-chev { transition: transform .2s; display: inline-block; }
     .btn-togol-senarai[aria-expanded="true"] .om-chev { transform: rotate(180deg); }
     #kadSenaraiTxn.om-tutup { display: none; }
+
+    /* Tab Analisis: padat di mobile */
+    #pane-analisis .health-card { margin-top: 12px; padding-top: 12px; }
+    #pane-analisis .health-title { font-size: 0.88rem; margin-bottom: 8px; }
+    #pane-analisis .health-msg { font-size: 0.74rem; padding: 9px 10px; }
+    #pane-analisis .progress-wrap { height: 9px; margin-bottom: 8px; }
+    #pane-analisis .report-card { padding: 14px; margin-top: 12px; border-radius: 14px; }
+    #pane-analisis .report-title { font-size: 0.88rem; padding-bottom: 8px; margin-bottom: 10px; }
+    #pane-analisis .report-grid { gap: 10px; }
+    #pane-analisis .report-box { padding: 11px 12px; border-radius: 10px; }
+    #pane-analisis .report-label { font-size: 0.62rem; margin-bottom: 6px; }
+    #pane-analisis .report-val { font-size: 0.85rem; margin-bottom: 4px; }
+    #pane-analisis .report-box .text-sm, #pane-analisis .report-box #rep-plan { font-size: 0.74rem; }
+    #pane-analisis .trend-up, #pane-analisis .trend-down, #pane-analisis .trend-neutral { font-size: 0.68rem; padding: 2px 5px; }
+    #pane-analisis .cat-bar-wrap { font-size: 0.72rem; gap: 8px; margin-bottom: 6px; }
   }
 </style>
 <script src="huruf.js?v=1"></script>
@@ -1994,7 +2009,7 @@
             if (!confirm("Padam rekod ini?")) return;
             try {
                 await deleteDoc(doc(db, "ourmoney_transactions", id));
-                await muatMisi();
+                await muatMisi(); muatDataMyTadbir();
                 if (modPaparan === 'tahun') lihatTahunan(); else muatDataOurMoney();
             } catch (e) { alert("Gagal memadam: " + e.message); }
         };
@@ -2014,9 +2029,28 @@
 
             if (snap.exists() && snap.data().summary) {
                 const data = snap.data();
-                const netWorth = data.summary.net_worth || 0;
-                const debts = data.summary.total_debts || 0;
-                const eduDeficit = data.summary.education_fund_needed || 0;
+                let netWorth = data.summary.net_worth || 0;
+                let debts = data.summary.total_debts || 0;
+                let eduDeficit = data.summary.education_fund_needed || 0;
+                // Baki sentiasa terkini: tolak bayaran hutang & simpanan pendidikan yang direkod SELEPAS myTADBIR dikemas kini.
+                let bayarHutang = 0, simpanEdu = 0;
+                try {
+                    const lu = Number(data.summary.last_updated) || 0;
+                    const hariLu = lu ? new Date(lu - new Date(lu).getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '';
+                    const tS = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
+                    tS.forEach(d => {
+                        const x = d.data();
+                        if (x.type !== 'outflow') return;
+                        if ((x.txnPeranan || 'induk') !== 'induk') return;
+                        const baru = x.created_at ? Number(x.created_at) > lu : String(x.date || '') > hariLu;
+                        if (!baru) return;
+                        const amt = Number(x.amount) || 0;
+                        if (/ansuran pinjaman|byr hutang|bayar hutang/i.test(x.category || '')) bayarHutang += amt;
+                        else if (String(x.goal_id || '').startsWith('pendidikan_')) simpanEdu += amt;
+                    });
+                } catch (e) { console.error("Gagal kira baki myTADBIR:", e); }
+                debts = Math.max(0, debts - bayarHutang);
+                eduDeficit = Math.max(0, eduDeficit - simpanEdu);
 
                 if (netWorth === 0 && debts === 0 && eduDeficit === 0) {
                     if (contentWrapper) contentWrapper.style.display = 'none';
@@ -2026,6 +2060,9 @@
                     document.getElementById('tadbir-networth').innerText = `RM ${formatRM(netWorth)}`;
                     document.getElementById('tadbir-debts').innerText = `RM ${formatRM(debts)}`;
                     document.getElementById('tadbir-edu').innerText = `RM ${formatRM(eduDeficit)}`;
+                    let nota = document.getElementById('tadbir-nota');
+                    if (!nota) { nota = document.createElement('div'); nota.id = 'tadbir-nota'; nota.style.cssText = 'font-size:11px;color:#64748b;line-height:1.4;margin-top:8px;'; document.getElementById('tadbir-content-wrapper').appendChild(nota); }
+                    nota.innerHTML = (bayarHutang || simpanEdu) ? `✅ Dikemas kini automatik: bayaran hutang <b>RM ${formatRM(bayarHutang)}</b>, simpanan pendidikan <b>RM ${formatRM(simpanEdu)}</b> sejak myTADBIR terakhir dikemas kini.` : 'Baki akan berkurang automatik bila anda rekod bayaran <b>Ansuran Pinjaman</b> atau simpan untuk misi pendidikan anak.';
                   
                     if (contentWrapper) contentWrapper.style.display = 'block';
                     if (emptyState) emptyState.classList.add('hidden');
@@ -2132,6 +2169,7 @@
             window.buangGambar();
             
             if (tambahan.is_saving) await muatMisi();
+            muatDataMyTadbir();
             if (tambahan.infaq) await muatInfaq();
             if (tambahan.amanah) await muatAmanah();
             if (tambahan.haji) await muatHaji();
