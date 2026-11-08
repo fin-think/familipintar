@@ -458,7 +458,7 @@ function paparAhliBaru(d, ref) {
         k.innerHTML = `<div style="background:#fff;max-width:380px;width:100%;border-radius:18px;padding:24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.35);font-family:inherit;">
             <div style="font-size:42px;">🌳🎉</div>
             <h3 style="margin:8px 0 6px;color:#1e293b;">Ahli keluarga dah sertai</h3>
-            <p style="color:#475569;font-size:14px;line-height:1.6;margin:0 0 16px;">${senarai.map(x => `<b>${esc(x.nama)}</b> (${esc(x.jenis)})`).join('<br>')}<br>sudah menjadi sebahagian daripada Famili Pintar.</p>
+            <p style="color:#475569;font-size:14px;line-height:1.6;margin:0 0 16px;">${senarai.map(x => `<b>${esc(x.nama)}</b> (${esc(x.jenis)})${x.oleh ? ', dijemput oleh ' + esc(x.oleh) : ''}`).join('<br>')}<br>sudah menjadi sebahagian daripada Famili Pintar.</p>
             <button id="btnAhliBaruOk" style="width:100%;background:#16a34a;color:#fff;border:none;padding:13px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;">Alhamdulillah</button></div>`;
         document.body.appendChild(k);
         document.getElementById('btnAhliBaruOk').onclick = () => { k.remove(); updateDoc(ref, { ahli_baru_notis: [] }).catch(() => {}); };
