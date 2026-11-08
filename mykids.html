@@ -348,7 +348,7 @@ function persBox(a) {
     <a href="${linkTo}" style="font-size:13px;font-weight:700;color:var(--akh)">${linkText}</a></div>`;
 }
 
-const URL_GZ = "app/mypsikoteens2.0.html";
+const URL_GZ = "app/mypsikoteens2.0.html", URL_T3 = "app/mypsikoteens3.0.html";
 const URL_PSIKO = "app/mypsikoteens.html", URL_KIDS = "app/mypsikokids.html", URL_ING = "app/myintegrity.html";
 function akhiratBox(a, umur) {
   const id = encodeURIComponent(a.id), A = S.plan.psi, K = S.plan.kids, B = S.plan.ing;
@@ -398,6 +398,17 @@ function akhiratBox(a, umur) {
     else h += `<div class="pers"><h2>myPSIKOteens 2.0: ${esc(G.status)}</h2><p class="s">Skor ${G.skor} (rendah lebih baik, ${G.min}-${G.max})</p>
       ${bar('Jati diri digital', G.pct)}
       <a href="${link2}" style="font-size:13px;font-weight:700;color:var(--akh)">${textLihat}</a></div>`;
+  }
+
+  // myPSIKOteens 3.0: privasi remaja. Hanya status diambil / belum, keputusan tidak disimpan atau dipaparkan.
+  if (umur >= 12) {
+    const r3 = S.ud && S.ud['fp_anak_' + a.id + '_mypsikoteens3'], t3 = r3 && r3.tahap && r3.tahap.ujian;
+    const link3 = unlockKids ? `${URL_T3}?anak=${id}` : URL_JURNAL;
+    const tkh = t3 && t3.tarikh ? String(t3.tarikh).split('-').reverse().join('/') : '';
+    h += t3
+      ? `<div class="pers"><h2>myPSIKOteens 3.0: ✅ Sudah diambil</h2><p class="s">${tkh ? 'Kali terakhir ' + tkh + ' · ' : ''}${t3.cubaan || 1} kali diambil</p>
+         <p class="nota" style="margin-top:0">🔒 Keputusan ujian ini peribadi untuk ${esc(a.name)} dan tidak disimpan. Ini supaya dia menjawab dengan jujur dan berani mendapatkan bimbingan. Buka ruang berbual dengan tenang, tanpa menghakimi, jika dia mahu berkongsi.</p></div>`
+      : `<div class="pers"><h2>myPSIKOteens 3.0: ${esc(a.name)}</h2><p class="s">Belum diambil. Ujian kesedaran identiti dan fitrah remaja. Keputusan hanya dilihat oleh anak.</p><a class="${btnClass}" href="${link3}">${unlockKids ? 'Ambil ujian myPSIKOteens 3.0' : textAmbilTeens}</a></div>`;
   }
 
   // myINTEGRITY untuk semua peringkat umur
