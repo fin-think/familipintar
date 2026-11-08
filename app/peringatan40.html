@@ -25,6 +25,10 @@
   .kosong{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:14px;padding:14px;font-weight:700;font-size:14px}
   .btn{display:block;text-align:center;background:#0d9488;color:#fff;text-decoration:none;font-weight:800;padding:14px;border-radius:12px;margin-top:18px;font-size:15px}
   .btn.sek{background:#fff;color:#0f172a;border:1.5px solid #e2e8f0}
+  .hadis{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:18px 18px 16px;margin-top:14px}
+  .hadis small{display:block;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#0d9488;margin-bottom:8px}
+  .hadis p{margin:0;font-size:16px;line-height:1.65;color:#0f172a}
+  .hadis .sumber{margin-top:10px;font-size:12px;font-weight:700;color:#64748b}
   .nota{font-size:12px;color:#64748b;margin-top:10px;text-align:center}
 </style>
 </head>
@@ -38,18 +42,16 @@
     <div class="tajuk-i" id="u-tajuk"></div>
   </div>
 
-  <h2 id="h-senarai" style="display:none"></h2>
-  <p class="sub" id="s-senarai" style="display:none">Ayat untuk setiap perkara yang belum anda tandakan.</p>
-  <div id="senarai"></div>
+  <div class="hadis" id="hadis" style="display:none">
+    <small>Hadis sahih</small>
+    <p id="h-teks"></p>
+    <div class="sumber" id="h-sumber"></div>
+  </div>
 
   <a class="btn" id="btn-buka" href="/app/mychecklist40.html">Buka myCHECKLIST40 ➔</a>
-  <div class="nota" id="nota"></div>
-</div>
+  </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+<script>
 
 // Ayat & label setiap perkara (sama dengan ayat push di pelayan)
 const AYAT = {
@@ -96,7 +98,160 @@ const KUMP = {
   20: ['solat5','berjemaah','awalwaktu','qadha','tahajjud','bacaanHarian','lazim','pilihan','tadabbur','daftarHaji','umrah','tabungan','puasaWajib','qadhaPuasa','puasaIsninKhamis','puasaHariPutih','zakat','sedekah','wakaf','wasiat','hibah','sepencarian','tunaiAmanah','danaPendidikan'],
   22: ['mengumpat','riya','ujub','hasad','sabar','zikir','taubat','maaf','nafkahSuami','nasihatSuami','layanSuami','taatSuami','jagaMaruah','syukurIsteri']
 };
-const JANTINA = new Set(['berjemaah','nafkahSuami','nasihatSuami','layanSuami','taatSuami','jagaMaruah','syukurIsteri']);
+const HADIS = {
+ "solat5": [
+  "Perkara pertama yang dihisab daripada amalan seorang hamba pada hari kiamat ialah solatnya. Jika solatnya baik, dia berjaya dan beruntung; jika rosak, dia rugi dan kecewa.",
+  "Riwayat al-Tirmidhi dan al-Nasa'i, disahihkan al-Albani"
+ ],
+ "berjemaah": [
+  "Solat berjemaah lebih utama daripada solat bersendirian dengan dua puluh tujuh darjat.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "awalwaktu": [
+  "Ibn Mas'ud bertanya Nabi ﷺ amalan apa yang paling dicintai Allah. Baginda menjawab: solat pada waktunya.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "qadha": [
+  "Sesiapa terlupa atau tertidur daripada solat, hendaklah dia menunaikannya apabila teringat. Tiada kafarah baginya melainkan itu.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "tahajjud": [
+  "Tuhan kita turun ke langit dunia setiap malam ketika tinggal sepertiga malam terakhir lalu berfirman: Siapa yang berdoa kepada-Ku, Aku perkenankan. Siapa yang meminta, Aku beri. Siapa yang memohon ampun, Aku ampunkan.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "bacaanHarian": [
+  "Bacalah Al-Quran, kerana ia akan datang pada hari kiamat sebagai pemberi syafaat kepada pembacanya.",
+  "Riwayat Muslim"
+ ],
+ "lazim": [
+  "Sebaik-baik kamu ialah orang yang mempelajari Al-Quran dan mengajarkannya.",
+  "Riwayat al-Bukhari"
+ ],
+ "pilihan": [
+  "Demi Allah yang jiwaku di tangan-Nya, sesungguhnya Surah al-Ikhlas menyamai sepertiga Al-Quran.",
+  "Riwayat al-Bukhari"
+ ],
+ "tadabbur": [
+  "Tidaklah sekumpulan manusia berkumpul di salah sebuah rumah Allah, membaca kitab Allah dan mempelajarinya sesama mereka, melainkan turun ketenangan ke atas mereka, rahmat meliputi mereka, malaikat mengelilingi mereka, dan Allah menyebut mereka di kalangan yang ada di sisi-Nya.",
+  "Riwayat Muslim"
+ ],
+ "daftarHaji": [
+  "Islam dibina atas lima perkara: syahadah, mendirikan solat, menunaikan zakat, haji ke Baitullah, dan berpuasa Ramadan.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "umrah": [
+  "Umrah ke umrah menghapuskan dosa antara keduanya, dan haji yang mabrur tiada balasan baginya melainkan syurga.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "tabungan": [
+  "Amalan yang paling disukai Allah ialah yang berterusan, walaupun sedikit.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "puasaWajib": [
+  "Hutang kepada Allah lebih berhak untuk dilunaskan.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "qadhaPuasa": [
+  "Aisyah RA berkata: Aku ada puasa Ramadan yang tertinggal, dan aku tidak dapat mengqadhanya melainkan pada bulan Syaaban.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "puasaIsninKhamis": [
+  "Amalan dipaparkan pada hari Isnin dan Khamis, dan aku suka amalanku dipaparkan ketika aku sedang berpuasa.",
+  "Riwayat al-Tirmidhi, disahihkan al-Albani"
+ ],
+ "puasaHariPutih": [
+  "Kekasihku ﷺ berwasiat kepadaku tiga perkara: berpuasa tiga hari setiap bulan, dua rakaat Dhuha, dan witir sebelum tidur.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "zakat": [
+  "Sesiapa yang Allah kurniakan harta lalu dia tidak menunaikan zakatnya, hartanya akan dijelmakan pada hari kiamat sebagai ular yang berbisa, dikalungkan pada lehernya.",
+  "Riwayat al-Bukhari"
+ ],
+ "sedekah": [
+  "Sedekah tidak mengurangkan harta.",
+  "Riwayat Muslim"
+ ],
+ "wakaf": [
+  "Apabila seorang manusia meninggal dunia, terputuslah amalannya kecuali tiga: sedekah jariah, ilmu yang bermanfaat, atau anak soleh yang mendoakannya.",
+  "Riwayat Muslim"
+ ],
+ "wasiat": [
+  "Tidak sepatutnya bagi seorang Muslim yang ada sesuatu untuk diwasiatkan bermalam selama dua malam melainkan wasiatnya tertulis di sisinya.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "hibah": [
+  "Bertakwalah kepada Allah dan berlaku adillah antara anak-anak kamu.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "sepencarian": [
+  "Setiap kamu ialah pemimpin, dan setiap kamu akan ditanya tentang yang dipimpinnya. Seorang lelaki pemimpin dalam keluarganya dan akan ditanya tentang mereka.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "tunaiAmanah": [
+  "Sesungguhnya jika engkau meninggalkan waris-warismu dalam keadaan cukup, itu lebih baik daripada engkau meninggalkan mereka miskin meminta-minta kepada orang ramai.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "danaPendidikan": [
+  "Sesiapa yang menempuh jalan untuk menuntut ilmu, Allah memudahkan baginya jalan ke syurga.",
+  "Riwayat Muslim"
+ ],
+ "mengumpat": [
+  "Tahukah kamu apakah ghibah? Iaitu engkau menyebut saudaramu dengan sesuatu yang dia benci.",
+  "Riwayat Muslim"
+ ],
+ "riya": [
+  "Orang pertama yang dihakimi pada hari kiamat ialah seorang yang mati syahid, seorang alim dan seorang dermawan, yang beramal supaya dipuji manusia. Mereka dihumban ke dalam neraka.",
+  "Riwayat Muslim"
+ ],
+ "ujub": [
+  "Ketika seorang lelaki berjalan dengan pakaian yang indah, bangga dengan dirinya, Allah membenamkannya ke dalam bumi, dan dia terus terbenam sehingga hari kiamat.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "hasad": [
+  "Jangan kamu saling mendengki, jangan saling membenci, jangan saling membelakangi. Jadilah hamba-hamba Allah yang bersaudara.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "sabar": [
+  "Orang yang kuat bukanlah yang menang dalam pergaduhan, tetapi orang yang mampu menahan dirinya ketika marah.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "zikir": [
+  "Perumpamaan orang yang berzikir kepada Tuhannya dan orang yang tidak berzikir ialah seperti orang yang hidup dan orang yang mati.",
+  "Riwayat al-Bukhari"
+ ],
+ "taubat": [
+  "Demi Allah, sesungguhnya aku beristighfar dan bertaubat kepada Allah lebih daripada tujuh puluh kali dalam sehari.",
+  "Riwayat al-Bukhari"
+ ],
+ "maaf": [
+  "Sesiapa yang pernah menzalimi saudaranya, sama ada pada maruahnya atau sesuatu yang lain, hendaklah dia meminta halal hari ini, sebelum tiada dinar dan dirham.",
+  "Riwayat al-Bukhari"
+ ],
+ "nafkahSuami": [
+  "Dinar yang paling besar pahalanya ialah dinar yang kamu belanjakan kepada keluargamu.",
+  "Riwayat Muslim"
+ ],
+ "nasihatSuami": [
+  "Berpesan-pesanlah supaya berbuat baik kepada kaum wanita.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "layanSuami": [
+  "Orang mukmin yang paling sempurna imannya ialah yang terbaik akhlaknya, dan yang terbaik antara kamu ialah yang terbaik terhadap isterinya.",
+  "Riwayat al-Tirmidhi, disahihkan al-Albani"
+ ],
+ "taatSuami": [
+  "Apabila seorang wanita menunaikan solat lima waktu, berpuasa pada bulannya, menjaga kehormatannya dan mentaati suaminya, dikatakan kepadanya: Masuklah syurga dari mana-mana pintu yang kamu mahu.",
+  "Riwayat Ahmad, disahihkan al-Albani"
+ ],
+ "jagaMaruah": [
+  "Seorang isteri ialah pemimpin dalam rumah suaminya dan dia akan ditanya tentang apa yang dipimpinnya.",
+  "Riwayat al-Bukhari dan Muslim"
+ ],
+ "syukurIsteri": [
+  "Aku melihat neraka, dan kebanyakan penghuninya ialah wanita. Ditanya: Kerana apa? Baginda menjawab: Kerana mereka mengkufuri suami dan mengkufuri kebaikan yang diberi.",
+  "Riwayat al-Bukhari dan Muslim"
+ ]
+};
 const TAJUK = { 20: '🕌 Semak amal hari ini', 22: '🌙 Muhasabah jiwa sebelum tidur' };
 
 const q = new URLSearchParams(location.search);
@@ -105,7 +260,6 @@ if (jam !== 20 && jam !== 22) jam = (new Date().getHours() >= 21 || new Date().g
 const per = q.get('per') === 'pasangan' ? 'pasangan' : 'induk';
 const id = q.get('i');
 const $ = (x) => document.getElementById(x);
-const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
 $('utama').className = 'utama j' + jam;
 $('u-kecil').textContent = TAJUK[jam];
@@ -115,29 +269,14 @@ $('btn-buka').href = '/app/mychecklist40.html';
 if (id && AYAT[id]) { $('u-ayat').textContent = AYAT[id][1]; $('u-tajuk').textContent = AYAT[id][0]; }
 else { $('u-ayat').textContent = 'Semak amalan anda hari ini dan tandakan yang telah dilakukan.'; }
 
-const app = initializeApp({ apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg", authDomain: "familipintar.firebaseapp.com", projectId: "familipintar", storageBucket: "familipintar.firebasestorage.app", appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe" }, 'peringatan40');
-const auth = getAuth(app), db = getFirestore(app);
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) { $('nota').innerHTML = 'Log masuk di <a href="/app/mychecklist40.html">myCHECKLIST40</a> untuk lihat senarai penuh yang belum ditanda.'; return; }
-  try {
-    const s = await getDoc(doc(db, 'mynasab_users', user.uid));
-    const d = s.exists() ? s.data()[per === 'pasangan' ? 'fp_pasangan_mychecklist40' : 'fp_mychecklist40'] : null;
-    if (!d || !Array.isArray(d.dicentang)) { $('nota').textContent = 'Belum ada checklist yang disimpan.'; return; }
-    const tanda = new Set(d.dicentang), tiadaAnak = tanda.has('tiadaAnak');
-    const tersedia = Array.isArray(d.tersedia) ? new Set(d.tersedia) : null;
-    const belum = KUMP[jam].filter(k => (tersedia ? tersedia.has(k) : !JANTINA.has(k)) && !tanda.has(k) && !(k === 'danaPendidikan' && tiadaAnak));
-    $('h-senarai').style.display = ''; $('s-senarai').style.display = '';
-    if (!belum.length) {
-      $('h-senarai').textContent = 'Alhamdulillah';
-      $('s-senarai').style.display = 'none';
-      $('senarai').innerHTML = '<div class="kosong">✅ Semua perkara dalam kumpulan ini sudah ditanda. Teruskan istiqamah.</div>';
-      return;
-    }
-    $('h-senarai').textContent = belum.length + ' perkara belum ditanda';
-    $('senarai').innerHTML = belum.map(k => '<div class="item"><b>' + esc(AYAT[k][0]) + '</b><span>' + esc(AYAT[k][1]) + '</span></div>').join('');
-  } catch (e) { $('nota').textContent = 'Tidak dapat memuat senarai penuh.'; }
-});
+// Hadis ikut perkara; jika tiada parameter, pilih ikut hari
+let kunci = id && HADIS[id] ? id : KUMP[jam][Math.floor(Date.now() / 86400000) % KUMP[jam].length];
+if (!(id && AYAT[id])) { $('u-ayat').textContent = AYAT[kunci][1]; $('u-tajuk').textContent = AYAT[kunci][0]; }
+if (HADIS[kunci]) {
+  $('h-teks').textContent = HADIS[kunci][0];
+  $('h-sumber').textContent = HADIS[kunci][1];
+  $('hadis').style.display = '';
+}
 </script>
 </body>
 </html>
