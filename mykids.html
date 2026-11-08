@@ -265,6 +265,7 @@ onAuthStateChanged(auth, async user => {
   const userSnap = await getDoc(userRef);
   if(userSnap.exists()) {
       S.jurnal_unlocked = userSnap.data().jurnal_unlocked || [];
+      S.ud = userSnap.data();
   }
 
   const s = await getDocs(query(collection(db,"mynasab_nodes"), where("owner_uid","==",user.uid)));
@@ -302,7 +303,8 @@ async function pilih(i) {
     pers: dp.personaliti||null, 
     psi: dp.psikoteens||null, 
     kids: dp.psikokids||null, 
-    ing: dp.integrity||null 
+    ing: dp.integrity||null,
+    gz: genZ(a.id)
   };
   render();
 }
@@ -346,6 +348,7 @@ function persBox(a) {
     <a href="${linkTo}" style="font-size:13px;font-weight:700;color:var(--akh)">${linkText}</a></div>`;
 }
 
+const URL_GZ = "app/mypsikoteens2.0.html";
 const URL_PSIKO = "app/mypsikoteens.html", URL_KIDS = "app/mypsikokids.html", URL_ING = "app/myintegrity.html";
 function akhiratBox(a, umur) {
   const id = encodeURIComponent(a.id), A = S.plan.psi, K = S.plan.kids, B = S.plan.ing;
@@ -388,6 +391,15 @@ function akhiratBox(a, umur) {
     }
   }
 
+  // myPSIKOteens 2.0 (Kesedaran Gen Z) untuk remaja
+  if (umur >= 12) {
+    const G = S.plan.gz, link2 = unlockKids ? `${URL_GZ}?anak=${id}` : URL_JURNAL;
+    if (!G) h += `<div class="pers"><h2>myPSIKOteens 2.0: ${esc(a.name)}</h2><p class="s">Belum ada ujian. Menilai jati diri anak terhadap media sosial, trend dan rakan sebaya.</p><a class="${btnClass}" href="${link2}">${unlockKids ? 'Ambil ujian myPSIKOteens 2.0' : textAmbilTeens}</a></div>`;
+    else h += `<div class="pers"><h2>myPSIKOteens 2.0: ${esc(G.status)}</h2><p class="s">Skor ${G.skor} (rendah lebih baik, ${G.min}-${G.max})</p>
+      ${bar('Jati diri digital', G.pct)}
+      <a href="${link2}" style="font-size:13px;font-weight:700;color:var(--akh)">${textLihat}</a></div>`;
+  }
+
   // myINTEGRITY untuk semua peringkat umur
   if (!B) {
     h += `<div class="pers"><h2>myINTEGRITY: ${esc(a.name)}</h2><p class="s">Belum ada ujian. 10 situasi untuk melihat kejujuran dan amanah.</p><a class="${btnClass}" href="${linkIng}">${textAmbilIng}</a></div>`;
@@ -418,6 +430,58 @@ function dunia(a,u,tk) {
   return h;
 }
 
+// myPSIKOteens 2.0 menyimpan rekod melalui FP.catat: mynasab_users.fp_anak_<id>_mypsikoteens2.tahap.ujian
+// Skor 15-45 (15 soalan, 1-3 mata, rendah lebih baik). Rekod lama hanya ada ringkasan "Skor N - ...".
+function genZ(id) {
+  const r = S.ud && S.ud['fp_anak_' + id + '_mypsikoteens2'], t = r && r.tahap && r.tahap.ujian;
+  if (!t) return null;
+  let skor = typeof t.terakhir === 'number' ? t.terakhir : parseInt((String(t.ringkasan || '').match(/Skor\s+(\d+)/) || [])[1], 10);
+  if (!Number.isFinite(skor)) return null;
+  const min = 15, max = 45;
+  skor = Math.min(max, Math.max(min, skor));
+  const status = skor <= 22 ? 'Teenz Bijak' : skor <= 35 ? 'Teenz Keliru' : 'Teenz Toksik';
+  return { skor, min, max, status, pct: Math.round((max - skor) / (max - min) * 100), tarikh: t.tarikh || '' };
+}
+
+// Analisis gabungan keputusan ujian: >= 80% tahap baik, ibu bapa tak perlu risau
+function analisisBox(a, umur) {
+  const P = S.plan, item = [];
+  const tahapOf = p => p >= 80 ? 0 : p >= 50 ? 1 : 2;
+  const ULAS = {
+    ibadah: ['Ibadahnya terjaga dan dia sudah ada rasa tanggungjawab kepada Allah.', 'Ibadahnya ada tetapi belum konsisten. Ajak solat bersama dan puji setiap usahanya.', 'Ibadahnya masih lemah. Mulakan dengan solat berjemaah di rumah dan teladan ibu bapa.'],
+    ibubapa: ['Dia menghormati dan beradab dengan ibu bapa.', 'Adabnya dengan ibu bapa baik tetapi kadang-kadang tergelincir. Tegur dengan lembut, bukan di hadapan orang.', 'Hubungan dan adab dengan ibu bapa perlu dibaiki. Luangkan masa berdua dan dengar dia dahulu sebelum menegur.'],
+    tanggungjawab: ['Dia boleh diharap mengurus diri dan tugasnya.', 'Dia mula bertanggungjawab tetapi masih perlu diingatkan. Beri tugasan kecil yang tetap setiap hari.', 'Dia belum biasa mengurus diri sendiri. Beri tanggungjawab kecil dan pantau dengan sabar.'],
+    integriti: ['Dia jujur dan amanah walaupun tiada siapa melihat.', 'Asas kejujurannya ada, tetapi dalam situasi tertentu dia mudah memilih jalan pintas.', 'Kejujuran dan amanah perlu dibentuk. Bincangkan situasi sebenar dan puji bila dia berkata benar.'],
+    digital: ['Jati dirinya kuat dan dia tidak mudah terikut trend atau tekanan rakan.', 'Dia mula terpengaruh dengan FOMO dan media sosial. Tetapkan had masa skrin bersama-sama.', 'Dia sangat terkesan dengan media sosial dan pandangan orang lain. Perlu bimbingan rapat dan detoks digital.'],
+    kasih: ['Hubungan kasih sayang dan didikan asasnya sangat baik.', 'Asas didikannya baik tetapi ada ruang untuk lebih rapat.', 'Dia perlukan lebih perhatian, pelukan dan masa berkualiti bersama ibu bapa.']
+  };
+  if (umur >= 12 && P.psi) {
+    const A = P.psi;
+    item.push(['myPSIKOteens', Math.round(A.score / A.max * 100)]);
+    [['ibadah', A.ibadah], ['ibubapa', A.ibubapa], ['tanggungjawab', A.tanggungjawab]].forEach(([k, v]) => { if (Number.isFinite(v)) item.push([k, v, true]); });
+  }
+  if (umur < 12 && P.kids) item.push(['kasih', Math.round(P.kids.score / P.kids.max * 100)]);
+  if (umur >= 12 && P.gz) item.push(['digital', P.gz.pct]);
+  if (P.ing) item.push(['integriti', Math.round(P.ing.score / P.ing.max * 100)]);
+
+  const utama = item.filter(x => !x[2] && x[0] !== 'myPSIKOteens').concat(item.filter(x => x[0] === 'myPSIKOteens'));
+  if (!utama.length) return `<div class="box"><h2>Analisis karakter ${esc(a.name)}</h2><p class="s">Belum ada keputusan ujian. Ambil ujian di atas untuk melihat ulasan ringkas karakter anak.</p></div>`;
+
+  const purata = Math.round(utama.reduce((t, x) => t + x[1], 0) / utama.length);
+  const semuaBaik = utama.every(x => x[1] >= 80) && item.filter(x => x[2]).every(x => x[1] >= 80);
+  const ayat = item.filter(x => ULAS[x[0]]).map(x => ULAS[x[0]][tahapOf(x[1])]);
+  const lemah = item.filter(x => ULAS[x[0]] && x[1] < 80);
+  const LABEL = { ibadah: 'Ibadah', ibubapa: 'Adab ibu bapa', tanggungjawab: 'Tanggungjawab', integriti: 'Integriti', digital: 'Jati diri digital', kasih: 'Kasih sayang' };
+  const status = semuaBaik ? ['#ecfdf5', '#065f46', '✅ Alhamdulillah, ibu bapa tak perlu risau'] : purata >= 50 ? ['#fffbeb', '#92400e', '🟡 Baik, tetapi ada yang perlu dibimbing'] : ['#fef2f2', '#991b1b', '🔴 Perlu perhatian ibu bapa'];
+  const ujian = [umur >= 12 ? (P.psi ? 'myPSIKOteens' : '') : (P.kids ? 'myPSIKOkids' : ''), umur >= 12 && P.gz ? 'myPSIKOteens 2.0' : '', P.ing ? 'myINTEGRITY' : ''].filter(Boolean);
+
+  return `<div class="box"><h2>Analisis karakter ${esc(a.name)}</h2><p class="s">Berdasarkan ${ujian.join(', ')} · purata ${purata}%</p>
+    <div style="background:${status[0]};color:${status[1]};border-radius:10px;padding:10px 12px;font-weight:800;font-size:14px;margin-bottom:10px">${status[2]}</div>
+    <p style="margin:0 0 8px;font-size:14px;line-height:1.6">${esc(ayat.join(' '))}</p>
+    ${lemah.length ? `<p class="nota" style="margin-top:0">Fokus bimbingan: <b>${lemah.map(x => LABEL[x[0]]).join(', ')}</b></p>` : ''}
+    <div class="nota">Panduan sahaja, bukan penilaian muktamad. Ambil semula ujian setiap beberapa bulan untuk melihat perkembangan.</div></div>`;
+}
+
 function akhirat(u) {
   const f = FASA.find(x=>u>=x[0]&&u<=x[1]) || FASA[2];
   const band = AKHIRAT.find(x=>u>=x[0]&&u<=x[1]) || AKHIRAT[AKHIRAT.length-1];
@@ -425,6 +489,7 @@ function akhirat(u) {
   let h = `<div class="fasa"><b>${esc(f[2])}</b><br>${esc(f[3])}<div class="nota">Pembahagian tiga fasa tujuh tahun dikaitkan dengan Saidina Ali, tetapi sandarannya tidak dapat dipastikan. Gunakan sebagai pendekatan, bukan hukum. Hadis solat (7 tahun), teguran (10 tahun) dan pisah tempat tidur ialah sandaran yang sabit.</div></div>`;
   h += `<div class="box"><h2>Umur ${band[0]}-${band[1]>90?'ke atas':band[1]} tahun: yang patut diajar</h2><p class="s">Sasaran amalan biasa, bukan syarat. Setiap anak berbeza.</p>${band[2].map((t,i)=>ck('a:'+band[0]+':'+i,t)).join('')}</div>`;
   if (seterus) h += `<div class="box"><h2>Peringkat seterusnya (umur ${seterus[0]})</h2>${seterus[2].map(t=>`<div class="ck" style="cursor:default">• ${esc(t)}</div>`).join('')}</div>`;
+  { const a = S.anak[S.i]; h += analisisBox(a, umurSebenar(a.dob)); }
   h += `<div class="box"><h2>Doa dan ketabahan ibu bapa</h2><p class="s">Daripada kisah keluarga Imran dalam Surah Ali Imran.</p>
     <div class="ayat">رَبِّ هَبْ لِي مِن لَّدُنكَ ذُرِّيَّةً طَيِّبَةً ۖ إِنَّكَ سَمِيعُ الدُّعَاءِ</div><div class="nota">Ali Imran: 38. Doa memohon zuriat yang baik.</div>
     <div class="ayat">وَإِنِّي أُعِيذُهَا بِكَ وَذُرِّيَّتَهَا مِنَ الشَّيْطَانِ الرَّجِيمِ</div><div class="nota">Ali Imran: 36. Doa memohon perlindungan untuk anak.</div>
