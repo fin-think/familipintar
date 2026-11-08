@@ -306,11 +306,12 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
   .fpm-lencana { position: absolute; top: -6px; right: -8px; min-width: 20px; height: 20px; background: #ef4444; color: #fff; border: 2px solid #fff; border-radius: 10px; font-size: 10.5px; font-style: normal; font-weight: 800; line-height: 16px; padding: 0 5px; text-align: center; box-shadow: 0 2px 6px rgba(239,68,68,.45); }
   .fpm-hero { margin: 18px 16px 0; border-radius: 24px; overflow: hidden; position: relative; height: 210px; box-shadow: 0 8px 22px rgba(15,23,42,.15); }
   .fpm-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .fpm-hero div { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,33,73,0) 35%, rgba(11,33,73,.88)); color: #fff; display: flex; flex-direction: column; justify-content: flex-end; padding: 18px; }
+  .fpm-hero div { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,33,73,0) 50%, rgba(11,33,73,.8)); color: #fff; display: flex; flex-direction: column; justify-content: flex-end; padding: 10px 16px 11px; }
   .fpm-hero .fpm-foto { position: absolute; top: 10px; right: 10px; z-index: 2; display: none; gap: 6px; }
-  .fpm-hero .fpm-foto button { background: rgba(255,255,255,.92); border: 0; border-radius: 999px; padding: 7px 12px; font-size: 12px; font-weight: 700; color: #334155; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+  .fpm-hero .fpm-foto button { background: rgba(255,255,255,.85); border: 0; border-radius: 999px; width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; color: #334155; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+  .fpm-hero .fpm-foto #fpmFotoTeks { display: none; }
   .fpm-hero .fpm-foto button + button { color: #e11d48; }
-  .fpm-hero b { font-size: 22px; font-weight: 800; } .fpm-hero div span { font-size: 13.5px; opacity: .92; margin-top: 2px; }
+  .fpm-hero b { font-size: 21px; font-weight: 800; line-height: 1.15; } .fpm-hero div span { font-size: 13px; opacity: .92; margin-top: 1px; }
   .fpm-daftar { display: none; margin: 14px 16px 0; width: calc(100% - 32px); background: linear-gradient(90deg, #0ea5e9, #2563eb); color: #fff; border: 0; border-radius: 18px; padding: 15px; font-size: 16px; font-weight: 800; box-shadow: 0 8px 20px rgba(14,165,233,.35); }
   .fpm-tajuk { margin: 24px 18px 10px; font-size: 19px; font-weight: 800; color: #0f172a; }
   .fpm-grid { display: flex; align-items: center; gap: 6px; padding: 0 16px 10px; scroll-padding-inline: 16px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -333,7 +334,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 <div id="fpMobile">
   <div class="fpm-dompet"><small>Famili Pintar</small><strong>Satu keluarga, satu ekosistem</strong><p>Setiap ahli ada peranan sendiri, tetapi semuanya berhubung dan berkongsi satu gambaran keluarga yang sama.</p></div>
   <div class="fpm-pintas" id="fpmPintas"></div>
-  <div class="fpm-hero"><img id="fpmHeroImg" src="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.png" alt="Keluarga"><span class="fpm-foto" id="fpmFoto"><button type="button" onclick="document.getElementById('heroFotoTukar').click()"><i class="fa-solid fa-camera"></i> <span id="fpmFotoTeks">Letak gambar famili anda</span></button><button type="button" id="fpmFotoBuang" onclick="document.getElementById('heroFotoBuang').click()" title="Guna gambar asal"><i class="fa-solid fa-rotate-left"></i></button></span><div><b>Keluarga Yang Kukuh</b><span>Dibina bersama, satu langkah demi satu langkah.</span></div></div>
+  <div class="fpm-hero"><img id="fpmHeroImg" src="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.png" alt="Keluarga"><span class="fpm-foto" id="fpmFoto"><button type="button" aria-label="Tukar gambar" title="Tukar gambar" onclick="document.getElementById('heroFotoTukar').click()"><i class="fa-solid fa-camera"></i><span id="fpmFotoTeks">Letak gambar famili anda</span></button><button type="button" id="fpmFotoBuang" aria-label="Guna gambar asal" onclick="document.getElementById('heroFotoBuang').click()" title="Guna gambar asal"><i class="fa-solid fa-rotate-left"></i></button></span><div><b>Keluarga Yang Kukuh</b><span>Dibina bersama, satu langkah demi satu langkah.</span></div></div>
   <button type="button" class="fpm-daftar" id="fpmDaftar" onclick="bukaModalAuth('daftar')"><i class="fa-solid fa-gift"></i> Daftar &amp; Tebus 20 Kredit Percuma</button>
   <div class="fpm-tajuk">Teroka Bersama</div>
   <div class="fpm-grid" id="fpmJalur"></div>
