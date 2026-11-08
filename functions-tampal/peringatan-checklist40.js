@@ -7,7 +7,7 @@
 // Syarat hantar:
 //   - pengguna menghidupkan peringatan di app: mynasab_users.fp_mychecklist40_ingat === true
 //     (pasangan: fp_pasangan_mychecklist40_ingat === true)
-//   - peranti didaftar untuk orang itu: mynasab_users.fcm_checklist40_induk / fcm_checklist40_pasangan (peringatan hanya ke peranti orang itu)
+//   - peranti didaftar untuk orang itu: mynasab_users.fcm_induk / fcm_pasangan (didaftar oleh Peranan.daftarPush; peringatan hanya ke peranti orang itu)
 //   - checklist sudah disimpan: mynasab_users.fp_mychecklist40.dicentang (pasangan: fp_pasangan_mychecklist40)
 //   - ada sekurang-kurangnya satu item belum ditanda dalam kumpulan jam itu
 // Satu peringatan sehari bagi setiap kumpulan. Item dipusing ikut hari supaya ayat tidak berulang setiap malam.
@@ -78,6 +78,7 @@ function cl40NoHari(now) { return Math.floor(now / 86400000); }
 
 // Hantar hanya kepada peranti yang didaftar untuk orang itu (induk atau pasangan). Token mati dibuang daripada senarai orang itu.
 async function cl40Hantar(dbRef, messaging, uid, medanToken, tokens, payload) {
+    const medanLama = medanToken.replace('fcm_', 'fcm_checklist40_');
     let berjaya = 0; const mati = [];
     for (const token of tokens) {
         try { await messaging.send({ ...payload, token }); berjaya++; }
@@ -88,7 +89,7 @@ async function cl40Hantar(dbRef, messaging, uid, medanToken, tokens, payload) {
         }
     }
     if (mati.length) {
-        try { await dbRef.collection('mynasab_users').doc(uid).update({ [medanToken]: admin.firestore.FieldValue.arrayRemove(...mati), fcm_tokens: admin.firestore.FieldValue.arrayRemove(...mati) }); }
+        try { await dbRef.collection('mynasab_users').doc(uid).update({ [medanToken]: admin.firestore.FieldValue.arrayRemove(...mati), [medanLama]: admin.firestore.FieldValue.arrayRemove(...mati), fcm_tokens: admin.firestore.FieldValue.arrayRemove(...mati) }); }
         catch (e) { console.error('Checklist40: gagal buang token mati:', e.message); }
     }
     return berjaya;
@@ -114,8 +115,9 @@ async function jalankanPeringatanChecklist40(dbRef, messaging, opsi = {}) {
         try {
             const u = dilihat.get(uid), medanData = per ? 'fp_pasangan_mychecklist40' : 'fp_mychecklist40';
             const data = u[medanData];
-            const medanToken = 'fcm_checklist40_' + (per || 'induk');
-            const token = Array.isArray(u[medanToken]) ? u[medanToken].filter(Boolean) : [];   // hanya peranti orang ini
+            const medanToken = 'fcm_' + (per || 'induk');                       // token peranti yang didaftar untuk orang ini (Peranan.daftarPush)
+            const medanLama = 'fcm_checklist40_' + (per || 'induk');            // versi awal (masih disokong)
+            const token = [...new Set([...(Array.isArray(u[medanToken]) ? u[medanToken] : []), ...(Array.isArray(u[medanLama]) ? u[medanLama] : [])])].filter(Boolean);
             if (!data || !Array.isArray(data.dicentang) || !token.length) { langkau++; continue; }
             const ditanda = new Set(data.dicentang);
             const tiadaAnak = ditanda.has('tiadaAnak');

@@ -463,29 +463,9 @@
             var $ = function (id) { return document.getElementById(id); };
             function medanIngat() { return 'fp_' + Peranan.awalan() + 'mychecklist40_ingat'; }
             function nota(t, ralat) { var e = $('ingat-status'); if (e) { e.textContent = t || ''; e.style.color = ralat ? '#b91c1c' : '#64748b'; } }
-            function perKey(mod) { return (mod || Peranan.mod) === 'pasangan' ? 'pasangan' : 'induk'; }
-            function medanToken(mod) { return 'fcm_checklist40_' + perKey(mod); }
             var TUTUP = 'fp_ingat40_tutup_';   // pilihan matikan disimpan pada peranti ini sahaja
-            async function ambilToken() {
-                var B = 'https://www.gstatic.com/firebasejs/10.8.1/';
-                var m = await Promise.all([import(B + 'firebase-app.js'), import(B + 'firebase-messaging.js')]);
-                var reg = await navigator.serviceWorker.getRegistration('/');
-                // Konfigurasi kongsi fpapp.js tiada messagingSenderId, jadi guna app khas untuk FCM
-                var cfg = { apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg", authDomain: "familipintar.firebaseapp.com", projectId: "familipintar", storageBucket: "familipintar.firebasestorage.app", messagingSenderId: "277029764059", appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe" };
-                var app = m[0].getApps().filter(function (a) { return a.name === 'fcm40'; })[0] || m[0].initializeApp(cfg, 'fcm40');
-                var token = await m[1].getToken(m[1].getMessaging(app), { vapidKey: VAPID, serviceWorkerRegistration: reg || undefined });
-                if (!token) throw new Error('tiada token');
-                return token;
-            }
-            // Token peranti didaftar mengikut ORANG yang dipilih pada bar "Untuk" (induk/pasangan), jadi peringatan sampai ke telefon orang itu sahaja.
-            async function daftarToken() {
-                var token = await ambilToken(), Fs = FP.fs, mod = Peranan.mod, lain = perKey(mod) === 'induk' ? 'pasangan' : 'induk';
-                var u = { fcm_token: token, fcm_tokens: Fs.arrayUnion(token) };
-                u[medanToken(mod)] = Fs.arrayUnion(token);
-                await Fs.setDoc(Fs.doc(FP.db, 'mynasab_users', FP.user.uid), u, { merge: true });
-                var b = {}; b['fcm_checklist40_' + lain] = Fs.arrayRemove(token);     // peranti ini kini milik orang yang dipilih
-                await Fs.updateDoc(Fs.doc(FP.db, 'mynasab_users', FP.user.uid), b);
-            }
+            // Token didaftar untuk PEMILIK peranti (bukan orang yang sedang dilihat), supaya suami yang melihat senarai isteri tidak mendaftarkan telefonnya untuk isteri.
+            function pemilikMod() { return Peranan.pemilik() || Peranan.mod; }
             var kini = false;
             var bukaSuis = function (on) { kini = !!on; var a = $('ingat-suis'); if (a) a.textContent = on ? 'Matikan peringatan' : 'Hidupkan peringatan'; };
             function sebab(e) { return ' (' + String((e && (e.code || e.message)) || e).slice(0, 90) + ')'; }
@@ -493,20 +473,27 @@
                 var u = {}; u[medanIngat()] = on;
                 await FP.fs.updateDoc(FP.fs.doc(FP.db, 'mynasab_users', FP.user.uid), u);
             }
-            function dimatikan() { try { return localStorage.getItem(TUTUP + perKey()) === '1'; } catch (e) { return false; } }
-            function tandaMati(v) { try { if (v) localStorage.setItem(TUTUP + perKey(), '1'); else localStorage.removeItem(TUTUP + perKey()); } catch (e) {} }
+            function dimatikan() { try { return localStorage.getItem(TUTUP + pemilikMod()) === '1'; } catch (e) { return false; } }
+            function tandaMati(v) { try { if (v) localStorage.setItem(TUTUP + pemilikMod(), '1'); else localStorage.removeItem(TUTUP + pemilikMod()); } catch (e) {} }
+            function bukanPemilik() {
+                nota('Peringatan untuk ' + (Peranan.orang() ? Peranan.orang().nama : 'orang ini') + ' dihantar ke telefon beliau sendiri. Buka halaman ini di telefon beliau untuk menghidupkannya.');
+                var a = $('ingat-suis'); if (a) a.textContent = '';
+            }
             // Dipanggil apabila pengguna menekan "Lihat Keputusan & Saranan" (gerak isyarat pengguna, supaya kebenaran notifikasi boleh diminta).
             window.aktifIngat = async function () {
                 var kad = $('ingat-kad'); if (kad) kad.style.display = '';
                 nota(''); bukaSuis(false);
                 if (!FP.user || !FP.fs) return;
+                if (dimatikan()) { nota('Peringatan dimatikan pada peranti ini.'); return; }       // hormati pilihan matikan
+                if (pemilikMod() !== Peranan.mod) { bukanPemilik(); return; }
                 try {
-                    if (dimatikan()) { nota('Peringatan dimatikan pada peranti ini.'); bukaSuis(false); return; }   // hormati pilihan matikan
-                    if (!('Notification' in window) || !('serviceWorker' in navigator)) { nota('Peranti ini tidak menyokong notifikasi. Di iPhone, pasang app ke Skrin Utama dahulu.', true); return; }
-                    var p = Notification.permission;
-                    if (p === 'default') p = await Notification.requestPermission();
-                    if (p !== 'granted') { nota('Notifikasi tidak dibenarkan. Benarkan untuk familipintar.com dalam tetapan pelayar/telefon.', true); return; }
-                    await daftarToken();
+                    var r = await Peranan.daftarPush(pemilikMod());      // dipanggil serta-merta supaya kebenaran notifikasi boleh diminta
+                    if (!r.ok) {
+                        nota(r.sebab === 'tidak-dibenarkan' ? 'Notifikasi tidak dibenarkan. Benarkan untuk familipintar.com dalam tetapan pelayar/telefon.' :
+                             r.sebab === 'tidak-disokong' ? 'Peranti ini tidak menyokong notifikasi. Di iPhone, pasang app ke Skrin Utama dahulu.' :
+                             'Peringatan gagal dihidupkan (' + r.sebab + ')', true);
+                        return;
+                    }
                     await simpan(true);
                     nota('Peringatan dihidupkan untuk peranti ini.'); bukaSuis(true);
                 } catch (e) { console.warn('ingat', e); nota('Peringatan gagal dihidupkan' + sebab(e), true); }
@@ -515,34 +502,26 @@
             window.muatIngat = async function () {
                 if (!FP.user || !FP.fs) return;
                 var kad = $('ingat-kad'), on = false;
-                try {
-                    if (!dimatikan() && 'Notification' in window && Notification.permission === 'granted') {
-                        var d = await FP.baca('mynasab_users', FP.user.uid), token = await ambilToken();
-                        on = !!(d && Array.isArray(d[medanToken()]) && d[medanToken()].indexOf(token) >= 0);
-                    }
-                } catch (e) { on = false; }
                 if (kad) kad.style.display = '';
+                if (pemilikMod() !== Peranan.mod) { bukanPemilik(); return; }
+                try { on = !dimatikan() && await Peranan.adaPush(pemilikMod()); } catch (e) { on = false; }
                 nota(on ? 'Peringatan dihidupkan untuk peranti ini.' : 'Peringatan belum dihidupkan pada peranti ini.'); bukaSuis(on);
             };
             window.suisIngat = async function (e) {
                 e.preventDefault();
                 try {
-                    var Fs = FP.fs;
                     if (!kini) { tandaMati(false); await window.aktifIngat(); return; }
-                    // matikan: buang token peranti ini daripada senarai orang ini; bendera hanya padam bila tiada peranti lain
+                    // matikan: buang token peranti ini; bendera hanya dipadam bila tiada peranti lain untuk orang ini
                     tandaMati(true);
-                    if ('Notification' in window && Notification.permission === 'granted') {
-                        var token = await ambilToken(), u = {}; u[medanToken()] = Fs.arrayRemove(token);
-                        await Fs.updateDoc(Fs.doc(FP.db, 'mynasab_users', FP.user.uid), u);
-                        var d = await FP.baca('mynasab_users', FP.user.uid);
-                        if (!(d && Array.isArray(d[medanToken()]) && d[medanToken()].length)) await simpan(false);
-                    }
+                    await Peranan.buangPush(pemilikMod());
+                    var d = await FP.baca('mynasab_users', FP.user.uid), v = d && d[Peranan.medanToken(pemilikMod())];
+                    if (!(Array.isArray(v) && v.length)) await simpan(false);
                     nota('Peringatan dimatikan pada peranti ini.'); bukaSuis(false);
                 } catch (err) { console.warn('ingat', err); nota('Gagal' + sebab(err), true); }
             };
         })();
     </script>
-    <script src="../peranan.js?v=2"></script>
+    <script src="../peranan.js?v=3"></script>
     <script src="../autosave.js?v=2"></script>
     <script src="../fpapp.js?v=1"></script>
     <script>
