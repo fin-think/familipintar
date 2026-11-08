@@ -3,7 +3,7 @@
 // ==========================================
 // TAMPAL selepas exports.peringatanChecklist40 dalam functions/index.js (guna kumpulToken/hantarKeSemuaPeranti sedia ada).
 // Dipanggil oleh myNasab (mynasab/app.js) sekali selepas ahli log masuk. Ia mencari siapa pengundang:
-//   Penerima: pengundang, dan satu tingkat ke atas (akaun yang menjemput pengundang itu).
+//   Penerima: pengundang dan seluruh rantaian ke atas (akaun yang menjemput pengundang, dan seterusnya, maksimum 10 tingkat).
 //   1. mynasab_links/{uid}.owner_uid                 (jemputan pautan adik-beradik, dan akaun jemputan e-mel jika dokumen pautan dicipta)
 //   2. nod akar root_{uid}: link_owner atau anak_saudara_dari.uid  (jemputan pautan anak saudara / adik-beradik)
 //   3. mynasab_users/{uid}.dijemput_oleh             (pilihan: jika jemputAhliEmel menulis medan ini)
@@ -39,10 +39,13 @@ exports.beritahuPengundang = functions
         if (!owner && typeof u.dijemput_oleh === 'string') owner = u.dijemput_oleh;
         if (!owner || owner === uid) return { status: 'tiada_pengundang' };
 
-        // Satu tingkat ke atas: akaun yang menjemput pengundang (cth. Awi menjemput abang; abang menjemput anaknya -> Awi juga diberitahu)
-        const atas = (await cariPengundang(owner)).owner;
+        // Seluruh rantaian ke atas: pengundang, yang menjemput pengundang, dan seterusnya (cth. Awi -> abang -> anak saudara -> adik-beradik anak saudara)
         const penerima = [owner];
-        if (atas && atas !== uid && atas !== owner) penerima.push(atas);
+        for (let i = 0; i < 10; i++) {
+            const seterusnya = (await cariPengundang(penerima[penerima.length - 1])).owner;
+            if (!seterusnya || seterusnya === uid || penerima.includes(seterusnya)) break;     // tamat, atau elak pusingan
+            penerima.push(seterusnya);
+        }
 
         // Tandakan dahulu supaya panggilan serentak tidak menghantar dua kali
         await uRef.update({ notis_sertai_dihantar: Date.now() });
