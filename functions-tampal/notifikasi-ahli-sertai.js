@@ -6,7 +6,7 @@
 //   Penerima: pengundang dan seluruh rantaian ke atas (akaun yang menjemput pengundang, dan seterusnya, maksimum 10 tingkat).
 //   1. mynasab_links/{uid}.owner_uid                 (jemputan pautan adik-beradik, dan akaun jemputan e-mel jika dokumen pautan dicipta)
 //   2. nod akar root_{uid}: link_owner atau anak_saudara_dari.uid  (jemputan pautan anak saudara / adik-beradik)
-//   3. mynasab_users/{uid}.dijemput_oleh             (pilihan: jika jemputAhliEmel menulis medan ini)
+//   3. mynasab_users/{uid}.dijemput_oleh             (ditulis oleh jemputAhliEmel untuk semua jenis jemputan e-mel)
 // Penerima: pemilik akaun pengundang, iaitu semua peranti Induk dan Pasangan akaun itu. Orang lain tidak diberitahu.
 // Sekali sahaja bagi setiap ahli (penanda notis_sertai_dihantar). Selain push, satu popup dalam myNasab untuk pengundang.
 
@@ -33,10 +33,11 @@ exports.beritahuPengundang = functions
                     else if (x.link_owner) o = x.link_owner;
                 } catch (e) {}
             }
+            // Jemputan e-mel (jemputAhliEmel) menulis dijemput_oleh pada akaun; satu-satunya jejak bagi ahli jenis anak, ibu bapa dan lain-lain
+            if (!o) { try { const us = await db.collection('mynasab_users').doc(id).get(); if (us.exists && typeof us.data().dijemput_oleh === 'string') o = us.data().dijemput_oleh; } catch (e) {} }
             return { owner: o, anak: a };
         };
         let { owner, anak } = await cariPengundang(uid);
-        if (!owner && typeof u.dijemput_oleh === 'string') owner = u.dijemput_oleh;
         if (!owner || owner === uid) return { status: 'tiada_pengundang' };
 
         // Seluruh rantaian ke atas: pengundang, yang menjemput pengundang, dan seterusnya (cth. Awi -> abang -> anak saudara -> adik-beradik anak saudara)
