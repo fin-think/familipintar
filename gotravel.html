@@ -807,11 +807,11 @@ function updateAccomSub(id) {
 const HARGA_MINYAK = {
   tarikh: '5–11 Nov 2026',
   jenis: {
-    budi95:  { label: 'RON95 BUDI95 (subsidi)', harga: 1.99 },
-    ron95:   { label: 'RON95 tanpa subsidi', harga: 4.27 },
+    budi95:  { label: 'BUDI95', harga: 1.99 },
+    ron95:   { label: 'RON95 (tanpa subsidi)', harga: 4.27 },
     ron97:   { label: 'RON97', harga: 4.70 },
-    diesel_budi: { label: 'Diesel BUDI (subsidi)', harga: 2.10 },
-    diesel:  { label: 'Diesel tanpa subsidi', harga: 5.12 }
+    diesel_budi: { label: 'Diesel BUDI', harga: 2.10 },
+    diesel:  { label: 'Diesel (tanpa subsidi)', harga: 5.12 }
   }
 };
 const KM_SELITER_LALAI = 12;
@@ -885,8 +885,8 @@ function renderTransport() {
         <div class="field"><label>Ke</label><input type="text" placeholder="Tuju" value="${t.to || ''}" oninput="updateTransport(${t.id},'to',this.value)"></div>
       </div>
       <div class="grid-2-col" style="align-items:end;">
-        <div class="field"><label>Jarak (KM)</label><div style="display:flex; gap:6px;"><input type="number" placeholder="0" value="${t.km || ''}" oninput="updateTransportKM(${t.id},this.value)" style="flex:1;"><button class="search-dist-btn" onclick="calculateDistance(${t.id})">🔍</button></div>${t.mode === 'car' ? '<p style="font-size:0.62rem;color:#888;margin-top:3px;">Jarak sehala</p>' : ''}</div>
-        <div class="field"><label>Kos (RM) ${isAuto ? '<span class="auto-calc-badge">ANGGARAN</span>' : ''}</label><div class="input-prefix"><span>RM</span><input type="number" placeholder="0.00" value="${t.cost || ''}" id="trans-input-${t.id}" ${isAuto ? 'readonly style="background:#E8F5E9"' : ''} oninput="updateTransportCost(${t.id},this.value)"></div></div>
+        <div class="field"><label>${t.mode === 'car' ? 'Jarak Sehala (KM)' : 'Jarak (KM)'}</label><div style="display:flex; gap:6px;"><input type="number" placeholder="0" value="${t.km || ''}" oninput="updateTransportKM(${t.id},this.value)" style="flex:1;"><button class="search-dist-btn" onclick="calculateDistance(${t.id})">🔍</button></div></div>
+        <div class="field"><label>Kos (RM) ${isAuto ? '<span class="auto-calc-badge" style="padding:1px 6px;font-size:0.55rem;line-height:1.4;vertical-align:middle;">ANGGARAN</span>' : ''}</label><div class="input-prefix"><span>RM</span><input type="number" placeholder="0.00" value="${t.cost || ''}" id="trans-input-${t.id}" ${isAuto ? 'readonly style="background:#E8F5E9"' : ''} oninput="updateTransportCost(${t.id},this.value)"></div></div>
       </div>
       ${t.mode === 'car' ? medanKereta(t) : ''}
       <div class="item-footer color-peach">Kos Laluan: <span id="trans-cost-text-${t.id}">RM 0.00</span></div>
@@ -902,6 +902,8 @@ function recalculateTransportCost(item) {
   if (item.mode === 'car' && item.autoCalc && item.km) {
     item.cost = kosKereta(lalaiKereta(item)).jumlah.toFixed(2);
     const input = document.getElementById(`trans-input-${item.id}`); if(input) input.value = item.cost;
+    updateTransportSubDisplay(item.id);
+    const pc = document.getElementById('pecahan-kereta-' + item.id); if (pc) pc.innerHTML = teksPecahan(kosKereta(item), item);
   }
 }
 function updateTransportSubDisplay(id) {
