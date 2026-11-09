@@ -467,10 +467,10 @@
           <button onclick="toggleSettings()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">⚙️</button>
         </div>
         <div id="settings-panel" class="settings-panel">
-          <div class="field">
-            <label>Kadar Kos Minyak + Tol (RM per KM)</label>
-            <div class="input-prefix"><span>RM</span><input type="number" id="fuel-rate" value="0.35" step="0.05" oninput="updateSummary()"></div>
-            <p style="font-size:0.65rem; color:#888; margin-top:4px;">*Auto-kira kos berdasarkan jarak KM jika mod Kereta dipilih.</p>
+          <div style="font-size:0.75rem; line-height:1.6; color:#475569;">
+            <b>Harga minyak semasa (anggaran)</b> · <span id="harga-minyak-tarikh"></span><br>
+            <span id="harga-minyak-senarai"></span>
+            <p style="font-size:0.65rem; color:#888; margin-top:6px;">*Harga ini diisi automatik dalam setiap laluan kereta. Anda boleh ubah harga, penggunaan (km/liter) dan tol dalam laluan itu sendiri.</p>
           </div>
         </div>
         <div id="transport-list"></div>
@@ -802,7 +802,75 @@ function updateAccomSub(id) {
   if(item && el) el.textContent = 'RM ' + ((parseFloat(item.cost)||0) * (parseInt(item.nights)||0)).toFixed(2);
 }
 
-window.addTransport = (silent) => { transportList.push({ id: Date.now(), mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true }); renderTransport(); if(!silent) showToast('🚗 Laluan ditambah!'); }
+// ===== Kos kereta: (jarak x bil. perjalanan / km seliter) x harga seliter + tol x bil. perjalanan =====
+// Harga rasmi MOF (Mekanisme Harga Automatik), dikemas kini setiap minggu. KEMAS KINI DI SINI SAHAJA.
+const HARGA_MINYAK = {
+  tarikh: '5–11 Nov 2026',
+  jenis: {
+    budi95:  { label: 'RON95 BUDI95 (subsidi)', harga: 1.99 },
+    ron95:   { label: 'RON95 tanpa subsidi', harga: 4.27 },
+    ron97:   { label: 'RON97', harga: 4.70 },
+    diesel_budi: { label: 'Diesel BUDI (subsidi)', harga: 2.10 },
+    diesel:  { label: 'Diesel tanpa subsidi', harga: 5.12 }
+  }
+};
+const KM_SELITER_LALAI = 12;
+function lalaiKereta(t) {
+  if (!t.jenisMinyak || !HARGA_MINYAK.jenis[t.jenisMinyak]) t.jenisMinyak = 'budi95';
+  if (t.hargaSeliter === undefined || t.hargaSeliter === '') t.hargaSeliter = HARGA_MINYAK.jenis[t.jenisMinyak].harga;
+  if (t.kmSeliter === undefined || t.kmSeliter === '') t.kmSeliter = KM_SELITER_LALAI;
+  if (t.tol === undefined) t.tol = '';
+  if (t.perjalanan !== 'pergi_balik') t.perjalanan = t.perjalanan || 'sehala';
+  return t;
+}
+function kosKereta(t) {
+  const kali = t.perjalanan === 'pergi_balik' ? 2 : 1;
+  const km = (parseFloat(t.km) || 0) * kali;
+  const kpl = parseFloat(t.kmSeliter) || 0;
+  const liter = kpl > 0 ? km / kpl : 0;
+  const minyak = liter * (parseFloat(t.hargaSeliter) || 0);
+  const tol = (parseFloat(t.tol) || 0) * kali;
+  return { kali, km, liter, minyak, tol, jumlah: minyak + tol };
+}
+function medanKereta(t) {
+  lalaiKereta(t);
+  const pil = Object.entries(HARGA_MINYAK.jenis).map(([k, v]) => `<option value="${k}" ${t.jenisMinyak === k ? 'selected' : ''}>${v.label}</option>`).join('');
+  const b = kosKereta(t);
+  return `
+      <div class="grid-2-col">
+        <div class="field"><label>Perjalanan</label><select onchange="ubahKereta(${t.id},'perjalanan',this.value)"><option value="sehala" ${t.perjalanan === 'sehala' ? 'selected' : ''}>➡️ Sehala</option><option value="pergi_balik" ${t.perjalanan === 'pergi_balik' ? 'selected' : ''}>🔁 Pergi balik</option></select></div>
+        <div class="field"><label>Jenis Minyak</label><select onchange="ubahKereta(${t.id},'jenisMinyak',this.value)">${pil}</select></div>
+      </div>
+      <div class="grid-2-col">
+        <div class="field"><label>Harga Seliter</label><div class="input-prefix"><span>RM</span><input type="number" step="0.01" value="${t.hargaSeliter}" oninput="ubahKereta(${t.id},'hargaSeliter',this.value)"></div></div>
+        <div class="field"><label>Penggunaan (km/liter)</label><input type="number" step="0.5" value="${t.kmSeliter}" oninput="ubahKereta(${t.id},'kmSeliter',this.value)"></div>
+      </div>
+      <div class="field"><label>Tol Sehala (RM)</label><div class="input-prefix"><span>RM</span><input type="number" step="0.01" placeholder="0.00" value="${t.tol}" oninput="ubahKereta(${t.id},'tol',this.value)"></div></div>
+      <p id="pecahan-kereta-${t.id}" style="font-size:0.68rem; color:#64748B; line-height:1.5; margin:0;">${teksPecahan(b, t)}</p>`;
+}
+function teksPecahan(b, t) {
+  if (!b.km) return 'Isi jarak untuk anggaran kos minyak.';
+  return `Anggaran: ${b.km.toFixed(1)} km${b.kali === 2 ? ' (pergi balik)' : ''} ÷ ${t.kmSeliter} km/l = ${b.liter.toFixed(1)} liter × RM${(parseFloat(t.hargaSeliter)||0).toFixed(2)} = <b>RM${b.minyak.toFixed(2)}</b> minyak${b.tol ? ` + RM${b.tol.toFixed(2)} tol` : ''}`;
+}
+window.ubahKereta = (id, f, v) => {
+  const item = transportList.find(t => t.id === id); if (!item) return;
+  item[f] = v;
+  if (f === 'jenisMinyak') { item.hargaSeliter = HARGA_MINYAK.jenis[v].harga; }
+  item.autoCalc = true;
+  recalculateTransportCost(item);
+  if (f === 'jenisMinyak' || f === 'perjalanan') renderTransport();
+  else { const p = document.getElementById('pecahan-kereta-' + id); if (p) p.innerHTML = teksPecahan(kosKereta(item), item); updateTransportSubDisplay(id); }
+  window.updateAll();
+};
+(function isiInfoHarga() {
+  const run = () => {
+    const t = document.getElementById('harga-minyak-tarikh'), s = document.getElementById('harga-minyak-senarai');
+    if (t) t.textContent = HARGA_MINYAK.tarikh;
+    if (s) s.innerHTML = Object.values(HARGA_MINYAK.jenis).map(v => `${v.label}: RM${v.harga.toFixed(2)}/l`).join('<br>');
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
+})();
+window.addTransport = (silent) => { transportList.push(lalaiKereta({ id: Date.now(), mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true })); renderTransport(); if(!silent) showToast('🚗 Laluan ditambah!'); }
 window.removeTransport = (id) => { transportList = transportList.filter(t => t.id !== id); renderTransport(); window.updateAll(); }
 function renderTransport() {
   const el = document.getElementById('transport-list'); el.innerHTML = '';
@@ -817,21 +885,22 @@ function renderTransport() {
         <div class="field"><label>Ke</label><input type="text" placeholder="Tuju" value="${t.to || ''}" oninput="updateTransport(${t.id},'to',this.value)"></div>
       </div>
       <div class="grid-2-col" style="align-items:end;">
-        <div class="field"><label>Jarak (KM)</label><div style="display:flex; gap:6px;"><input type="number" placeholder="0" value="${t.km || ''}" oninput="updateTransportKM(${t.id},this.value)" style="flex:1;"><button class="search-dist-btn" onclick="calculateDistance(${t.id})">🔍</button></div></div>
-        <div class="field"><label>Kos (RM) ${isAuto ? '<span class="auto-calc-badge">AUTO</span>' : ''}</label><div class="input-prefix"><span>RM</span><input type="number" placeholder="0.00" value="${t.cost || ''}" id="trans-input-${t.id}" ${isAuto ? 'readonly style="background:#E8F5E9"' : ''} oninput="updateTransportCost(${t.id},this.value)"></div></div>
+        <div class="field"><label>Jarak (KM)</label><div style="display:flex; gap:6px;"><input type="number" placeholder="0" value="${t.km || ''}" oninput="updateTransportKM(${t.id},this.value)" style="flex:1;"><button class="search-dist-btn" onclick="calculateDistance(${t.id})">🔍</button></div>${t.mode === 'car' ? '<p style="font-size:0.62rem;color:#888;margin-top:3px;">Jarak sehala</p>' : ''}</div>
+        <div class="field"><label>Kos (RM) ${isAuto ? '<span class="auto-calc-badge">ANGGARAN</span>' : ''}</label><div class="input-prefix"><span>RM</span><input type="number" placeholder="0.00" value="${t.cost || ''}" id="trans-input-${t.id}" ${isAuto ? 'readonly style="background:#E8F5E9"' : ''} oninput="updateTransportCost(${t.id},this.value)"></div></div>
       </div>
+      ${t.mode === 'car' ? medanKereta(t) : ''}
       <div class="item-footer color-peach">Kos Laluan: <span id="trans-cost-text-${t.id}">RM 0.00</span></div>
     `;
     el.appendChild(div); updateTransportSubDisplay(t.id);
   });
 }
 window.updateTransport = (id, f, v) => { const item = transportList.find(t => t.id === id); if (item) { item[f] = v; window.updateAll(); } }
-window.updateTransportMode = (id, mode) => { const item = transportList.find(t => t.id === id); if (item) { item.mode = mode; item.autoCalc = (mode === 'car'); recalculateTransportCost(item); renderTransport(); window.updateAll(); } }
-window.updateTransportKM = (id, km) => { const item = transportList.find(t => t.id === id); if (item) { item.km = km; recalculateTransportCost(item); updateTransportSubDisplay(id); window.updateAll(); } }
+window.updateTransportMode = (id, mode) => { const item = transportList.find(t => t.id === id); if (item) { item.mode = mode; item.autoCalc = (mode === 'car'); if (mode === 'car') lalaiKereta(item); recalculateTransportCost(item); renderTransport(); window.updateAll(); } }
+window.updateTransportKM = (id, km) => { const item = transportList.find(t => t.id === id); if (item) { item.km = km; recalculateTransportCost(item); updateTransportSubDisplay(id); { const p = document.getElementById('pecahan-kereta-' + id); if (p && item.mode === 'car') p.innerHTML = teksPecahan(kosKereta(item), item); } window.updateAll(); } }
 window.updateTransportCost = (id, cost) => { const item = transportList.find(t => t.id === id); if (item) { item.cost = cost; item.autoCalc = false; updateTransportSubDisplay(id); window.updateAll(); } }
 function recalculateTransportCost(item) {
   if (item.mode === 'car' && item.autoCalc && item.km) {
-    const rate = parseFloat(document.getElementById('fuel-rate').value) || 0; item.cost = (parseFloat(item.km) * rate).toFixed(2);
+    item.cost = kosKereta(lalaiKereta(item)).jumlah.toFixed(2);
     const input = document.getElementById(`trans-input-${item.id}`); if(input) input.value = item.cost;
   }
 }
