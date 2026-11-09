@@ -218,10 +218,14 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
     snap.forEach(d => nodes.push({ id: d.id, data: d.data() }));
     const bersih = (data) => Object.fromEntries(Object.entries(data).filter(([k]) => !k.startsWith('jemput') && !k.startsWith('panggilan') && !['linked_uids', 'linked_adik', 'sibling_of', 'link_owner', 'anak_saudara_dari', 'dijemput'].includes(k)));
     const rootBaru = "root_" + uidBaru;
+    const bilSalin = {}; window.__bilSalinPokok = bilSalin;
     const tulis = async (data, rel, ref) => {
         const r = await addDoc(collection(db, "mynasab_nodes"), {
             ...bersih(data), owner_uid: uidBaru, created_by: jem.owner_uid, relationship: rel, ref_id: ref, is_root: false, created_at: new Date()
         });
+        const kunciB = /sepupu/i.test(rel) ? (/^pasangan/i.test(rel) ? 'pasangan sepupu' : /^sepupu$/i.test(rel) ? 'sepupu' : 'anak/cucu sepupu') : 'lain';
+        bilSalin[kunciB] = (bilSalin[kunciB] || 0) + 1;
+        window.__bilSalinPokok = bilSalin;
         return r.id;
     };
 
@@ -274,17 +278,31 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
     const ringkas = (d) => ({ ...bersih(d), phone: '', email: '' });
     const adaRel = (n, re) => re.test((n.data.relationship || '').trim());
     const rootInduk = nodes.find(n => n.data.is_root);
-    // Sepupu + pasangan sepupu + anak sepupu (dua generasi bawah bapa/mak saudara), dengan rujukan ke nod sepupu yang baru
+    // Sepupu dan seluruh keturunannya (anak sepupu, cucu sepupu) beserta pasangan, dengan rujukan ke nod yang baru disalin
+    const turunSepupu = async (asal, idBaru, aras, sumber) => {
+        const lblPsg = ['Pasangan Sepupu', 'Pasangan Anak Sepupu', 'Pasangan Cucu Sepupu'][aras];
+        const psg = sumber.filter(n => adaRel(n, /^(suami|isteri|menantu)$/i) && n.data.ref_id === asal.id);
+        for (const p of psg) await tulis(ringkas(p.data), lblPsg, idBaru);
+        if (aras >= 2) return;
+        const rujuk = new Set([asal.id, ...psg.map(p => p.id)]);
+        const reAnak = aras === 0 ? /^(cucu saudara|cucu)$/i : /^(cicit saudara|cicit)$/i;
+        for (const c of sumber.filter(n => adaRel(n, reAnak) && rujuk.has(n.data.ref_id))) {
+            const idC = await tulis(ringkas(c.data), aras === 0 ? 'Anak Sepupu' : 'Cucu Sepupu', idBaru);
+            await turunSepupu(c, idC, aras + 1, sumber);
+        }
+    };
     const salinSepupu = async (sumber, anakAsal, idSaudara) => {
-        const idSepupu = await tulis(ringkas(anakAsal.data), 'Sepupu', idSaudara);
-        const pasanganAsal = sumber.filter(n => adaRel(n, /^(suami|isteri|menantu)$/i) && n.data.ref_id === anakAsal.id);
-        for (const p of pasanganAsal) await tulis(ringkas(p.data), 'Pasangan Sepupu', idSepupu);
-        const idRujuk = new Set([anakAsal.id, ...pasanganAsal.map(p => p.id)]);
-        for (const c of sumber.filter(n => adaRel(n, /^(cucu saudara|cucu)$/i) && idRujuk.has(n.data.ref_id))) await tulis(ringkas(c.data), 'Anak Sepupu', idSepupu);
+        const idS = await tulis(ringkas(anakAsal.data), 'Sepupu', idSaudara);
+        await turunSepupu(anakAsal, idS, 0, sumber);
     };
     const saudara = [];
     if (rootInduk) saudara.push(rootInduk);
     nodes.filter(n => n.id !== ibuBapa.id && adaRel(n, /^(abang|kakak|adik|adik-beradik)$/i)).forEach(n => saudara.push(n));
+    // Paparan induk melekatkan anak saudara tanpa rujukan pada adik-beradik tertua: salinan ikut peraturan sama
+    const semuaAdikBeradik = [rootInduk, ...nodes.filter(n => adaRel(n, /^(abang|kakak|adik|adik-beradik)$/i))].filter(Boolean);
+    const dobKunci = (n) => (n.data.dob || '9999-99-99');
+    const tertuaSemua = semuaAdikBeradik.slice().sort((x, y) => dobKunci(x).localeCompare(dobKunci(y)))[0];
+    const tertuaSaudara = tertuaSemua && saudara.includes(tertuaSemua) ? tertuaSemua : null;
     for (const sd of saudara) {
         const L = sd.data.gender === 'L';
         const idSaudara = await tulis(ringkas(sd.data), `${L ? 'Bapa Saudara' : 'Mak Saudara'} (Belah ${belah})`, '');
@@ -294,9 +312,10 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
             : nodes.filter(n => adaRel(n, /^ipar$/i) && n.data.ref_id === sd.id);
         for (const p of pasanganSd) await tulis(ringkas(p.data), L ? 'Pasangan Bapa Saudara' : 'Pasangan Mak Saudara', idSaudara);
         // anak -> sepupu
+        const idPasanganSd = nodes.filter(n => adaRel(n, /^(ipar|suami|isteri)$/i) && n.data.ref_id === sd.id).map(n => n.id);
         const anakSd = sd === rootInduk
             ? nodes.filter(n => adaRel(n, /^anak$/i))
-            : nodes.filter(n => adaRel(n, /^anak saudara$/i) && n.data.ref_id === sd.id);
+            : nodes.filter(n => adaRel(n, /^anak saudara$/i) && (n.data.ref_id === sd.id || idPasanganSd.includes(n.data.ref_id) || (!n.data.ref_id && sd === tertuaSaudara)));
         for (const a of anakSd) await salinSepupu(nodes, a, idSaudara);
     }
 
@@ -626,7 +645,7 @@ window.segerakPokokAnakSaudara = async () => {
         await salinPokokAnakSaudara({ owner_uid: dari.uid, sasaran_id: dari.nod, anak_nod: dari.anak_nod }, uid);
         await tandaDisegerak(dari.uid);
         logAktiviti('kemas_kini_pokok', 'Kemas kini pokok anak saudara');
-        alert("Pokok berjaya dikemas kini.");
+        { const b = window.__bilSalinPokok || {}; alert("Pokok berjaya dikemas kini.\nSepupu: " + (b['sepupu'] || 0) + " · Pasangan sepupu: " + (b['pasangan sepupu'] || 0) + " · Anak/cucu sepupu: " + (b['anak/cucu sepupu'] || 0)); }
         window.bukaPreviewBesar('saya');
     } catch (e) { console.error(e); alert("Gagal mengemas kini pokok: " + e.message); }
 };
@@ -2004,13 +2023,14 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
         const kelompok = (nod) => {
             const k = {
                 diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], datukMertua: [], moyangMertua: [], buyutMertua: [], cakawariMertua: [], cilawagiMertua: [], adikPasangan: [], turun: [[], [], [], [], []],
-                adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [], cicitSaudara: [], saudaraIbuBapa: [], pasanganSaudara: [], sepupu: [], pasanganSepupu: [], anakSepupu: []
+                adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [], cicitSaudara: [], saudaraIbuBapa: [], pasanganSaudara: [], sepupu: [], pasanganSepupu: [], anakSepupu: [], cucuSepupu: []
             };
             nod.forEach(d => {
                 const h = (d.relationship || '').toLowerCase();
                 if (d.is_root) k.diri = d;
-                else if (/^pasangan sepupu/.test(h)) k.pasanganSepupu.push(d);
+                else if (/^pasangan (anak |cucu )?sepupu/.test(h)) k.pasanganSepupu.push(d);
                 else if (/^anak sepupu/.test(h)) k.anakSepupu.push(d);
+                else if (/^cucu sepupu/.test(h)) k.cucuSepupu.push(d);
                 else if (/^pasangan (bapa|mak|ibu) saudara/.test(h)) k.pasanganSaudara.push(d);
                 else if (/^(bapa|mak|ibu) saudara/.test(h)) k.saudaraIbuBapa.push(d);
                 else if (h === 'sepupu') k.sepupu.push(d);
@@ -2557,9 +2577,12 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
                 const psg = tanpaPasangan ? [] : S.pasanganSaudara.filter(p => p.ref_id === u.id);
                 const anak = S.sepupu.filter(c => c.ref_id === u.id);
                 const idAnak = new Set(anak.map(c => c.id));
-                const psgSepupu = tanpaPasangan ? [] : (S.pasanganSepupu || []).filter(p => idAnak.has(p.ref_id));
                 const anakSepupu = (S.anakSepupu || []).filter(c => idAnak.has(c.ref_id));
-                const kU = { diri: u, menantu: psgSepupu, turun: [anak, anakSepupu, [], [], []] };
+                const idAS = new Set(anakSepupu.map(c => c.id));
+                const cucuSepupu = (S.cucuSepupu || []).filter(c => idAS.has(c.ref_id));
+                const idCS = new Set(cucuSepupu.map(c => c.id));
+                const psgSepupu = tanpaPasangan ? [] : (S.pasanganSepupu || []).filter(p => idAnak.has(p.ref_id) || idAS.has(p.ref_id) || idCS.has(p.ref_id));
+                const kU = { diri: u, menantu: psgSepupu, turun: [anak, anakSepupu, cucuSepupu, [], []] };
                 entri.push({ t: tarikh(u), bina: (kiri) => binaRumahMenegak(kU, u, psg, false, kiri) });
             });
             entri.sort((x, y) => x.t - y.t);
@@ -2627,11 +2650,12 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
         else if (mod === 'nasab') {
             const sasaranSebagaiAdik = !sayaInduk && sasaranIdPusat === indukRootId;
             const nodSaudara = (sayaInduk || sasaranSebagaiAdik) ? nodInduk : [];
-            const o = { ayah: [], ibu: [], sepupu: [], duaPupuk: [], pasSepupu: [], anakSepupu: [] };
+            const o = { ayah: [], ibu: [], sepupu: [], duaPupuk: [], pasSepupu: [], anakSepupu: [], cucuSepupu: [] };
             nodSaudara.forEach(d => {
                 const h = (d.relationship || '').toLowerCase();
-                if (/^pasangan sepupu/.test(h)) { o.pasSepupu.push(d); return; }
+                if (/^pasangan (anak |cucu )?sepupu/.test(h)) { o.pasSepupu.push(d); return; }
                 if (/^anak sepupu/.test(h)) { o.anakSepupu.push(d); return; }
+                if (/^cucu sepupu/.test(h)) { o.cucuSepupu.push(d); return; }
                 if (h.startsWith('pasangan')) return;
                 if (/(bapa|mak|ibu) saudara/.test(h)) (h.includes('belah ibu') ? o.ibu : o.ayah).push(d);
                 else if (h === 'sepupu') o.sepupu.push(d);
@@ -2678,7 +2702,11 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
                     const anakU = o.sepupu.filter(sp => sp.ref_id === u.id);
                     const idAnakU = new Set(anakU.map(c => c.id));
                     const anakSepU = o.anakSepupu.filter(c => idAnakU.has(c.ref_id));
-                    const kU = { diri: u, menantu: o.pasSepupu.filter(p => idAnakU.has(p.ref_id)), turun: anakU.length ? [anakU, anakSepU.length ? anakSepU : o.duaPupuk, [], [], []] : [[], [], [], [], []] };
+                    const idASU = new Set(anakSepU.map(c => c.id));
+                    const cucuSepU = o.cucuSepupu.filter(c => idASU.has(c.ref_id));
+                    const idCSU = new Set(cucuSepU.map(c => c.id));
+                    const psgSepU = o.pasSepupu.filter(p => idAnakU.has(p.ref_id) || idASU.has(p.ref_id) || idCSU.has(p.ref_id));
+                    const kU = { diri: u, menantu: psgSepU, turun: anakU.length ? [anakU, anakSepU.length ? anakSepU : o.duaPupuk, cucuSepU, [], []] : [[], [], [], [], []] };
                     return `<li>${binaRumahMenegak(kU, u, [], false, kiri)}</li>`;
                 };
 
