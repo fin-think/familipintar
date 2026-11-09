@@ -80,8 +80,11 @@ function cl40NoHari(now) { return Math.floor(now / 86400000); }
 async function cl40Hantar(dbRef, messaging, uid, medanToken, tokens, payload) {
     const medanLama = medanToken.replace('fcm_', 'fcm_checklist40_');
     let berjaya = 0; const mati = [];
-    for (const token of tokens) {
-        try { await messaging.send({ ...payload, token }); berjaya++; }
+    // Tag sama: telefon yang ada dua token tunjuk satu notifikasi sahaja
+    const tag = payload && payload.data && payload.data.tag;
+    const muatan = tag ? { ...payload, webpush: { ...(payload.webpush || {}), notification: { ...((payload.webpush || {}).notification || {}), tag } } } : payload;
+    for (const token of [...new Set(tokens)]) {
+        try { await messaging.send({ ...muatan, token }); berjaya++; }
         catch (e) {
             const kod = (e && e.code) || '';
             if (kod.includes('registration-token-not-registered') || kod.includes('invalid-registration-token')) mati.push(token);

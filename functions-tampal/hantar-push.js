@@ -20,8 +20,12 @@ const tokenUntuk = (u, per) => {
 // Hantar ke setiap token; token yang sudah tidak sah dibuang daripada dokumen pengguna. Pulangkan bilangan yang berjaya.
 async function hantarKeSemuaPeranti(dbRef, messaging, uid, userData, payload, per = null) {
     let berjaya = 0; const mati = [];
+    // Satu telefon boleh ada lebih daripada satu token (cth. Chrome + app dipasang, atau token lama). Tag yang sama
+    // membuatkan telefon menggantikan notifikasi yang sama, bukan menunjukkan dua kali.
+    const tag = payload && payload.data && payload.data.tag;
+    const muatan = tag ? { ...payload, webpush: { ...(payload.webpush || {}), notification: { ...((payload.webpush || {}).notification || {}), tag } } } : payload;
     for (const token of tokenUntuk(userData, per)) {
-        try { await messaging.send({ ...payload, token }); berjaya++; }
+        try { await messaging.send({ ...muatan, token }); berjaya++; }
         catch (e) {
             const kod = (e && e.code) || '';
             if (kod.includes('registration-token-not-registered') || kod.includes('invalid-registration-token')) mati.push(token);
