@@ -254,6 +254,13 @@ const HADIS = {
 };
 const TAJUK = { 20: '🕌 Semak amal hari ini', 22: '🌙 Muhasabah jiwa sebelum tidur' };
 
+const MUHASABAH = {
+  pagi: { tajuk: '☀️ Muhasabah Dhuha', atas: 'Dah solat Dhuha? Kalau belum, cari masa dan ruang ya. Kalau tak mampu, jom zikir.', nama: 'Dhuha',
+    bawah: 'Dari bangun pagi tadi, lepas Tahajud dan Subuh, kalau ada silap salah yang awak dah buat, mohon keampunan ya. Niatkan fasa waktu seterusnya awak akan jadi lebih baik. InshaAllah awak mampu. Jumpa malam nanti.' },
+  malam: { tajuk: '🌙 Muhasabah sebelum tidur', atas: 'Dah solat Isyak dan baca Al-Mulk ke? Kalau belum, sekejap lagi buat ya.', nama: 'Isyak dan Al-Mulk',
+    bawah: 'Dari siang hari sampai jam sekarang, awak ada tersilap cakap atau salah adab yang menyinggung Allah dan saudara Muslim lain? Kalau ada, mohon keampunan, mohon maaf dan maafkan semua ya sebelum tidur. Niatkan esok akan jadi lebih baik, dan doakan diberi rezeki dan umur untuk esok meneruskan perjalanan dunia sebagai bekalan akhirat kelak. InshaAllah awak mampu bangun Tahajud nanti untuk mulakan hari yang baru. Assalamualaikum dan selamat malam.' }
+};
+
 const q = new URLSearchParams(location.search);
 let jam = parseInt(q.get('jam'), 10);
 if (jam !== 20 && jam !== 22) jam = (new Date().getHours() >= 21 || new Date().getHours() < 5) ? 22 : 20;
@@ -269,6 +276,18 @@ $('btn-buka').href = '/app/mychecklist40.html';
 if (id && AYAT[id]) { $('u-ayat').textContent = AYAT[id][1]; $('u-tajuk').textContent = AYAT[id][0]; }
 else { $('u-ayat').textContent = 'Semak amalan anda hari ini dan tandakan yang telah dilakukan.'; }
 
+const slotM = q.get('slot') === 'malam' ? 'malam' : 'pagi';
+if (q.get('mod') === 'muhasabah') {
+  const M = MUHASABAH[slotM];
+  $('utama').className = 'utama ' + (slotM === 'malam' ? 'j22' : 'j20');
+  $('u-kecil').textContent = M.tajuk;
+  $('u-ayat').textContent = M.atas;
+  $('u-tajuk').textContent = '';
+  $('hadis').querySelector('small').textContent = 'Muhasabah';
+  $('h-teks').textContent = M.bawah;
+  $('h-sumber').textContent = '';
+  $('hadis').style.display = '';
+} else {
 // Hadis ikut perkara; jika tiada parameter, pilih ikut hari
 let kunci = id && HADIS[id] ? id : KUMP[jam][Math.floor(Date.now() / 86400000) % KUMP[jam].length];
 if (!(id && AYAT[id])) { $('u-ayat').textContent = AYAT[kunci][1]; $('u-tajuk').textContent = AYAT[kunci][0]; }
@@ -276,6 +295,7 @@ if (HADIS[kunci]) {
   $('h-teks').textContent = HADIS[kunci][0];
   $('h-sumber').textContent = HADIS[kunci][1];
   $('hadis').style.display = '';
+}
 }
 </script>
 </body>

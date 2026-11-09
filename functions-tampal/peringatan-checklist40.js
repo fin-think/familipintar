@@ -152,3 +152,56 @@ exports.peringatanChecklist40 = functions
     .pubsub.schedule('0 20,22 * * *')
     .timeZone(OM_TZ)
     .onRun(async () => { await jalankanPeringatanChecklist40(db, admin.messaging()); return null; });
+
+
+// ==========================================
+// 7b. MUHASABAH HARIAN: 10.30 PAGI (DHUHA) & 10.30 MALAM (ISYAK + AL-MULK)
+// ==========================================
+// Sebahagian fail yang sama: tampal bersama blok di atas. Penerima sama dengan peringatan myCHECKLIST40
+// (orang yang menghidupkan peringatan, ikut peranti induk / pasangan masing-masing). Dihantar setiap hari tanpa
+// bergantung pada apa yang sudah ditanda. Klik notifikasi membuka /app/peringatan40.html?mod=muhasabah&slot=...
+const MUHASABAH = {
+    pagi:  { tajuk: '☀️ Muhasabah Dhuha', badan: 'Dah solat Dhuha? Kalau belum, cari masa dan ruang ya. Kalau tak mampu, jom zikir.' },
+    malam: { tajuk: '🌙 Muhasabah sebelum tidur', badan: 'Dah solat Isyak dan baca Al-Mulk ke? Kalau belum, sekejap lagi buat ya.' }
+};
+
+async function jalankanMuhasabah(dbRef, messaging, opsi = {}) {
+    const now = opsi.now || Date.now();
+    const jam = opsi.jamPaksa != null ? opsi.jamPaksa : parseInt(new Intl.DateTimeFormat('en-GB', { timeZone: OM_TZ, hour: '2-digit', hour12: false }).format(new Date(now)), 10) % 24;
+    const slot = jam < 12 ? 'pagi' : 'malam';
+    const tarikh = new Intl.DateTimeFormat('en-CA', { timeZone: OM_TZ }).format(new Date(now));
+    const orang = [['', 'fp_mychecklist40_ingat'], ['pasangan', 'fp_pasangan_mychecklist40_ingat']];
+    const calon = [], dilihat = new Map();
+    for (const [per, medanIngat] of orang) {
+        const snap = await dbRef.collection('mynasab_users').where(medanIngat, '==', true).get();
+        snap.forEach(d => { dilihat.set(d.id, d.data()); calon.push([d.id, per]); });
+    }
+    let dihantar = 0, langkau = 0;
+    for (const [uid, per] of calon) {
+        try {
+            const u = dilihat.get(uid), p = per || 'induk';
+            const medanToken = 'fcm_' + p, medanLama = 'fcm_checklist40_' + p;
+            const token = [...new Set([...(Array.isArray(u[medanToken]) ? u[medanToken] : []), ...(Array.isArray(u[medanLama]) ? u[medanLama] : [])])].filter(Boolean);
+            if (!token.length) { langkau++; continue; }
+            if (!opsi.tanpaLog) {
+                try { await dbRef.collection('checklist40_notif_log').doc(`${uid}_${p}_muhasabah_${slot}_${tarikh}`).create({ uid, tarikh, slot, timestamp: new Date().toISOString() }); }
+                catch (e) { langkau++; continue; }        // sudah dihantar hari ini
+            }
+            const pautan = `/app/peringatan40.html?mod=muhasabah&slot=${slot}&per=${p}`;
+            const n = await cl40Hantar(dbRef, messaging, uid, medanToken, token, {
+                notification: { title: MUHASABAH[slot].tajuk, body: MUHASABAH[slot].badan },
+                data: { app: 'checklist40', url: pautan, badgeCount: '1', tag: 'muhasabah-' + slot },
+                webpush: { fcmOptions: { link: pautan } }
+            });
+            if (n > 0) dihantar++; else langkau++;
+        } catch (e) { console.error('Muhasabah: gagal untuk', uid, e.message); }
+    }
+    console.log(`Muhasabah ${slot}: dihantar ${dihantar}, dilangkau ${langkau}, calon ${calon.length}`);
+    return { dihantar, langkau };
+}
+
+exports.peringatanMuhasabah = functions
+    .runWith({ timeoutSeconds: 300, memory: '256MB' })
+    .pubsub.schedule('30 10,22 * * *')
+    .timeZone(OM_TZ)
+    .onRun(async () => { await jalankanMuhasabah(db, admin.messaging()); return null; });
