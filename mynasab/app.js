@@ -515,6 +515,8 @@ async function semakPokokTerkini() {
         }
         if (!ts) return;
         if (ts <= disegerak) return;
+        // Akaun adik-beradik: kemas kini auto juga (tiada popup)
+        await window.segerakPokokAnakSaudara(true); return;
         try { if (sessionStorage.getItem('fp_pokok_nanti') === String(ts)) return; } catch (e) {}
         const nama = (so.data().name || 'Pengundang').replace(/[<>&"']/g, '');
         const kotak = document.createElement('div');
@@ -624,6 +626,18 @@ window.segerakPokokAnakSaudara = async (senyap = false) => {
     try { return await segerakPokokDalam(senyap === true); } finally { window.__sedangSegerak = false; }
 };
 const SALINAN_VERSI = 3;
+// Makluman kecil selepas kemas kini auto (hilang sendiri)
+function maklumSegerak() {
+    try {
+        const m = document.getElementById('modalPreview');
+        if (m && !m.classList.contains('hidden') && window.bukaPreviewBesar) window.bukaPreviewBesar('saya');
+        const t = document.createElement('div');
+        t.textContent = '🌳 Pokok keluarga dah dikemas kini';
+        t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#16a34a;color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;font-size:14px;z-index:99999;box-shadow:0 8px 24px rgba(0,0,0,.25);';
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3500);
+    } catch (e) {}
+}
 async function segerakPokokDalam(senyap) {
     if (!penggunaSemasa) return;
     const uid = penggunaSemasa.uid;
@@ -636,12 +650,13 @@ async function segerakPokokDalam(senyap) {
             if (pl) akarAdik = { data: { link_owner: pl.owner, sibling_of: pl.sasaran } };
         }
         if (akarAdik && !semua.some(n => n.data.is_root && n.data.anak_saudara_dari)) {
-            if (!confirm("Ibu bapa dan leluhur anda akan dikemas kini daripada pokok pengundang. Ahli yang anda tambah sendiri tidak disentuh. Teruskan?")) return;
+            if (!senyap && !confirm("Ibu bapa dan leluhur anda akan dikemas kini daripada pokok pengundang. Ahli yang anda tambah sendiri tidak disentuh. Teruskan?")) return;
             const dr = akarAdik.data.link_owner;
             const lamaA = semua.filter(n => !n.data.is_root && n.data.created_by === dr);
             for (const n of lamaA) await deleteDoc(doc(db, "mynasab_nodes", n.id));
             await salinLeluhurAdik({ owner_uid: dr, sasaran_id: akarAdik.data.sibling_of }, uid);
             await tandaDisegerak(dr);
+            if (senyap) { maklumSegerak(); return; }
             alert("Pokok berjaya dikemas kini.");
             window.bukaPreviewBesar('saya');
             return;
@@ -660,7 +675,7 @@ async function segerakPokokDalam(senyap) {
         await tandaDisegerak(dari.uid);
         logAktiviti('kemas_kini_pokok', senyap ? 'Kemas kini pokok anak saudara (auto)' : 'Kemas kini pokok anak saudara');
         try { await updateDoc(doc(db, "mynasab_users", uid), { salinan_versi: SALINAN_VERSI }); } catch (e) {}
-        if (senyap) { window.bukaPreviewBesar && document.getElementById('modalPreview') && !document.getElementById('modalPreview').classList.contains('hidden') && window.bukaPreviewBesar('saya'); return; }
+        if (senyap) { maklumSegerak(); return; }
         { const b = window.__bilSalinPokok || {}; alert("Pokok berjaya dikemas kini.\nSepupu: " + (b['sepupu'] || 0) + " · Pasangan sepupu: " + (b['pasangan sepupu'] || 0) + " · Anak/cucu sepupu: " + (b['anak/cucu sepupu'] || 0)); }
         window.bukaPreviewBesar('saya');
     } catch (e) { console.error(e); if (!senyap) alert("Gagal mengemas kini pokok: " + e.message); }
