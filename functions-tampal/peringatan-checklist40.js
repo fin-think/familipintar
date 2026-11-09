@@ -160,9 +160,8 @@ exports.peringatanChecklist40 = functions
 // ==========================================
 // 7b. MUHASABAH HARIAN: 10.30 PAGI (DHUHA) & 10.30 MALAM (ISYAK + AL-MULK)
 // ==========================================
-// Sebahagian fail yang sama: tampal bersama blok di atas. Penerima sama dengan peringatan myCHECKLIST40
-// (orang yang menghidupkan peringatan, ikut peranti induk / pasangan masing-masing). Dihantar setiap hari tanpa
-// bergantung pada apa yang sudah ditanda. Klik notifikasi membuka /app/peringatan40.html?mod=muhasabah&slot=...
+// Sebahagian fail yang sama: tampal bersama blok di atas. Penerima: semua peranti berdaftar (Induk / Pasangan),
+// tidak bergantung pada myCHECKLIST40. Klik notifikasi membuka /app/peringatan40.html?mod=muhasabah&slot=...
 const MUHASABAH = {
     pagi:  { tajuk: '☀️ Muhasabah Dhuha', badan: 'Dah solat Dhuha? Kalau belum, cari masa dan ruang ya. Kalau tak mampu, jom zikir.' },
     malam: { tajuk: '🌙 Muhasabah sebelum tidur', badan: 'Dah solat Isyak dan baca Al-Mulk ke? Kalau belum, sekejap lagi buat ya.' }
@@ -173,19 +172,26 @@ async function jalankanMuhasabah(dbRef, messaging, opsi = {}) {
     const jam = opsi.jamPaksa != null ? opsi.jamPaksa : parseInt(new Intl.DateTimeFormat('en-GB', { timeZone: OM_TZ, hour: '2-digit', hour12: false }).format(new Date(now)), 10) % 24;
     const slot = jam < 12 ? 'pagi' : 'malam';
     const tarikh = new Intl.DateTimeFormat('en-CA', { timeZone: OM_TZ }).format(new Date(now));
-    const orang = [['', 'fp_mychecklist40_ingat'], ['pasangan', 'fp_pasangan_mychecklist40_ingat']];
-    const calon = [], dilihat = new Map();
-    for (const [per, medanIngat] of orang) {
-        const snap = await dbRef.collection('mynasab_users').where(medanIngat, '==', true).get();
-        snap.forEach(d => { dilihat.set(d.id, d.data()); calon.push([d.id, per]); });
-    }
+    // Penerima: semua pengguna (Induk dan Pasangan) yang ada peranti berdaftar. Tidak bergantung pada myCHECKLIST40.
+    // Peranti Induk = fcm_induk, peranti Pasangan = fcm_pasangan. Akaun lama yang belum mendaftar peranti ikut orang
+    // jatuh balik kepada fcm_tokens untuk Induk sahaja. Pengguna boleh dikecualikan dengan fp_muhasabah_mati === true.
+    const snap = await dbRef.collection('mynasab_users').get();
+    const calon = [];
+    snap.forEach(d => {
+        const u = d.data();
+        if (u.fp_muhasabah_mati === true) return;
+        const arr = (k) => (Array.isArray(u[k]) ? u[k] : []);
+        const induk = [...new Set([...arr('fcm_induk'), ...arr('fcm_checklist40_induk')])].filter(Boolean);
+        const psg = [...new Set([...arr('fcm_pasangan'), ...arr('fcm_checklist40_pasangan')])].filter(Boolean);
+        let tokenInduk = induk;
+        if (!induk.length && !psg.length) tokenInduk = [...new Set([...arr('fcm_tokens'), ...(u.fcm_token ? [u.fcm_token] : [])])].filter(Boolean);
+        if (tokenInduk.length) calon.push([d.id, 'induk', tokenInduk]);
+        if (psg.length) calon.push([d.id, 'pasangan', psg]);
+    });
     let dihantar = 0, langkau = 0;
-    for (const [uid, per] of calon) {
+    for (const [uid, p, token] of calon) {
         try {
-            const u = dilihat.get(uid), p = per || 'induk';
-            const medanToken = 'fcm_' + p, medanLama = 'fcm_checklist40_' + p;
-            const token = [...new Set([...(Array.isArray(u[medanToken]) ? u[medanToken] : []), ...(Array.isArray(u[medanLama]) ? u[medanLama] : [])])].filter(Boolean);
-            if (!token.length) { langkau++; continue; }
+            const medanToken = 'fcm_' + p;
             if (!opsi.tanpaLog) {
                 try { await dbRef.collection('checklist40_notif_log').doc(`${uid}_${p}_muhasabah_${slot}_${tarikh}`).create({ uid, tarikh, slot, timestamp: new Date().toISOString() }); }
                 catch (e) { langkau++; continue; }        // sudah dihantar hari ini
@@ -193,7 +199,7 @@ async function jalankanMuhasabah(dbRef, messaging, opsi = {}) {
             const pautan = `/app/peringatan40.html?mod=muhasabah&slot=${slot}&per=${p}`;
             const n = await cl40Hantar(dbRef, messaging, uid, medanToken, token, {
                 notification: { title: MUHASABAH[slot].tajuk, body: MUHASABAH[slot].badan },
-                data: { app: 'checklist40', url: pautan, badgeCount: '1', tag: 'muhasabah-' + slot },
+                data: { app: 'muhasabah', url: pautan, badgeCount: '1', tag: 'muhasabah-' + slot },
                 webpush: { fcmOptions: { link: pautan } }
             });
             if (n > 0) dihantar++; else langkau++;
