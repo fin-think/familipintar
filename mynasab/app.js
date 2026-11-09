@@ -502,11 +502,18 @@ async function semakPokokTerkini() {
         for (const d of snap.docs) { const x = d.data(); if (x.anak_saudara_dari) { const dl = await lengkapkanDari(uid, x.anak_saudara_dari); if (dl && dl.uid) owner = dl.uid; } else if (x.sibling_of && x.link_owner) owner = x.link_owner; }
         if (!owner) { const pl = await pautanPengundang(uid); if (pl) owner = pl.owner; }
         if (!owner || owner === uid) return;
+        const adaAnakSaudara = snap.docs.some(d => d.data().anak_saudara_dari);
         const [so, sm] = await Promise.all([getDoc(doc(db, "mynasab_users", owner)), getDoc(doc(db, "mynasab_users", uid))]);
         if (!so.exists()) return;
         const ts = so.data().pokok_dikemas || 0;
-        if (!ts) return;
         const disegerak = ((sm.exists() ? sm.data() : {}).pokok_disegerak || {})[owner] || 0;
+        // Akaun anak saudara (salinan): kemas kini senyap bila salinan lama / pengundang ada perubahan, tanpa perlu tekan butang
+        if (adaAnakSaudara) {
+            const versi = (sm.exists() ? sm.data() : {}).salinan_versi || 0;
+            if (versi < SALINAN_VERSI || ts > disegerak) { await window.segerakPokokAnakSaudara(true); }
+            return;
+        }
+        if (!ts) return;
         if (ts <= disegerak) return;
         try { if (sessionStorage.getItem('fp_pokok_nanti') === String(ts)) return; } catch (e) {}
         const nama = (so.data().name || 'Pengundang').replace(/[<>&"']/g, '');
@@ -610,7 +617,14 @@ async function pautanPengundang(uid) {
 }
 
 // Kemas kini salinan pokok akaun anak saudara daripada pokok pengundang.
-window.segerakPokokAnakSaudara = async () => {
+window.segerakPokokAnakSaudara = async (senyap = false) => {
+    if (!penggunaSemasa) return;
+    if (senyap === true && window.__sedangSegerak) return;
+    window.__sedangSegerak = true;
+    try { return await segerakPokokDalam(senyap === true); } finally { window.__sedangSegerak = false; }
+};
+const SALINAN_VERSI = 3;
+async function segerakPokokDalam(senyap) {
     if (!penggunaSemasa) return;
     const uid = penggunaSemasa.uid;
     try {
@@ -636,19 +650,21 @@ window.segerakPokokAnakSaudara = async () => {
         if (!akar) { alert("Akaun ini tiada pautan kepada pokok pengundang."); return; }
         const dari = await lengkapkanDari(uid, akar.data.anak_saudara_dari);
         if (!dari || !dari.uid || !dari.nod) { alert("Rekod jemputan akaun ini tidak lengkap. Sila hubungi admin."); return; }
-        if (!confirm("Salinan pokok keluarga ibu/bapa anda akan dikemas kini daripada pokok pengundang. Ahli yang anda tambah sendiri tidak disentuh. Teruskan?")) return;
+        if (!senyap && !confirm("Salinan pokok keluarga ibu/bapa anda akan dikemas kini daripada pokok pengundang. Ahli yang anda tambah sendiri tidak disentuh. Teruskan?")) return;
         // Semak boleh baca pautan adik-beradik pengundang SEBELUM memadam salinan lama (elak kehilangan data jika peraturan menghalang)
         try { await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", dari.uid), where("status", "==", "aktif"))); }
-        catch (e) { alert("Tidak dapat membaca senarai adik-beradik pengundang (" + e.message + "). Tiada perubahan dibuat pada pokok anda."); return; }
+        catch (e) { if (!senyap) alert("Tidak dapat membaca senarai adik-beradik pengundang (" + e.message + "). Tiada perubahan dibuat pada pokok anda."); else console.warn('Segerak senyap dihentikan:', e.message); return; }
         const lama = semua.filter(n => !n.data.is_root && n.data.created_by === dari.uid);
         for (const n of lama) await deleteDoc(doc(db, "mynasab_nodes", n.id));
         await salinPokokAnakSaudara({ owner_uid: dari.uid, sasaran_id: dari.nod, anak_nod: dari.anak_nod }, uid);
         await tandaDisegerak(dari.uid);
-        logAktiviti('kemas_kini_pokok', 'Kemas kini pokok anak saudara');
+        logAktiviti('kemas_kini_pokok', senyap ? 'Kemas kini pokok anak saudara (auto)' : 'Kemas kini pokok anak saudara');
+        try { await updateDoc(doc(db, "mynasab_users", uid), { salinan_versi: SALINAN_VERSI }); } catch (e) {}
+        if (senyap) { window.bukaPreviewBesar && document.getElementById('modalPreview') && !document.getElementById('modalPreview').classList.contains('hidden') && window.bukaPreviewBesar('saya'); return; }
         { const b = window.__bilSalinPokok || {}; alert("Pokok berjaya dikemas kini.\nSepupu: " + (b['sepupu'] || 0) + " · Pasangan sepupu: " + (b['pasangan sepupu'] || 0) + " · Anak/cucu sepupu: " + (b['anak/cucu sepupu'] || 0)); }
         window.bukaPreviewBesar('saya');
-    } catch (e) { console.error(e); alert("Gagal mengemas kini pokok: " + e.message); }
-};
+    } catch (e) { console.error(e); if (!senyap) alert("Gagal mengemas kini pokok: " + e.message); }
+}
 
 // Selepas anak saudara berdaftar: paparkan dia dalam pokok pengundang (di bawah ibu/bapanya).
 async function tambahAnakSaudaraKePokokInduk(jem, uid, nama, jantina) {
