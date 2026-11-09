@@ -51,7 +51,9 @@
   window.addEventListener('appinstalled', function () { if (bar) bar.remove(); });
 
   // iOS Safari tiada beforeinstallprompt: tunjuk panduan ringkas
-  var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  // iPadOS 13+ menyamar sebagai Mac dalam user agent: kesan melalui skrin sentuh pada platform MacIntel
+  var ipadModen = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  var ios = (/iphone|ipad|ipod/i.test(navigator.userAgent) || ipadModen) && !window.MSStream;
   var safari = /safari/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
   if (ios && safari) {
     window.addEventListener('load', function () {
