@@ -276,8 +276,58 @@ $('btn-buka').href = '/app/mychecklist40.html';
 if (id && AYAT[id]) { $('u-ayat').textContent = AYAT[id][1]; $('u-tajuk').textContent = AYAT[id][0]; }
 else { $('u-ayat').textContent = 'Semak amalan anda hari ini dan tandakan yang telah dilakukan.'; }
 
+// ===== Peringatan anak (6 pagi, 6 petang, 9 malam): isi dikira daripada umur, jantina dan status ibu bapa pada pautan =====
+function ayatAnak() {
+  const slot = ['pagi', 'petang', 'malam'].indexOf(q.get('slot')) >= 0 ? q.get('slot') : 'pagi';
+  const nama = (q.get('n') || 'anak').slice(0, 30), umur = parseInt(q.get('u'), 10) || 7, P = q.get('j') === 'P';
+  const ok = (v) => (v || '').split(',').filter(function (x) { return ['ayah', 'ibu', 'ibu bapa'].indexOf(x) >= 0; });
+  let hidup = ok(q.get('h')); const arwah = ok(q.get('a'));
+  if (!hidup.length && !arwah.length) hidup = ['ibu bapa'];
+  const sbg = (a) => a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' dan ' + a[a.length - 1];
+  const hari = Math.floor(Date.now() / 86400000), v = hari % 3;
+  const soleh = P ? 'solehah' : 'soleh';
+  const H = sbg(hidup) || 'ibu bapa', A = sbg(arwah);
+  const alFatihah = arwah.length ? ['Al-Fatihah untuk arwah ' + A, 'Sedekahkan Al-Fatihah untuk arwah ' + A + ' dan doakan semoga ' + (arwah.length > 1 || arwah[0] === 'ibu bapa' ? 'mereka' : 'beliau') + ' tenang di sana.'] : null;
+  if (slot === 'pagi') {
+    const kerja = umur >= 18;
+    const nasihat = kerja
+      ? ['Kerja elok-elok dan amanah. Rezeki halal itu berkat, dan setiap peluh awak untuk keluarga dikira Allah.', 'Jaga amanah dan adab di tempat kerja. Doa ibu bapa sentiasa mengiringi awak.', 'Buat kerja dengan jujur hari ni. Itu cara awak balas jasa ibu bapa.'][v]
+      : ['Belajar bersungguh-sungguh hari ni, hormat cikgu dan dengar nasihat mereka. Ilmu yang berkat itu bekalan awak.', 'Fokus masa belajar dan jangan malu bertanya. Setiap ilmu yang awak dapat membuatkan ibu bapa bangga.', 'Rajin belajar dan jaga solat. Itu hadiah paling indah untuk ibu bapa awak.'][v];
+    return { tajuk: '☀️ Selamat pagi, ' + nama, atas: 'Niatkan hari ni nak jadi anak ' + soleh + ' sepanjang hari.', kad: [['Nasihat hari ini', nasihat], ['Niat pagi', 'Ya Allah, jadikan aku anak ' + soleh + ' hari ini, yang taat kepada-Mu dan menjaga hati ibu bapaku. Bantulah aku, InshaAllah aku mampu.']], } ;
+  }
+  if (slot === 'petang') {
+    const k = [['Doakan ibu bapa', 'Bila masuk Maghrib nanti, selesai solat, doakan ' + H + ' awak ya. Doa anak yang soleh dan solehah sampai kepada ibu bapanya.']];
+    if (alFatihah) k.push(alFatihah);
+    return { tajuk: '🌇 Hari dah nak berakhir', atas: 'Waktu Maghrib hampir tiba. Jangan lupa doakan ibu bapa awak.', kad: k };
+  }
+  const k = [];
+  if (hidup.length) {
+    k.push(['Ucap terima kasih', 'Hari ni, pergi pada ' + H + ' dan ucap terima kasih. Ceritakan satu perkara yang mereka dah korbankan untuk awak, contohnya masa, tenaga, wang dan tidur mereka. Biar mereka tahu awak sedar.']);
+    k.push(['Ucap sayang', 'Lepas tu, ucap “Saya sayang ' + (hidup.length === 1 && hidup[0] !== 'ibu bapa' ? hidup[0] : 'ibu ayah') + '”. Ceritakan betapa awak rasa disayangi dan apa yang paling awak hargai tentang kasih sayang mereka.']);
+  }
+  if (alFatihah) k.push(alFatihah);
+  return { tajuk: '🌙 Sebelum tidur', atas: hidup.length ? 'Dah ucap terima kasih dan sayang pada ' + H + '? Jom buat sebelum tidur.' : 'Sebelum tidur, sedekahkan Al-Fatihah untuk arwah ' + A + '.', kad: k };
+}
+
 const slotM = q.get('slot') === 'malam' ? 'malam' : 'pagi';
-if (q.get('mod') === 'muhasabah') {
+if (q.get('mod') === 'anak') {
+  const R = ayatAnak();
+  $('utama').className = 'utama ' + (q.get('slot') === 'malam' ? 'j22' : 'j20');
+  $('u-kecil').textContent = R.tajuk;
+  $('u-ayat').textContent = R.atas;
+  $('u-tajuk').textContent = '';
+  const h = $('hadis'); h.style.display = '';
+  h.querySelector('small').textContent = R.kad[0][0];
+  $('h-teks').textContent = R.kad[0][1];
+  $('h-sumber').textContent = '';
+  R.kad.slice(1).forEach(function (kk) {
+    const d = document.createElement('div'); d.className = 'hadis';
+    const sm = document.createElement('small'); sm.textContent = kk[0];
+    const pp = document.createElement('p'); pp.textContent = kk[1];
+    d.appendChild(sm); d.appendChild(pp); h.parentNode.insertBefore(d, $('btn-buka'));
+  });
+  $('btn-buka').style.display = 'none';
+} else if (q.get('mod') === 'muhasabah') {
   const M = MUHASABAH[slotM];
   $('utama').className = 'utama ' + (slotM === 'malam' ? 'j22' : 'j20');
   $('u-kecil').textContent = M.tajuk;

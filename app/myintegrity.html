@@ -84,7 +84,8 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, updateDoc, arrayUnion, arrayRemove, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
 
 // Laraskan ikut lokasi fail di tapak anda (sama seperti mykids.html)
 const URL_MYNASAB = "../index.html", URL_MYKIDS = "mykids.html";
@@ -294,12 +295,60 @@ function renderResult(r, dariSimpan) {
     show('result');
 }
 
+
+// ---------- PERANTI ANAK: notifikasi peringatan harian ----------
+// Bila anak mula menjawab di telefonnya sendiri, tanya "Peranti ini untuk siapa?" sekali. Token disimpan di akaun Induk
+// (mynasab_users.fcm_anak_<id nod anak>), sama seperti peranti Induk dan Pasangan. Anak 7 tahun ke atas sahaja.
+const VAPID = 'BC-vntpi-9WxGGKUPeGopgcykMKc87MODe1aEpwieX096IQ8Hzu3Mh89SI8YxuvvOvPSqhW7Eu2Ziqn4ZjwBugs';
+async function daftarPerantiAnak(a) {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return { ok: false, sebab: 'tidak-disokong' };
+    let izin = Notification.permission;
+    if (izin === 'default') izin = await Notification.requestPermission();     // mesti dipanggil terus daripada tekanan pengguna
+    if (izin !== 'granted') return { ok: false, sebab: 'tidak-dibenarkan' };
+    try {
+        let reg = await navigator.serviceWorker.getRegistration('/');
+        if (!reg) reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        await navigator.serviceWorker.ready;
+        const token = await getToken(getMessaging(app), { vapidKey: VAPID, serviceWorkerRegistration: reg });
+        if (!token) throw new Error('tiada token');
+        const ref = doc(db, "mynasab_users", S.uid);
+        await setDoc(ref, { ['fcm_anak_' + a.id]: arrayUnion(token) }, { merge: true });
+        // Telefon ini milik anak ini sahaja: buang daripada slot Induk, Pasangan dan anak lain
+        const buang = { fcm_induk: arrayRemove(token), fcm_pasangan: arrayRemove(token), fcm_tokens: arrayRemove(token) };
+        S.anak.filter(x => x.id !== a.id).forEach(x => { buang['fcm_anak_' + x.id] = arrayRemove(token); });
+        await updateDoc(ref, buang);
+        try { localStorage.setItem('fp_anak_peranti_' + a.id, '1'); } catch (e) {}
+        return { ok: true };
+    } catch (e) { console.warn('daftarPerantiAnak', e); return { ok: false, sebab: String((e && (e.code || e.message)) || e).slice(0, 80) }; }
+}
+function tawarPeranti(a, lepas) {
+    let sudah = false; try { sudah = localStorage.getItem('fp_anak_peranti_' + a.id) === '1' || sessionStorage.getItem('fp_anak_nanti_' + a.id) === '1'; } catch (e) {}
+    const umur = a.dob ? umurSebenar(a.dob) : 0;
+    if (sudah || umur < 7 || !('Notification' in window) || !('serviceWorker' in navigator)) { lepas(); return; }
+    const o = document.createElement('div');
+    o.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    o.innerHTML = `<div style="background:#fff;max-width:380px;width:100%;border-radius:18px;padding:24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.35);">
+        <div style="font-size:42px;">📱</div>
+        <h3 style="margin:8px 0 6px;color:#1e293b;font-weight:800;">Peranti ini untuk ${esc(a.name)}?</h3>
+        <p style="color:#475569;font-size:14px;line-height:1.6;margin:0 0 16px;">Kalau ini telefon ${esc(a.name)} sendiri, tekan Ya. ${esc(a.name)} akan dapat peringatan harian untuk jadi anak ${a.gender === 'P' ? 'solehah' : 'soleh'}, pagi, petang dan malam.</p>
+        <button id="pa-ya" style="width:100%;background:#16a34a;color:#fff;border:none;padding:13px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;margin-bottom:8px;">Ya, ini telefon ${esc(a.name)}</button>
+        <button id="pa-bukan" style="width:100%;background:#f1f5f9;color:#475569;border:none;padding:11px;border-radius:12px;font-weight:700;cursor:pointer;">Bukan / Nanti</button></div>`;
+    document.body.appendChild(o);
+    $('pa-bukan').onclick = () => { try { sessionStorage.setItem('fp_anak_nanti_' + a.id, '1'); } catch (e) {} o.remove(); lepas(); };
+    $('pa-ya').onclick = () => {
+        const h = daftarPerantiAnak(a);        // dipanggil serta-merta supaya kebenaran notifikasi dimohon pada tekanan ini
+        o.querySelector('div').innerHTML = `<div style="font-size:42px;">⏳</div><p id="pa-st" style="color:#475569;font-size:14px;margin:8px 0 14px;">Menyediakan notifikasi...</p><button id="pa-ok" style="width:100%;background:#16a34a;color:#fff;border:none;padding:13px;border-radius:12px;font-weight:800;cursor:pointer;">Teruskan</button>`;
+        $('pa-ok').onclick = () => { o.remove(); lepas(); };
+        h.then(r => { const t = $('pa-st'); if (t) t.textContent = r.ok ? 'Siap! Peringatan harian akan sampai ke telefon ini.' : (r.sebab === 'tidak-dibenarkan' ? 'Notifikasi tidak dibenarkan. Boleh dibenarkan kemudian dalam tetapan telefon.' : r.sebab === 'tidak-disokong' ? 'Telefon ini tidak menyokong notifikasi. Di iPhone, pasang app ke Skrin Utama dahulu.' : 'Notifikasi belum dapat disediakan (' + r.sebab + ').'); });
+    };
+}
+
 // ---------- EVENT ----------
 $('btn-next').onclick = seterusnya;
 document.addEventListener('click', async e => {
     const c = e.target.closest('#picker [data-i]');
     if (c) { S.i = +c.dataset.i; renderHome(); return; }
-    if (e.target.closest('#btn-mula')) startGame();
+    if (e.target.closest('#btn-mula')) tawarPeranti(S.anak[S.i], startGame);
     else if (e.target.closest('#btn-lihat')) renderResult(S.plans[S.anak[S.i].id].integrity, true);
     else if (e.target.closest('#btn-lain')) { renderHome(); show('home'); }
     else if (e.target.closest('#btn-simpan')) {
