@@ -327,6 +327,28 @@ if (q.get('mod') === 'anak') {
     d.appendChild(sm); d.appendChild(pp); h.parentNode.insertBefore(d, $('btn-buka'));
   });
   $('btn-buka').style.display = 'none';
+} else if (q.get('mod') === 'harijadi') {
+  // l = Nama~umur~hubungan,... (hubungan "diri" = penerima sendiri). Semua dipaparkan sebagai teks biasa.
+  $('utama').className = 'utama j20';
+  $('u-kecil').textContent = '🎂 Hari lahir keluarga';
+  const senarai = (q.get('l') || '').split(',').slice(0, 8).map(function (x) { const a = x.split('~'); return { nama: (a[0] || '').slice(0, 40), umur: parseInt(a[1], 10) || 0, hub: (a[2] || '').slice(0, 20) }; }).filter(function (x) { return x.nama; });
+  $('u-ayat').textContent = senarai.length ? 'Hari ni ada ' + senarai.length + ' hari lahir dalam keluarga.' : 'Tiada hari lahir hari ini.';
+  $('u-tajuk').textContent = '';
+  const h = $('hadis'); h.style.display = 'none';
+  senarai.forEach(function (x) {
+    const d = document.createElement('div'); d.className = 'hadis';
+    const sm = document.createElement('small'); sm.textContent = x.hub === 'diri' ? 'Hari lahir awak' : (x.hub || 'Ahli keluarga');
+    const pp = document.createElement('p'); pp.textContent = x.nama + (x.umur ? ', ' + x.umur + ' tahun' : '');
+    d.appendChild(sm); d.appendChild(pp);
+    if (x.hub !== 'diri') {
+      const ucap = 'Selamat hari lahir, ' + x.nama.split(' ')[0] + '! Semoga panjang umur, murah rezeki, sihat dan sentiasa dalam lindungan Allah. Aamiin.';
+      const a = document.createElement('a'); a.className = 'btn'; a.style.marginTop = '12px'; a.textContent = 'Hantar ucapan di WhatsApp ➔';
+      a.href = 'https://wa.me/?text=' + encodeURIComponent(ucap); a.target = '_blank'; a.rel = 'noopener';
+      d.appendChild(a);
+    }
+    h.parentNode.insertBefore(d, $('btn-buka'));
+  });
+  $('btn-buka').style.display = 'none';
 } else if (q.get('mod') === 'muhasabah') {
   const M = MUHASABAH[slotM];
   $('utama').className = 'utama ' + (slotM === 'malam' ? 'j22' : 'j20');
