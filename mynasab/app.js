@@ -520,15 +520,22 @@ function paparAhliBaru(d, ref) {
 // Masa perubahan terkini bagi semua sumber salinan anak saudara: pengundang + adik-beradik pengundang yang berakaun
 async function tsSumberAnakSaudara(ownerUid) {
     const uids = [ownerUid];
+    const ms = (t) => !t ? 0 : typeof t === 'number' ? t : t.toMillis ? t.toMillis() : (t instanceof Date ? t.getTime() : 0);
+    let maks = 0;
     try {
         const sLink = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", ownerUid), where("status", "==", "aktif")));
-        sLink.docs.forEach(d => { const u = d.data().uid; if (u && !uids.includes(u)) uids.push(u); });
+        sLink.docs.forEach(d => { const u = d.data().uid; if (u && !uids.includes(u)) uids.push(u); maks = Math.max(maks, ms(d.data().created_at)); });
+    } catch (e) {}
+    // Akaun baharu yang berdaftar (anak saudara / adik mereka) ditambah atau dikaitkan ke pokok pengundang dari akaun mereka sendiri:
+    // pokok_berubah pengundang tidak berubah, jadi ambil masa nod dicipta / dikaitkan dalam pokok pengundang
+    try {
+        const sNod = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", ownerUid)));
+        sNod.docs.forEach(d => { maks = Math.max(maks, ms(d.data().created_at), ms(d.data().dikaitkan_pada)); });
     } catch (e) {}
     try {
         const r = await getDoc(doc(db, "mynasab_nodes", "root_" + ownerUid));
         ((r.exists() && r.data().linked_adik) || []).forEach(u => { if (u && !uids.includes(u)) uids.push(u); });
     } catch (e) {}
-    let maks = 0;
     await Promise.all(uids.map(async u => {
         try {
             const d = await getDoc(doc(db, "mynasab_users", u));
@@ -742,9 +749,10 @@ async function kongsiMaklumatBaharu(idNod, uid, baharu = {}) {
     try {
         const snap = await getDoc(doc(db, "mynasab_nodes", idNod));
         const data = snap.exists() ? snap.data() : {};
-        const kemaskini = { akaun_uid: uid };
+        const kemaskini = { akaun_uid: uid, ...(data.akaun_uid === uid ? {} : { dikaitkan_pada: Date.now() }) };
         ['gender', 'dob', 'city', 'state'].forEach(f => { if (!data[f] && baharu[f]) kemaskini[f] = baharu[f]; });
-        await updateDoc(doc(db, "mynasab_nodes", idNod), kemaskini);
+        try { await updateDoc(doc(db, "mynasab_nodes", idNod), kemaskini); }
+        catch (e) { console.warn("Kongsi maklumat ditolak, kaitkan akaun sahaja:", e.message); await updateDoc(doc(db, "mynasab_nodes", idNod), { akaun_uid: uid }); }
     } catch (e) { console.warn("Tak dapat kongsi maklumat ke nod sedia ada:", e.message); }
 }
 
