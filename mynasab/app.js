@@ -681,19 +681,32 @@ async function segerakPokokDalam(senyap) {
     } catch (e) { console.error(e); if (!senyap) alert("Gagal mengemas kini pokok: " + e.message); }
 }
 
+// Kongsi maklumat (jantina/tarikh lahir/bandar/negeri) yang pengguna isi sendiri semasa daftar,
+// ke nod sedia ada (contoh: nod tiruan yang pengundang tambah dahulu). Tidak menimpa medan yang sudah diisi.
+async function kongsiMaklumatBaharu(idNod, uid, baharu = {}) {
+    try {
+        const snap = await getDoc(doc(db, "mynasab_nodes", idNod));
+        const data = snap.exists() ? snap.data() : {};
+        const kemaskini = { akaun_uid: uid };
+        ['gender', 'dob', 'city', 'state'].forEach(f => { if (!data[f] && baharu[f]) kemaskini[f] = baharu[f]; });
+        await updateDoc(doc(db, "mynasab_nodes", idNod), kemaskini);
+    } catch (e) { console.warn("Tak dapat kongsi maklumat ke nod sedia ada:", e.message); }
+}
+
 // Selepas anak saudara berdaftar: paparkan dia dalam pokok pengundang (di bawah ibu/bapanya).
-async function tambahAnakSaudaraKePokokInduk(jem, uid, nama, jantina) {
+async function tambahAnakSaudaraKePokokInduk(jem, uid, nama, jantina, dobDaftar, lokasi = {}) {
+    const maklumatBaharu = { gender: jantina, dob: dobDaftar, city: lokasi.city, state: lokasi.state };
     try {
         if (jem.anak_nod) {
-            // Nod sedia ada (jemputan lama): kaitkan dengan akaunnya
-            try { await updateDoc(doc(db, "mynasab_nodes", jem.anak_nod), { akaun_uid: uid }); } catch (e) { console.warn("Kaitan nod anak saudara:", e.message); }
+            // Nod sedia ada (jemputan lama): kaitkan dengan akaunnya & kongsi maklumat yang masih kosong
+            await kongsiMaklumatBaharu(jem.anak_nod, uid, maklumatBaharu);
             return;
         }
         const k = (nama || '').trim().toLowerCase();
         const sedia = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", jem.owner_uid), where("ref_id", "==", jem.sasaran_id)));
         const ada = sedia.docs.find(d => d.data().akaun_uid === uid || (d.data().name || '').trim().toLowerCase() === k);
         let id;
-        if (ada) { id = ada.id; try { await updateDoc(doc(db, "mynasab_nodes", id), { akaun_uid: uid }); } catch (e) {} }
+        if (ada) { id = ada.id; await kongsiMaklumatBaharu(id, uid, maklumatBaharu); }
         else {
             const r = await addDoc(collection(db, "mynasab_nodes"), {
                 owner_uid: jem.owner_uid, name: nama, relationship: 'Anak Saudara', gender: jantina || '',
@@ -750,7 +763,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDafta
         if (jem && jem.jenis === 'anak_saudara') {
             try { await salinPokokAnakSaudara(jem, user.uid); }
             catch (e) { console.warn("Gagal menyediakan pokok anak saudara", e); }
-            await tambahAnakSaudaraKePokokInduk(jem, user.uid, namaKeluarga, jantina);
+            await tambahAnakSaudaraKePokokInduk(jem, user.uid, namaKeluarga, jantina, dobDaftar, lokasi);
             sessionStorage.removeItem('simpanJemput');
         } else if (jem) {
             const statusPautanDaftar = await cipraPautan(user.uid, {
@@ -768,13 +781,14 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDafta
         }
         
         logAktiviti('daftar', jem ? `Daftar melalui jemputan ${jem.jenis === 'anak_saudara' ? 'anak saudara' : 'adik-beradik'} oleh ${jem.nama_pengundang || ''}` : 'Daftar sendiri', user, namaKeluarga);
-        alert(jem && jem.jenis === 'anak_saudara'
+        alert((jem && jem.jenis === 'anak_saudara'
             ? `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit. Pokok keluarga anda (ibu bapa dan datuk nenek) telah disediakan. Sila semak dan kemas kini maklumat mereka.`
             : jem
             ? `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit. ${window.__statusPautanDaftar === 'menunggu' ? 'Pautan keluarga anda menunggu kelulusan' : 'Anda kini dipautkan dengan keluarga'} ${jem.nama_pengundang}.`
-            : `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit percuma.`);
+            : `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit percuma.`) + `\n\nSeterusnya, sila semak & kemas kini maklumat profil anda sendiri.`);
         if (jem) { try { await httpsCallable(fungsi, 'beritahuPengundang')({}); localStorage.setItem('fp_notis_sertai_' + user.uid, '1'); } catch (e) {} }
-        location.href = location.pathname;
+        // Buka terus borang kemaskini profil sendiri selepas daftar, supaya user semak maklumat dia (guna shortcut ?buka=profil sedia ada)
+        location.href = location.pathname + '?buka=profil';
     } catch (error) {
         window.__sedangDaftar = false;
         alert("Ralat pendaftaran: " + error.message);
@@ -1846,7 +1860,12 @@ async function tambahAdikKePokokInduk(uidAdik) {
         const a = rAdik.data();
         const nama = (a.name || '').trim().toLowerCase();
         const sedia = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", dari.uid), where("ref_id", "==", dari.nod)));
-        if (sedia.docs.some(d => d.data().akaun_uid === uidAdik || (d.data().name || '').trim().toLowerCase() === nama)) return;
+        const cocok = sedia.docs.find(d => d.data().akaun_uid === uidAdik || (d.data().name || '').trim().toLowerCase() === nama);
+        if (cocok) {
+            // Nod tiruan sedia ada (ditambah pengundang sebelum dia daftar): kaitkan akaun & kongsi maklumat yang masih kosong
+            await kongsiMaklumatBaharu(cocok.id, uidAdik, { gender: a.gender, dob: a.dob, city: a.city, state: a.state });
+            return;
+        }
 
         await addDoc(collection(db, "mynasab_nodes"), {
             owner_uid: dari.uid, name: a.name, relationship: 'Anak Saudara', gender: a.gender || '',
