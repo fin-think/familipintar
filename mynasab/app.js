@@ -303,24 +303,10 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
     const dobKunci = (n) => (n.data.dob || '9999-99-99');
     const tertuaSemua = semuaAdikBeradik.slice().sort((x, y) => dobKunci(x).localeCompare(dobKunci(y)))[0];
     const tertuaSaudara = tertuaSemua && saudara.includes(tertuaSemua) ? tertuaSemua : null;
-    for (const sd of saudara) {
-        const L = sd.data.gender === 'L';
-        const idSaudara = await tulis(ringkas(sd.data), `${L ? 'Bapa Saudara' : 'Mak Saudara'} (Belah ${belah})`, '');
-        // pasangan
-        const pasanganSd = sd === rootInduk
-            ? nodes.filter(n => adaRel(n, /^(suami|isteri)$/i))
-            : nodes.filter(n => adaRel(n, /^ipar$/i) && n.data.ref_id === sd.id);
-        for (const p of pasanganSd) await tulis(ringkas(p.data), L ? 'Pasangan Bapa Saudara' : 'Pasangan Mak Saudara', idSaudara);
-        // anak -> sepupu
-        const idPasanganSd = nodes.filter(n => adaRel(n, /^(ipar|suami|isteri)$/i) && n.data.ref_id === sd.id).map(n => n.id);
-        const anakSd = sd === rootInduk
-            ? nodes.filter(n => adaRel(n, /^anak$/i))
-            : nodes.filter(n => adaRel(n, /^anak saudara$/i) && (n.data.ref_id === sd.id || idPasanganSd.includes(n.data.ref_id) || (!n.data.ref_id && sd === tertuaSaudara)));
-        for (const a of anakSd) await salinSepupu(nodes, a, idSaudara);
-    }
-
-    // Adik-beradik pengundang yang berdaftar sendiri: akar, pasangan dan anak mereka.
-    // Dua sumber: (1) akaun dijemput (mynasab_links) dan (2) akaun yang disambung melalui Salam Paut sebagai adik-beradik (linked_adik).
+    // Adik-beradik pengundang yang berdaftar sendiri. Dua sumber: (1) akaun dijemput (mynasab_links) dan
+    // (2) akaun yang disambung melalui Salam Paut sebagai adik-beradik (linked_adik).
+    // Sama seperti paparan pengundang: data akaun sendiri diutamakan; rekod manual pengundang hanya jika akaun itu masih kosong.
+    const akaunAdik = [];
     try {
         const idRootInduk = rootInduk ? rootInduk.id : '';
         const uidAdik = [];
@@ -333,21 +319,57 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
             }
         } catch (e) { console.warn("Tak dapat baca pautan adik-beradik:", e.message); }
         for (const u of ((rootInduk && rootInduk.data.linked_adik) || [])) if (u && !uidAdik.includes(u)) uidAdik.push(u);
-        const sudah = new Set(nodes.map(n => (n.data.name || '').trim().toLowerCase()));
         for (const u of uidAdik) {
             if (u === uidBaru) continue;
-            const sN = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", u)));
-            const nd = sN.docs.map(x => ({ id: x.id, data: x.data() }));
-            const akar = nd.find(n => n.data.is_root);
-            const kunciAkar = akar ? (akar.data.name || '').trim().toLowerCase() : '';
-            if (!akar || sudah.has(kunciAkar)) continue;
-            sudah.add(kunciAkar);
-            const L = akar.data.gender === 'L';
-            const idS = await tulis(ringkas(akar.data), `${L ? 'Bapa Saudara' : 'Mak Saudara'} (Belah ${belah})`, '');
-            for (const p of nd.filter(n => adaRel(n, /^(suami|isteri)$/i))) await tulis(ringkas(p.data), L ? 'Pasangan Bapa Saudara' : 'Pasangan Mak Saudara', idS);
-            for (const a of nd.filter(n => adaRel(n, /^anak$/i))) await salinSepupu(nd, a, idS);
+            try {
+                const sN = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", u)));
+                const nd = sN.docs.map(x => ({ id: x.id, data: x.data() }));
+                const akar = nd.find(n => n.data.is_root);
+                if (akar) akaunAdik.push({ uid: u, akar, nd, kunci: (akar.data.name || '').trim().toLowerCase() });
+            } catch (e) { console.warn("Tak dapat baca pokok akaun adik-beradik:", e.message); }
         }
     } catch (e) { console.warn("Tak dapat salin adik-beradik berakaun:", e.message); }
+    const kunciNama = (n) => (n.data.name || '').trim().toLowerCase();
+    // Ibu/bapa anak saudara ini sudah disalin di atas: akaunnya jangan muncul lagi sebagai bapa/mak saudara
+    { const k = kunciNama(ibuBapa); akaunAdik.forEach(a => { if ((ibuBapa.data.akaun_uid && ibuBapa.data.akaun_uid === a.uid) || a.kunci === k) a.guna = true; }); }
+    const akaunUntuk = (sd) => akaunAdik.find(a => !a.guna && ((sd.data.akaun_uid && sd.data.akaun_uid === a.uid) || a.kunci === kunciNama(sd)));
+
+    const salinSaudara = async (dataDiri, L, psgAkaun, psgManual, anakAkaun, anakManual) => {
+        const idSaudara = await tulis(ringkas(dataDiri), `${L ? 'Bapa Saudara' : 'Mak Saudara'} (Belah ${belah})`, '');
+        for (const p of (psgAkaun.length ? psgAkaun : psgManual)) await tulis(ringkas(p.data), L ? 'Pasangan Bapa Saudara' : 'Pasangan Mak Saudara', idSaudara);
+        if (anakAkaun.list.length) { for (const a of anakAkaun.list) await salinSepupu(anakAkaun.sumber, a, idSaudara); }
+        else { for (const a of anakManual) await salinSepupu(nodes, a, idSaudara); }
+    };
+
+    for (const sd of saudara) {
+        const L = sd.data.gender === 'L';
+        const pasanganSd = sd === rootInduk
+            ? nodes.filter(n => adaRel(n, /^(suami|isteri)$/i))
+            : nodes.filter(n => adaRel(n, /^ipar$/i) && n.data.ref_id === sd.id);
+        const idPasanganSd = nodes.filter(n => adaRel(n, /^(ipar|suami|isteri)$/i) && n.data.ref_id === sd.id).map(n => n.id);
+        const anakSd = sd === rootInduk
+            ? nodes.filter(n => adaRel(n, /^anak$/i))
+            : nodes.filter(n => adaRel(n, /^anak saudara$/i) && (n.data.ref_id === sd.id || idPasanganSd.includes(n.data.ref_id) || (!n.data.ref_id && sd === tertuaSaudara)));
+        const ak = sd === rootInduk ? null : akaunUntuk(sd);
+        if (ak) {
+            ak.guna = true;
+            const dataDiri = { ...sd.data, ...ak.akar.data };
+            await salinSaudara(dataDiri, (dataDiri.gender || sd.data.gender) === 'L',
+                ak.nd.filter(n => adaRel(n, /^(suami|isteri)$/i)), pasanganSd,
+                { list: ak.nd.filter(n => adaRel(n, /^anak$/i)), sumber: ak.nd }, anakSd);
+        } else {
+            await salinSaudara(sd.data, L, [], pasanganSd, { list: [], sumber: nodes }, anakSd);
+        }
+    }
+
+    // Akaun adik-beradik yang tiada rekod manual dalam pokok pengundang
+    for (const ak of akaunAdik) {
+        if (ak.guna || nodes.some(n => kunciNama(n) === ak.kunci)) continue;
+        ak.guna = true;
+        await salinSaudara(ak.akar.data, ak.akar.data.gender === 'L',
+            ak.nd.filter(n => adaRel(n, /^(suami|isteri)$/i)), [],
+            { list: ak.nd.filter(n => adaRel(n, /^anak$/i)), sumber: ak.nd }, []);
+    }
 }
 
 // Salin ibu bapa & leluhur pengundang ke akaun adik-beradik (dipakai semasa daftar dan butang Kemas Kini Pokok)
@@ -376,8 +398,11 @@ const KEKAL_BAWAH = ['anak', 'cucu', 'cicit', 'piut / cece', 'oneng-oneng', 'men
 async function tandaPokokDikemas(hubungan) {
     try {
         if (!penggunaSemasa) return;
-        if (hubungan && KEKAL_BAWAH.includes(String(hubungan).trim().toLowerCase())) return;
-        await updateDoc(doc(db, "mynasab_users", penggunaSemasa.uid), { pokok_dikemas: Date.now() });
+        const kini = Date.now();
+        // pokok_berubah: SEMUA perubahan (termasuk anak/cucu) - salinan akaun anak saudara ada sepupu & anak sepupu
+        const medan = { pokok_berubah: kini };
+        if (!(hubungan && KEKAL_BAWAH.includes(String(hubungan).trim().toLowerCase()))) medan.pokok_dikemas = kini;
+        await updateDoc(doc(db, "mynasab_users", penggunaSemasa.uid), medan);
     } catch (e) { console.warn('tandaPokokDikemas:', e.message); }
 }
 // anak_saudara_dari yang tak lengkap (tiada uid / nod): pulihkan daripada nod anak saudara dalam pokok pengundang (anak_nod), dan baiki rekod.
@@ -492,6 +517,45 @@ function paparAhliBaru(d, ref) {
     } catch (e) { console.warn('paparAhliBaru:', e.message); }
 }
 
+// Masa perubahan terkini bagi semua sumber salinan anak saudara: pengundang + adik-beradik pengundang yang berakaun
+async function tsSumberAnakSaudara(ownerUid) {
+    const uids = [ownerUid];
+    try {
+        const sLink = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", ownerUid), where("status", "==", "aktif")));
+        sLink.docs.forEach(d => { const u = d.data().uid; if (u && !uids.includes(u)) uids.push(u); });
+    } catch (e) {}
+    try {
+        const r = await getDoc(doc(db, "mynasab_nodes", "root_" + ownerUid));
+        ((r.exists() && r.data().linked_adik) || []).forEach(u => { if (u && !uids.includes(u)) uids.push(u); });
+    } catch (e) {}
+    let maks = 0;
+    await Promise.all(uids.map(async u => {
+        try {
+            const d = await getDoc(doc(db, "mynasab_users", u));
+            if (d.exists()) maks = Math.max(maks, d.data().pokok_berubah || 0, d.data().pokok_dikemas || 0);
+        } catch (e) {}
+    }));
+    return maks;
+}
+// Pop-up: pokok pengundang ada perubahan -> tekan Kemas Kini Pokok
+function popupPokokBaru(nama, ts) {
+    try { if (sessionStorage.getItem('fp_pokok_nanti') === String(ts)) return; } catch (e) {}
+    if (document.getElementById('popupPokokBaru')) return;
+    nama = String(nama || 'Pengundang').replace(/[<>&"']/g, '');
+    const kotak = document.createElement('div');
+    kotak.id = 'popupPokokBaru';
+    kotak.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    kotak.innerHTML = `<div style="background:#fff;max-width:380px;width:100%;border-radius:18px;padding:24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.35);font-family:inherit;">
+        <div style="font-size:42px;">🔔🌳</div>
+        <h3 style="margin:8px 0 6px;color:#1e293b;">Pokok keluarga dikemas kini</h3>
+        <p style="color:#475569;font-size:14px;line-height:1.5;margin:0 0 16px;">Ada perubahan dalam pokok keluarga <b>${nama}</b>. Sila tekan <b>Kemas Kini Pokok</b> supaya anda mendapat maklumat yang terkini.</p>
+        <button id="btnPopupPokokYa" style="width:100%;background:#16a34a;color:#fff;border:none;padding:13px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;margin-bottom:8px;">🔄 Kemas Kini Pokok Sekarang</button>
+        <button id="btnPopupPokokNanti" style="width:100%;background:#f1f5f9;color:#475569;border:none;padding:11px;border-radius:12px;font-weight:700;cursor:pointer;">Nanti</button></div>`;
+    document.body.appendChild(kotak);
+    document.getElementById('btnPopupPokokNanti').onclick = () => { try { sessionStorage.setItem('fp_pokok_nanti', String(ts)); } catch (e) {} kotak.remove(); };
+    document.getElementById('btnPopupPokokYa').onclick = async () => { kotak.remove(); if (window.segerakPokokAnakSaudara) await window.segerakPokokAnakSaudara(true); };
+}
+
 async function semakPokokTerkini() {
     if (!penggunaSemasa || window.__semakPokokSudah) return;
     window.__semakPokokSudah = true;
@@ -507,30 +571,20 @@ async function semakPokokTerkini() {
         if (!so.exists()) return;
         const ts = so.data().pokok_dikemas || 0;
         const disegerak = ((sm.exists() ? sm.data() : {}).pokok_disegerak || {})[owner] || 0;
-        // Akaun anak saudara (salinan): kemas kini senyap bila salinan lama / pengundang ada perubahan, tanpa perlu tekan butang
+        const dataSaya = sm.exists() ? sm.data() : {};
+        const namaPengundang = so.data().name || 'Pengundang';
+        // Akaun anak saudara (salinan): sumber = pengundang + adik-beradik berakaun pengundang (termasuk anak/cucu mereka)
         if (adaAnakSaudara) {
-            const versi = (sm.exists() ? sm.data() : {}).salinan_versi || 0;
-            if (versi < SALINAN_VERSI || ts > disegerak) { await window.segerakPokokAnakSaudara(true); }
+            const versi = dataSaya.salinan_versi || 0;
+            if (versi < SALINAN_VERSI) { await window.segerakPokokAnakSaudara(true); return; }   // naik taraf format: senyap
+            const tsAS = await tsSumberAnakSaudara(owner);
+            const sudahAS = Math.max(dataSaya.pokok_disegerak_as || 0, disegerak);
+            if (tsAS > sudahAS) popupPokokBaru(namaPengundang, tsAS);
             return;
         }
-        if (!ts) return;
-        if (ts <= disegerak) return;
-        // Akaun adik-beradik: kemas kini auto juga (tiada popup)
-        await window.segerakPokokAnakSaudara(true); return;
-        try { if (sessionStorage.getItem('fp_pokok_nanti') === String(ts)) return; } catch (e) {}
-        const nama = (so.data().name || 'Pengundang').replace(/[<>&"']/g, '');
-        const kotak = document.createElement('div');
-        kotak.id = 'popupPokokBaru';
-        kotak.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
-        kotak.innerHTML = `<div style="background:#fff;max-width:380px;width:100%;border-radius:18px;padding:24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.35);font-family:inherit;">
-            <div style="font-size:42px;">🔔🌳</div>
-            <h3 style="margin:8px 0 6px;color:#1e293b;">Pokok keluarga dikemas kini</h3>
-            <p style="color:#475569;font-size:14px;line-height:1.5;margin:0 0 16px;"><b>${nama}</b> telah mengemas kini pokok keluarga. Sila tekan <b>Kemas Kini Pokok</b> supaya anda mendapat maklumat yang terkini.</p>
-            <button id="btnPopupPokokYa" style="width:100%;background:#16a34a;color:#fff;border:none;padding:13px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;margin-bottom:8px;">🔄 Kemas Kini Pokok Sekarang</button>
-            <button id="btnPopupPokokNanti" style="width:100%;background:#f1f5f9;color:#475569;border:none;padding:11px;border-radius:12px;font-weight:700;cursor:pointer;">Nanti</button></div>`;
-        document.body.appendChild(kotak);
-        document.getElementById('btnPopupPokokNanti').onclick = () => { try { sessionStorage.setItem('fp_pokok_nanti', String(ts)); } catch (e) {} kotak.remove(); };
-        document.getElementById('btnPopupPokokYa').onclick = async () => { kotak.remove(); if (window.segerakPokokAnakSaudara) await window.segerakPokokAnakSaudara(); };
+        // Akaun adik-beradik: hanya leluhur yang disalin
+        if (!ts || ts <= disegerak) return;
+        popupPokokBaru(namaPengundang, ts);
     } catch (e) { console.warn('semakPokokTerkini:', e.message); }
 }
 
@@ -625,7 +679,7 @@ window.segerakPokokAnakSaudara = async (senyap = false) => {
     window.__sedangSegerak = true;
     try { return await segerakPokokDalam(senyap === true); } finally { window.__sedangSegerak = false; }
 };
-const SALINAN_VERSI = 3;
+const SALINAN_VERSI = 4;   // 4: data akaun adik-beradik diutamakan berbanding rekod manual pengundang
 // Makluman kecil selepas kemas kini auto (hilang sendiri)
 function maklumSegerak() {
     try {
@@ -673,6 +727,7 @@ async function segerakPokokDalam(senyap) {
         for (const n of lama) await deleteDoc(doc(db, "mynasab_nodes", n.id));
         await salinPokokAnakSaudara({ owner_uid: dari.uid, sasaran_id: dari.nod, anak_nod: dari.anak_nod }, uid);
         await tandaDisegerak(dari.uid);
+        try { await updateDoc(doc(db, "mynasab_users", uid), { pokok_disegerak_as: await tsSumberAnakSaudara(dari.uid) }); } catch (e) {}
         logAktiviti('kemas_kini_pokok', senyap ? 'Kemas kini pokok anak saudara (auto)' : 'Kemas kini pokok anak saudara');
         try { await updateDoc(doc(db, "mynasab_users", uid), { salinan_versi: SALINAN_VERSI }); } catch (e) {}
         if (senyap) { maklumSegerak(); return; }
