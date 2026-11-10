@@ -114,6 +114,10 @@ onAuthStateChanged(auth, async (user) => {
             // --- LOGIK PAUTAN AUTOMATIK (JEMPUTAN) ---
             if (window.__sedangDaftar) {
                 // pendaftaran baharu sedang berjalan: biar daftarPengguna menyiapkan pokok
+            } else if (kodJemput && jemputan && jemputan.owner_uid === user.uid) {
+                // Buka pautan jemputan sendiri: abaikan (elak rekod "dijemput oleh diri sendiri" yang memutuskan rantaian jemputan)
+                sessionStorage.removeItem('simpanJemput');
+                window.history.replaceState({}, document.title, location.pathname);
             } else if (kodJemput && jemputan && jemputan.jenis === 'anak_saudara') {
                 // Pautan anak saudara hanya untuk akaun baharu (pokok disalin semasa pendaftaran)
                 sessionStorage.removeItem('simpanJemput');
