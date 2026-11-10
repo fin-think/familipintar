@@ -559,7 +559,7 @@ if (rdb.monthlyBudget === undefined) {
                   sspnFund: j('sspnFund'), asbAnakFund: j('asbAnakFund'), currentTakaful: j('currentTakaful'),
                   _pencen: jumPencen(kiraPencen(a), kiraPencen(b)),
                   asetList: [...tanda(a.asetList, nA, 'i'), ...tanda(b.asetList, nB, 'p')],
-                  asetSepencarian: [...tanda(a.asetSepencarian, nA, 'i'), ...tanda(b.asetSepencarian, nB, 'p')],
+                  asetSepencarian: a.asetSepencarian || [],      // harta sepencarian ialah harta bersama: guna senarai Induk sahaja supaya tidak dikira dua kali
                   debtsList: [...tanda(a.debtsList, nA, 'i'), ...tanda(b.debtsList, nB, 'p')]
               };
           };
