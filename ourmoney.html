@@ -2038,6 +2038,13 @@
             let netWorth = 0, debts = 0, eduDeficit = 0, bayarHutang = 0, simpanEdu = 0, adaProfil = false;
             const tS = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
             const semuaTxn = []; tS.forEach(d => semuaTxn.push(d.data()));
+            // Simpanan pendidikan semasa ikut anak: myKids (simpanan di luar OurMoney) + semua setoran misi pendidikan OurMoney
+            const simpananEduKini = {};
+            semuaTxn.forEach(x => { const g = String(x.goal_id || ''); if (x.type === 'outflow' && g.startsWith('pendidikan_')) simpananEduKini[g.slice(11)] = (simpananEduKini[g.slice(11)] || 0) + (Number(x.amount) || 0); });
+            try {
+                const kS = await getDocs(query(collection(db, "mykids_plans"), where("owner_uid", "==", currentUser.uid)));
+                kS.forEach(d => { const v = Number(d.data().simpanan_semasa) || 0; if (v) simpananEduKini[d.id] = (simpananEduKini[d.id] || 0) + v; });
+            } catch (e) { console.warn('OurMoney: gagal baca simpanan myKids', e.message); }
             // Ikut pemilih Induk / Pasangan / Gabungan
             for (const per of senaraiPeranan()) {
                 const snap = await getDoc(doc(db, "mytadbir_profiles", per === 'pasangan' ? currentUser.uid + '_pasangan' : currentUser.uid));
@@ -2048,14 +2055,17 @@
                 // Baki sentiasa terkini: tolak bayaran hutang & simpanan pendidikan yang direkod SELEPAS myTADBIR dikemas kini.
                 const lu = Number(sm.last_updated) || 0;
                 const hariLu = lu ? new Date(lu - new Date(lu).getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '';
+                const ikutAnak = sm.edu_simpanan_anak && typeof sm.edu_simpanan_anak === 'object';
                 semuaTxn.forEach(x => {
                     if (x.type !== 'outflow' || peranRekod(x) !== per) return;
                     const baru = x.created_at ? Number(x.created_at) > lu : String(x.date || '') > hariLu;
                     if (!baru) return;
                     const amt = Number(x.amount) || 0;
                     if (/ansuran pinjaman|byr hutang|bayar hutang/i.test(x.category || '')) bh += amt;
-                    else if (String(x.goal_id || '').startsWith('pendidikan_')) se += amt;
+                    else if (!ikutAnak && String(x.goal_id || '').startsWith('pendidikan_')) se += amt;
                 });
+                // Profil baharu: tolak pertambahan simpanan setiap anak sejak myTADBIR terakhir dikira (tidak bergantung pada tarikh)
+                if (ikutAnak) Object.entries(sm.edu_simpanan_anak).forEach(([id, dikira]) => { se += (simpananEduKini[id] || 0) - (Number(dikira) || 0); });
                 netWorth += nw; debts += Math.max(0, db_ - bh); eduDeficit += Math.max(0, ed - se);
                 bayarHutang += bh; simpanEdu += se;
             }

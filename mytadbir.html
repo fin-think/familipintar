@@ -445,9 +445,18 @@ if (rdb.monthlyBudget === undefined) {
                       const lastTadbirK = docSnap.exists() ? ((docSnap.data().summary || {}).last_updated || 0) : 0;
                       const anakLama = {};
                       ((docSnap.exists() && (docSnap.data().raw_data || {}).childrenData) || []).forEach(c => { anakLama[c.id] = c; });
+                      // Simpanan pendidikan ikut anak: angka keluarga dari myKids (simpanan di luar OurMoney)
+                      // + semua setoran OurMoney untuk misi pendidikan anak itu (Induk & Pasangan)
+                      const setoranEdu = {};
+                      try {
+                          const tSnap = await window.fbGetDocs(window.fbQuery(window.fbCollection(window.fbDb, "ourmoney_transactions"), window.fbWhere("owner_uid", "==", uid)));
+                          tSnap.forEach(t => { const x = t.data(); const g = String(x.goal_id || ''); if (x.type === 'outflow' && g.startsWith('pendidikan_')) setoranEdu[g.slice(11)] = (setoranEdu[g.slice(11)] || 0) + (Number(x.amount) || 0); });
+                      } catch (e) { console.warn("Gagal baca setoran pendidikan OurMoney:", e.message); }
                       childrenList.forEach(c => {
                           const p = planMap[c.id];
                           const lama = anakLama[c.id];
+                          c.eduSaved = (p && Number(p.simpanan_semasa)) || 0;
+                          c.eduSetoran = Math.round((setoranEdu[String(c.id)] || 0) * 100) / 100;
                           const dariKids = !!(p && p.kos_semasa > 0);
                           const kidsBaru = dariKids && (p.kos_dikemas || 0) > lastTadbirK;
                           const adaLama = !!(lama && lama.eduCost > 0);
@@ -898,7 +907,9 @@ if (rdb.monthlyBudget === undefined) {
           const retirementCorpusNeeded = Math.max(0, belanjaPVAsal - pencenPV);
           const kesihatanBersih = Math.max(0, totalRetirementHealthNeeds - Math.max(0, pencenPV - belanjaPVAsal));
           
-          const totalEducationFundNow = sspnFund + asbAnakFund;
+          // Simpanan pendidikan ikut anak (myKids + setoran OurMoney). Medan lama Dana SSPN / ASB Anak tidak digunakan lagi.
+          const simpananAnak = (child) => (Number(child.eduSaved) || 0) + (Number(child.eduSetoran) || 0);
+          const totalEducationFundNow = childrenData.reduce((t, c) => t + simpananAnak(c), 0);
 
          // Anak yang ada anggaran myKids guna kos & umur masuk uni sendiri (tiada darab x5).
           // Anak lain guna Kos Umum (Per Anak), dengan darab x5 jika jenis Luar Negara (seperti asal).
@@ -914,8 +925,14 @@ if (rdb.monthlyBudget === undefined) {
             return total + kosAnak(child) * Math.pow(1 + (educationInflation / 100), yearsToUni);
           }, 0);
  
-          const earliestChildYears = childrenData.length > 0 ? Math.min(...childrenData.map(child => Math.max(0, umurUniAnak(child) - child.age))) : 0;          const futureEducationFund = totalEducationFundNow * Math.pow(1 + (assetReturnRate / 100), earliestChildYears);
-          const educationShortfall = Math.max(0, futureEduCostTotal - futureEducationFund);
+          const earliestChildYears = childrenData.length > 0 ? Math.min(...childrenData.map(child => Math.max(0, umurUniAnak(child) - child.age))) : 0;
+          // Simpanan setiap anak tumbuh pada kadar pulangan sehingga anak itu masuk universiti; defisit dikira ikut anak
+          const fvSimpananAnak = (child) => simpananAnak(child) * Math.pow(1 + (assetReturnRate / 100), Math.max(0, umurUniAnak(child) - child.age));
+          const futureEducationFund = childrenData.reduce((t, c) => t + fvSimpananAnak(c), 0);
+          const educationShortfall = childrenData.reduce((t, c) => {
+            const yearsToUni = Math.max(0, umurUniAnak(c) - c.age);
+            return t + Math.max(0, kosAnak(c) * Math.pow(1 + (educationInflation / 100), yearsToUni) - fvSimpananAnak(c));
+          }, 0);
           const monthsToUniversity = Math.max(1, earliestChildYears * 12);
           const educationCatchupMonthly = Number.isFinite(educationShortfall) ? educationShortfall / monthsToUniversity : 0;
 
@@ -1202,14 +1219,14 @@ if (rdb.monthlyBudget === undefined) {
                           const perluKes = totalCurrentHealthLeakage - guna;
                           if (perluKes > 1) tambah({ id: 'kesihatan_segera', type: 'kesihatan', priority: 2, label: 'Dana Perubatan Segera (kos setahun)', target_fv: perluKes, start_balance: 0, rate: 0, months: 12 });
                       }
-                      // 3. Pendidikan: satu misi bagi setiap anak. Dana SSPN/ASB anak diagih ikut kos, aset bebas yang tinggal juga diagih
+                      // 3. Pendidikan: satu misi bagi setiap anak. Baki awal = simpanan anak itu sendiri; aset bebas yang tinggal diagih ikut kos
                       const perAnak = childrenData.map((c, i) => {
                           const yUni = Math.max(0, umurUniAnak(c) - c.age);
                           return { c, i, yUni, fv: kosAnak(c) * Math.pow(1 + educationInflation / 100, yUni) };
                       });
                       const jumlahFv = perAnak.reduce((t, x) => t + x.fv, 0);
                       perAnak.forEach(({ c, i, yUni, fv }) => {
-                          const alloc = jumlahFv > 0 ? totalEducationFundNow * fv / jumlahFv : 0;
+                          const alloc = simpananAnak(c);
                           const tumbuh = Math.pow(1 + rA, yUni);
                           const bebasAnak = jumlahFv > 0 ? asetBebas * fv / jumlahFv : 0;
                           const sasaran = Math.max(0, fv - bebasAnak * tumbuh);
@@ -1234,6 +1251,9 @@ if (rdb.monthlyBudget === undefined) {
                           total_debts: totalDebts,
                           net_worth: currentNetWorth,
                           education_fund_needed: educationShortfall,
+                          // Simpanan pendidikan ikut anak yang sudah termasuk dalam education_fund_needed (myKids + setoran OurMoney).
+                          // OurMoney tolak hanya perubahan selepas ini, jadi defisit tidak melompat bila myTADBIR disimpan semula.
+                          edu_simpanan_anak: Object.fromEntries(childrenData.map(c => [String(c.id), Math.round(simpananAnak(c) * 100) / 100])),
                           zakat_payable: zakatPayable,
                           monthly_surplus: Number.isFinite(monthlyBalance) ? Math.round(monthlyBalance * 100) / 100 : 0,
                           goals: bangunMisi(),
@@ -1653,16 +1673,15 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                                                 </div>
                                             </div>
                                             <p className="text-xs text-slate-500 mt-3">Anggaran pada umur masuk uni ({yUni} tahun lagi, selepas inflasi pendidikan): <strong className="text-slate-700">{formatRM(kosMasaDepan)}</strong></p>
+                                            <p className="text-xs text-slate-500 mt-1">Simpanan pendidikan semasa: <strong className="text-slate-700">{formatRM(simpananAnak(child))}</strong>{(Number(child.eduSetoran) || 0) > 0 ? <span> (termasuk {formatRM(child.eduSetoran)} dari OurMoney)</span> : null}. Kemas kini di <a href="mykids.html" className="font-bold underline text-indigo-600">Anakku Hartaku</a>.</p>
                                         </div>
                                         );
                                     })}
                                 </div>
  
                                 <div className="pt-4 border-t border-slate-100">
-                                    <h3 className="text-base font-bold text-slate-800 mb-4">Dana & Inflasi</h3>
+                                    <h3 className="text-base font-bold text-slate-800 mb-4">Inflasi</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <Input label="Dana SSPN Semasa" value={sspnFund} onChange={e => setSspnFund(toNumber(e.target.value))} prefix="RM" />
-                                        <Input label="Dana ASB Anak" value={asbAnakFund} onChange={e => setAsbAnakFund(toNumber(e.target.value))} prefix="RM" />
                                         <Input label="Inflasi Pendidikan (%)" value={educationInflation} onChange={e => setEducationInflation(toNumber(e.target.value))} />
                                     </div>
                                 </div>
@@ -2110,7 +2129,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                           <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
                             <p className="text-[11px] font-bold text-slate-500 uppercase">Dana Pendidikan Anak</p>
                             <p className="text-lg font-extrabold text-slate-800">{formatRM(totalEducationFundNow)}</p>
-                            <p className="text-[10px] text-slate-400">SSPN &amp; ASB anak (digabung ke kolam)</p>
+                            <p className="text-[10px] text-slate-400">Simpanan pendidikan semua anak (digabung ke kolam)</p>
                           </div>
                           <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
                             <p className="text-[11px] font-bold text-slate-500 uppercase">Aset Pada Umur {retireAge}</p>
@@ -2172,7 +2191,7 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                         <div className="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-600 leading-relaxed">
                             <p className="font-bold mb-1">Cara baca jadual:</p>
                             <ul className="list-disc pl-4 space-y-1">
-                                <li><b>Aset Awal</b>: kolam pelaburan anda (aset cair + dana pendidikan SSPN/ASB). Rumah dan kereta tidak dikira kerana tidak dibelanjakan untuk hidup.</li>
+                                <li><b>Aset Awal</b>: kolam pelaburan anda (aset cair + simpanan pendidikan anak). Rumah dan kereta tidak dikira kerana tidak dibelanjakan untuk hidup.</li>
                                 <li><b>+ Pulangan</b>: keuntungan setahun pada kadar {assetReturnRate}% atas baki selepas tolakan tahun itu.</li>
                                 <li><b>- Pendidikan</b>: jumlah kos pengajian penuh (sudah termasuk inflasi pendidikan) dibahagi sama rata sepanjang {TEMPOH_PENGAJIAN} tahun belajar, bermula pada tahun anak masuk universiti.</li>
                                 <li><b>Pendidikan: siapa tanggung?</b> Anak dikira sekali sahaja daripada data keluarga. {faktorEdu === 0.5 ? 'Dalam paparan ini, anda menanggung 50% daripada kos (separuh lagi ditanggung pasangan). Paparan Gabungan menolak 100% kos daripada dana bersama suami isteri.' : 'Dalam paparan ini 100% kos ditolak daripada dana yang dipaparkan.'}</li>

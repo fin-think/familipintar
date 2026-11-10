@@ -286,6 +286,13 @@ onAuthStateChanged(auth, async user => {
       return; 
   }
   
+  // Setoran misi pendidikan dalam OurMoney ikut anak (goal_id pendidikan_{id nod anak}); dicampur ke simpanan semasa
+  S.setoranEdu = {};
+  try {
+    const t = await getDocs(query(collection(db,"ourmoney_transactions"), where("owner_uid","==",user.uid)));
+    t.forEach(d => { const x = d.data(), g = String(x.goal_id||''); if (x.type==='outflow' && g.startsWith('pendidikan_')) S.setoranEdu[g.slice(11)] = (S.setoranEdu[g.slice(11)]||0) + (Number(x.amount)||0); });
+  } catch (e) { console.warn('Gagal baca setoran OurMoney', e.message); }
+
   document.getElementById('auth').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   await pilih(0);
@@ -304,7 +311,8 @@ async function pilih(i) {
     psi: dp.psikoteens||null, 
     kids: dp.psikokids||null, 
     ing: dp.integrity||null,
-    gz: genZ(a.id)
+    gz: genZ(a.id),
+    simp: Number(dp.simpanan_semasa) || 0
   };
   render();
 }
@@ -515,6 +523,17 @@ fetch('kos_pengajian.json').then(r => r.json()).then(j => { KOS = j; render(); }
 const TIER = { awam:'Universiti awam (tempatan)', swasta:'Universiti swasta (tempatan)', luar:'Luar negara' };
 const RM = n => 'RM' + Math.round(n).toLocaleString('en-MY');
 
+// Simpanan pendidikan semasa anak ini (satu angka keluarga). Setoran OurMoney dicampur automatik.
+function simpBox() {
+  const a = S.anak[S.i], om = Math.round(((S.setoranEdu||{})[a.id] || 0) * 100) / 100;
+  return `<div style="margin-top:14px;padding-top:12px;border-top:2px dashed var(--line)">
+    <label for="simpEdu" style="display:block;font-weight:800;font-size:14px;margin-bottom:6px">Simpanan pendidikan semasa (RM)</label>
+    <input type="number" id="simpEdu" min="0" step="0.01" inputmode="decimal" value="${S.plan.simp || ''}" placeholder="0" style="width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;font:700 15px inherit;font-family:inherit;box-sizing:border-box">
+    <p class="nota">Isi simpanan untuk ${esc(a.name)} yang ada <b>di luar OurMoney</b> (contoh baki SSPN, ASB anak). Setoran misi pendidikan yang direkod dalam OurMoney dicampur automatik, jangan tambah sendiri.</p>
+    ${om > 0 ? `<p class="nota">+ Setoran OurMoney: <b>${RM(om)}</b> · Jumlah simpanan: <b>${RM((S.plan.simp||0) + om)}</b></p>` : ''}
+    <p class="nota" id="simpStatus"></p></div>`;
+}
+
 function kosBox(K) {
   if (!KOS) return '';
   const t = S.plan.tier || 'awam';
@@ -522,7 +541,7 @@ function kosBox(K) {
   S.kos = null;
   let h = `<div class="box"><h2>Kos anggaran pengajian</h2><p class="s"><b>Kos anggaran, nilai tertinggi.</b> Diambil daripada angka tertinggi sumber yang ada supaya ibu bapa bersedia awal. Kos sebenar bergantung pada universiti dan program. Harga semasa, bukan harga tahun masuk; inflasi dikira di myTADBIR.</p>
     <select id="tier">${Object.entries(TIER).map(([k,v]) => `<option value="${k}" ${t===k?'selected':''}>${v}</option>`).join('')}</select>`;
-  if (!d) return h + `<p class="nota">Data kos belum tersedia untuk pilihan ini.</p></div>`;
+  if (!d) return h + `<p class="nota">Data kos belum tersedia untuk pilihan ini.</p>${simpBox()}</div>`;
 
   const hidup = d.hidup_setahun ? d.hidup_setahun.map(x => x * d.tempoh) : null;
   const min = d.yuran[0] + (hidup ? hidup[0] : 0), max = d.yuran[1] + (hidup ? hidup[1] : 0);
@@ -536,6 +555,7 @@ function kosBox(K) {
     <p class="nota">Yuran: ${julat(d.yuran[0], d.yuran[1])}${hidup ? ' · Sara hidup: ' + julat(hidup[0], hidup[1]) : ''}</p>
     <p class="nota"><b>Kos anggaran.</b> Semak yuran rasmi universiti sebelum membuat keputusan.${d.anggaran_dalaman ? ' Tiada angka khusus program ini, angka proksi digunakan.' : ''}</p>
     <p class="nota">Sumber: ${esc(d.sumber)}</p>
+    ${simpBox()}
     <button class="btn" id="btnKos" style="width:100%;border:0;cursor:pointer;font:800 15px inherit;font-family:inherit">💾 Simpan ke myTADBIR (${RM(tengah)})</button>
     <a class="btn" style="background:#fff;color:var(--dunia);border:2px solid var(--dunia)" href="${URL_MYTADBIR}">Buka myTADBIR</a></div>`;
   return h;
@@ -546,7 +566,8 @@ document.addEventListener('click', async e => {
   const a = S.anak[S.i];
   try {
     await setDoc(doc(db,"mykids_plans",a.id), { owner_uid:S.uid, nama_anak:a.name, kerjaya:S.plan.ker, tier:S.kos.t,
-      kos_semasa:S.kos.jumlah, jenis_uni:S.kos.jenis, umur_masuk:S.kos.umur, kos_dikemas:Date.now() }, { merge:true });
+      kos_semasa:S.kos.jumlah, jenis_uni:S.kos.jenis, umur_masuk:S.kos.umur, kos_dikemas:Date.now(),
+      simpanan_semasa:S.plan.simp||0, simpanan_dikemas:Date.now() }, { merge:true });
     e.target.textContent = '✔ Disimpan. Buka myTADBIR > Unjuran untuk guna anggaran ini';
   } catch (err) { alert('Gagal menyimpan: ' + err.message); }
 });
@@ -560,6 +581,13 @@ document.addEventListener('change', e => {
   if (e.target.id==='ker') { S.plan.ker = e.target.value; simpan(); render(); }
   else if (e.target.id==='tier') { S.plan.tier = e.target.value; simpan(); render(); }
   else if (e.target.dataset.k) { S.plan.tick[e.target.dataset.k] = e.target.checked; simpan(); }
+  else if (e.target.id==='simpEdu') {
+    const v = Math.max(0, Math.round((parseFloat(e.target.value)||0) * 100) / 100), a = S.anak[S.i];
+    S.plan.simp = v;
+    setDoc(doc(db,"mykids_plans",a.id), { owner_uid:S.uid, nama_anak:a.name, simpanan_semasa:v, simpanan_dikemas:Date.now() }, { merge:true })
+      .then(() => render())
+      .catch(err => alert('Gagal menyimpan simpanan: ' + err.message));
+  }
 });
 </script>
 <script>
