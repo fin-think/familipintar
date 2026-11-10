@@ -5,8 +5,12 @@
 // Penerima: peranti berdaftar Induk (fcm_induk) dan Pasangan (fcm_pasangan). Akaun lama tanpa peranti ikut orang: fcm_tokens untuk Induk.
 // Sumber tarikh lahir: semua nod dalam pokok akaun itu (yang ditambah atau dijemput), tidak termasuk yang telah meninggal.
 // Akaun adik-beradik yang dijemput melalui pautan (mynasab_links/{uid}.owner_uid) turut menerima hari lahir pokok pengundang.
+// Anak 7 tahun ke atas yang telefonnya berdaftar (fcm_anak_<id>) turut menerima hari lahir semua ahli keluarga (tanpa label hubungan,
+// kerana hubungan dalam pokok dilihat daripada Induk). Pengecualian anak: fp_anak_mati / fp_anak_mati_<id>.
 // Sehari sekali; klik membuka /app/peringatan40.html?mod=harijadi&l=Nama~umur~hubungan,...
 // Pengecualian: mynasab_users.fp_harijadi_mati === true.
+
+const HARIJADI_UMUR_ANAK_MIN = 7;
 
 function harijadiHariIni(nod, tarikh) {
     const [t, m, h] = tarikh.split('-').map(Number);
@@ -56,7 +60,8 @@ async function jalankanHariJadi(dbRef, messaging, opsi = {}) {
         const psgT = [...new Set([...arr('fcm_pasangan'), ...arr('fcm_checklist40_pasangan')])].filter(Boolean);
         let tokenInduk = induk;
         if (!induk.length && !psgT.length) tokenInduk = [...new Set([...arr('fcm_tokens'), ...(u.fcm_token ? [u.fcm_token] : [])])].filter(Boolean);
-        if (!tokenInduk.length && !psgT.length) continue;
+        const kunciAnak = u.fp_anak_mati === true ? [] : Object.keys(u).filter(k => k.startsWith('fcm_anak_') && Array.isArray(u[k]) && u[k].length && u['fp_anak_mati_' + k.slice(9)] !== true);
+        if (!tokenInduk.length && !psgT.length && !kunciAnak.length) continue;
         try {
             let nod = await nodDari(d.id);
             try { const lk = await dbRef.collection('mynasab_links').doc(d.id).get(); if (lk.exists && lk.data().owner_uid && lk.data().owner_uid !== d.id) nod = nod.concat(await nodDari(lk.data().owner_uid)); } catch (e) {}
@@ -76,6 +81,29 @@ async function jalankanHariJadi(dbRef, messaging, opsi = {}) {
                 const l = senarai.slice(0, 8).map(x => [x.nama.slice(0, 40), x.umur, x.diri ? 'diri' : x.hubungan.slice(0, 20)].map(v => String(v).replace(/[,~]/g, ' ')).join('~')).join(',');
                 const pautan = `/app/peringatan40.html?mod=harijadi&l=${encodeURIComponent(l)}`;
                 const n = await cl40Hantar(dbRef, messaging, d.id, 'fcm_' + p, token, {
+                    notification: { title: tajuk, body: badan },
+                    data: { app: 'harijadi', url: pautan, badgeCount: '1', tag: 'harijadi-' + tarikh },
+                    webpush: { fcmOptions: { link: pautan } }
+                });
+                if (n > 0) dihantar++; else langkau++;
+            }
+            // Telefon anak (7 tahun ke atas)
+            for (const k of kunciAnak) {
+                const idAnak = k.slice('fcm_anak_'.length);
+                const anak = nod.find(x => x.id === idAnak);
+                if (!anak || anak.status === 'meninggal' || !anak.dob) continue;
+                const lh = String(anak.dob).split('-').map(Number); const [ty, tm, td] = [tarikh.split('-')[0], tarikh.split('-')[1], tarikh.split('-')[2]].map(Number);
+                if (!lh[0] || (ty - lh[0] - ((tm < lh[1] || (tm === lh[1] && td < lh[2])) ? 1 : 0)) < HARIJADI_UMUR_ANAK_MIN) continue;
+                if (!opsi.tanpaLog) {
+                    try { await dbRef.collection('checklist40_notif_log').doc(`${d.id}_anak_${idAnak}_harijadi_${tarikh}`).create({ uid: d.id, anak: idAnak, tarikh, timestamp: new Date().toISOString() }); }
+                    catch (e) { langkau++; continue; }
+                }
+                const senarai = hari.map(x => ({ ...x, hubungan: '', diri: x.id === idAnak }));
+                const diri = senarai.find(x => x.diri);
+                const { tajuk, badan } = tajukBadanHarijadi(senarai, diri);
+                const l = senarai.slice(0, 8).map(x => [x.nama.slice(0, 40), x.umur, x.diri ? 'diri' : ''].map(v => String(v).replace(/[,~]/g, ' ')).join('~')).join(',');
+                const pautan = `/app/peringatan40.html?mod=harijadi&l=${encodeURIComponent(l)}`;
+                const n = await cl40Hantar(dbRef, messaging, d.id, k, [...new Set(u[k])].filter(Boolean), {
                     notification: { title: tajuk, body: badan },
                     data: { app: 'harijadi', url: pautan, badgeCount: '1', tag: 'harijadi-' + tarikh },
                     webpush: { fcmOptions: { link: pautan } }
