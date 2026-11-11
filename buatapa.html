@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buat Apa Hari Ini? | Famili Pintar</title>
+<meta name="robots" content="noindex">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; }
+  .kad { background:#fff; border:1px solid #e2e8f0; border-radius:1.25rem; padding:1.1rem 1.2rem; }
+  .lencana { font-size:.68rem; font-weight:800; padding:.2rem .6rem; border-radius:999px; display:inline-flex; gap:.3rem; align-items:center; }
+  .laras button { width:1.9rem; height:1.9rem; border-radius:999px; background:rgba(255,255,255,.18); font-weight:800; }
+</style>
+</head>
+<body class="min-h-screen pb-16">
+<header class="bg-gradient-to-br from-teal-800 to-emerald-950 text-white">
+  <div class="max-w-2xl mx-auto px-4 pt-5 pb-6">
+    <a href="admin.html" class="text-teal-200 text-sm font-semibold"><i class="fa-solid fa-arrow-left"></i> Admin</a>
+    <h1 class="text-2xl font-extrabold mt-2">Buat Apa Hari Ini?</h1>
+    <p id="tarikhMasihi" class="text-teal-100 text-sm mt-1">&nbsp;</p>
+    <p class="mt-1 flex items-center gap-2 flex-wrap"><span id="tarikhHijrah" class="text-lg font-extrabold text-amber-300">&nbsp;</span>
+      <span class="laras inline-flex items-center gap-1 text-xs text-teal-100" title="Laras jika tarikh Hijrah berbeza sehari daripada pengumuman rasmi Malaysia">
+        <button id="larasKurang" aria-label="Kurangkan sehari">−</button><span id="larasNilai" class="w-14 text-center"></span><button id="larasTambah" aria-label="Tambah sehari">+</button>
+      </span></p>
+  </div>
+</header>
+
+<main class="max-w-2xl mx-auto px-4 mt-5 space-y-4">
+  <div id="gate" class="kad text-center text-slate-600">Memuatkan...</div>
+
+  <section id="keluarga" class="kad hidden">
+    <h2 class="font-extrabold text-slate-800 mb-3"><i class="fa-solid fa-people-roof text-rose-500"></i> Dalam keluarga hari ini</h2>
+    <div id="keluargaIsi" class="space-y-2"></div>
+  </section>
+
+  <section id="sejarah" class="hidden space-y-3">
+    <h2 class="font-extrabold text-slate-800 px-1"><i class="fa-solid fa-kaaba text-amber-600"></i> Pada hari ini dalam sejarah Islam</h2>
+    <div id="sejarahIsi" class="space-y-3"></div>
+  </section>
+
+  <section id="sirah" class="kad hidden bg-gradient-to-br from-amber-50 to-white border-amber-200">
+    <div class="flex items-center justify-between gap-2">
+      <h2 class="font-extrabold text-slate-800"><i class="fa-solid fa-book-quran text-emerald-700"></i> Kisah Sirah hari ini</h2>
+      <span id="sirahNo" class="lencana bg-amber-100 text-amber-800"></span>
+    </div>
+    <h3 id="sirahTajuk" class="text-lg font-extrabold text-emerald-900 mt-3"></h3>
+    <p id="sirahBadan" class="text-slate-700 leading-relaxed mt-1 text-[.95rem]"></p>
+    <a id="sirahWa" target="_blank" rel="noopener" class="inline-flex items-center gap-2 mt-3 text-sm font-bold text-emerald-700"><i class="fa-brands fa-whatsapp"></i> Kongsi ke keluarga</a>
+  </section>
+
+  <p id="nota" class="hidden text-xs text-slate-500 px-1 leading-relaxed">Ringkasan umum untuk renungan keluarga. Sebahagian tarikh sejarah dicatat berbeza oleh ulama dan sejarawan; yang bertanda ⚠ ialah pendapat yang masyhur. Rujuk kitab sirah muktabar dan guru untuk huraian lanjut. Tarikh Hijrah dikira secara astronomi dan boleh berbeza sehari daripada pengumuman rasmi.</p>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { firebaseConfig, esc } from "./kongsi.js";
+import { BULAN_HIJRAH, BULAN_MASIHI, tarikhMalaysia, tarikhHijrah, namaHariMasihi, peristiwaHariIni, sirahHariIni } from "./sejarah-islam.js";
+
+// Fasa ujian: admin sahaja. Tukar kepada false apabila dibuka kepada pengguna.
+const UJIAN_ADMIN = true;
+const ADMIN_EMEL = 'dae.book89@gmail.com';
+const KUNCI_LARAS = 'buatapa_laras_hijrah';
+
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+const g = tarikhMalaysia();
+let laras = 0; try { laras = Math.max(-1, Math.min(1, parseInt(localStorage.getItem(KUNCI_LARAS) || '0', 10) || 0)); } catch (e) {}
+let nodUser = null; // nod pokok keluarga; null = belum dimuat atau tiada
+
+function tajukTarikh() {
+  const h = tarikhHijrah(g, laras);
+  $('tarikhMasihi').textContent = `${namaHariMasihi(g)}, ${g.d} ${BULAN_MASIHI[g.m - 1]} ${g.y}`;
+  $('tarikhHijrah').textContent = `${h.d} ${BULAN_HIJRAH[h.m - 1]} ${h.y} H`;
+  $('larasNilai').textContent = laras === 0 ? 'Laras: 0' : `Laras: ${laras > 0 ? '+' : ''}${laras}`;
+  return h;
+}
+
+const teksWa = (tajuk, badan) => 'https://wa.me/?text=' + encodeURIComponent(`${tajuk}\n\n${badan}\n\n— Buat Apa Hari Ini, Famili Pintar`);
+
+function lukisKandungan() {
+  const h = tajukTarikh();
+  // 1. Keluarga: hari jadi hari ini dan tujuh hari akan datang
+  const kk = keluargaHariIni();
+  $('keluarga').classList.toggle('hidden', !kk.length);
+  $('keluargaIsi').innerHTML = kk.join('');
+  // 2. Peristiwa sejarah pada tarikh ini
+  const pe = peristiwaHariIni(g, h);
+  $('sejarah').classList.toggle('hidden', !pe.length);
+  $('sejarahIsi').innerHTML = pe.map(e => `<div class="kad border-teal-100">
+      <span class="lencana bg-teal-100 text-teal-800"><i class="fa-regular fa-calendar"></i> ${esc(e.label)}</span>${e.ragu ? ' <span class="lencana bg-amber-100 text-amber-800" title="Ulama atau sejarawan berbeza pendapat tentang tarikh">⚠ tarikh masyhur</span>' : ''}
+      <h3 class="font-extrabold text-slate-800 mt-2">${esc(e.tajuk)}</h3>
+      <p class="text-slate-600 text-[.93rem] leading-relaxed mt-1">${esc(e.teks)}</p>
+      <a target="_blank" rel="noopener" href="${teksWa(e.tajuk + ' (' + e.label + ')', e.teks)}" class="inline-flex items-center gap-2 mt-2 text-sm font-bold text-emerald-700"><i class="fa-brands fa-whatsapp"></i> Kongsi</a>
+    </div>`).join('');
+  // 3. Bila tiada kongsian keluarga, paparkan kisah sirah
+  const s = sirahHariIni(g);
+  $('sirah').classList.toggle('hidden', kk.length > 0);
+  $('sirahNo').textContent = `Bahagian ${s.no} / ${s.jumlah}`;
+  $('sirahTajuk').textContent = s.t;
+  $('sirahBadan').textContent = s.b;
+  $('sirahWa').href = teksWa('Kisah Sirah: ' + s.t, s.b);
+  $('nota').classList.remove('hidden');
+}
+
+// Hari jadi daripada pokok keluarga sendiri (termasuk anak). Kad akan bertambah apabila fungsi kongsi keluarga dibina.
+function keluargaHariIni() {
+  if (!nodUser) return [];
+  const kad = [];
+  for (let i = 0; i <= 7; i++) {
+    const t = new Date(Date.UTC(g.y, g.m - 1, g.d + i, 12));
+    const bm = t.getUTCMonth() + 1, bd = t.getUTCDate();
+    const ramai = nodUser.filter(n => n.dob && n.name && n.status !== 'meninggal').filter(n => { const p = String(n.dob).split('-').map(Number); return p[1] === bm && p[2] === bd; });
+    for (const n of ramai) {
+      const umur = t.getUTCFullYear() - Number(String(n.dob).split('-')[0]);
+      if (umur < 0 || umur > 120) continue;
+      const bila = i === 0 ? 'Hari ini' : i === 1 ? 'Esok' : `${i} hari lagi (${bd} ${BULAN_MASIHI[bm - 1]})`;
+      const hubungan = n.is_root ? 'Anda' : (n.relationship || '');
+      kad.push(`<div class="flex items-center gap-3 p-3 rounded-xl ${i === 0 ? 'bg-rose-50 border border-rose-200' : 'bg-slate-50 border border-slate-200'}">
+        <div class="text-2xl">🎂</div>
+        <div class="min-w-0"><div class="font-bold text-slate-800 truncate">${esc(n.name)} <span class="text-slate-500 font-semibold">(${umur} tahun)</span></div>
+        <div class="text-xs text-slate-500">${esc(bila)}${hubungan ? ' · ' + esc(hubungan) : ''}</div></div></div>`);
+    }
+  }
+  return kad;
+}
+
+function ubahLaras(d) { laras = Math.max(-1, Math.min(1, laras + d)); try { localStorage.setItem(KUNCI_LARAS, String(laras)); } catch (e) {} lukisKandungan(); }
+$('larasKurang').onclick = () => ubahLaras(-1);
+$('larasTambah').onclick = () => ubahLaras(1);
+
+onAuthStateChanged(auth, async (u) => {
+  const admin = !!u && (u.email || '').toLowerCase() === ADMIN_EMEL;
+  if (UJIAN_ADMIN && !admin) { $('gate').textContent = 'Halaman ini dalam fasa ujian (admin sahaja). Sila log masuk dengan akaun admin.'; return; }
+  $('gate').classList.add('hidden');
+  if (u) {
+    try {
+      const sn = await getDocs(query(collection(db, 'mynasab_nodes'), where('owner_uid', '==', u.uid)));
+      nodUser = sn.docs.map(d => ({ ...d.data(), id: d.id }));
+    } catch (e) { console.warn('Gagal muat pokok keluarga:', e.message); nodUser = null; }
+  }
+  lukisKandungan();
+});
+</script>
+</body>
+</html>
