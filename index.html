@@ -802,12 +802,23 @@ if ('Notification' in window) {
             const lk = await getDoc(doc(db, 'mynasab_links', user.uid));
             if (lk.exists() && lk.data().status === 'aktif' && lk.data().owner_uid && lk.data().owner_uid !== user.uid) kump.unshift(lk.data().owner_uid);
             try { (await getDocs(query(collection(db, 'buatapa_kumpulan'), where('ahli', 'array-contains', user.uid)))).forEach(d => { if (!kump.includes(d.id)) kump.push(d.id); }); } catch (e) {}
+            const bahagian = [];
+            // Hari jadi hari ini daripada pokok keluarga sendiri (termasuk anak)
+            try {
+                const td = tarikhMalaysia(), jadi = [];
+                (await getDocs(query(collection(db, 'mynasab_nodes'), where('owner_uid', '==', user.uid)))).forEach(d => {
+                    const n = d.data(); if (!n.dob || !n.name || n.status === 'meninggal') return;
+                    const p = String(n.dob).split('-').map(Number), umur = td.y - p[0];
+                    if (p[1] === td.m && p[2] === td.d && umur >= 0 && umur <= 120) jadi.push({ nama: String(n.name).trim().split(/\s+/)[0], umur, hub: n.is_root ? '' : (n.relationship || '') });
+                });
+                if (jadi.length) bahagian.push(`<div class="bap-isi" onclick="__bapTuju(false)"><div class="tx"><div class="kt" style="color:#be123c"><i class="fa-solid fa-cake-candles"></i> Hari jadi hari ini</div>${jadi.map(j => `<b>${E(j.nama)}</b> (${j.umur} tahun${j.hub ? ', ' + E(j.hub) : ''})`).join(' &middot; ')}</div><span style="font-size:28px">&#127874;</span></div>`);
+            } catch (e) { console.warn('Hari jadi:', e.message); }
             const had = Date.now() - 86400000, semua = [];
             for (const g of kump) {
                 const sn = await getDocs(query(collection(db, 'buatapa_posts'), where('group_id', '==', g), orderBy('created_at', 'desc'), limit(5)));
                 sn.forEach(d => { const x = d.data(); if (x.created_at >= had) semua.push({ ...x, id: d.id }); });
             }
-            if (!semua.length) return;
+            if (semua.length) {
             semua.sort((a, b) => b.created_at - a.created_at);
             const penulis = [...new Map(semua.map(p => [p.author_uid, (p.author_nama || 'Ahli keluarga').split(/\s+/)[0]])).values()];
             const sebut = penulis.length === 1 ? `<b>${E(penulis[0])}</b>` : penulis.length === 2 ? `<b>${E(penulis[0])}</b> dan <b>${E(penulis[1])}</b>` : `<b>${E(penulis[0])}</b>, <b>${E(penulis[1])}</b> dan ${penulis.length - 2} lagi`;
@@ -815,7 +826,9 @@ if ('Notification' in window) {
             const thumb = ((terkini.kecil || [])[0] || (terkini.gambar || [])[0] || '');
             const petikan = (terkini.teks || '').trim();
             const isi = `<div class="bap-isi" onclick="__bapTuju(false)"><div class="tx"><div class="kt"><i class="fa-solid fa-people-roof"></i> Hari ini dalam keluarga</div>${sebut} ada berkongsi${gam ? ` ${gam} gambar` : ''}${semua.length > 1 ? ` (${semua.length} siaran)` : ''}.${petikan ? `<div class="ct">&ldquo;${E(petikan.slice(0, 110))}&rdquo;</div>` : ''}</div>${thumb.startsWith(GS) ? `<img src="${E(thumb)}" alt="" loading="lazy">` : ''}</div>`;
-            pasang(isi);
+            bahagian.push(isi);
+            }
+            if (bahagian.length) pasang(bahagian.join(''));
         } catch (e) { console.warn('Buat apa hari ni:', e.message); }
     }
 

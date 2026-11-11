@@ -12,9 +12,10 @@ export function tarikhMalaysia(now = Date.now()) {
 }
 
 // Tarikh Hijrah (Umm al-Qura). Boleh berbeza sehari daripada pengumuman rasmi Malaysia, jadi disediakan laras -1/0/+1.
+const FORMAT_HIJRAH = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { timeZone: 'UTC', day: 'numeric', month: 'numeric', year: 'numeric' });
 export function tarikhHijrah({ y, m, d }, laras = 0) {
   const t = new Date(Date.UTC(y, m - 1, d + laras, 12));
-  const bahagian = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { timeZone: 'UTC', day: 'numeric', month: 'numeric', year: 'numeric' }).formatToParts(t);
+  const bahagian = FORMAT_HIJRAH.formatToParts(t);
   const ambil = (jenis) => parseInt(bahagian.find(p => p.type === jenis).value, 10);
   return { d: ambil('day'), m: ambil('month'), y: ambil('year') };
 }
@@ -108,4 +109,29 @@ export function hariDalamTahun({ y, m, d }) {
 export function sirahHariIni(g) {
   const i = (hariDalamTahun(g) - 1) % SIRAH.length;
   return { ...SIRAH[i], no: i + 1, jumlah: SIRAH.length };
+}
+
+
+// Hari kebesaran Islam mengikut Takwim JAKIM (rujukan: e-solat.gov.my). b = bulan Hijrah, h = hari.
+export const HARI_BESAR = [
+  { b: 1, h: 1, n: 'Awal Muharam (Maal Hijrah)' },
+  { b: 3, h: 12, n: 'Maulidur Rasul' },
+  { b: 7, h: 27, n: 'Israk dan Mikraj' },
+  { b: 9, h: 1, n: 'Awal Ramadan' },
+  { b: 9, h: 17, n: 'Nuzul al-Quran' },
+  { b: 10, h: 1, n: 'Hari Raya Aidilfitri' },
+  { b: 12, h: 1, n: 'Awal Zulhijjah' },
+  { b: 12, h: 10, n: 'Hari Raya Aidiladha' }
+];
+
+// Hari kebesaran terdekat: dikira daripada tarikh Hijrah (Umm al-Qura + laras). Anggaran; tarikh rasmi ditetapkan JAKIM.
+export function hitungMundur(g, laras = 0, bil = 4) {
+  const jumpa = new Map();
+  for (let i = 0; i <= 390 && jumpa.size < HARI_BESAR.length; i++) {
+    const t = { ...g, d: g.d + i };
+    const tt = new Date(Date.UTC(g.y, g.m - 1, g.d + i, 12));
+    const hj = tarikhHijrah({ y: tt.getUTCFullYear(), m: tt.getUTCMonth() + 1, d: tt.getUTCDate() }, laras);
+    HARI_BESAR.forEach((e, k) => { if (!jumpa.has(k) && hj.m === e.b && hj.d === e.h) jumpa.set(k, { n: e.n, i, h: hj, g: { y: tt.getUTCFullYear(), m: tt.getUTCMonth() + 1, d: tt.getUTCDate() } }); });
+  }
+  return [...jumpa.values()].sort((a, b) => a.i - b.i).slice(0, bil);
 }
