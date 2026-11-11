@@ -82,7 +82,7 @@
 
   <section id="dinding" class="hidden space-y-3">
     <div class="flex items-center justify-between px-1">
-      <h2 class="font-extrabold text-slate-800"><i class="fa-solid fa-people-roof text-teal-700"></i> Dinding keluarga</h2>
+      <h2 class="font-extrabold text-slate-800"><i class="fa-solid fa-people-roof text-teal-700"></i> Laman keluarga</h2>
       <label class="text-xs font-bold text-teal-700 cursor-pointer"><i class="fa-solid fa-camera"></i> <span id="fotoLabel">Gambar profil</span><input id="fotoProfil" type="file" accept="image/*" class="hidden"></label>
     </div>
     <div id="dindingAmaran" class="hidden kad border-amber-300 bg-amber-50 text-sm text-amber-900"></div>
@@ -192,7 +192,7 @@ function amaran(e) {
   const url = (String(e.message || '').match(/https:\/\/console\.firebase\.google\.com\S+/) || [])[0];
   let t;
   if (e.code === 'failed-precondition' && url) t = `Perlu cipta indeks Firestore (sekali sahaja). <a class="underline font-bold" target="_blank" rel="noopener" href="${esc(url)}">Klik di sini</a>, tekan Create, tunggu beberapa minit, kemudian muat semula halaman.`;
-  else if (e.code === 'permission-denied') t = 'Akses ditolak. Peraturan Firestore untuk dinding belum ditambah (lihat fail peraturan-buatapa.txt).';
+  else if (e.code === 'permission-denied') t = 'Akses ditolak. Peraturan Firestore untuk laman keluarga belum ditambah (lihat fail peraturan-buatapa.txt).';
   else t = 'Ralat: ' + esc(e.message || e);
   $('dindingAmaran').innerHTML = t; $('dindingAmaran').classList.remove('hidden');
 }
