@@ -247,6 +247,7 @@ async function siapkanDinding(u) {
   $('posKumpulan').innerHTML = D.kumpulan.map(k => `<option value="${esc(k.id)}">${esc(k.label)}</option>`).join('');
   $('posPenonton').classList.toggle('hidden', D.kumpulan.length < 2);
   $('komposer').classList.remove('hidden'); $('dinding').classList.remove('hidden');
+  if (/[?&]tulis=1/.test(location.search)) { $('bukaKomposer').click(); }
   await muatPosts();
 }
 

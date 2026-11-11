@@ -334,11 +334,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 <div id="fpMobile">
   <div class="fpm-dompet"><small>Famili Pintar</small><strong>Satu keluarga, satu ekosistem</strong><p>Setiap ahli ada peranan sendiri, tetapi semuanya berhubung dan berkongsi satu gambaran keluarga yang sama.</p></div>
   <div class="fpm-pintas" id="fpmPintas"></div>
-  <a id="fpmBuatapa" style="display:none;margin:14px 16px 0;padding:14px 16px;border-radius:20px;background:#0f766e;color:#fff;align-items:center;gap:12px;cursor:pointer;box-shadow:0 6px 16px rgba(15,118,110,.25)" onclick="semakAksesPintu('Buat Apa Hari Ini', 'buatapa.html')">
-    <span style="width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none"><i class="fa-solid fa-people-roof"></i></span>
-    <span style="flex:1;min-width:0"><b style="display:block;font-size:15px;font-weight:800">Buat Apa Hari Ini?</b><span style="display:block;font-size:12px;color:#ccfbf1;line-height:1.4">Laman keluarga: kongsi gambar dan cerita, baca sirah hari ini</span></span>
-    <i class="fa-solid fa-chevron-right" style="flex:none"></i>
-  </a>
+  <div id="fpmBuatapa" style="display:none;margin:14px 16px 0"></div>
   <div class="fpm-hero"><img id="fpmHeroImg" src="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.png" alt="Keluarga"><span class="fpm-foto" id="fpmFoto"><button type="button" aria-label="Tukar gambar" title="Tukar gambar" onclick="document.getElementById('heroFotoTukar').click()"><i class="fa-solid fa-camera"></i><span id="fpmFotoTeks">Letak gambar famili anda</span></button><button type="button" id="fpmFotoBuang" aria-label="Guna gambar asal" onclick="document.getElementById('heroFotoBuang').click()" title="Guna gambar asal"><i class="fa-solid fa-rotate-left"></i></button></span><div><b>Keluarga Yang Kukuh</b><span>Dibina bersama, satu langkah demi satu langkah.</span></div></div>
   <button type="button" class="fpm-daftar" id="fpmDaftar" onclick="bukaModalAuth('daftar')"><i class="fa-solid fa-gift"></i> Daftar &amp; Tebus 20 Kredit Percuma</button>
   <div class="fpm-tajuk">Teroka Bersama</div>
@@ -495,15 +491,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     </div>
 
     <!-- BUAT APA HARI INI (laman keluarga) - kelihatan kepada admin sahaja buat masa ini -->
-    <a id="kadBuatapa" style="display:none" onclick="semakAksesPintu('Buat Apa Hari Ini', 'buatapa.html')" class="cursor-pointer group mb-6 rounded-3xl bg-teal-700 text-white p-6 md:p-7 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center gap-5">
-        <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-2xl flex-none"><i class="fa-solid fa-people-roof"></i></div>
-        <div class="flex-1 min-w-0">
-            <h3 class="text-xl font-extrabold">Buat Apa Hari Ini?</h3>
-            <p class="text-teal-100 text-sm leading-relaxed">Laman keluarga: kongsi gambar dan cerita, dan baca kisah sirah hari ini.</p>
-        </div>
-        <span class="hidden sm:inline-flex items-center gap-2 bg-white text-teal-700 font-bold text-sm px-4 py-2 rounded-full flex-none group-hover:gap-3 transition-all">Buka laman <i class="fa-solid fa-arrow-right"></i></span>
-        <i class="fa-solid fa-chevron-right sm:hidden flex-none"></i>
-    </a>
+    <div id="kadBuatapa" style="display:none" class="mb-6"></div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
@@ -750,7 +738,8 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     // Import modul Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, arrayUnion, collection, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, arrayUnion, collection, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { tarikhMalaysia, sirahHariIni } from "./sejarah-islam.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
 
 // KOD MEMINTA IZIN NOTIFIKASI DARI TELEFON
@@ -786,6 +775,49 @@ if ('Notification' in window) {
   // ==========================================
     // 4C: KEMAS KINI UI APABILA LOG MASUK (HEADER, WALLET & NAMA)
     // ==========================================
+        // ===== KAD "BUAT APA HARI NI?" (bar tulis + siaran terkini atau sirah) =====
+    // Ahli = induk dan semua akaun berpautan aktif kepadanya (sama seperti goTravel). Kad ini admin sahaja buat masa ini.
+    async function muatBuatapaIndex(user) {
+        const E = (t) => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const GS = 'https://firebasestorage.googleapis.com/';
+        if (!document.getElementById('bapGaya')) {
+            const st = document.createElement('style'); st.id = 'bapGaya';
+            st.textContent = '.bap{background:#fff;border:1px solid #e2e8f0;border-radius:24px;padding:14px;box-shadow:0 4px 14px rgba(15,23,42,.06)}.bap-bar{display:flex;align-items:center;gap:10px;cursor:pointer}.bap-av{width:40px;height:40px;border-radius:50%;background:#0f766e;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none}.bap-av img{width:100%;height:100%;object-fit:cover}.bap-pil{flex:1;min-width:0;border:1px solid #cbd5e1;border-radius:999px;padding:10px 16px;color:#64748b;font-size:15px;font-weight:600}.bap-gb{font-size:22px;color:#0f766e;flex:none}.bap-isi{display:flex;gap:12px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid #f1f5f9;cursor:pointer}.bap-isi .tx{flex:1;min-width:0;font-size:13px;color:#475569;line-height:1.5}.bap-isi .tx b{color:#0f172a}.bap-isi .kt{font-size:11px;font-weight:800;letter-spacing:.04em;color:#b45309;text-transform:uppercase;margin-bottom:2px}.bap-isi .ct{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.bap-isi img{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:none}';
+            document.head.appendChild(st);
+        }
+        const tuju = (tulis) => window.semakAksesPintu('Buat Apa Hari Ini', 'buatapa.html' + (tulis ? '?tulis=1' : ''));
+        window.__bapTuju = tuju;
+        const nama = (document.getElementById('headerNamaPengguna') && document.getElementById('headerNamaPengguna').innerText) || (user.email || '?').split('@')[0];
+        let foto = '';
+        try { const f = await getDoc(doc(db, 'buatapa_profil', user.uid)); if (f.exists()) foto = f.data().foto || ''; } catch (e) {}
+        const av = foto.startsWith(GS) ? `<img src="${E(foto)}" alt="">` : E((nama[0] || '?').toUpperCase());
+        const rangka = (isi) => `<div class="bap"><div class="bap-bar" onclick="__bapTuju(true)"><span class="bap-av">${av}</span><span class="bap-pil">Buat apa hari ni?</span><i class="fa-regular fa-image bap-gb" aria-hidden="true"></i></div>${isi}</div>`;
+        const pasang = (isi) => ['kadBuatapa', 'fpmBuatapa'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = rangka(isi); });
+        // sirah dahulu (tiada lencana kosong semasa menunggu data)
+        const sr = sirahHariIni(tarikhMalaysia());
+        const isiSirah = `<div class="bap-isi" onclick="__bapTuju(false)"><div class="tx"><div class="kt"><i class="fa-solid fa-book-quran"></i> Kisah sirah hari ini</div><b>${E(sr.t)}</b><div class="ct">${E(sr.b)}</div></div><i class="fa-solid fa-chevron-right" style="color:#94a3b8"></i></div>`;
+        pasang(isiSirah);
+        try {
+            const kump = [user.uid];
+            const lk = await getDoc(doc(db, 'mynasab_links', user.uid));
+            if (lk.exists() && lk.data().status === 'aktif' && lk.data().owner_uid && lk.data().owner_uid !== user.uid) kump.unshift(lk.data().owner_uid);
+            const had = Date.now() - 86400000, semua = [];
+            for (const g of kump) {
+                const sn = await getDocs(query(collection(db, 'buatapa_posts'), where('group_id', '==', g), orderBy('created_at', 'desc'), limit(5)));
+                sn.forEach(d => { const x = d.data(); if (x.created_at >= had) semua.push({ ...x, id: d.id }); });
+            }
+            if (!semua.length) return;
+            semua.sort((a, b) => b.created_at - a.created_at);
+            const penulis = [...new Map(semua.map(p => [p.author_uid, (p.author_nama || 'Ahli keluarga').split(/\s+/)[0]])).values()];
+            const sebut = penulis.length === 1 ? `<b>${E(penulis[0])}</b>` : penulis.length === 2 ? `<b>${E(penulis[0])}</b> dan <b>${E(penulis[1])}</b>` : `<b>${E(penulis[0])}</b>, <b>${E(penulis[1])}</b> dan ${penulis.length - 2} lagi`;
+            const gam = semua.reduce((n, p) => n + (p.gambar || []).length, 0), terkini = semua[0];
+            const thumb = ((terkini.kecil || [])[0] || (terkini.gambar || [])[0] || '');
+            const petikan = (terkini.teks || '').trim();
+            const isi = `<div class="bap-isi" onclick="__bapTuju(false)"><div class="tx"><div class="kt"><i class="fa-solid fa-people-roof"></i> Hari ini dalam keluarga</div>${sebut} ada berkongsi${gam ? ` ${gam} gambar` : ''}${semua.length > 1 ? ` (${semua.length} siaran)` : ''}.${petikan ? `<div class="ct">&ldquo;${E(petikan.slice(0, 110))}&rdquo;</div>` : ''}</div>${thumb.startsWith(GS) ? `<img src="${E(thumb)}" alt="" loading="lazy">` : ''}</div>`;
+            pasang(isi);
+        } catch (e) { console.warn('Buat apa hari ni:', e.message); }
+    }
+
     onAuthStateChanged(auth, async (user) => {
         const greetingBox = document.getElementById('userGreetingBox');
         const namaDisplay = document.getElementById('headerNamaPengguna');
@@ -813,7 +845,7 @@ if ('Notification' in window) {
             
             // Logik Tampilkan Butang Admin & Affiliate
             window.__adminSemua = (user.email === 'dae.book89@gmail.com');
-            { const kB = document.getElementById('kadBuatapa'), kM = document.getElementById('fpmBuatapa'); if (kB) kB.style.display = window.__adminSemua ? '' : 'none'; if (kM) kM.style.display = window.__adminSemua ? 'flex' : 'none'; }
+            { const kB = document.getElementById('kadBuatapa'), kM = document.getElementById('fpmBuatapa'); if (kB) kB.style.display = window.__adminSemua ? '' : 'none'; if (kM) kM.style.display = window.__adminSemua ? 'block' : 'none'; if (window.__adminSemua) muatBuatapaIndex(user); }
             if (typeof window.aturKadJurnal === 'function') window.aturKadJurnal();
             if (user.email === 'dae.book89@gmail.com') {
                 if (btnAdmin) btnAdmin.style.display = 'inline-flex';
