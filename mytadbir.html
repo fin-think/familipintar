@@ -1163,6 +1163,20 @@ if (rdb.monthlyBudget === undefined) {
           };
           const removeDebt = (id) => setAppData(prev => ({ ...prev, debtsList: prev.debtsList.filter(d => d.id !== id) }));
 
+          const [danaEdit, setDanaEdit] = useState({});
+          // Dana semasa (kotak): nilai paparan = simpanan myKids + setoran OurMoney. Ubah di sini disimpan ke mykids_plans (sama seperti Anakku Hartaku).
+          const simpanDanaSemasa = async (child) => {
+              const mentah = danaEdit[child.id];
+              if (mentah === undefined) return;
+              const nilai = Math.max(0, toNumber(mentah));
+              const setoran = Number(child.eduSetoran) || 0;
+              const eduSaved = Math.round(Math.max(0, nilai - setoran) * 100) / 100;
+              setChildrenData(childrenData.map(c => c.id === child.id ? { ...c, eduSaved } : c));
+              setDanaEdit(p => { const n = { ...p }; delete n[child.id]; return n; });
+              try {
+                  await window.fbSetDoc(window.fbDoc(window.fbDb, "mykids_plans", String(child.id)), { owner_uid: user.uid, nama_anak: child.name || '', simpanan_semasa: eduSaved, simpanan_dikemas: Date.now() }, { merge: true });
+              } catch (e) { alert("Gagal menyimpan dana semasa: " + e.message); }
+          };
           const kemaskiniEduAnak = (id, field, value) => {
               setChildrenData(childrenData.map(c => c.id === id ? { ...c, [field]: field === 'eduType' ? value : toNumber(value) } : c));
           };
@@ -1672,8 +1686,23 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                                                     </select>
                                                 </div>
                                             </div>
-                                            <p className="text-xs text-slate-500 mt-3">Anggaran pada umur masuk uni ({yUni} tahun lagi, selepas inflasi pendidikan): <strong className="text-slate-700">{formatRM(kosMasaDepan)}</strong></p>
-                                            <p className="text-xs text-slate-500 mt-1">Simpanan pendidikan semasa: <strong className="text-slate-700">{formatRM(simpananAnak(child))}</strong>{(Number(child.eduSetoran) || 0) > 0 ? <span> (termasuk {formatRM(child.eduSetoran)} dari OurMoney)</span> : null}. Kemas kini di <a href="mykids.html" className="font-bold underline text-indigo-600">Anakku Hartaku</a>.</p>
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Anggaran Kos</label>
+                                                    <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-800">{formatRM(kosMasaDepan)}</div>
+                                                    <p className="text-[11px] text-slate-500 mt-1 ml-1">Pada umur masuk uni ({yUni} tahun lagi, selepas inflasi).</p>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Dana Semasa (RM)</label>
+                                                    <input type="number" value={danaEdit[child.id] !== undefined ? danaEdit[child.id] : Math.round(simpananAnak(child) * 100) / 100} onChange={(e) => setDanaEdit(p => ({ ...p, [child.id]: e.target.value }))} onBlur={() => simpanDanaSemasa(child)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2" />
+                                                    <p className="text-[11px] text-slate-500 mt-1 ml-1">{(Number(child.eduSetoran) || 0) > 0 ? <span>Termasuk {formatRM(child.eduSetoran)} dari OurMoney. </span> : null}Diselaraskan dengan <a href="mykids.html" className="font-bold underline text-indigo-600">Anakku Hartaku</a>.</p>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Dana Diperlukan</label>
+                                                    <div className="w-full bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 font-bold text-rose-700">{formatRM(Math.max(0, kosMasaDepan - fvSimpananAnak(child)))}</div>
+                                                    <p className="text-[11px] text-slate-500 mt-1 ml-1">Anggaran kos tolak dana semasa yang dikembangkan ({assetReturnRate}% setahun).</p>
+                                                </div>
+                                            </div>
                                         </div>
                                         );
                                     })}
