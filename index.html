@@ -796,6 +796,8 @@ if ('Notification' in window) {
             if (mobSudah) mobSudah.style.display = 'flex';
             
             // Logik Tampilkan Butang Admin & Affiliate
+            window.__adminSemua = (user.email === 'dae.book89@gmail.com');
+            if (typeof window.aturKadJurnal === 'function') window.aturKadJurnal();
             if (user.email === 'dae.book89@gmail.com') {
                 if (btnAdmin) btnAdmin.style.display = 'inline-flex';
                 if (btnAffiliate) btnAffiliate.style.display = 'none'; 
@@ -924,7 +926,7 @@ if ('Notification' in window) {
         const kJ = document.getElementById('kadMyjurnal'), kS = document.getElementById('kadSmartsolo'), kK = document.getElementById('kadMykids');
         if (!kJ || !kS) return;
         const tahu = typeof window.__berpasangan === 'boolean';
-        const semua = !tahu || window.__lihatSemuaJurnal;
+        const semua = !tahu || window.__lihatSemuaJurnal || window.__adminSemua;
         // SmartSolo: tiada pasangan DAN umur 21 tahun ke atas (jika tarikh lahir tak diisi, hanya syarat pasangan)
         const solo = !window.__berpasangan && (window.__umur == null || window.__umur >= 21);
         kJ.style.display = (semua || !solo) ? '' : 'none';

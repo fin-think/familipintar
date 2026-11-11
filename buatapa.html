@@ -109,6 +109,7 @@ const KUNCI_LARAS = 'buatapa_laras_hijrah';
 
 const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app), storage = getStorage(app);
 const MAKS_GAMBAR = 4, MAKS_TEKS = 2000, SAIZ_HALAMAN = 15, EMOJI = ['❤️', '🤲', '😂'];
+const CACHE = 'public,max-age=31536000';
 const URL_STORAGE = 'https://firebasestorage.googleapis.com/';
 const $ = (id) => document.getElementById(id);
 const g = tarikhMalaysia();
@@ -219,7 +220,7 @@ $('fotoProfil').onchange = async (e) => {
   try {
     const blob = await mampatGambar(f, 400, 0.85), lama = D.profil[D.user.uid] && D.profil[D.user.uid].foto;
     const r = ref(storage, `profil/${D.user.uid}_${Date.now()}.jpg`);
-    await uploadBytes(r, blob, { contentType: 'image/jpeg' });
+    await uploadBytes(r, blob, { contentType: 'image/jpeg', cacheControl: CACHE });
     const foto = await getDownloadURL(r);
     await setDoc(doc(db, 'buatapa_profil', D.user.uid), { foto, nama: D.nama, updated_at: Date.now() });
     D.profil[D.user.uid] = { foto };
@@ -287,7 +288,7 @@ function paparDinding() {
   $('muatLagi').classList.toggle('hidden', !adaLagi || !D.posts.length);
   if (!D.posts.length) { $('dindingIsi').innerHTML = '<div class="kad text-center text-slate-500 text-sm">Belum ada siaran. Jadilah yang pertama berkongsi dengan keluarga.</div>'; return; }
   $('dindingIsi').innerHTML = D.posts.map(p => {
-    const gam = (p.gambar || []).filter(urlGambarSah);
+    const gam = (p.gambar || []).map((u, i) => ({ f: u, k: urlGambarSah((p.kecil || [])[i]) ? p.kecil[i] : u })).filter(g => urlGambarSah(g.f));
     const rx = D.reaksi[p.id] || {}, saya = rx[D.user.uid], km = D.komen[p.id] || [];
     const kira = (e) => Object.values(rx).filter(v => v === e).length;
     return `<article class="kad" data-p="${esc(p.id)}">
@@ -297,7 +298,7 @@ function paparDinding() {
         ${boleh(p) ? `<button data-padam="${esc(p.id)}" class="text-slate-400 hover:text-red-600 px-2" title="Padam siaran"><i class="fa-regular fa-trash-can"></i></button>` : ''}
       </div>
       ${p.teks ? `<p class="mt-3 text-slate-700 leading-relaxed text-[.95rem] break-words">${nl2br(p.teks)}</p>` : ''}
-      ${gam.length ? `<div class="gal g${Math.min(gam.length, 4)}">${gam.slice(0, 4).map(u => `<img src="${esc(u)}" loading="lazy" alt="Gambar siaran" data-zum="${esc(u)}">`).join('')}</div>` : ''}
+      ${gam.length ? `<div class="gal g${Math.min(gam.length, 4)}">${gam.slice(0, 4).map(g => `<img src="${esc(g.k)}" loading="lazy" alt="Gambar siaran" data-zum="${esc(g.f)}">`).join('')}</div>` : ''}
       <div class="flex items-center gap-2 mt-3 flex-wrap">
         ${EMOJI.map(e => `<button class="reaksi ${saya === e ? 'on' : ''}" data-rx="${esc(p.id)}" data-e="${e}">${e}${kira(e) ? ' ' + kira(e) : ''}</button>`).join('')}
         <button class="reaksi" data-km="${esc(p.id)}"><i class="fa-regular fa-comment"></i>${km.length ? ' ' + km.length : ' Komen'}</button>
@@ -348,7 +349,7 @@ async function padamPos(pid) {
   try {
     await Promise.all((D.komen[pid] || []).filter(bolehPadamKomen).map(k => deleteDoc(doc(db, 'buatapa_komen', k.id)).catch(() => {})));
     await deleteDoc(doc(db, 'buatapa_posts', pid));
-    (p.gambar || []).filter(urlGambarSah).forEach(u => deleteObject(ref(storage, u)).catch(() => {}));
+    [...(p.gambar || []), ...(p.kecil || [])].filter(urlGambarSah).forEach(u => deleteObject(ref(storage, u)).catch(() => {}));
     D.posts = D.posts.filter(x => x.id !== pid); delete D.komen[pid]; delete D.reaksi[pid];
     paparDinding(); lukisKandungan();
   } catch (e) { alert('Gagal memadam: ' + e.message); }
@@ -376,21 +377,23 @@ $('posSiar').onclick = async () => {
   if (D.hantar) return;
   const teks = $('posTeks').value.trim(), grp = $('posKumpulan').value || D.user.uid;
   if (!teks && !D.fail.length) { $('posStatus').textContent = 'Tulis sesuatu atau tambah gambar dahulu.'; return; }
-  D.hantar = true; $('posSiar').disabled = true; const dimuat = [];
+  D.hantar = true; $('posSiar').disabled = true; const dimuat = [], kecil = [];
   try {
     for (let i = 0; i < D.fail.length; i++) {
       $('posStatus').textContent = `Memuat naik gambar ${i + 1} daripada ${D.fail.length}…`;
-      const blob = await mampatGambar(D.fail[i], 1280, 0.8);
-      const r = ref(storage, `buatapa/${grp}/${D.user.uid}_${Date.now()}_${i}.jpg`);
-      await uploadBytes(r, blob, { contentType: 'image/jpeg' });
-      dimuat.push(await getDownloadURL(r));
+      const [blob, kBlob] = await Promise.all([mampatGambar(D.fail[i], 1280, 0.8), mampatGambar(D.fail[i], 720, 0.7)]);
+      const asas = `buatapa/${grp}/${D.user.uid}_${Date.now()}_${i}`, meta = { contentType: 'image/jpeg', cacheControl: CACHE };
+      const r = ref(storage, `${asas}.jpg`), rk = ref(storage, `${asas}_k.jpg`);
+      await Promise.all([uploadBytes(r, blob, meta), uploadBytes(rk, kBlob, meta)]);
+      const [u, uk] = await Promise.all([getDownloadURL(r), getDownloadURL(rk)]);
+      dimuat.push(u); kecil.push(uk);
     }
     $('posStatus').textContent = 'Menyiarkan…';
-    const p = { group_id: grp, author_uid: D.user.uid, author_nama: D.nama, teks: teks.slice(0, MAKS_TEKS), gambar: dimuat, created_at: Date.now() };
+    const p = { group_id: grp, author_uid: D.user.uid, author_nama: D.nama, teks: teks.slice(0, MAKS_TEKS), gambar: dimuat, kecil, created_at: Date.now() };
     const r = await addDoc(collection(db, 'buatapa_posts'), p);
     D.posts.unshift({ ...p, id: r.id }); tutupKomposer(); paparDinding(); lukisKandungan();
   } catch (e) {
-    dimuat.forEach(u => deleteObject(ref(storage, u)).catch(() => {}));
+    [...dimuat, ...kecil].forEach(u => deleteObject(ref(storage, u)).catch(() => {}));
     $('posStatus').textContent = 'Gagal menyiarkan: ' + (e.code === 'storage/unauthorized' ? 'peraturan Storage belum ditambah.' : e.code === 'permission-denied' ? 'peraturan Firestore belum ditambah.' : e.message);
   }
   D.hantar = false; $('posSiar').disabled = false;
