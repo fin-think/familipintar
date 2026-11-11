@@ -334,6 +334,11 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 <div id="fpMobile">
   <div class="fpm-dompet"><small>Famili Pintar</small><strong>Satu keluarga, satu ekosistem</strong><p>Setiap ahli ada peranan sendiri, tetapi semuanya berhubung dan berkongsi satu gambaran keluarga yang sama.</p></div>
   <div class="fpm-pintas" id="fpmPintas"></div>
+  <a id="fpmBuatapa" style="display:none;margin:12px 0;padding:14px 16px;border-radius:20px;background:#0f766e;color:#fff;align-items:center;gap:12px;cursor:pointer;box-shadow:0 6px 16px rgba(15,118,110,.25)" onclick="semakAksesPintu('Buat Apa Hari Ini', 'buatapa.html')">
+    <span style="width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none"><i class="fa-solid fa-people-roof"></i></span>
+    <span style="flex:1;min-width:0"><b style="display:block;font-size:15px;font-weight:800">Buat Apa Hari Ini?</b><span style="display:block;font-size:12px;color:#ccfbf1;line-height:1.4">Laman keluarga: kongsi gambar dan cerita, baca sirah hari ini</span></span>
+    <i class="fa-solid fa-chevron-right" style="flex:none"></i>
+  </a>
   <div class="fpm-hero"><img id="fpmHeroImg" src="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.png" alt="Keluarga"><span class="fpm-foto" id="fpmFoto"><button type="button" aria-label="Tukar gambar" title="Tukar gambar" onclick="document.getElementById('heroFotoTukar').click()"><i class="fa-solid fa-camera"></i><span id="fpmFotoTeks">Letak gambar famili anda</span></button><button type="button" id="fpmFotoBuang" aria-label="Guna gambar asal" onclick="document.getElementById('heroFotoBuang').click()" title="Guna gambar asal"><i class="fa-solid fa-rotate-left"></i></button></span><div><b>Keluarga Yang Kukuh</b><span>Dibina bersama, satu langkah demi satu langkah.</span></div></div>
   <button type="button" class="fpm-daftar" id="fpmDaftar" onclick="bukaModalAuth('daftar')"><i class="fa-solid fa-gift"></i> Daftar &amp; Tebus 20 Kredit Percuma</button>
   <div class="fpm-tajuk">Teroka Bersama</div>
@@ -350,7 +355,6 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 (function () {
   // [selektor kad asal, label ikon, ikon, latar ikon, warna ikon, latar kad, id lencana]
   var DEF = [
-    ['#kadBuatapa', 'Buat Apa', 'fa-people-roof', '#ccfbf1', '#0f766e', 'linear-gradient(135deg,#0f766e,#134e4a)'],
     ['a[onclick*="mynasab/index"]', 'myNasab', 'fa-sitemap', '#d1fae5', '#059669', 'linear-gradient(135deg,#10b981,#047857)', 'lencanaLuarNasab'],
     ['a[onclick*="\'wecare\'"]', 'weCare', 'fa-hand-holding-medical', '#ffe4e6', '#e11d48', 'linear-gradient(135deg,#fb7185,#be123c)', 'lencanaLuarWeCareUtama'],
     ['#kadMyjurnal', 'myJurnal', 'fa-book-open-reader', '#e0f2fe', '#0369a1', 'linear-gradient(135deg,#0ea5e9,#2563eb)'],
@@ -809,7 +813,7 @@ if ('Notification' in window) {
             
             // Logik Tampilkan Butang Admin & Affiliate
             window.__adminSemua = (user.email === 'dae.book89@gmail.com');
-            { const kB = document.getElementById('kadBuatapa'); if (kB) kB.style.display = window.__adminSemua ? '' : 'none'; }
+            { const kB = document.getElementById('kadBuatapa'), kM = document.getElementById('fpmBuatapa'); if (kB) kB.style.display = window.__adminSemua ? '' : 'none'; if (kM) kM.style.display = window.__adminSemua ? 'flex' : 'none'; }
             if (typeof window.aturKadJurnal === 'function') window.aturKadJurnal();
             if (user.email === 'dae.book89@gmail.com') {
                 if (btnAdmin) btnAdmin.style.display = 'inline-flex';
