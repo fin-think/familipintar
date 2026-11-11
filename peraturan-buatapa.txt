@@ -1,0 +1,54 @@
+=== FIRESTORE: tampal dalam match /databases/{database}/documents { ... } ===
+
+function ahliKumpulan(g) {
+  return request.auth != null && (
+    g == request.auth.uid ||
+    (exists(/databases/$(database)/documents/mynasab_links/$(request.auth.uid)) &&
+     get(/databases/$(database)/documents/mynasab_links/$(request.auth.uid)).data.owner_uid == g &&
+     get(/databases/$(database)/documents/mynasab_links/$(request.auth.uid)).data.status == 'aktif'));
+}
+
+match /buatapa_posts/{id} {
+  allow read:   if ahliKumpulan(resource.data.group_id);
+  allow create: if request.resource.data.author_uid == request.auth.uid
+                && ahliKumpulan(request.resource.data.group_id)
+                && request.resource.data.teks.size() <= 2000;
+  allow delete: if resource.data.author_uid == request.auth.uid
+                || resource.data.group_id == request.auth.uid;
+  allow update: if false;
+}
+match /buatapa_komen/{id} {
+  allow read:   if ahliKumpulan(resource.data.group_id);
+  allow create: if request.resource.data.author_uid == request.auth.uid
+                && ahliKumpulan(request.resource.data.group_id)
+                && request.resource.data.teks.size() <= 500;
+  allow delete: if resource.data.author_uid == request.auth.uid
+                || resource.data.group_id == request.auth.uid;
+  allow update: if false;
+}
+match /buatapa_reaksi/{id} {
+  allow read:   if ahliKumpulan(resource.data.group_id);
+  allow create, update: if request.resource.data.uid == request.auth.uid
+                && id == request.resource.data.post_id + '_' + request.auth.uid
+                && ahliKumpulan(request.resource.data.group_id);
+  allow delete: if resource.data.uid == request.auth.uid;
+}
+
+=== STORAGE: tambah dalam match /b/{bucket}/o { ... } ===
+
+match /buatapa/{grp}/{fail} {
+  function ahli() {
+    return request.auth != null && (grp == request.auth.uid ||
+      (firestore.get(/databases/(default)/documents/mynasab_links/$(request.auth.uid)).data.owner_uid == grp &&
+       firestore.get(/databases/(default)/documents/mynasab_links/$(request.auth.uid)).data.status == 'aktif'));
+  }
+  allow read:   if ahli();
+  allow create: if ahli() && fail.matches(request.auth.uid + '_.*')
+                && request.resource.size < 3 * 1024 * 1024
+                && request.resource.contentType.matches('image/.*');
+  allow delete: if request.auth != null && (grp == request.auth.uid || fail.matches(request.auth.uid + '_.*'));
+}
+
+=== INDEKS ===
+Pertama kali buka halaman, Firestore akan beri pautan ciptaan indeks (group_id + created_at
+untuk buatapa_posts). Klik, Create, tunggu beberapa minit. Halaman papar pautan itu sendiri.

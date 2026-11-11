@@ -11,6 +11,19 @@
   body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; }
   .kad { background:#fff; border:1px solid #e2e8f0; border-radius:1.25rem; padding:1.1rem 1.2rem; }
   .lencana { font-size:.68rem; font-weight:800; padding:.2rem .6rem; border-radius:999px; display:inline-flex; gap:.3rem; align-items:center; }
+  .gal { display:grid; gap:4px; border-radius:.9rem; overflow:hidden; margin-top:.6rem; }
+  .gal.g1 { grid-template-columns:1fr; } .gal.g2, .gal.g3, .gal.g4 { grid-template-columns:1fr 1fr; }
+  .gal img { width:100%; height:100%; object-fit:cover; cursor:zoom-in; background:#e2e8f0; display:block; }
+  .gal.g1 img { max-height:26rem; } .gal.g2 img, .gal.g3 img, .gal.g4 img { aspect-ratio:1/1; }
+  .gal.g3 img:first-child { grid-row:span 2; aspect-ratio:auto; }
+  .reaksi { display:inline-flex; align-items:center; gap:.25rem; padding:.3rem .65rem; border:1px solid #e2e8f0; border-radius:999px; font-size:.82rem; font-weight:700; background:#fff; color:#475569; }
+  .reaksi.on { background:#ecfdf5; border-color:#34d399; color:#047857; }
+  .pra { position:relative; width:5rem; height:5rem; border-radius:.7rem; overflow:hidden; background:#e2e8f0; }
+  .pra img { width:100%; height:100%; object-fit:cover; }
+  .pra button { position:absolute; top:2px; right:2px; width:1.4rem; height:1.4rem; border-radius:999px; background:rgba(15,23,42,.75); color:#fff; font-size:.75rem; line-height:1; }
+  .avatar { width:2.4rem; height:2.4rem; border-radius:999px; background:#0f766e; color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none; }
+  #lightbox { position:fixed; inset:0; background:rgba(2,6,23,.92); z-index:60; display:none; align-items:center; justify-content:center; padding:1rem; }
+  #lightbox.buka { display:flex; } #lightbox img { max-width:100%; max-height:100%; border-radius:.5rem; }
   .laras button { width:1.9rem; height:1.9rem; border-radius:999px; background:rgba(255,255,255,.18); font-weight:800; }
 </style>
 </head>
@@ -29,6 +42,22 @@
 
 <main class="max-w-2xl mx-auto px-4 mt-5 space-y-4">
   <div id="gate" class="kad text-center text-slate-600">Memuatkan...</div>
+
+  <section id="komposer" class="kad hidden">
+    <button id="bukaKomposer" class="w-full text-left text-slate-500 font-semibold flex items-center gap-3">
+      <span class="avatar" id="komposerAvatar">?</span><span class="flex-1 bg-slate-100 rounded-full px-4 py-2.5 text-[.93rem]">Apa yang nak dikongsi dengan keluarga?</span>
+    </button>
+    <div id="borangPos" class="hidden">
+      <textarea id="posTeks" rows="4" maxlength="2000" placeholder="Tulis sesuatu untuk keluarga…" class="w-full border border-slate-200 rounded-xl p-3 text-[.95rem] focus:outline-none focus:border-teal-500"></textarea>
+      <div id="posPra" class="flex gap-2 flex-wrap mt-2"></div>
+      <div id="posPenonton" class="hidden mt-3 text-sm"><label class="font-bold text-slate-600 block mb-1">Siapa boleh lihat</label><select id="posKumpulan" class="w-full border border-slate-200 rounded-lg px-3 py-2"></select></div>
+      <div class="flex items-center justify-between gap-2 mt-3">
+        <label class="inline-flex items-center gap-2 text-sm font-bold text-teal-700 cursor-pointer"><i class="fa-regular fa-image"></i> Tambah gambar<input id="posFail" type="file" accept="image/*" multiple class="hidden"></label>
+        <div class="flex gap-2"><button id="posBatal" class="px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600">Batal</button><button id="posSiar" class="px-5 py-2 rounded-xl text-sm font-extrabold bg-teal-700 text-white disabled:opacity-50">Siar</button></div>
+      </div>
+      <p id="posStatus" class="text-xs text-slate-500 mt-2"></p>
+    </div>
+  </section>
 
   <section id="keluarga" class="kad hidden">
     <h2 class="font-extrabold text-slate-800 mb-3"><i class="fa-solid fa-people-roof text-rose-500"></i> Dalam keluarga hari ini</h2>
@@ -50,14 +79,23 @@
     <a id="sirahWa" target="_blank" rel="noopener" class="inline-flex items-center gap-2 mt-3 text-sm font-bold text-emerald-700"><i class="fa-brands fa-whatsapp"></i> Kongsi ke keluarga</a>
   </section>
 
+  <section id="dinding" class="hidden space-y-3">
+    <h2 class="font-extrabold text-slate-800 px-1"><i class="fa-solid fa-people-roof text-teal-700"></i> Dinding keluarga</h2>
+    <div id="dindingAmaran" class="hidden kad border-amber-300 bg-amber-50 text-sm text-amber-900"></div>
+    <div id="dindingIsi" class="space-y-3"></div>
+    <button id="muatLagi" class="hidden w-full py-2.5 rounded-xl bg-white border font-bold text-sm text-slate-600">Muat lagi</button>
+  </section>
+
   <p id="nota" class="hidden text-xs text-slate-500 px-1 leading-relaxed">Ringkasan umum untuk renungan keluarga. Sebahagian tarikh sejarah dicatat berbeza oleh ulama dan sejarawan; yang bertanda ⚠ ialah pendapat yang masyhur. Rujuk kitab sirah muktabar dan guru untuk huraian lanjut. Tarikh Hijrah dikira secara astronomi dan boleh berbeza sehari daripada pengumuman rasmi.</p>
 </main>
 
+<div id="lightbox"><img alt=""></div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { firebaseConfig, esc } from "./kongsi.js";
+import { getFirestore, collection, getDocs, getDoc, doc, addDoc, setDoc, deleteDoc, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+import { firebaseConfig, esc, mampatGambar } from "./kongsi.js";
 import { BULAN_HIJRAH, BULAN_MASIHI, tarikhMalaysia, tarikhHijrah, namaHariMasihi, peristiwaHariIni, sirahHariIni } from "./sejarah-islam.js";
 
 // Fasa ujian: admin sahaja. Tukar kepada false apabila dibuka kepada pengguna.
@@ -65,11 +103,16 @@ const UJIAN_ADMIN = true;
 const ADMIN_EMEL = 'dae.book89@gmail.com';
 const KUNCI_LARAS = 'buatapa_laras_hijrah';
 
-const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app), storage = getStorage(app);
+const MAKS_GAMBAR = 4, MAKS_TEKS = 2000, SAIZ_HALAMAN = 15, EMOJI = ['❤️', '🤲', '😂'];
+const URL_STORAGE = 'https://firebasestorage.googleapis.com/';
 const $ = (id) => document.getElementById(id);
 const g = tarikhMalaysia();
 let laras = 0; try { laras = Math.max(-1, Math.min(1, parseInt(localStorage.getItem(KUNCI_LARAS) || '0', 10) || 0)); } catch (e) {}
 let nodUser = null; // nod pokok keluarga; null = belum dimuat atau tiada
+// Dinding: kumpulan = uid induk pautan aktif (atau uid sendiri), sama seperti weCare. Seseorang boleh baca kumpulan sendiri dan kumpulan induknya.
+const D = { user: null, admin: false, nama: '', kumpulan: [], posts: [], reaksi: {}, komen: {}, kursor: {}, habis: {}, fail: [], hantar: false };
+const aktifHariIni = () => D.posts.some(p => Date.now() - p.created_at < 86400000);
 
 function tajukTarikh() {
   const h = tarikhHijrah(g, laras);
@@ -96,9 +139,10 @@ function lukisKandungan() {
       <p class="text-slate-600 text-[.93rem] leading-relaxed mt-1">${esc(e.teks)}</p>
       <a target="_blank" rel="noopener" href="${teksWa(e.tajuk + ' (' + e.label + ')', e.teks)}" class="inline-flex items-center gap-2 mt-2 text-sm font-bold text-emerald-700"><i class="fa-brands fa-whatsapp"></i> Kongsi</a>
     </div>`).join('');
-  // 3. Bila tiada kongsian keluarga, paparkan kisah sirah
+  // 3. Bila tiada kongsian keluarga hari ini (hari jadi atau siaran 24 jam lepas), paparkan kisah sirah
   const s = sirahHariIni(g);
-  $('sirah').classList.toggle('hidden', kk.length > 0);
+  const adaAktiviti = aktifHariIni() || kk.some(x => x.includes('Hari ini'));
+  $('sirah').classList.toggle('hidden', adaAktiviti);
   $('sirahNo').textContent = `Bahagian ${s.no} / ${s.jumlah}`;
   $('sirahTajuk').textContent = s.t;
   $('sirahBadan').textContent = s.b;
@@ -128,6 +172,194 @@ function keluargaHariIni() {
   return kad;
 }
 
+// ================= DINDING KELUARGA =================
+const masa = (t) => {
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if (s < 60) return 'baru sahaja'; if (s < 3600) return Math.floor(s / 60) + ' min lalu'; if (s < 86400) return Math.floor(s / 3600) + ' jam lalu';
+  if (s < 7 * 86400) return Math.floor(s / 86400) + ' hari lalu';
+  const d = new Date(t); return `${d.getDate()} ${BULAN_MASIHI[d.getMonth()]} ${d.getFullYear()}`;
+};
+const nl2br = (t) => esc(t).replace(/\n/g, '<br>');
+const urlGambarSah = (u) => typeof u === 'string' && u.startsWith(URL_STORAGE);
+const boleh = (p) => D.admin || p.author_uid === D.user.uid || p.group_id === D.user.uid;
+const bolehPadamKomen = (k) => D.admin || k.author_uid === D.user.uid || k.group_id === D.user.uid;
+
+function amaran(e) {
+  const url = (String(e.message || '').match(/https:\/\/console\.firebase\.google\.com\S+/) || [])[0];
+  let t;
+  if (e.code === 'failed-precondition' && url) t = `Perlu cipta indeks Firestore (sekali sahaja). <a class="underline font-bold" target="_blank" rel="noopener" href="${esc(url)}">Klik di sini</a>, tekan Create, tunggu beberapa minit, kemudian muat semula halaman.`;
+  else if (e.code === 'permission-denied') t = 'Akses ditolak. Peraturan Firestore untuk dinding belum ditambah (lihat fail peraturan-buatapa.txt).';
+  else t = 'Ralat: ' + esc(e.message || e);
+  $('dindingAmaran').innerHTML = t; $('dindingAmaran').classList.remove('hidden');
+}
+
+async function siapkanDinding(u) {
+  D.user = u; D.admin = (u.email || '').toLowerCase() === ADMIN_EMEL;
+  let nama = (u.email || '').split('@')[0], induk = null;
+  try { const s = await getDoc(doc(db, 'mynasab_users', u.uid)); if (s.exists() && s.data().name) nama = String(s.data().name).trim(); } catch (e) {}
+  try { const l = await getDoc(doc(db, 'mynasab_links', u.uid)); if (l.exists() && l.data().status === 'aktif' && l.data().owner_uid && l.data().owner_uid !== u.uid) induk = l.data().owner_uid; } catch (e) {}
+  D.nama = nama;
+  D.kumpulan = [];
+  if (induk) {
+    let namaInduk = 'induk';
+    try { const s = await getDoc(doc(db, 'mynasab_users', induk)); if (s.exists() && s.data().name) namaInduk = String(s.data().name).trim().split(/\s+/).slice(0, 2).join(' '); } catch (e) {}
+    D.kumpulan.push({ id: induk, label: `Keluarga besar (bersama ${namaInduk})` });
+  }
+  D.kumpulan.push({ id: u.uid, label: induk ? 'Ahli yang saya jemput sahaja' : 'Keluarga saya' });
+  $('komposerAvatar').textContent = (nama[0] || '?').toUpperCase();
+  $('posKumpulan').innerHTML = D.kumpulan.map(k => `<option value="${esc(k.id)}">${esc(k.label)}</option>`).join('');
+  $('posPenonton').classList.toggle('hidden', D.kumpulan.length < 2);
+  $('komposer').classList.remove('hidden'); $('dinding').classList.remove('hidden');
+  await muatPosts();
+}
+
+async function muatPosts() {
+  $('muatLagi').disabled = true;
+  try {
+    for (const k of D.kumpulan) {
+      if (D.habis[k.id]) continue;
+      const c = [where('group_id', '==', k.id), orderBy('created_at', 'desc')];
+      if (D.kursor[k.id]) c.push(startAfter(D.kursor[k.id]));
+      c.push(limit(SAIZ_HALAMAN));
+      const sn = await getDocs(query(collection(db, 'buatapa_posts'), ...c));
+      if (sn.docs.length < SAIZ_HALAMAN) D.habis[k.id] = true;
+      if (sn.docs.length) D.kursor[k.id] = sn.docs[sn.docs.length - 1];
+      const baru = sn.docs.map(d => ({ ...d.data(), id: d.id })).filter(p => !D.posts.some(x => x.id === p.id));
+      await muatInteraksi(k.id, baru.map(p => p.id));
+      D.posts.push(...baru);
+    }
+    D.posts.sort((a, b) => b.created_at - a.created_at);
+  } catch (e) { console.warn('Dinding:', e); amaran(e); }
+  $('muatLagi').disabled = false;
+  paparDinding(); lukisKandungan();
+}
+
+// Reaksi dan komen untuk siaran yang dimuat (query mesti menyertakan group_id supaya selaras dengan peraturan)
+async function muatInteraksi(grp, ids) {
+  for (let i = 0; i < ids.length; i += 10) {
+    const bahagian = ids.slice(i, i + 10);
+    const [r, k] = await Promise.all(['buatapa_reaksi', 'buatapa_komen'].map(n => getDocs(query(collection(db, n), where('group_id', '==', grp), where('post_id', 'in', bahagian)))));
+    r.forEach(d => { const x = d.data(); (D.reaksi[x.post_id] = D.reaksi[x.post_id] || {})[x.uid] = x.emoji; });
+    k.forEach(d => { const x = { ...d.data(), id: d.id }; (D.komen[x.post_id] = D.komen[x.post_id] || []).push(x); });
+  }
+  Object.values(D.komen).forEach(a => a.sort((x, y) => x.created_at - y.created_at));
+}
+
+function paparDinding() {
+  const adaLagi = D.kumpulan.some(k => !D.habis[k.id]);
+  $('muatLagi').classList.toggle('hidden', !adaLagi || !D.posts.length);
+  if (!D.posts.length) { $('dindingIsi').innerHTML = '<div class="kad text-center text-slate-500 text-sm">Belum ada siaran. Jadilah yang pertama berkongsi dengan keluarga.</div>'; return; }
+  $('dindingIsi').innerHTML = D.posts.map(p => {
+    const gam = (p.gambar || []).filter(urlGambarSah);
+    const rx = D.reaksi[p.id] || {}, saya = rx[D.user.uid], km = D.komen[p.id] || [];
+    const kira = (e) => Object.values(rx).filter(v => v === e).length;
+    return `<article class="kad" data-p="${esc(p.id)}">
+      <div class="flex items-start gap-3">
+        <div class="avatar">${esc((p.author_nama || '?')[0].toUpperCase())}</div>
+        <div class="flex-1 min-w-0"><div class="font-extrabold text-slate-800 truncate">${esc(p.author_nama || 'Ahli keluarga')}</div><div class="text-xs text-slate-500">${masa(p.created_at)}</div></div>
+        ${boleh(p) ? `<button data-padam="${esc(p.id)}" class="text-slate-400 hover:text-red-600 px-2" title="Padam siaran"><i class="fa-regular fa-trash-can"></i></button>` : ''}
+      </div>
+      ${p.teks ? `<p class="mt-3 text-slate-700 leading-relaxed text-[.95rem] break-words">${nl2br(p.teks)}</p>` : ''}
+      ${gam.length ? `<div class="gal g${Math.min(gam.length, 4)}">${gam.slice(0, 4).map(u => `<img src="${esc(u)}" loading="lazy" alt="Gambar siaran" data-zum="${esc(u)}">`).join('')}</div>` : ''}
+      <div class="flex items-center gap-2 mt-3 flex-wrap">
+        ${EMOJI.map(e => `<button class="reaksi ${saya === e ? 'on' : ''}" data-rx="${esc(p.id)}" data-e="${e}">${e}${kira(e) ? ' ' + kira(e) : ''}</button>`).join('')}
+        <button class="reaksi" data-km="${esc(p.id)}"><i class="fa-regular fa-comment"></i>${km.length ? ' ' + km.length : ' Komen'}</button>
+      </div>
+      <div class="hidden mt-3 space-y-2" data-kmbox="${esc(p.id)}">
+        ${km.map(k => `<div class="flex gap-2"><div class="avatar" style="width:1.9rem;height:1.9rem;font-size:.8rem">${esc((k.author_nama || '?')[0].toUpperCase())}</div>
+          <div class="bg-slate-100 rounded-2xl px-3 py-2 text-sm min-w-0 flex-1"><div class="flex justify-between gap-2"><b class="text-slate-800">${esc(k.author_nama || 'Ahli')}</b><span class="text-[.7rem] text-slate-400 whitespace-nowrap">${masa(k.created_at)}${bolehPadamKomen(k) ? ` <button data-padamkm="${esc(k.id)}" data-pk="${esc(p.id)}" class="ml-1 hover:text-red-600">✕</button>` : ''}</span></div><div class="text-slate-700 break-words">${nl2br(k.teks)}</div></div></div>`).join('')}
+        <form data-kmborang="${esc(p.id)}" class="flex gap-2"><input maxlength="500" placeholder="Tulis komen…" class="flex-1 border border-slate-200 rounded-full px-4 py-2 text-sm"><button class="px-4 rounded-full bg-teal-700 text-white text-sm font-bold">Hantar</button></form>
+      </div>
+    </article>`;
+  }).join('');
+  // kekalkan komen yang dibuka
+  (window._kmBuka || []).forEach(id => { const b = document.querySelector(`[data-kmbox="${CSS.escape(id)}"]`); if (b) b.classList.remove('hidden'); });
+}
+
+$('dindingIsi').addEventListener('click', async (ev) => {
+  const t = ev.target.closest('button, img'); if (!t) return;
+  if (t.dataset.zum) { $('lightbox').querySelector('img').src = t.dataset.zum; $('lightbox').classList.add('buka'); return; }
+  if (t.dataset.km) { const b = document.querySelector(`[data-kmbox="${CSS.escape(t.dataset.km)}"]`); b.classList.toggle('hidden'); window._kmBuka = [...(window._kmBuka || []).filter(x => x !== t.dataset.km), ...(b.classList.contains('hidden') ? [] : [t.dataset.km])]; return; }
+  if (t.dataset.rx) return reaksi(t.dataset.rx, t.dataset.e);
+  if (t.dataset.padam) return padamPos(t.dataset.padam);
+  if (t.dataset.padamkm) return padamKomen(t.dataset.padamkm, t.dataset.pk);
+});
+$('dindingIsi').addEventListener('submit', async (ev) => {
+  const f = ev.target.closest('[data-kmborang]'); if (!f) return; ev.preventDefault();
+  const inp = f.querySelector('input'), teks = inp.value.trim(), pid = f.dataset.kmborang, p = D.posts.find(x => x.id === pid);
+  if (!teks || !p) return; inp.disabled = true;
+  try {
+    const k = { post_id: pid, group_id: p.group_id, author_uid: D.user.uid, author_nama: D.nama, teks: teks.slice(0, 500), created_at: Date.now() };
+    const r = await addDoc(collection(db, 'buatapa_komen'), k);
+    (D.komen[pid] = D.komen[pid] || []).push({ ...k, id: r.id });
+    window._kmBuka = [...new Set([...(window._kmBuka || []), pid])]; paparDinding();
+  } catch (e) { alert('Gagal menghantar komen: ' + e.message); inp.disabled = false; }
+});
+$('lightbox').onclick = () => $('lightbox').classList.remove('buka');
+
+async function reaksi(pid, emoji) {
+  const p = D.posts.find(x => x.id === pid); if (!p) return;
+  const rx = (D.reaksi[pid] = D.reaksi[pid] || {}), lama = rx[D.user.uid], dRef = doc(db, 'buatapa_reaksi', `${pid}_${D.user.uid}`);
+  try {
+    if (lama === emoji) { delete rx[D.user.uid]; paparDinding(); await deleteDoc(dRef); }
+    else { rx[D.user.uid] = emoji; paparDinding(); await setDoc(dRef, { post_id: pid, group_id: p.group_id, uid: D.user.uid, emoji, created_at: Date.now() }); }
+  } catch (e) { if (lama) rx[D.user.uid] = lama; else delete rx[D.user.uid]; paparDinding(); alert('Gagal menyimpan reaksi: ' + e.message); }
+}
+
+async function padamPos(pid) {
+  const p = D.posts.find(x => x.id === pid); if (!p || !confirm('Padam siaran ini beserta gambar dan komen?')) return;
+  try {
+    await Promise.all((D.komen[pid] || []).filter(bolehPadamKomen).map(k => deleteDoc(doc(db, 'buatapa_komen', k.id)).catch(() => {})));
+    await deleteDoc(doc(db, 'buatapa_posts', pid));
+    (p.gambar || []).filter(urlGambarSah).forEach(u => deleteObject(ref(storage, u)).catch(() => {}));
+    D.posts = D.posts.filter(x => x.id !== pid); delete D.komen[pid]; delete D.reaksi[pid];
+    paparDinding(); lukisKandungan();
+  } catch (e) { alert('Gagal memadam: ' + e.message); }
+}
+async function padamKomen(kid, pid) {
+  try { await deleteDoc(doc(db, 'buatapa_komen', kid)); D.komen[pid] = (D.komen[pid] || []).filter(k => k.id !== kid); paparDinding(); }
+  catch (e) { alert('Gagal memadam komen: ' + e.message); }
+}
+
+// ----- Komposer -----
+const tutupKomposer = () => { $('borangPos').classList.add('hidden'); $('bukaKomposer').classList.remove('hidden'); $('posTeks').value = ''; D.fail = []; lukisPra(); $('posStatus').textContent = ''; };
+function lukisPra() {
+  $('posPra').innerHTML = D.fail.map((f, i) => `<div class="pra"><img src="${URL.createObjectURL(f)}" alt=""><button data-buang="${i}" aria-label="Buang">✕</button></div>`).join('');
+}
+$('bukaKomposer').onclick = () => { $('bukaKomposer').classList.add('hidden'); $('borangPos').classList.remove('hidden'); $('posTeks').focus(); };
+$('posBatal').onclick = () => { if (!D.hantar) tutupKomposer(); };
+$('posFail').onchange = (e) => {
+  const baru = [...e.target.files].filter(f => f.type.startsWith('image/'));
+  D.fail = [...D.fail, ...baru].slice(0, MAKS_GAMBAR); e.target.value = '';
+  if (D.fail.length === MAKS_GAMBAR) $('posStatus').textContent = `Maksimum ${MAKS_GAMBAR} gambar bagi setiap siaran.`;
+  lukisPra();
+};
+$('posPra').onclick = (e) => { const b = e.target.closest('[data-buang]'); if (b) { D.fail.splice(Number(b.dataset.buang), 1); lukisPra(); } };
+$('posSiar').onclick = async () => {
+  if (D.hantar) return;
+  const teks = $('posTeks').value.trim(), grp = $('posKumpulan').value || D.user.uid;
+  if (!teks && !D.fail.length) { $('posStatus').textContent = 'Tulis sesuatu atau tambah gambar dahulu.'; return; }
+  D.hantar = true; $('posSiar').disabled = true; const dimuat = [];
+  try {
+    for (let i = 0; i < D.fail.length; i++) {
+      $('posStatus').textContent = `Memuat naik gambar ${i + 1} daripada ${D.fail.length}…`;
+      const blob = await mampatGambar(D.fail[i], 1280, 0.8);
+      const r = ref(storage, `buatapa/${grp}/${D.user.uid}_${Date.now()}_${i}.jpg`);
+      await uploadBytes(r, blob, { contentType: 'image/jpeg' });
+      dimuat.push(await getDownloadURL(r));
+    }
+    $('posStatus').textContent = 'Menyiarkan…';
+    const p = { group_id: grp, author_uid: D.user.uid, author_nama: D.nama, teks: teks.slice(0, MAKS_TEKS), gambar: dimuat, created_at: Date.now() };
+    const r = await addDoc(collection(db, 'buatapa_posts'), p);
+    D.posts.unshift({ ...p, id: r.id }); tutupKomposer(); paparDinding(); lukisKandungan();
+  } catch (e) {
+    dimuat.forEach(u => deleteObject(ref(storage, u)).catch(() => {}));
+    $('posStatus').textContent = 'Gagal menyiarkan: ' + (e.code === 'storage/unauthorized' ? 'peraturan Storage belum ditambah.' : e.code === 'permission-denied' ? 'peraturan Firestore belum ditambah.' : e.message);
+  }
+  D.hantar = false; $('posSiar').disabled = false;
+};
+$('muatLagi').onclick = muatPosts;
+
 function ubahLaras(d) { laras = Math.max(-1, Math.min(1, laras + d)); try { localStorage.setItem(KUNCI_LARAS, String(laras)); } catch (e) {} lukisKandungan(); }
 $('larasKurang').onclick = () => ubahLaras(-1);
 $('larasTambah').onclick = () => ubahLaras(1);
@@ -143,6 +375,7 @@ onAuthStateChanged(auth, async (u) => {
     } catch (e) { console.warn('Gagal muat pokok keluarga:', e.message); nodUser = null; }
   }
   lukisKandungan();
+  if (u) siapkanDinding(u);
 });
 </script>
 </body>
