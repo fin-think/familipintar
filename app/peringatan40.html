@@ -254,11 +254,26 @@ const HADIS = {
 };
 const TAJUK = { 20: '🕌 Semak amal hari ini', 22: '🌙 Muhasabah jiwa sebelum tidur' };
 
+// Tajuk tetap; ayat atas dan huraian bawah berputar ikut hari (set yang sama dengan notifikasi melalui ?s=). Tambah set dengan menambah baris di hujung senarai.
 const MUHASABAH = {
-  pagi: { tajuk: '☀️ Muhasabah Dhuha', atas: 'Dah solat Dhuha? Kalau belum, cari masa dan ruang ya. Kalau tak mampu, jom zikir.', nama: 'Dhuha',
-    bawah: 'Dari bangun pagi tadi, lepas Tahajud dan Subuh, kalau ada silap salah yang awak dah buat, mohon keampunan ya. Niatkan fasa waktu seterusnya awak akan jadi lebih baik. InshaAllah awak mampu. Jumpa malam nanti.' },
-  malam: { tajuk: '🌙 Muhasabah sebelum tidur', atas: 'Dah solat Isyak dan baca Al-Mulk ke? Kalau belum, sekejap lagi buat ya.', nama: 'Isyak dan Al-Mulk',
-    bawah: 'Dari siang hari sampai jam sekarang, awak ada tersilap cakap atau salah adab yang menyinggung Allah dan saudara Muslim lain? Kalau ada, mohon keampunan, mohon maaf dan maafkan semua ya sebelum tidur. Niatkan esok akan jadi lebih baik, dan doakan diberi rezeki dan umur untuk esok meneruskan perjalanan dunia sebagai bekalan akhirat kelak. InshaAllah awak mampu bangun Tahajud nanti untuk mulakan hari yang baru. Assalamualaikum dan selamat malam.' }
+  pagi: { tajuk: '☀️ Muhasabah Dhuha', nama: 'Dhuha', set: [
+      { atas: "Dah solat Dhuha? Kalau belum, cari masa dan ruang ya. Kalau tak mampu, jom zikir.", bawah: "Dari bangun pagi tadi, lepas Tahajud dan Subuh, kalau ada silap salah yang awak dah buat, mohon keampunan ya. Niatkan fasa waktu seterusnya awak akan jadi lebih baik. InshaAllah awak mampu. Jumpa malam nanti." },
+      { atas: "Pagi dah separuh jalan. Dhuha dua rakaat pun dah cukup jadi pembuka rezeki hari ni, jom ya.", bawah: "Tak payah tunggu rasa sempurna baru nak mula. Langkah kecil yang awak buat dengan ikhlas pun Allah nampak. Kalau ada urusan pagi tadi yang tak menjadi, tarik nafas, istighfar, dan mulakan semula. Hari ni masih panjang dan awak masih ada peluang. InshaAllah awak mampu." },
+      { atas: "Dah sempat bersyukur pagi ni? Sebelum sambung sibuk, curi dua minit untuk Dhuha dan ucap Alhamdulillah ya.", bawah: "Cuba senaraikan tiga perkara yang awak syukuri hari ni, walau sekecil mana pun. Nafas yang masih ada, keluarga yang sihat, kerja yang boleh dibuat. Hati yang bersyukur selalu nampak lebih banyak nikmat daripada masalah. Pergi sambung hari awak dengan senyum ya." },
+      { atas: "Hari ni mungkin padat. Tapi Dhuha tu rehat untuk jiwa. Sekejap je, jom ya.", bawah: "Kalau tadi awak tersilap cakap atau terkasar dengan sesiapa, maafkan diri sendiri dan mohon maaf pada mereka. Orang yang berani mengaku silap itu orang yang kuat. Niatkan sambungan hari ni lebih lembut, lebih sabar, lebih ikhlas. Allah tak bebankan awak melebihi kemampuan, jadi awak boleh." },
+      { atas: "Dah minum, dah makan, dah Dhuha? Jaga diri awak dengan baik ya. Kalau belum Dhuha, sekarang masa yang elok.", bawah: "Menjaga diri itu ibadah juga. Badan perlu rehat, hati perlu zikir, fikiran perlu tenang. Jangan terlalu keras pada diri sendiri kalau pagi tadi tak seperti dirancang. Yang penting awak terus bergerak ke arah yang baik, sedikit demi sedikit. Amalan yang sedikit tapi berterusan itu lebih disukai Allah." },
+      { atas: "Jom ambil masa untuk Dhuha. Rezeki dan ketenangan tu Allah yang simpan, kita cuma kena ketuk pintu-Nya.", bawah: "Mohon pada Allah dengan yakin: rezeki yang halal, hati yang lapang, dan keluarga yang dilindungi. Doa tak pernah sia-sia. Ada yang Dia makbulkan terus, ada yang Dia simpan untuk masa yang lebih tepat. Berprasangka baik dengan Allah dan teruskan usaha awak hari ni. InshaAllah." },
+      { atas: "Dah solat Dhuha? Kalau hari ni rasa berat, mulakan dengan satu rakaat niat dan zikir dulu ya.", bawah: "Kadang semangat tu bukan datang sebelum kita buat, tapi selepas kita mula. Mulakan dengan yang paling mudah, nanti yang lain akan ikut. Ingat, bersama kesulitan ada kemudahan. Awak dah tempuh banyak hari yang susah dan awak masih di sini. Itu bukti awak lebih kuat daripada yang awak sangka." }
+    ] },
+  malam: { tajuk: '🌙 Muhasabah sebelum tidur', nama: 'Isyak dan Al-Mulk', set: [
+      { atas: "Dah solat Isyak dan baca Al-Mulk ke? Kalau belum, sekejap lagi buat ya.", bawah: "Dari siang hari sampai jam sekarang, awak ada tersilap cakap atau salah adab yang menyinggung Allah dan saudara Muslim lain? Kalau ada, mohon keampunan, mohon maaf dan maafkan semua ya sebelum tidur. Niatkan esok akan jadi lebih baik, dan doakan diberi rezeki dan umur untuk esok meneruskan perjalanan dunia sebagai bekalan akhirat kelak. InshaAllah awak mampu bangun Tahajud nanti untuk mulakan hari yang baru. Assalamualaikum dan selamat malam." },
+      { atas: "Dah solat Isyak? Sebelum tidur, baca Al-Mulk dulu ya, jadi peneman tidur yang tenang.", bawah: "Hari ni awak dah buat yang terbaik dengan apa yang awak ada. Kalau ada yang tak sempurna, serahkan pada Allah dan maafkan diri sendiri. Tidur bukan hukuman, tapi rehat yang Allah beri supaya awak bangkit lebih kuat esok. Letak telefon, tarik nafas, dan tidur dengan hati yang tenang. Selamat malam." },
+      { atas: "Hari ni apa yang buat awak senyum? Ingat balik sekejap, lepas tu bersyukur sebelum tidur ya.", bawah: "Cari tiga perkara baik yang berlaku hari ni, sekecil mana pun. Nikmat selalu lalu tanpa kita sedar. Kalau hari ni berat, ucap Alhamdulillah kerana awak tetap sampai ke penghujungnya. Esok ada peluang baru, dan awak layak untuknya. InshaAllah." },
+      { atas: "Dah maafkan semua orang hari ni? Jom lepaskan sebelum tidur, supaya hati ringan.", bawah: "Menyimpan marah itu berat dan hanya membebankan awak sendiri. Maafkan yang menyakiti, dan mohon maaf pada yang awak tersakiti. Hati yang bersih tidur lebih lena dan bangun lebih ringan. Doakan kebaikan untuk semua, termasuk diri awak sendiri. Selamat malam." },
+      { atas: "Sebelum tidur, jom semak: dah Isyak, dah Al-Mulk, dah niat esok nak jadi lebih baik?", bawah: "Esok bukan tentang menjadi sempurna, tapi menjadi sedikit lebih baik daripada hari ni. Pilih satu perkara kecil untuk diperbaiki: lebih sabar dengan keluarga, lebih awal solat, lebih rajin senyum. Perubahan besar bermula dengan langkah kecil yang konsisten. InshaAllah awak mampu." },
+      { atas: "Penat hari ni? Tak apa. Jom serahkan semuanya pada Allah sebelum tidur.", bawah: "Tak semua perkara dalam kawalan kita, dan itu okay. Bahagian kita ialah usaha dan doa, selebihnya Allah yang uruskan, dan Dia sebaik-baik pengurus urusan. Lepaskan beban yang awak bawa hari ni. Awak tak sendiri, ada keluarga dan ada Allah. Tidurlah dengan tenang." },
+      { atas: "Dah baca doa tidur dan Al-Mulk? Jom tutup hari ni dengan baik ya.", bawah: "Setiap hari yang berlalu ialah satu bab dalam cerita hidup awak. Bab hari ni dah tamat, jadi tutup dengan istighfar dan syukur. Kalau ada yang masih terbuku, ceritakan pada Allah, Dia sentiasa mendengar. Doakan umur yang berkat, rezeki yang halal, dan keluarga yang sentiasa dalam lindungan-Nya. Assalamualaikum dan selamat malam." }
+    ] }
 };
 
 const q = new URLSearchParams(location.search);
@@ -351,12 +366,14 @@ if (q.get('mod') === 'anak') {
   $('btn-buka').style.display = 'none';
 } else if (q.get('mod') === 'muhasabah') {
   const M = MUHASABAH[slotM];
+  const hariKe = Math.floor(Date.now() / 86400000), sParam = parseInt(q.get('s'), 10);
+  const S = M.set[((Number.isFinite(sParam) && sParam >= 0 ? sParam : hariKe) % M.set.length)];
   $('utama').className = 'utama ' + (slotM === 'malam' ? 'j22' : 'j20');
   $('u-kecil').textContent = M.tajuk;
-  $('u-ayat').textContent = M.atas;
+  $('u-ayat').textContent = S.atas;
   $('u-tajuk').textContent = '';
   $('hadis').querySelector('small').textContent = 'Muhasabah';
-  $('h-teks').textContent = M.bawah;
+  $('h-teks').textContent = S.bawah;
   $('h-sumber').textContent = '';
   $('hadis').style.display = '';
   $('btn-buka').style.display = 'none';      // muhasabah tiada kaitan dengan myCHECKLIST40

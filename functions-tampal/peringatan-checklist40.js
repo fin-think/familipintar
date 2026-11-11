@@ -162,9 +162,27 @@ exports.peringatanChecklist40 = functions
 // ==========================================
 // Sebahagian fail yang sama: tampal bersama blok di atas. Penerima: semua peranti berdaftar (Induk / Pasangan),
 // tidak bergantung pada myCHECKLIST40. Klik notifikasi membuka /app/peringatan40.html?mod=muhasabah&slot=...
+// Tajuk tetap; ayat notifikasi berputar ikut hari. Senarai ini MESTI sama bilangan dan susunan dengan ayat 'atas' dalam app/peringatan40.html
+// (halaman dibuka dengan &s=indeks supaya ayat notifikasi dan halaman sepadan).
 const MUHASABAH = {
-    pagi:  { tajuk: '☀️ Muhasabah Dhuha', badan: 'Dah solat Dhuha? Kalau belum, cari masa dan ruang ya. Kalau tak mampu, jom zikir.' },
-    malam: { tajuk: '🌙 Muhasabah sebelum tidur', badan: 'Dah solat Isyak dan baca Al-Mulk ke? Kalau belum, sekejap lagi buat ya.' }
+    pagi:  { tajuk: '☀️ Muhasabah Dhuha', badan: [
+        "Dah solat Dhuha? Kalau belum, cari masa dan ruang ya. Kalau tak mampu, jom zikir.",
+        "Pagi dah separuh jalan. Dhuha dua rakaat pun dah cukup jadi pembuka rezeki hari ni, jom ya.",
+        "Dah sempat bersyukur pagi ni? Sebelum sambung sibuk, curi dua minit untuk Dhuha dan ucap Alhamdulillah ya.",
+        "Hari ni mungkin padat. Tapi Dhuha tu rehat untuk jiwa. Sekejap je, jom ya.",
+        "Dah minum, dah makan, dah Dhuha? Jaga diri awak dengan baik ya. Kalau belum Dhuha, sekarang masa yang elok.",
+        "Jom ambil masa untuk Dhuha. Rezeki dan ketenangan tu Allah yang simpan, kita cuma kena ketuk pintu-Nya.",
+        "Dah solat Dhuha? Kalau hari ni rasa berat, mulakan dengan satu rakaat niat dan zikir dulu ya."
+    ] },
+    malam: { tajuk: '🌙 Muhasabah sebelum tidur', badan: [
+        "Dah solat Isyak dan baca Al-Mulk ke? Kalau belum, sekejap lagi buat ya.",
+        "Dah solat Isyak? Sebelum tidur, baca Al-Mulk dulu ya, jadi peneman tidur yang tenang.",
+        "Hari ni apa yang buat awak senyum? Ingat balik sekejap, lepas tu bersyukur sebelum tidur ya.",
+        "Dah maafkan semua orang hari ni? Jom lepaskan sebelum tidur, supaya hati ringan.",
+        "Sebelum tidur, jom semak: dah Isyak, dah Al-Mulk, dah niat esok nak jadi lebih baik?",
+        "Penat hari ni? Tak apa. Jom serahkan semuanya pada Allah sebelum tidur.",
+        "Dah baca doa tidur dan Al-Mulk? Jom tutup hari ni dengan baik ya."
+    ] }
 };
 
 async function jalankanMuhasabah(dbRef, messaging, opsi = {}) {
@@ -196,9 +214,10 @@ async function jalankanMuhasabah(dbRef, messaging, opsi = {}) {
                 try { await dbRef.collection('checklist40_notif_log').doc(`${uid}_${p}_muhasabah_${slot}_${tarikh}`).create({ uid, tarikh, slot, timestamp: new Date().toISOString() }); }
                 catch (e) { langkau++; continue; }        // sudah dihantar hari ini
             }
-            const pautan = `/app/peringatan40.html?mod=muhasabah&slot=${slot}&per=${p}`;
+            const indeks = Math.floor(Date.UTC(...tarikh.split('-').map((x, k) => k === 1 ? Number(x) - 1 : Number(x))) / 86400000) % MUHASABAH[slot].badan.length;
+            const pautan = `/app/peringatan40.html?mod=muhasabah&slot=${slot}&per=${p}&s=${indeks}`;
             const n = await cl40Hantar(dbRef, messaging, uid, medanToken, token, {
-                notification: { title: MUHASABAH[slot].tajuk, body: MUHASABAH[slot].badan },
+                notification: { title: MUHASABAH[slot].tajuk, body: MUHASABAH[slot].badan[indeks] },
                 data: { app: 'muhasabah', url: pautan, badgeCount: '1', tag: 'muhasabah-' + slot },
                 webpush: { fcmOptions: { link: pautan } }
             });
