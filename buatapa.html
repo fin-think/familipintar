@@ -21,7 +21,8 @@
   .pra { position:relative; width:5rem; height:5rem; border-radius:.7rem; overflow:hidden; background:#e2e8f0; }
   .pra img { width:100%; height:100%; object-fit:cover; }
   .pra button { position:absolute; top:2px; right:2px; width:1.4rem; height:1.4rem; border-radius:999px; background:rgba(15,23,42,.75); color:#fff; font-size:.75rem; line-height:1; }
-  .avatar { width:2.4rem; height:2.4rem; border-radius:999px; background:#0f766e; color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none; }
+  .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+  .avatar { overflow:hidden; width:2.4rem; height:2.4rem; border-radius:999px; background:#0f766e; color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none; }
   #lightbox { position:fixed; inset:0; background:rgba(2,6,23,.92); z-index:60; display:none; align-items:center; justify-content:center; padding:1rem; }
   #lightbox.buka { display:flex; } #lightbox img { max-width:100%; max-height:100%; border-radius:.5rem; }
   .laras button { width:1.9rem; height:1.9rem; border-radius:999px; background:rgba(255,255,255,.18); font-weight:800; }
@@ -80,7 +81,10 @@
   </section>
 
   <section id="dinding" class="hidden space-y-3">
-    <h2 class="font-extrabold text-slate-800 px-1"><i class="fa-solid fa-people-roof text-teal-700"></i> Dinding keluarga</h2>
+    <div class="flex items-center justify-between px-1">
+      <h2 class="font-extrabold text-slate-800"><i class="fa-solid fa-people-roof text-teal-700"></i> Dinding keluarga</h2>
+      <label class="text-xs font-bold text-teal-700 cursor-pointer"><i class="fa-solid fa-camera"></i> <span id="fotoLabel">Gambar profil</span><input id="fotoProfil" type="file" accept="image/*" class="hidden"></label>
+    </div>
     <div id="dindingAmaran" class="hidden kad border-amber-300 bg-amber-50 text-sm text-amber-900"></div>
     <div id="dindingIsi" class="space-y-3"></div>
     <button id="muatLagi" class="hidden w-full py-2.5 rounded-xl bg-white border font-bold text-sm text-slate-600">Muat lagi</button>
@@ -193,12 +197,45 @@ function amaran(e) {
   $('dindingAmaran').innerHTML = t; $('dindingAmaran').classList.remove('hidden');
 }
 
+// ----- Gambar profil -----
+D.profil = {};
+const avatar = (uid, nama, gaya = '') => {
+  const f = D.profil[uid] && D.profil[uid].foto;
+  return `<div class="avatar"${gaya ? ` style="${gaya}"` : ''}>${urlGambarSah(f) ? `<img src="${esc(f)}" alt="" loading="lazy">` : esc((nama || '?')[0].toUpperCase())}</div>`;
+};
+async function muatProfil(uids) {
+  const baru = [...new Set(uids)].filter(x => x && !(x in D.profil));
+  await Promise.all(baru.map(async (id) => {
+    try { const d = await getDoc(doc(db, 'buatapa_profil', id)); D.profil[id] = d.exists() ? d.data() : {}; } catch (e) { D.profil[id] = {}; }
+  }));
+}
+function lukisAvatarSaya() {
+  const f = D.profil[D.user.uid] && D.profil[D.user.uid].foto;
+  $('komposerAvatar').innerHTML = urlGambarSah(f) ? `<img src="${esc(f)}" alt="">` : esc((D.nama[0] || '?').toUpperCase());
+}
+$('fotoProfil').onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f || !f.type.startsWith('image/')) return;
+  const lbl = $('fotoLabel'); lbl.textContent = 'Memuat naik…';
+  try {
+    const blob = await mampatGambar(f, 400, 0.85), lama = D.profil[D.user.uid] && D.profil[D.user.uid].foto;
+    const r = ref(storage, `profil/${D.user.uid}_${Date.now()}.jpg`);
+    await uploadBytes(r, blob, { contentType: 'image/jpeg' });
+    const foto = await getDownloadURL(r);
+    await setDoc(doc(db, 'buatapa_profil', D.user.uid), { foto, nama: D.nama, updated_at: Date.now() });
+    D.profil[D.user.uid] = { foto };
+    if (urlGambarSah(lama)) deleteObject(ref(storage, lama)).catch(() => {});
+    lukisAvatarSaya(); paparDinding();
+  } catch (err) { alert('Gagal menukar gambar profil: ' + (err.code === 'permission-denied' ? 'peraturan Firestore buatapa_profil belum ditambah.' : err.message)); }
+  lbl.textContent = 'Gambar profil';
+};
+
 async function siapkanDinding(u) {
   D.user = u; D.admin = (u.email || '').toLowerCase() === ADMIN_EMEL;
   let nama = (u.email || '').split('@')[0], induk = null;
   try { const s = await getDoc(doc(db, 'mynasab_users', u.uid)); if (s.exists() && s.data().name) nama = String(s.data().name).trim(); } catch (e) {}
   try { const l = await getDoc(doc(db, 'mynasab_links', u.uid)); if (l.exists() && l.data().status === 'aktif' && l.data().owner_uid && l.data().owner_uid !== u.uid) induk = l.data().owner_uid; } catch (e) {}
-  D.nama = nama;
+  D.nama = nama; D.profil = D.profil || {};
+  await muatProfil([u.uid]); lukisAvatarSaya();
   D.kumpulan = [];
   if (induk) {
     let namaInduk = 'induk';
@@ -206,7 +243,6 @@ async function siapkanDinding(u) {
     D.kumpulan.push({ id: induk, label: `Keluarga besar (bersama ${namaInduk})` });
   }
   D.kumpulan.push({ id: u.uid, label: induk ? 'Ahli yang saya jemput sahaja' : 'Keluarga saya' });
-  $('komposerAvatar').textContent = (nama[0] || '?').toUpperCase();
   $('posKumpulan').innerHTML = D.kumpulan.map(k => `<option value="${esc(k.id)}">${esc(k.label)}</option>`).join('');
   $('posPenonton').classList.toggle('hidden', D.kumpulan.length < 2);
   $('komposer').classList.remove('hidden'); $('dinding').classList.remove('hidden');
@@ -229,6 +265,7 @@ async function muatPosts() {
       D.posts.push(...baru);
     }
     D.posts.sort((a, b) => b.created_at - a.created_at);
+    await muatProfil([...D.posts.map(p => p.author_uid), ...Object.values(D.komen).flat().map(k => k.author_uid)]);
   } catch (e) { console.warn('Dinding:', e); amaran(e); }
   $('muatLagi').disabled = false;
   paparDinding(); lukisKandungan();
@@ -255,7 +292,7 @@ function paparDinding() {
     const kira = (e) => Object.values(rx).filter(v => v === e).length;
     return `<article class="kad" data-p="${esc(p.id)}">
       <div class="flex items-start gap-3">
-        <div class="avatar">${esc((p.author_nama || '?')[0].toUpperCase())}</div>
+        ${avatar(p.author_uid, p.author_nama)}
         <div class="flex-1 min-w-0"><div class="font-extrabold text-slate-800 truncate">${esc(p.author_nama || 'Ahli keluarga')}</div><div class="text-xs text-slate-500">${masa(p.created_at)}</div></div>
         ${boleh(p) ? `<button data-padam="${esc(p.id)}" class="text-slate-400 hover:text-red-600 px-2" title="Padam siaran"><i class="fa-regular fa-trash-can"></i></button>` : ''}
       </div>
@@ -266,7 +303,7 @@ function paparDinding() {
         <button class="reaksi" data-km="${esc(p.id)}"><i class="fa-regular fa-comment"></i>${km.length ? ' ' + km.length : ' Komen'}</button>
       </div>
       <div class="hidden mt-3 space-y-2" data-kmbox="${esc(p.id)}">
-        ${km.map(k => `<div class="flex gap-2"><div class="avatar" style="width:1.9rem;height:1.9rem;font-size:.8rem">${esc((k.author_nama || '?')[0].toUpperCase())}</div>
+        ${km.map(k => `<div class="flex gap-2">${avatar(k.author_uid, k.author_nama, 'width:1.9rem;height:1.9rem;font-size:.8rem')}
           <div class="bg-slate-100 rounded-2xl px-3 py-2 text-sm min-w-0 flex-1"><div class="flex justify-between gap-2"><b class="text-slate-800">${esc(k.author_nama || 'Ahli')}</b><span class="text-[.7rem] text-slate-400 whitespace-nowrap">${masa(k.created_at)}${bolehPadamKomen(k) ? ` <button data-padamkm="${esc(k.id)}" data-pk="${esc(p.id)}" class="ml-1 hover:text-red-600">✕</button>` : ''}</span></div><div class="text-slate-700 break-words">${nl2br(k.teks)}</div></div></div>`).join('')}
         <form data-kmborang="${esc(p.id)}" class="flex gap-2"><input maxlength="500" placeholder="Tulis komen…" class="flex-1 border border-slate-200 rounded-full px-4 py-2 text-sm"><button class="px-4 rounded-full bg-teal-700 text-white text-sm font-bold">Hantar</button></form>
       </div>
