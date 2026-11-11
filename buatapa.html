@@ -185,8 +185,9 @@ const masa = (t) => {
 };
 const nl2br = (t) => esc(t).replace(/\n/g, '<br>');
 const urlGambarSah = (u) => typeof u === 'string' && u.startsWith(URL_STORAGE);
-const boleh = (p) => D.admin || p.author_uid === D.user.uid || p.group_id === D.user.uid;
-const bolehPadamKomen = (k) => D.admin || k.author_uid === D.user.uid || k.group_id === D.user.uid;
+const milikku = (g) => g === D.user.uid || g === D.user.uid + '_kami';
+const boleh = (p) => D.admin || p.author_uid === D.user.uid || milikku(p.group_id);
+const bolehPadamKomen = (k) => D.admin || k.author_uid === D.user.uid || milikku(k.group_id);
 
 function amaran(e) {
   const url = (String(e.message || '').match(/https:\/\/console\.firebase\.google\.com\S+/) || [])[0];
@@ -243,10 +244,23 @@ async function siapkanDinding(u) {
     D.kumpulan.push({ id: induk, label: `Keluarga besar (bersama ${namaInduk})` });
   }
   D.kumpulan.push({ id: u.uid, label: induk ? 'Ahli yang saya jemput sahaja' : 'Keluarga saya' });
-  // "Kongsi semua" = induk + semua akaun berpautan (set goTravel); "Untuk kami" = keluarga sendiri sahaja. Tanpa induk, hanya satu butang "Kongsi".
-  D.idSemua = D.kumpulan[0].id; D.idKami = u.uid;
-  $('posKami').classList.toggle('hidden', D.kumpulan.length < 2);
-  $('posSemua').textContent = D.kumpulan.length < 2 ? 'Kongsi' : 'Kongsi semua';
+  // "Kongsi semua" = induk + semua akaun berpautan (set goTravel).
+  D.idSemua = D.kumpulan[0].id;
+  // "Untuk kami" = saya, pasangan dan anak yang ada akaun (nod Suami/Isteri/Anak dalam pokok saya yang ada akaun_uid).
+  D.kamiSendiri = u.uid + '_kami'; D.ahliKami = [u.uid]; D.idKami = null;
+  try {
+    const sn = await getDocs(query(collection(db, 'mynasab_nodes'), where('owner_uid', '==', u.uid)));
+    sn.forEach(d => { const x = d.data(), h = (x.relationship || '').trim().toLowerCase(); if ((h === 'suami' || h === 'isteri' || h === 'anak') && x.akaun_uid && x.akaun_uid !== u.uid && !D.ahliKami.includes(x.akaun_uid)) D.ahliKami.push(x.akaun_uid); });
+  } catch (e) { console.warn('Ahli keluarga kecil:', e.message); }
+  // Kumpulan "kami" milik orang lain yang menyenaraikan saya (contoh: pasangan atau ibu bapa)
+  try {
+    const sk = await getDocs(query(collection(db, 'buatapa_kumpulan'), where('ahli', 'array-contains', u.uid)));
+    sk.forEach(d => { if (d.id !== D.kamiSendiri) D.kumpulan.push({ id: d.id, label: `Keluarga kecil ${d.data().nama || ''}`.trim(), asing: true }); });
+  } catch (e) { console.warn('Kumpulan kami:', e.message); }
+  if (D.ahliKami.length > 1) { D.idKami = D.kamiSendiri; D.kumpulan.push({ id: D.kamiSendiri, label: 'Keluarga kecil saya' }); }
+  else { const lain = D.kumpulan.find(k => k.asing); if (lain) D.idKami = lain.id; }
+  $('posKami').classList.toggle('hidden', !D.idKami);
+  $('posSemua').textContent = D.idKami ? 'Kongsi semua' : 'Kongsi';
   $('komposer').classList.remove('hidden'); $('dinding').classList.remove('hidden');
   if (/[?&]tulis=1/.test(location.search)) { $('bukaKomposer').click(); }
   await muatPosts();
@@ -391,6 +405,7 @@ const siar = async (grp) => {
       const [u, uk] = await Promise.all([getDownloadURL(r), getDownloadURL(rk)]);
       dimuat.push(u); kecil.push(uk);
     }
+    if (grp === D.kamiSendiri) await setDoc(doc(db, 'buatapa_kumpulan', grp), { owner_uid: D.user.uid, nama: D.nama.split(/\s+/)[0], ahli: D.ahliKami, updated_at: Date.now() });
     $('posStatus').textContent = 'Menyiarkan…';
     const p = { group_id: grp, author_uid: D.user.uid, author_nama: D.nama, teks: teks.slice(0, MAKS_TEKS), gambar: dimuat, kecil, created_at: Date.now() };
     const r = await addDoc(collection(db, 'buatapa_posts'), p);

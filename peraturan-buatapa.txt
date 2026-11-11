@@ -5,7 +5,18 @@ function ahliKumpulan(g) {
     g == request.auth.uid ||
     (exists(/databases/$(database)/documents/mynasab_links/$(request.auth.uid)) &&
      get(/databases/$(database)/documents/mynasab_links/$(request.auth.uid)).data.owner_uid == g &&
-     get(/databases/$(database)/documents/mynasab_links/$(request.auth.uid)).data.status == 'aktif'));
+     get(/databases/$(database)/documents/mynasab_links/$(request.auth.uid)).data.status == 'aktif') ||
+    (g.matches('.*_kami') &&
+     exists(/databases/$(database)/documents/buatapa_kumpulan/$(g)) &&
+     request.auth.uid in get(/databases/$(database)/documents/buatapa_kumpulan/$(g)).data.ahli));
+}
+
+match /buatapa_kumpulan/{id} {
+  allow read:   if request.auth != null && request.auth.uid in resource.data.ahli;
+  allow create, update: if request.auth != null && id == request.auth.uid + '_kami'
+                && request.resource.data.owner_uid == request.auth.uid
+                && request.auth.uid in request.resource.data.ahli;
+  allow delete: if false;
 }
 
 match /buatapa_posts/{id} {
@@ -14,7 +25,8 @@ match /buatapa_posts/{id} {
                 && ahliKumpulan(request.resource.data.group_id)
                 && request.resource.data.teks.size() <= 2000;
   allow delete: if resource.data.author_uid == request.auth.uid
-                || resource.data.group_id == request.auth.uid;
+                || resource.data.group_id == request.auth.uid
+                || resource.data.group_id == request.auth.uid + '_kami';
   allow update: if false;
 }
 match /buatapa_komen/{id} {
@@ -23,7 +35,8 @@ match /buatapa_komen/{id} {
                 && ahliKumpulan(request.resource.data.group_id)
                 && request.resource.data.teks.size() <= 500;
   allow delete: if resource.data.author_uid == request.auth.uid
-                || resource.data.group_id == request.auth.uid;
+                || resource.data.group_id == request.auth.uid
+                || resource.data.group_id == request.auth.uid + '_kami';
   allow update: if false;
 }
 match /buatapa_reaksi/{id} {

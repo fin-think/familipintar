@@ -801,6 +801,7 @@ if ('Notification' in window) {
             const kump = [user.uid];
             const lk = await getDoc(doc(db, 'mynasab_links', user.uid));
             if (lk.exists() && lk.data().status === 'aktif' && lk.data().owner_uid && lk.data().owner_uid !== user.uid) kump.unshift(lk.data().owner_uid);
+            try { (await getDocs(query(collection(db, 'buatapa_kumpulan'), where('ahli', 'array-contains', user.uid)))).forEach(d => { if (!kump.includes(d.id)) kump.push(d.id); }); } catch (e) {}
             const had = Date.now() - 86400000, semua = [];
             for (const g of kump) {
                 const sn = await getDocs(query(collection(db, 'buatapa_posts'), where('group_id', '==', g), orderBy('created_at', 'desc'), limit(5)));
