@@ -51,10 +51,9 @@
     <div id="borangPos" class="hidden">
       <textarea id="posTeks" rows="4" maxlength="2000" placeholder="Tulis sesuatu untuk keluarga…" class="w-full border border-slate-200 rounded-xl p-3 text-[.95rem] focus:outline-none focus:border-teal-500"></textarea>
       <div id="posPra" class="flex gap-2 flex-wrap mt-2"></div>
-      <div id="posPenonton" class="hidden mt-3 text-sm"><label class="font-bold text-slate-600 block mb-1">Siapa boleh lihat</label><select id="posKumpulan" class="w-full border border-slate-200 rounded-lg px-3 py-2"></select></div>
       <div class="flex items-center justify-between gap-2 mt-3">
         <label class="inline-flex items-center gap-2 text-sm font-bold text-teal-700 cursor-pointer"><i class="fa-regular fa-image"></i> Tambah gambar<input id="posFail" type="file" accept="image/*" multiple class="hidden"></label>
-        <div class="flex gap-2"><button id="posBatal" class="px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600">Batal</button><button id="posSiar" class="px-5 py-2 rounded-xl text-sm font-extrabold bg-teal-700 text-white disabled:opacity-50">Siar</button></div>
+        <div class="flex gap-2 flex-wrap justify-end"><button id="posBatal" class="px-3 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600">Batal</button><button id="posKami" class="px-4 py-2 rounded-xl text-sm font-extrabold bg-white border border-teal-700 text-teal-700 disabled:opacity-50">Untuk kami</button><button id="posSemua" class="px-4 py-2 rounded-xl text-sm font-extrabold bg-teal-700 text-white disabled:opacity-50">Kongsi semua</button></div>
       </div>
       <p id="posStatus" class="text-xs text-slate-500 mt-2"></p>
     </div>
@@ -244,8 +243,10 @@ async function siapkanDinding(u) {
     D.kumpulan.push({ id: induk, label: `Keluarga besar (bersama ${namaInduk})` });
   }
   D.kumpulan.push({ id: u.uid, label: induk ? 'Ahli yang saya jemput sahaja' : 'Keluarga saya' });
-  $('posKumpulan').innerHTML = D.kumpulan.map(k => `<option value="${esc(k.id)}">${esc(k.label)}</option>`).join('');
-  $('posPenonton').classList.toggle('hidden', D.kumpulan.length < 2);
+  // "Kongsi semua" = induk + semua akaun berpautan (set goTravel); "Untuk kami" = keluarga sendiri sahaja. Tanpa induk, hanya satu butang "Kongsi".
+  D.idSemua = D.kumpulan[0].id; D.idKami = u.uid;
+  $('posKami').classList.toggle('hidden', D.kumpulan.length < 2);
+  $('posSemua').textContent = D.kumpulan.length < 2 ? 'Kongsi' : 'Kongsi semua';
   $('komposer').classList.remove('hidden'); $('dinding').classList.remove('hidden');
   if (/[?&]tulis=1/.test(location.search)) { $('bukaKomposer').click(); }
   await muatPosts();
@@ -374,11 +375,12 @@ $('posFail').onchange = (e) => {
   lukisPra();
 };
 $('posPra').onclick = (e) => { const b = e.target.closest('[data-buang]'); if (b) { D.fail.splice(Number(b.dataset.buang), 1); lukisPra(); } };
-$('posSiar').onclick = async () => {
+const setSiar = (b) => { $('posSemua').disabled = b; $('posKami').disabled = b; };
+const siar = async (grp) => {
   if (D.hantar) return;
-  const teks = $('posTeks').value.trim(), grp = $('posKumpulan').value || D.user.uid;
+  const teks = $('posTeks').value.trim();
   if (!teks && !D.fail.length) { $('posStatus').textContent = 'Tulis sesuatu atau tambah gambar dahulu.'; return; }
-  D.hantar = true; $('posSiar').disabled = true; const dimuat = [], kecil = [];
+  D.hantar = true; setSiar(true); const dimuat = [], kecil = [];
   try {
     for (let i = 0; i < D.fail.length; i++) {
       $('posStatus').textContent = `Memuat naik gambar ${i + 1} daripada ${D.fail.length}…`;
@@ -397,8 +399,10 @@ $('posSiar').onclick = async () => {
     [...dimuat, ...kecil].forEach(u => deleteObject(ref(storage, u)).catch(() => {}));
     $('posStatus').textContent = 'Gagal menyiarkan: ' + (e.code === 'storage/unauthorized' ? 'peraturan Storage belum ditambah.' : e.code === 'permission-denied' ? 'peraturan Firestore belum ditambah.' : e.message);
   }
-  D.hantar = false; $('posSiar').disabled = false;
+  D.hantar = false; setSiar(false);
 };
+$('posSemua').onclick = () => siar(D.idSemua);
+$('posKami').onclick = () => siar(D.idKami);
 $('muatLagi').onclick = muatPosts;
 
 function ubahLaras(d) { laras = Math.max(-1, Math.min(1, laras + d)); try { localStorage.setItem(KUNCI_LARAS, String(laras)); } catch (e) {} lukisKandungan(); }
