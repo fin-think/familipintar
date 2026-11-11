@@ -55,6 +55,7 @@
         <label class="inline-flex items-center gap-2 text-sm font-bold text-teal-700 cursor-pointer"><i class="fa-regular fa-image"></i> Tambah gambar<input id="posFail" type="file" accept="image/*" multiple class="hidden"></label>
         <div class="flex gap-2 flex-wrap justify-end"><button id="posBatal" class="px-3 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600">Batal</button><button id="posKami" class="px-4 py-2 rounded-xl text-sm font-extrabold bg-white border border-teal-700 text-teal-700 disabled:opacity-50">Untuk kami</button><button id="posSemua" class="px-4 py-2 rounded-xl text-sm font-extrabold bg-teal-700 text-white disabled:opacity-50">Kongsi semua</button></div>
       </div>
+      <p id="posKuota" class="text-xs font-semibold text-teal-700 mt-2"></p>
       <p id="posStatus" class="text-xs text-slate-500 mt-2"></p>
     </div>
   </section>
@@ -101,7 +102,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, getDoc, doc, addDoc, setDoc, deleteDoc, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, getDoc, doc, addDoc, setDoc, deleteDoc, writeBatch, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 import { firebaseConfig, esc, mampatGambar } from "./kongsi.js";
 import { BULAN_HIJRAH, BULAN_MASIHI, tarikhMalaysia, tarikhHijrah, namaHariMasihi, peristiwaHariIni, sirahHariIni, hitungMundur } from "./sejarah-islam.js";
@@ -112,6 +113,7 @@ const ADMIN_EMEL = 'dae.book89@gmail.com';
 const KUNCI_LARAS = 'buatapa_laras_hijrah';
 
 const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app), storage = getStorage(app);
+const PERCUMA = 30, KREDIT_PER_GAMBAR = 1; // 30 gambar percuma sebulan (sehari satu); lebihan dicaj kredit
 const MAKS_GAMBAR = 4, MAKS_TEKS = 2000, SAIZ_HALAMAN = 15, EMOJI = ['❤️', '🤲', '😂'];
 const CACHE = 'public,max-age=31536000';
 const URL_STORAGE = 'https://firebasestorage.googleapis.com/';
@@ -269,6 +271,7 @@ async function siapkanDinding(u) {
   else { const lain = D.kumpulan.find(k => k.asing); if (lain) D.idKami = lain.id; }
   $('posKami').classList.toggle('hidden', !D.idKami);
   $('posSemua').textContent = D.idKami ? 'Kongsi semua' : 'Kongsi';
+  await muatKuota();
   $('komposer').classList.remove('hidden'); $('dinding').classList.remove('hidden');
   if (/[?&]tulis=1/.test(location.search)) { $('bukaKomposer').click(); }
   await muatPosts();
@@ -397,11 +400,34 @@ $('posFail').onchange = (e) => {
   lukisPra();
 };
 $('posPra').onclick = (e) => { const b = e.target.closest('[data-buang]'); if (b) { D.fail.splice(Number(b.dataset.buang), 1); lukisPra(); } };
+// ----- Kuota gambar -----
+const idBulan = () => { const t = new Date(); return `${t.getUTCFullYear()}_${t.getUTCMonth() + 1}`; };
+const lebih = (n) => (n > PERCUMA ? n - PERCUMA : 0);
+function paparKuota() {
+  const el = $('posKuota'); if (!el) return;
+  if (D.admin) { el.textContent = 'Admin: tiada had gambar.'; return; }
+  const baki = Math.max(0, PERCUMA - D.kuota.guna);
+  el.textContent = baki > 0 ? `Baki gambar percuma bulan ini: ${baki} daripada ${PERCUMA}.` : `Kuota percuma bulan ini sudah habis. Setiap gambar tambahan dicaj ${KREDIT_PER_GAMBAR} kredit (baki kredit anda: ${D.kredit}).`;
+}
+async function muatKuota() {
+  D.kuota = { guna: 0, kredit: 0 }; D.kredit = 0;
+  try { const u = await getDoc(doc(db, 'mynasab_users', D.user.uid)); D.kredit = u.exists() ? (Number(u.data().credit_balance) || 0) : 0; } catch (e) {}
+  try { const k = await getDoc(doc(db, 'buatapa_kuota', `${D.user.uid}_${idBulan()}`)); if (k.exists()) D.kuota = { guna: Number(k.data().guna) || 0, kredit: Number(k.data().kredit) || 0 }; } catch (e) {}
+  paparKuota();
+}
 const setSiar = (b) => { $('posSemua').disabled = b; $('posKami').disabled = b; };
 const siar = async (grp) => {
   if (D.hantar) return;
   const teks = $('posTeks').value.trim();
   if (!teks && !D.fail.length) { $('posStatus').textContent = 'Tulis sesuatu atau tambah gambar dahulu.'; return; }
+  const n = D.fail.length; let kos = 0;
+  if (n && !D.admin) {
+    await muatKuota();
+    const tambahan = lebih(D.kuota.guna + n) - lebih(D.kuota.guna);
+    kos = tambahan * KREDIT_PER_GAMBAR;
+    if (kos > D.kredit) { $('posStatus').textContent = `Kredit tidak cukup. Perlu ${kos} kredit untuk ${tambahan} gambar tambahan (baki ${D.kredit}). Kurangkan gambar atau tunggu kuota bulan depan.`; return; }
+    if (kos > 0 && !confirm(`Kuota percuma bulan ini ${D.kuota.guna >= PERCUMA ? 'sudah habis' : 'tidak mencukupi'}. ${tambahan} gambar akan dicaj ${kos} kredit. Teruskan?`)) return;
+  }
   D.hantar = true; setSiar(true); const dimuat = [], kecil = [];
   try {
     for (let i = 0; i < D.fail.length; i++) {
@@ -416,8 +442,15 @@ const siar = async (grp) => {
     if (grp === D.kamiSendiri) await setDoc(doc(db, 'buatapa_kumpulan', grp), { owner_uid: D.user.uid, nama: D.nama.split(/\s+/)[0], ahli: D.ahliKami, updated_at: Date.now() });
     $('posStatus').textContent = 'Menyiarkan…';
     const p = { group_id: grp, author_uid: D.user.uid, author_nama: D.nama, teks: teks.slice(0, MAKS_TEKS), gambar: dimuat, kecil, created_at: Date.now() };
-    const r = await addDoc(collection(db, 'buatapa_posts'), p);
-    D.posts.unshift({ ...p, id: r.id }); tutupKomposer(); paparDinding(); lukisKandungan();
+    const pRef = doc(collection(db, 'buatapa_posts')), b = writeBatch(db);
+    b.set(pRef, p);
+    if (n && !D.admin) {
+      b.set(doc(db, 'buatapa_kuota', `${D.user.uid}_${idBulan()}`), { uid: D.user.uid, bulan: idBulan(), guna: D.kuota.guna + n, kredit: D.kuota.kredit + kos, updated_at: Date.now() });
+      if (kos > 0) b.update(doc(db, 'mynasab_users', D.user.uid), { credit_balance: D.kredit - kos });
+    }
+    await b.commit();
+    if (n && !D.admin) { D.kuota.guna += n; D.kuota.kredit += kos; D.kredit -= kos; paparKuota(); }
+    D.posts.unshift({ ...p, id: pRef.id }); tutupKomposer(); paparDinding(); lukisKandungan();
   } catch (e) {
     [...dimuat, ...kecil].forEach(u => deleteObject(ref(storage, u)).catch(() => {}));
     $('posStatus').textContent = 'Gagal menyiarkan: ' + (e.code === 'storage/unauthorized' ? 'peraturan Storage belum ditambah.' : e.code === 'permission-denied' ? 'peraturan Firestore belum ditambah.' : e.message);
