@@ -353,10 +353,10 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
   var DEF = [
     ['a[onclick*="mynasab/index"]', 'myNasab', 'fa-sitemap', '#d1fae5', '#059669', 'linear-gradient(135deg,#10b981,#047857)', 'lencanaLuarNasab'],
     ['a[onclick*="\'wecare\'"]', 'weCare', 'fa-hand-holding-medical', '#ffe4e6', '#e11d48', 'linear-gradient(135deg,#fb7185,#be123c)', 'lencanaLuarWeCareUtama'],
+    ['a[onclick*="gotravel"]', 'goTravel', 'fa-plane-departure', '#ccfbf1', '#0f766e', 'linear-gradient(135deg,#14b8a6,#0f766e)'],
     ['#kadMyjurnal', 'myJurnal', 'fa-book-open-reader', '#e0f2fe', '#0369a1', 'linear-gradient(135deg,#0ea5e9,#2563eb)'],
     ['#kadSmartsolo', 'SmartSolo', 'fa-person-walking-luggage', '#ede9fe', '#6d28d9', 'linear-gradient(135deg,#8b5cf6,#6d28d9)'],
     ['#kadMykids', 'myKids', 'fa-child-reaching', '#fef3c7', '#b45309', 'linear-gradient(135deg,#f59e0b,#ea580c)'],
-    ['a[onclick*="gotravel"]', 'goTravel', 'fa-plane-departure', '#ccfbf1', '#0f766e', 'linear-gradient(135deg,#14b8a6,#0f766e)'],
     ['a[onclick*="mytadbir"]', 'myTADBIR', 'fa-building-columns', '#e2e8f0', '#1e293b', 'linear-gradient(135deg,#475569,#0f172a)'],
     ['a[onclick*="\'ourmoney\'"]', 'OurMoney', 'fa-wallet', '#e0e7ff', '#4338ca', 'linear-gradient(135deg,#6366f1,#4338ca)', 'lencanaLuarOurMoney']];
   var TAMBAH = [['a[onclick*="daebook"]', 'fa-book', 'linear-gradient(135deg,#eab308,#a16207)'], ['a[onclick*="mandarin.html"]', 'fa-language', 'linear-gradient(135deg,#f97316,#c2410c)']];
@@ -530,6 +530,19 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             </span>
         </a>
 
+        <!-- 5. jomBercuti (Putih) -->
+        <a onclick="semakAksesPintu('jomBercuti', 'gotravel.html')" class="cursor-pointer group bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
+            <div class="w-14 h-14 rounded-2xl bg-cyan-100 text-cyan-600 flex items-center justify-center text-2xl mb-5">
+                <i class="fa-solid fa-plane-departure"></i>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-800">Rancang & Bergembira</h3>
+            <p class="text-cyan-600 text-sm font-semibold mb-3">Perancangan percutian & Family Day</p>
+            <p class="text-slate-500 text-sm leading-relaxed mb-5 flex-grow">Rancang percutian impian bersama adik-beradik: urus bajet kewangan, pilih lokasi menarik, dan susun tentatif dengan mudah.</p>
+            <span class="inline-flex items-center gap-2 font-bold text-cyan-600 group-hover:gap-3 transition-all">
+                Ayuh goTravel <i class="fa-solid fa-arrow-right"></i>
+            </span>
+        </a>
+
         <!-- 3. myJurnal (Saiz Diseragamkan) -->
         <a id="kadMyjurnal" onclick="semakAksesPintu('myjurnal', 'myjurnal.html')" class="cursor-pointer group relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 to-blue-600 text-white p-7 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all flex flex-col justify-between">
             <div>
@@ -570,19 +583,6 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             <p class="text-slate-500 text-sm leading-relaxed mb-5 flex-grow">Rancang kerjaya, laluan pendidikan dari SPM ke universiti, serta panduan didikan rohani ikut peringkat umur.</p>
             <span class="inline-flex items-center gap-2 font-bold text-teal-600 group-hover:gap-3 transition-all">
                 Rancang myKids <i class="fa-solid fa-arrow-right"></i>
-            </span>
-        </a>
-
-        <!-- 5. jomBercuti (Putih) -->
-        <a onclick="semakAksesPintu('jomBercuti', 'gotravel.html')" class="cursor-pointer group bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
-            <div class="w-14 h-14 rounded-2xl bg-cyan-100 text-cyan-600 flex items-center justify-center text-2xl mb-5">
-                <i class="fa-solid fa-plane-departure"></i>
-            </div>
-            <h3 class="text-xl font-extrabold text-slate-800">Rancang & Bergembira</h3>
-            <p class="text-cyan-600 text-sm font-semibold mb-3">Perancangan percutian & Family Day</p>
-            <p class="text-slate-500 text-sm leading-relaxed mb-5 flex-grow">Rancang percutian impian bersama adik-beradik: urus bajet kewangan, pilih lokasi menarik, dan susun tentatif dengan mudah.</p>
-            <span class="inline-flex items-center gap-2 font-bold text-cyan-600 group-hover:gap-3 transition-all">
-                Ayuh goTravel <i class="fa-solid fa-arrow-right"></i>
             </span>
         </a>
 
