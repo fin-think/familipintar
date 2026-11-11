@@ -47,18 +47,6 @@ match /buatapa_reaksi/{id} {
   allow delete: if resource.data.uid == request.auth.uid;
 }
 
-match /buatapa_kuota/{id} {
-  allow read:   if request.auth != null && id.matches(request.auth.uid + '_.*');
-  allow create: if request.auth != null && id.matches(request.auth.uid + '_.*')
-                && request.resource.data.uid == request.auth.uid
-                && request.resource.data.guna >= 1 && request.resource.data.guna <= 4;
-  allow update: if request.auth != null && id.matches(request.auth.uid + '_.*')
-                && request.resource.data.uid == request.auth.uid
-                && request.resource.data.guna > resource.data.guna
-                && request.resource.data.guna <= resource.data.guna + 4;
-  allow delete: if false;
-}
-
 match /buatapa_profil/{uid} {
   allow read:   if request.auth != null;
   allow create, update, delete: if request.auth != null && request.auth.uid == uid;
