@@ -345,6 +345,13 @@ let currentGroup = null;   // = UID induk (dikongsi semua adik-beradik)
 let currentUser = null;
 let namaSaya = '';
 window.globalTeamMap = new Map();
+// Anak (dari pokok saya) tidak termasuk dalam senarai pasukan tugasan, tetapi hari jadi mereka dipaparkan dalam kalendar
+window._anakHJ = [];
+window.senaraiHariJadi = () => {
+  const out = [...window.globalTeamMap.values()], ada = new Set(out.map(v => (v.name || '').trim().toLowerCase()));
+  (window._anakHJ || []).forEach(a => { const k = (a.name || '').trim().toLowerCase(); if (k && !ada.has(k)) { ada.add(k); out.push(a); } });
+  return out;
+};
 
 // --- PAYWALL ---
 const paparTamat = (ms) => {
@@ -689,7 +696,7 @@ window.renderKalendar = () => {
     
     // SEMAKAN HARI JADI
     let htmlBirthday = "";
-    window.globalTeamMap.forEach(v => {
+    window.senaraiHariJadi().forEach(v => {
         if (v.dob && v.dob.substring(5) === mmdd) {
             htmlBirthday += `<div class="cal-event" style="background:#f43f5e;color:#fff;cursor:pointer;" onclick="event.stopPropagation();lihatHariJadi('${tarikhKunci}')">🎂 H.Jadi ${esc(v.name.split(' ')[0])}</div>`;
         }
@@ -937,6 +944,9 @@ async function muatKeluargaDanNota(groupId) {
     window._hariJadiSemua = [];
     const masukHJ = (n) => { if (n && n.dob && n.status !== 'meninggal') window._hariJadiSemua.push({ name: n.name, dob: n.dob }); };
     masukHJ(kPusat.diri); kPusat.pasangan.forEach(masukHJ); kPusat.adikBeradik.forEach(masukHJ);
+    window._anakHJ = nodSaya.filter(n => { const h = (n.relationship || '').toLowerCase().trim(); return /^anak\b/.test(h) && !/saudara|menantu/.test(h) && n.dob && n.status !== 'meninggal'; })
+      .map(n => ({ uidKunci: n.id, name: n.name, dob: n.dob, role: 'Anak' }));
+    window._anakHJ.forEach(masukHJ);
     akaun.forEach(a => { if (a.uid === saya || sembunyi.includes(a.uid)) return; masukHJ(kelompok(a.nod).diri); });
     if (!sayaInduk) { const kI = kelompok(nodInduk); masukHJ(kI.diri); kI.pasangan.forEach(masukHJ); }
    
@@ -1191,7 +1201,7 @@ window.kemaskiniNotifikasiPWA = () => {
 
     // 2. Kira jumlah Hari Jadi untuk HARI INI
     let birthdayHarini = 0;
-    window.globalTeamMap.forEach(v => {
+    window.senaraiHariJadi().forEach(v => {
         if (v.dob && v.dob.substring(5) === mmddHariIni) {
             birthdayHarini++;
         }
@@ -1283,7 +1293,7 @@ window.lihatNota = (kunci) => {
 window.lihatHariJadi = (kunci) => {
   const mmdd = kunci.substring(5), tahun = parseInt(kunci.substring(0, 4), 10);
   const senarai = [];
-  window.globalTeamMap.forEach(v => { if (v.dob && v.dob.substring(5) === mmdd) senarai.push(v); });
+  window.senaraiHariJadi().forEach(v => { if (v.dob && v.dob.substring(5) === mmdd) senarai.push(v); });
   document.getElementById('tajukNota').innerText = '🎂 Hari Jadi · ' + kunci;
   document.getElementById('isiNota').innerHTML = senarai.length ? senarai.map(v => {
     const umur = tahun - parseInt(v.dob.substring(0, 4), 10);
