@@ -9,28 +9,56 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         body { font-family: 'Nunito', sans-serif; background-color: #f1f5f9; }
+        .an-back-m { display: none; }
+        /* Paparan mobile sahaja (<768px). Desktop tidak diubah. */
+        @media (max-width: 767px) {
+            .an-wrap { flex-wrap: wrap; padding: .65rem .9rem !important; row-gap: .5rem; }
+            .an-wrap > div:first-child { font-size: 1.05rem !important; }
+            .an-back-m { display: inline-flex; align-items: center; gap: .35rem; background: #334155; padding: .4rem .75rem; border-radius: .6rem; font-size: .8rem; font-weight: 700; }
+            .an-back-d { display: none !important; }
+            .an-links { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap !important; gap: .45rem !important; padding-bottom: .25rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+            .an-links::-webkit-scrollbar { display: none; }
+            .an-links > * { flex: 0 0 auto; white-space: nowrap; }
+            .an-links > button { background: #1e293b; padding: .5rem .85rem !important; border-radius: .65rem; font-size: .82rem !important; }
+            .an-links > button.an-aktif { background: #0ea5e9; color: #fff; }
+            .an-links > span { display: none; }
+            main { padding: 1rem .75rem 3rem !important; }
+            main h2 { font-size: 1.2rem !important; margin-bottom: .6rem !important; }
+            main h3.text-lg { font-size: 1rem !important; }
+            #tab-dash > .grid { grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: 1.25rem; }
+            #tab-dash > .grid > *:last-child { grid-column: span 2; }
+            #tab-dash > .grid > * { padding: .85rem !important; }
+            #tab-dash > .grid h3 { font-size: 1.3rem !important; }
+            #subCards, #srcCards { gap: .6rem; }
+            main td, main th { padding: .55rem .6rem !important; font-size: .78rem; }
+            main .overflow-x-auto table, #tab-aff table { min-width: 34rem; }
+            #tab-reg > .flex > select, #tab-reg > .flex > input, #tab-reg > .flex > button, #tab-act > .flex > select, #tab-act > .flex > input, #tab-act > .flex > button { width: 100%; }
+            .an-form { flex-wrap: wrap; gap: .5rem !important; }
+            .an-form input, #expAmount { width: 100% !important; }
+        }
     </style>
 </head>
 <body class="text-slate-800">
 
     <!-- Sidebar / Nav -->
     <nav class="bg-slate-900 text-white shadow-xl sticky top-0 z-40">
-        <div class="w-full px-6 py-4 flex justify-between items-center">
+        <div class="w-full px-6 py-4 flex justify-between items-center an-wrap">
             <div class="font-bold text-xl tracking-wider text-sky-400">ADMINISTRATOR</div>
-            <div class="flex gap-4 items-center">
-                <button onclick="tab('dash')" class="hover:text-sky-300 transition text-sm font-semibold">P&L</button>
-                <button onclick="tab('list')" class="hover:text-sky-300 transition text-sm font-semibold">Senarai Ejen</button>
-                <button onclick="tab('src')" class="hover:text-sky-300 transition text-sm font-semibold">Sumber</button>
-                <button onclick="tab('sub')" class="hover:text-sky-300 transition text-sm font-semibold">Langganan</button>
-                <button onclick="tab('reg')" class="hover:text-sky-300 transition text-sm font-semibold">Pendaftaran</button>
-                <button onclick="tab('act')" class="hover:text-sky-300 transition text-sm font-semibold">Aktiviti</button>
-                <button onclick="tab('aff')" class="hover:text-sky-300 transition text-sm font-semibold">Payouts</button>
-                <button onclick="tab('cash')" class="hover:text-sky-300 transition text-sm font-semibold">Expenses</button>
+            <button onclick="window.location.href='index.html'" class="an-back-m"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+            <div class="flex gap-4 items-center an-links">
+                <button data-tab="dash" onclick="tab('dash')" class="an-aktif hover:text-sky-300 transition text-sm font-semibold">P&L</button>
+                <button data-tab="list" onclick="tab('list')" class="hover:text-sky-300 transition text-sm font-semibold">Senarai Ejen</button>
+                <button data-tab="src" onclick="tab('src')" class="hover:text-sky-300 transition text-sm font-semibold">Sumber</button>
+                <button data-tab="sub" onclick="tab('sub')" class="hover:text-sky-300 transition text-sm font-semibold">Langganan</button>
+                <button data-tab="reg" onclick="tab('reg')" class="hover:text-sky-300 transition text-sm font-semibold">Pendaftaran</button>
+                <button data-tab="act" onclick="tab('act')" class="hover:text-sky-300 transition text-sm font-semibold">Aktiviti</button>
+                <button data-tab="aff" onclick="tab('aff')" class="hover:text-sky-300 transition text-sm font-semibold">Payouts</button>
+                <button data-tab="cash" onclick="tab('cash')" class="hover:text-sky-300 transition text-sm font-semibold">Expenses</button>
                 <button onclick="window.location.href='direktori-admin.html'" class="bg-slate-800 border border-slate-600 hover:border-amber-300 px-4 py-1.5 rounded-lg text-sm transition font-extrabold flex items-center gap-2" title="Direktori servis rumah (fasa 2)"><i class="fa-solid fa-address-book text-amber-300"></i><span><span class="text-amber-300">yellow</span><span class="text-sky-400">BLUE</span><span class="text-amber-300">pages</span></span></button>
                 <button onclick="window.location.href='buatapa.html'" class="bg-slate-800 border border-slate-600 hover:border-emerald-300 px-4 py-1.5 rounded-lg text-sm transition font-extrabold flex items-center gap-2" title="Buat Apa Hari Ini (fasa ujian)"><i class="fa-solid fa-sun text-emerald-300"></i><span class="text-emerald-300">Buat Apa Hari Ini</span></button>
                 <span class="text-slate-600">|</span>
                 <!-- BUTANG KEMBALI DITAMBAHKAN DI SINI -->
-                <button onclick="window.location.href='index.html'" class="bg-slate-700 hover:bg-slate-600 px-4 py-1.5 rounded-lg text-sm transition font-bold flex items-center gap-2">
+                <button onclick="window.location.href='index.html'" class="an-back-d bg-slate-700 hover:bg-slate-600 px-4 py-1.5 rounded-lg text-sm transition font-bold flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left"></i> Kembali
                 </button>
             </div>
@@ -182,7 +210,7 @@
         <!-- TAB 2: PENGURUSAN AFFILIATE PENGELUARAN -->
         <div id="tab-aff" class="hidden animate-fade-in">
             <h2 class="text-2xl font-bold mb-6 text-slate-800">Pengurusan Permohonan Affiliate (Payout)</h2>
-            <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200 overflow-x-auto">
                 <table class="w-full text-left">
                     <thead class="bg-slate-100 text-sm text-slate-600">
                         <tr>
@@ -204,7 +232,7 @@
         <div id="tab-cash" class="hidden animate-fade-in">
             <h2 class="text-2xl font-bold mb-6 text-slate-800">Rekod Perbelanjaan (Expenses)</h2>
             <div class="bg-white p-6 rounded-2xl shadow-sm max-w-lg mb-6 border border-slate-200">
-                <div class="flex gap-4 mb-4">
+                <div class="flex gap-4 mb-4 an-form">
                     <input type="text" id="expDesc" placeholder="Keterangan (Cth: Ads FB, Server)" class="w-full border rounded-lg p-2">
                     <input type="number" id="expAmount" placeholder="Jumlah RM" class="w-32 border rounded-lg p-2">
                 </div>
@@ -251,6 +279,7 @@
         document.getElementById('tab-reg').classList.add('hidden');
         document.getElementById('tab-act').classList.add('hidden');
         document.getElementById('tab-'+id).classList.remove('hidden');
+        document.querySelectorAll('.an-links [data-tab]').forEach(b => b.classList.toggle('an-aktif', b.dataset.tab === id));
         
         if(id === 'dash') calculatePNL();
         if(id === 'list') loadAffiliatesList();
