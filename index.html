@@ -489,6 +489,17 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         <p class="text-slate-500">Mulakan dari mana-mana yang paling anda perlukan sekarang. Semuanya berhubung dan berkongsi maklumat keluarga yang sama.</p>
     </div>
 
+    <!-- BUAT APA HARI INI (laman keluarga) - kelihatan kepada admin sahaja buat masa ini -->
+    <a id="kadBuatapa" style="display:none" onclick="semakAksesPintu('Buat Apa Hari Ini', 'buatapa.html')" class="cursor-pointer group mb-6 rounded-3xl bg-teal-700 text-white p-6 md:p-7 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center gap-5">
+        <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-2xl flex-none"><i class="fa-solid fa-people-roof"></i></div>
+        <div class="flex-1 min-w-0">
+            <h3 class="text-xl font-extrabold">Buat Apa Hari Ini?</h3>
+            <p class="text-teal-100 text-sm leading-relaxed">Laman keluarga: kongsi gambar dan cerita, dan baca kisah sirah hari ini.</p>
+        </div>
+        <span class="hidden sm:inline-flex items-center gap-2 bg-white text-teal-700 font-bold text-sm px-4 py-2 rounded-full flex-none group-hover:gap-3 transition-all">Buka laman <i class="fa-solid fa-arrow-right"></i></span>
+        <i class="fa-solid fa-chevron-right sm:hidden flex-none"></i>
+    </a>
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         <!-- 1. myNasab (Soft Pastel Emerald) -->
@@ -797,6 +808,7 @@ if ('Notification' in window) {
             
             // Logik Tampilkan Butang Admin & Affiliate
             window.__adminSemua = (user.email === 'dae.book89@gmail.com');
+            { const kB = document.getElementById('kadBuatapa'); if (kB) kB.style.display = window.__adminSemua ? '' : 'none'; }
             if (typeof window.aturKadJurnal === 'function') window.aturKadJurnal();
             if (user.email === 'dae.book89@gmail.com') {
                 if (btnAdmin) btnAdmin.style.display = 'inline-flex';
