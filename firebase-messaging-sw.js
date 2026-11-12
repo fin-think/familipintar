@@ -27,7 +27,10 @@ self.addEventListener('notificationclick', (event) => {
     // Ada pautan rasmi -> biar SDK yang uruskan
     if (fm && ((fm.fcmOptions && fm.fcmOptions.link) || (fm.notification && fm.notification.click_action))) return;
     const app = d.app || fcm.app || '';
-    const url = d.url || fcm.url || PAUTAN_APP[String(app).toLowerCase()] || (fm ? '/' : '');
+    // Mesej lama tanpa data.app (cth. nota weCare dari functions): kenal pasti ikut tajuk
+    const tajuk = String((fm && fm.notification && fm.notification.title) || event.notification.title || '');
+    const ikutTajuk = /^wecare/i.test(tajuk) ? '/wecare.html' : /^(mynasab|🌳)/i.test(tajuk) ? '/mynasab/index.html' : '';
+    const url = d.url || fcm.url || PAUTAN_APP[String(app).toLowerCase()] || ikutTajuk || (fm ? '/' : '');
     if (!url) return; // bukan notifikasi kita; biar pengendali lama
 
     event.stopImmediatePropagation();
