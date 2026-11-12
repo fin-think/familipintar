@@ -617,18 +617,80 @@ window.muatKeluargaRombongan = async () => {
                 return s.docs.map(d => ({ ...d.data(), id: d.id }));
             } catch (e) { return []; }
         };
-        const nodSaya = await ambil(saya);
-        const nodInduk = sayaInduk ? nodSaya : await ambil(indukUid);
+        // Sama seperti pokok myNasab (kayakan): tarik akaun anak saudara yang berdaftar, adik-beradik mereka
+        // (dijemput oleh anak saudara itu / Salam Paut), serta pasangan, anak & cucu yang mereka isi dalam akaun sendiri.
+        const lc = (x) => String(x || '').trim().toLowerCase();
+        const peta = new Map();
+        const akarAnakSaudara = (uidP) => {
+            if (!peta.has(uidP)) peta.set(uidP, getDocs(query(collection(db, "mynasab_nodes"), where("is_root", "==", true), where("anak_saudara_dari.uid", "==", uidP)))
+                .then(sr => sr.docs.map(d => d.data())).catch(() => []));
+            return peta.get(uidP);
+        };
+        const cariUid = async (as) => {
+            if (as.akaun_uid) return as.akaun_uid;
+            const akar = (await akarAnakSaudara(as.owner_uid)).find(r => { const d = r.anak_saudara_dari || {}; return d.anak_nod === as.id || (d.nod === as.ref_id && lc(r.name) === lc(as.name)); });
+            if (akar) return akar.owner_uid;
+            try { const sr = await getDocs(query(collection(db, "mynasab_nodes"), where("is_root", "==", true), where("anak_saudara_dari.anak_nod", "==", as.id))); if (sr.docs.length) return sr.docs[0].data().owner_uid || ''; } catch (e) {}
+            return '';
+        };
+        const akarAdikBeradik = async (u) => {
+            const hasil = [];
+            try {
+                const sr = await getDocs(query(collection(db, "mynasab_nodes"), where("is_root", "==", true), where("link_owner", "==", u)));
+                sr.forEach(d => hasil.push(d.data()));
+                const diri = await getDoc(doc(db, "mynasab_nodes", "root_" + u));
+                for (const lu of ((diri.exists() && diri.data().linked_adik) || [])) { const ra = await getDoc(doc(db, "mynasab_nodes", "root_" + lu)); if (ra.exists() && ra.data().is_root) hasil.push(ra.data()); }
+            } catch (e) {}
+            return hasil;
+        };
+        const kayakan = async (nodAsal) => {
+            let nod = nodAsal; const tambahN = []; const pemilik = (nod.find(n => n.is_root) || {}).owner_uid;
+            const maya = (r, ref) => ({ id: 'as_' + r.owner_uid, owner_uid: pemilik, name: r.name, relationship: 'Anak Saudara', ref_id: ref, akaun_uid: r.owner_uid, is_root: false, gender: r.gender || '', dob: r.dob || '', status: r.status || 'hidup' });
+            if (pemilik) for (const r of await akarAnakSaudara(pemilik)) {
+                const d = r.anak_saudara_dari || {};
+                const sudah = nod.some(n => lc(n.relationship) === 'anak saudara' && (n.akaun_uid === r.owner_uid || n.id === d.anak_nod || (n.ref_id === d.nod && lc(n.name) === lc(r.name))));
+                if (!sudah && d.nod && nod.some(n => n.id === d.nod)) nod = nod.concat([maya(r, d.nod)]);
+            }
+            for (const as0 of nod.slice()) {
+                if (lc(as0.relationship) !== 'anak saudara') continue;
+                const u0 = await cariUid(as0); if (!u0 || u0 === as0.owner_uid) continue;
+                const lihat = new Set([u0, as0.owner_uid]), barisan = [u0];
+                while (barisan.length && lihat.size < 40) {
+                    for (const r of await akarAdikBeradik(barisan.shift())) {
+                        const ru = r.owner_uid; if (!ru || lihat.has(ru)) continue; lihat.add(ru); barisan.push(ru);
+                        const idx = nod.findIndex(n => lc(n.relationship) === 'anak saudara' && (n.akaun_uid === ru || (n.ref_id === as0.ref_id && lc(n.name) === lc(r.name))));
+                        if (idx >= 0) { if (!nod[idx].akaun_uid) nod = nod.map((n, i) => i === idx ? { ...n, akaun_uid: ru } : n); }
+                        else nod = nod.concat([maya(r, as0.ref_id)]);
+                    }
+                }
+            }
+            for (const as of nod) {
+                if (lc(as.relationship) !== 'anak saudara') continue;
+                const uid = await cariUid(as); if (!uid || uid === as.owner_uid) continue;
+                const ada = (rel, nama) => nod.some(n => n.ref_id === rel && lc(n.name) === lc(nama));
+                (await ambil(uid)).filter(n => !n.is_root && n.created_by === uid).forEach(n => {
+                    const h = lc(n.relationship);
+                    if (/suami|isteri/.test(h) && !/pasangan|mertua|ipar/.test(h)) { if (!ada(as.id, n.name)) tambahN.push({ ...n, relationship: 'Pasangan Anak Saudara', ref_id: as.id }); }
+                    else if (h === 'anak') { if (!ada(as.id, n.name)) tambahN.push({ ...n, relationship: 'Cucu Saudara', ref_id: as.id }); }
+                    else if (h === 'cucu') tambahN.push({ ...n, relationship: 'Cicit Saudara' });
+                });
+            }
+            return tambahN.length ? nod.concat(tambahN) : nod;
+        };
+        const nodSaya = await kayakan(await ambil(saya));
+        const nodInduk = sayaInduk ? nodSaya : await kayakan(await ambil(indukUid));
         const akaun = await Promise.all(pautan.map(async p => ({ uid: p.uid, sasaran: p.sasaran_id, nod: p.uid === saya ? nodSaya : await ambil(p.uid) })));
 
         const kelompok = (nod) => {
-            const k = { diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], turun: [[], [], [], [], []], adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [], saudaraIbuBapa: [], pasanganSaudara: [], sepupu: [] };
+            const k = { diri: null, pasangan: [], menantu: [], ibuBapa: [], datukNenek: [], moyang: [], buyut: [], cakawari: [], cilawagi: [], mertua: [], turun: [[], [], [], [], []], adikBeradik: [], ipar: [], anakSaudara: [], cucuSaudara: [], cicitSaudara: [], pasanganAnakSaudara: [], saudaraIbuBapa: [], pasanganSaudara: [], sepupu: [] };
             nod.forEach(d => {
                 const h = (d.relationship || '').toLowerCase();
                 if (d.is_root) k.diri = d;
                 else if (/^pasangan (bapa|mak|ibu) saudara/.test(h)) k.pasanganSaudara.push(d);
                 else if (/^(bapa|mak|ibu) saudara/.test(h)) k.saudaraIbuBapa.push(d);
                 else if (h === 'sepupu') k.sepupu.push(d);
+                else if (h === 'pasangan anak saudara') k.pasanganAnakSaudara.push(d);
+                else if (h === 'cicit saudara') k.cicitSaudara.push(d);
                 else if (h.includes('suami') || h.includes('isteri')) k.pasangan.push(d);
                 else if (h.includes('menantu') || h.includes('pasangan cucu')) k.menantu.push(d);
                 else if (h === 'ayah' || h === 'ibu') k.ibuBapa.push(d);
@@ -714,7 +776,9 @@ window.muatKeluargaRombongan = async () => {
             kSaya.adikBeradik.forEach(adik => {
                 tambah(adik, 'sisi'); kSaya.ipar.filter(i => i.ref_id === adik.id).forEach(i => tambah(i, 'sisi'));
                 const anakSini = kSaya.anakSaudara.filter(c => c.ref_id === adik.id);
-                anakSini.forEach(c => tambah(c, 'sisi')); kSaya.cucuSaudara.filter(c => anakSini.some(a => a.id === c.ref_id)).forEach(c => tambah(c, 'sisi'));
+                anakSini.forEach(c => { tambah(c, 'sisi'); kSaya.pasanganAnakSaudara.filter(p => p.ref_id === c.id).forEach(p => tambah(p, 'sisi')); });
+                const cucuSini = kSaya.cucuSaudara.filter(c => anakSini.some(a => a.id === c.ref_id)); cucuSini.forEach(c => tambah(c, 'sisi'));
+                kSaya.cicitSaudara.filter(c => cucuSini.some(a => a.id === c.ref_id)).forEach(c => tambah(c, 'sisi'));
             });
         };
         const tambahAdikBerpaut = (sasaranId) => {
