@@ -13,19 +13,26 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-// [OURMONEY - TAMBAHAN] Klik notifikasi OurMoney -> buka ourmoney.html.
+// KLIK NOTIFIKASI (OurMoney, weCare, myNasab dll).
 // MESTI didaftar SEBELUM firebase.messaging(): SDK Firebase mendaftar pengendali kliknya sendiri yang
-// memanggil stopImmediatePropagation() dan hanya menutup notifikasi jika tiada pautan (sebab itu dahulu ia "hilang" sahaja).
-// Didaftar DI ATAS pengendali lama; hanya mengambil alih notifikasi OurMoney,
-// yang lain diteruskan kepada pengendali lama di bawah seperti biasa.
+// memanggil stopImmediatePropagation(); jika mesej tiada pautan (fcmOptions.link / click_action) ia hanya
+// menutup notifikasi dan tidak membuka apa-apa. Pengendali ini mengambil alih HANYA notifikasi tanpa pautan.
+// Notifikasi yang ada pautan (muhasabah, checklist, hari jadi, anak, ahli sertai) dibiarkan kepada SDK seperti biasa.
+const PAUTAN_APP = { ourmoney: '/ourmoney.html', wecare: '/wecare.html', mynasab: '/mynasab/index.html' };
 self.addEventListener('notificationclick', (event) => {
+    if (event.action) return;
     const d = event.notification.data || {};
-    const fcm = d.FCM_MSG && d.FCM_MSG.data ? d.FCM_MSG.data : {};
-    if (d.app !== 'ourmoney' && fcm.app !== 'ourmoney') return;
+    const fm = d.FCM_MSG || null;
+    const fcm = fm && fm.data ? fm.data : {};
+    // Ada pautan rasmi -> biar SDK yang uruskan
+    if (fm && ((fm.fcmOptions && fm.fcmOptions.link) || (fm.notification && fm.notification.click_action))) return;
+    const app = d.app || fcm.app || '';
+    const url = d.url || fcm.url || PAUTAN_APP[String(app).toLowerCase()] || (fm ? '/' : '');
+    if (!url) return; // bukan notifikasi kita; biar pengendali lama
 
     event.stopImmediatePropagation();
     event.notification.close();
-    const sasaran = new URL(d.url || fcm.url || '/ourmoney.html', self.location.origin).href;
+    const sasaran = new URL(url, self.location.origin).href;
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (senarai) => {
             for (const c of senarai) {
