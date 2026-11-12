@@ -13,6 +13,32 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+// [OURMONEY - TAMBAHAN] Klik notifikasi OurMoney -> buka ourmoney.html.
+// MESTI didaftar SEBELUM firebase.messaging(): SDK Firebase mendaftar pengendali kliknya sendiri yang
+// memanggil stopImmediatePropagation() dan hanya menutup notifikasi jika tiada pautan (sebab itu dahulu ia "hilang" sahaja).
+// Didaftar DI ATAS pengendali lama; hanya mengambil alih notifikasi OurMoney,
+// yang lain diteruskan kepada pengendali lama di bawah seperti biasa.
+self.addEventListener('notificationclick', (event) => {
+    const d = event.notification.data || {};
+    const fcm = d.FCM_MSG && d.FCM_MSG.data ? d.FCM_MSG.data : {};
+    if (d.app !== 'ourmoney' && fcm.app !== 'ourmoney') return;
+
+    event.stopImmediatePropagation();
+    event.notification.close();
+    const sasaran = new URL(d.url || fcm.url || '/ourmoney.html', self.location.origin).href;
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (senarai) => {
+            for (const c of senarai) {
+                if (c.url.startsWith(self.location.origin) && 'focus' in c) {
+                    try { if ('navigate' in c) await c.navigate(sasaran); } catch (e) {}
+                    return c.focus();
+                }
+            }
+            if (clients.openWindow) return clients.openWindow(sasaran);
+        })
+    );
+});
+
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
@@ -37,30 +63,6 @@ messaging.onBackgroundMessage((payload) => {
             data: { app: 'ourmoney', url: d.url || '/ourmoney.html' }
         });
     }
-});
-
-// [OURMONEY - TAMBAHAN] Klik notifikasi OurMoney -> buka ourmoney.html.
-// Didaftar DI ATAS pengendali lama; hanya mengambil alih notifikasi OurMoney,
-// yang lain diteruskan kepada pengendali lama di bawah seperti biasa.
-self.addEventListener('notificationclick', (event) => {
-    const d = event.notification.data || {};
-    const fcm = d.FCM_MSG && d.FCM_MSG.data ? d.FCM_MSG.data : {};
-    if (d.app !== 'ourmoney' && fcm.app !== 'ourmoney') return;
-
-    event.stopImmediatePropagation();
-    event.notification.close();
-    const sasaran = new URL(d.url || fcm.url || '/ourmoney.html', self.location.origin).href;
-    event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (senarai) => {
-            for (const c of senarai) {
-                if (c.url.startsWith(self.location.origin) && 'focus' in c) {
-                    try { if ('navigate' in c) await c.navigate(sasaran); } catch (e) {}
-                    return c.focus();
-                }
-            }
-            if (clients.openWindow) return clients.openWindow(sasaran);
-        })
-    );
 });
 
 self.addEventListener('notificationclick', (event) => {
