@@ -276,6 +276,11 @@ const MUHASABAH = {
     ] }
 };
 
+// Teks Al-Kahfi: MESTI sama dengan KAHFI dalam functions (peringatanMuhasabah)
+const KAHFI = {
+  malam: "Malam Jumaat dah tiba. Jom mula baca Surah Al-Kahfi, cahaya yang menemani kita sampai Jumaat depan.",
+  pagi: "Hari Jumaat ni dah baca Al-Kahfi? Kalau tak sempat semua, mulakan dengan 10 ayat pertama, pelindung daripada fitnah Dajjal."
+};
 const q = new URLSearchParams(location.search);
 let jam = parseInt(q.get('jam'), 10);
 if (jam !== 20 && jam !== 22) jam = (new Date().getHours() >= 21 || new Date().getHours() < 5) ? 22 : 20;
@@ -377,6 +382,17 @@ if (q.get('mod') === 'anak') {
   $('h-sumber').textContent = '';
   $('hadis').style.display = '';
   $('btn-buka').style.display = 'none';      // muhasabah tiada kaitan dengan myCHECKLIST40
+  // Malam Jumaat (Khamis 10.30 malam) & Jumaat 10.30 pagi: peringatan Surah Al-Kahfi (&k=1, teks sama dengan notifikasi)
+  if (q.get('k') === '1') {
+    $('u-kecil').textContent = '📖 Al-Kahfi hari Jumaat';
+    $('u-ayat').textContent = KAHFI[slotM];
+    $('hadis').querySelector('small').textContent = 'Kelebihan Al-Kahfi';
+    $('h-teks').textContent = 'Sesiapa membaca Surah Al-Kahfi pada hari Jumaat, akan dipancarkan cahaya baginya antara dua Jumaat. Dan sesiapa menghafal sepuluh ayat pertama Surah Al-Kahfi, dia dipelihara daripada fitnah Dajjal.';
+    $('h-sumber').textContent = 'Riwayat al-Hakim & al-Baihaqi; riwayat Muslim';
+    $('btn-buka').textContent = 'Baca Surah Al-Kahfi ➔';
+    $('btn-buka').href = 'https://quran.com/18'; $('btn-buka').target = '_blank'; $('btn-buka').rel = 'noopener';
+    $('btn-buka').style.display = '';
+  }
 } else {
 // Hadis ikut perkara; jika tiada parameter, pilih ikut hari
 let kunci = id && HADIS[id] ? id : KUMP[jam][Math.floor(Date.now() / 86400000) % KUMP[jam].length];

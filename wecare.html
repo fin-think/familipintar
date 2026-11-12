@@ -282,6 +282,23 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
   </div>
 </div>
 
+<!-- MODAL GILIRAN JAGA -->
+<div id="modalGiliran" class="gate" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:15px;">
+  <div class="card" style="width:100%;max-width:420px;max-height:90vh;overflow:auto;">
+    <h2 style="margin:0 0 6px;font-size:18px;font-weight:800;">🔄 Jana Giliran Jaga</h2>
+    <p style="font-size:12px;color:var(--muted);margin:0 0 10px;">Ikut susunan di bawah. Semua ahli dimaklumkan bila giliran seseorang bermula.</p>
+    <label>Tajuk</label><input type="text" id="gilTajuk" value="Giliran jaga" style="margin-bottom:10px;">
+    <label>Siapa terlibat</label><div id="gilAhli" style="margin-bottom:10px;"></div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;">
+      <div style="flex:1;"><label>Tarikh mula</label><input type="date" id="gilMula"></div>
+      <div style="flex:1;"><label>Hari / orang</label><input type="number" id="gilHari" value="7" min="1"></div>
+      <div style="flex:1;"><label>Pusingan</label><input type="number" id="gilPusing" value="1" min="1" max="12"></div>
+    </div>
+    <button class="primary" onclick="janaGiliran()" style="margin-bottom:8px;">Jana giliran</button>
+    <button class="ghost" style="width:100%;" onclick="tutupGiliran()">Batal</button>
+  </div>
+</div>
+
 <!-- MODAL LIHAT TUGAS -->
 <div id="modalLihat" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:2100;align-items:center;justify-content:center;padding:15px;">
   <div style="background:#fff;width:100%;max-width:420px;border-radius:12px;padding:20px;max-height:90vh;overflow-y:auto;">
@@ -626,6 +643,9 @@ async function muatDataKalendar() {
   dataKalendarGlobal = [];
   snap.forEach(d => { dataKalendarGlobal.push({ ...d.data(), id: d.id }); });
   window.renderKalendar();
+  // Dibuka daripada notifikasi ubat: ?tugas=<id> terus tunjuk tugasan (dengan butang DONE)
+  const idP = new URLSearchParams(location.search).get('tugas');
+  if (idP && cariTugas(idP) && !window._tugasDibuka) { window._tugasDibuka = true; window.lihatTugas(idP); }
 }
 
 // --- CUTI UMUM & CUTI SEKOLAH MALAYSIA (data: /cuti-malaysia.json, dikemas kini dari semasa ke semasa) ---
@@ -713,7 +733,7 @@ window.renderKalendar = () => {
         return;
       }
       const shiftLabel = (t.shift_siapa && t.shift_siapa !== 'Umum') ? `[${t.shift_siapa}] ` : '';
-      htmlTugas += `<div class="cal-event ${warnaKelas}" onclick="event.stopPropagation();lihatTugas('${t.id}')">${isUbat(t) ? '💊 ' : ''}${t.time ? t.time + ' ' : ''}${esc(shiftLabel)}${esc(t.title)}</div>`;
+      htmlTugas += `<div class="cal-event ${warnaKelas}" onclick="event.stopPropagation();lihatTugas('${t.id}')">${ubatBerjadual(t) && selesaiPada(t, tarikhKunci) ? '✅ ' : isUbat(t) ? '💊 ' : ''}${t.time ? t.time + ' ' : ''}${esc(shiftLabel)}${esc(t.title)}</div>`;
     });
     
     // Cuti umum (setiap hari berkenaan) & cuti sekolah (label pada hari pertama tempoh atau 1hb bulan; hari lain diwarnakan)
@@ -815,7 +835,14 @@ window.lihatTugas = (id) => {
       ${(t.shift_siapa && t.shift_siapa !== 'Umum') ? `<div>👤 Shift: <b>${esc(t.shift_siapa)}</b></div>` : ''}
       ${t.note ? `<div style="margin-top:6px;color:var(--ink);white-space:pre-wrap;">📝 ${esc(t.note)}</div>` : ''}
       <div style="margin-top:6px;font-size:11px;">Direkod oleh: ${esc(namaPenulis(t))}</div>
-    </div>`;
+    </div>${(() => {
+      if (!ubatBerjadual(t)) return '';
+      const k = kunciTarikh(Date.now());
+      if (!(k >= t.date && k <= (t.end_date || t.date))) return '';
+      const sd = selesaiPada(t, k);
+      return sd ? `<div style="margin-top:12px;padding:10px;border-radius:10px;background:#dcfce7;color:#166534;font-weight:700;font-size:13px;">✅ Ubat hari ini sudah diberi oleh ${esc(sd.nama)} (${jamMinit(sd.at)})</div>`
+        : `<button class="primary" style="margin-top:12px;background:#16a34a;" onclick="tandaUbatSelesai('${t.id}')">✅ DONE: Ubat hari ini sudah diberi</button><div style="font-size:11px;color:var(--muted);margin-top:4px;">Semua ahli keluarga akan dimaklumkan.</div>`;
+    })()}`;
   document.getElementById('modalLihat').style.display = 'flex';
 };
 window.tutupLihat = () => { document.getElementById('modalLihat').style.display = 'none'; };
@@ -1073,6 +1100,22 @@ const labelBelah = () => pilihBelah() === 'induk' ? 'Keluarga Induk' : 'Keluarga
 const jangkarBelah = () => pilihBelah() === 'pasangan' ? jangkar.pasangan : jangkar.induk;
 // Data lama (tiada anchor_id): tafsir ikut sudut pandang pemilik kumpulan
 const jangkarItem = (x) => x.anchor_id || (x.belah === 'pasangan' ? jangkar.lamaPasangan : jangkar.lamaInduk);
+// Ubat: tanda DONE ikut tarikh (selesai.<YYYY-MM-DD> = { uid, nama, at }); semua ahli nampak siapa & bila
+const selesaiPada = (t, k) => (t && t.selesai && t.selesai[k]) || null;
+const ubatBerjadual = (t) => t && t.jenis !== 'balik' && !!t.time && isUbat(t);
+const jamMinit = (ms) => new Date(ms).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' });
+window.tandaUbatSelesai = async (id) => {
+  const t = cariTugas(id); if (!t) return;
+  const k = kunciTarikh(Date.now());
+  if (!(k >= t.date && k <= (t.end_date || t.date))) { alert('Tugasan ini bukan untuk hari ini.'); return; }
+  if (selesaiPada(t, k)) return;
+  try {
+    const rekod = { uid: currentUser.uid, nama: namaSaya || emelPrefix(), at: Date.now() };
+    await updateDoc(doc(db, "wecare_calendar", id), { ['selesai.' + k]: rekod });
+    t.selesai = { ...(t.selesai || {}), [k]: rekod };
+    window.lihatTugas(id); window.renderKalendar();
+  } catch (e) { alert('Gagal menanda: ' + e.message); }
+};
 const kunciTarikh = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const notaHari = (kunci) => {
   const j = jangkarBelah();
@@ -1255,15 +1298,46 @@ window.renderAktivitiHariIni = () => {
     if (t.jenis === 'balik') return `<li style="margin-bottom:4px;cursor:pointer;color:#6d28d9;" onclick="lihatTugas('${t.id}')">🏠 <b>${esc(t.shift_siapa)}</b> ${t.balik_jenis === 'hari' ? 'balik hari ini' : 'balik (bermalam' + ((t.end_date && t.end_date !== t.date) ? ', hingga ' + esc(t.end_date) : '') + ')'}.</li>`;
     const giliran = (t.shift_siapa && t.shift_siapa !== 'Umum') ? `, giliran ${esc(t.shift_siapa)}` : '';
     const hingga = (t.end_date && t.end_date !== t.date) ? ` (hingga ${esc(t.end_date)})` : '';
-    return `<li style="margin-bottom:4px;cursor:pointer;" onclick="lihatTugas('${t.id}')">${t.time ? '<b>' + esc(t.time) + '</b> – ' : ''}${isUbat(t) ? '💊 ' : ''}${esc(t.title)} ${untuk[t.for_whom] || 'untuk semua'}${giliran}${hingga}.</li>`;
+    return `<li style="margin-bottom:4px;cursor:pointer;" onclick="lihatTugas('${t.id}')">${t.time ? '<b>' + esc(t.time) + '</b> – ' : ''}${ubatBerjadual(t) && selesaiPada(t, kunci) ? '✅ ' : isUbat(t) ? '💊 ' : ''}${esc(t.title)} ${untuk[t.for_whom] || 'untuk semua'}${giliran}${hingga}.</li>`;
   }).join('');
   const bilNota = notaHari(kunci).length;
+  const gil = senarai.filter(t => t.giliran && t.shift_siapa && t.shift_siapa !== 'Umum');
+  const bannerGiliran = gil.length ? `<div style="margin-bottom:10px;padding:10px 12px;border-radius:10px;background:#ecfeff;border:1px solid #a5f3fc;font-size:13px;cursor:pointer;" onclick="lihatTugas('${gil[0].id}')">🔄 Giliran jaga sekarang: <b>${gil.map(t => esc(t.shift_siapa)).join(', ')}</b> <span style="color:var(--muted);">(${esc(gil[0].date)} → ${esc(gil[0].end_date || gil[0].date)})</span></div>` : '';
 
-  box.innerHTML = `
-    <div style="font-weight:800;font-size:14px;margin-bottom:2px;">📋 Aktiviti Hari Ini</div>
+  box.innerHTML = bannerGiliran + `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><div style="font-weight:800;font-size:14px;margin-bottom:2px;">📋 Aktiviti Hari Ini</div><button class="ghost" style="width:auto;padding:4px 10px;font-size:12px;" onclick="bukaGiliran()">🔄 Jana giliran</button></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${esc(tajukTarikh)} · ${belah}</div>
     ${senarai.length ? `<ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.5;">${ayat}</ul>` : '<div style="font-size:13px;color:var(--muted);">Tiada aktiviti direkodkan untuk hari ini.</div>'}
     ${bilNota ? `<div style="margin-top:8px;font-size:13px;cursor:pointer;color:#92400e;" onclick="lihatNota('${kunci}')">🗒️ ${bilNota} nota ditinggalkan hari ini – klik untuk baca.</div>` : ''}`;
+};
+
+// ===== GILIRAN JAGA: jana tugasan bergilir (cth. seminggu seorang) =====
+window.bukaGiliran = () => {
+  const ahli = [...window.globalTeamMap.values()];
+  if (!ahli.length) { alert('Senarai penjaga belum dimuatkan.'); return; }
+  document.getElementById('gilAhli').innerHTML = ahli.map((v, i) => `<label style="display:flex;gap:8px;align-items:center;font-weight:600;margin:6px 0;"><input type="checkbox" value="${esc(v.name)}" checked style="width:auto;"> ${i + 1}. ${esc(v.name)} <span style="color:var(--muted);font-weight:400;font-size:12px;">(${esc(v.role)})</span></label>`).join('');
+  document.getElementById('gilMula').value = kunciTarikh(Date.now());
+  document.getElementById('modalGiliran').style.display = 'flex';
+};
+window.tutupGiliran = () => { document.getElementById('modalGiliran').style.display = 'none'; };
+window.janaGiliran = async () => {
+  const nama = [...document.querySelectorAll('#gilAhli input:checked')].map(x => x.value);
+  const mula = document.getElementById('gilMula').value;
+  const hari = Math.max(1, parseInt(document.getElementById('gilHari').value, 10) || 7);
+  const pusingan = Math.max(1, Math.min(12, parseInt(document.getElementById('gilPusing').value, 10) || 1));
+  const tajuk = document.getElementById('gilTajuk').value.trim() || 'Giliran jaga';
+  if (!nama.length || !mula) { alert('Pilih sekurang-kurangnya seorang dan tarikh mula.'); return; }
+  const jb = jangkarBelah();
+  if (!jb) { alert('Belah ini belum ada pasangan dalam myNasab. Tambah pasangan dahulu.'); return; }
+  const tambahHari = (str, n) => { const [y, m, d] = str.split('-').map(Number); return kunciTarikh(new Date(y, m - 1, d + n).getTime()); };
+  const senarai = []; let tarikh = mula;
+  for (let p = 0; p < pusingan; p++) for (const n of nama) { senarai.push({ n, date: tarikh, end_date: tambahHari(tarikh, hari - 1) }); tarikh = tambahHari(tarikh, hari); }
+  if (!confirm(`${senarai.length} giliran akan dicipta:\n` + senarai.slice(0, 8).map(x => `• ${x.n}: ${x.date} → ${x.end_date}`).join('\n') + (senarai.length > 8 ? `\n… dan ${senarai.length - 8} lagi` : '') + '\n\nTeruskan?')) return;
+  try {
+    const author = namaSaya || emelPrefix();
+    for (const x of senarai) await setDoc(doc(collection(db, "wecare_calendar")), { title: tajuk, date: x.date, end_date: x.end_date, time: '', for_whom: 'umum', shift_siapa: x.n, note: '', jenis: 'tugas', balik_jenis: '', giliran: true, anchor_id: jb, author, author_uid: currentUser.uid, group_id: currentGroup, created_at: Date.now() });
+    window.tutupGiliran(); muatDataKalendar();
+  } catch (e) { alert('Gagal mencipta giliran: ' + e.message); }
 };
 
 window.lihatNota = (kunci) => {
