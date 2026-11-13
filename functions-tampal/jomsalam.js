@@ -68,3 +68,47 @@ exports.jomsalamLaporan = functions
         console.log('Laporan JomSalam', r.chat_id, '-', n, 'mesej dikunci');
         return null;
     });
+
+// Senarai akaun keluarga dari induk teratas ke bawah (sama dengan muatKeluarga() dalam jomsalam.html)
+async function slIndukTeratas(uid) {
+    let u = uid;
+    for (let i = 0; i < 8; i++) {
+        const l = await db.collection('mynasab_links').doc(u).get();
+        if (l.exists && l.data().status === 'aktif' && l.data().owner_uid && l.data().owner_uid !== u) { u = l.data().owner_uid; continue; }
+        const r = await db.collection('mynasab_nodes').doc('root_' + u).get();
+        const d = r.exists && r.data().anak_saudara_dari;
+        if (d && d.uid && d.uid !== u) { u = d.uid; continue; }
+        break;
+    }
+    return u;
+}
+async function slKeluargaPenuh(uid) {
+    const atas = await slIndukTeratas(uid), lawat = new Set([atas]), giliran = [atas];
+    while (giliran.length && lawat.size < 300) {
+        const u = giliran.shift();
+        const ls = await db.collection('mynasab_links').where('owner_uid', '==', u).where('status', '==', 'aktif').get();
+        ls.forEach(d => { if (!lawat.has(d.id)) { lawat.add(d.id); giliran.push(d.id); } });
+        const rs = await db.collection('mynasab_nodes').where('is_root', '==', true).where('anak_saudara_dari.uid', '==', u).get();
+        rs.forEach(d => { const o = d.data().owner_uid; if (o && !lawat.has(o)) { lawat.add(o); giliran.push(o); } });
+    }
+    return lawat;
+}
+
+// Mula perbualan Keluarga dengan ahli di luar kumpulan pautan terus: server sahkan kedua-duanya dalam keluarga yang sama
+exports.jomsalamMulaKeluarga = functions
+    .region('asia-southeast1')
+    .https.onCall(async (data, context) => {
+        const saya = context.auth && context.auth.uid, dia = data && data.uid;
+        if (!saya) throw new functions.https.HttpsError('unauthenticated', 'Sila log masuk.');
+        if (!dia || dia === saya) throw new functions.https.HttpsError('invalid-argument', 'Penerima tidak sah.');
+        const keluarga = await slKeluargaPenuh(saya);
+        if (!keluarga.has(dia) || !keluarga.has(saya)) throw new functions.https.HttpsError('permission-denied', 'Bukan ahli keluarga yang sama dalam myNasab. Guna Hulur Salam.');
+        const ahli = [saya, dia].sort(), id = ahli.join('_'), ref = db.collection('salam_chat').doc(id);
+        const ada = await ref.get();
+        if (!ada.exists) {
+            await ref.set({ ahli, jenis: 'keluarga', status: 'aktif', pemohon: saya,
+                nama: { [saya]: String(data.namaSaya || '').slice(0, 80), [dia]: String(data.nama || '').slice(0, 80) },
+                belum: {}, sembunyi: {}, created_at: Date.now(), masa_akhir: 0, mesej_akhir: '' });
+        }
+        return { id };
+    });

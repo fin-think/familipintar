@@ -88,6 +88,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc, query, where, orderBy, limitToLast, onSnapshot, writeBatch, increment, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 import { firebaseConfig, esc } from "./kongsi.js";
 
 const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
@@ -121,16 +122,33 @@ onAuthStateChanged(auth, async (u) => {
   const c = new URLSearchParams(location.search).get('c'); if (c) S.bukaSelepasMuat = c;
 });
 
-async function muatKeluarga() {
-  const ahli = new Map();
-  if (S.grp !== S.user.uid) {
-    try { const g = await getDoc(doc(db, 'mynasab_users', S.grp)); ahli.set(S.grp, (g.exists() && g.data().name) || 'Induk keluarga'); } catch (e) { ahli.set(S.grp, 'Induk keluarga'); }
+// Keluarga = semua akaun dari induk teratas ke bawah (seperti goTravel/myNasab):
+// naik rantai pautan (mynasab_links / anak_saudara_dari) ke akaun teratas, kemudian turun: akaun yang dijemput
+// oleh setiap akaun (pautan aktif) + akaun anak saudara (akar dengan anak_saudara_dari.uid). Logik sama dalam function jomsalamMulaKeluarga.
+async function indukTeratas(uid) {
+  let u = uid;
+  for (let i = 0; i < 8; i++) {
+    try { const l = await getDoc(doc(db, 'mynasab_links', u)); if (l.exists() && l.data().status === 'aktif' && l.data().owner_uid && l.data().owner_uid !== u) { u = l.data().owner_uid; continue; } } catch (e) {}
+    try { const r = await getDoc(doc(db, 'mynasab_nodes', 'root_' + u)); const d = r.exists() && r.data().anak_saudara_dari; if (d && d.uid && d.uid !== u) { u = d.uid; continue; } } catch (e) {}
+    break;
   }
-  try {
-    const s = await getDocs(query(collection(db, 'mynasab_links'), where('owner_uid', '==', S.grp), where('status', '==', 'aktif')));
-    s.forEach(d => { if (d.id !== S.user.uid) ahli.set(d.id, d.data().nama || 'Ahli keluarga'); });
-  } catch (e) {}
-  S.keluarga = [...ahli].map(([uid, nama]) => ({ uid, nama })).sort((a, b) => a.nama.localeCompare(b.nama));
+  return u;
+}
+async function muatKeluarga() {
+  const atas = await indukTeratas(S.user.uid);
+  const nama = new Map(), lawat = new Set([atas]), giliran = [atas];
+  while (giliran.length && lawat.size < 300) {
+    const u = giliran.shift();
+    try { (await getDocs(query(collection(db, 'mynasab_links'), where('owner_uid', '==', u), where('status', '==', 'aktif')))).forEach(d => { if (!nama.has(d.id)) nama.set(d.id, d.data().nama || ''); if (!lawat.has(d.id)) { lawat.add(d.id); giliran.push(d.id); } }); } catch (e) {}
+    try { (await getDocs(query(collection(db, 'mynasab_nodes'), where('is_root', '==', true), where('anak_saudara_dari.uid', '==', u)))).forEach(d => { const o = d.data().owner_uid; if (!o) return; if (!nama.has(o)) nama.set(o, d.data().name || ''); if (!lawat.has(o)) { lawat.add(o); giliran.push(o); } }); } catch (e) {}
+  }
+  lawat.delete(S.user.uid);
+  const senarai = await Promise.all([...lawat].map(async uid => {
+    let n = nama.get(uid) || '';
+    try { const ud = await getDoc(doc(db, 'mynasab_users', uid)); if (ud.exists() && ud.data().name) n = ud.data().name; } catch (e) {}
+    return { uid, nama: n || 'Ahli keluarga' };
+  }));
+  S.keluarga = senarai.sort((a, b) => a.nama.localeCompare(b.nama));
   await Promise.all(S.keluarga.map(k => getDoc(doc(db, 'buatapa_profil', k.uid)).then(p => { if (p.exists()) S.profil[k.uid] = p.data().foto || ''; }).catch(() => {})));
 }
 
@@ -261,7 +279,12 @@ async function mulaKeluarga(uid) {
   let c = S.chats.find(x => x.id === id);
   if (!c) {
     const data = { ahli: [S.user.uid, uid].sort(), jenis: 'keluarga', status: 'aktif', pemohon: S.user.uid, nama: { [S.user.uid]: S.nama, [uid]: k.nama }, belum: {}, sembunyi: {}, created_at: Date.now(), masa_akhir: 0, mesej_akhir: '' };
-    try { await setDoc(doc(db, 'salam_chat', id), data); } catch (e) { alert('Gagal mula perbualan: ' + e.message); return; }
+    try { await setDoc(doc(db, 'salam_chat', id), data); }
+    catch (e) {
+      // Keluarga di luar kumpulan pautan terus (cth. anak saudara yang dijemput oleh anak saudara lain): server sahkan melalui pokok
+      try { await httpsCallable(getFunctions(app, 'asia-southeast1'), 'jomsalamMulaKeluarga')({ uid, nama: k.nama, namaSaya: S.nama }); }
+      catch (e2) { alert('Gagal mula perbualan: ' + (e2.message || e.message)); return; }
+    }
     c = { id, ...data };
   }
   bukaChat(c);
