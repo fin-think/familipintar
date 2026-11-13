@@ -1161,7 +1161,6 @@ if ('Notification' in window) {
         let emel = (document.getElementById('loginEmel').value || '').trim();
         if (!emel) emel = (prompt('Masukkan alamat emel akaun anda:') || '').trim();
         if (!emel) return;
-        auth.languageCode = 'ms';
         try { await sendPasswordResetEmail(auth, emel); }
         catch (e) { if (e && e.code === 'auth/invalid-email') { alert('Format emel tidak sah.'); return; } }
         // Mesej sama sama ada emel wujud atau tidak (elak orang menyemak emel siapa yang berdaftar)
