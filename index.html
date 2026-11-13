@@ -864,7 +864,7 @@ if ('Notification' in window) {
             
             // Logik Tampilkan Butang Admin & Affiliate
             window.__adminSemua = (user.email === 'dae.book89@gmail.com');
-            { const kB = document.getElementById('kadBuatapa'), kM = document.getElementById('fpmBuatapa'); if (kB) kB.style.display = window.__adminSemua ? '' : 'none'; if (kM) kM.style.display = window.__adminSemua ? 'block' : 'none'; if (window.__adminSemua) muatBuatapaIndex(user); }
+            { const kB = document.getElementById('kadBuatapa'), kM = document.getElementById('fpmBuatapa'); if (kB) kB.style.display = ''; if (kM) kM.style.display = 'block'; muatBuatapaIndex(user); }   // dibuka kepada semua akaun
             if (typeof window.aturKadJurnal === 'function') window.aturKadJurnal();
             if (user.email === 'dae.book89@gmail.com') {
                 if (btnAdmin) btnAdmin.style.display = 'inline-flex';
