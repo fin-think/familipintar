@@ -242,6 +242,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                     <button onclick="window.location.href='topup.html'" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
                         + Top Up
                     </button>
+                    <button onclick="bukaTukarKataLaluan()" class="text-slate-500 hover:text-slate-800 text-sm font-bold underline transition-all ml-2">Tukar Kata Laluan</button>
                     <button onclick="logKeluar()" class="text-slate-500 hover:text-slate-800 text-sm font-bold underline transition-all ml-2">
                         Log Keluar
                     </button>
@@ -281,6 +282,9 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             </div>
             <button onclick="window.location.href='topup.html'" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 px-4 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2">
                 <i class="fa-solid fa-wallet"></i> + Top Up Kredit
+            </button>
+            <button onclick="bukaTukarKataLaluan()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2.5 px-4 rounded-xl font-bold text-sm transition-all text-center mt-1">
+                <i class="fa-solid fa-key"></i> Tukar Kata Laluan
             </button>
             <button onclick="logKeluar()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2.5 px-4 rounded-xl font-bold text-sm transition-all text-center mt-1">
                 Log Keluar
@@ -693,7 +697,8 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             <p class="text-sm text-slate-500 text-center mb-6">Selamat kembali ke Famili Pintar</p>
 
             <input type="email" id="loginEmel" placeholder="Alamat Emel" class="w-full border border-slate-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-sky-500 outline-none">
-            <input type="password" id="loginKatalaluan" placeholder="Kata Laluan" class="w-full border border-slate-300 rounded-lg p-3 mb-6 focus:ring-2 focus:ring-sky-500 outline-none">
+            <input type="password" id="loginKatalaluan" placeholder="Kata Laluan" class="w-full border border-slate-300 rounded-lg p-3 mb-2 focus:ring-2 focus:ring-sky-500 outline-none">
+            <div class="text-right mb-5"><button type="button" onclick="lupaKataLaluan()" class="text-sm text-sky-600 font-semibold hover:underline">Lupa kata laluan?</button></div>
 
             <button onclick="prosesLogMasukAsing()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md transition transform hover:-translate-y-0.5">
                 Log Masuk Akaun
@@ -737,7 +742,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 <script type="module">
     // Import modul Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, arrayUnion, collection, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { tarikhMalaysia, sirahHariIni } from "./sejarah-islam.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
@@ -1151,6 +1156,41 @@ if ('Notification' in window) {
         }
     };
 
+    // LUPA KATA LALUAN: Firebase hantar e-mel pautan reset (percuma)
+    window.lupaKataLaluan = async () => {
+        let emel = (document.getElementById('loginEmel').value || '').trim();
+        if (!emel) emel = (prompt('Masukkan alamat emel akaun anda:') || '').trim();
+        if (!emel) return;
+        auth.languageCode = 'ms';
+        try { await sendPasswordResetEmail(auth, emel); }
+        catch (e) { if (e && e.code === 'auth/invalid-email') { alert('Format emel tidak sah.'); return; } }
+        // Mesej sama sama ada emel wujud atau tidak (elak orang menyemak emel siapa yang berdaftar)
+        alert('Jika emel ini berdaftar, pautan untuk set semula kata laluan telah dihantar ke ' + emel + '. Semak juga folder Spam/Promotions.');
+    };
+
+    // TUKAR KATA LALUAN (mesti masukkan kata laluan lama dahulu)
+    window.bukaTukarKataLaluan = () => { const m = document.getElementById('modalTukarKL'); ['klLama', 'klBaru', 'klBaru2'].forEach(i => document.getElementById(i).value = ''); document.getElementById('klStatus').textContent = ''; m.style.display = 'flex'; };
+    window.tutupTukarKataLaluan = () => { document.getElementById('modalTukarKL').style.display = 'none'; };
+    window.simpanKataLaluanBaru = async () => {
+        const st = document.getElementById('klStatus'), u = auth.currentUser;
+        const lama = document.getElementById('klLama').value, baru = document.getElementById('klBaru').value, baru2 = document.getElementById('klBaru2').value;
+        if (!u) { st.textContent = 'Sila log masuk semula.'; return; }
+        if (!lama || !baru) { st.textContent = 'Sila isi semua ruangan.'; return; }
+        if (baru.length < 6) { st.textContent = 'Kata laluan baru sekurang-kurangnya 6 aksara.'; return; }
+        if (baru !== baru2) { st.textContent = 'Kata laluan baru tidak sepadan.'; return; }
+        if (baru === lama) { st.textContent = 'Kata laluan baru sama dengan yang lama.'; return; }
+        st.textContent = 'Menyimpan...';
+        try {
+            await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, lama));
+            await updatePassword(u, baru);
+            window.tutupTukarKataLaluan();
+            alert('Kata laluan berjaya ditukar.');
+        } catch (e) {
+            const k = (e && e.code) || '';
+            st.textContent = (k.includes('wrong-password') || k.includes('invalid-credential')) ? 'Kata laluan lama salah.' : k.includes('too-many-requests') ? 'Terlalu banyak cubaan. Cuba lagi sebentar.' : 'Gagal: ' + (e.message || k);
+        }
+    };
+
     // Fungsi tambahan Log Keluar
     window.logKeluar = async () => {
         await signOut(auth);
@@ -1433,5 +1473,18 @@ window.pantauLencanaWeCareUtama = async (user) => {
 
 
 
+<!-- MODAL TUKAR KATA LALUAN -->
+<div id="modalTukarKL" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);align-items:center;justify-content:center;padding:16px;">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-sm relative shadow-2xl">
+    <button onclick="tutupTukarKataLaluan()" class="absolute top-3 right-4 text-slate-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
+    <h2 class="text-xl font-extrabold text-slate-800 mb-4 text-center">Tukar Kata Laluan</h2>
+    <input type="password" id="klLama" placeholder="Kata laluan semasa" autocomplete="current-password" class="w-full border border-slate-300 rounded-lg p-3 mb-3 focus:ring-2 focus:ring-sky-500 outline-none">
+    <input type="password" id="klBaru" placeholder="Kata laluan baru (min 6 aksara)" autocomplete="new-password" class="w-full border border-slate-300 rounded-lg p-3 mb-3 focus:ring-2 focus:ring-sky-500 outline-none">
+    <input type="password" id="klBaru2" placeholder="Ulang kata laluan baru" autocomplete="new-password" class="w-full border border-slate-300 rounded-lg p-3 mb-2 focus:ring-2 focus:ring-sky-500 outline-none">
+    <p id="klStatus" class="text-sm text-red-600 min-h-[20px] mb-2"></p>
+    <button onclick="simpanKataLaluanBaru()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl shadow-md">Simpan</button>
+    <p class="text-xs text-slate-500 text-center mt-3">Lupa kata laluan semasa? Log keluar, kemudian tekan "Lupa kata laluan?" di skrin Log Masuk.</p>
+  </div>
+</div>
 </body>
 </html>
