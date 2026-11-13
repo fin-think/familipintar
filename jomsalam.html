@@ -135,6 +135,16 @@ async function indukTeratas(uid) {
   return u;
 }
 async function muatKeluarga() {
+  // Utama: server (function jomsalamKeluarga) baca seluruh rantai pautan myNasab tanpa sekatan rules pelanggan
+  try {
+    const r = await httpsCallable(getFunctions(app, 'asia-southeast1'), 'jomsalamKeluarga')({});
+    const senarai = ((r.data && r.data.ahli) || []).filter(k => k.uid && k.uid !== S.user.uid);
+    if (senarai.length) {
+      S.keluarga = senarai.map(k => ({ uid: k.uid, nama: k.nama || 'Ahli keluarga' })).sort((a, b) => a.nama.localeCompare(b.nama));
+      await Promise.all(S.keluarga.map(k => getDoc(doc(db, 'buatapa_profil', k.uid)).then(p => { if (p.exists()) S.profil[k.uid] = p.data().foto || ''; }).catch(() => {})));
+      return;
+    }
+  } catch (e) { console.warn('jomsalamKeluarga belum tersedia, guna bacaan terus:', e.message); }
   const atas = await indukTeratas(S.user.uid);
   const nama = new Map(), lawat = new Set([atas]), giliran = [atas];
   while (giliran.length && lawat.size < 300) {

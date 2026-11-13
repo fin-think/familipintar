@@ -112,3 +112,18 @@ exports.jomsalamMulaKeluarga = functions
         }
         return { id };
     });
+
+// Senarai Keluarga untuk tab JomSalam: semua akaun dari induk teratas ke bawah (pautan jemputan + anak saudara)
+exports.jomsalamKeluarga = functions
+    .region('asia-southeast1')
+    .https.onCall(async (data, context) => {
+        const saya = context.auth && context.auth.uid;
+        if (!saya) throw new functions.https.HttpsError('unauthenticated', 'Sila log masuk.');
+        const uids = [...await slKeluargaPenuh(saya)].filter(u => u !== saya);
+        const ahli = [];
+        for (let i = 0; i < uids.length; i += 50) {
+            const docs = await db.getAll(...uids.slice(i, i + 50).map(u => db.collection('mynasab_users').doc(u)));
+            docs.forEach(d => { if (d.exists) ahli.push({ uid: d.id, nama: d.data().name || (d.data().email || '').split('@')[0] || 'Ahli keluarga' }); });
+        }
+        return { ahli };
+    });
