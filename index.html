@@ -242,7 +242,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                     <button onclick="window.location.href='topup.html'" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
                         + Top Up
                     </button>
-                    <button onclick="bukaTukarKataLaluan()" class="text-slate-500 hover:text-slate-800 text-sm font-bold underline transition-all ml-2">Tukar Kata Laluan</button>
+                    <button onclick="bukaTetapan()" class="text-slate-600 hover:text-slate-900 text-sm font-bold transition-all ml-2 inline-flex items-center gap-1"><i class="fa-solid fa-gear"></i> Tetapan</button>
                     <button onclick="logKeluar()" class="text-slate-500 hover:text-slate-800 text-sm font-bold underline transition-all ml-2">
                         Log Keluar
                     </button>
@@ -283,8 +283,8 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             <button onclick="window.location.href='topup.html'" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 px-4 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2">
                 <i class="fa-solid fa-wallet"></i> + Top Up Kredit
             </button>
-            <button onclick="bukaTukarKataLaluan()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2.5 px-4 rounded-xl font-bold text-sm transition-all text-center mt-1">
-                <i class="fa-solid fa-key"></i> Tukar Kata Laluan
+            <button onclick="bukaTetapan()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2.5 px-4 rounded-xl font-bold text-sm transition-all text-center mt-1">
+                <i class="fa-solid fa-gear"></i> Tetapan
             </button>
             <button onclick="logKeluar()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2.5 px-4 rounded-xl font-bold text-sm transition-all text-center mt-1">
                 Log Keluar
@@ -345,7 +345,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
   <div class="fpm-grid" id="fpmJalur"></div>
   <nav id="fpBawah" aria-label="Navigasi utama">
     <button type="button" class="aktif" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fa-solid fa-house"></i>Utama</button>
-    <button type="button" id="fpbNasab"><i class="fa-solid fa-sitemap"></i>Nasab</button>
+    <button type="button" id="fpbTetapan"><i class="fa-solid fa-gear"></i>Tetapan</button>
     <button type="button" class="fpb-tengah" onclick="bukaPanduanFP()"><i class="fa-solid fa-compass"></i><span>Ekosistem</span></button>
     <button type="button" id="fpbAff"><i class="fa-solid fa-handshake"></i><span id="fpbAffTeks">Affiliate</span></button>
     <button type="button" id="fpbProfil"><i class="fa-solid fa-user"></i>Profil</button>
@@ -372,7 +372,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     var d = ''; el.querySelectorAll('p').forEach(function (p) { if (p.textContent.trim().length > d.length) d = p.textContent.trim(); });
     return [t, d];
   }
-  $('fpbNasab').onclick = function () { if (window.semakAksesPintu) window.semakAksesPintu('myNasab', 'mynasab/index.html?buka=pokok'); };
+  $('fpbTetapan').onclick = function () { if (window.penggunaSemasa) window.bukaTetapan(); else if (window.bukaModalAuth) window.bukaModalAuth('login'); };
   $('fpbProfil').onclick = function () { if (window.penggunaSemasa) window.location.href = 'mynasab/index.html?buka=profil'; else if (window.bukaModalAuth) window.bukaModalAuth('login'); };
   $('fpbAff').onclick = function () { var ad = $('btnAdmin') && getComputedStyle($('btnAdmin')).display !== 'none'; if (ad) window.location.href = 'admin.html'; else if (window.pergiAffiliate) window.pergiAffiliate(); };
   var tanda = '';
@@ -1489,5 +1489,154 @@ window.pantauLencanaWeCareUtama = async (user) => {
     <p class="text-xs text-slate-500 text-center mt-3">Lupa kata laluan semasa? Log keluar, kemudian tekan "Lupa kata laluan?" di skrin Log Masuk.</p>
   </div>
 </div>
+<!-- ===== TETAPAN ===== -->
+<style>
+  #tetapan{position:fixed;inset:0;z-index:9998;background:rgba(15,23,42,.55);display:none;align-items:flex-end;justify-content:center}
+  #tetapan.buka{display:flex}
+  #tetapan .tp-kad{background:#fff;width:100%;max-width:440px;max-height:88vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom))}
+  @media (min-width:768px){#tetapan{align-items:center}#tetapan .tp-kad{border-radius:22px}}
+  .tp-item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:13px 6px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#1e293b}
+  .tp-item i.tp-ik{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+  .tp-item small{display:block;font-weight:500;color:#64748b;font-size:12px}
+  .tp-pil{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:1.5px solid #e2e8f0;border-radius:14px;margin-bottom:8px;font-weight:700;text-align:left}
+  .tp-pil.on{border-color:#0f766e;background:#f0fdfa}
+  .tp-pil .tp-bil{margin-left:auto;font-size:11px;font-weight:700;color:#64748b}
+</style>
+<div id="tetapan" onclick="if(event.target===this)tutupTetapan()">
+  <div class="tp-kad">
+    <div class="flex items-center justify-between mb-2">
+      <button id="tpBalik" class="hidden text-slate-500 text-sm font-bold" onclick="tpUtama()"><i class="fa-solid fa-arrow-left"></i> Tetapan</button>
+      <h2 id="tpTajuk" class="text-lg font-extrabold text-slate-800">⚙️ Tetapan</h2>
+      <button onclick="tutupTetapan()" class="text-2xl text-slate-400 leading-none" aria-label="Tutup">&times;</button>
+    </div>
+    <div id="tpUtama">
+      <button class="tp-item" onclick="tpPeranti()"><i class="fa-solid fa-mobile-screen tp-ik" style="background:#e0f2fe;color:#0369a1"></i><span>Peranti &amp; Notifikasi<small>Telefon ini milik siapa, uji notifikasi</small></span></button>
+      <button class="tp-item" onclick="tutupTetapan();bukaTukarKataLaluan()"><i class="fa-solid fa-key tp-ik" style="background:#fef3c7;color:#b45309"></i><span>Tukar kata laluan</span></button>
+      <label class="tp-item cursor-pointer"><i class="fa-solid fa-image-portrait tp-ik" style="background:#dcfce7;color:#15803d"></i><span>Gambar profil<small id="tpFotoSt">Dipaparkan di Laman keluarga (Buat Apa Hari Ini)</small></span><input id="tpFoto" type="file" accept="image/*" class="hidden"></label>
+      <button class="tp-item" onclick="location.href='topup.html'"><i class="fa-solid fa-wallet tp-ik" style="background:#fef9c3;color:#a16207"></i><span>Kredit &amp; Top-up<small>Baki: <b id="tpKredit">0</b> kredit</small></span></button>
+      <button class="tp-item" style="border-bottom:0;color:#dc2626" onclick="tutupTetapan();logKeluar()"><i class="fa-solid fa-right-from-bracket tp-ik" style="background:#fee2e2;color:#dc2626"></i><span>Log keluar</span></button>
+    </div>
+    <div id="tpPeranti" class="hidden">
+      <p class="text-sm text-slate-600 mb-3">Telefon ini milik siapa? Peringatan peribadi (muhasabah, checklist, peringatan anak) hanya dihantar ke telefon orang yang dipilih.</p>
+      <div id="tpPilihan" class="text-sm text-slate-500">Memuatkan…</div>
+      <p id="tpSt" class="text-sm font-semibold min-h-[20px] my-2"></p>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="tpUji()" class="bg-sky-600 text-white font-bold py-2.5 rounded-xl text-sm"><i class="fa-solid fa-bell"></i> Uji notifikasi</button>
+        <button onclick="tpBuang()" class="bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-sm"><i class="fa-solid fa-bell-slash"></i> Henti di telefon ini</button>
+      </div>
+      <p class="text-[11px] text-slate-400 mt-3">iPhone: tambah Famili Pintar ke Skrin Utama (Kongsi → Add to Home Screen) dahulu untuk menerima notifikasi.</p>
+    </div>
+  </div>
+</div>
+<script type="module">
+import { getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+import { mampatGambar } from "./kongsi.js";
+const $ = (id) => document.getElementById(id);
+const E = (t) => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const db = () => getFirestore(getApp());
+const T = { orang: [], token: null, ud: {} };
+
+window.bukaTetapan = () => {
+  if (!window.penggunaSemasa) { window.bukaModalAuth && window.bukaModalAuth('login'); return; }
+  const k = $('bakiKreditHeader'); $('tpKredit').textContent = k ? k.textContent : '0';
+  const menu = $('mobileMenu'); if (menu && !menu.classList.contains('hidden') && window.toggleFrontPageMobileMenu) { try { window.toggleFrontPageMobileMenu(); } catch (e) {} }
+  tpUtama(); $('tetapan').classList.add('buka');
+};
+window.tutupTetapan = () => $('tetapan').classList.remove('buka');
+window.tpUtama = () => { $('tpUtama').classList.remove('hidden'); $('tpPeranti').classList.add('hidden'); $('tpBalik').classList.add('hidden'); $('tpTajuk').classList.remove('hidden'); };
+
+// ----- Gambar profil (sama dengan Laman keluarga) -----
+$('tpFoto').onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const u = window.penggunaSemasa, st = $('tpFotoSt'); st.textContent = 'Memuat naik…';
+  try {
+    const blob = await mampatGambar(f, 400, 0.85);
+    const r = ref(getStorage(getApp()), `profil/${u.uid}_${Date.now()}.jpg`);
+    await uploadBytes(r, blob, { contentType: 'image/jpeg', cacheControl: 'public,max-age=31536000' });
+    const foto = await getDownloadURL(r);
+    const nama = ($('headerNamaPengguna') && $('headerNamaPengguna').innerText) || (u.email || '').split('@')[0];
+    await setDoc(doc(db(), 'buatapa_profil', u.uid), { foto, nama, updated_at: Date.now() });
+    st.textContent = '✓ Gambar profil dikemas kini';
+  } catch (err) { st.textContent = 'Gagal: ' + err.message; }
+};
+
+// ----- Peranti & Notifikasi -----
+function muatPeranan() {
+  if (window.Peranan) return Promise.resolve(window.Peranan);
+  return new Promise((ok, gagal) => { const sc = document.createElement('script'); sc.src = 'peranan.js?v=3'; sc.onload = () => ok(window.Peranan); sc.onerror = gagal; document.head.appendChild(sc); });
+}
+const umur = (dob) => { const d = new Date(dob); if (isNaN(d)) return null; const n = new Date(); let a = n.getFullYear() - d.getFullYear(); if (n < new Date(n.getFullYear(), d.getMonth(), d.getDate())) a--; return a; };
+const medanOrang = (o) => o.jenis === 'anak' ? 'fcm_anak_' + o.id : 'fcm_' + o.jenis;
+
+window.tpPeranti = async () => {
+  $('tpUtama').classList.add('hidden'); $('tpPeranti').classList.remove('hidden'); $('tpBalik').classList.remove('hidden'); $('tpTajuk').classList.add('hidden');
+  $('tpSt').textContent = '';
+  const u = window.penggunaSemasa;
+  try {
+    const P = await muatPeranan();
+    const info = await P.muat(db(), u.uid, { collection, query, where, getDocs });
+    T.orang = [{ jenis: 'induk', nama: info.induk.nama || 'Saya' }];
+    if (info.ada) T.orang.push({ jenis: 'pasangan', nama: info.pasangan.nama || 'Pasangan' });
+    const sn = await getDocs(query(collection(db(), 'mynasab_nodes'), where('owner_uid', '==', u.uid)));
+    sn.forEach(d => { const x = d.data(); if ((x.relationship || '').trim().toLowerCase() === 'anak' && x.status !== 'meninggal' && (umur(x.dob) ?? 0) >= 7) T.orang.push({ jenis: 'anak', id: d.id, nama: x.name || 'Anak' }); });
+    const ud = await getDoc(doc(db(), 'mynasab_users', u.uid)); T.ud = ud.exists() ? ud.data() : {};
+    if ('Notification' in window && Notification.permission === 'granted') { try { T.token = await P.ambilToken(); } catch (e) { T.token = null; } }
+    lukisOrang();
+  } catch (e) { $('tpPilihan').textContent = 'Gagal memuat: ' + e.message; }
+};
+function lukisOrang() {
+  $('tpPilihan').innerHTML = T.orang.map((o, i) => {
+    const senarai = Array.isArray(T.ud[medanOrang(o)]) ? T.ud[medanOrang(o)] : [];
+    const ini = T.token && senarai.includes(T.token);
+    const ikon = o.jenis === 'anak' ? 'fa-child' : o.jenis === 'pasangan' ? 'fa-heart' : 'fa-user';
+    return `<button class="tp-pil ${ini ? 'on' : ''}" onclick="tpDaftar(${i})"><i class="fa-solid ${ikon} text-teal-700"></i>${E(o.nama)}${o.jenis === 'anak' ? ' <span class="text-xs text-slate-400 font-medium">(anak)</span>' : ''}
+      <span class="tp-bil">${ini ? '✓ Telefon ini' : senarai.length ? senarai.length + ' peranti' : 'Belum berdaftar'}</span></button>`;
+  }).join('');
+}
+window.tpDaftar = async (i) => {
+  const o = T.orang[i], st = $('tpSt'), P = window.Peranan;
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) { st.textContent = 'Pelayar ini tidak menyokong notifikasi.'; return; }
+  let izin = Notification.permission;
+  if (izin === 'default') izin = await Notification.requestPermission();        // terus dari tekanan pengguna
+  if (izin !== 'granted') { st.textContent = 'Notifikasi tidak dibenarkan. Benarkan dalam tetapan pelayar/telefon, kemudian cuba lagi.'; return; }
+  st.textContent = 'Mendaftar…';
+  try {
+    if (!(await navigator.serviceWorker.getRegistration('/'))) { await navigator.serviceWorker.register('/firebase-messaging-sw.js'); await navigator.serviceWorker.ready; }
+    const token = await P.ambilToken(); T.token = token;
+    const uid = window.penggunaSemasa.uid, r = doc(db(), 'mynasab_users', uid), m = medanOrang(o);
+    // Telefon ini milik seorang sahaja: tambah pada orang dipilih, buang daripada yang lain
+    const tambah = { [m]: arrayUnion(token) }; if (o.jenis !== 'anak') tambah.fcm_tokens = arrayUnion(token);
+    await setDoc(r, tambah, { merge: true });
+    const buang = {}; T.orang.forEach(x => { if (medanOrang(x) !== m) buang[medanOrang(x)] = arrayRemove(token); });
+    if (o.jenis === 'anak') buang.fcm_tokens = arrayRemove(token);        // anak tidak menerima notifikasi umum akaun ibu bapa
+    await updateDoc(r, buang);
+    if (o.jenis !== 'anak') P.setPemilik(o.jenis);
+    const ud = await getDoc(r); T.ud = ud.exists() ? ud.data() : {};
+    lukisOrang(); st.textContent = `✓ Telefon ini kini milik ${o.nama}. Tekan "Uji notifikasi" untuk cuba.`;
+  } catch (e) { console.warn(e); st.textContent = 'Gagal mendaftar: ' + (e.code || e.message); }
+};
+window.tpBuang = async () => {
+  const st = $('tpSt');
+  if (!T.token) { st.textContent = 'Telefon ini belum berdaftar.'; return; }
+  if (!confirm('Henti semua notifikasi Famili Pintar di telefon ini?')) return;
+  try {
+    const b = { fcm_tokens: arrayRemove(T.token) }; T.orang.forEach(x => { b[medanOrang(x)] = arrayRemove(T.token); });
+    await updateDoc(doc(db(), 'mynasab_users', window.penggunaSemasa.uid), b);
+    const ud = await getDoc(doc(db(), 'mynasab_users', window.penggunaSemasa.uid)); T.ud = ud.exists() ? ud.data() : {};
+    lukisOrang(); st.textContent = 'Notifikasi dihentikan di telefon ini.';
+  } catch (e) { st.textContent = 'Gagal: ' + e.message; }
+};
+window.tpUji = async () => {
+  const st = $('tpSt');
+  if (!('Notification' in window) || Notification.permission !== 'granted') { st.textContent = 'Pilih orang di atas dahulu untuk membenarkan notifikasi.'; return; }
+  try {
+    const reg = (await navigator.serviceWorker.getRegistration('/')) || (await navigator.serviceWorker.ready);
+    await reg.showNotification('Famili Pintar 🔔', { body: 'Notifikasi berfungsi di telefon ini.', icon: '/icon-192.png', tag: 'fp-uji' });
+    st.textContent = '✓ Notifikasi ujian dihantar. Jika tidak muncul, semak tetapan notifikasi telefon.';
+  } catch (e) { st.textContent = 'Gagal: ' + e.message; }
+};
+</script>
 </body>
 </html>
