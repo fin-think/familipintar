@@ -468,6 +468,7 @@
             <div class="field">
               <label>Kaedah Transaksi</label>
               <select id="txnAccount" required>
+                <option value="" disabled selected>-- Pilih Bank / Tunai --</option>
                 <option value="Bank">Bank (Akaun/Kad)</option>
                 <option value="Tunai">Tunai di Tangan</option>
               </select>
@@ -944,6 +945,7 @@
         const acc = document.getElementById('txnAccount'); if (!acc) return;
         const pindah = selectCat.value === 'pindahan:tunai';
         if (pindah) acc.value = 'Bank';
+        else if (acc.disabled) acc.value = '';      // keluar daripada pengeluaran tunai: pengguna pilih semula
         acc.disabled = pindah;
     }
     selectCat.addEventListener('change', laraskanKaedahPindahan);
@@ -2171,6 +2173,7 @@
         e.preventDefault();
         if(!currentUser) return;
         if (!document.getElementById('txnCat').value) { alert("Sila pilih kategori dahulu."); document.getElementById('txnCat').focus(); return; }
+        if (document.getElementById('txnCat').value !== 'pindahan:tunai' && !document.getElementById('txnAccount').value) { alert("Sila pilih kaedah: Bank atau Tunai."); document.getElementById('txnAccount').focus(); return; }
 
         const btn = document.getElementById('btn-save-txn');
         btn.disabled = true; btn.innerText = "Memuat Naik & Menyimpan...";
@@ -2221,6 +2224,7 @@
             document.getElementById('txnAmount').value = '';
             document.getElementById('txnNote').value = '';
             document.getElementById('txnCat').value = '';
+            document.getElementById('txnAccount').value = '';        // wajib pilih Bank / Tunai setiap rekod
             laraskanKaedahPindahan();
             window.buangGambar();
             
