@@ -112,6 +112,9 @@ onAuthStateChanged(auth, async (u) => {
     const ud = await getDoc(doc(db, 'mynasab_users', u.uid)); const d = ud.exists() ? ud.data() : {};
     S.nama = d.name || u.email.split('@')[0]; S.dob = d.dob || '';
   } catch (e) { S.nama = u.email.split('@')[0]; }
+  // Tarikh lahir auto dari myNasab (nod Diri Sendiri) jika akaun tiada dob
+  if (!S.dob) { try { const r = await getDoc(doc(db, 'mynasab_nodes', 'root_' + u.uid)); if (r.exists() && r.data().dob) S.dob = String(r.data().dob); } catch (e) {} }
+  if (!S.dob) { try { const sn = await getDocs(query(collection(db, 'mynasab_nodes'), where('owner_uid', '==', u.uid), where('is_root', '==', true))); sn.forEach(d => { if (!S.dob && d.data().dob) S.dob = String(d.data().dob); }); } catch (e) {} }
   S.dewasa = (umur(S.dob) ?? -1) >= 18;
   // Kumpulan keluarga = induk (pautan aktif) atau diri sendiri; ahli = induk + akaun berpaut kepadanya
   S.grp = u.uid;
