@@ -78,6 +78,8 @@ async function slIndukTeratas(uid) {
         const r = await db.collection('mynasab_nodes').doc('root_' + u).get();
         const d = r.exists && r.data().anak_saudara_dari;
         if (d && d.uid && d.uid !== u) { u = d.uid; continue; }
+        const lo = r.exists && r.data().sibling_of && r.data().link_owner;     // adik-beradik melalui jemputan (akar)
+        if (lo && lo !== u) { u = lo; continue; }
         break;
     }
     return u;
@@ -88,8 +90,13 @@ async function slKeluargaPenuh(uid) {
         const u = giliran.shift();
         const ls = await db.collection('mynasab_links').where('owner_uid', '==', u).where('status', '==', 'aktif').get();
         ls.forEach(d => { if (!lawat.has(d.id)) { lawat.add(d.id); giliran.push(d.id); } });
-        const rs = await db.collection('mynasab_nodes').where('is_root', '==', true).where('anak_saudara_dari.uid', '==', u).get();
-        rs.forEach(d => { const o = d.data().owner_uid; if (o && !lawat.has(o)) { lawat.add(o); giliran.push(o); } });
+        const tambah = (o) => { if (o && !lawat.has(o)) { lawat.add(o); giliran.push(o); } };
+        // Anak saudara (akar dengan anak_saudara_dari) dan adik-beradik yang akarnya dipaut kepada akaun ini (link_owner)
+        (await db.collection('mynasab_nodes').where('is_root', '==', true).where('anak_saudara_dari.uid', '==', u).get()).forEach(d => tambah(d.data().owner_uid));
+        (await db.collection('mynasab_nodes').where('is_root', '==', true).where('link_owner', '==', u).get()).forEach(d => tambah(d.data().owner_uid));
+        // Salam Paut: adik-beradik yang menyambung akaun (linked_adik, dua hala)
+        const akar = await db.collection('mynasab_nodes').doc('root_' + u).get();
+        ((akar.exists && akar.data().linked_adik) || []).forEach(tambah);
     }
     return lawat;
 }
