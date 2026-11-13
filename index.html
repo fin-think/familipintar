@@ -1631,11 +1631,20 @@ window.tpBuang = async () => {
 window.tpUji = async () => {
   const st = $('tpSt');
   if (!('Notification' in window) || Notification.permission !== 'granted') { st.textContent = 'Pilih orang di atas dahulu untuk membenarkan notifikasi.'; return; }
+  st.textContent = 'Menghantar ujian dari server…';
   try {
-    const reg = (await navigator.serviceWorker.getRegistration('/')) || (await navigator.serviceWorker.ready);
-    await reg.showNotification('Famili Pintar 🔔', { body: 'Notifikasi berfungsi di telefon ini.', icon: '/icon-192.png', tag: 'fp-uji' });
-    st.textContent = '✓ Notifikasi ujian dihantar. Jika tidak muncul, semak tetapan notifikasi telefon.';
-  } catch (e) { st.textContent = 'Gagal: ' + e.message; }
+    if (!T.token) T.token = await window.Peranan.ambilToken();
+    const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js");
+    const r = (await httpsCallable(getFunctions(getApp(), 'asia-southeast1'), 'ujiPushSaya')({ token: T.token })).data || {};
+    st.textContent = r.ok ? '✓ Ujian dari server dihantar. Notifikasi patut muncul dalam beberapa saat.' : `✗ Server gagal hantar: ${r.kod || r.mesej}`;
+  } catch (e) {
+    // Function belum di-deploy: uji paparan tempatan sahaja
+    try {
+      const reg = (await navigator.serviceWorker.getRegistration('/')) || (await navigator.serviceWorker.ready);
+      await reg.showNotification('Famili Pintar 🔔', { body: 'Paparan notifikasi berfungsi (ujian tempatan).', icon: '/icon-192.png', tag: 'fp-uji' });
+      st.textContent = 'Ujian tempatan sahaja (' + (e.message || e.code) + ').';
+    } catch (e2) { st.textContent = 'Gagal: ' + e2.message; }
+  }
 };
 </script>
 </body>
