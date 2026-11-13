@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>JomSalam | Famili Pintar</title>
+<meta name="robots" content="noindex">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  html, body { height: 100%; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; margin: 0; }
+  .avatar { width: 2.6rem; height: 2.6rem; border-radius: 999px; background: #0f766e; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; flex: none; overflow: hidden; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .tab.on { color: #fff; border-bottom: 3px solid #fcd34d; }
+  .tab { color: #a7f3d0; border-bottom: 3px solid transparent; }
+  .baris:hover { background: #f8fafc; }
+  .belum { background: #16a34a; color: #fff; font-size: .7rem; font-weight: 800; min-width: 1.3rem; height: 1.3rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; padding: 0 .35rem; }
+  #latar { background: #efeae2 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23d6cfc4'/%3E%3C/svg%3E"); }
+  .gel { max-width: 80%; padding: .45rem .7rem .35rem; border-radius: .8rem; font-size: .93rem; line-height: 1.35; white-space: pre-wrap; word-break: break-word; box-shadow: 0 1px 1px rgba(0,0,0,.08); position: relative; }
+  .gel.saya { background: #d9fdd3; margin-left: auto; border-top-right-radius: .2rem; }
+  .gel.dia { background: #fff; border-top-left-radius: .2rem; }
+  .gel .masa { font-size: .66rem; color: #64748b; float: right; margin: .35rem 0 0 .6rem; }
+  .tarikh-sel { text-align: center; margin: .6rem 0; }
+  .tarikh-sel span { background: #fff; color: #475569; font-size: .72rem; font-weight: 700; padding: .2rem .6rem; border-radius: .5rem; }
+  .modal { position: fixed; inset: 0; background: rgba(15,23,42,.6); z-index: 50; display: none; align-items: center; justify-content: center; padding: 1rem; }
+  .modal.buka { display: flex; }
+</style>
+</head>
+<body>
+<div class="max-w-2xl mx-auto h-full flex flex-col bg-white shadow-sm">
+
+  <!-- ===== SENARAI ===== -->
+  <section id="vSenarai" class="flex flex-col h-full">
+    <header class="bg-gradient-to-br from-teal-800 to-emerald-900 text-white">
+      <div class="px-4 pt-4 pb-1 flex items-center gap-3">
+        <a href="buatapa.html" class="text-teal-200" aria-label="Kembali"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1 class="text-xl font-extrabold flex-1">JomSalam</h1>
+        <button id="btnKod" class="text-xs font-bold bg-white/15 rounded-full px-3 py-1.5" title="Kod Salam anda"><i class="fa-solid fa-qrcode"></i> <span id="kodSaya">…</span></button>
+      </div>
+      <nav class="flex text-sm font-bold">
+        <button class="tab on flex-1 py-3" data-tab="keluarga">Keluarga <span id="bKeluarga"></span></button>
+        <button class="tab flex-1 py-3" data-tab="adam">Kita Nasab Adam <span id="bAdam"></span></button>
+      </nav>
+    </header>
+    <div id="status" class="text-center text-sm text-slate-500 p-6">Memuatkan…</div>
+    <div id="pKeluarga" class="flex-1 overflow-y-auto"></div>
+    <div id="pAdam" class="flex-1 overflow-y-auto hidden"></div>
+  </section>
+
+  <!-- ===== PERBUALAN ===== -->
+  <section id="vChat" class="flex-col h-full hidden">
+    <header class="bg-teal-800 text-white px-3 py-2.5 flex items-center gap-3">
+      <button id="btnBalik" aria-label="Kembali" class="px-1"><i class="fa-solid fa-arrow-left"></i></button>
+      <div id="cAvatar" class="avatar" style="width:2.2rem;height:2.2rem"></div>
+      <div class="flex-1 min-w-0"><div id="cNama" class="font-bold truncate"></div><div id="cSub" class="text-[.72rem] text-teal-200 truncate"></div></div>
+      <button id="btnMenu" aria-label="Menu" class="px-2"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+    </header>
+    <div id="menuChat" class="hidden absolute right-3 mt-14 bg-white rounded-xl shadow-xl border text-sm z-40 overflow-hidden" style="min-width:12rem"></div>
+    <div id="latar" class="flex-1 overflow-y-auto px-3 py-2"></div>
+    <div id="cBawah" class="bg-slate-100 p-2"></div>
+  </section>
+</div>
+
+<!-- Hulur Salam -->
+<div id="mCari" class="modal">
+  <div class="bg-white rounded-2xl p-5 w-full max-w-sm relative">
+    <button data-tutup="mCari" class="absolute top-3 right-4 text-2xl text-slate-400">&times;</button>
+    <h2 class="text-lg font-extrabold mb-1">🤝 Hulur Salam</h2>
+    <p class="text-xs text-slate-500 mb-3">Cari dengan <b>emel penuh</b> atau <b>Kod Salam</b> (cth. FP-7K2M9Q). Mereka perlu sambut dahulu sebelum boleh berbual.</p>
+    <input id="cariInput" class="w-full border rounded-lg p-3 mb-2" placeholder="emel@contoh.com atau FP-XXXXXX" autocomplete="off">
+    <button id="btnCari" class="w-full bg-teal-700 text-white font-bold py-2.5 rounded-xl">Cari</button>
+    <div id="cariHasil" class="mt-3 text-sm"></div>
+  </div>
+</div>
+
+<!-- Tarikh lahir (untuk had umur Kita Nasab Adam) -->
+<div id="mDob" class="modal">
+  <div class="bg-white rounded-2xl p-5 w-full max-w-sm">
+    <h2 class="text-lg font-extrabold mb-1">Tarikh lahir</h2>
+    <p class="text-xs text-slate-500 mb-3">Kita Nasab Adam hanya untuk pengguna berumur 18 tahun ke atas.</p>
+    <input id="dobInput" type="date" class="w-full border rounded-lg p-3 mb-3">
+    <button id="btnDob" class="w-full bg-teal-700 text-white font-bold py-2.5 rounded-xl">Simpan</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc, query, where, orderBy, limitToLast, onSnapshot, writeBatch, increment, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { firebaseConfig, esc } from "./kongsi.js";
+
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+const MAKS_TEKS = 2000, HARI_ADAM = 90, HAD_HULUR_SEHARI = 10;
+const S = { user: null, nama: '', dewasa: false, kod: '', grp: '', keluarga: [], chats: [], profil: {}, aktif: null, unsubMesej: null, tab: 'keluarga' };
+const idChat = (a, b) => [a, b].sort().join('_');
+const lain = (c) => c.ahli.find(x => x !== S.user.uid);
+const hariIni = () => new Date().toISOString().slice(0, 10);
+
+async function sha256(t) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
+const umur = (dob) => { if (!dob) return null; const d = new Date(dob), n = new Date(); let u = n.getFullYear() - d.getFullYear(); if (n.getMonth() < d.getMonth() || (n.getMonth() === d.getMonth() && n.getDate() < d.getDate())) u--; return u; };
+const masaPendek = (ms) => { if (!ms) return ''; const d = new Date(ms), n = new Date(); return d.toDateString() === n.toDateString() ? d.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('ms-MY', { day: 'numeric', month: 'short' }); };
+const avatar = (uid, nama) => { const f = S.profil[uid]; return `<div class="avatar">${f && /^https:\/\/firebasestorage\.googleapis\.com\//.test(f) ? `<img src="${esc(f)}" alt="">` : esc((nama || '?').trim()[0]?.toUpperCase() || '?')}</div>`; };
+
+// ---------- Mula ----------
+onAuthStateChanged(auth, async (u) => {
+  if (!u) { $('status').innerHTML = 'Sila <a href="index.html" class="text-teal-700 font-bold underline">log masuk</a> dahulu.'; return; }
+  S.user = u;
+  try {
+    const ud = await getDoc(doc(db, 'mynasab_users', u.uid)); const d = ud.exists() ? ud.data() : {};
+    S.nama = d.name || u.email.split('@')[0]; S.dob = d.dob || '';
+  } catch (e) { S.nama = u.email.split('@')[0]; }
+  S.dewasa = (umur(S.dob) ?? -1) >= 18;
+  // Kumpulan keluarga = induk (pautan aktif) atau diri sendiri; ahli = induk + akaun berpaut kepadanya
+  S.grp = u.uid;
+  try { const l = await getDoc(doc(db, 'mynasab_links', u.uid)); if (l.exists() && l.data().status === 'aktif' && l.data().owner_uid) S.grp = l.data().owner_uid; } catch (e) {}
+  await muatKeluarga();
+  await daftarCarian();
+  dengarChat();
+  const c = new URLSearchParams(location.search).get('c'); if (c) S.bukaSelepasMuat = c;
+});
+
+async function muatKeluarga() {
+  const ahli = new Map();
+  if (S.grp !== S.user.uid) {
+    try { const g = await getDoc(doc(db, 'mynasab_users', S.grp)); ahli.set(S.grp, (g.exists() && g.data().name) || 'Induk keluarga'); } catch (e) { ahli.set(S.grp, 'Induk keluarga'); }
+  }
+  try {
+    const s = await getDocs(query(collection(db, 'mynasab_links'), where('owner_uid', '==', S.grp), where('status', '==', 'aktif')));
+    s.forEach(d => { if (d.id !== S.user.uid) ahli.set(d.id, d.data().nama || 'Ahli keluarga'); });
+  } catch (e) {}
+  S.keluarga = [...ahli].map(([uid, nama]) => ({ uid, nama })).sort((a, b) => a.nama.localeCompare(b.nama));
+  await Promise.all(S.keluarga.map(k => getDoc(doc(db, 'buatapa_profil', k.uid)).then(p => { if (p.exists()) S.profil[k.uid] = p.data().foto || ''; }).catch(() => {})));
+}
+
+// Indeks carian: salam_cari/{sha256(emel)} dan salam_cari/kod_XXXXXX -> { uid, nama }. Hanya dewasa yang boleh dicari.
+async function daftarCarian() {
+  const hEmel = await sha256(S.user.email.trim().toLowerCase());
+  const kodRef = doc(db, 'salam_kod', S.user.uid);
+  try { const k = await getDoc(kodRef); if (k.exists()) S.kod = k.data().kod; } catch (e) {}
+  if (!S.dewasa) {
+    try { await deleteDoc(doc(db, 'salam_cari', hEmel)); if (S.kod) await deleteDoc(doc(db, 'salam_cari', 'kod_' + S.kod)); } catch (e) {}
+    $('kodSaya').textContent = 'Kod Salam'; return;
+  }
+  if (!S.kod) {
+    const abjad = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    for (let i = 0; i < 5 && !S.kod; i++) {
+      const k = Array.from(crypto.getRandomValues(new Uint8Array(6)), x => abjad[x % abjad.length]).join('');
+      try { const ada = await getDoc(doc(db, 'salam_cari', 'kod_' + k)); if (!ada.exists()) { await setDoc(doc(db, 'salam_cari', 'kod_' + k), { uid: S.user.uid, nama: S.nama }); await setDoc(kodRef, { kod: k }); S.kod = k; } } catch (e) { console.warn(e); break; }
+    }
+  }
+  try { await setDoc(doc(db, 'salam_cari', hEmel), { uid: S.user.uid, nama: S.nama }); } catch (e) {}
+  $('kodSaya').textContent = S.kod ? 'FP-' + S.kod : 'Kod Salam';
+}
+
+function dengarChat() {
+  onSnapshot(query(collection(db, 'salam_chat'), where('ahli', 'array-contains', S.user.uid)), (snap) => {
+    S.chats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    $('status').classList.add('hidden');
+    lukisSenarai();
+    if (S.aktif) { const c = S.chats.find(x => x.id === S.aktif.id); if (c) { const lama = S.aktif.status; S.aktif = c; if (lama !== 'aktif' && c.status === 'aktif') bukaChat(c); else { lukisKepala(); lukisBawah(); } } }
+    if (S.bukaSelepasMuat) { const id = S.bukaSelepasMuat; S.bukaSelepasMuat = null; const c = S.chats.find(x => x.id === id); if (c) bukaChat(c); }
+  }, (e) => { $('status').textContent = 'Gagal memuat perbualan: ' + e.message; });
+}
+
+// ---------- Senarai ----------
+const belumSaya = (c) => (c.belum && c.belum[S.user.uid]) || 0;
+const lencana = (n) => n ? `<span class="belum">${n > 99 ? '99+' : n}</span>` : '';
+function barisChat(c, namaGanti) {
+  const u = lain(c), nama = (c.nama && c.nama[u]) || namaGanti || 'Pengguna', n = belumSaya(c);
+  let sub = c.mesej_akhir ? (c.dari_akhir === S.user.uid ? '✓ ' : '') + c.mesej_akhir : '';
+  if (c.status === 'menunggu') sub = c.pemohon === S.user.uid ? '⏳ Menunggu Salam disambut…' : '🤝 Hulur Salam: ' + (c.pengenalan || 'mahu berkenalan');
+  if (c.status === 'ditolak' && c.pemohon === S.user.uid) sub = '⏳ Menunggu Salam disambut…';
+  if (c.status === 'disekat') sub = '🚫 Disekat';
+  return `<button class="baris w-full flex items-center gap-3 px-4 py-3 border-b text-left" data-buka="${esc(c.id)}">${avatar(u, nama)}
+    <div class="flex-1 min-w-0"><div class="flex justify-between gap-2"><b class="truncate">${esc(nama)}</b><span class="text-[.7rem] ${n ? 'text-green-600 font-bold' : 'text-slate-400'}">${masaPendek(c.masa_akhir)}</span></div>
+    <div class="flex justify-between gap-2"><span class="text-sm text-slate-500 truncate">${esc(sub)}</span>${lencana(n)}</div></div></button>`;
+}
+function lukisSenarai() {
+  const nampak = S.chats.filter(c => !(c.sembunyi && c.sembunyi[S.user.uid]) && !(c.status === 'ditolak' && c.pemohon !== S.user.uid));
+  const susun = (a, b) => (b.masa_akhir || b.created_at || 0) - (a.masa_akhir || a.created_at || 0);
+  // Keluarga: perbualan sedia ada di atas, kemudian ahli yang belum pernah dibual
+  const kel = nampak.filter(c => c.jenis === 'keluarga').sort(susun);
+  const adaUid = new Set(kel.map(lain));
+  const belumBual = S.keluarga.filter(k => !adaUid.has(k.uid));
+  $('pKeluarga').innerHTML = (kel.map(c => barisChat(c, (S.keluarga.find(k => k.uid === lain(c)) || {}).nama)).join('')
+    + (belumBual.length ? `<div class="px-4 pt-4 pb-1 text-xs font-bold text-slate-400 uppercase">Ahli keluarga</div>` + belumBual.map(k => `<button class="baris w-full flex items-center gap-3 px-4 py-3 border-b text-left" data-baru="${esc(k.uid)}">${avatar(k.uid, k.nama)}<div class="flex-1"><b>${esc(k.nama)}</b><div class="text-sm text-slate-400">Tekan untuk mula berbual</div></div></button>`).join('') : ''))
+    || `<p class="text-center text-sm text-slate-500 p-8">Tiada ahli keluarga berpaut lagi. Jemput keluarga melalui myNasab.</p>`;
+  const adam = nampak.filter(c => c.jenis === 'adam').sort((a, b) => ((b.status === 'menunggu' && b.pemohon !== S.user.uid) - (a.status === 'menunggu' && a.pemohon !== S.user.uid)) || susun(a, b));
+  $('pAdam').innerHTML = !S.dewasa
+    ? `<div class="p-8 text-center text-sm text-slate-600"><div class="text-4xl mb-2">🌍</div>Kita Nasab Adam untuk pengguna berumur <b>18 tahun ke atas</b>.${S.dob ? '' : `<br><button id="btnIsiDob" class="mt-4 bg-teal-700 text-white font-bold px-4 py-2 rounded-xl">Isi tarikh lahir</button>`}</div>`
+    : `<div class="p-3"><button id="btnHulur" class="w-full bg-amber-400 hover:bg-amber-500 text-amber-950 font-extrabold py-3 rounded-xl"><i class="fa-solid fa-handshake"></i> Hulur Salam</button>
+       <p class="text-[.72rem] text-slate-500 text-center mt-2">Berbual dengan kawan & kenalan. Teks sahaja, dipadam automatik selepas ${HARI_ADAM} hari.</p></div>`
+      + (adam.map(c => barisChat(c)).join('') || '<p class="text-center text-sm text-slate-400 p-6">Belum ada perbualan.</p>');
+  const jum = (arr) => arr.reduce((s, c) => s + belumSaya(c) + (c.status === 'menunggu' && c.pemohon !== S.user.uid ? 1 : 0), 0);
+  $('bKeluarga').innerHTML = lencana(jum(kel)); $('bAdam').innerHTML = lencana(jum(adam));
+}
+
+document.addEventListener('click', async (e) => {
+  const t = e.target.closest('[data-tab],[data-buka],[data-baru],[data-tutup],#btnHulur,#btnIsiDob,[data-hulur],[data-padam]');
+  if (!t) return;
+  if (t.dataset.tab) { S.tab = t.dataset.tab; document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b === t)); $('pKeluarga').classList.toggle('hidden', S.tab !== 'keluarga'); $('pAdam').classList.toggle('hidden', S.tab !== 'adam'); }
+  else if (t.dataset.buka) { const c = S.chats.find(x => x.id === t.dataset.buka); if (c) bukaChat(c); }
+  else if (t.dataset.baru) mulaKeluarga(t.dataset.baru);
+  else if (t.dataset.tutup) $(t.dataset.tutup).classList.remove('buka');
+  else if (t.id === 'btnHulur') { $('cariInput').value = ''; $('cariHasil').innerHTML = ''; $('mCari').classList.add('buka'); }
+  else if (t.id === 'btnIsiDob') $('mDob').classList.add('buka');
+  else if (t.dataset.hulur) hulurSalam(t.dataset.hulur, t.dataset.nama);
+  else if (t.dataset.padam) padamMesej(t.dataset.padam);
+});
+
+$('btnKod').onclick = () => {
+  if (!S.kod) { alert(S.dewasa ? 'Kod Salam belum sedia.' : 'Kod Salam hanya untuk pengguna 18 tahun ke atas.'); return; }
+  const teks = `Jom berbual di JomSalam (Famili Pintar). Kod Salam saya: FP-${S.kod}\nhttps://familipintar.com/jomsalam.html`;
+  if (navigator.share) navigator.share({ text: teks }).catch(() => {}); else { navigator.clipboard?.writeText(teks); alert('Disalin: FP-' + S.kod); }
+};
+
+$('btnDob').onclick = async () => {
+  const v = $('dobInput').value; if (!v || new Date(v) > new Date()) { alert('Tarikh lahir tidak sah.'); return; }
+  try { await updateDoc(doc(db, 'mynasab_users', S.user.uid), { dob: v }); S.dob = v; S.dewasa = (umur(v) ?? -1) >= 18; $('mDob').classList.remove('buka'); await daftarCarian(); lukisSenarai(); }
+  catch (e) { alert('Gagal simpan: ' + e.message); }
+};
+
+// ---------- Hulur Salam ----------
+$('btnCari').onclick = async () => {
+  const v = $('cariInput').value.trim(), h = $('cariHasil');
+  if (!v) return;
+  h.textContent = 'Mencari…';
+  const kod = v.toUpperCase().replace(/^FP-?/, '');
+  const kunci = v.includes('@') ? await sha256(v.toLowerCase()) : 'kod_' + kod;
+  try {
+    const r = await getDoc(doc(db, 'salam_cari', kunci));
+    if (!r.exists()) { h.innerHTML = '<span class="text-slate-500">Tiada pengguna ditemui. Pastikan emel/kod tepat. Pengguna perlu pernah membuka JomSalam dan berumur 18 tahun ke atas.</span>'; return; }
+    const { uid, nama } = r.data();
+    if (uid === S.user.uid) { h.textContent = 'Itu akaun anda sendiri 🙂'; return; }
+    const ada = S.chats.find(c => c.id === idChat(S.user.uid, uid));
+    if (ada) { $('mCari').classList.remove('buka'); bukaChat(ada); return; }
+    if (S.keluarga.some(k => k.uid === uid)) { $('mCari').classList.remove('buka'); mulaKeluarga(uid); return; }
+    h.innerHTML = `<div class="flex items-center gap-3 border rounded-xl p-3">${avatar(uid, nama)}<b class="flex-1">${esc(nama)}</b></div>
+      <textarea id="kenalan" maxlength="150" rows="2" class="w-full border rounded-lg p-2 mt-2 text-sm" placeholder="Perkenalkan diri (cth. Saya Ali, kawan sekolah abang awak)"></textarea>
+      <button data-hulur="${esc(uid)}" data-nama="${esc(nama)}" class="w-full bg-amber-400 text-amber-950 font-extrabold py-2.5 rounded-xl mt-2">🤝 Hulur Salam</button>`;
+  } catch (e) { h.textContent = 'Ralat: ' + e.message; }
+};
+
+async function hulurSalam(uid, nama) {
+  const kiraan = S.chats.filter(c => c.jenis === 'adam' && c.pemohon === S.user.uid && new Date(c.created_at || 0).toISOString().slice(0, 10) === hariIni()).length;
+  if (kiraan >= HAD_HULUR_SEHARI) { alert(`Had ${HAD_HULUR_SEHARI} Hulur Salam sehari dicapai. Cuba esok.`); return; }
+  const pengenalan = ($('kenalan')?.value || '').trim().slice(0, 150);
+  if (!pengenalan) { alert('Tulis sedikit pengenalan supaya mereka kenal anda.'); return; }
+  const id = idChat(S.user.uid, uid);
+  try {
+    await setDoc(doc(db, 'salam_chat', id), { ahli: [S.user.uid, uid].sort(), jenis: 'adam', status: 'menunggu', pemohon: S.user.uid, pengenalan, nama: { [S.user.uid]: S.nama, [uid]: nama }, belum: {}, sembunyi: {}, created_at: Date.now(), masa_akhir: Date.now(), mesej_akhir: '' });
+    $('mCari').classList.remove('buka');
+    alert('Salam dihulur! Anda boleh berbual sebaik sahaja ' + nama + ' menyambutnya.');
+  } catch (e) { alert('Gagal: ' + (e.code === 'permission-denied' ? 'Salam sudah pernah dihulur kepada pengguna ini.' : e.message)); }
+}
+
+async function mulaKeluarga(uid) {
+  const id = idChat(S.user.uid, uid), k = S.keluarga.find(x => x.uid === uid) || { nama: 'Ahli keluarga' };
+  let c = S.chats.find(x => x.id === id);
+  if (!c) {
+    const data = { ahli: [S.user.uid, uid].sort(), jenis: 'keluarga', status: 'aktif', pemohon: S.user.uid, nama: { [S.user.uid]: S.nama, [uid]: k.nama }, belum: {}, sembunyi: {}, created_at: Date.now(), masa_akhir: 0, mesej_akhir: '' };
+    try { await setDoc(doc(db, 'salam_chat', id), data); } catch (e) { alert('Gagal mula perbualan: ' + e.message); return; }
+    c = { id, ...data };
+  }
+  bukaChat(c);
+}
+
+// ---------- Perbualan ----------
+function bukaChat(c) {
+  S.aktif = c;
+  $('vSenarai').classList.add('hidden'); $('vChat').classList.remove('hidden'); $('vChat').classList.add('flex');
+  history.replaceState(null, '', '?c=' + encodeURIComponent(c.id));
+  lukisKepala(); lukisBawah();
+  if (S.unsubMesej) S.unsubMesej();
+  $('latar').innerHTML = '';
+  if (c.status !== 'aktif') return;
+  S.unsubMesej = onSnapshot(query(collection(db, 'salam_chat', c.id, 'mesej'), orderBy('at'), limitToLast(150)), (snap) => {
+    lukisMesej(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    if (belumSaya(S.aktif)) updateDoc(doc(db, 'salam_chat', c.id), { ['belum.' + S.user.uid]: 0 }).catch(() => {});
+  }, (e) => { $('latar').innerHTML = `<p class="text-center text-sm text-red-600 p-4">${esc(e.message)}</p>`; });
+}
+$('btnBalik').onclick = () => {
+  if (S.unsubMesej) { S.unsubMesej(); S.unsubMesej = null; }
+  S.aktif = null; $('menuChat').classList.add('hidden');
+  $('vChat').classList.add('hidden'); $('vChat').classList.remove('flex'); $('vSenarai').classList.remove('hidden');
+  history.replaceState(null, '', location.pathname);
+};
+
+function lukisKepala() {
+  const c = S.aktif, u = lain(c), nama = (c.nama && c.nama[u]) || 'Pengguna';
+  $('cAvatar').outerHTML = avatar(u, nama).replace('class="avatar"', 'id="cAvatar" class="avatar" style="width:2.2rem;height:2.2rem"');
+  $('cNama').textContent = nama;
+  $('cSub').textContent = c.jenis === 'keluarga' ? 'Keluarga' : `Kita Nasab Adam · mesej dipadam selepas ${HARI_ADAM} hari`;
+}
+
+function lukisMesej(senarai) {
+  let html = '', hariLepas = '';
+  for (const m of senarai) {
+    const hari = new Date(m.at).toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    if (hari !== hariLepas) { html += `<div class="tarikh-sel"><span>${esc(hari)}</span></div>`; hariLepas = hari; }
+    const saya = m.dari === S.user.uid;
+    html += `<div class="flex my-1"><div class="gel ${saya ? 'saya' : 'dia'}" ${saya ? `data-padam="${esc(m.id)}" title="Tekan untuk padam"` : ''}>${esc(m.teks)}<span class="masa">${new Date(m.at).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' })}</span></div></div>`;
+  }
+  const L = $('latar'), diBawah = L.scrollHeight - L.scrollTop - L.clientHeight < 80;
+  L.innerHTML = html || '<p class="text-center text-xs text-slate-500 mt-6 bg-white/70 rounded-lg p-2 mx-auto w-fit">Mulakan perbualan dengan ucap Assalamualaikum 👋</p>';
+  if (diBawah || !L.dataset.sudah) { L.scrollTop = L.scrollHeight; L.dataset.sudah = '1'; }
+}
+
+function lukisBawah() {
+  const c = S.aktif, B = $('cBawah'), saya = S.user.uid;
+  if (c.status === 'aktif') {
+    if (!B.querySelector('#teks')) {
+      B.innerHTML = `<form id="fHantar" class="flex items-end gap-2"><textarea id="teks" rows="1" maxlength="${MAKS_TEKS}" class="flex-1 rounded-2xl px-4 py-2.5 resize-none outline-none max-h-32" placeholder="Taip mesej"></textarea><button class="w-11 h-11 rounded-full bg-teal-700 text-white flex-none" aria-label="Hantar"><i class="fa-solid fa-paper-plane"></i></button></form>`;
+      const ta = $('teks');
+      ta.oninput = () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 128) + 'px'; };
+      ta.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey && window.matchMedia('(min-width: 768px)').matches) { e.preventDefault(); $('fHantar').requestSubmit(); } };
+      $('fHantar').onsubmit = (e) => { e.preventDefault(); hantar(); };
+    }
+  } else if (c.status === 'menunggu' && c.pemohon !== saya) {
+    B.innerHTML = `<div class="bg-white rounded-xl p-3 text-sm"><b>${esc(c.nama?.[c.pemohon] || 'Seseorang')}</b> menghulur Salam:<p class="italic text-slate-600 my-2">"${esc(c.pengenalan || '')}"</p>
+      <div class="grid grid-cols-3 gap-2"><button id="bTerima" class="bg-teal-700 text-white font-bold py-2 rounded-lg">Sambut</button><button id="bTolak" class="bg-slate-200 font-bold py-2 rounded-lg">Tolak</button><button id="bSekat" class="bg-red-100 text-red-700 font-bold py-2 rounded-lg">Sekat</button></div></div>`;
+    $('bTerima').onclick = () => tukarStatus('aktif'); $('bTolak').onclick = () => tukarStatus('ditolak'); $('bSekat').onclick = () => sekat();
+  } else if (c.status === 'menunggu' || c.status === 'ditolak') {
+    B.innerHTML = `<p class="text-center text-sm text-slate-500 p-3">⏳ Salam anda belum disambut. Anda boleh berbual sebaik sahaja ia diterima.</p>`;
+  } else if (c.status === 'disekat') {
+    B.innerHTML = c.disekat_oleh === saya ? `<div class="text-center p-2"><p class="text-sm text-slate-500 mb-2">Anda telah menyekat pengguna ini.</p><button id="bBuka" class="bg-white border font-bold px-4 py-2 rounded-lg text-sm">Buka sekatan</button></div>` : `<p class="text-center text-sm text-slate-500 p-3">Perbualan ini tidak lagi tersedia.</p>`;
+    const b = $('bBuka'); if (b) b.onclick = () => tukarStatus('aktif', { disekat_oleh: '' });
+  }
+  // Menu
+  $('menuChat').innerHTML = [
+    c.jenis === 'adam' && c.status !== 'disekat' ? `<button id="mSekat" class="block w-full text-left px-4 py-3 hover:bg-slate-50">🚫 Sekat</button>` : '',
+    c.jenis === 'adam' ? `<button id="mLapor" class="block w-full text-left px-4 py-3 hover:bg-slate-50">⚠️ Lapor</button>` : '',
+    `<button id="mSorok" class="block w-full text-left px-4 py-3 hover:bg-slate-50">🗑️ Buang dari senarai</button>`
+  ].join('');
+  const on = (id, f) => { const el = $(id); if (el) el.onclick = () => { $('menuChat').classList.add('hidden'); f(); }; };
+  on('mSekat', sekat); on('mLapor', lapor); on('mSorok', sorok);
+}
+$('btnMenu').onclick = (e) => { e.stopPropagation(); $('menuChat').classList.toggle('hidden'); };
+document.addEventListener('click', (e) => { if (!e.target.closest('#menuChat')) $('menuChat').classList.add('hidden'); });
+
+async function hantar() {
+  const ta = $('teks'), teks = ta.value.trim(), c = S.aktif;
+  if (!teks || !c || c.status !== 'aktif') return;
+  ta.value = ''; ta.style.height = 'auto';
+  const u = lain(c), b = writeBatch(db), now = Date.now();
+  const m = { dari: S.user.uid, teks: teks.slice(0, MAKS_TEKS), at: now };
+  if (c.jenis === 'adam') m.luput_pada = Timestamp.fromMillis(now + HARI_ADAM * 86400000);   // TTL Firestore memadam automatik
+  b.set(doc(collection(db, 'salam_chat', c.id, 'mesej')), m);
+  b.update(doc(db, 'salam_chat', c.id), { mesej_akhir: teks.slice(0, 80), masa_akhir: now, dari_akhir: S.user.uid, ['belum.' + u]: increment(1), sembunyi: {} });
+  try { await b.commit(); } catch (e) { alert('Gagal hantar: ' + e.message); ta.value = teks; }
+}
+
+async function padamMesej(id) {
+  if (!S.aktif || !confirm('Padam mesej ini untuk semua?')) return;
+  try { await deleteDoc(doc(db, 'salam_chat', S.aktif.id, 'mesej', id)); } catch (e) { alert('Gagal padam: ' + e.message); }
+}
+async function tukarStatus(status, lebih = {}) {
+  try { await updateDoc(doc(db, 'salam_chat', S.aktif.id), { status, ...lebih }); S.aktif = { ...S.aktif, status, ...lebih }; if (status === 'ditolak') return $('btnBalik').click(); bukaChat(S.aktif); }
+  catch (e) { alert('Gagal: ' + e.message); }
+}
+async function sekat() { if (confirm('Sekat pengguna ini? Mereka tidak boleh menghantar mesej lagi dan tidak diberitahu.')) tukarStatus('disekat', { disekat_oleh: S.user.uid }); }
+async function lapor() {
+  const sebab = prompt('Nyatakan sebab laporan (cth. gangguan, penipuan, kandungan tidak sopan):'); if (!sebab) return;
+  try { await addDoc(collection(db, 'salam_laporan'), { chat_id: S.aktif.id, pelapor: S.user.uid, dilapor: lain(S.aktif), sebab: sebab.slice(0, 500), at: Date.now() }); alert('Terima kasih. Laporan dihantar kepada admin. Perbualan ini disimpan untuk semakan.'); }
+  catch (e) { alert('Gagal lapor: ' + e.message); }
+}
+async function sorok() {
+  if (!confirm('Buang perbualan ini dari senarai anda? Ia muncul semula jika ada mesej baharu.')) return;
+  try { await updateDoc(doc(db, 'salam_chat', S.aktif.id), { ['sembunyi.' + S.user.uid]: true }); $('btnBalik').click(); } catch (e) { alert('Gagal: ' + e.message); }
+}
+</script>
+</body>
+</html>

@@ -18,7 +18,7 @@ firebase.initializeApp(firebaseConfig);
 // memanggil stopImmediatePropagation(); jika mesej tiada pautan (fcmOptions.link / click_action) ia hanya
 // menutup notifikasi dan tidak membuka apa-apa. Pengendali ini mengambil alih HANYA notifikasi tanpa pautan.
 // Notifikasi yang ada pautan (muhasabah, checklist, hari jadi, anak, ahli sertai) dibiarkan kepada SDK seperti biasa.
-const PAUTAN_APP = { ourmoney: '/ourmoney.html', wecare: '/wecare.html', mynasab: '/mynasab/index.html' };
+const PAUTAN_APP = { ourmoney: '/ourmoney.html', wecare: '/wecare.html', mynasab: '/mynasab/index.html', jomsalam: '/jomsalam.html' };
 self.addEventListener('notificationclick', (event) => {
     if (event.action) return;
     const d = event.notification.data || {};
