@@ -49,14 +49,17 @@
     <button id="bukaKomposer" class="w-full text-left text-slate-500 font-semibold flex items-center gap-3">
       <span class="avatar" id="komposerAvatar">?</span><span class="flex-1 bg-slate-100 rounded-full px-4 py-2.5 text-[.93rem]">Apa yang nak dikongsi dengan keluarga?</span>
     </button>
-    <div id="borangPos" class="hidden">
+    <div id="borangPos" class="hidden relative">
+      <button id="posBatal" class="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-slate-100 text-slate-500 z-10" title="Batal" aria-label="Batal"><i class="fa-solid fa-xmark"></i></button>
       <textarea id="posTeks" rows="4" maxlength="2000" placeholder="Tulis sesuatu untuk keluarga…" class="w-full border border-slate-200 rounded-xl p-3 text-[.95rem] focus:outline-none focus:border-teal-500"></textarea>
       <div id="posPra" class="flex gap-2 flex-wrap mt-2"></div>
       <div class="flex items-center gap-2 mt-3">
-        <label class="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-teal-700 bg-teal-50 rounded-full px-3 py-1.5 cursor-pointer"><i class="fa-regular fa-image"></i> Galeri<input id="posFail" type="file" accept="image/*" multiple class="hidden"></label>
-        <label class="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-teal-700 bg-teal-50 rounded-full px-3 py-1.5 cursor-pointer"><i class="fa-solid fa-camera"></i> Kamera<input id="posKamera" type="file" accept="image/*" capture="environment" class="hidden"></label>
+        <label class="w-10 h-10 flex-none inline-flex items-center justify-center text-lg text-teal-700 bg-teal-50 rounded-full cursor-pointer" title="Galeri" aria-label="Tambah gambar dari galeri"><i class="fa-regular fa-image"></i><input id="posFail" type="file" accept="image/*" multiple class="hidden"></label>
+        <label class="w-10 h-10 flex-none inline-flex items-center justify-center text-lg text-teal-700 bg-teal-50 rounded-full cursor-pointer" title="Kamera" aria-label="Ambil gambar dengan kamera"><i class="fa-solid fa-camera"></i><input id="posKamera" type="file" accept="image/*" capture="environment" class="hidden"></label>
+        <div class="flex-1"></div>
+        <button id="posKami" class="px-3 h-10 rounded-full text-sm font-extrabold bg-white border border-teal-700 text-teal-700 disabled:opacity-50 whitespace-nowrap" title="Hanya saya, pasangan dan anak"><i class="fa-solid fa-house-user"></i> Kami</button>
+        <button id="posSemua" class="px-3 h-10 rounded-full text-sm font-extrabold bg-teal-700 text-white disabled:opacity-50 whitespace-nowrap" title="Semua ahli keluarga"><i class="fa-solid fa-users"></i> Semua</button>
       </div>
-      <div class="flex gap-2 flex-wrap justify-end mt-3"><button id="posBatal" class="px-3 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 whitespace-nowrap">Batal</button><button id="posKami" class="px-4 py-2 rounded-xl text-sm font-extrabold bg-white border border-teal-700 text-teal-700 disabled:opacity-50 whitespace-nowrap">Untuk kami</button><button id="posSemua" class="px-4 py-2 rounded-xl text-sm font-extrabold bg-teal-700 text-white disabled:opacity-50 whitespace-nowrap">Kongsi semua</button></div>
       <p id="posStatus" class="text-xs text-slate-500 mt-2"></p>
     </div>
   </section>
@@ -265,12 +268,14 @@ async function siapkanDinding(u) {
   // Kumpulan "kami" milik orang lain yang menyenaraikan saya (contoh: pasangan atau ibu bapa)
   try {
     const sk = await getDocs(query(collection(db, 'buatapa_kumpulan'), where('ahli', 'array-contains', u.uid)));
-    sk.forEach(d => { if (d.id !== D.kamiSendiri) D.kumpulan.push({ id: d.id, label: `Keluarga kecil ${d.data().nama || ''}`.trim(), asing: true }); });
+    sk.forEach(d => { if (d.id === D.kamiSendiri) D.kamiAda = true; else D.kumpulan.push({ id: d.id, label: `Keluarga kecil ${d.data().nama || ''}`.trim(), asing: true }); });
   } catch (e) { console.warn('Kumpulan kami:', e.message); }
-  if (D.ahliKami.length > 1) { D.idKami = D.kamiSendiri; D.kumpulan.push({ id: D.kamiSendiri, label: 'Keluarga kecil saya' }); }
-  else { const lain = D.kumpulan.find(k => k.asing); if (lain) D.idKami = lain.id; }
+  // "Untuk kami" sentiasa ada: tanpa akaun anak/pasangan berasingan, ia = akaun ini sahaja (Induk & Pasangan berkongsi akaun).
+  // Jika saya hanya ahli "kami" orang lain (cth. anak dalam keluarga ibu bapa), guna kumpulan itu.
+  const lainKami = D.kumpulan.find(k => k.asing);
+  D.idKami = (D.ahliKami.length > 1 || D.kamiAda || !lainKami) ? D.kamiSendiri : lainKami.id;
+  if (D.kamiAda) D.kumpulan.push({ id: D.kamiSendiri, label: 'Keluarga kecil saya' });
   $('posKami').classList.toggle('hidden', !D.idKami);
-  $('posSemua').textContent = D.idKami ? 'Kongsi semua' : 'Kongsi';
   $('komposer').classList.remove('hidden'); $('dinding').classList.remove('hidden');
   if (/[?&]tulis=1/.test(location.search)) { $('bukaKomposer').click(); }
   await muatPosts();
