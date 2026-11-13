@@ -156,7 +156,10 @@ function lukisKandungan() {
   // 3. Bila tiada kongsian keluarga hari ini (hari jadi atau siaran 24 jam lepas), paparkan kisah sirah
   const s = sirahHariIni(g);
   const adaAktiviti = aktifHariIni() || kk.some(x => x.includes('Hari ini'));
-  $('sirah').classList.toggle('hidden', adaAktiviti);
+  // Sirah sentiasa dipaparkan: di atas Laman keluarga bila tiada aktiviti, di bawah siaran keluarga bila ada
+  $('sirah').classList.remove('hidden');
+  const din = $('dinding');
+  if (adaAktiviti) din.after($('sirah')); else din.before($('sirah'));
   $('sirahNo').textContent = `Bahagian ${s.no} / ${s.jumlah}`;
   $('sirahTajuk').textContent = s.t;
   $('sirahBadan').textContent = s.b;
