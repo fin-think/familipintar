@@ -2015,6 +2015,47 @@
         document.getElementById('txnNote').placeholder = 'Cth: Masuk SSPN / ASB';
     });
 
+    // ===== EDIT REKOD: ubah jumlah, tarikh, kaedah (Bank/Tunai), kategori & nota. Baki dikira semula daripada rekod. =====
+    // Kategori khas (misi, percutian, haji, amanah, infaq, pengeluaran tunai) dikunci supaya pautan misi tidak rosak.
+    const rekodKhas = (t) => !!(t.goal_id || t.trip_id || t.haji || t.amanah || t.infaq || t.pindahan_tunai || t.is_saving);
+    window.suntingRekod = (id) => {
+        const t = (window._txnPeta || {})[id]; if (!t) return;
+        const m = document.getElementById('modalSunting'), khas = rekodKhas(t), senarai = t.type === 'outflow' ? catOutflow : catInflow;
+        document.getElementById('sgJumlah').value = Number(t.amount || 0).toFixed(2);
+        document.getElementById('sgTarikh').value = t.date || '';
+        const acc = document.getElementById('sgKaedah'); acc.value = t.txnAccount === 'Tunai' ? 'Tunai' : 'Bank'; acc.disabled = !!t.pindahan_tunai;
+        const kat = document.getElementById('sgKat');
+        const pilihan = senarai.includes(t.category) ? senarai : [t.category, ...senarai];
+        kat.innerHTML = pilihan.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join(''); kat.value = t.category; kat.disabled = khas;
+        document.getElementById('sgKhas').style.display = khas ? 'block' : 'none';
+        document.getElementById('sgNota').value = t.note || '';
+        document.getElementById('sgJenis').textContent = t.type === 'outflow' ? 'Duit keluar' : 'Duit masuk';
+        m.dataset.id = id; m.style.display = 'flex';
+    };
+    window.tutupSunting = () => { document.getElementById('modalSunting').style.display = 'none'; };
+    window.simpanSunting = async () => {
+        const m = document.getElementById('modalSunting'), id = m.dataset.id, t = (window._txnPeta || {})[id]; if (!t) return;
+        const jumlah = parseFloat(String(document.getElementById('sgJumlah').value).replace(/,/g, ''));
+        const tarikh = document.getElementById('sgTarikh').value;
+        if (!(jumlah > 0)) { alert('Jumlah tidak sah.'); return; }
+        if (!tarikh) { alert('Sila pilih tarikh.'); return; }
+        const ubah = { amount: Math.round(jumlah * 100) / 100, date: tarikh, note: document.getElementById('sgNota').value.trim(), updated_at: Date.now() };
+        if (!t.pindahan_tunai) ubah.txnAccount = document.getElementById('sgKaedah').value;
+        if (!rekodKhas(t)) ubah.category = document.getElementById('sgKat').value;
+        const btn = document.getElementById('sgSimpan'); btn.disabled = true; btn.textContent = 'Menyimpan...';
+        try {
+            await updateDoc(doc(db, "ourmoney_transactions", id), ubah);
+            window.tutupSunting();
+            if (t.is_saving || t.goal_id || t.trip_id) await muatMisi();
+            muatDataMyTadbir();
+            if (t.infaq) await muatInfaq();
+            if (t.amanah) await muatAmanah();
+            if (t.haji) await muatHaji();
+            if (modPaparan === 'tahun') lihatTahunan(); else muatDataOurMoney();
+        } catch (e) { alert(e.code === 'permission-denied' ? 'Database menyekat perubahan rekod ini (semak rules ourmoney_transactions untuk update).' : 'Gagal menyimpan: ' + e.message); }
+        btn.disabled = false; btn.textContent = '💾 Simpan';
+    };
+
     // Padam rekod (jika belum ditakrifkan di tempat lain)
     if (!window.padamRekod) {
         window.padamRekod = async (id) => {
@@ -2585,7 +2626,9 @@
 
             listSemasa.sort((a, b) => b.created_at - a.created_at);
 
+            window._txnPeta = {};
             listSemasa.forEach(t => {
+                window._txnPeta[t.id] = t;
                 const isOut = t.type === 'outflow', pindah = isPindahan(t);
                 if (pindah) { bankOut += t.amount; tunaiIn += t.amount; }
                 else if (isOut) {
@@ -2620,7 +2663,8 @@
                     </div>
                     <div style="display:flex; align-items:center;">
                         <span class="txn-amt ${amtClass}">${amtPrefix} ${formatRM(t.amount)}</span>
-                        <button class="btn-del-txn" onclick="padamRekod('${t.id}')">✕</button>
+                        <button class="btn-del-txn" style="color:#0369a1" title="Edit" onclick="suntingRekod('${t.id}')">✏️</button>
+                        <button class="btn-del-txn" title="Padam" onclick="padamRekod('${t.id}')">✕</button>
                     </div>
                 </div>`;
             });
@@ -2923,5 +2967,23 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
     }
 
 </script>
+<!-- MODAL EDIT REKOD -->
+<div id="modalSunting" onclick="if(event.target===this)tutupSunting()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:18px;padding:20px;width:100%;max-width:400px;max-height:90vh;overflow:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h3 style="margin:0;font-size:1.1rem;font-weight:800;color:#0f172a;">✏️ Edit Rekod <small id="sgJenis" style="font-size:.75rem;color:#64748b;font-weight:600;"></small></h3><button onclick="tutupSunting()" style="background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;">&times;</button></div>
+    <label style="font-size:.75rem;font-weight:700;color:#475569;">Jumlah (RM)</label>
+    <input id="sgJumlah" type="number" step="0.01" min="0" inputmode="decimal" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 10px;">
+    <div style="display:flex;gap:10px;">
+      <div style="flex:1"><label style="font-size:.75rem;font-weight:700;color:#475569;">Tarikh</label><input id="sgTarikh" type="date" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 10px;"></div>
+      <div style="flex:1"><label style="font-size:.75rem;font-weight:700;color:#475569;">Kaedah</label><select id="sgKaedah" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 10px;"><option value="Bank">🏦 Bank</option><option value="Tunai">💵 Tunai</option></select></div>
+    </div>
+    <label style="font-size:.75rem;font-weight:700;color:#475569;">Kategori</label>
+    <select id="sgKat" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 4px;"></select>
+    <p id="sgKhas" style="display:none;font-size:.7rem;color:#64748b;margin:0 0 6px;">Kategori misi/akhirat tidak boleh ditukar. Padam dan rekod semula jika perlu.</p>
+    <label style="font-size:.75rem;font-weight:700;color:#475569;display:block;margin-top:6px;">Nota</label>
+    <input id="sgNota" type="text" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 14px;">
+    <button id="sgSimpan" onclick="simpanSunting()" style="width:100%;background:#4f46e5;color:#fff;padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer;">💾 Simpan</button>
+  </div>
+</div>
 </body>
 </html>
