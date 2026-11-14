@@ -565,6 +565,7 @@
                 <div id="dash-bank-pecah" style="font-size:.72rem; color:#94a3b8; font-weight:600; margin-top:4px; line-height:1.5;"></div>
              </div>
           </div>
+          <button type="button" onclick="bukaLaras()" style="margin-top:14px;width:100%;background:rgba(255,255,255,.08);color:#e2e8f0;border:1px dashed rgba(255,255,255,.3);border-radius:10px;padding:9px;font-weight:700;font-size:.85rem;cursor:pointer;">⚖️ Betulkan baki (ikut baki sebenar)</button>
         </div>
 
         <!-- Tab: Ringkasan / Misi / Analisis -->
@@ -920,8 +921,12 @@
     // Pengeluaran tunai (withdrawal) = pindahan Bank -> Tunai: bukan perbelanjaan, cuma tolak Bank & tambah Tunai.
     const KAT_TUNAI = '🏧 Pengeluaran Tunai (Withdrawal)', KAT_ROKOK = '🚬 Rokok / Vape';
     // Pindahan (bukan pendapatan/perbelanjaan): Bank -> Tunai, atau antara akaun bank
-    const isPindahan = (t) => t && (t.pindahan_tunai === true || t.pindahan_akaun === true);
+    const isPindahan = (t) => t && (t.pindahan_tunai === true || t.pindahan_akaun === true || t.pelarasan === true);
     const isPindahAkaun = (t) => t && t.pindahan_akaun === true;
+    // Pelarasan baki: betulkan baki akaun kepada jumlah sebenar; bukan pendapatan/perbelanjaan
+    const isPelarasan = (t) => t && t.pelarasan === true;
+    const KAT_LARAS = '⚖️ Pelarasan baki';
+    const kunciAkaun = (t) => peranRekod(t) + '|' + (t.txnAccount === 'Tunai' ? 'T' : bankIdRekod(t));
     // ===== AKAUN BANK (berasingan untuk Induk & Pasangan): mynasab_users.om_bank_induk / om_bank_pasangan = [{id, nama}] =====
     // Rekod lama tanpa bank_id milik akaun pertama ('utama').
     const BANK = { induk: [], pasangan: [] };
@@ -2117,6 +2122,48 @@
         btn.disabled = false; btn.textContent = '💾 Simpan';
     };
 
+    // ===== PELARASAN BAKI: pengguna masukkan baki sebenar; sistem rekod beza sebagai pelarasan (bukan pendapatan/belanja) =====
+    window.bukaLaras = () => {
+        if (window._bulanBaki !== bulanIniStr) { alert('Pelarasan hanya untuk bulan semasa. Tukar paparan ke bulan ini dahulu.'); return; }
+        const pers = modPengguna === 'gabungan' ? (adaPasangan ? ['induk', 'pasangan'] : ['induk']) : [modPengguna];
+        const sel = document.getElementById('lrAkaun');
+        sel.innerHTML = pers.map(per => {
+            const lbl = modPengguna === 'gabungan' && adaPasangan ? ` (${esc(namaPeranan(per))})` : '';
+            return `<option value="${per}|T">💵 Tunai${lbl}</option>` + senaraiBank(per).map(b => `<option value="${per}|${esc(b.id)}">🏦 ${esc(b.nama)}${lbl}</option>`).join('');
+        }).join('');
+        document.getElementById('lrSebenar').value = '';
+        window.kemasLaras();
+        document.getElementById('modalLaras').style.display = 'flex';
+    };
+    window.tutupLaras = () => { document.getElementById('modalLaras').style.display = 'none'; };
+    window.kemasLaras = () => {
+        const k = document.getElementById('lrAkaun').value, sis = (window._bakiAkaun || {})[k] || 0;
+        const v = parseFloat(String(document.getElementById('lrSebenar').value).replace(/,/g, ''));
+        document.getElementById('lrSistem').textContent = 'RM ' + formatRM(sis);
+        const beza = isNaN(v) ? null : Math.round((v - sis) * 100) / 100;
+        document.getElementById('lrBeza').textContent = beza === null ? '-' : (beza === 0 ? 'Tiada beza' : (beza > 0 ? '+ ' : '- ') + 'RM ' + formatRM(Math.abs(beza)));
+    };
+    window.simpanLaras = async () => {
+        const k = document.getElementById('lrAkaun').value, [per, akaun] = k.split('|');
+        const sis = (window._bakiAkaun || {})[k] || 0;
+        const v = parseFloat(String(document.getElementById('lrSebenar').value).replace(/,/g, ''));
+        if (isNaN(v)) { alert('Masukkan baki sebenar.'); return; }
+        const beza = Math.round((v - sis) * 100) / 100;
+        if (beza === 0) { window.tutupLaras(); return; }
+        const opt = [...document.getElementById('txnUser').options].find(o => (o.dataset.peranan || 'induk') === per) || document.getElementById('txnUser').options[0];
+        const d = new Date(), tarikh = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        try {
+            await addDoc(collection(db, "ourmoney_transactions"), {
+                owner_uid: currentUser.uid, type: beza > 0 ? 'inflow' : 'outflow', category: KAT_LARAS, pelarasan: true,
+                date: tarikh, amount: Math.abs(beza), note: `Baki sebenar RM ${formatRM(v)} (sistem RM ${formatRM(sis)})`, receipt_url: '', created_at: Date.now(),
+                txnUser: opt ? opt.value : 'Induk', txnPeranan: per,
+                txnAccount: akaun === 'T' ? 'Tunai' : 'Bank', ...(akaun === 'T' ? {} : { bank_id: akaun })
+            });
+            window.tutupLaras();
+            muatDataOurMoney();
+        } catch (e) { alert('Gagal menyimpan pelarasan: ' + e.message); }
+    };
+
     // Padam rekod (jika belum ditakrifkan di tempat lain)
     if (!window.padamRekod) {
         window.padamRekod = async (id) => {
@@ -2670,7 +2717,8 @@
             let arrayLepas = [];
             // Baki bawa dari bulan-bulan sebelumnya (kumulatif semua rekod sebelum bulan dipilih)
             let bawaTunai = 0, bawaBank = 0, adaBakiPermulaan = false;
-            const bawaPerBank = {}, perBank = {};     // kunci: 'peranan|bank_id'
+            const bawaPerBank = {}, perBank = {};     // kunci: 'peranan|bank_id' atau 'peranan|T' (tunai)
+            const bpKunci = new Set();                // akaun yang ada Baki Permulaan bulan ini: baki bawaan akaun itu tidak dibawa
             const tambahBank = (t, n) => { const k = peranRekod(t) + '|' + bankIdRekod(t); perBank[k] = (perBank[k] || 0) + n; };
             
             const [yStr, mStr] = filterVal.split('-');
@@ -2685,13 +2733,14 @@
                 if (data.date && data.date.startsWith(filterVal)) {
                     listSemasa.push({ id: d.id, ...data });
                     arraySemasa.push(data);
-                    if (data.type !== 'outflow' && data.category === 'Baki Permulaan') adaBakiPermulaan = true;
+                    if (data.type !== 'outflow' && data.category === 'Baki Permulaan') { adaBakiPermulaan = true; bpKunci.add(kunciAkaun(data)); }
                 } else if (data.date && data.date < filterVal) {
                     const nilai = (data.type === 'outflow' ? -1 : 1) * (Number(data.amount) || 0);
-                    const kb = peranRekod(data) + '|' + bankIdRekod(data), amt = Number(data.amount) || 0;
-                    if (isPindahAkaun(data)) { bawaPerBank[kb] = (bawaPerBank[kb] || 0) - amt; const kk = peranRekod(data) + '|' + (data.bank_ke || 'utama'); bawaPerBank[kk] = (bawaPerBank[kk] || 0) + amt; }
-                    else if (isPindahan(data)) { bawaBank += nilai; bawaTunai -= nilai; bawaPerBank[kb] = (bawaPerBank[kb] || 0) + nilai; }
-                    else if (data.txnAccount === 'Tunai') bawaTunai += nilai; else { bawaBank += nilai; bawaPerBank[kb] = (bawaPerBank[kb] || 0) + nilai; }
+                    const per = peranRekod(data), kb = per + '|' + bankIdRekod(data), amt = Number(data.amount) || 0;
+                    const tb = (k, v) => { bawaPerBank[k] = (bawaPerBank[k] || 0) + v; };
+                    if (isPindahAkaun(data)) { tb(kb, -amt); tb(per + '|' + (data.bank_ke || 'utama'), amt); }
+                    else if (data.pindahan_tunai) { tb(kb, -amt); tb(per + '|T', amt); }
+                    else tb(kunciAkaun(data), nilai);
                 }
                 if (data.date && data.date.startsWith(prevMonthStr)) {
                     arrayLepas.push(data);
@@ -2704,15 +2753,16 @@
             listSemasa.forEach(t => {
                 window._txnPeta[t.id] = t;
                 const isOut = t.type === 'outflow', pindah = isPindahan(t);
-                if (isPindahAkaun(t)) { tambahBank(t, -t.amount); const k = peranRekod(t) + '|' + (t.bank_ke || 'utama'); perBank[k] = (perBank[k] || 0) + t.amount; }
-                else if (pindah) { bankOut += t.amount; tunaiIn += t.amount; tambahBank(t, -t.amount); }
+                if (isPelarasan(t)) { const n = (isOut ? -1 : 1) * t.amount, k = kunciAkaun(t); perBank[k] = (perBank[k] || 0) + n; if (t.txnAccount === 'Tunai') { if (n > 0) tunaiIn += n; else tunaiOut -= n; } else { if (n > 0) bankIn += n; else bankOut -= n; } }
+                else if (isPindahAkaun(t)) { tambahBank(t, -t.amount); const k = peranRekod(t) + '|' + (t.bank_ke || 'utama'); perBank[k] = (perBank[k] || 0) + t.amount; }
+                else if (pindah) { bankOut += t.amount; tunaiIn += t.amount; tambahBank(t, -t.amount); const kt = peranRekod(t) + '|T'; perBank[kt] = (perBank[kt] || 0) + t.amount; }
                 else if (isOut) {
                     totalOut += t.amount;
                     if (t.is_saving) totalSimpan += t.amount;
-                    if(t.txnAccount === 'Tunai') tunaiOut += t.amount; else { bankOut += t.amount; tambahBank(t, -t.amount); }
+                    if(t.txnAccount === 'Tunai') { tunaiOut += t.amount; const kt = peranRekod(t) + '|T'; perBank[kt] = (perBank[kt] || 0) - t.amount; } else { bankOut += t.amount; tambahBank(t, -t.amount); }
                 } else {
                     totalIn += t.amount;
-                    if(t.txnAccount === 'Tunai') tunaiIn += t.amount; else { bankIn += t.amount; tambahBank(t, t.amount); }
+                    if(t.txnAccount === 'Tunai') { tunaiIn += t.amount; const kt = peranRekod(t) + '|T'; perBank[kt] = (perBank[kt] || 0) + t.amount; } else { bankIn += t.amount; tambahBank(t, t.amount); }
                 }
                 
                 const icon = pindah ? '🏧' : isOut ? '📉' : '📈';
@@ -2750,12 +2800,19 @@
             document.getElementById('senarai-transaksi').innerHTML = htmlTxn;
 
             // Jika pengguna sudah merekod "Baki Permulaan" bulan ini, jangan bawa lagi (elak kira dua kali)
-            const bawaJumlah = adaBakiPermulaan ? 0 : (bawaTunai + bawaBank);
-            const netBalance = totalIn - totalOut + bawaJumlah;
-            const bakiTunai = tunaiIn - tunaiOut + (adaBakiPermulaan ? 0 : bawaTunai);
-            const bakiBank = bankIn - bankOut + (adaBakiPermulaan ? 0 : bawaBank);
+            // Baki bawaan dikira ikut akaun: akaun yang ada Baki Permulaan bulan ini tidak membawa baki lama
+            let bawaTunaiGuna = 0, bawaBankGuna = 0;
+            Object.keys(bawaPerBank).forEach(k => { if (bpKunci.has(k)) return; if (k.endsWith('|T')) bawaTunaiGuna += bawaPerBank[k]; else bawaBankGuna += bawaPerBank[k]; });
+            const bawaJumlah = bawaTunaiGuna + bawaBankGuna;
+            const bakiTunai = tunaiIn - tunaiOut + bawaTunaiGuna;
+            const bakiBank = bankIn - bankOut + bawaBankGuna;
+            const netBalance = bakiTunai + bakiBank;
+            // Baki setiap akaun (untuk pecahan & pelarasan)
+            window._bakiAkaun = {};
+            new Set([...Object.keys(perBank), ...Object.keys(bawaPerBank)]).forEach(k => { window._bakiAkaun[k] = (perBank[k] || 0) + (bpKunci.has(k) ? 0 : (bawaPerBank[k] || 0)); });
+            window._bulanBaki = filterVal;
             const elBawa = document.getElementById('dash-bawa');
-            if (elBawa) elBawa.innerText = adaBakiPermulaan
+            if (elBawa) elBawa.innerText = adaBakiPermulaan && bawaJumlah === 0
                 ? 'Baki Permulaan bulan ini digunakan (baki bulan lepas tidak dibawa lagi)'
                 : (bawaJumlah !== 0 ? `Termasuk baki bawaan bulan lepas: ${bawaJumlah < 0 ? '- ' : ''}RM ${formatRM(Math.abs(bawaJumlah))}` : '');
 
@@ -2769,7 +2826,7 @@
                 const pers = modPengguna === 'gabungan' ? ['induk', 'pasangan'] : [modPengguna];
                 const baris = [];
                 pers.forEach(per => senaraiBank(per).forEach(b => {
-                    const k = per + '|' + b.id, v = (perBank[k] || 0) + (adaBakiPermulaan ? 0 : (bawaPerBank[k] || 0));
+                    const k = per + '|' + b.id, v = window._bakiAkaun[k] || 0;
                     baris.push(`${esc(b.nama)}${modPengguna === 'gabungan' && adaPasangan ? ' (' + esc(namaPeranan(per)) + ')' : ''}: RM ${formatRM(v)}`);
                 }));
                 document.getElementById('dash-bank-pecah').innerHTML = baris.length > 1 ? baris.join('<br>') : '';
@@ -3068,6 +3125,20 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
     <label style="font-size:.75rem;font-weight:700;color:#475569;display:block;margin-top:6px;">Nota</label>
     <input id="sgNota" type="text" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 14px;">
     <button id="sgSimpan" onclick="simpanSunting()" style="width:100%;background:#4f46e5;color:#fff;padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer;">💾 Simpan</button>
+  </div>
+</div>
+<!-- MODAL PELARASAN BAKI -->
+<div id="modalLaras" onclick="if(event.target===this)tutupLaras()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:18px;padding:20px;width:100%;max-width:380px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><h3 style="margin:0;font-size:1.1rem;font-weight:800;color:#0f172a;">⚖️ Betulkan Baki</h3><button onclick="tutupLaras()" style="background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;">&times;</button></div>
+    <p style="font-size:.78rem;color:#64748b;margin:0 0 12px;">Masukkan baki sebenar (semak app bank / kira duit di tangan). Beza direkod sebagai pelarasan, bukan pendapatan atau perbelanjaan.</p>
+    <label style="font-size:.75rem;font-weight:700;color:#475569;">Akaun</label>
+    <select id="lrAkaun" onchange="kemasLaras()" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 10px;"></select>
+    <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:8px;"><span style="color:#64748b;">Baki dalam sistem</span><b id="lrSistem">RM 0.00</b></div>
+    <label style="font-size:.75rem;font-weight:700;color:#475569;">Baki sebenar sekarang (RM)</label>
+    <input id="lrSebenar" type="number" step="0.01" inputmode="decimal" oninput="kemasLaras()" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 8px;">
+    <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:14px;"><span style="color:#64748b;">Pelarasan</span><b id="lrBeza">-</b></div>
+    <button onclick="simpanLaras()" style="width:100%;background:#4f46e5;color:#fff;padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer;">💾 Simpan Pelarasan</button>
   </div>
 </div>
 </body>
