@@ -124,6 +124,7 @@
   .dash-box.out { border-bottom: 4px solid var(--danger); }
   .dash-label { font-size: 0.75rem; font-weight: 800; color: var(--muted); text-transform: uppercase; }
   .dash-val { font-size: 1.3rem; font-weight: 800; color: var(--ink); margin-top: 4px; line-height: 1; }
+  @media (max-width: 480px) { .dash-val { font-size: 1.1rem; white-space: nowrap; } .dash-balance .dash-val { font-size: 1.7rem; } }
   
   .dash-balance { background: var(--ink); color: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 8px 20px rgba(30,41,59,0.2); }
   .dash-balance .dash-label { color: #94a3b8; }
@@ -469,9 +470,10 @@
               <label>Kaedah Transaksi</label>
               <select id="txnAccount" required>
                 <option value="" disabled selected>-- Pilih Bank / Tunai --</option>
-                <option value="Bank">Bank (Akaun/Kad)</option>
-                <option value="Tunai">Tunai di Tangan</option>
+                <option value="Tunai">💵 Tunai di Tangan</option>
+                <option value="Bank:utama">🏦 Bank</option>
               </select>
+              <select id="txnAkaunKe" style="display:none;margin-top:6px"></select>
             </div>
           </div>
           
@@ -560,6 +562,7 @@
              <div>
                 <div style="font-size:0.75rem; color:#94a3b8; text-transform:uppercase; font-weight:800;">Baki Bank</div>
                 <div id="dash-bank" style="color:#3b82f6; font-size:1.2rem; font-weight:800;">RM 0.00</div>
+                <div id="dash-bank-pecah" style="font-size:.72rem; color:#94a3b8; font-weight:600; margin-top:4px; line-height:1.5;"></div>
              </div>
           </div>
         </div>
@@ -916,7 +919,48 @@
     const catOutflow = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Makan Luar (Keluarga)", "Makan Luar (Sendiri)", "Bil Utiliti", "Perubatan", "Yuran / Kos Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans / Takaful", "Tol & Parking", "Pakaian", "🚬 Rokok / Vape", "Lain-lain"];
     // Pengeluaran tunai (withdrawal) = pindahan Bank -> Tunai: bukan perbelanjaan, cuma tolak Bank & tambah Tunai.
     const KAT_TUNAI = '🏧 Pengeluaran Tunai (Withdrawal)', KAT_ROKOK = '🚬 Rokok / Vape';
-    const isPindahan = (t) => t && t.pindahan_tunai === true;
+    // Pindahan (bukan pendapatan/perbelanjaan): Bank -> Tunai, atau antara akaun bank
+    const isPindahan = (t) => t && (t.pindahan_tunai === true || t.pindahan_akaun === true);
+    const isPindahAkaun = (t) => t && t.pindahan_akaun === true;
+    // ===== AKAUN BANK (berasingan untuk Induk & Pasangan): mynasab_users.om_bank_induk / om_bank_pasangan = [{id, nama}] =====
+    // Rekod lama tanpa bank_id milik akaun pertama ('utama').
+    const BANK = { induk: [], pasangan: [] };
+    const KAT_PINDAH_AKAUN = '🔁 Pindah antara akaun';
+    const senaraiBank = (per) => (BANK[per] && BANK[per].length) ? BANK[per] : [{ id: 'utama', nama: 'Bank' }];
+    const bankIdRekod = (t) => t.bank_id || 'utama';
+    const namaBank = (per, id) => (senaraiBank(per).find(b => b.id === id) || senaraiBank(per)[0]).nama;
+    async function muatBank() {
+        try { const u = await getDoc(doc(db, "mynasab_users", currentUser.uid)); const d = u.exists() ? u.data() : {};
+            BANK.induk = Array.isArray(d.om_bank_induk) ? d.om_bank_induk : []; BANK.pasangan = Array.isArray(d.om_bank_pasangan) ? d.om_bank_pasangan : []; } catch (e) {}
+    }
+    async function tambahAkaunBank(per) {
+        const ada = BANK[per].length ? BANK[per].slice() : [];
+        if (!ada.length) {
+            const n0 = (prompt('Nama akaun bank sedia ada anda (cth. Maybank):', 'Bank') || '').trim(); if (!n0) return null;
+            ada.push({ id: 'utama', nama: n0.slice(0, 30) });
+        }
+        const n = (prompt('Nama akaun bank baharu (cth. BIMB):') || '').trim(); if (!n) return null;
+        const baru = { id: 'b' + Date.now().toString(36), nama: n.slice(0, 30) };
+        ada.push(baru);
+        await updateDoc(doc(db, "mynasab_users", currentUser.uid), { ['om_bank_' + per]: ada });
+        BANK[per] = ada;
+        return baru.id;
+    }
+    // Isi dropdown kaedah: Tunai + setiap akaun bank + Tambah akaun
+    function isiPilihanKaedah(sel, per, nilai, tanpaTunai = false) {
+        const bank = senaraiBank(per);
+        sel.innerHTML = '<option value="" disabled>-- Pilih Bank / Tunai --</option>'
+            + (tanpaTunai ? '' : '<option value="Tunai">💵 Tunai di Tangan</option>')
+            + bank.map(b => `<option value="Bank:${esc(b.id)}">🏦 ${esc(b.nama)}</option>`).join('')
+            + '<option value="__tambah">➕ Tambah akaun bank…</option>';
+        sel.value = [...sel.options].some(o => o.value === nilai) ? nilai : '';
+    }
+    const labelKaedah = (t) => {
+        const per = peranRekod(t), banyak = senaraiBank(per).length > 1, nb = (id) => banyak ? namaBank(per, id) : 'Bank';
+        if (isPindahAkaun(t)) return `🏦 ${esc(namaBank(per, bankIdRekod(t)))} ➜ 🏦 ${esc(namaBank(per, t.bank_ke || 'utama'))}`;
+        if (t.pindahan_tunai) return `🏦 ${esc(nb(bankIdRekod(t)))} ➜ 💵 Tunai`;
+        return t.txnAccount === 'Tunai' ? '💵 Tunai' : `🏦 ${esc(nb(bankIdRekod(t)))}`;
+    };
     const catInflow = ["Baki Permulaan", "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
 
     const btnRadios = document.querySelectorAll('input[name="txnType"]');
@@ -928,7 +972,7 @@
         const options = type === 'outflow' ? catOutflow : catInflow;
         const dahPilih = selectCat.value;
         // Tiada kategori dipilih secara lalai: pengguna mesti pilih sendiri supaya rekod tidak tersalah kategori
-        let h = '<option value="" disabled selected>-- Pilih kategori --</option>' + (type === 'outflow' ? `<option value="pindahan:tunai">${KAT_TUNAI}</option>` : '') + options.map(c => `<option value="${c}">${c}</option>`).join('');
+        let h = '<option value="" disabled selected>-- Pilih kategori --</option>' + (type === 'outflow' ? `<option value="pindahan:tunai">${KAT_TUNAI}</option>` + (senaraiBank(perananBorang()).length > 1 ? `<option value="pindahan:akaun">${KAT_PINDAH_AKAUN}</option>` : '') : '') + options.map(c => `<option value="${c}">${c}</option>`).join('');
         if (type === 'outflow') {
             const m = (typeof misiSenarai !== 'undefined' ? misiSenarai : []).filter(x => !x.trip && !(x.k && x.k.siap));
             if (m.length) h += '<optgroup label="🎯 Simpanan Misi Kewangan">' + m.map(x => `<option value="misi:${esc(x.id)}">🎯 ${esc(x.label)}</option>`).join('') + '</optgroup>';
@@ -942,12 +986,22 @@
     }
     // Pengeluaran tunai: sentiasa dari Bank (dikunci); kategori lain: kaedah boleh dipilih semula
     function laraskanKaedahPindahan() {
-        const acc = document.getElementById('txnAccount'); if (!acc) return;
-        const pindah = selectCat.value === 'pindahan:tunai';
-        if (pindah) acc.value = 'Bank';
-        else if (acc.disabled) acc.value = '';      // keluar daripada pengeluaran tunai: pengguna pilih semula
-        acc.disabled = pindah;
+        const acc = document.getElementById('txnAccount'), ke = document.getElementById('txnAkaunKe'); if (!acc) return;
+        const per = perananBorang(), v = selectCat.value, bank = senaraiBank(per);
+        const pindahTunai = v === 'pindahan:tunai', pindahAkaun = v === 'pindahan:akaun';
+        const lama = acc.value;
+        isiPilihanKaedah(acc, per, lama, pindahTunai || pindahAkaun);
+        // Pengeluaran tunai / pindahan: sumber mesti akaun bank; satu akaun sahaja -> dipilih & dikunci
+        if ((pindahTunai || pindahAkaun) && bank.length === 1) acc.value = 'Bank:' + bank[0].id;
+        acc.disabled = (pindahTunai || pindahAkaun) && bank.length === 1;
+        ke.style.display = pindahAkaun ? 'block' : 'none';
+        if (pindahAkaun) { const k0 = ke.value; ke.innerHTML = '<option value="" disabled selected>-- Ke akaun --</option>' + bank.map(b => `<option value="${esc(b.id)}">➜ 🏦 ${esc(b.nama)}</option>`).join(''); if ([...ke.options].some(o => o.value === k0)) ke.value = k0; }
     }
+    document.getElementById('txnAccount').addEventListener('change', async (e) => {
+        if (e.target.value !== '__tambah') return;
+        const per = perananBorang(); e.target.value = '';
+        try { const id = await tambahAkaunBank(per); kemaskiniSenaraiKategori(); if (id) e.target.value = 'Bank:' + id; } catch (er) { alert('Gagal menambah akaun: ' + er.message); }
+    });
     selectCat.addEventListener('change', laraskanKaedahPindahan);
 
     btnRadios.forEach(radio => radio.addEventListener('change', kemaskiniSenaraiKategori));
@@ -1095,6 +1149,7 @@
             semakTnC();
             muatLaporanSesi();
             await muatNamaPengguna();
+            await muatBank(); kemaskiniSenaraiKategori();
             await muatDataMyTadbir(); 
             await muatTargetPercutian();
             await muatMisi();
@@ -2019,13 +2074,16 @@
 
     // ===== EDIT REKOD: ubah jumlah, tarikh, kaedah (Bank/Tunai), kategori & nota. Baki dikira semula daripada rekod. =====
     // Kategori khas (misi, percutian, haji, amanah, infaq, pengeluaran tunai) dikunci supaya pautan misi tidak rosak.
-    const rekodKhas = (t) => !!(t.goal_id || t.trip_id || t.haji || t.amanah || t.infaq || t.pindahan_tunai || t.is_saving);
+    const rekodKhas = (t) => !!(t.goal_id || t.trip_id || t.haji || t.amanah || t.infaq || t.pindahan_tunai || t.pindahan_akaun || t.is_saving);
     window.suntingRekod = (id) => {
         const t = (window._txnPeta || {})[id]; if (!t) return;
         const m = document.getElementById('modalSunting'), khas = rekodKhas(t), senarai = t.type === 'outflow' ? catOutflow : catInflow;
         document.getElementById('sgJumlah').value = Number(t.amount || 0).toFixed(2);
         document.getElementById('sgTarikh').value = t.date || '';
-        const acc = document.getElementById('sgKaedah'); acc.value = t.txnAccount === 'Tunai' ? 'Tunai' : 'Bank'; acc.disabled = !!t.pindahan_tunai;
+        const acc = document.getElementById('sgKaedah');
+        isiPilihanKaedah(acc, peranRekod(t), t.txnAccount === 'Tunai' ? 'Tunai' : 'Bank:' + bankIdRekod(t), !!t.pindahan_tunai);
+        acc.querySelector('option[value="__tambah"]') && acc.querySelector('option[value="__tambah"]').remove();
+        acc.disabled = isPindahAkaun(t);
         const kat = document.getElementById('sgKat');
         const pilihan = senarai.includes(t.category) ? senarai : [t.category, ...senarai];
         kat.innerHTML = pilihan.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join(''); kat.value = t.category; kat.disabled = khas;
@@ -2042,7 +2100,8 @@
         if (!(jumlah > 0)) { alert('Jumlah tidak sah.'); return; }
         if (!tarikh) { alert('Sila pilih tarikh.'); return; }
         const ubah = { amount: Math.round(jumlah * 100) / 100, date: tarikh, note: document.getElementById('sgNota').value.trim(), updated_at: Date.now() };
-        if (!t.pindahan_tunai) ubah.txnAccount = document.getElementById('sgKaedah').value;
+        const sg = document.getElementById('sgKaedah').value;
+        if (!isPindahAkaun(t) && sg) { if (sg === 'Tunai') { ubah.txnAccount = 'Tunai'; } else { ubah.txnAccount = 'Bank'; ubah.bank_id = sg.slice(5); } }
         if (!rekodKhas(t)) ubah.category = document.getElementById('sgKat').value;
         const btn = document.getElementById('sgSimpan'); btn.disabled = true; btn.textContent = 'Menyimpan...';
         try {
@@ -2173,7 +2232,9 @@
         e.preventDefault();
         if(!currentUser) return;
         if (!document.getElementById('txnCat').value) { alert("Sila pilih kategori dahulu."); document.getElementById('txnCat').focus(); return; }
-        if (document.getElementById('txnCat').value !== 'pindahan:tunai' && !document.getElementById('txnAccount').value) { alert("Sila pilih kaedah: Bank atau Tunai."); document.getElementById('txnAccount').focus(); return; }
+        const nilaiAcc = document.getElementById('txnAccount').value, catV = document.getElementById('txnCat').value;
+        if (!nilaiAcc || nilaiAcc === '__tambah') { alert(catV.startsWith('pindahan:') ? "Sila pilih akaun bank sumber." : "Sila pilih kaedah: Bank atau Tunai."); document.getElementById('txnAccount').focus(); return; }
+        if (catV === 'pindahan:akaun') { const ke = document.getElementById('txnAkaunKe').value; if (!ke) { alert("Sila pilih akaun destinasi."); return; } if ('Bank:' + ke === nilaiAcc) { alert("Akaun sumber dan destinasi tidak boleh sama."); return; } }
 
         const btn = document.getElementById('btn-save-txn');
         btn.disabled = true; btn.innerText = "Memuat Naik & Menyimpan...";
@@ -2198,6 +2259,8 @@
                 kategori = HAJI_KAT0; tambahan = { haji: true, is_saving: true };
             } else if (kategori === 'pindahan:tunai') {
                 kategori = KAT_TUNAI; tambahan = { pindahan_tunai: true };
+            } else if (kategori === 'pindahan:akaun') {
+                kategori = KAT_PINDAH_AKAUN; tambahan = { pindahan_akaun: true, bank_ke: document.getElementById('txnAkaunKe').value };
             } else if (kategori === 'infaq:harian') {
                 kategori = '🤲 Infaq / Sedekah'; tambahan = { infaq: true };
             } else if (kategori.startsWith('trip:')) {
@@ -2216,7 +2279,8 @@
                 created_at: Date.now(),
                 txnUser: document.getElementById('txnUser').value,
                 txnPeranan: (document.getElementById('txnUser').selectedOptions[0] || {dataset: {}}).dataset.peranan || 'induk',
-                txnAccount: tambahan.pindahan_tunai ? 'Bank' : document.getElementById('txnAccount').value
+                txnAccount: nilaiAcc === 'Tunai' ? 'Tunai' : 'Bank',
+                ...(nilaiAcc.startsWith('Bank:') ? { bank_id: nilaiAcc.slice(5) } : {})
             };
 
             await addDoc(collection(db, "ourmoney_transactions"), txnData);
@@ -2225,7 +2289,9 @@
             document.getElementById('txnNote').value = '';
             document.getElementById('txnCat').value = '';
             document.getElementById('txnAccount').value = '';        // wajib pilih Bank / Tunai setiap rekod
+            document.getElementById('txnAkaunKe').value = '';
             laraskanKaedahPindahan();
+            document.getElementById('txnAccount').value = '';
             window.buangGambar();
             
             if (tambahan.is_saving) await muatMisi();
@@ -2604,6 +2670,8 @@
             let arrayLepas = [];
             // Baki bawa dari bulan-bulan sebelumnya (kumulatif semua rekod sebelum bulan dipilih)
             let bawaTunai = 0, bawaBank = 0, adaBakiPermulaan = false;
+            const bawaPerBank = {}, perBank = {};     // kunci: 'peranan|bank_id'
+            const tambahBank = (t, n) => { const k = peranRekod(t) + '|' + bankIdRekod(t); perBank[k] = (perBank[k] || 0) + n; };
             
             const [yStr, mStr] = filterVal.split('-');
             let mPrev = parseInt(mStr) - 1;
@@ -2620,8 +2688,10 @@
                     if (data.type !== 'outflow' && data.category === 'Baki Permulaan') adaBakiPermulaan = true;
                 } else if (data.date && data.date < filterVal) {
                     const nilai = (data.type === 'outflow' ? -1 : 1) * (Number(data.amount) || 0);
-                    if (isPindahan(data)) { bawaBank += nilai; bawaTunai -= nilai; }
-                    else if (data.txnAccount === 'Tunai') bawaTunai += nilai; else bawaBank += nilai;
+                    const kb = peranRekod(data) + '|' + bankIdRekod(data), amt = Number(data.amount) || 0;
+                    if (isPindahAkaun(data)) { bawaPerBank[kb] = (bawaPerBank[kb] || 0) - amt; const kk = peranRekod(data) + '|' + (data.bank_ke || 'utama'); bawaPerBank[kk] = (bawaPerBank[kk] || 0) + amt; }
+                    else if (isPindahan(data)) { bawaBank += nilai; bawaTunai -= nilai; bawaPerBank[kb] = (bawaPerBank[kb] || 0) + nilai; }
+                    else if (data.txnAccount === 'Tunai') bawaTunai += nilai; else { bawaBank += nilai; bawaPerBank[kb] = (bawaPerBank[kb] || 0) + nilai; }
                 }
                 if (data.date && data.date.startsWith(prevMonthStr)) {
                     arrayLepas.push(data);
@@ -2634,14 +2704,15 @@
             listSemasa.forEach(t => {
                 window._txnPeta[t.id] = t;
                 const isOut = t.type === 'outflow', pindah = isPindahan(t);
-                if (pindah) { bankOut += t.amount; tunaiIn += t.amount; }
+                if (isPindahAkaun(t)) { tambahBank(t, -t.amount); const k = peranRekod(t) + '|' + (t.bank_ke || 'utama'); perBank[k] = (perBank[k] || 0) + t.amount; }
+                else if (pindah) { bankOut += t.amount; tunaiIn += t.amount; tambahBank(t, -t.amount); }
                 else if (isOut) {
                     totalOut += t.amount;
                     if (t.is_saving) totalSimpan += t.amount;
-                    if(t.txnAccount === 'Tunai') tunaiOut += t.amount; else bankOut += t.amount;
+                    if(t.txnAccount === 'Tunai') tunaiOut += t.amount; else { bankOut += t.amount; tambahBank(t, -t.amount); }
                 } else {
                     totalIn += t.amount;
-                    if(t.txnAccount === 'Tunai') tunaiIn += t.amount; else bankIn += t.amount;
+                    if(t.txnAccount === 'Tunai') tunaiIn += t.amount; else { bankIn += t.amount; tambahBank(t, t.amount); }
                 }
                 
                 const icon = pindah ? '🏧' : isOut ? '📉' : '📈';
@@ -2650,7 +2721,7 @@
                 const tarikhFormat = t.date.split('-').reverse().join('/');
                 
                 const badgeUser = t.txnUser ? `<span style="background:#e2e8f0; color:#475569; padding:3px 8px; border-radius:6px; font-size:0.65rem;">${t.txnUser}</span>` : '';
-                const badgeAcc = pindah ? `🏦 Bank ➜ 💵 Tunai` : t.txnAccount === 'Tunai' ? `💵 Tunai` : `🏦 Bank`;
+                const badgeAcc = labelKaedah(t);
                 
                 const resitHtml = t.receipt_url 
                     ? `<a href="${t.receipt_url}" target="_blank" class="resit-link">📸 Resit</a>` 
@@ -2693,6 +2764,16 @@
             document.getElementById('dash-net').innerText = `RM ${formatRM(netBalance)}`;
             document.getElementById('dash-tunai').innerText = `RM ${formatRM(bakiTunai)}`;
             document.getElementById('dash-bank').innerText = `RM ${formatRM(bakiBank)}`;
+            // Pecahan baki ikut akaun bank (hanya jika lebih daripada satu akaun)
+            {
+                const pers = modPengguna === 'gabungan' ? ['induk', 'pasangan'] : [modPengguna];
+                const baris = [];
+                pers.forEach(per => senaraiBank(per).forEach(b => {
+                    const k = per + '|' + b.id, v = (perBank[k] || 0) + (adaBakiPermulaan ? 0 : (bawaPerBank[k] || 0));
+                    baris.push(`${esc(b.nama)}${modPengguna === 'gabungan' && adaPasangan ? ' (' + esc(namaPeranan(per)) + ')' : ''}: RM ${formatRM(v)}`);
+                }));
+                document.getElementById('dash-bank-pecah').innerHTML = baris.length > 1 ? baris.join('<br>') : '';
+            }
 
             document.getElementById('health-card-section').style.display = 'block';
             document.getElementById('executive-report-section').style.display = 'block';
@@ -2979,7 +3060,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
     <input id="sgJumlah" type="number" step="0.01" min="0" inputmode="decimal" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 10px;">
     <div style="display:flex;gap:10px;">
       <div style="flex:1"><label style="font-size:.75rem;font-weight:700;color:#475569;">Tarikh</label><input id="sgTarikh" type="date" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 10px;"></div>
-      <div style="flex:1"><label style="font-size:.75rem;font-weight:700;color:#475569;">Kaedah</label><select id="sgKaedah" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 10px;"><option value="Bank">🏦 Bank</option><option value="Tunai">💵 Tunai</option></select></div>
+      <div style="flex:1"><label style="font-size:.75rem;font-weight:700;color:#475569;">Kaedah</label><select id="sgKaedah" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 10px;"></select></div>
     </div>
     <label style="font-size:.75rem;font-weight:700;color:#475569;">Kategori</label>
     <select id="sgKat" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 4px;"></select>
