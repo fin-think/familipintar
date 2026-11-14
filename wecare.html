@@ -245,34 +245,48 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
   </div>
 </div>
 
+<style>
+  .seksyen-tg{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;color:var(--ink);background:#f1f5f9;border-radius:10px;padding:10px 12px;margin:0 0 10px;cursor:pointer}
+  .seksyen-tg input{width:20px;height:20px;margin:0;accent-color:#16a34a}
+  .bhg-tg{border-left:3px solid #e2e8f0;padding-left:10px;margin:0 0 14px}
+</style>
 <!-- MODAL TARIKH -->
 <div id="modalTarikh" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center;padding:15px;">
   <div style="background:#fff;width:100%;max-width:450px;border-radius:12px;padding:20px;max-height:90vh;overflow-y:auto;position:relative;">
     <h2 id="tajukTarikh" style="margin:0 0 15px;font-size:18px;color:var(--ink);font-weight:800;">Tugas: Tarikh</h2>
     <input type="hidden" id="editTugasId">
     <input type="hidden" id="tJenis" value="tugas"><input type="hidden" id="tBalikJenis" value="bermalam">
-    <div class="jenis-bar" id="jenisBar">
-      <button type="button" data-j="tugas" class="aktif" onclick="tukarJenisTugas('tugas')">📋 Tugasan</button>
-      <button type="button" data-j="balik" onclick="tukarJenisTugas('balik')">🏠 Balik Kampung</button>
-    </div>
-    <div class="balik-pilih" id="balikPilih">
-      <button type="button" data-b="hari" onclick="tukarBalikJenis('hari')">☀️ Balik hari</button>
-      <button type="button" data-b="bermalam" class="aktif" onclick="tukarBalikJenis('bermalam')">🌙 Bermalam / lama</button>
-    </div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;">
-      <div style="flex:1;"><label>Tarikh Mula</label><input type="date" id="tDate"></div>
-      <div style="flex:1;" id="kotakTamat"><label>Tarikh Tamat</label><input type="date" id="tEndDate"></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;" id="barisUntuk">
-      <div style="flex:1;"><label>Untuk Siapa?</label>
-        <select id="tWhom"><option value="ayah">Bapa (Biru)</option><option value="ibu">Ibu (Pink)</option><option value="umum">Umum (Hijau)</option></select>
+    <!-- Satu borang, dua bahagian: tanda Tugasan dan/atau Balik Kampung, simpan sekali -->
+    <label class="seksyen-tg" id="hdrTugas"><input type="checkbox" id="cbTugas" checked onchange="kemasBahagian()"> 📋 Tugasan</label>
+    <div id="bhgTugas" class="bhg-tg">
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <div style="flex:1;"><label>Tarikh Mula</label><input type="date" id="tDate"></div>
+        <div style="flex:1;" id="kotakTamat"><label>Tarikh Tamat</label><input type="date" id="tEndDate"></div>
       </div>
-      <div style="flex:1;"><label>Masa (Pilihan)</label><input type="time" id="tTime"></div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;" id="barisUntuk">
+        <div style="flex:1;"><label>Untuk Siapa?</label>
+          <select id="tWhom"><option value="ayah">Bapa (Biru)</option><option value="ibu">Ibu (Pink)</option><option value="umum">Umum (Hijau)</option></select>
+        </div>
+        <div style="flex:1;"><label>Masa (Pilihan)</label><input type="time" id="tTime"></div>
+      </div>
+      <label id="lblShift">Shift / Tugasan Siapa?</label>
+      <select id="tShiftSiapa"><option value="Umum">Umum / Semua Terlibat</option></select>
+      <div id="kotakPerkara"><label style="margin-top:12px;">Perkara (Cth: Bawa ke Klinik / Makan Ubat)</label>
+      <input type="text" id="tTitle" placeholder="Tulis tugas..."></div>
     </div>
-    <label id="lblShift">Shift / Tugasan Siapa?</label>
-    <select id="tShiftSiapa"><option value="Umum">Umum / Semua Terlibat</option></select>
-    <div id="kotakPerkara"><label style="margin-top:12px;">Perkara (Cth: Bawa ke Klinik / Makan Ubat)</label>
-    <input type="text" id="tTitle" placeholder="Tulis tugas..."></div>
+    <label class="seksyen-tg" id="hdrBalik"><input type="checkbox" id="cbBalik" onchange="kemasBahagian()"> 🏠 Balik Kampung</label>
+    <div id="bhgBalik" class="bhg-tg" style="display:none;">
+      <div class="balik-pilih" id="balikPilih" style="display:flex;">
+        <button type="button" data-b="hari" onclick="tukarBalikJenis('hari')">☀️ Balik hari</button>
+        <button type="button" data-b="bermalam" class="aktif" onclick="tukarBalikJenis('bermalam')">🌙 Bermalam / lama</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <div style="flex:1;"><label>Tarikh Mula</label><input type="date" id="bDate"></div>
+        <div style="flex:1;" id="kotakTamatB"><label>Tarikh Tamat</label><input type="date" id="bEndDate"></div>
+      </div>
+      <label>Siapa yang balik?</label>
+      <select id="bSiapa"></select>
+    </div>
     <label>Nota / Dos Ubat</label>
     <textarea id="tNote" placeholder="Maklumat tambahan..."></textarea>
     <button class="primary" onclick="simpanTugasKalendar(false)" style="margin-bottom:10px;">💾 Simpan Tugas Sahaja</button>
@@ -756,30 +770,29 @@ const isUbat = (t) => /ubat|\bdos\b|\bpil\b|tablet|kapsul|capsule|sirap|insulin|
 const cariTugas = (id) => dataKalendarGlobal.find(t => t.id === id);
 
 
-// --- Jenis entri kalendar: Tugasan (sedia ada) atau Balik Kampung (balik hari / bermalam) ---
-window.tukarJenisTugas = (j) => {
-  document.getElementById('tJenis').value = j;
-  document.querySelectorAll('#jenisBar button').forEach(b => b.classList.toggle('aktif', b.dataset.j === j));
-  const balik = j === 'balik';
-  document.getElementById('balikPilih').style.display = balik ? 'flex' : 'none';
-  document.getElementById('barisUntuk').style.display = balik ? 'none' : 'flex';
-  document.getElementById('kotakPerkara').style.display = balik ? 'none' : 'block';
-  document.getElementById('lblShift').innerText = balik ? 'Siapa yang balik?' : 'Shift / Tugasan Siapa?';
-  if (balik) {
-    const sel = document.getElementById('tShiftSiapa');
-    sel.querySelector('option[value="Umum"]') && (sel.querySelector('option[value="Umum"]').innerText = 'Pilih siapa yang balik...');
-    window.tukarBalikJenis(document.getElementById('tBalikJenis').value || 'bermalam');
-  } else {
-    const o = document.querySelector('#tShiftSiapa option[value="Umum"]'); if (o) o.innerText = 'Umum / Semua Terlibat';
-    document.getElementById('kotakTamat').style.display = 'block';
-  }
+// --- Satu borang: tanda Tugasan dan/atau Balik Kampung (boleh kedua-duanya), simpan sekali ---
+window.kemasBahagian = () => {
+  const t = document.getElementById('cbTugas').checked, b = document.getElementById('cbBalik').checked;
+  document.getElementById('bhgTugas').style.display = t ? 'block' : 'none';
+  document.getElementById('bhgBalik').style.display = b ? 'block' : 'none';
+  document.getElementById('tJenis').value = b && !t ? 'balik' : 'tugas';
+};
+// Mod edit: hanya bahagian rekod itu dipaparkan, kotak semak dikunci
+window.tukarJenisTugas = (j, kunci = false) => {
+  const cbT = document.getElementById('cbTugas'), cbB = document.getElementById('cbBalik');
+  cbT.checked = j !== 'balik'; cbB.checked = j === 'balik';
+  cbT.disabled = cbB.disabled = kunci;
+  document.getElementById('hdrTugas').style.display = kunci && j === 'balik' ? 'none' : 'flex';
+  document.getElementById('hdrBalik').style.display = kunci && j !== 'balik' ? 'none' : 'flex';
+  window.kemasBahagian();
+  window.tukarBalikJenis(document.getElementById('tBalikJenis').value || 'bermalam');
 };
 window.tukarBalikJenis = (b) => {
   document.getElementById('tBalikJenis').value = b;
   document.querySelectorAll('#balikPilih button').forEach(x => x.classList.toggle('aktif', x.dataset.b === b));
   const hari = b === 'hari';
-  document.getElementById('kotakTamat').style.display = hari ? 'none' : 'block';
-  if (hari) document.getElementById('tEndDate').value = document.getElementById('tDate').value;
+  document.getElementById('kotakTamatB').style.display = hari ? 'none' : 'block';
+  if (hari) document.getElementById('bEndDate').value = document.getElementById('bDate').value;
 };
 const labelBalik = (t) => t.balik_jenis === 'hari' ? 'balik hari' : 'bermalam';
 
@@ -802,9 +815,17 @@ window.bukaModalTarikh = (tarikhStr, tugas = null) => {
   if (![...sel.options].some(o => o.value === shift)) sel.insertAdjacentHTML('beforeend', `<option value="${esc(shift)}">${esc(shift)}</option>`);
   sel.value = shift;
 
+  // Bahagian Balik Kampung: tarikh & siapa sendiri
+  const bSel = document.getElementById('bSiapa');
+  bSel.innerHTML = `<option value="">Pilih siapa yang balik...</option>` + [...window.globalTeamMap.values()].map(v => `<option value="${esc(v.name)}">${esc(v.name)} (${esc(v.role)})</option>`).join('');
+  const balikIni = tugas && tugas.jenis === 'balik';
+  if (balikIni && ![...bSel.options].some(o => o.value === tugas.shift_siapa)) bSel.insertAdjacentHTML('beforeend', `<option value="${esc(tugas.shift_siapa)}">${esc(tugas.shift_siapa)}</option>`);
+  bSel.value = balikIni ? (tugas.shift_siapa || '') : '';
+  document.getElementById('bDate').value = balikIni ? tugas.date : tarikhStr;
+  document.getElementById('bEndDate').value = balikIni ? (tugas.end_date || tugas.date) : tarikhStr;
+  if (balikIni) { sel.value = 'Umum'; document.getElementById('tTitle').value = ''; }
   document.getElementById('tBalikJenis').value = (tugas && tugas.balik_jenis) || 'bermalam';
-  window.tukarJenisTugas(tugas && tugas.jenis === 'balik' ? 'balik' : 'tugas');
-  if (tugas && tugas.jenis === 'balik') sel.value = tugas.shift_siapa || 'Umum';
+  window.tukarJenisTugas(balikIni ? 'balik' : 'tugas', !!tugas);
   document.getElementById('btnPadamTugas').classList.toggle('hidden', !tugas);
   document.getElementById('modalTarikh').style.display = 'flex';
 };
@@ -815,7 +836,7 @@ window.tutupModalTarikh = () => {
   document.getElementById('tTitle').value = '';
   document.getElementById('tTime').value = '';
   document.getElementById('tNote').value = '';
-  window.tukarJenisTugas('tugas');
+  window.tukarJenisTugas('tugas', false);
 };
 
 window.lihatTugas = (id) => {
@@ -862,46 +883,43 @@ window.padamTugas = async (id) => {
 };
 
 window.simpanTugasKalendar = async (syncGoogle = false) => {
-  let title = document.getElementById('tTitle').value.trim();
-  const date = document.getElementById('tDate').value;
-  let end_date = document.getElementById('tEndDate').value;
-  const time = document.getElementById('tTime').value;
-  let for_whom = document.getElementById('tWhom').value;
-  const shift_siapa = document.getElementById('tShiftSiapa').value;
-  const note = document.getElementById('tNote').value.trim();
   const editId = document.getElementById('editTugasId').value;
-  const jenis = document.getElementById('tJenis').value === 'balik' ? 'balik' : 'tugas';
-  const balikJenis = document.getElementById('tBalikJenis').value === 'hari' ? 'hari' : 'bermalam';
-  if (jenis === 'balik') {
-    if (!shift_siapa || shift_siapa === 'Umum') { alert('Pilih siapa yang balik.'); return; }
-    if (!date) { alert('Sila isi Tarikh Mula!'); return; }
-    if (balikJenis === 'hari') end_date = date;
-    title = `${shift_siapa} balik ${balikJenis === 'hari' ? 'hari' : 'bermalam'}`;
+  const adaT = document.getElementById('cbTugas').checked, adaB = document.getElementById('cbBalik').checked;
+  if (!adaT && !adaB) { alert('Tanda sekurang-kurangnya satu: Tugasan atau Balik Kampung.'); return; }
+  const note = document.getElementById('tNote').value.trim();
+  const rekod = [];
+  if (adaT) {
+    const title = document.getElementById('tTitle').value.trim(), date = document.getElementById('tDate').value;
+    let end_date = document.getElementById('tEndDate').value || date;
+    if (!title || !date) { alert('Tugasan: sila isi Perkara & Tarikh Mula.'); return; }
+    if (end_date < date) { alert('Tugasan: tarikh tamat tidak boleh sebelum tarikh mula.'); return; }
+    rekod.push({ title, date, end_date, time: document.getElementById('tTime').value, for_whom: document.getElementById('tWhom').value, shift_siapa: document.getElementById('tShiftSiapa').value, note, jenis: 'tugas', balik_jenis: '' });
   }
-  if (!title || !date) { alert('Sila isi Perkara & Tarikh Mula!'); return; }
-  if (!end_date) end_date = date;
-  if (end_date < date) { alert('Tarikh tamat tidak boleh sebelum tarikh mula!'); return; }
-  
+  if (adaB) {
+    const siapa = document.getElementById('bSiapa').value, date = document.getElementById('bDate').value;
+    const balikJenis = document.getElementById('tBalikJenis').value === 'hari' ? 'hari' : 'bermalam';
+    let end_date = balikJenis === 'hari' ? date : (document.getElementById('bEndDate').value || date);
+    if (!siapa) { alert('Balik Kampung: pilih siapa yang balik.'); return; }
+    if (!date) { alert('Balik Kampung: sila isi Tarikh Mula.'); return; }
+    if (end_date < date) { alert('Balik Kampung: tarikh tamat tidak boleh sebelum tarikh mula.'); return; }
+    rekod.push({ title: `${siapa} balik ${balikJenis === 'hari' ? 'hari' : 'bermalam'}`, date, end_date, time: '', for_whom: 'umum', shift_siapa: siapa, note: adaT ? '' : note, jenis: 'balik', balik_jenis: balikJenis });
+  }
+
   const jb = jangkarBelah();
   if (!editId && !jb) { alert('Belah ini belum ada pasangan dalam myNasab. Tambah pasangan dahulu.'); return; }
-
   const author = namaSaya || currentUser.email.split('@')[0];
-  if (jenis === 'balik') for_whom = 'umum';
-  const dataTugas = { title, date, end_date, time: jenis === 'balik' ? '' : time, for_whom, shift_siapa, note, jenis, balik_jenis: jenis === 'balik' ? balikJenis : '' };
   try {
-    if (editId) {
-      await updateDoc(doc(db, "wecare_calendar", editId), { ...dataTugas, updated_at: Date.now() });
-    } else {
-      await setDoc(doc(collection(db, "wecare_calendar")), { ...dataTugas, anchor_id: jb, author, author_uid: currentUser.uid, group_id: currentGroup, created_at: Date.now() });
-    }
+    if (editId) await updateDoc(doc(db, "wecare_calendar", editId), { ...rekod[0], updated_at: Date.now() });
+    else for (const r of rekod) await setDoc(doc(collection(db, "wecare_calendar")), { ...r, anchor_id: jb, author, author_uid: currentUser.uid, group_id: currentGroup, created_at: Date.now() });
   } catch (e) { alert("Gagal menyimpan: " + e.message); return; }
 
   if (syncGoogle) {
-    const dateG = date.replace(/-/g, '');
-    const endDateObj = new Date(end_date);
-    endDateObj.setDate(endDateObj.getDate() + 1);
+    // Satu tetingkap Google Calendar (pelayar menyekat tetingkap kedua): utamakan Tugasan
+    const r = rekod[0];
+    const dateG = r.date.replace(/-/g, '');
+    const endDateObj = new Date(r.end_date); endDateObj.setDate(endDateObj.getDate() + 1);
     const endDateG = endDateObj.toISOString().split('T')[0].replace(/-/g, '');
-    const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${dateG}/${endDateG}&details=${encodeURIComponent('Shift: ' + shift_siapa + '\n\n' + note + '\n\nUntuk: ' + for_whom.toUpperCase() + '\nDirekod oleh: ' + author)}`;
+    const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(r.title)}&dates=${dateG}/${endDateG}&details=${encodeURIComponent('Shift: ' + r.shift_siapa + '\n\n' + (r.note || '') + '\n\nDari weCare')}`;
     window.open(gcalUrl, '_blank');
   }
   window.tutupModalTarikh();
