@@ -396,6 +396,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
       sig += d[1] + '|' + (lb && lb !== '0' ? lb : '') + '|';
     });
     TAMBAH.forEach(function (d) { var el = document.querySelector(d[0]); if (!el || !nampak(el)) return; var th = tajukHuraian(el); kad.push({ el: el, w: d[2], t: th[0], d: th[1], i: d[1], tb: 1 }); sig += th[0] + '|'; });
+    sig += ($('ctaNasab') ? $('ctaNasab').textContent : '');
     if (sig === tanda) return; tanda = sig;
     var P = $('fpmPintas'); P.innerHTML = '';
     pin.forEach(function (c) {
@@ -412,7 +413,15 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
       var ik = document.createElement('span'); ik.className = 'fpm-ik'; var i = document.createElement('i'); i.className = (c.i.indexOf('fa-solid') === 0 ? '' : 'fa-solid ') + c.i; ik.appendChild(i);
       var h = document.createElement('h4'); h.textContent = c.t; var p = document.createElement('p'); p.textContent = c.d;
       if (c.b) { var lc = document.createElement('em'); lc.className = 'fpm-lencana'; lc.textContent = c.b; ik.appendChild(lc); }
-      b.appendChild(ik); b.appendChild(h); b.appendChild(p); b.onclick = function () { c.el.click(); }; j.appendChild(b);
+      var cta = c.el.querySelector('#ctaNasab');
+      if (cta) {   // kad pertama: tekankan mula di sini (daftar dahulu)
+        var mula = document.createElement('span'); mula.textContent = 'MULA DI SINI';
+        mula.style.cssText = 'display:inline-block;align-self:flex-start;background:rgba(255,255,255,.25);color:#fff;font-size:10px;font-weight:800;letter-spacing:.12em;padding:3px 10px;border-radius:999px;margin-bottom:8px';
+        b.appendChild(mula);
+      }
+      b.appendChild(ik); b.appendChild(h); b.appendChild(p);
+      if (cta) { var tb = document.createElement('span'); tb.innerHTML = cta.textContent + ' <i class="fa-solid fa-arrow-right"></i>'; tb.style.cssText = 'display:inline-flex;gap:6px;align-items:center;margin-top:12px;font-weight:800;font-size:14px;color:#fff;background:rgba(255,255,255,.2);padding:8px 14px;border-radius:999px'; b.appendChild(tb); }
+      b.onclick = function () { c.el.click(); }; j.appendChild(b);
     });
   }
   segerak(); setInterval(segerak, 1200);
@@ -500,20 +509,20 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         <!-- 1. myNasab (Soft Pastel Emerald) -->
-        <a onclick="semakAksesPintu('myNasab', 'mynasab/index.html')" class="cursor-pointer group bg-emerald-50 rounded-3xl p-7 border border-emerald-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
-            <span class="inline-block self-start bg-emerald-600 text-white text-[10px] font-extrabold tracking-widest px-3 py-1 rounded-full mb-3">MULA DARI SINI</span>
+        <a onclick="window.penggunaSemasa ? semakAksesPintu('myNasab', 'mynasab/index.html') : bukaModalAuth('daftar')" class="cursor-pointer group bg-emerald-50 rounded-3xl p-7 border border-emerald-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
+            <span class="inline-block self-start bg-emerald-600 text-white text-[10px] font-extrabold tracking-widest px-3 py-1 rounded-full mb-3">MULA DI SINI</span>
             <div class="w-14 h-14 rounded-2xl bg-emerald-200 text-emerald-700 flex items-center justify-center text-2xl mb-5">
                 <i class="fa-solid fa-sitemap"></i>
             </div>
             <h3 class="text-xl font-extrabold text-emerald-900" style="display:flex; align-items:center;">
-    Kenali Nasab & Waris
+    Satu Pendaftaran, Satu Keluarga
     <!-- Lencana di sebelah tajuk -->
     <span id="lencanaLuarNasab" style="display:none; background:#ef4444; color:white; border-radius:10px; padding:2px 6px; font-size:11px; margin-left:8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">0</span>
 </h3>
-            <p class="text-emerald-700 text-sm font-semibold mb-3">Salasilah keluarga digital</p>
-            <p class="text-emerald-800/70 text-sm leading-relaxed mb-5 flex-grow">Bina pokok keluarga anda daripada moyang hingga cucu cicit, dan jemput adik-beradik.</p>
+            <p class="text-emerald-700 text-sm font-semibold mb-3">Langkah pertama Famili Pintar</p>
+            <p class="text-emerald-800/70 text-sm leading-relaxed mb-5 flex-grow">Daftar dan masukkan siapa keluarga anda: ibu bapa, pasangan, anak, adik-beradik. Dari situ, pokok keluarga dan semua app lain ikut tersedia.</p>
             <span class="inline-flex items-center gap-2 font-bold text-emerald-700 group-hover:gap-3 transition-all">
-                Guna myNasab sekarang <i class="fa-solid fa-arrow-right"></i>
+                <span id="ctaNasab">Daftar Percuma</span> <i class="fa-solid fa-arrow-right"></i>
             </span>
         </a>
 
@@ -852,7 +861,7 @@ if ('Notification' in window) {
         const lencanaLuar = document.getElementById('lencanaLuarNasab');
 
         if (user) {
-            window.penggunaSemasa = user; 
+            window.penggunaSemasa = user; { const c = document.getElementById('ctaNasab'); if (c) c.textContent = 'Lihat Pokok Keluarga'; }
 
             // --- 1. TUKAR PAPARAN UI KEPADA LOG MASUK DAHULU ---
             if(greetingBox) {
@@ -968,7 +977,7 @@ if ('Notification' in window) {
             
         } else {
             // --- 4. KEMAS KINI UI JIKA LOG KELUAR (SIGN OUT) ---
-            window.penggunaSemasa = null;
+            window.penggunaSemasa = null; { const c = document.getElementById('ctaNasab'); if (c) c.textContent = 'Daftar Percuma'; }
             
             if(greetingBox) {
                 greetingBox.classList.add('hidden');
