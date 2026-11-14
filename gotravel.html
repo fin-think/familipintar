@@ -566,7 +566,7 @@
 
             init(); 
             await window.muatKeluargaRombongan(); 
-            await window.muatPelanTersimpan();
+            await window.muatPelanTersimpan(new URLSearchParams(location.search).get('trip'));   // ?trip=ID dari notifikasi
             AS.sedia(kunciTrip());   // auto-save bermula selepas data lama dimuat
             setMod(modLihat);
             window.muatDikongsi();
