@@ -36,6 +36,7 @@
       <div class="px-4 pt-4 pb-1 flex items-center gap-3">
         <a href="buatapa.html" class="text-teal-200" aria-label="Kembali"><i class="fa-solid fa-arrow-left"></i></a>
         <h1 class="text-xl font-extrabold flex-1">JomSalam</h1>
+        <span id="cgSlot"></span>
         <button id="btnKod" class="text-xs font-bold bg-white/15 rounded-full px-3 py-1.5" title="Kod Salam anda"><i class="fa-solid fa-qrcode"></i> <span id="kodSaya">…</span></button>
       </div>
       <nav class="flex text-sm font-bold">
@@ -407,5 +408,6 @@ async function sorok() {
   try { await updateDoc(doc(db, 'salam_chat', S.aktif.id), { ['sembunyi.' + S.user.uid]: true }); $('btnBalik').click(); } catch (e) { alert('Gagal: ' + e.message); }
 }
 </script>
+<script src="cara-guna.js?v=1" data-app="jomsalam" defer></script>
 </body>
 </html>
