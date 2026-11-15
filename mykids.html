@@ -435,7 +435,7 @@ function akhiratBox(a, umur) {
 function dunia(a,u,tk) {
   const lahir = new Date(a.dob).getFullYear();
   let h = `<div class="box"><h2>Fokus umur ini</h2><p class="s">${tahap(u)[1]}</p>${GENERIK[tk].map((t,i)=>ck('g:'+tk+':'+i,t)).join('')}</div>`;
-  h += `<div class="box"><h2>Kerjaya yang dipilih</h2><p class="s">Tidak perlu muktamad. Boleh ditukar bila-bila masa.</p><select id="ker"><option value="">-- Belum pilih --</option>${Object.entries(KERJAYA).map(([k,v])=>`<option value="${k}" ${S.plan.ker===k?'selected':''}>${v.i} ${v.n}${(S.plan.pers&&(S.plan.pers.serasi||[]).find(c=>c.k===k))?' ('+S.plan.pers.serasi.find(c=>c.k===k).p+'% serasi)':''}</option>`).join('')}</select></div>`;
+  h += `<div class="box"><h2>Kerjaya yang dipilih</h2><p class="s">Tidak perlu muktamad. Boleh ditukar bila-bila masa.</p><select id="ker"><option value="">-- Belum pilih --</option>${Object.entries(KERJAYA).map(([k,v])=>`<option value="${k}" ${S.plan.ker===k?'selected':''}>${v.n}${(S.plan.pers&&(S.plan.pers.serasi||[]).find(c=>c.k===k))?' ('+S.plan.pers.serasi.find(c=>c.k===k).p+'% serasi)':''}</option>`).join('')}</select></div>`;
   const K = KERJAYA[S.plan.ker];
   if (!K) return h;
   h += `<div class="box"><h2>Sasaran SPM (${lahir+17})</h2><p class="s">Anggaran umum. Semak syarat UPU dan institusi bagi tahun kemasukan.</p><p style="margin:0;font-size:14px">${esc(K.spm)}</p></div>`;
@@ -556,7 +556,7 @@ function kosBox(K) {
     <p class="nota"><b>Kos anggaran.</b> Semak yuran rasmi universiti sebelum membuat keputusan.${d.anggaran_dalaman ? ' Tiada angka khusus program ini, angka proksi digunakan.' : ''}</p>
     <p class="nota">Sumber: ${esc(d.sumber)}</p>
     ${simpBox()}
-    <button class="btn" id="btnKos" style="width:100%;border:0;cursor:pointer;font:800 15px inherit;font-family:inherit">💾 Simpan ke myTADBIR (${RM(tengah)})</button>
+    <button class="btn" id="btnKos" style="width:100%;border:0;cursor:pointer;font:800 15px inherit;font-family:inherit">Simpan ke myTADBIR (${RM(tengah)})</button>
     <a class="btn" style="background:#fff;color:var(--dunia);border:2px solid var(--dunia)" href="${URL_MYTADBIR}">Buka myTADBIR</a></div>`;
   return h;
 }
@@ -617,7 +617,7 @@ document.addEventListener('change', e => {
     var segerakAnak = function () {
       var bs = A.querySelectorAll('button[data-i]');
       sel.innerHTML = ''; var aktif = 0;
-      bs.forEach(function (b, n) { var o = document.createElement('option'); o.value = b.dataset.i; o.textContent = '👶 ' + b.textContent; sel.appendChild(o); if (b.classList.contains('on')) aktif = n; });
+      bs.forEach(function (b, n) { var o = document.createElement('option'); o.value = b.dataset.i; o.textContent = b.textContent; sel.appendChild(o); if (b.classList.contains('on')) aktif = n; });
       sel.selectedIndex = aktif; sel.classList.toggle('satu', bs.length <= 1);
     };
     sel.addEventListener('change', function () { var b = A.querySelector('button[data-i="' + sel.value + '"]'); if (b) b.click(); });
