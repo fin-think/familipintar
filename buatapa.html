@@ -184,7 +184,7 @@ function keluargaHariIni() {
       const bila = i === 0 ? 'Hari ini' : i === 1 ? 'Esok' : `${i} hari lagi (${bd} ${BULAN_MASIHI[bm - 1]})`;
       const hubungan = n.is_root ? 'Anda' : (n.relationship || '');
       kad.push(`<div class="flex items-center gap-3 p-3 rounded-xl ${i === 0 ? 'bg-rose-50 border border-rose-200' : 'bg-slate-50 border border-slate-200'}">
-        <div class="text-2xl">🎂</div>
+        <div class="text-2xl text-pink-500"><i class="fa-solid fa-cake-candles"></i></div>
         <div class="min-w-0"><div class="font-bold text-slate-800 truncate">${esc(n.name)} <span class="text-slate-500 font-semibold">(${umur} tahun)</span></div>
         <div class="text-xs text-slate-500">${esc(bila)}${hubungan ? ' · ' + esc(hubungan) : ''}</div></div></div>`);
     }
@@ -461,6 +461,6 @@ onAuthStateChanged(auth, async (u) => {
   if (u) siapkanDinding(u);
 });
 </script>
-<script src="cara-guna.js?v=2" data-app="buatapa" defer></script>
+<script src="cara-guna.js?v=3" data-app="buatapa" defer></script>
 </body>
 </html>

@@ -79,12 +79,12 @@
       tajuk: 'Cara Guna Buat Apa Hari Ini',
       intro: 'Laman keluarga untuk berkongsi cerita dan gambar, ganti grup WhatsApp keluarga.',
       langkah: [
-        ['Kongsi', 'Tulis sesuatu dan tambah gambar dengan <b>🖼️ Galeri</b> atau <b>📷 Kamera</b>.'],
-        ['Pilih siapa nampak', '<b>🏠 Kami</b> untuk anda, pasangan dan anak sahaja. <b>👥 Semua</b> untuk seluruh keluarga.'],
+        ['Kongsi', 'Tulis sesuatu dan tambah gambar dengan <b>Galeri</b> atau <b>Kamera</b>.'],
+        ['Pilih siapa nampak', '<b>Kami</b> untuk anda, pasangan dan anak sahaja. <b>Semua</b> untuk seluruh keluarga.'],
         ['Reaksi & komen', 'Tekan ❤️ 🤲 😂 atau <b>Komen</b> pada siaran keluarga.'],
         ['Gambar profil', 'Tekan <b>Gambar profil</b> (atau Tetapan di halaman utama) supaya keluarga kenal anda.'],
         ['Sirah & hari kebesaran', 'Kisah sirah harian dan kiraan hari kebesaran Islam sentiasa ada di halaman ini.'],
-        ['Berbual', 'Tekan <b>💬 JomSalam</b> untuk mesej peribadi dengan keluarga dan kenalan.']
+        ['Berbual', 'Tekan <b>JomSalam</b> untuk mesej peribadi dengan keluarga dan kenalan.']
       ]
     },
     jomsalam: {
@@ -92,7 +92,7 @@
       intro: 'Berbual dengan keluarga dan kenalan. Teks sahaja.',
       langkah: [
         ['Keluarga', 'Tab <b>Keluarga</b> menyenaraikan ahli keluarga yang ada akaun FP. Tekan nama untuk terus berbual.'],
-        ['Kita Nasab Adam', 'Untuk kawan dan kenalan (18 tahun ke atas). Tekan <b>🤝 Hulur Salam</b> dan cari dengan emel penuh atau Kod Salam.'],
+        ['Kita Nasab Adam', 'Untuk kawan dan kenalan (18 tahun ke atas). Tekan <b>Hulur Salam</b> dan cari dengan emel penuh atau Kod Salam.'],
         ['Kod Salam', 'Tekan <b>Kod Salam</b> di atas untuk kongsi kod anda kepada kenalan.'],
         ['Sambut / Tolak', 'Salam daripada kenalan perlu disambut dahulu sebelum boleh berbual. Penolakan tidak dimaklumkan.'],
         ['Keselamatan', 'Menu ⋮ dalam perbualan: <b>Sekat</b> atau <b>Lapor</b>. Mesej Kita Nasab Adam dipadam automatik selepas 90 hari.']
@@ -123,7 +123,7 @@
   const latar = document.createElement('div');
   latar.id = 'cgLatar';
   latar.innerHTML = `<div id="cgKad" role="dialog" aria-label="${P.tajuk}">
-      <div style="display:flex;justify-content:space-between;align-items:center"><h2>📖 ${P.tajuk}</h2><button type="button" data-cg-tutup style="background:none;border:0;font-size:26px;color:#94a3b8;cursor:pointer;line-height:1" aria-label="Tutup">&times;</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg>${P.tajuk}</h2><button type="button" data-cg-tutup style="background:none;border:0;font-size:26px;color:#94a3b8;cursor:pointer;line-height:1" aria-label="Tutup">&times;</button></div>
       <p class="cg-intro">${P.intro}</p>
       <ol>${P.langkah.map(([t, d]) => `<li><span><b class="cg-t">${t}</b>${d}</span></li>`).join('')}</ol>
       <button type="button" id="cgTutup" data-cg-tutup>Faham, mula guna</button>
@@ -133,7 +133,7 @@
   latar.addEventListener('click', (e) => { if (e.target === latar || e.target.closest('[data-cg-tutup]')) tutup(); });
 
   const btn = document.createElement('button');
-  btn.type = 'button'; btn.id = 'cgBtn'; btn.innerHTML = '❓ Cara Guna'; btn.onclick = buka;
+  btn.type = 'button'; btn.id = 'cgBtn'; btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> Cara Guna'; btn.onclick = buka;
 
   const pasang = () => {
     document.body.appendChild(latar);

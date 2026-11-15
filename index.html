@@ -237,7 +237,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                 <!-- Mod Sudah Log Masuk (Desktop) -->
                 <div id="menuSudahLogMasuk" style="display: none;" class="flex items-center gap-3 whitespace-nowrap">
                     <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-bold text-sm border border-yellow-300 shadow-sm flex items-center gap-1">
-                        💰 Kredit: <span id="bakiKreditHeader" class="text-yellow-800 text-base">0</span>
+                        <i class="fa-solid fa-coins text-yellow-600"></i> Kredit: <span id="bakiKreditHeader" class="text-yellow-800 text-base">0</span>
                     </div>
                     <button onclick="window.location.href='topup.html'" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md">
                         + Top Up
@@ -277,7 +277,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 
         <div id="mobileMenuSudahLogMasuk" style="display: none;" class="flex-col gap-2">
             <div class="w-full bg-yellow-100 text-yellow-800 py-2.5 px-4 rounded-xl font-bold text-sm border border-yellow-300 flex items-center justify-between">
-                <span>💰 Baki Kredit Anda:</span>
+                <span><i class="fa-solid fa-coins text-yellow-600"></i> Baki Kredit Anda:</span>
                 <span id="bakiKreditHeaderMobile" class="text-base font-extrabold">0</span>
             </div>
             <button onclick="window.location.href='topup.html'" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 px-4 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center gap-2">
@@ -669,7 +669,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 <!-- Modal Penghalang Akses -->
 <div id="modalPenghalang" class="hidden fixed inset-0 bg-black/60 items-center justify-center z-[9999] p-5">
     <div style="background: white; padding: 32px 24px; border-radius: 22px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <div style="font-size: 50px; margin-bottom: 15px;">🚪</div>
+        <div style="width:72px;height:72px;margin:0 auto 15px;border-radius:999px;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;font-size:30px;"><i class="fa-solid fa-door-open"></i></div>
         <h2 style="font-size: 22px; font-weight: 800; color: #2c3e50; margin-bottom: 10px;">Daftar Percuma Untuk Meneroka!</h2>
         <p style="color: #7f8c8d; font-size: 15px; margin-bottom: 25px; line-height: 1.5;">
             Akses ke <strong id="namaPintuSekat" style="color:#2980b9;">Sistem Ini</strong> memerlukan akaun Famili Pintar. Jangan risau, pendaftaran adalah 100% PERCUMA dan anda akan dikreditkan <strong>20 Kredit percuma</strong> serta-merta!
@@ -716,7 +716,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         <div id="paparanDaftar" class="hidden animate-fade-in">
             <h2 class="text-2xl font-extrabold text-slate-800 mb-2 text-center">Daftar Akaun Baru</h2>
             <p class="text-sm text-emerald-700 font-bold text-center mb-6 bg-emerald-50 py-2 rounded-lg border border-emerald-200">
-                🎁 Percuma 20 Kredit!
+                <i class="fa-solid fa-gift"></i> Percuma 20 Kredit!
             </p>
 
             <!-- Tambah input Nama supaya nampak beza dari Log Masuk -->
@@ -1366,25 +1366,25 @@ window.pantauLencanaWeCareUtama = async (user) => {
   <div class="pd-kotak">
     <div class="pd-kepala">
       <button class="pd-x" onclick="tutupPanduanFP()" aria-label="Tutup">✕</button>
-      <h2 id="pdTajuk">Selamat datang ke Famili Pintar 👋</h2>
+      <h2 id="pdTajuk">Selamat datang ke Famili Pintar</h2>
       <p>Mulakan dengan <b>myNasab</b>. Maklumat yang anda isi sekali itu mengalir sendiri ke app lain, jadi tak perlu isi berulang kali. Ikut anak panah.</p>
     </div>
     <div class="pd-isi">
       <!-- 1 -->
       <div class="pd-langkah" style="--w:#10b981;--b:#ecfdf5">
-        <div class="pd-tajuk"><span class="no">1</span> 🌳 myNasab <small>Mula di sini</small></div>
+        <div class="pd-tajuk"><span class="no">1</span> <i class="fa-solid fa-sitemap" style="color:#059669"></i> myNasab <small>Mula di sini</small></div>
         <ul>
           <li>Bina pokok keluarga: diri, pasangan, ibu bapa, adik-beradik dan anak.</li>
           <li>Isi <b>tarikh lahir</b> dan tanda sama ada ahli masih hidup atau telah meninggal.</li>
           <li>Jemput adik-beradik supaya pokok mereka bercantum dengan pokok anda.</li>
         </ul>
-        <div class="pd-guna"><div class="pd-label">✨ Fungsi &amp; kelebihan</div>
+        <div class="pd-guna"><div class="pd-label">Fungsi &amp; kelebihan</div>
           <p>Salasilah digital dari moyang hingga cucu cicit. Isi sekali sahaja, semua app lain guna data yang sama. Setiap keluarga kekal memiliki pokok sendiri walaupun bercantum. Pokok yang lengkap membolehkan myWARIS menunjukkan siapa waris anda.</p></div>
       </div>
       <div class="pd-anak"><span class="pd-pnh">⬇</span>data keluarga dikongsi</div>
       <!-- 2 -->
       <div class="pd-langkah" style="--w:#f43f5e;--b:#fff1f2">
-        <div class="pd-tajuk"><span class="no">2</span> 🤝 weCare <small>Jaga ibu bapa</small></div>
+        <div class="pd-tajuk"><span class="no">2</span> <i class="fa-solid fa-hand-holding-medical" style="color:#e11d48"></i> weCare <small>Jaga ibu bapa</small></div>
         <div class="pd-label">Data yang ditarik dari myNasab</div>
         <ul>
           <li><b>Ibu bapa</b> (dan ibu bapa pasangan) beserta status hidup atau meninggal.</li>
@@ -1393,22 +1393,22 @@ window.pantauLencanaWeCareUtama = async (user) => {
         </ul>
         <div class="pd-label">Yang anda isi di weCare</div>
         <ul><li>Jadual jagaan dan ubat, maklumat kesihatan ibu bapa, serta nota untuk adik-beradik.</li></ul>
-        <div class="pd-guna"><div class="pd-label">✨ Fungsi &amp; kelebihan</div>
+        <div class="pd-guna"><div class="pd-label">Fungsi &amp; kelebihan</div>
           <p>Jaga ibu bapa bersama adik-beradik walaupun berjauhan. Semua penjaga nampak profil kesihatan (jenis darah, penyakit, alahan, hospital), kalendar jagaan dan ubat, giliran tugasan, serta papan nota supaya tiada maklumat tertinggal. Ada notifikasi, ingatan hari jadi dan sync ke Google Calendar.</p></div>
       </div>
       <div class="pd-anak"><span class="pd-pnh">⬇</span>seterusnya</div>
       <!-- 3 goTravel -->
       <div class="pd-langkah" style="--w:#06b6d4;--b:#ecfeff">
-        <div class="pd-tajuk"><span class="no">3</span> ✈️ goTravel</div>
+        <div class="pd-tajuk"><span class="no">3</span> <i class="fa-solid fa-plane-departure" style="color:#0f766e"></i> goTravel</div>
         <ul><li>Ahli rombongan dipilih dari keluarga dalam myNasab.</li><li>Semak kalendar weCare (giliran jaga ibu bapa dan hari jadi) sebelum tetapkan tarikh.</li><li>Bajet percutian jadi misi simpanan di OurMoney.</li></ul>
-        <div class="pd-guna"><div class="pd-label">✨ Kelebihan</div><p>Rancang percutian dan Family Day bersama adik-beradik: bajet pengangkutan, penginapan dan makan, kalkulator simpanan, serta jadual itinerari hari demi hari. Itinerari boleh dicetak dan dikongsi kepada ahli keluarga yang berakaun.</p></div>
+        <div class="pd-guna"><div class="pd-label">Kelebihan</div><p>Rancang percutian dan Family Day bersama adik-beradik: bajet pengangkutan, penginapan dan makan, kalkulator simpanan, serta jadual itinerari hari demi hari. Itinerari boleh dicetak dan dikongsi kepada ahli keluarga yang berakaun.</p></div>
       </div>
       <div class="pd-anak"><span class="pd-pnh">⬇</span>seterusnya</div>
       <!-- 4 -->
       <div class="pd-langkah" style="--w:#0ea5e9;--b:#f0f9ff">
-        <div class="pd-tajuk"><span class="no">4</span> 📓 myJurnal <small>Jawab ujian &amp; kuiz</small></div>
+        <div class="pd-tajuk"><span class="no">4</span> <i class="fa-solid fa-book-open-reader" style="color:#0369a1"></i> myJurnal <small>Jawab ujian &amp; kuiz</small></div>
         <ul><li>Pasangan dan anak diambil dari myNasab. Keputusan ujian anda disimpan, dan sebahagiannya dihantar ke app seterusnya.</li></ul>
-        <div class="pd-guna"><div class="pd-label">✨ Fungsi &amp; kelebihan</div>
+        <div class="pd-guna"><div class="pd-label">Fungsi &amp; kelebihan</div>
           <p>Lebih 20 kalkulator dan ujian tentang kewangan, hubungan, anak dan legasi, disusun langkah demi langkah supaya tak berasa keliru. Jawab sekali, keputusan terus tersimpan dan menjadi bahan untuk myTADBIR dan myKids. (Untuk yang masih bujang, ada PerjalananKu.)</p></div>
         <div class="pd-cabang" style="margin-top:10px">
           <div class="pd-langkah" style="--w:#f97316;--b:#fff7ed">
@@ -1425,7 +1425,7 @@ window.pantauLencanaWeCareUtama = async (user) => {
           </div>
         </div>
         <div class="pd-langkah" style="--w:#047857;--b:#ecfdf5;margin-top:10px">
-          <div class="pd-label" style="margin-top:0">Legasi: 📜 myWARIS (Langkah 4)</div>
+          <div class="pd-label" style="margin-top:0">Legasi: myWARIS (Langkah 4)</div>
           <ul>
             <li>Waris ditarik terus dari myNasab: pasangan, ibu bapa, datuk nenek, anak, cucu dan adik-beradik (termasuk yang berakaun sendiri).</li>
             <li>Tunjuk <b>siapa waris anda</b> dan bahagian faraid mereka dalam pecahan, serta siapa yang terdinding dan sebabnya.</li>
@@ -1439,19 +1439,19 @@ window.pantauLencanaWeCareUtama = async (user) => {
       <!-- 4 -->
       <div class="pd-cabang pd-cabang-empat">
         <div class="pd-langkah" style="--w:#8b5cf6;--b:#faf5ff">
-          <div class="pd-tajuk"><span class="no">5</span> 🧒 myKids</div>
+          <div class="pd-tajuk"><span class="no">5</span> <i class="fa-solid fa-child" style="color:#b45309"></i> myKids</div>
           <ul><li>Anak diambil dari myNasab.</li><li>Keputusan personaliti, psikologi dan integriti anak dipaparkan.</li><li>Bantu pilih laluan kerjaya yang serasi.</li></ul>
-          <div class="pd-guna"><div class="pd-label">✨ Kelebihan</div><p>Panduan dan senarai tugas anak untuk dunia dan akhirat: rancang kerjaya, laluan pendidikan SPM ke universiti, dan didikan rohani ikut peringkat umur. Anda tahu apa perlu dibuat dan bila.</p></div>
+          <div class="pd-guna"><div class="pd-label">Kelebihan</div><p>Panduan dan senarai tugas anak untuk dunia dan akhirat: rancang kerjaya, laluan pendidikan SPM ke universiti, dan didikan rohani ikut peringkat umur. Anda tahu apa perlu dibuat dan bila.</p></div>
         </div>
         <div class="pd-langkah" style="--w:#0f172a;--b:#f8fafc">
-          <div class="pd-tajuk"><span class="no">6</span> 🏛️ myTADBIR</div>
+          <div class="pd-tajuk"><span class="no">6</span> <i class="fa-solid fa-building-columns" style="color:#334155"></i> myTADBIR</div>
           <ul><li>Ahli keluarga dari myNasab, hutang dari myDEBT, persaraan dari myFINPLAN.</li><li>Dikira: harta bersih, DSR, dana persaraan, zakat dan sasaran dana.</li><li>Agihan faraid dalam RM guna formula yang sama dengan myWARIS.</li></ul>
-          <div class="pd-guna"><div class="pd-label">✨ Kelebihan</div><p>Nampak gambaran kewangan sebenar keluarga dalam satu skrin: berapa harta bersih, sejauh mana hutang menekan, dan cukupkah untuk bersara. Hasilnya terus menjadi sasaran simpanan di OurMoney.</p></div>
+          <div class="pd-guna"><div class="pd-label">Kelebihan</div><p>Nampak gambaran kewangan sebenar keluarga dalam satu skrin: berapa harta bersih, sejauh mana hutang menekan, dan cukupkah untuk bersara. Hasilnya terus menjadi sasaran simpanan di OurMoney.</p></div>
         </div>
         <div class="pd-langkah" style="--w:#6366f1;--b:#eef2ff">
-          <div class="pd-tajuk"><span class="no">7</span> 💰 OurMoney</div>
+          <div class="pd-tajuk"><span class="no">7</span> <i class="fa-solid fa-wallet" style="color:#4f46e5"></i> OurMoney</div>
           <ul><li>Sasaran simpanan dan zakat ditarik dari myTADBIR.</li><li>Percutian dari JomBercuti jadi misi simpanan.</li><li>Ibu bapa dari myNasab untuk misi Amanah.</li></ul>
-          <div class="pd-guna"><div class="pd-label">✨ Kelebihan</div><p>Jejak duit masuk dan keluar harian ikut individu (suami, isteri atau gabungan), dengan laporan bulanan dan tahunan boleh cetak PDF, nisbah 50/30/20 dan peringatan simpanan. Ada juga misi akhirat: infaq harian dan Amanah ibu bapa.</p></div>
+          <div class="pd-guna"><div class="pd-label">Kelebihan</div><p>Jejak duit masuk dan keluar harian ikut individu (suami, isteri atau gabungan), dengan laporan bulanan dan tahunan boleh cetak PDF, nisbah 50/30/20 dan peringatan simpanan. Ada juga misi akhirat: infaq harian dan Amanah ibu bapa.</p></div>
         </div>
       </div>
       <p style="font-size:.74rem;color:#64748b;font-weight:600;text-align:center;margin:12px 0 4px;line-height:1.5">Tak perlu ikut semua. Mulakan di myNasab, kemudian pilih app yang anda perlukan. Anda boleh buka panduan ini semula bila-bila masa melalui butang <b>Teroka ekosistem</b>.</p>
@@ -1507,7 +1507,7 @@ window.pantauLencanaWeCareUtama = async (user) => {
   <div class="tp-kad">
     <div class="flex items-center justify-between mb-2">
       <button id="tpBalik" class="hidden text-slate-500 text-sm font-bold" onclick="tpUtama()"><i class="fa-solid fa-arrow-left"></i> Tetapan</button>
-      <h2 id="tpTajuk" class="text-lg font-extrabold text-slate-800">⚙️ Tetapan</h2>
+      <h2 id="tpTajuk" class="text-lg font-extrabold text-slate-800"><i class="fa-solid fa-gear text-slate-500"></i> Tetapan</h2>
       <button onclick="tutupTetapan()" class="text-2xl text-slate-400 leading-none" aria-label="Tutup">&times;</button>
     </div>
     <div id="tpUtama">

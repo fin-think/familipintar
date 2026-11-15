@@ -67,7 +67,7 @@
 <div id="mCari" class="modal">
   <div class="bg-white rounded-2xl p-5 w-full max-w-sm relative">
     <button data-tutup="mCari" class="absolute top-3 right-4 text-2xl text-slate-400">&times;</button>
-    <h2 class="text-lg font-extrabold mb-1">🤝 Hulur Salam</h2>
+    <h2 class="text-lg font-extrabold mb-1"><i class="fa-solid fa-handshake text-amber-500"></i> Hulur Salam</h2>
     <p class="text-xs text-slate-500 mb-3">Cari dengan <b>emel penuh</b> atau <b>Kod Salam</b> (cth. FP-7K2M9Q). Mereka perlu sambut dahulu sebelum boleh berbual.</p>
     <input id="cariInput" class="w-full border rounded-lg p-3 mb-2" placeholder="emel@contoh.com atau FP-XXXXXX" autocomplete="off">
     <button id="btnCari" class="w-full bg-teal-700 text-white font-bold py-2.5 rounded-xl">Cari</button>
@@ -202,9 +202,9 @@ const lencana = (n) => n ? `<span class="belum">${n > 99 ? '99+' : n}</span>` : 
 function barisChat(c, namaGanti) {
   const u = lain(c), nama = (c.nama && c.nama[u]) || namaGanti || 'Pengguna', n = belumSaya(c);
   let sub = c.mesej_akhir ? (c.dari_akhir === S.user.uid ? '✓ ' : '') + c.mesej_akhir : '';
-  if (c.status === 'menunggu') sub = c.pemohon === S.user.uid ? '⏳ Menunggu Salam disambut…' : '🤝 Hulur Salam: ' + (c.pengenalan || 'mahu berkenalan');
-  if (c.status === 'ditolak' && c.pemohon === S.user.uid) sub = '⏳ Menunggu Salam disambut…';
-  if (c.status === 'disekat') sub = '🚫 Disekat';
+  if (c.status === 'menunggu') sub = c.pemohon === S.user.uid ? 'Menunggu Salam disambut…' : 'Hulur Salam: ' + (c.pengenalan || 'mahu berkenalan');
+  if (c.status === 'ditolak' && c.pemohon === S.user.uid) sub = 'Menunggu Salam disambut…';
+  if (c.status === 'disekat') sub = 'Disekat';
   return `<button class="baris w-full flex items-center gap-3 px-4 py-3 border-b text-left" data-buka="${esc(c.id)}">${avatar(u, nama)}
     <div class="flex-1 min-w-0"><div class="flex justify-between gap-2"><b class="truncate">${esc(nama)}</b><span class="text-[.7rem] ${n ? 'text-green-600 font-bold' : 'text-slate-400'}">${masaPendek(c.masa_akhir)}</span></div>
     <div class="flex justify-between gap-2"><span class="text-sm text-slate-500 truncate">${esc(sub)}</span>${lencana(n)}</div></div></button>`;
@@ -221,7 +221,7 @@ function lukisSenarai() {
     || `<p class="text-center text-sm text-slate-500 p-8">Tiada ahli keluarga berpaut lagi. Jemput keluarga melalui myNasab.</p>`;
   const adam = nampak.filter(c => c.jenis === 'adam').sort((a, b) => ((b.status === 'menunggu' && b.pemohon !== S.user.uid) - (a.status === 'menunggu' && a.pemohon !== S.user.uid)) || susun(a, b));
   $('pAdam').innerHTML = !S.dewasa
-    ? `<div class="p-8 text-center text-sm text-slate-600"><div class="text-4xl mb-2">🌍</div>Kita Nasab Adam untuk pengguna berumur <b>18 tahun ke atas</b>.${S.dob ? '' : `<br><button id="btnIsiDob" class="mt-4 bg-teal-700 text-white font-bold px-4 py-2 rounded-xl">Isi tarikh lahir</button>`}</div>`
+    ? `<div class="p-8 text-center text-sm text-slate-600"><div class="text-4xl mb-2 text-teal-600"><i class="fa-solid fa-earth-asia"></i></div>Kita Nasab Adam untuk pengguna berumur <b>18 tahun ke atas</b>.${S.dob ? '' : `<br><button id="btnIsiDob" class="mt-4 bg-teal-700 text-white font-bold px-4 py-2 rounded-xl">Isi tarikh lahir</button>`}</div>`
     : `<div class="p-3"><button id="btnHulur" class="w-full bg-amber-400 hover:bg-amber-500 text-amber-950 font-extrabold py-3 rounded-xl"><i class="fa-solid fa-handshake"></i> Hulur Salam</button>
        <p class="text-[.72rem] text-slate-500 text-center mt-2">Berbual dengan kawan & kenalan. Teks sahaja, dipadam automatik selepas ${HARI_ADAM} hari.</p></div>`
       + (adam.map(c => barisChat(c)).join('') || '<p class="text-center text-sm text-slate-400 p-6">Belum ada perbualan.</p>');
@@ -271,7 +271,7 @@ $('btnCari').onclick = async () => {
     if (S.keluarga.some(k => k.uid === uid)) { $('mCari').classList.remove('buka'); mulaKeluarga(uid); return; }
     h.innerHTML = `<div class="flex items-center gap-3 border rounded-xl p-3">${avatar(uid, nama)}<b class="flex-1">${esc(nama)}</b></div>
       <textarea id="kenalan" maxlength="150" rows="2" class="w-full border rounded-lg p-2 mt-2 text-sm" placeholder="Perkenalkan diri (cth. Saya Ali, kawan sekolah abang awak)"></textarea>
-      <button data-hulur="${esc(uid)}" data-nama="${esc(nama)}" class="w-full bg-amber-400 text-amber-950 font-extrabold py-2.5 rounded-xl mt-2">🤝 Hulur Salam</button>`;
+      <button data-hulur="${esc(uid)}" data-nama="${esc(nama)}" class="w-full bg-amber-400 text-amber-950 font-extrabold py-2.5 rounded-xl mt-2"><i class="fa-solid fa-handshake"></i> Hulur Salam</button>`;
   } catch (e) { h.textContent = 'Ralat: ' + e.message; }
 };
 
@@ -367,9 +367,9 @@ function lukisBawah() {
   }
   // Menu
   $('menuChat').innerHTML = [
-    c.jenis === 'adam' && c.status !== 'disekat' ? `<button id="mSekat" class="block w-full text-left px-4 py-3 hover:bg-slate-50">🚫 Sekat</button>` : '',
-    c.jenis === 'adam' ? `<button id="mLapor" class="block w-full text-left px-4 py-3 hover:bg-slate-50">⚠️ Lapor</button>` : '',
-    `<button id="mSorok" class="block w-full text-left px-4 py-3 hover:bg-slate-50">🗑️ Buang dari senarai</button>`
+    c.jenis === 'adam' && c.status !== 'disekat' ? `<button id="mSekat" class="block w-full text-left px-4 py-3 hover:bg-slate-50"><i class="fa-solid fa-ban w-5 text-slate-500"></i> Sekat</button>` : '',
+    c.jenis === 'adam' ? `<button id="mLapor" class="block w-full text-left px-4 py-3 hover:bg-slate-50"><i class="fa-solid fa-flag w-5 text-slate-500"></i> Lapor</button>` : '',
+    `<button id="mSorok" class="block w-full text-left px-4 py-3 hover:bg-slate-50"><i class="fa-solid fa-trash-can w-5 text-slate-500"></i> Buang dari senarai</button>`
   ].join('');
   const on = (id, f) => { const el = $(id); if (el) el.onclick = () => { $('menuChat').classList.add('hidden'); f(); }; };
   on('mSekat', sekat); on('mLapor', lapor); on('mSorok', sorok);
@@ -408,6 +408,6 @@ async function sorok() {
   try { await updateDoc(doc(db, 'salam_chat', S.aktif.id), { ['sembunyi.' + S.user.uid]: true }); $('btnBalik').click(); } catch (e) { alert('Gagal: ' + e.message); }
 }
 </script>
-<script src="cara-guna.js?v=2" data-app="jomsalam" defer></script>
+<script src="cara-guna.js?v=3" data-app="jomsalam" defer></script>
 </body>
 </html>
