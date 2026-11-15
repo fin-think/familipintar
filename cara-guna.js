@@ -106,9 +106,9 @@
   css.textContent = `
     #cgBtn{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:900;display:inline-flex;align-items:center;gap:6px;background:#fff;color:#0f766e;border:1.5px solid #99f6e4;border-radius:999px;padding:8px 13px;font:700 13px/1 system-ui,sans-serif;box-shadow:0 6px 18px rgba(15,23,42,.15);cursor:pointer}
     #cgBtn.dlm{position:static;box-shadow:none;padding:6px 10px;font-size:12px;background:rgba(255,255,255,.15);color:#fff;border-color:transparent}
-    #cgLatar{position:fixed;inset:0;z-index:9990;background:rgba(15,23,42,.55);display:none;align-items:flex-end;justify-content:center}
+    #cgLatar{position:fixed;inset:0;z-index:9990;background:rgba(15,23,42,.55);display:none;align-items:flex-end;justify-content:center;padding:14px 14px calc(14px + env(safe-area-inset-bottom))}
     #cgLatar.buka{display:flex}
-    #cgKad{background:#fff;width:100%;max-width:520px;max-height:86vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));font-family:system-ui,sans-serif;color:#1e293b}
+    #cgKad{background:#fff;width:100%;max-width:520px;max-height:84vh;overflow:auto;border-radius:22px;box-shadow:0 18px 40px rgba(15,23,42,.25);padding:20px;font-family:system-ui,sans-serif;color:#1e293b}
     @media(min-width:768px){#cgLatar{align-items:center}#cgKad{border-radius:22px}}
     #cgKad h2{margin:0;font-size:18px;font-weight:800}
     #cgKad .cg-intro{font-size:13px;color:#64748b;margin:6px 0 14px;line-height:1.5}
