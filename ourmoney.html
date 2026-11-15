@@ -422,7 +422,7 @@
   <div class="container">
     <div id="pilih-pengguna" class="pilih-pengguna hidden"></div>
     <div id="barNotifOM" style="display:none;gap:10px;align-items:center;justify-content:space-between;background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#3730a3;">
-      <span>🔔 Hidupkan notifikasi supaya telefon mengingatkan simpanan bulanan anda.</span>
+      <span>Hidupkan notifikasi supaya telefon mengingatkan simpanan bulanan anda.</span>
       <button onclick="aktifkanNotifOM()" style="background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap;">Hidupkan</button>
     </div>
     <div id="misi-notif"></div>
@@ -440,9 +440,9 @@
         <form id="form-transaksi" class="form-grid">
           <div class="type-toggle">
             <input type="radio" name="txnType" id="type-out" value="outflow" checked>
-            <label for="type-out">Duit Keluar 💸</label>
+            <label for="type-out">Duit Keluar</label>
             <input type="radio" name="txnType" id="type-in" value="inflow">
-            <label for="type-in">Duit Masuk 📥</label>
+            <label for="type-in">Duit Masuk</label>
           </div>
 
           <div class="grid-2">
@@ -470,8 +470,8 @@
               <label>Kaedah Transaksi</label>
               <select id="txnAccount" required>
                 <option value="" disabled selected>-- Pilih Bank / Tunai --</option>
-                <option value="Tunai">💵 Tunai di Tangan</option>
-                <option value="Bank:utama">🏦 Bank</option>
+                <option value="Tunai">Tunai di Tangan</option>
+                <option value="Bank:utama">Bank</option>
               </select>
               <select id="txnAkaunKe" style="display:none;margin-top:6px"></select>
             </div>
@@ -492,7 +492,7 @@
           <div class="field">
             <label><span class="om-penuh">Resit / Gambar Bukti (Pilihan)</span><span class="om-pendek">Resit</span></label>
             <input type="file" id="txnImage" accept="image/*" capture="environment" style="display:none;" onchange="pilihGambar(event)">
-            <button type="button" class="btn-ghost" onclick="document.getElementById('txnImage').click()">📸 <span class="om-penuh">Ambil Gambar / Upload Resit</span><span class="om-pendek">Resit</span></button>
+            <button type="button" class="btn-ghost" onclick="document.getElementById('txnImage').click()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> <span class="om-penuh">Ambil Gambar / Upload Resit</span><span class="om-pendek">Resit</span></button>
             <div id="previewContainer" style="display:none; position:relative; margin-top:10px;">
               <img id="imgPreview" style="max-width:100%; border-radius:8px; border:1px solid #cbd5e1;" />
               <button type="button" onclick="buangGambar()" style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">✕</button>
@@ -500,7 +500,7 @@
           </div>
           </div>
 
-          <button type="submit" class="btn-submit" id="btn-save-txn">💾 Simpan Rekod</button>
+          <button type="submit" class="btn-submit" id="btn-save-txn">Simpan Rekod</button>
         </form>
       </div>
 
@@ -512,7 +512,7 @@
       <!-- Kad Senarai Transaksi -->
       <div class="card om-tutup" id="kadSenaraiTxn">
         <div class="card-header" style="display:block; border-bottom:none; margin-bottom:5px;">
-          <h2 id="tajuk-transaksi" style="margin-bottom:10px;">📋 Senarai Transaksi</h2>
+          <h2 id="tajuk-transaksi" style="margin-bottom:10px;">Senarai Transaksi</h2>
           <div class="filter-wrap" style="margin-bottom:8px">
               <input type="month" id="filterBulan">
               <button onclick="tukarBulanPaparan()">Papar</button>
@@ -535,7 +535,7 @@
       <!-- Kad Dashboard -->
       <div class="card">
         <div class="card-header">
-          <h2 id="tajuk-dashboard">📊 Aliran Tunai Bulan Ini</h2>
+          <h2 id="tajuk-dashboard">Aliran Tunai Bulan Ini</h2>
         </div>
         
         <div class="dash-grid">
@@ -565,19 +565,19 @@
                 <div id="dash-bank-pecah" style="font-size:.72rem; color:#94a3b8; font-weight:600; margin-top:4px; line-height:1.5;"></div>
              </div>
           </div>
-          <button type="button" onclick="bukaLaras()" style="margin-top:14px;width:100%;background:rgba(255,255,255,.08);color:#e2e8f0;border:1px dashed rgba(255,255,255,.3);border-radius:10px;padding:9px;font-weight:700;font-size:.85rem;cursor:pointer;">⚖️ Betulkan baki (ikut baki sebenar)</button>
+          <button type="button" onclick="bukaLaras()" style="margin-top:14px;width:100%;background:rgba(255,255,255,.08);color:#e2e8f0;border:1px dashed rgba(255,255,255,.3);border-radius:10px;padding:9px;font-weight:700;font-size:.85rem;cursor:pointer;">Betulkan baki (ikut baki sebenar)</button>
         </div>
 
         <!-- Tab: Ringkasan / Misi / Analisis -->
         <div class="om-tabs" id="om-tabs">
-          <button class="on" data-tab="ringkasan" onclick="tukarTabOM('ringkasan')">📌 Ringkasan</button>
-          <button data-tab="misi" onclick="tukarTabOM('misi')">🎯 Misi<span class="titik" id="titik-misi"></span></button>
-          <button data-tab="analisis" onclick="tukarTabOM('analisis')">📊 Analisis</button>
+          <button class="on" data-tab="ringkasan" onclick="tukarTabOM('ringkasan')">Ringkasan</button>
+          <button data-tab="misi" onclick="tukarTabOM('misi')">Misi<span class="titik" id="titik-misi"></span></button>
+          <button data-tab="analisis" onclick="tukarTabOM('analisis')">Analisis</button>
         </div>
         <div class="om-pane on" id="pane-ringkasan">
         <!-- Kad Integrasi myTADBIR (Sentiasa Papar) -->
         <div class="tadbir-card" id="mytadbir-target" style="border-left: 4px solid #3b82f6;">
-            <h3 style="margin-bottom: 12px; color: #1e293b;">🏦 Ringkasan myTADBIR</h3>
+            <h3 style="margin-bottom: 12px; color: #1e293b;">Ringkasan myTADBIR</h3>
             
             <div id="tadbir-content-wrapper">
                 <div class="tadbir-row">
@@ -596,7 +596,7 @@
 
             <div id="tadbir-empty-state" class="hidden" style="text-align: center; padding: 12px 5px; background: #f8fafc; border-radius: 6px; margin-bottom: 10px;">
                 <p style="font-size: 13px; color: #475569; line-height: 1.5; margin: 0;">
-                    💡 <strong>Optimumkan Perancangan Kewangan!</strong><br>
+                    <strong>Optimumkan Perancangan Kewangan!</strong><br>
                     Profil myTADBIR anda masih kosong. Lengkapkan data harta dan liabiliti untuk merungkai unjuran masa depan keluarga dengan lebih komprehensif.
                 </p>
             </div>
@@ -608,35 +608,35 @@
         <div class="om-pane" id="pane-misi">
         <!-- Kad Misi Kewangan (sasaran daripada myTADBIR) -->
         <div class="misi-card" id="misi-card">
-            <h3>🎯 Misi Kewangan</h3>
+            <h3>Misi Kewangan</h3>
             <div class="misi-sub">Sasaran daripada myTADBIR dan JomBercuti. Simpan melalui <b>Duit Keluar</b> → pilih misi pada Kategori.</div>
             <div id="misi-isi"><div class="misi-kosong">Memuatkan misi...</div></div>
         </div>
 
         <!-- Kad Misi Akhirat: Infaq Harian -->
         <div class="infaq-card" id="infaq-card">
-            <h3>🤲 Misi Akhirat: Infaq Harian</h3>
+            <h3>Misi Akhirat: Infaq Harian</h3>
             <div class="infaq-sub">Berinfaq sedikit setiap hari sepanjang tahun (zakat myTADBIR ÷ 365).</div>
             <div id="infaq-isi"><div id="infaq-w-induk"><div id="infaq-h-induk"></div><div id="infaq-isi-induk"><div class="misi-kosong">Memuatkan...</div></div></div><div id="infaq-w-pasangan" style="display:none;margin-top:10px"><div id="infaq-h-pasangan"></div><div id="infaq-isi-pasangan"></div></div></div>
         </div>
 
         <!-- Kad Misi Akhirat: Amanah Ibu Bapa (hanya jika ibu/bapa masih ada) -->
         <div class="infaq-card amanah-card" id="amanah-card" style="display:none">
-            <h3>🤝 Misi Akhirat: Amanah Ibu Bapa</h3>
+            <h3>Misi Akhirat: Amanah Ibu Bapa</h3>
             <div class="infaq-sub">Elaun bulanan untuk ibu bapa (pasangan: mertua), dikira daripada pendapatan (kira-kira 5%).</div>
             <div id="amanah-isi"><div id="amanah-w-induk"><div id="amanah-h-induk"></div><div id="amanah-isi-induk"></div></div><div id="amanah-w-pasangan" style="display:none;margin-top:10px"><div id="amanah-h-pasangan"></div><div id="amanah-isi-pasangan"></div></div></div>
         </div>
 
         <!-- Kad Misi Akhirat: Haji (induk & pasangan masing-masing; disorok jika sudah tunai / Tabung Haji sudah cukup) -->
         <div class="infaq-card haji-card" id="haji-card" style="display:none">
-            <h3>🕋 Misi Akhirat: Haji</h3>
+            <h3>Misi Akhirat: Haji</h3>
             <div class="infaq-sub">Menyimpan untuk menunaikan haji. Tetapkan tahun sasaran, kami kira simpanan bulanan.</div>
             <div id="haji-isi"><div id="haji-w-induk"><div id="haji-h-induk"></div><div id="haji-isi-induk"></div></div><div id="haji-w-pasangan" style="display:none;margin-top:10px"><div id="haji-h-pasangan"></div><div id="haji-isi-pasangan"></div></div></div>
         </div>
 
         <!-- Kad Integrasi JomBercuti -->
         <div class="vacation-card" id="vacation-target">
-          <div class="vac-icon">✈️</div>
+          <div class="vac-icon"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></div>
           <div class="vac-details">
             <div class="vac-title">Sasaran JomBercuti</div>
             <div class="vac-amt" id="vac-saving">RM 0.00 / bulan</div>
@@ -648,7 +648,7 @@
         <div class="om-pane" id="pane-analisis">
         <!-- Analisis Kesihatan Kewangan -->
         <div class="health-card" id="health-card-section">
-          <div class="health-title">🩺 Kesihatan Kewangan (Analisis Penutup Bulan)</div>
+          <div class="health-title">Kesihatan Kewangan (Analisis Penutup Bulan)</div>
           
           <div class="progress-wrap" id="health-bar-wrap" style="display:none;">
             <div class="prog-out" id="bar-out" title="Perbelanjaan"></div>
@@ -670,7 +670,7 @@
             </div>
             
             <div id="report-content" class="hidden">
-                <h3 class="report-title" id="rep-tajuk">📑 Analisis Eksekutif</h3>
+                <h3 class="report-title" id="rep-tajuk">Analisis Eksekutif</h3>
                 <div class="report-grid">
                     
                     <div class="report-box">
@@ -736,7 +736,7 @@
         </p>
         
         <button id="btn-bayar-fitur" onclick="prosesBeliFitur()" style="width:100%; background:var(--primary); color:#fff; padding:14px; border:none; border-radius:8px; font-weight:700; font-size:16px; cursor:pointer; margin-bottom:12px; transition:0.2s;">
-            💳 Potong Kredit
+            Potong Kredit
         </button>
         
         <button onclick="batalBeliFitur()" style="width:100%; background:transparent; color:var(--muted); padding:10px; border:none; font-weight:600; font-size:14px; cursor:pointer;">
@@ -755,7 +755,7 @@
                 <option value="A4 portrait">A4 Menegak</option>
                 <option value="A4 landscape">A4 Melintang</option>
             </select>
-            <button onclick="cetakLaporan()" style="background: #3b82f6; color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">🖨️ Simpan PDF / Cetak</button>
+            <button onclick="cetakLaporan()" style="background: #3b82f6; color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">Simpan PDF / Cetak</button>
         </div>
     </div>
     <div class="cetak-container" id="print-content">
@@ -766,7 +766,7 @@
 <!-- MODAL TERMA & SYARAT (T&C) OURMONEY -->
 <div id="modalTnC" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.8); z-index:9999; align-items:center; justify-content:center; padding:20px;">
     <div style="background:#fff; width:100%; max-width:450px; border-radius:16px; padding:24px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative;">
-        <h2 style="margin:0 0 15px; color:var(--ink); font-size:20px; font-weight:800; text-align:center;">📜 Terma & Syarat OurMoney</h2>
+        <h2 style="margin:0 0 15px; color:var(--ink); font-size:20px; font-weight:800; text-align:center;">Terma & Syarat OurMoney</h2>
         
         <div style="font-size:14px; color:var(--muted); line-height:1.6; max-height:60vh; overflow-y:auto; padding-right:5px; margin-bottom:20px;">
             <p>Selamat datang ke <b>OurMoney</b>, modul kewangan komprehensif yang dihubungkan dengan <b>myNasab</b> & <b>JomBercuti</b>.</p>
@@ -797,11 +797,11 @@
         </p>
         
         <button onclick="bayarGunaKredit()" style="width:100%; background:var(--primary); color:#fff; padding:14px; border:none; border-radius:8px; font-weight:700; font-size:16px; cursor:pointer; margin-bottom:12px; transition:0.2s;">
-            💳 Potong 20 Kredit
+            Potong 20 Kredit
         </button>
         
         <button onclick="window.location.href='../topup.html'" style="width:100%; background:transparent; color:var(--muted); padding:10px; border:none; font-weight:600; font-size:14px; cursor:pointer; margin-bottom:5px;">
-            ➕ Tambah Nilai Kredit
+            Tambah Nilai Kredit
         </button>
         <button onclick="window.location.href='../index.html'" style="width:100%; background:transparent; color:#94a3b8; padding:5px; border:none; font-weight:400; font-size:12px; cursor:pointer;">
             Kembali ke Muka Depan myNasab
@@ -887,8 +887,8 @@
         if (!adaPasangan) { el.classList.add('hidden'); el.innerHTML = ''; return; }
         el.classList.remove('hidden');
         const items = [['induk', namaInduk], ['pasangan', namaPasangan], ['gabungan', 'Gabungan']];
-        el.innerHTML = '<div class="pp-label">👤 Paparan untuk</div><div class="pp-btns">' +
-            items.map(([m, n]) => `<button type="button" class="pp-btn ${m === modPengguna ? 'aktif' : ''}" onclick="tukarPengguna('${m}')">${m === 'gabungan' ? '👨‍👩‍👧 ' : ''}${esc(n)}</button>`).join('') + '</div>';
+        el.innerHTML = '<div class="pp-label">Paparan untuk</div><div class="pp-btns">' +
+            items.map(([m, n]) => `<button type="button" class="pp-btn ${m === modPengguna ? 'aktif' : ''}" onclick="tukarPengguna('${m}')">${esc(n)}</button>`).join('') + '</div>';
     }
     function segerakBorangPengguna() {
         const sel = document.getElementById('txnUser');
@@ -955,16 +955,16 @@
     function isiPilihanKaedah(sel, per, nilai, tanpaTunai = false) {
         const bank = senaraiBank(per);
         sel.innerHTML = '<option value="" disabled>-- Pilih Bank / Tunai --</option>'
-            + (tanpaTunai ? '' : '<option value="Tunai">💵 Tunai di Tangan</option>')
-            + bank.map(b => `<option value="Bank:${esc(b.id)}">🏦 ${esc(b.nama)}</option>`).join('')
-            + '<option value="__tambah">➕ Tambah akaun bank…</option>';
+            + (tanpaTunai ? '' : '<option value="Tunai">Tunai di Tangan</option>')
+            + bank.map(b => `<option value="Bank:${esc(b.id)}">${esc(b.nama)}</option>`).join('')
+            + '<option value="__tambah">+ Tambah akaun bank…</option>';
         sel.value = [...sel.options].some(o => o.value === nilai) ? nilai : '';
     }
     const labelKaedah = (t) => {
         const per = peranRekod(t), banyak = senaraiBank(per).length > 1, nb = (id) => banyak ? namaBank(per, id) : 'Bank';
-        if (isPindahAkaun(t)) return `🏦 ${esc(namaBank(per, bankIdRekod(t)))} ➜ 🏦 ${esc(namaBank(per, t.bank_ke || 'utama'))}`;
-        if (t.pindahan_tunai) return `🏦 ${esc(nb(bankIdRekod(t)))} ➜ 💵 Tunai`;
-        return t.txnAccount === 'Tunai' ? '💵 Tunai' : `🏦 ${esc(nb(bankIdRekod(t)))}`;
+        if (isPindahAkaun(t)) return `${esc(namaBank(per, bankIdRekod(t)))} ➜ ${esc(namaBank(per, t.bank_ke || 'utama'))}`;
+        if (t.pindahan_tunai) return `${esc(nb(bankIdRekod(t)))} ➜ Tunai`;
+        return t.txnAccount === 'Tunai' ? 'Tunai' : `${esc(nb(bankIdRekod(t)))}`;
     };
     const catInflow = ["Baki Permulaan", "Gaji Pokok", "Bisnes Sampingan", "Elaun", "Bonus", "Pemberian", "Lain-lain"];
 
@@ -980,11 +980,11 @@
         let h = '<option value="" disabled selected>-- Pilih kategori --</option>' + (type === 'outflow' ? `<option value="pindahan:tunai">${KAT_TUNAI}</option>` + (senaraiBank(perananBorang()).length > 1 ? `<option value="pindahan:akaun">${KAT_PINDAH_AKAUN}</option>` : '') : '') + options.map(c => `<option value="${c}">${c}</option>`).join('');
         if (type === 'outflow') {
             const m = (typeof misiSenarai !== 'undefined' ? misiSenarai : []).filter(x => !x.trip && !(x.k && x.k.siap));
-            if (m.length) h += '<optgroup label="🎯 Simpanan Misi Kewangan">' + m.map(x => `<option value="misi:${esc(x.id)}">🎯 ${esc(x.label)}</option>`).join('') + '</optgroup>';
+            if (m.length) h += '<optgroup label="Simpanan Misi Kewangan">' + m.map(x => `<option value="misi:${esc(x.id)}">${esc(x.label)}</option>`).join('') + '</optgroup>';
             const t = (typeof misiSenarai !== 'undefined' ? misiSenarai : []).filter(x => x.trip && !(x.k && x.k.siap));
-            if (t.length) h += '<optgroup label="✈️ Simpanan Percutian">' + t.map(x => `<option value="${esc(x.id)}">${esc(x.label)}</option>`).join('') + '</optgroup>';
+            if (t.length) h += '<optgroup label="Simpanan Percutian">' + t.map(x => `<option value="${esc(x.id)}">${esc(x.label)}</option>`).join('') + '</optgroup>';
         }
-        if (type === 'outflow') h += '<optgroup label="🤲 Misi Akhirat"><option value="infaq:harian">🤲 Infaq / Sedekah</option>' + (perananBorang() && (ibuBapaHidup[perananBorang()] || []).length ? '<option value="amanah:ibubapa">🤝 Amanah Ibu Bapa</option>' : '') + (hajiAktif(perananBorang()) ? '<option value="haji:misi">🕋 Simpanan Haji</option>' : '') + '</optgroup>';
+        if (type === 'outflow') h += '<optgroup label="Misi Akhirat"><option value="infaq:harian">Infaq / Sedekah</option>' + (perananBorang() && (ibuBapaHidup[perananBorang()] || []).length ? '<option value="amanah:ibubapa">Amanah Ibu Bapa</option>' : '') + (hajiAktif(perananBorang()) ? '<option value="haji:misi">Simpanan Haji</option>' : '') + '</optgroup>';
         selectCat.innerHTML = h;
         if (dahPilih && [...selectCat.options].some(o => o.value === dahPilih)) selectCat.value = dahPilih;
         laraskanKaedahPindahan();
@@ -1000,7 +1000,7 @@
         if ((pindahTunai || pindahAkaun) && bank.length === 1) acc.value = 'Bank:' + bank[0].id;
         acc.disabled = (pindahTunai || pindahAkaun) && bank.length === 1;
         ke.style.display = pindahAkaun ? 'block' : 'none';
-        if (pindahAkaun) { const k0 = ke.value; ke.innerHTML = '<option value="" disabled selected>-- Ke akaun --</option>' + bank.map(b => `<option value="${esc(b.id)}">➜ 🏦 ${esc(b.nama)}</option>`).join(''); if ([...ke.options].some(o => o.value === k0)) ke.value = k0; }
+        if (pindahAkaun) { const k0 = ke.value; ke.innerHTML = '<option value="" disabled selected>-- Ke akaun --</option>' + bank.map(b => `<option value="${esc(b.id)}">➜ ${esc(b.nama)}</option>`).join(''); if ([...ke.options].some(o => o.value === k0)) ke.value = k0; }
     }
     document.getElementById('txnAccount').addEventListener('change', async (e) => {
         if (e.target.value !== '__tambah') return;
@@ -1323,7 +1323,7 @@
             const w = document.getElementById('infaq-w-' + p), h = document.getElementById('infaq-h-' + p);
             if (!w) return;
             w.style.display = lihat.includes(p) ? '' : 'none';
-            if (h) h.innerHTML = lihat.length > 1 ? `<div style="font-weight:800;font-size:.78rem;margin:2px 0 6px;color:#047857">👤 ${esc(namaPeranan(p))}</div>` : '';
+            if (h) h.innerHTML = lihat.length > 1 ? `<div style="font-weight:800;font-size:.78rem;margin:2px 0 6px;color:#047857">${esc(namaPeranan(p))}</div>` : '';
             renderInfaq(p);
         });
     }
@@ -1373,7 +1373,7 @@
         if (tamat) {
             perluInfaq[p] = true; kemaskiniTitikMisi();
             wrap.innerHTML = `<div class="infaq-box">
-                <div style="font-weight:800;color:#047857;margin-bottom:6px">🎉 Misi infaq tahun ke-${d.tahun_ke || 1} tamat</div>
+                <div style="font-weight:800;color:#047857;margin-bottom:6px">Misi infaq tahun ke-${d.tahun_ke || 1} tamat</div>
                 <div class="infaq-grid"><div><span>Terkumpul</span><b>RM ${formatRM(jumlah)}</b></div><div><span>Sasaran</span><b>RM ${formatRM(sasaranTahun)}</b></div><div><span>Pencapaian</span><b>${(jumlah / sasaranTahun * 100 || 0).toFixed(0)}%</b></div></div>
                 <div style="font-size:.78rem;font-weight:600;color:#065F46;line-height:1.5">Sambung tahun depan: nilai harian dikira semula daripada zakat terkini myTADBIR${cadang ? ` (cadangan RM ${formatRM(infaqZakat / 365)} sehari)` : ''}.</div>
                 <label style="font-size:.7rem;font-weight:800;color:#059669;text-transform:uppercase;display:block;margin-top:8px">Infaq sehari tahun depan (RM)</label>
@@ -1384,7 +1384,7 @@
 
         perluInfaq[p] = false; kemaskiniTitikMisi();
         const selesaiHariIni = hariIniJumlah >= harian;
-        const status = tertinggal <= 0.005 ? `<span style="color:#047857">Anda setanding sasaran 👍</span>` : `<span style="color:#b45309">Tertinggal RM ${formatRM(tertinggal)} berbanding sasaran setakat ini</span>`;
+        const status = tertinggal <= 0.005 ? `<span style="color:#047857">Anda setanding sasaran</span>` : `<span style="color:#b45309">Tertinggal RM ${formatRM(tertinggal)} berbanding sasaran setakat ini</span>`;
         const ringkasInfaq = `<button class="ringkas-baris hijau ${infaqBuka ? 'buka' : ''}" onclick=\"togolInfaq('${p}')\">
             <span class="nm">Infaq harian · hari ke-${hariN}${selesaiHariIni ? ' ✅' : ''}</span><div class="mini"><div style="width:${pct}%"></div></div><span class="pc">${pct > 0 && pct < 1 ? "<1" : pct.toFixed(0)}%</span><span class="caret">▾</span></button>`;
         wrap.innerHTML = ringkasInfaq + `<div class="butiran-lipat ${infaqBuka ? 'buka' : ''}"><div class="infaq-box">
@@ -1399,7 +1399,7 @@
                 ? `✅ Infaq hari ini selesai (RM ${formatRM(hariIniJumlah)}).`
                 : `Hari ini: baki <b>RM ${formatRM(Math.max(0, harian - hariIniJumlah))}</b> belum diinfaqkan.`}<br>${status}</div>
             <div class="infaq-act">
-                <button class="utama" onclick=\"infaqHariIni('${p}')\">🤲 Rekod infaq hari ini</button>
+                <button class="utama" onclick=\"infaqHariIni('${p}')\">Rekod infaq hari ini</button>
                 <button onclick=\"ubahInfaq('${p}')\">Ubah jumlah</button>
             </div>
             ${barisPeringatanInfaq(d, p)}
@@ -1430,7 +1430,7 @@
         const on = d.peringatan !== false, jam = Number.isFinite(d.peringatan_jam) ? d.peringatan_jam : 20;
         const tolak = on && 'Notification' in window && Notification.permission === 'denied';
         return `<div class="infaq-ingat" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;font-size:.78rem;font-weight:700;color:#065F46">
-            <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="infaq-ingat-${p}" ${on ? 'checked' : ''} onchange="tukarPeringatanInfaq('${p}')"> 🔔 Ingatkan setiap hari</label>
+            <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="infaq-ingat-${p}" ${on ? 'checked' : ''} onchange="tukarPeringatanInfaq('${p}')"> Ingatkan setiap hari</label>
             <select id="infaq-jam-${p}" onchange="tukarPeringatanInfaq('${p}')" style="border:1px solid #A7F3D0;border-radius:8px;padding:4px 6px;font-weight:700;color:#065F46;background:#fff" ${on ? '' : 'disabled'}>${JAM_INFAQ.map(j => `<option value="${j[0]}" ${j[0] === jam ? 'selected' : ''}>${j[1]}</option>`).join('')}</select>
             ${tolak ? '<span style="color:#b45309;font-weight:700;width:100%">Notifikasi disekat pada peranti ini. Benarkan dalam tetapan pelayar/telefon.</span>' : ''}
             <span id="infaq-token-status-${p}" style="width:100%;font-size:.68rem;color:#64748b;font-weight:600"></span></div>`;
@@ -1559,7 +1559,7 @@
             if (!w) return;
             const papar = lihat.includes(p) && adaIbuBapa(p);
             w.style.display = papar ? '' : 'none';
-            if (h) h.innerHTML = lihat.length > 1 ? `<div style="font-weight:800;font-size:.78rem;margin:2px 0 6px;color:#92400E">👤 ${esc(namaPeranan(p))}</div>` : '';
+            if (h) h.innerHTML = lihat.length > 1 ? `<div style="font-weight:800;font-size:.78rem;margin:2px 0 6px;color:#92400E">${esc(namaPeranan(p))}</div>` : '';
             if (papar) adaPapar = true;
             renderAmanah(p);
         });
@@ -1605,7 +1605,7 @@
             </div>
             <div style="font-size:.8rem;font-weight:700;line-height:1.5">${siap ? '✅ Amanah bulan ini selesai.' : `Baki <b>RM ${formatRM(bulanan - bayar)}</b> belum diberikan bulan ini.`}</div>
             <div class="infaq-act">
-                <button class="utama" onclick="amanahBulanIniIsi('${p}')">🤝 Rekod Amanah bulan ini</button>
+                <button class="utama" onclick="amanahBulanIniIsi('${p}')">Rekod Amanah bulan ini</button>
                 <button onclick="ubahAmanah('${p}')">Ubah jumlah</button>
             </div>
             <div style="font-size:.68rem;color:#64748b;font-weight:600;margin-top:8px">Peringatan keluar bersama misi simpanan lain mulai 25hb jika belum diberi. Rekod di Duit Keluar → kategori "Amanah Ibu Bapa".</div>
@@ -1691,7 +1691,7 @@
             if (!w) return;
             const papar = lihat.includes(p) && hajiPapar(p);
             w.style.display = papar ? '' : 'none';
-            if (h) h.innerHTML = lihat.length > 1 ? `<div style="font-weight:800;font-size:.78rem;margin:2px 0 6px;color:#065F46">👤 ${esc(namaPeranan(p))}</div>` : '';
+            if (h) h.innerHTML = lihat.length > 1 ? `<div style="font-weight:800;font-size:.78rem;margin:2px 0 6px;color:#065F46">${esc(namaPeranan(p))}</div>` : '';
             if (papar) adaPapar = true;
             renderHaji(p);
         });
@@ -1717,7 +1717,7 @@
         const sas = parseFloat(document.getElementById('haji-sasaran-' + p).value) || 0, bk = parseFloat(document.getElementById('haji-baki-' + p).value) || 0, th = parseInt(document.getElementById('haji-tahun-' + p).value, 10) || 0;
         if (!(sas > 0) || th < new Date().getFullYear()) { el.innerHTML = ''; return; }
         const perlu = Math.max(0, sas - bk) / hajiBulanTinggal(th);
-        el.innerHTML = perlu > 0 ? `Perlu simpan <b>RM ${formatRM(perlu)}</b> sebulan (${hajiBulanTinggal(th)} bulan).` : 'Baki awal sudah mencapai sasaran. 🎉';
+        el.innerHTML = perlu > 0 ? `Perlu simpan <b>RM ${formatRM(perlu)}</b> sebulan (${hajiBulanTinggal(th)} bulan).` : 'Baki awal sudah mencapai sasaran.';
     };
 
     function renderHaji(p) {
@@ -1746,9 +1746,9 @@
                 <div><span>Perlu sebulan</span><b>RM ${formatRM(k.perlu)}</b></div>
                 <div><span>Disimpan bulan ini</span><b>RM ${formatRM(k.bulanIni)}</b></div>
             </div>
-            <div style="font-size:.8rem;font-weight:700;line-height:1.5">${k.capai ? '🎉 Sasaran dana haji tercapai. Semoga dipermudahkan.' : k.lepas ? `⚠️ Tahun sasaran ${d.tahun_target} sudah lepas. Ubah tahun sasaran supaya simpanan bulanan dikira semula.` : k.siapBulan ? '✅ Simpanan haji bulan ini selesai.' : `Baki <b>RM ${formatRM(k.baki)}</b> belum disimpan bulan ini. ${k.bt} bulan lagi hingga ${d.tahun_target}.`}</div>
+            <div style="font-size:.8rem;font-weight:700;line-height:1.5">${k.capai ? 'Sasaran dana haji tercapai. Semoga dipermudahkan.' : k.lepas ? `⚠️ Tahun sasaran ${d.tahun_target} sudah lepas. Ubah tahun sasaran supaya simpanan bulanan dikira semula.` : k.siapBulan ? '✅ Simpanan haji bulan ini selesai.' : `Baki <b>RM ${formatRM(k.baki)}</b> belum disimpan bulan ini. ${k.bt} bulan lagi hingga ${d.tahun_target}.`}</div>
             <div class="infaq-act">
-                <button class="utama" onclick="hajiBulanIniIsi('${p}')">🕋 Rekod simpanan Haji</button>
+                <button class="utama" onclick="hajiBulanIniIsi('${p}')">Rekod simpanan Haji</button>
                 <button onclick="ubahHaji('${p}')">Ubah</button>
             </div>
             <div style="font-size:.68rem;color:#64748b;font-weight:600;margin-top:8px">Peringatan keluar bersama misi simpanan lain mulai 25hb jika belum disimpan. Rekod di Duit Keluar → kategori "Simpanan Haji".</div>
@@ -1856,7 +1856,7 @@
             const a = it.act, k = it.k;
             let pill, bar = 0, meta, bulan, btn;
             if (a) {
-                pill = k.siap ? '<span class="misi-pill pill-siap">🎉 Siap</span>'
+                pill = k.siap ? '<span class="misi-pill pill-siap">Siap</span>'
                     : k.status === 'landasan' ? '<span class="misi-pill pill-landasan">Di landasan</span>'
                     : `<span class="misi-pill pill-lewat">Lewat ${fmtRM(Math.abs(k.selisih))}</span>`;
                 if (!k.siap && !it.muat) pill += ' <span class="misi-pill pill-kemudian">Fasa kemudian</span>';
@@ -1888,9 +1888,9 @@
         });
 
         if (adaBelumMula && !senarai.some(it => it.act && !it.trip)) {
-            html += `<button class="misi-btn-besar" onclick="mulakanSemuaMisi()">🚀 Mulakan Semua Misi</button>`;
+            html += `<button class="misi-btn-besar" onclick="mulakanSemuaMisi()">Mulakan Semua Misi</button>`;
         } else if (perluKemaskini) {
-            html += `<button class="misi-btn-besar sekunder" onclick="kemaskiniPelanMisi()">🔄 Kemas Kini Pelan daripada myTADBIR</button>`;
+            html += `<button class="misi-btn-besar sekunder" onclick="kemaskiniPelanMisi()">Kemas Kini Pelan daripada myTADBIR</button>`;
         }
         html += `<a href="mytadbir.html" class="btn-tadbir" style="margin-top:10px;">Ubah andaian di myTADBIR ➔</a>`;
         wrap.innerHTML = html;
@@ -1959,7 +1959,7 @@
             misiSenarai.forEach(it => {
                 if (!it.act || !it.muat || (it.k && it.k.siap)) return;
                 const baki = it.k.cadangan - it.k.bulanIni;
-                if (baki > 1) tarikhTiada.push({ nilai: it.trip ? it.id : 'misi:' + it.id, nama: it.label, baki, ikon: it.trip ? '' : '🎯' });
+                if (baki > 1) tarikhTiada.push({ nilai: it.trip ? it.id : 'misi:' + it.id, nama: it.label, baki, ikon: '' });
             });
         }
         if (tahap) {
@@ -1995,7 +1995,7 @@
         try { tutup = localStorage.getItem('om_notif_tutup') === bulanIniStr + '|' + tahap; } catch (e) {}
         if (!tahap || bilangan === 0 || (tutup && tahap !== 'gagal')) { box.innerHTML = ''; return; }
 
-        const tajuk = { peringatan: ['📅', 'Peringatan simpanan bulan ini'], amaran: ['⚠️', 'Amaran: hampir hujung bulan'], gagal: ['❌', 'Anda gagal mencapai simpanan bulan ini'] }[tahap];
+        const tajuk = { peringatan: ['<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', 'Peringatan simpanan bulan ini'], amaran: ['⚠️', 'Amaran: hampir hujung bulan'], gagal: ['❌', 'Anda gagal mencapai simpanan bulan ini'] }[tahap];
         const hari = new Date().getDate();
         const ayat = tahap === 'gagal'
             ? 'Hari ini ' + hari + 'hb dan simpanan berikut masih belum disimpan sepenuhnya. Simpan sekarang untuk mengejar sebelum bulan tamat:'
@@ -2003,7 +2003,7 @@
         box.innerHTML = `<div class="notif-misi ${tahap}">
             <div class="ikon">${tajuk[0]}</div>
             <div class="isi"><b>${tajuk[1]}</b><br>${ayat}
-                <ul>${tarikhTiada.map(x => `<li>${x.ikon} ${esc(x.nama)}: baki <b>${fmtRM(x.baki)}</b></li>`).join('')}</ul>
+                <ul>${tarikhTiada.map(x => `<li>${esc(x.nama)}: baki <b>${fmtRM(x.baki)}</b></li>`).join('')}</ul>
                 <button class="setor" onclick="pilihSetor('${esc(tarikhTiada[0].nilai)}')">Simpan sekarang ➔</button>
             </div>
             ${tahap !== 'gagal' ? '<button class="tutup" onclick="tutupNotifMisi()" title="Tutup">✕</button>' : ''}
@@ -2119,7 +2119,7 @@
             if (t.haji) await muatHaji();
             if (modPaparan === 'tahun') lihatTahunan(); else muatDataOurMoney();
         } catch (e) { alert(e.code === 'permission-denied' ? 'Database menyekat perubahan rekod ini (semak rules ourmoney_transactions untuk update).' : 'Gagal menyimpan: ' + e.message); }
-        btn.disabled = false; btn.textContent = '💾 Simpan';
+        btn.disabled = false; btn.textContent = 'Simpan';
     };
 
     // ===== PELARASAN BAKI: pengguna masukkan baki sebenar; sistem rekod beza sebagai pelarasan (bukan pendapatan/belanja) =====
@@ -2129,7 +2129,7 @@
         const sel = document.getElementById('lrAkaun');
         sel.innerHTML = pers.map(per => {
             const lbl = modPengguna === 'gabungan' && adaPasangan ? ` (${esc(namaPeranan(per))})` : '';
-            return `<option value="${per}|T">💵 Tunai${lbl}</option>` + senaraiBank(per).map(b => `<option value="${per}|${esc(b.id)}">🏦 ${esc(b.nama)}${lbl}</option>`).join('');
+            return `<option value="${per}|T">Tunai${lbl}</option>` + senaraiBank(per).map(b => `<option value="${per}|${esc(b.id)}">${esc(b.nama)}${lbl}</option>`).join('');
         }).join('');
         document.getElementById('lrSebenar').value = '';
         window.kemasLaras();
@@ -2232,7 +2232,7 @@
             } else {
                 if (contentWrapper) contentWrapper.style.display = 'none';
                 if (emptyState) emptyState.classList.remove('hidden');
-                if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang 🚀';
+                if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang ➔';
             }
         } catch (e) {
             console.error("Gagal muat data myTADBIR:", e);
@@ -2354,7 +2354,7 @@
                 alert("Ralat Firebase: Database menyekat penyimpanan rekod ini.");
             } else { alert("Gagal menyimpan rekod: " + err.message); }
         }
-        btn.disabled = false; btn.innerText = "💾 Simpan Rekod";
+        btn.disabled = false; btn.innerText = "Simpan Rekod";
     });
 
     // --- LOGIK BELI FITUR SEJARAH & TAHUNAN ---
@@ -2364,12 +2364,12 @@
         if (jenis === 'history') {
             tajuk = "Buka Arkib Sejarah";
             desc = "Akses rekod bulan-bulan lepas tanpa had. Caj dikenakan sekali seumur hidup.";
-            caj = "💳 Potong 1 Kredit";
+            caj = "Potong 1 Kredit";
         } else if (jenis === 'yearly') {
             tajuk = "Laporan Tahunan & Cetakan";
             const kos = kosTahunan();
             desc = "Jana penyata tahunan lengkap (" + (modPengguna === 'gabungan' ? "Gabungan keluarga" : labelMod()) + ", tahun " + tahunDipilih() + ") untuk rekod rasmi atau cetakan. Caj dikenakan setiap kali dijana.";
-            caj = "💳 Potong " + kos + " Kredit";
+            caj = "Potong " + kos + " Kredit";
         }
         document.getElementById('fitur-tajuk').innerText = tajuk;
         document.getElementById('fitur-desc').innerText = desc;
@@ -2548,7 +2548,7 @@
         if (baki > 0) teratas.push(['Lain-lain (' + (katArr.length - 8) + ' kategori)', baki]);
         const htmlKat = teratas.length ? teratas.map(([n, v]) => `<div class="lap-baris"><div class="lap-nm">${esc(n)}</div>${lapBar(lapLebar(v, belanja), '#6366f1')}<div class="lap-nilai">RM ${formatRM(v)} <em>${lapPct(v, belanja)}</em></div></div>`).join('') : '<div class="lap-kosong">Tiada perbelanjaan direkodkan.</div>';
 
-        const htmlKaedah = ['Tunai', 'Bank'].map(k => `<div class="lap-baris"><div class="lap-nm">${k === 'Tunai' ? '💵 Tunai' : '🏦 Bank'}</div>${lapBar(lapLebar(kaedah[k], belanja), k === 'Tunai' ? '#10b981' : '#3b82f6')}<div class="lap-nilai">RM ${formatRM(kaedah[k])} <em>${lapPct(kaedah[k], belanja)}</em></div></div>`).join('');
+        const htmlKaedah = ['Tunai', 'Bank'].map(k => `<div class="lap-baris"><div class="lap-nm">${k === 'Tunai' ? 'Tunai' : 'Bank'}</div>${lapBar(lapLebar(kaedah[k], belanja), k === 'Tunai' ? '#10b981' : '#3b82f6')}<div class="lap-nilai">RM ${formatRM(kaedah[k])} <em>${lapPct(kaedah[k], belanja)}</em></div></div>`).join('');
 
         // jadual bulanan (tahunan sahaja)
         let htmlBulanan = '';
@@ -2701,8 +2701,8 @@
             const NAMA_BLN = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
             const lblBulan = (NAMA_BLN[parseInt(filterVal.substring(5, 7), 10) - 1] || filterVal.substring(5, 7)) + ' ' + tahunVal;
             const subNama = adaPasangan ? `<small style="display:block;font-size:.78rem;font-weight:700;color:#64748b;margin-top:2px">${esc(labelMod())}</small>` : '';
-            document.getElementById('tajuk-transaksi').innerHTML = "📋 Transaksi " + lblBulan + subNama;
-            document.getElementById('tajuk-dashboard').innerHTML = "📊 Aliran Tunai " + lblBulan + subNama;
+            document.getElementById('tajuk-transaksi').innerHTML = "Transaksi " + lblBulan + subNama;
+            document.getElementById('tajuk-dashboard').innerHTML = "Aliran Tunai " + lblBulan + subNama;
             
             const q = query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid));
             const snap = await getDocs(q);
@@ -2765,7 +2765,7 @@
                     if(t.txnAccount === 'Tunai') { tunaiIn += t.amount; const kt = peranRekod(t) + '|T'; perBank[kt] = (perBank[kt] || 0) + t.amount; } else { bankIn += t.amount; tambahBank(t, t.amount); }
                 }
                 
-                const icon = pindah ? '🏧' : isOut ? '📉' : '📈';
+                const icon = pindah ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg>' : isOut ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>' : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
                 const amtClass = pindah ? '' : isOut ? 'amt-out' : 'amt-in';
                 const amtPrefix = pindah ? '⇄ RM' : isOut ? '- RM' : '+ RM';
                 const tarikhFormat = t.date.split('-').reverse().join('/');
@@ -2774,7 +2774,7 @@
                 const badgeAcc = labelKaedah(t);
                 
                 const resitHtml = t.receipt_url 
-                    ? `<a href="${t.receipt_url}" target="_blank" class="resit-link">📸 Resit</a>` 
+                    ? `<a href="${t.receipt_url}" target="_blank" class="resit-link">Resit</a>` 
                     : '';
 
                 htmlTxn += `
@@ -2919,7 +2919,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         const terbuka = window.laporanEksekutifUnlocked;
         const gabung = modPengguna === 'gabungan';
 
-        document.getElementById('rep-tajuk').innerText = "📑 Analisis Eksekutif • " + (gabung ? "Gabungan" : labelMod());
+        document.getElementById('rep-tajuk').innerText = "Analisis Eksekutif • " + (gabung ? "Gabungan" : labelMod());
         if (!terbuka) {
             document.getElementById('report-lock').classList.remove('hidden');
             document.getElementById('report-content').classList.add('hidden');
@@ -3046,11 +3046,11 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         h += baris('Kehendak', pct(mahu), '(sasaran ≤30%)', pct(mahu) <= 30);
         h += baris('Simpanan', kadarSimpan, '(sasaran ≥20%)', kadarSimpan >= 20);
         }
-        if (adaPend && infaqBulan > 0) h += `<div class="report-val" style="margin-bottom:9px"><span class="text-sm text-slate-300">🤲 Infaq / Sedekah</span><span style="color:#34d399">${f0(pct(infaqBulan))}% <small class="text-slate-500">(RM ${formatRM(infaqBulan)}, tidak dikira kehendak)</small></span></div>`;
-        if (adaPend && amanahBln > 0) h += `<div class="report-val" style="margin-bottom:9px"><span class="text-sm text-slate-300">🤝 Amanah Ibu Bapa</span><span style="color:#fbbf24">${f0(pct(amanahBln))}% <small class="text-slate-500">(RM ${formatRM(amanahBln)}, tidak dikira kehendak)</small></span></div>`;
-        if (adaPend && hajiBln > 0) h += `<div class="report-val" style="margin-bottom:9px"><span class="text-sm text-slate-300">🕋 Simpanan Haji</span><span style="color:#34d399">${f0(pct(hajiBln))}% <small class="text-slate-500">(RM ${formatRM(hajiBln)}, simpanan, tidak dikira kehendak)</small></span></div>`;
+        if (adaPend && infaqBulan > 0) h += `<div class="report-val" style="margin-bottom:9px"><span class="text-sm text-slate-300">Infaq / Sedekah</span><span style="color:#34d399">${f0(pct(infaqBulan))}% <small class="text-slate-500">(RM ${formatRM(infaqBulan)}, tidak dikira kehendak)</small></span></div>`;
+        if (adaPend && amanahBln > 0) h += `<div class="report-val" style="margin-bottom:9px"><span class="text-sm text-slate-300">Amanah Ibu Bapa</span><span style="color:#fbbf24">${f0(pct(amanahBln))}% <small class="text-slate-500">(RM ${formatRM(amanahBln)}, tidak dikira kehendak)</small></span></div>`;
+        if (adaPend && hajiBln > 0) h += `<div class="report-val" style="margin-bottom:9px"><span class="text-sm text-slate-300">Simpanan Haji</span><span style="color:#34d399">${f0(pct(hajiBln))}% <small class="text-slate-500">(RM ${formatRM(hajiBln)}, simpanan, tidak dikira kehendak)</small></span></div>`;
         const rokokBln = catSpent[KAT_ROKOK] || 0;
-        if (rokokBln > 0) h += `<div style="margin:2px 0 10px;padding:8px 10px;border-radius:8px;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.35)"><div class="report-val"><span class="text-sm" style="color:#fca5a5;font-weight:800">🚬 Rokok / Vape</span><span style="color:#f87171">RM ${formatRM(rokokBln)}${adaPend ? ` <small class="text-slate-500">(${f0(pct(rokokBln))}% pendapatan)</small>` : ''}</span></div><div class="text-sm text-slate-300" style="font-size:.72rem">Kalau berterusan: ≈ <b>RM ${formatRM(rokokBln * 12)}</b> setahun, <b>RM ${formatRM(rokokBln * 120)}</b> dalam 10 tahun. Berhenti = duit ni boleh terus masuk simpanan atau misi keluarga.</div></div>`;
+        if (rokokBln > 0) h += `<div style="margin:2px 0 10px;padding:8px 10px;border-radius:8px;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.35)"><div class="report-val"><span class="text-sm" style="color:#fca5a5;font-weight:800">Rokok / Vape</span><span style="color:#f87171">RM ${formatRM(rokokBln)}${adaPend ? ` <small class="text-slate-500">(${f0(pct(rokokBln))}% pendapatan)</small>` : ''}</span></div><div class="text-sm text-slate-300" style="font-size:.72rem">Kalau berterusan: ≈ <b>RM ${formatRM(rokokBln * 12)}</b> setahun, <b>RM ${formatRM(rokokBln * 120)}</b> dalam 10 tahun. Berhenti = duit ni boleh terus masuk simpanan atau misi keluarga.</div></div>`;
         if (adaPend && sisa > 0) h += `<div class="text-sm text-slate-400" style="font-size:.72rem;margin:-2px 0 8px">Baki belum diperuntuk: RM ${formatRM(sisa)} (${f0(pct(sisa))}% pendapatan), boleh dialih ke simpanan.</div>`;
 
         // Had kategori
@@ -3104,7 +3104,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         else if (kadarSimpan < 20) cadang = `Kadar simpanan ${f0(kadarSimpan)}%. Cuba asingkan RM ${formatRM(Math.max(pend * 0.2 - simpan, 0))} lagi ke misi/percutian untuk capai 20%.`;
         else if (bulanDana !== null && bulanDana < 3) cadang = 'Nisbah baik. Seterusnya, bina dana kecemasan sehingga 3 bulan belanja.';
         else cadang = 'Nisbah dan simpanan anda baik. Kekalkan, dan pertimbang naikkan sasaran simpanan.';
-        h += `<div style="margin-top:12px;padding:10px;border-radius:10px;background:#1e293b;border:1px solid #334155;font-size:.8rem;color:#fde68a">💡 <b>Cadangan:</b> ${cadang}</div>`;
+        h += `<div style="margin-top:12px;padding:10px;border-radius:10px;background:#1e293b;border:1px solid #334155;font-size:.8rem;color:#fde68a"><b>Cadangan:</b> ${cadang}</div>`;
         return h;
     }
 
@@ -3112,7 +3112,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
 <!-- MODAL EDIT REKOD -->
 <div id="modalSunting" onclick="if(event.target===this)tutupSunting()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);align-items:center;justify-content:center;padding:16px;">
   <div style="background:#fff;border-radius:18px;padding:20px;width:100%;max-width:400px;max-height:90vh;overflow:auto;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h3 style="margin:0;font-size:1.1rem;font-weight:800;color:#0f172a;">✏️ Edit Rekod <small id="sgJenis" style="font-size:.75rem;color:#64748b;font-weight:600;"></small></h3><button onclick="tutupSunting()" style="background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;">&times;</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h3 style="margin:0;font-size:1.1rem;font-weight:800;color:#0f172a;">Edit Rekod <small id="sgJenis" style="font-size:.75rem;color:#64748b;font-weight:600;"></small></h3><button onclick="tutupSunting()" style="background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;">&times;</button></div>
     <label style="font-size:.75rem;font-weight:700;color:#475569;">Jumlah (RM)</label>
     <input id="sgJumlah" type="number" step="0.01" min="0" inputmode="decimal" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 10px;">
     <div style="display:flex;gap:10px;">
@@ -3124,13 +3124,13 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
     <p id="sgKhas" style="display:none;font-size:.7rem;color:#64748b;margin:0 0 6px;">Kategori misi/akhirat tidak boleh ditukar. Padam dan rekod semula jika perlu.</p>
     <label style="font-size:.75rem;font-weight:700;color:#475569;display:block;margin-top:6px;">Nota</label>
     <input id="sgNota" type="text" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 14px;">
-    <button id="sgSimpan" onclick="simpanSunting()" style="width:100%;background:#4f46e5;color:#fff;padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer;">💾 Simpan</button>
+    <button id="sgSimpan" onclick="simpanSunting()" style="width:100%;background:#4f46e5;color:#fff;padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer;">Simpan</button>
   </div>
 </div>
 <!-- MODAL PELARASAN BAKI -->
 <div id="modalLaras" onclick="if(event.target===this)tutupLaras()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);align-items:center;justify-content:center;padding:16px;">
   <div style="background:#fff;border-radius:18px;padding:20px;width:100%;max-width:380px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><h3 style="margin:0;font-size:1.1rem;font-weight:800;color:#0f172a;">⚖️ Betulkan Baki</h3><button onclick="tutupLaras()" style="background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;">&times;</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><h3 style="margin:0;font-size:1.1rem;font-weight:800;color:#0f172a;">Betulkan Baki</h3><button onclick="tutupLaras()" style="background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;">&times;</button></div>
     <p style="font-size:.78rem;color:#64748b;margin:0 0 12px;">Masukkan baki sebenar (semak app bank / kira duit di tangan). Beza direkod sebagai pelarasan, bukan pendapatan atau perbelanjaan.</p>
     <label style="font-size:.75rem;font-weight:700;color:#475569;">Akaun</label>
     <select id="lrAkaun" onchange="kemasLaras()" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 10px;"></select>
@@ -3138,7 +3138,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
     <label style="font-size:.75rem;font-weight:700;color:#475569;">Baki sebenar sekarang (RM)</label>
     <input id="lrSebenar" type="number" step="0.01" inputmode="decimal" oninput="kemasLaras()" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 8px;">
     <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:14px;"><span style="color:#64748b;">Pelarasan</span><b id="lrBeza">-</b></div>
-    <button onclick="simpanLaras()" style="width:100%;background:#4f46e5;color:#fff;padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer;">💾 Simpan Pelarasan</button>
+    <button onclick="simpanLaras()" style="width:100%;background:#4f46e5;color:#fff;padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer;">Simpan Pelarasan</button>
   </div>
 </div>
 <script src="cara-guna.js?v=3" data-app="ourmoney" defer></script>
