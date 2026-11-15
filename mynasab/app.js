@@ -1869,6 +1869,18 @@ window.janaPautan = async () => {
     document.getElementById('hasilPautan').classList.remove('hidden');
 };
 
+// Kongsi pautan jemputan terus ke WhatsApp dengan mesej siap ditulis
+window.kongsiWA = () => {
+    const pautan = document.getElementById('inputPautan').value;
+    if (!pautan) return;
+    const sel = document.getElementById('jemputSasaran');
+    const anak = sel && sel.selectedIndex >= 0 && sel.options[sel.selectedIndex].dataset.jenis === 'anak_saudara';
+    const teks = anak
+        ? `Assalamualaikum. Pak cik/mak cik dah sediakan salasilah keluarga kita di Famili Pintar. Atuk, nenek dan keluarga dah siap ada. Daftar guna pautan ni, terus nampak pokok keluarga:\n${pautan}`
+        : `Assalamualaikum. Aku dah mula susun salasilah keluarga kita di Famili Pintar. Lepas ni senang kita bergilir jaga mak ayah, semua nampak jadual yang sama. Masuk guna pautan ni (percuma, dapat 20 kredit):\n${pautan}`;
+    window.open('https://wa.me/?text=' + encodeURIComponent(teks), '_blank');
+};
+
 window.salinPautan = () => {
     navigator.clipboard.writeText(document.getElementById('inputPautan').value);
     alert("Pautan disalin!");
