@@ -1063,6 +1063,27 @@
             </div>
         </div>
 
+        <!-- Panduan pengguna dari kempen weCare (muncul sehingga ditutup) -->
+        <div id="panduanWecare" class="hidden" style="margin:16px 20px 0; background:#f5f3ff; border:1px solid #c4b5fd; border-radius:12px; padding:14px 16px; color:#2c3e50;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <b style="font-size:15px; color:#5b21b6;">3 langkah untuk mula guna weCare</b>
+                <button type="button" onclick="window.tutupPanduanWecare()" style="background:none; border:none; font-size:20px; color:#94a3b8; cursor:pointer;" title="Tutup">&times;</button>
+            </div>
+            <ol style="margin:8px 0 0; padding-left:20px; font-size:13.5px; line-height:1.7;">
+                <li><b>Tambah ibu bapa dan adik-beradik</b> dalam pokok guna butang <b>+ Tambah Ahli</b>.</li>
+                <li><b>Jemput adik-beradik</b> supaya semua nampak jadual yang sama. <button type="button" onclick="window.bukaJemput()" style="background:#16a085; color:#fff; border:none; border-radius:6px; padding:3px 10px; font-size:12.5px; font-weight:700; cursor:pointer;">Jemput sekarang</button></li>
+                <li><b>Buka weCare</b> dan susun giliran jaga mak ayah. <a href="../wecare.html" onclick="window.tutupPanduanWecare()" style="background:#7c3aed; color:#fff; border-radius:6px; padding:3px 10px; font-size:12.5px; font-weight:700; text-decoration:none;">Buka weCare</a></li>
+            </ol>
+        </div>
+        <script>
+            (function () {
+                try { if (new URLSearchParams(location.search).get('panduan') === 'wecare') localStorage.setItem('fp_panduan_wecare', '1'); } catch (e) {}
+                window.tutupPanduanWecare = function () { try { localStorage.removeItem('fp_panduan_wecare'); } catch (e) {} document.getElementById('panduanWecare').classList.add('hidden'); };
+                var ada = false; try { ada = localStorage.getItem('fp_panduan_wecare') === '1'; } catch (e) {}
+                if (ada) document.getElementById('panduanWecare').classList.remove('hidden');
+            })();
+        </script>
+
         <!-- Layout Dashboard -->
        <div class="dashboard-container" style="padding: 20px;">
             

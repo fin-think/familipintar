@@ -970,6 +970,7 @@ if ('Notification' in window) {
         } else {
             // --- 4. KEMAS KINI UI JIKA LOG KELUAR (SIGN OUT) ---
             window.penggunaSemasa = null; { const c = document.getElementById('ctaNasab'); if (c) c.textContent = 'Daftar Percuma'; }
+            if (new URLSearchParams(location.search).get('daftar') && !window._daftarAuto && window.bukaModalAuth) { window._daftarAuto = true; window.bukaModalAuth('daftar'); }
             
             if(greetingBox) {
                 greetingBox.classList.add('hidden');
@@ -1152,6 +1153,7 @@ if ('Notification' in window) {
 
                 alert(`Tahniah ${nama}! Pendaftaran berjaya. 20 Kredit Percuma telah dimasukkan ke dalam dompet anda.`);
                 window.tutupModalAuth();
+                if (sumber.utm_campaign === 'wecare') { window.location.href = 'mynasab/index.html?panduan=wecare'; return; }
             } catch (error) {
                 alert("Ralat pendaftaran: E-mel ini mungkin telah wujud.");
             }
