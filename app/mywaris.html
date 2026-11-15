@@ -52,28 +52,28 @@
     <main class="px-4 md:px-6 space-y-5">
         <!-- 1. WARIS -->
         <section class="kad">
-            <div class="tajuk">👨‍👩‍👧 1. Waris <span id="labelSiMati" class="text-gray-500 font-semibold text-sm"></span></div>
+            <div class="tajuk">1. Waris <span id="labelSiMati" class="text-gray-500 font-semibold text-sm"></span></div>
             <p class="sub">Senarai ini ditarik daripada pokok keluarga <b>myNasab</b> anda. Hanya waris yang <b>masih hidup</b> dikira. Ubah jika ada yang berbeza (contoh adik-beradik sebapa atau seibu sahaja).</p>
             <div class="baris"><label>Jantina si mati</label>
                 <div class="togol"><button id="jL" onclick="setJantina('L')">Lelaki</button><button id="jP" onclick="setJantina('P')">Perempuan</button></div></div>
             <div id="ruangInput"></div>
             <div class="flex flex-wrap gap-2 mt-4 no-print">
-                <button onclick="setSemulaNasab()" id="btnNasab" class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">🔄 Set semula ikut myNasab</button>
+                <button onclick="setSemulaNasab()" id="btnNasab" class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">Set semula ikut myNasab</button>
                 <button onclick="kosongkan()" class="text-xs font-bold text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">Kosongkan semua</button>
             </div>
         </section>
 
         <!-- 2. SEMAKAN MYNASAB -->
         <section class="kad" id="kadSemakan">
-            <div class="tajuk">🔍 2. Semakan data myNasab</div>
+            <div class="tajuk">2. Semakan data myNasab</div>
             <p class="sub">Pembahagian faraid hanya tepat jika pokok keluarga lengkap. Status hidup/meninggal dan jantina setiap ahli sangat penting.</p>
             <div id="ruangSemakan" class="text-sm"></div>
-            <a href="/mynasab/" class="no-print inline-block mt-3 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg px-4 py-2">🌳 Lengkapkan di myNasab</a>
+            <a href="/mynasab/" class="no-print inline-block mt-3 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg px-4 py-2">Lengkapkan di myNasab</a>
         </section>
 
         <!-- 3. KEPUTUSAN -->
         <section class="kad">
-            <div class="tajuk">⚖️ 3. Bahagian setiap waris</div>
+            <div class="tajuk">3. Bahagian setiap waris</div>
             <p class="sub">Bahagian daripada harta pusaka bersih (selepas kos jenazah, hutang, harta sepencarian dan wasiat). <span id="labelKes"></span></p>
             <div class="overflow-x-auto"><table class="hasil"><thead><tr><th>Waris</th><th>Bahagian</th><th>Seorang</th><th>Asas</th></tr></thead><tbody id="jadualHasil"></tbody></table></div>
             <div id="ruangDinding" class="mt-4"></div>
@@ -86,7 +86,7 @@
 
         <!-- 4. TANPA WASIAT -->
         <section class="kad">
-            <div class="tajuk">📝 4. Kalau tiada persediaan, apa jadi?</div>
+            <div class="tajuk">4. Kalau tiada persediaan, apa jadi?</div>
             <ul class="text-sm text-gray-700 space-y-2 list-disc pl-5 mb-4">
                 <li><b>Harta dibekukan</b> sehingga waris memohon pembahagian pusaka. Akaun bank, tanah dan kenderaan tidak boleh diurus.</li>
                 <li><b>Semua waris mesti bersetuju</b> atau hadir. Seorang yang tidak dapat dihubungi boleh melambatkan urusan bertahun-tahun.</li>
@@ -101,14 +101,14 @@
 
         <!-- 5. LANGKAH SETERUSNYA -->
         <section class="kad bg-emerald-50 border-emerald-200 no-print">
-            <div class="tajuk">➡️ Langkah seterusnya</div>
+            <div class="tajuk">Langkah seterusnya</div>
             <div class="grid md:grid-cols-2 gap-3 mt-2">
                 <a href="/mytadbir.html" class="block bg-slate-900 text-white rounded-xl p-4 hover:bg-slate-800">
-                    <div class="font-extrabold">🏛️ Kira nilai sebenar di myTADBIR</div>
+                    <div class="font-extrabold">Kira nilai sebenar di myTADBIR</div>
                     <div class="text-xs text-slate-300 mt-1">Harta bersih, sepencarian, wasiat dan agihan RM kepada setiap waris guna formula yang sama.</div>
                 </a>
                 <a href="/myjurnal.html" class="block bg-white border border-emerald-200 rounded-xl p-4 hover:bg-emerald-100">
-                    <div class="font-extrabold text-emerald-900">📘 E-book "Bila Kami Tiada"</div>
+                    <div class="font-extrabold text-emerald-900">E-book "Bila Kami Tiada"</div>
                     <div class="text-xs text-gray-600 mt-1">Panduan lengkap persediaan pusaka, wasiat dan hibah. Buka melalui kad myWARIS dalam myJurnal.</div>
                 </a>
             </div>

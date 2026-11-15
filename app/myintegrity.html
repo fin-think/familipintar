@@ -260,7 +260,7 @@ async function seterusnya() {
 function setStatus(t, ok) {
     try { window.AutoSimpan && window.AutoSimpan.toast(t, ok ? 'tersimpan' : 'gagal'); } catch (e) {} const el = $('save-status'); if (el) { el.textContent = t; el.className = 'text-sm font-semibold mb-6 ' + (ok ? 'text-emerald-600' : 'text-red-600'); }
     // Simpan berlaku automatik; butang hanya muncul jika gagal, untuk cuba semula
-    const b = $('btn-simpan'); if (b) { b.classList.toggle('hidden', ok); if (!ok) { b.disabled = false; b.textContent = '💾 Cuba simpan semula'; } }
+    const b = $('btn-simpan'); if (b) { b.classList.toggle('hidden', ok); if (!ok) { b.disabled = false; b.textContent = 'Cuba simpan semula'; } }
 }
 async function simpan() {
     const a = S.anak[S.i];
@@ -286,7 +286,7 @@ function renderResult(r, dariSimpan) {
         <p class="text-gray-600 mb-4 leading-relaxed">${esc(r.desc)}</p>
         ${(r.lemah || []).length ? `<p class="text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 mb-4">Situasi yang perlu dibimbing: <b>${r.lemah.map(esc).join(', ')}</b></p>` : ''}
         <p id="save-status" class="text-sm font-semibold mb-6 text-gray-400">${dariSimpan ? 'Keputusan ini sudah disimpan di myKids.' : 'Menyimpan ke myKids...'}</p>
-        <button id="btn-simpan" class="hidden w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-10 rounded-2xl shadow-lg mb-3">💾 Simpan ke myKids</button>
+        <button id="btn-simpan" class="hidden w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-10 rounded-2xl shadow-lg mb-3">Simpan ke myKids</button>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="${URL_MYKIDS}" class="bg-white border-2 border-emerald-200 text-emerald-700 font-bold py-3 px-8 rounded-2xl">Buka myKids</a>
             <button id="btn-lain" class="bg-white border-2 border-gray-200 text-gray-700 font-bold py-3 px-8 rounded-2xl">Pilih Anak Lain</button>
@@ -368,7 +368,7 @@ document.addEventListener('click', async e => {
     else if (e.target.closest('#btn-simpan')) {
         const b = $('btn-simpan'); b.disabled = true; b.textContent = 'Menyimpan...';
         const ok = await simpan();
-        b.disabled = false; b.textContent = ok ? '✔ Disimpan ke myKids' : '💾 Cuba simpan semula';
+        b.disabled = false; b.textContent = ok ? '✔ Disimpan ke myKids' : 'Cuba simpan semula';
     }
 });
 </script>

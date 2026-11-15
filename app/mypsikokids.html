@@ -149,7 +149,7 @@
                 </div>
 
                 <p id="save-status" class="text-xs font-semibold text-slate-400">Menyimpan ke myKids...</p>
-                <button id="btn-simpan" class="hidden w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-md">💾 Simpan ke myKids</button>
+                <button id="btn-simpan" class="hidden w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-md">Simpan ke myKids</button>
                 <a id="link-mykids" href="mykids.html" class="block w-full py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-sm">Buka myKids (Tab Akhirat)</a>
                 <div class="flex gap-2">
                     <button id="btn-lain" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">Pilih Anak Lain</button>
@@ -433,7 +433,7 @@
                 el.className = 'text-xs font-semibold ' + (ok ? 'text-emerald-600' : 'text-red-600'); 
             } 
             // Simpan berlaku automatik; butang hanya muncul jika gagal, untuk cuba semula
-            const b = $('btn-simpan'); if (b) { b.classList.toggle('hidden', ok); if (!ok) { b.disabled = false; b.textContent = '💾 Cuba simpan semula'; } }
+            const b = $('btn-simpan'); if (b) { b.classList.toggle('hidden', ok); if (!ok) { b.disabled = false; b.textContent = 'Cuba simpan semula'; } }
         }
 
         async function simpan() {
@@ -488,7 +488,7 @@
             else if (e.target.closest('#btn-simpan')) {
                 const b = $('btn-simpan'); b.disabled = true; b.textContent = 'Menyimpan...';
                 const ok = await simpan();
-                b.disabled = false; b.textContent = ok ? '✔ Disimpan ke myKids' : '💾 Cuba simpan semula';
+                b.disabled = false; b.textContent = ok ? '✔ Disimpan ke myKids' : 'Cuba simpan semula';
             }
         });
     </script>
