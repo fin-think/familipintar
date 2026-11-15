@@ -320,18 +320,18 @@
   <!-- Pengepala -->
   <header class="top-navbar">
     <div class="top-navbar-left">
-      <div class="icon">✈️</div>
+      <div class="icon" style="display:flex"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></div>
       <div class="brand-name"><span class="highlight">Jom</span><span style="color:white">Bercuti</span></div>
     </div>
     <div class="top-navbar-right">
       <button onclick="window.location.href='index.html'" class="btn-kembali-nav">&#8592; Kembali</button>
-      <div class="user-badge" id="displayUserName">👤 Pengguna</div>
+      <div class="user-badge" id="displayUserName">Pengguna</div>
     </div>
   </header>
   
   <div class="countdown-banner">
     <div class="cd-header-wrap">
-      <div class="cd-icon">🗓️</div>
+      <div class="cd-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
       <div>
         <div class="cd-label" id="cd-title-label">Kiraan Detik Bercuti</div>
         <div class="cd-main" id="cd-main">Tetapkan tarikh!</div>
@@ -343,19 +343,19 @@
       <div class="cd-box"><div class="num" id="cd-mins">0</div><div class="lbl">Min</div></div>
       <div class="cd-box"><div class="num" id="cd-secs">0</div><div class="lbl">Saat</div></div>
     </div>
-    <button class="alarm-btn" id="alarm-toggle-btn" onclick="toggleAlarm()">🔔 Tetapkan Penggera Berlepas</button>
+    <button class="alarm-btn" id="alarm-toggle-btn" onclick="toggleAlarm()">Tetapkan Penggera Berlepas</button>
   </div>
 
   <div class="filter-section">
       <label style="font-size:0.8rem; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:5px; display:block;">Pilih Rangkaian Keluarga</label>
       <select id="filterBelah" onchange="tukarBelah()">
-          <option value="saya">🏠 Keluarga Saya (isi rumah)</option>
-          <option value="induk">👨‍👦 Keluarga Induk (Belah Saya)</option>
-          <option value="pasangan">👩‍👧 Keluarga Pasangan (Belah Isteri/Suami)</option>
+          <option value="saya">Keluarga Saya (isi rumah)</option>
+          <option value="induk">Keluarga Induk (Belah Saya)</option>
+          <option value="pasangan">Keluarga Pasangan (Belah Isteri/Suami)</option>
       </select>
   </div>
 
-  <button id="btnToggleCal" class="cal-toggle-btn" onclick="toggleKalendarWeCare()">📅 Papar Kalendar Semakan (weCare) ▼</button>
+  <button id="btnToggleCal" class="cal-toggle-btn" onclick="toggleKalendarWeCare()">Papar Kalendar Semakan (weCare) ▼</button>
 
   <div id="ruangKalendarWeCare" class="cal-wrapper hidden">
     <div style="text-align:center; margin-bottom:10px;">
@@ -388,7 +388,7 @@
     </div>
     <div class="cal-grid" id="gridKalendarWeCare"></div>
     <div id="senaraiCutiBulan"></div>
-    <p style="font-size:0.7rem; color:#94a3b8; text-align:center; margin-top:10px;">💡 Tip: Klik pada tugasan di dalam kalendar untuk melihat butiran penuh.</p>
+    <p style="font-size:0.7rem; color:#94a3b8; text-align:center; margin-top:10px;">Tip: Klik pada tugasan di dalam kalendar untuk melihat butiran penuh.</p>
   </div>
   
   <div>
@@ -396,16 +396,16 @@
   <div style="background:#fff; width:100%; max-width:560px; border-radius:16px; padding:20px; margin:auto;">
     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px;">
       <div>
-        <h2 style="font-family:'Baloo 2',cursive; font-size:1.2rem;">🗓️ Jadual Itinerari</h2>
+        <h2 style="font-family:'Baloo 2',cursive; font-size:1.2rem;">Jadual Itinerari</h2>
         <div id="jadual-tajuk" style="font-weight:800; color:#1e293b;"></div>
         <div id="jadual-sub" style="font-size:0.75rem; color:#64748b;"></div>
       </div>
       <button onclick="tutupJadual()" style="background:#f1f5f9; border:none; border-radius:8px; width:36px; height:36px; font-size:1rem; cursor:pointer;">✕</button>
     </div>
     <div id="jadual-list"></div>
-    <button class="add-row-btn" onclick="tambahJadual()">➕ Tambah Aktiviti</button>
+    <button class="add-row-btn" onclick="tambahJadual()">Tambah Aktiviti</button>
     <div style="display:flex; gap:8px; margin-top:14px;">
-      <button onclick="simpanJadual()" style="flex:2; background:#27ae60; color:#fff; border:none; padding:13px; border-radius:10px; font-weight:800; cursor:pointer;">💾 Simpan Jadual</button>
+      <button onclick="simpanJadual()" style="flex:2; background:#27ae60; color:#fff; border:none; padding:13px; border-radius:10px; font-weight:800; cursor:pointer;">Simpan Jadual</button>
       <button onclick="tutupJadual()" style="flex:1; background:#f1f5f9; color:#475569; border:none; padding:13px; border-radius:10px; font-weight:800; cursor:pointer;">Batal</button>
     </div>
   </div>
@@ -418,7 +418,7 @@
       <div class="card" style="border:2px solid #e2e8f0; margin:0 0 28px;">
         <div class="card-header" style="margin-bottom:10px;">
           <div class="card-title-wrap">
-            <div class="card-icon" style="background:#0f172a; color:white;">📂</div>
+            <div class="card-icon" style="background:#0f172a; color:white;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
             <div><h2 style="font-size:1.1rem;">Pelan Percutian Saya</h2><p style="font-size:0.75rem; color:#64748b;">Klik satu pelan untuk lihat. Tekan Edit untuk ubah.</p></div>
           </div>
           <button onclick="buatPelanBaru()" style="background:#e0f2fe; color:#0284c7; border:none; padding:6px 12px; border-radius:8px; font-weight:800; font-size:0.8rem; cursor:pointer;">+ Pelan Baru</button>
@@ -437,11 +437,11 @@
     <div class="left-column">
       <div class="card">
         <div class="card-header">
-          <div class="card-title-wrap"><div class="card-icon bg-coral">🏖️</div><h2>Maklumat Perjalanan</h2></div>
+          <div class="card-title-wrap"><div class="card-icon bg-coral"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><h2>Maklumat Perjalanan</h2></div>
         </div>
         <div class="form-grid">
-          <div class="field"><label>Nama Program / Percutian</label><input type="text" id="trip-name" placeholder="cth. Family Day 2028 🌺" oninput="updateAll()"></div>
-          <div class="field"><label>Destinasi Utama</label><input type="text" id="destination" placeholder="cth. Paris / Bali ✈️" oninput="updateAll()"></div>
+          <div class="field"><label>Nama Program / Percutian</label><input type="text" id="trip-name" placeholder="cth. Family Day 2028" oninput="updateAll()"></div>
+          <div class="field"><label>Destinasi Utama</label><input type="text" id="destination" placeholder="cth. Paris / Bali" oninput="updateAll()"></div>
           <div class="grid-2-col">
             <div class="field"><label>Tarikh Pergi</label><input type="date" id="date-go" onchange="updateAll()"></div>
             <div class="field"><label>Tarikh Balik</label><input type="date" id="date-back" onchange="updateAll()"></div>
@@ -452,7 +452,7 @@
 
       <div class="card card-rombongan">
         <div class="card-header">
-          <div class="card-title-wrap"><div class="card-icon bg-mint">👥</div><h2>Ahli Rombongan / Jemputan</h2></div>
+          <div class="card-title-wrap"><div class="card-icon bg-mint"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h2>Ahli Rombongan / Jemputan</h2></div>
         </div>
         <p style="font-size:0.85rem; color:var(--muted); margin-bottom:10px; line-height:1.4;">Pilih ahli keluarga yang akan menyertai (atau berkongsi kos) program ini.</p>
         <div class="family-check-list" id="family-invite-list"><div style="text-align:center; padding:20px; font-size:0.9rem; color:#aaa;">Memuatkan data myNasab...</div></div>
@@ -463,8 +463,8 @@
     <div class="right-column">
       <div class="card">
         <div class="card-header" style="margin-bottom:5px;">
-          <div class="card-title-wrap"><div class="card-icon bg-peach">🚗</div><h2>Pengangkutan / Tiket</h2></div>
-          <button onclick="toggleSettings()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">⚙️</button>
+          <div class="card-title-wrap"><div class="card-icon bg-peach"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3v-5l2-5h14l2 5v5h-2M5 12h16"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/></svg></div><h2>Pengangkutan / Tiket</h2></div>
+          <button onclick="toggleSettings()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;color:#64748b;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         </div>
         <div id="settings-panel" class="settings-panel">
           <div style="font-size:0.75rem; line-height:1.6; color:#475569;">
@@ -474,27 +474,27 @@
           </div>
         </div>
         <div id="transport-list"></div>
-        <button class="add-row-btn" onclick="addTransport()">➕ Tambah Laluan / Tiket</button>
+        <button class="add-row-btn" onclick="addTransport()">Tambah Laluan / Tiket</button>
       </div>
       
       <div class="card">
         <div class="card-header" style="margin-bottom:5px;">
-          <div class="card-title-wrap"><div class="card-icon bg-sky">🏨</div><h2>Penginapan</h2></div>
+          <div class="card-title-wrap"><div class="card-icon bg-sky"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16M2 9h17a3 3 0 0 1 3 3v8M2 16h20"/><circle cx="7" cy="12" r="2"/></svg></div><h2>Penginapan</h2></div>
         </div>
         <div class="action-buttons">
           <button class="btn-book agoda" onclick="openBooking('agoda')">Cari Hotel di Agoda</button>
           <button class="btn-book booking" onclick="openBooking('booking')">Cari di Booking.com</button>
         </div>
         <div id="accom-list"></div>
-        <button class="add-row-btn" onclick="addAccom()">➕ Tambah Hotel / Homestay</button>
+        <button class="add-row-btn" onclick="addAccom()">Tambah Hotel / Homestay</button>
       </div>
 
       <div class="card">
         <div class="card-header" style="margin-bottom:5px;">
-          <div class="card-title-wrap"><div class="card-icon bg-lavender">🎒</div><h2>Makan & Lain-lain</h2></div>
+          <div class="card-title-wrap"><div class="card-icon bg-lavender"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg></div><h2>Makan & Lain-lain</h2></div>
         </div>
         <div id="misc-list"></div>
-        <button class="add-row-btn" onclick="addMisc()">➕ Tambah Item Bajet</button>
+        <button class="add-row-btn" onclick="addMisc()">Tambah Item Bajet</button>
       </div>
 
     </div> <!-- TAMAT KOLUM KANAN -->
@@ -503,11 +503,11 @@
 
   <!-- Ringkasan Bajet & Financial Planner -->
   <div class="budget-summary">
-    <h2>💰 Ringkasan & Pelan Kewangan</h2>
+    <h2>Ringkasan & Pelan Kewangan</h2>
     <div class="budget-rows">
-      <div class="budget-row"><span>🏨 Penginapan</span><span class="color-sky" id="sum-accom">RM 0.00</span></div>
-      <div class="budget-row"><span>🚗 Pengangkutan</span><span class="color-peach" id="sum-transport">RM 0.00</span></div>
-      <div class="budget-row"><span>🎒 Lain-lain / Makan</span><span class="color-lavender" id="sum-misc">RM 0.00</span></div>
+      <div class="budget-row"><span>Penginapan</span><span class="color-sky" id="sum-accom">RM 0.00</span></div>
+      <div class="budget-row"><span>Pengangkutan</span><span class="color-peach" id="sum-transport">RM 0.00</span></div>
+      <div class="budget-row"><span>Lain-lain / Makan</span><span class="color-lavender" id="sum-misc">RM 0.00</span></div>
     </div>
     <div class="budget-total">
       <span class="label">Jumlah Anggaran Kos</span>
@@ -515,7 +515,7 @@
     </div>
 
     <div class="financial-planner">
-        <h3>📈 Kalkulator Simpanan JomBercuti</h3>
+        <h3>Kalkulator Simpanan JomBercuti</h3>
         <p style="font-size:0.85rem; color:var(--muted); margin-bottom:15px; line-height:1.4;">
             Berdasarkan tarikh berlepas anda, ini adalah sasaran simpanan yang perlu diasingkan setiap bulan bermula <strong>hari ini</strong>.
         </p>
@@ -559,7 +559,7 @@
         if (user) {
             currentUser = user;
             const userNameEl = document.getElementById('displayUserName');
-            if (userNameEl) userNameEl.innerHTML = `👤 ${user.email.split('@')[0]}`;
+            if (userNameEl) userNameEl.innerHTML = `${user.email.split('@')[0]}`;
             
             if (authScreen) authScreen.classList.add('hidden');
             if (mainApp) mainApp.classList.remove('hidden');
@@ -843,7 +843,7 @@ function init() {
 
 window.toggleSettings = () => { document.getElementById('settings-panel').classList.toggle('show'); }
 
-window.addAccom = (silent) => { accomList.push({ id: Date.now(), name: '', cost: '', nights: '' }); renderAccom(); if(!silent) showToast('🏨 Penginapan ditambah!'); }
+window.addAccom = (silent) => { accomList.push({ id: Date.now(), name: '', cost: '', nights: '' }); renderAccom(); if(!silent) showToast('Penginapan ditambah!'); }
 window.removeAccom = (id) => { accomList = accomList.filter(a => a.id !== id); renderAccom(); window.updateAll(); }
 function renderAccom() {
   const el = document.getElementById('accom-list'); el.innerHTML = '';
@@ -902,7 +902,7 @@ function medanKereta(t) {
   const b = kosKereta(t);
   return `
       <div class="grid-2-col">
-        <div class="field"><label>Perjalanan</label><select onchange="ubahKereta(${t.id},'perjalanan',this.value)"><option value="sehala" ${t.perjalanan === 'sehala' ? 'selected' : ''}>➡️ Sehala</option><option value="pergi_balik" ${t.perjalanan === 'pergi_balik' ? 'selected' : ''}>🔁 Pergi balik</option></select></div>
+        <div class="field"><label>Perjalanan</label><select onchange="ubahKereta(${t.id},'perjalanan',this.value)"><option value="sehala" ${t.perjalanan === 'sehala' ? 'selected' : ''}>Sehala</option><option value="pergi_balik" ${t.perjalanan === 'pergi_balik' ? 'selected' : ''}>Pergi balik</option></select></div>
         <div class="field"><label>Jenis Minyak</label><select onchange="ubahKereta(${t.id},'jenisMinyak',this.value)">${pil}</select></div>
       </div>
       <div class="grid-2-col">
@@ -934,7 +934,7 @@ window.ubahKereta = (id, f, v) => {
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
 })();
-window.addTransport = (silent) => { transportList.push(lalaiKereta({ id: Date.now(), mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true })); renderTransport(); if(!silent) showToast('🚗 Laluan ditambah!'); }
+window.addTransport = (silent) => { transportList.push(lalaiKereta({ id: Date.now(), mode: 'car', from: '', to: '', cost: '', km: '', autoCalc: true })); renderTransport(); if(!silent) showToast('Laluan ditambah!'); }
 window.removeTransport = (id) => { transportList = transportList.filter(t => t.id !== id); renderTransport(); window.updateAll(); }
 function renderTransport() {
   const el = document.getElementById('transport-list'); el.innerHTML = '';
@@ -942,14 +942,14 @@ function renderTransport() {
     const div = document.createElement('div'); div.className = 'item-card bg-peach-light'; const isAuto = t.mode === 'car' && t.autoCalc;
     div.innerHTML = `
       <div class="item-header">
-        <div class="field" style="flex:1"><label>Mod Kenderaan</label><select onchange="updateTransportMode(${t.id}, this.value)"><option value="car" ${t.mode==='car'?'selected':''}>🚗 Kereta (Minyak/Tol)</option><option value="flight" ${t.mode==='flight'?'selected':''}>✈️ Kapal Terbang</option><option value="bus" ${t.mode==='bus'?'selected':''}>🚌 Bas Ekspres</option><option value="train" ${t.mode==='train'?'selected':''}>🚆 Keretapi</option><option value="grab" ${t.mode==='grab'?'selected':''}>📱 Grab / Teksi</option></select></div><button class="del-btn" onclick="removeTransport(${t.id})">✕</button>
+        <div class="field" style="flex:1"><label>Mod Kenderaan</label><select onchange="updateTransportMode(${t.id}, this.value)"><option value="car" ${t.mode==='car'?'selected':''}>Kereta (Minyak/Tol)</option><option value="flight" ${t.mode==='flight'?'selected':''}>Kapal Terbang</option><option value="bus" ${t.mode==='bus'?'selected':''}>Bas Ekspres</option><option value="train" ${t.mode==='train'?'selected':''}>Keretapi</option><option value="grab" ${t.mode==='grab'?'selected':''}>Grab / Teksi</option></select></div><button class="del-btn" onclick="removeTransport(${t.id})">✕</button>
       </div>
       <div class="grid-2-col">
         <div class="field"><label>Dari</label><input type="text" placeholder="Mula" value="${t.from || ''}" oninput="updateTransport(${t.id},'from',this.value)"></div>
         <div class="field"><label>Ke</label><input type="text" placeholder="Tuju" value="${t.to || ''}" oninput="updateTransport(${t.id},'to',this.value)"></div>
       </div>
       <div class="grid-2-col" style="align-items:end;">
-        <div class="field"><label>${t.mode === 'car' ? 'Jarak Sehala (KM)' : 'Jarak (KM)'}</label><div style="display:flex; gap:6px;"><input type="number" placeholder="0" value="${t.km || ''}" oninput="updateTransportKM(${t.id},this.value)" style="flex:1;"><button class="search-dist-btn" onclick="calculateDistance(${t.id})">🔍</button></div></div>
+        <div class="field"><label>${t.mode === 'car' ? 'Jarak Sehala (KM)' : 'Jarak (KM)'}</label><div style="display:flex; gap:6px;"><input type="number" placeholder="0" value="${t.km || ''}" oninput="updateTransportKM(${t.id},this.value)" style="flex:1;"><button class="search-dist-btn" onclick="calculateDistance(${t.id})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button></div></div>
         <div class="field"><label>Kos (RM) ${isAuto ? '<span class="auto-calc-badge" style="padding:1px 6px;font-size:0.55rem;line-height:1.4;vertical-align:middle;">ANGGARAN</span>' : ''}</label><div class="input-prefix"><span>RM</span><input type="number" placeholder="0.00" value="${t.cost || ''}" id="trans-input-${t.id}" ${isAuto ? 'readonly style="background:#E8F5E9"' : ''} oninput="updateTransportCost(${t.id},this.value)"></div></div>
       </div>
       ${t.mode === 'car' ? medanKereta(t) : ''}
@@ -990,7 +990,7 @@ window.calculateDistance = async (id) => {
   }
 }
 
-window.addMisc = (silent) => { miscList.push({ id: Date.now(), name: '', cost: '' }); renderMisc(); if(!silent) showToast('🎒 Item ditambah!'); }
+window.addMisc = (silent) => { miscList.push({ id: Date.now(), name: '', cost: '' }); renderMisc(); if(!silent) showToast('Item ditambah!'); }
 window.removeMisc = (id) => { miscList = miscList.filter(m => m.id !== id); renderMisc(); window.updateAll(); }
 function renderMisc() {
   const el = document.getElementById('misc-list'); el.innerHTML = '';
@@ -1054,7 +1054,7 @@ function updateCountdown() {
   if (countdownInterval) clearInterval(countdownInterval);
   countdownInterval = setInterval(() => {
     const diff = new Date(go + 'T00:00:00') - new Date();
-    if (diff <= 0) { document.getElementById('cd-boxes').style.display = 'none'; document.getElementById('cd-main').textContent = '🎉 Tibalah Masanya!'; return; }
+    if (diff <= 0) { document.getElementById('cd-boxes').style.display = 'none'; document.getElementById('cd-main').textContent = 'Tibalah Masanya!'; return; }
     document.getElementById('cd-boxes').style.display = 'flex';
     document.getElementById('cd-days').textContent = String(Math.floor(diff/86400000)).padStart(2,'0');
     document.getElementById('cd-hrs').textContent = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
@@ -1084,8 +1084,8 @@ window.openBooking = (platform) => {
 
 window.toggleAlarm = () => {
   alarmActive = !alarmActive; const btn = document.getElementById('alarm-toggle-btn');
-  if (alarmActive) { btn.textContent = '🔔 Aktif (H-1 Peringatan)'; btn.classList.add('active'); showToast('🔔 Peringatan diset!'); } 
-  else { btn.textContent = '🔔 Tetapkan Penggera Berlepas'; btn.classList.remove('active'); showToast('🔕 Ditutup'); }
+  if (alarmActive) { btn.textContent = 'Aktif (H-1 Peringatan)'; btn.classList.add('active'); showToast('Peringatan diset!'); } 
+  else { btn.textContent = 'Tetapkan Penggera Berlepas'; btn.classList.remove('active'); showToast('Ditutup'); }
 }
 
 // =========================================================================
@@ -1173,11 +1173,11 @@ const butangBar = (bg, label, fn, flex) => `<button onclick="${fn}" style="flex:
 window.renderBarPelan = () => {
     const el = document.getElementById('bar-pelan'); if (!el) return;
     const t = senaraiPelanTersimpan.find(x => x.id === currentTripId);
-    if (!t) { el.innerHTML = `<div style="background:#fffbeb;border:1px dashed #fcd34d;border-radius:12px;padding:10px 12px;font-size:0.82rem;font-weight:700;color:#92400e;">✨ Pelan baharu. Isi nama dan tarikh berlepas di bawah, ia akan disimpan automatik.</div>`; return; }
-    const btnEdit = modLihat ? butangBar('#3b82f6', '✏️ Edit Pelan', 'mulaEdit()', 1.2) : butangBar('#16a34a', '✔ Selesai Edit', 'selesaiEdit()', 1.2);
-    const btnJ = butangBar('#6366f1', '🗓️ Jadual', `bukaJadual('${t.id}')`);
-    const btnP = t.published ? butangBar('#10b981', '👁️ Preview & Cetak', `bukaPreview('${t.id}')`, 1.4) : butangBar('#f59e0b', '✨ Jana & Kongsi (1 Kredit)', `janaDanKongsi('${t.id}')`, 1.6);
-    el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><div style="font-weight:800;color:#1e293b;">${escH(t.title)}</div><span style="font-size:0.7rem;font-weight:800;padding:3px 9px;border-radius:99px;background:${modLihat ? '#e0f2fe' : '#dcfce7'};color:${modLihat ? '#0369a1' : '#166534'};">${modLihat ? '👁️ MOD LIHAT' : '✏️ MOD EDIT'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;">${btnEdit}${btnJ}${btnP}</div>`;
+    if (!t) { el.innerHTML = `<div style="background:#fffbeb;border:1px dashed #fcd34d;border-radius:12px;padding:10px 12px;font-size:0.82rem;font-weight:700;color:#92400e;">Pelan baharu. Isi nama dan tarikh berlepas di bawah, ia akan disimpan automatik.</div>`; return; }
+    const btnEdit = modLihat ? butangBar('#3b82f6', 'Edit Pelan', 'mulaEdit()', 1.2) : butangBar('#16a34a', '✔ Selesai Edit', 'selesaiEdit()', 1.2);
+    const btnJ = butangBar('#6366f1', 'Jadual', `bukaJadual('${t.id}')`);
+    const btnP = t.published ? butangBar('#10b981', 'Preview & Cetak', `bukaPreview('${t.id}')`, 1.4) : butangBar('#f59e0b', 'Jana & Kongsi (1 Kredit)', `janaDanKongsi('${t.id}')`, 1.6);
+    el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><div style="font-weight:800;color:#1e293b;">${escH(t.title)}</div><span style="font-size:0.7rem;font-weight:800;padding:3px 9px;border-radius:99px;background:${modLihat ? '#e0f2fe' : '#dcfce7'};color:${modLihat ? '#0369a1' : '#166534'};">${modLihat ? 'MOD LIHAT' : 'MOD EDIT'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;">${btnEdit}${btnJ}${btnP}</div>`;
 };
 
 // Bahagian "Dikongsi dengan saya" - hanya dalam belah Keluarga Saya
@@ -1188,13 +1188,13 @@ const htmlDikongsi = () => {
         const sudah = senaraiPelanTersimpan.find(x => x.joined_from === t.id);
         return `<div style="border:1px solid ${baru ? '#818cf8' : '#c7d2fe'};background:#fff;border-radius:12px;padding:10px 12px;">
             <div style="font-weight:800;color:#1e293b;font-size:0.92rem;">${escH(t.title)} ${baru ? '<span style="color:#ef4444;font-size:0.7rem;">● BARU</span>' : ''}</div>
-            <div style="font-size:0.72rem;color:#64748b;margin-bottom:8px;">📍 ${escH(t.destination || '-')} &nbsp;|&nbsp; 🗓️ ${escH(t.date_go || '-')} &nbsp;|&nbsp; oleh ${escH(t.owner_name || '-')}</div>
+            <div style="font-size:0.72rem;color:#64748b;margin-bottom:8px;">${escH(t.destination || '-')} &nbsp;|&nbsp; ${escH(t.date_go || '-')} &nbsp;|&nbsp; oleh ${escH(t.owner_name || '-')}</div>
             <div style="display:flex;gap:8px;">
-                <button onclick="bukaPreview('${t.id}')" style="flex:1;background:#e0e7ff;color:#4338ca;border:none;padding:8px;border-radius:8px;font-weight:800;font-size:0.8rem;cursor:pointer;">👁️ Lihat</button>
-                ${sudah ? `<button onclick="joinPelan('${t.id}')" style="flex:1.3;background:#d1fae5;color:#047857;border:none;padding:8px;border-radius:8px;font-weight:800;font-size:0.8rem;cursor:pointer;">✓ Sudah join (buka pelan saya)</button>` : `<button onclick="joinPelan('${t.id}')" style="flex:1.3;background:#4f46e5;color:#fff;border:none;padding:8px;border-radius:8px;font-weight:800;font-size:0.8rem;cursor:pointer;">➕ Join & guna pelan ini</button>`}
+                <button onclick="bukaPreview('${t.id}')" style="flex:1;background:#e0e7ff;color:#4338ca;border:none;padding:8px;border-radius:8px;font-weight:800;font-size:0.8rem;cursor:pointer;">Lihat</button>
+                ${sudah ? `<button onclick="joinPelan('${t.id}')" style="flex:1.3;background:#d1fae5;color:#047857;border:none;padding:8px;border-radius:8px;font-weight:800;font-size:0.8rem;cursor:pointer;">✓ Sudah join (buka pelan saya)</button>` : `<button onclick="joinPelan('${t.id}')" style="flex:1.3;background:#4f46e5;color:#fff;border:none;padding:8px;border-radius:8px;font-weight:800;font-size:0.8rem;cursor:pointer;">Join & guna pelan ini</button>`}
             </div></div>`;
     }).join('');
-    return `<div style="margin-top:14px;background:#eef2ff;border:2px solid #c7d2fe;border-radius:14px;padding:12px;"><div style="font-size:0.8rem;font-weight:800;color:#4338ca;margin-bottom:8px;">📬 Dikongsi dengan saya</div><div style="display:flex;flex-direction:column;gap:8px;">${baris}</div></div>`;
+    return `<div style="margin-top:14px;background:#eef2ff;border:2px solid #c7d2fe;border-radius:14px;padding:12px;"><div style="font-size:0.8rem;font-weight:800;color:#4338ca;margin-bottom:8px;">Dikongsi dengan saya</div><div style="display:flex;flex-direction:column;gap:8px;">${baris}</div></div>`;
 };
 
 const isiDikongsi = () => { const el = document.getElementById('dikongsi-bahagian'); if (el) el.innerHTML = htmlDikongsi(); };
@@ -1213,7 +1213,7 @@ window.renderSenaraiPelan = () => {
         const aktif = t.id === currentTripId;
         return `<div onclick="pilihPelan('${t.id}')" style="cursor:pointer;border:2px solid ${aktif ? '#3b82f6' : '#e2e8f0'};background:${aktif ? '#eff6ff' : '#fff'};border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
             <div style="min-width:0;"><div style="font-weight:800;color:#1e293b;font-size:0.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(t.title)}${t.published ? ' <span style="font-size:0.65rem;background:#d1fae5;color:#047857;padding:1px 6px;border-radius:6px;">dikongsi</span>' : ''}</div>
-            <div style="font-size:0.72rem;color:#64748b;">📍 ${escH(t.destination || '-')} &nbsp;|&nbsp; 🗓️ ${escH(t.date_go || '-')}</div></div>
+            <div style="font-size:0.72rem;color:#64748b;">${escH(t.destination || '-')} &nbsp;|&nbsp; ${escH(t.date_go || '-')}</div></div>
             <div style="font-weight:800;color:#0f766e;font-size:0.85rem;white-space:nowrap;">${rm(t.total_budget)}</div></div>`;
     }).join('');
     renderBarPelan(); isiDikongsi();
@@ -1246,7 +1246,7 @@ window.pilihPelan = (id, scroll = false) => {
     setMod(true);            // buka dalam mod lihat (tiada simpan automatik sehingga Edit ditekan)
     renderSenaraiPelan();
       if (scroll) document.getElementById('trip-name').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    showToast(`📂 Pelan "${trip.title}" dimuatkan!`);
+    showToast(`Pelan "${trip.title}" dimuatkan!`);
 };
 
 window.buatPelanBaru = () => {
@@ -1258,7 +1258,7 @@ window.buatPelanBaru = () => {
     AS.sedia(kunciTrip());
     setMod(false);
     renderSenaraiPelan();
-    showToast('✨ Borang dikosongkan untuk pelan baharu!');
+    showToast('Borang dikosongkan untuk pelan baharu!');
 };
 
 window.simpanPelanKeDatabase = async (senyap = false) => {
@@ -1304,7 +1304,7 @@ window.simpanPelanKeDatabase = async (senyap = false) => {
             renderSenaraiPelan();
         } else {
             await window.muatPelanTersimpan(); // Akan kemas kini list dan UI
-            showToast("💾 Pelan Percutian Berjaya Disimpan!");
+            showToast("Pelan Percutian Berjaya Disimpan!");
         }
     } catch (e) { if (senyap) throw e; alert("Gagal menyimpan pelan: " + e.message); }
 };
@@ -1321,7 +1321,7 @@ let dataWeCareCal = []; let jangkarCal = { induk: null, pasangan: null, lamaIndu
 window.toggleKalendarWeCare = () => {
     const box = document.getElementById('ruangKalendarWeCare'); const btn = document.getElementById('btnToggleCal');
     const isHidden = box.classList.toggle('hidden');
-    btn.innerHTML = isHidden ? '📅 Papar Kalendar Semakan (weCare) ▼' : '📅 Sembunyikan Kalendar Semakan ▲';
+    btn.innerHTML = isHidden ? 'Papar Kalendar Semakan (weCare) ▼' : 'Sembunyikan Kalendar Semakan ▲';
     if (!isHidden) window.renderKalendarWeCare();
 };
 
@@ -1437,7 +1437,7 @@ window.bukaJadual = (id) => {
   jadualTripId = id;
   jadualKerja = (Array.isArray(t.itinerary) ? t.itinerary : []).map(s => ({ ...s }));   // salinan kerja
   document.getElementById('jadual-tajuk').textContent = t.title || '';
-  document.getElementById('jadual-sub').textContent = `📍 ${t.destination || '-'}  |  ${t.date_go || '-'} → ${t.date_back || '-'}`;
+  document.getElementById('jadual-sub').textContent = `${t.destination || '-'}  |  ${t.date_go || '-'} → ${t.date_back || '-'}`;
   renderJadual();
   document.getElementById('modalJadual').classList.remove('hidden');
 };
@@ -1481,7 +1481,7 @@ window.simpanJadual = async () => {
   try {
     const t = senaraiPelanTersimpan.find(x => x.id === jadualTripId);
     await updateDoc(doc(db, "jombercuti_trips", jadualTripId), { itinerary: baris, updated_at: Date.now(), ...((t && t.published) ? { seen_by: [] } : {}) });    if (t) { t.itinerary = baris; t.updated_at = Date.now(); }
-    showToast('💾 Jadual itinerari disimpan!');
+    showToast('Jadual itinerari disimpan!');
     window.tutupJadual();
     renderSenaraiPelan();
   } catch (e) { alert('Gagal menyimpan jadual: ' + e.message); }
@@ -1521,7 +1521,7 @@ window.bukaPreview = async (tripId) => {
         document.body.insertAdjacentHTML('beforeend', `
           <div id="itinPreviewModal"><div class="itin-sheet">
             <div class="itin-actions">
-              <button style="background:#f59e0b; color:#fff;" onclick="cetakItin()">🖨️ Cetak / Save PDF</button>
+              <button style="background:#f59e0b; color:#fff;" onclick="cetakItin()">Cetak / Save PDF</button>
               <button style="background:#f1f5f9; color:#475569;" onclick="document.getElementById('itinPreviewModal').remove()">Tutup</button>
             </div><div id="itinSheetBody">${binaPaparanCetak(trip, trip.itinerary || [])}</div></div></div>`);
         if (trip.owner_uid !== currentUser.uid && !(trip.seen_by || []).includes(currentUser.uid)) {

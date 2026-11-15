@@ -181,15 +181,15 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
 
   <div class="filter-section">
     <select id="filterBelah" onchange="tukarBelahPaparan()">
-      <option value="induk">👨‍👦 Papan Pemuka: Keluarga Induk</option>
-      <option value="pasangan">👩‍👧 Papan Pemuka: Keluarga Pasangan</option>
+      <option value="induk">Papan Pemuka: Keluarga Induk</option>
+      <option value="pasangan">Papan Pemuka: Keluarga Pasangan</option>
     </select>
   </div>
 
   <div class="content">
 
  <div id="barNotif" class="hidden" style="display:flex;gap:10px;align-items:center;justify-content:space-between;background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#3730a3;">
-      <span>🔔 Hidupkan notifikasi supaya ikon aplikasi di telefon menunjukkan pesanan baharu.</span>
+      <span>Hidupkan notifikasi supaya ikon aplikasi di telefon menunjukkan pesanan baharu.</span>
       <button class="ghost" style="width:auto;white-space:nowrap;" onclick="aktifkanNotifikasi()">Hidupkan</button>
     </div>
    
@@ -206,7 +206,7 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
           <span style="color:var(--umum-color);font-weight:800;">🟢 Umum (Rumah)</span>
         </p>
         <div id="aktivitiHariIni" class="card" style="margin-bottom:15px;background:#f0fdf4;border-color:#bbf7d0;"></div>
-        <p class="section-sub" style="margin-top:-8px;">👆 Klik tarikh = tambah · klik tugas = lihat/edit/padam · 💊 ubat · 🗒️ nota</p>
+        <p class="section-sub" style="margin-top:-8px;">Klik tarikh = tambah · klik tugas = lihat/edit/padam · 💊 ubat · 🗒️ nota</p>
         <div class="pilih-cuti"><span>🇲🇾 Cuti umum ikut negeri:</span>
           <select id="pilihNegeriCuti" onchange="tukarNegeriCuti(this.value)"><option value="">Persekutuan sahaja</option><option value="Johor">Johor</option><option value="Kedah">Kedah</option><option value="Kelantan">Kelantan</option><option value="Melaka">Melaka</option><option value="Negeri Sembilan">Negeri Sembilan</option><option value="Pahang">Pahang</option><option value="Perak">Perak</option><option value="Perlis">Perlis</option><option value="Pulau Pinang">Pulau Pinang</option><option value="Sabah">Sabah</option><option value="Sarawak">Sarawak</option><option value="Selangor">Selangor</option><option value="Terengganu">Terengganu</option><option value="W.P. Kuala Lumpur">W.P. Kuala Lumpur</option><option value="W.P. Labuan">W.P. Labuan</option><option value="W.P. Putrajaya">W.P. Putrajaya</option></select>
           <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="paparCutiSekolah" onchange="tukarPaparSekolah(this.checked)" checked> 🏫 Cuti sekolah</label>
@@ -233,10 +233,10 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
           <label>Tarikh nota</label><input type="date" id="teamNoteDate" style="border-color:#fcd34d;">
           <textarea id="teamNote" placeholder="Tulis mesej / status terkini keadaan ibu bapa di sini..." style="border-color:#fcd34d;min-height:80px;"></textarea>
           <div id="notaHint" style="font-size:11px;color:#92400e;margin:-6px 0 10px;"></div>
-          <button class="primary" onclick="simpanNotaKeluarga()" style="background:#d97706;">💬 Hantar Pesanan</button>
+          <button class="primary" onclick="simpanNotaKeluarga()" style="background:#d97706;">Hantar Pesanan</button>
         </div>
         <div class="kotak-penjaga" id="kotakPenjaga" style="background:var(--card-bg);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,.05);">
-          <h3 id="tajukPenjaga" role="button" tabindex="0" aria-expanded="false" onclick="togolPenjaga()" style="margin:0 0 15px;font-size:14px;color:var(--ink);font-weight:800;border-bottom:1px solid var(--line);padding-bottom:10px;">👥 Senarai Penjaga / Anak <span class="wc-bil" id="bilPenjaga"></span><span class="wc-chev">▾</span></h3>
+          <h3 id="tajukPenjaga" role="button" tabindex="0" aria-expanded="false" onclick="togolPenjaga()" style="margin:0 0 15px;font-size:14px;color:var(--ink);font-weight:800;border-bottom:1px solid var(--line);padding-bottom:10px;">Senarai Penjaga / Anak <span class="wc-bil" id="bilPenjaga"></span><span class="wc-chev">▾</span></h3>
           <div id="teamList">Memuatkan senarai...</div>
         </div>
         
@@ -257,7 +257,7 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
     <input type="hidden" id="editTugasId">
     <input type="hidden" id="tJenis" value="tugas"><input type="hidden" id="tBalikJenis" value="bermalam">
     <!-- Satu borang, dua bahagian: tanda Tugasan dan/atau Balik Kampung, simpan sekali -->
-    <label class="seksyen-tg" id="hdrTugas"><input type="checkbox" id="cbTugas" checked onchange="kemasBahagian()"> 📋 Tugasan</label>
+    <label class="seksyen-tg" id="hdrTugas"><input type="checkbox" id="cbTugas" checked onchange="kemasBahagian()"> Tugasan</label>
     <div id="bhgTugas" class="bhg-tg">
       <div style="display:flex;gap:10px;margin-bottom:12px;">
         <div style="flex:1;"><label>Tarikh Mula</label><input type="date" id="tDate"></div>
@@ -277,8 +277,8 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
     <label class="seksyen-tg" id="hdrBalik"><input type="checkbox" id="cbBalik" onchange="kemasBahagian()"> 🏠 Balik Kampung</label>
     <div id="bhgBalik" class="bhg-tg" style="display:none;">
       <div class="balik-pilih" id="balikPilih" style="display:flex;">
-        <button type="button" data-b="hari" onclick="tukarBalikJenis('hari')">☀️ Balik hari</button>
-        <button type="button" data-b="bermalam" class="aktif" onclick="tukarBalikJenis('bermalam')">🌙 Bermalam / lama</button>
+        <button type="button" data-b="hari" onclick="tukarBalikJenis('hari')">Balik hari</button>
+        <button type="button" data-b="bermalam" class="aktif" onclick="tukarBalikJenis('bermalam')">Bermalam / lama</button>
       </div>
       <div style="display:flex;gap:10px;margin-bottom:12px;">
         <div style="flex:1;"><label>Tarikh Mula</label><input type="date" id="bDate"></div>
@@ -289,9 +289,9 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
     </div>
     <label>Nota / Dos Ubat</label>
     <textarea id="tNote" placeholder="Maklumat tambahan..."></textarea>
-    <button class="primary" onclick="simpanTugasKalendar(false)" style="margin-bottom:10px;">💾 Simpan Tugas Sahaja</button>
-    <button class="ghost" style="width:100%;margin-bottom:10px;background:#f8fafc;" onclick="simpanTugasKalendar(true)">📅 Simpan & Sync Google Calendar</button>
-    <button id="btnPadamTugas" class="ghost hidden" style="width:100%;margin-bottom:10px;color:#dc2626;border-color:#dc2626;" onclick="padamTugas(document.getElementById('editTugasId').value)">🗑️ Padam Tugas</button>
+    <button class="primary" onclick="simpanTugasKalendar(false)" style="margin-bottom:10px;">Simpan Tugas Sahaja</button>
+    <button class="ghost" style="width:100%;margin-bottom:10px;background:#f8fafc;" onclick="simpanTugasKalendar(true)">Simpan & Sync Google Calendar</button>
+    <button id="btnPadamTugas" class="ghost hidden" style="width:100%;margin-bottom:10px;color:#dc2626;border-color:#dc2626;" onclick="padamTugas(document.getElementById('editTugasId').value)">Padam Tugas</button>
     <button class="ghost" style="width:100%;border:none;" onclick="tutupModalTarikh()">Tutup</button>
   </div>
 </div>
@@ -299,7 +299,7 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
 <!-- MODAL GILIRAN JAGA -->
 <div id="modalGiliran" class="gate" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:15px;">
   <div class="card" style="width:100%;max-width:420px;max-height:90vh;overflow:auto;">
-    <h2 style="margin:0 0 6px;font-size:18px;font-weight:800;">🔄 Jana Giliran Jaga</h2>
+    <h2 style="margin:0 0 6px;font-size:18px;font-weight:800;">Jana Giliran Jaga</h2>
     <p style="font-size:12px;color:var(--muted);margin:0 0 10px;">Ikut susunan di bawah. Semua ahli dimaklumkan bila giliran seseorang bermula.</p>
     <label>Tajuk</label><input type="text" id="gilTajuk" value="Giliran jaga" style="margin-bottom:10px;">
     <label>Siapa terlibat</label><div id="gilAhli" style="margin-bottom:10px;"></div>
@@ -318,8 +318,8 @@ label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bot
   <div style="background:#fff;width:100%;max-width:420px;border-radius:12px;padding:20px;max-height:90vh;overflow-y:auto;">
     <div id="isiLihatTugas"></div>
     <div style="display:flex;gap:8px;margin-top:16px;">
-      <button class="ghost" style="flex:1;" onclick="editDariLihat()">✏️ Edit</button>
-      <button class="ghost" style="flex:1;color:#dc2626;border-color:#dc2626;" onclick="padamTugas(window._lihatId)">🗑️ Padam</button>
+      <button class="ghost" style="flex:1;" onclick="editDariLihat()">Edit</button>
+      <button class="ghost" style="flex:1;color:#dc2626;border-color:#dc2626;" onclick="padamTugas(window._lihatId)">Padam</button>
       <button class="ghost" style="flex:1;border:none;" onclick="tutupLihat()">Tutup</button>
     </div>
   </div>
@@ -586,7 +586,7 @@ async function muatProfilIbuBapa(uidPengguna) {
           <div style="flex:1;">
             <h3 style="margin:0;color:var(--ink);font-size:16px;">${d.name}</h3>
             <p style="margin:2px 0 0;color:var(--muted);font-size:13px;font-weight:700;">${paparanHubungan} ${d.dob ? '· Lahir: ' + d.dob : ''}</p>
-            <div>${isDecedent ? '<span class="badge" style="background:#fee2e2;color:#991b1b;">🕊️ Meninggal Dunia</span>' : '<span class="badge" style="background:#dcfce7;color:#166534;">🟢 Masih Hidup</span>'}</div>
+            <div>${isDecedent ? '<span class="badge" style="background:#fee2e2;color:#991b1b;">🕊️ Meninggal Dunia</span>' : '<span class="badge" style="background:#dcfce7;color:#166534;">Masih Hidup</span>'}</div>
           </div>
           ${!isDecedent ? `<button class="ghost" style="width:auto;" onclick="bukaModalKesihatan('${id}', '${d.name}')">Kemaskini</button>` : ''}
         </div>
@@ -799,7 +799,7 @@ const labelBalik = (t) => t.balik_jenis === 'hari' ? 'balik hari' : 'bermalam';
 // Klik petak tarikh = borang tambah (tugas = null). Klik tugas = lihatTugas(). Edit = borang yang sama, diisi data sedia ada.
 window.bukaModalTarikh = (tarikhStr, tugas = null) => {
   document.getElementById('editTugasId').value = tugas ? tugas.id : '';
-  document.getElementById('tajukTarikh').innerText = tugas ? "✏️ Edit Tugas" : "➕ Tambah Tugas: " + tarikhStr;
+  document.getElementById('tajukTarikh').innerText = tugas ? "Edit Tugas" : "Tambah Tugas: " + tarikhStr;
   document.getElementById('tDate').value = tugas ? tugas.date : tarikhStr;
   document.getElementById('tEndDate').value = tugas ? (tugas.end_date || tugas.date) : tarikhStr;
   document.getElementById('tTime').value = tugas ? (tugas.time || '') : '';
@@ -852,9 +852,9 @@ window.lihatTugas = (id) => {
       <span class="badge" style="background:${w[1]};color:#fff;">${w[0]}</span>
     </div>
     <div style="font-size:13px;color:var(--muted);line-height:1.8;">
-      <div>📅 ${esc(tempoh)}${t.time ? ' · ⏰ ' + esc(t.time) : ''}</div>
-      ${(t.shift_siapa && t.shift_siapa !== 'Umum') ? `<div>👤 Shift: <b>${esc(t.shift_siapa)}</b></div>` : ''}
-      ${t.note ? `<div style="margin-top:6px;color:var(--ink);white-space:pre-wrap;">📝 ${esc(t.note)}</div>` : ''}
+      <div>${esc(tempoh)}${t.time ? ' · ' + esc(t.time) : ''}</div>
+      ${(t.shift_siapa && t.shift_siapa !== 'Umum') ? `<div>Shift: <b>${esc(t.shift_siapa)}</b></div>` : ''}
+      ${t.note ? `<div style="margin-top:6px;color:var(--ink);white-space:pre-wrap;">${esc(t.note)}</div>` : ''}
       <div style="margin-top:6px;font-size:11px;">Direkod oleh: ${esc(namaPenulis(t))}</div>
     </div>${(() => {
       if (!ubatBerjadual(t)) return '';
@@ -1320,10 +1320,10 @@ window.renderAktivitiHariIni = () => {
   }).join('');
   const bilNota = notaHari(kunci).length;
   const gil = senarai.filter(t => t.giliran && t.shift_siapa && t.shift_siapa !== 'Umum');
-  const bannerGiliran = gil.length ? `<div style="margin-bottom:10px;padding:10px 12px;border-radius:10px;background:#ecfeff;border:1px solid #a5f3fc;font-size:13px;cursor:pointer;" onclick="lihatTugas('${gil[0].id}')">🔄 Giliran jaga sekarang: <b>${gil.map(t => esc(t.shift_siapa)).join(', ')}</b> <span style="color:var(--muted);">(${esc(gil[0].date)} → ${esc(gil[0].end_date || gil[0].date)})</span></div>` : '';
+  const bannerGiliran = gil.length ? `<div style="margin-bottom:10px;padding:10px 12px;border-radius:10px;background:#ecfeff;border:1px solid #a5f3fc;font-size:13px;cursor:pointer;" onclick="lihatTugas('${gil[0].id}')">Giliran jaga sekarang: <b>${gil.map(t => esc(t.shift_siapa)).join(', ')}</b> <span style="color:var(--muted);">(${esc(gil[0].date)} → ${esc(gil[0].end_date || gil[0].date)})</span></div>` : '';
 
   box.innerHTML = bannerGiliran + `
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><div style="font-weight:800;font-size:14px;margin-bottom:2px;">📋 Aktiviti Hari Ini</div><button class="ghost" style="width:auto;padding:4px 10px;font-size:12px;" onclick="bukaGiliran()">🔄 Jana giliran</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><div style="font-weight:800;font-size:14px;margin-bottom:2px;">Aktiviti Hari Ini</div><button class="ghost" style="width:auto;padding:4px 10px;font-size:12px;" onclick="bukaGiliran()">Jana giliran</button></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${esc(tajukTarikh)} · ${belah}</div>
     ${senarai.length ? `<ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.5;">${ayat}</ul>` : '<div style="font-size:13px;color:var(--muted);">Tiada aktiviti direkodkan untuk hari ini.</div>'}
     ${bilNota ? `<div style="margin-top:8px;font-size:13px;cursor:pointer;color:#92400e;" onclick="lihatNota('${kunci}')">🗒️ ${bilNota} nota ditinggalkan hari ini – klik untuk baca.</div>` : ''}`;
@@ -1360,7 +1360,7 @@ window.janaGiliran = async () => {
 
 window.lihatNota = (kunci) => {
   const senarai = notaHari(kunci).sort((a, b) => b.created_at - a.created_at);
-  document.getElementById('tajukNota').innerText = '🗒️ Nota · ' + kunci;
+  document.getElementById('tajukNota').innerText = 'Nota · ' + kunci;
  
   document.getElementById('isiNota').innerHTML = senarai.map(n => {
     const baca = notaSaya(n) || adaBaca(n);
@@ -1373,7 +1373,7 @@ window.lihatNota = (kunci) => {
       </div>
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
         ${!baca ? `<button onclick="tandakanNotaDibaca('${n.id}', '${kunci}')" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">Tandakan Dibaca ✓</button>` : ''}
-        <button onclick="padamNota('${n.id}', '${kunci}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">Padam 🗑️</button>
+        <button onclick="padamNota('${n.id}', '${kunci}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">Padam</button>
       </div>
     </div>`;
   }).join('');
@@ -1386,7 +1386,7 @@ window.lihatHariJadi = (kunci) => {
   const mmdd = kunci.substring(5), tahun = parseInt(kunci.substring(0, 4), 10);
   const senarai = [];
   window.senaraiHariJadi().forEach(v => { if (v.dob && v.dob.substring(5) === mmdd) senarai.push(v); });
-  document.getElementById('tajukNota').innerText = '🎂 Hari Jadi · ' + kunci;
+  document.getElementById('tajukNota').innerText = 'Hari Jadi · ' + kunci;
   document.getElementById('isiNota').innerHTML = senarai.length ? senarai.map(v => {
     const umur = tahun - parseInt(v.dob.substring(0, 4), 10);
     const peranan = (v.role && v.role !== 'Pengguna Semasa') ? v.role : (v.role ? 'Anda' : '');
@@ -1461,7 +1461,7 @@ window.simpanProfilKesihatan = async () => {
 <!-- MODAL TERMA & SYARAT -->
 <div id="modalTnC" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.8);z-index:9999;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#fff;width:100%;max-width:450px;border-radius:16px;padding:24px;box-shadow:0 20px 25px -5px rgba(0,0,0,.1);position:relative;">
-    <h2 style="margin:0 0 15px;color:var(--ink);font-size:20px;font-weight:800;text-align:center;">📜 Terma & Syarat weCare</h2>
+    <h2 style="margin:0 0 15px;color:var(--ink);font-size:20px;font-weight:800;text-align:center;">Terma & Syarat weCare</h2>
     <div style="font-size:14px;color:var(--muted);line-height:1.6;max-height:60vh;overflow-y:auto;padding-right:5px;margin-bottom:20px;">
       <p>Selamat datang ke <b>weCare</b>, modul penjagaan eksklusif yang diintegrasikan sepenuhnya dengan pangkalan data salasilah <b>myNasab</b>.</p>
       <b style="color:var(--ink);display:block;margin-top:12px;">1. Sumber Data (myNasab)</b>
@@ -1484,8 +1484,8 @@ window.simpanProfilKesihatan = async () => {
       Langganan weCare anda telah tamat tempoh. Akses ke modul Kalendar, Pengurusan Ubat, dan Nota Handover Keluarga kini dikunci.<br><br>
       Sila perbaharui langganan menggunakan <b>20 Kredit</b> untuk terus menggunakan sistem penjagaan ini tanpa gangguan selama 30 hari.
     </p>
-    <button onclick="bayarGunaKredit()" style="width:100%;background:var(--primary);color:#fff;padding:14px;border:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer;margin-bottom:12px;transition:.2s;box-shadow:0 4px 6px -1px rgba(79,70,229,.3);">💳 Potong 20 Kredit</button>
-    <button onclick="window.location.href='../topup.html'" style="width:100%;background:transparent;color:var(--muted);padding:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;margin-bottom:5px;">➕ Tambah Nilai Kredit</button>
+    <button onclick="bayarGunaKredit()" style="width:100%;background:var(--primary);color:#fff;padding:14px;border:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer;margin-bottom:12px;transition:.2s;box-shadow:0 4px 6px -1px rgba(79,70,229,.3);">Potong 20 Kredit</button>
+    <button onclick="window.location.href='../topup.html'" style="width:100%;background:transparent;color:var(--muted);padding:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;margin-bottom:5px;">Tambah Nilai Kredit</button>
     <button onclick="window.location.href='../index.html'" style="width:100%;background:transparent;color:#94a3b8;padding:5px;border:none;font-weight:400;font-size:12px;cursor:pointer;">Kembali ke Muka Depan myNasab</button>
   </div>
 </div>
