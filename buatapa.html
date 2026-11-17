@@ -108,6 +108,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, getDoc, doc, addDoc, setDoc, deleteDoc, query, where, orderBy, limit, startAfter, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 import { firebaseConfig, esc, mampatGambar } from "./kongsi.js";
 import { BULAN_HIJRAH, BULAN_MASIHI, tarikhMalaysia, tarikhHijrah, namaHariMasihi, peristiwaHariIni, sirahHariIni, hitungMundur } from "./sejarah-islam.js";
 
@@ -263,8 +264,13 @@ async function siapkanDinding(u) {
     D.kumpulan.push({ id: induk, label: `Keluarga besar (bersama ${namaInduk})` });
   }
   D.kumpulan.push({ id: u.uid, label: induk ? 'Ahli yang saya jemput sahaja' : 'Keluarga saya' });
-  // "Kongsi semua" = induk + semua akaun berpautan (set goTravel).
+  // "Kongsi semua" = seluruh keluarga dari induk teratas ke bawah (pautan jemputan, anak saudara, adik-beradik, Salam Paut).
+  // Server (bahiKeluarga) kira ahli dan simpan buatapa_kumpulan/{indukTeratas}_keluarga; jika gagal, guna cara lama (induk terus).
   D.idSemua = D.kumpulan[0].id;
+  try {
+    const r = await httpsCallable(getFunctions(app, 'asia-southeast1'), 'bahiKeluarga')({});
+    if (r.data && r.data.id) { D.idSemua = r.data.id; D.kumpulan.unshift({ id: r.data.id, label: 'Seluruh keluarga' }); }
+  } catch (e) { console.warn('Kumpulan keluarga:', e.message); }
   // "Untuk kami" = saya, pasangan dan anak yang ada akaun (nod Suami/Isteri/Anak dalam pokok saya yang ada akaun_uid).
   D.kamiSendiri = u.uid + '_kami'; D.ahliKami = [u.uid]; D.idKami = null;
   try {
@@ -274,7 +280,7 @@ async function siapkanDinding(u) {
   // Kumpulan "kami" milik orang lain yang menyenaraikan saya (contoh: pasangan atau ibu bapa)
   try {
     const sk = await getDocs(query(collection(db, 'buatapa_kumpulan'), where('ahli', 'array-contains', u.uid)));
-    sk.forEach(d => { if (d.id === D.kamiSendiri) D.kamiAda = true; else D.kumpulan.push({ id: d.id, label: `Keluarga kecil ${d.data().nama || ''}`.trim(), asing: true }); });
+    sk.forEach(d => { if (d.id.endsWith('_keluarga')) { if (!D.kumpulan.some(k => k.id === d.id)) D.kumpulan.push({ id: d.id, label: 'Seluruh keluarga' }); } else if (d.id === D.kamiSendiri) D.kamiAda = true; else D.kumpulan.push({ id: d.id, label: `Keluarga kecil ${d.data().nama || ''}`.trim(), asing: true }); });
   } catch (e) { console.warn('Kumpulan kami:', e.message); }
   // "Untuk kami" sentiasa ada: tanpa akaun anak/pasangan berasingan, ia = akaun ini sahaja (Induk & Pasangan berkongsi akaun).
   // Jika saya hanya ahli "kami" orang lain (cth. anak dalam keluarga ibu bapa), guna kumpulan itu.
@@ -420,7 +426,7 @@ const siar = async (grp) => {
     for (let i = 0; i < D.fail.length; i++) {
       $('posStatus').textContent = `Memuat naik gambar ${i + 1} daripada ${D.fail.length}…`;
       const [blob, kBlob] = await Promise.all([mampatGambar(D.fail[i], 1280, 0.8), mampatGambar(D.fail[i], 720, 0.7)]);
-      const asas = `buatapa/${grp}/${D.user.uid}_${Date.now()}_${i}`, meta = { contentType: 'image/jpeg', cacheControl: CACHE };
+      const asas = `buatapa/${D.user.uid}/${D.user.uid}_${Date.now()}_${i}`, meta = { contentType: 'image/jpeg', cacheControl: CACHE };
       const r = ref(storage, `${asas}.jpg`), rk = ref(storage, `${asas}_k.jpg`);
       await Promise.all([uploadBytes(r, blob, meta), uploadBytes(rk, kBlob, meta)]);
       const [u, uk] = await Promise.all([getDownloadURL(r), getDownloadURL(rk)]);

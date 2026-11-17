@@ -6,7 +6,7 @@ function ahliKumpulan(g) {
     (exists(/databases/$(database)/documents/mynasab_links/$(request.auth.uid)) &&
      get(/databases/$(database)/documents/mynasab_links/$(request.auth.uid)).data.owner_uid == g &&
      get(/databases/$(database)/documents/mynasab_links/$(request.auth.uid)).data.status == 'aktif') ||
-    (g.matches('.*_kami') &&
+    (g.matches('.*_(kami|keluarga)') &&
      exists(/databases/$(database)/documents/buatapa_kumpulan/$(g)) &&
      request.auth.uid in get(/databases/$(database)/documents/buatapa_kumpulan/$(g)).data.ahli));
 }

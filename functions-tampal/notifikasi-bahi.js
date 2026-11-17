@@ -3,7 +3,7 @@
 // ==========================================
 // Ahli kumpulan = sama seperti rules ahliKumpulan(): kumpulan "kami" -> buatapa_kumpulan.ahli; kumpulan biasa -> induk + akaun berpaut aktif.
 async function bahiAhli(groupId) {
-    if (String(groupId).endsWith('_kami')) {
+    if (/_(kami|keluarga)$/.test(String(groupId))) {
         const k = await db.collection('buatapa_kumpulan').doc(groupId).get();
         return (k.exists && k.data().ahli) || [];
     }
