@@ -100,7 +100,7 @@
   <section id="t-profil" class="hidden">
     <div class="kad">
       <h2>Profil kesihatan</h2>
-      <p class="kecil" style="margin:0">Tarikh lahir dan jantina diambil dari myNasab. Lengkapkan yang lain supaya nasihat lebih tepat.</p>
+      <p class="kecil" style="margin:0">Tarikh lahir dan jantina diambil dari myNasab; berat, tinggi dan fokus dari myHEALTH jika ada. Lengkapkan yang lain supaya nasihat lebih tepat.</p>
       <div class="grid2">
         <div><label for="pDob">Tarikh lahir</label><input type="date" id="pDob"></div>
         <div><label for="pJantina">Jantina</label><select id="pJantina"><option value="">Pilih</option><option value="L">Lelaki</option><option value="P">Perempuan</option></select></div>
@@ -261,7 +261,12 @@ window.simpanProfil = async () => {
   const p = { dob: $('pDob').value, jantina: $('pJantina').value, berat: +$('pBerat').value || null, tinggi: +$('pTinggi').value || null,
     aktiviti: $('pAktiviti').value, matlamat: $('pMatlamat').value, fokus, kemas_kini: Date.now() };
   p.sasaran = (({ kalori, protein, gula, natrium }) => ({ kalori, protein, gula, natrium }))(kiraSasaran(p));
-  try { await setDoc(doc(db, 'nowsihat_profil', S.uid), p); S.profil = p; paparHari(); alert('Profil disimpan.'); }
+  try {
+    await setDoc(doc(db, 'nowsihat_profil', S.uid), p); S.profil = p;
+    // Kongsi berat & tinggi terkini dengan myHEALTH (profil induk)
+    if (p.berat || p.tinggi) setDoc(doc(db, 'mynasab_users', S.uid), { ...(p.berat ? { myhealth_berat: p.berat } : {}), ...(p.tinggi ? { myhealth_tinggi: p.tinggi } : {}), myhealth_kemas_kini: Date.now() }, { merge: true }).catch(e => console.warn('Kongsi myHEALTH:', e.message));
+    paparHari(); alert('Profil disimpan.');
+  }
   catch (e) { alert('Gagal simpan profil: ' + e.message); }
 };
 
@@ -346,6 +351,19 @@ onAuthStateChanged(auth, async (u) => {
   try { const p = await getDoc(doc(db, 'nowsihat_profil', u.uid)); S.profil = p.exists() ? p.data() : {}; } catch (e) {}
   if (!S.profil.dob || !S.profil.jantina) {
     try { const r = await getDoc(doc(db, 'mynasab_nodes', 'root_' + u.uid)); if (r.exists()) { const d = r.data(); S.profil.dob = S.profil.dob || d.dob || ''; S.profil.jantina = S.profil.jantina || (d.gender === 'P' ? 'P' : d.gender === 'L' ? 'L' : ''); } } catch (e) {}
+  }
+  // Data daripada myHEALTH (jika profil nowSihat belum lengkap): berat, tinggi, dan fokus ikut sejarah kesihatan
+  {
+    const u = S.user, baru = !S.profil.kemas_kini;
+    if (!S.profil.berat && u.myhealth_berat) S.profil.berat = u.myhealth_berat;
+    if (!S.profil.tinggi && u.myhealth_tinggi) S.profil.tinggi = u.myhealth_tinggi;
+    if (!S.profil.jantina && u.myhealth_jantina) S.profil.jantina = u.myhealth_jantina === 'perempuan' ? 'P' : u.myhealth_jantina === 'lelaki' ? 'L' : '';
+    if (baru && !S.profil.fokus) {
+      const st = u.myhealth_status || '', f = [];
+      if (st === 'Diabetes') f.push('gula');
+      if (st === 'Darah Tinggi' || st === 'Buah Pinggang' || st === 'Jantung') f.push('garam');
+      if (f.length) S.profil.fokus = f;
+    }
   }
   isiBorang(); await muatHari();
   const tm = S.user.nowsihat_expiry_date;

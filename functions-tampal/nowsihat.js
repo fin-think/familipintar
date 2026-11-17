@@ -89,11 +89,13 @@ exports.nowSihatImbas = functions
         });
 
         // 2. Konteks pengguna: profil + jumlah hari ini
-        const [sp, sr, slog] = await Promise.all([
+        const [sp, sr, slog, su2] = await Promise.all([
             db.collection('nowsihat_profil').doc(uid).get(),
             db.collection('mynasab_nodes').doc('root_' + uid).get(),
-            db.collection('nowsihat_log').where('uid', '==', uid).where('tarikh', '==', hari).get()
+            db.collection('nowsihat_log').where('uid', '==', uid).where('tarikh', '==', hari).get(),
+            userRef.get()
         ]);
+        const keadaan = (su2.exists && su2.data().myhealth_status && su2.data().myhealth_status !== 'tiada') ? String(su2.data().myhealth_status) : '';   // daripada myHEALTH
         const pr = sp.exists ? sp.data() : {}, akar = sr.exists ? sr.data() : {};
         const umur = nsUmur(pr.dob || akar.dob), jantina = pr.jantina || (akar.gender === 'P' ? 'P' : akar.gender === 'L' ? 'L' : '');
         const sudah = { kalori: 0, protein: 0, gula: 0, natrium: 0 };
@@ -102,7 +104,7 @@ exports.nowSihatImbas = functions
 
         const prompt = `Anda pembantu pemakanan untuk pengguna di Malaysia. Kenal pasti makanan/minuman dalam gambar dan anggarkan nutrisi untuk hidangan yang kelihatan.
 Maklumat pengguna: umur ${umur ?? 'tidak diketahui'}, jantina ${jantina === 'P' ? 'perempuan' : jantina === 'L' ? 'lelaki' : 'tidak diketahui'}, matlamat ${pr.matlamat || 'kekal sihat'}${pr.fokus && pr.fokus.length ? ', fokus: ' + pr.fokus.join(', ') : ''}.
-Sasaran harian: kalori ${sasaran.kalori || '-'} kcal, protein ${sasaran.protein || '-'} g, gula tambahan maksimum ${sasaran.gula || 50} g, natrium maksimum ${sasaran.natrium || 2000} mg.
+${keadaan ? 'Keadaan kesihatan yang dilaporkan pengguna: ' + keadaan + '. Ambil kira dalam nasihat (cth. gula, garam, lemak, purin), tanpa diagnosis.\n' : ''}Sasaran harian: kalori ${sasaran.kalori || '-'} kcal, protein ${sasaran.protein || '-'} g, gula tambahan maksimum ${sasaran.gula || 50} g, natrium maksimum ${sasaran.natrium || 2000} mg.
 Sudah dimakan hari ini (sebelum hidangan ini): kalori ${Math.round(sudah.kalori)} kcal, protein ${Math.round(sudah.protein)} g, gula ${Math.round(sudah.gula)} g, natrium ${Math.round(sudah.natrium)} mg.
 ${nota ? 'Keterangan daripada pengguna: ' + nota : ''}
 Peraturan:

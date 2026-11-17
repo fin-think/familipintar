@@ -272,6 +272,11 @@
                 o[a + 'myhealth_status'] = window.latestHealthData.status;
                 o[a + 'myhealth_medical_cost'] = window.latestHealthData.medCost;
                 o[a + 'myhealth_smoking_cost'] = window.latestHealthData.smokeCost;
+                // Data asas untuk nowSihat & isian semula borang
+                const h = window.latestHealthData;
+                o[a + 'myhealth_berat'] = h.berat; o[a + 'myhealth_tinggi'] = h.tinggi; o[a + 'myhealth_umur'] = h.umur;
+                o[a + 'myhealth_jantina'] = h.jantina; o[a + 'myhealth_air'] = h.air; o[a + 'myhealth_manis'] = h.manis;
+                o[a + 'myhealth_rokok'] = h.rokok; o[a + 'myhealth_kemas_kini'] = Date.now();
                 return o;
             })(Peranan.awalan()) : null,
             mesejTunda: 'Jana laporan untuk disimpan automatik ke myTADBIR.',
@@ -334,6 +339,7 @@
                     Peranan.pasang('#pilih-peranan', info, { onTukar: tukarOrang, sebelum: () => AS.siram() });
                     if (Peranan.mod === 'pasangan') isiProfilPeranan();
                 } catch (e) { console.error("Pemilih peranan:", e); }
+                isiSimpanan();
             }
         });
 
@@ -363,7 +369,24 @@
             tabResults.classList.add('opacity-50', 'cursor-not-allowed');
             window.showTab('input');
             isiProfilPeranan();
+            await isiSimpanan();
             AS.sedia('');
+        }
+
+        // Isi semula borang daripada data myHEALTH yang disimpan (berat/tinggi juga dikemas kini oleh nowSihat)
+        async function isiSimpanan() {
+            if (!currentUser) return;
+            try {
+                const s = await getDoc(doc(db, "mynasab_users", currentUser.uid)); if (!s.exists()) return;
+                const d = s.data(), a = (window.Peranan && Peranan.awalan) ? Peranan.awalan() : '';
+                const isi = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined && v !== null && v !== '' && !el.value) el.value = v; };
+                isi('weight', d[a + 'myhealth_berat']); isi('height', d[a + 'myhealth_tinggi']);
+                isi('waterIntake', d[a + 'myhealth_air']); isi('sugaryDrinks', d[a + 'myhealth_manis']);
+                const mh = document.getElementById('medicalHistory'), st = d[a + 'myhealth_status'];
+                if (mh && st && [...mh.options].some(o => o.value === st) && mh.value === 'tiada') mh.value = st;
+                const rk = d[a + 'myhealth_rokok'];
+                if (rk) { const r = document.querySelector(`input[name="smoking"][value="${rk}"]`); if (r) r.checked = true; }
+            } catch (e) { console.warn("Isi data myHEALTH:", e.message); }
         }
 
         const form = document.getElementById('health-form');
@@ -488,6 +511,7 @@
 
 
             window.latestHealthData = {
+                berat: weight, tinggi: height, umur: age, jantina: gender, air: waterIntake, manis: sugaryDrinks, rokok: smoking,
                 status: medicalHistory,
                 medCost: savedMedicalCost,
                 smokeCost: savedSmokingCost
