@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nowSihat | Famili Pintar</title>
+<meta name="theme-color" content="#059669">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; background: #f0fdf4; color: #0f172a; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 14px 90px; }
+  header { position: sticky; top: 0; z-index: 10; background: #fff; border-bottom: 1px solid #d1fae5; }
+  .hbar { max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+  .logo { flex: 1; font-weight: 900; font-size: 22px; letter-spacing: -.5px; }
+  .logo .a { color: #0f172a; } .logo .b { color: #059669; }
+  .ib { background: none; border: none; font-size: 18px; color: #334155; padding: 6px 8px; cursor: pointer; }
+  .kredit { font-size: 12px; font-weight: 800; background: #fef9c3; border: 1px solid #fde047; color: #854d0e; border-radius: 999px; padding: 4px 10px; }
+  .tabs { display: flex; gap: 6px; max-width: 640px; margin: 0 auto; padding: 0 14px 10px; }
+  .tab { flex: 1; border: none; background: #ecfdf5; color: #065f46; font-weight: 800; font-size: 14px; padding: 9px 6px; border-radius: 10px; cursor: pointer; }
+  .tab.aktif { background: #059669; color: #fff; }
+  .kad { background: #fff; border-radius: 16px; padding: 16px; margin-top: 14px; box-shadow: 0 1px 3px rgba(15,23,42,.06); }
+  h2 { font-size: 17px; margin: 0 0 10px; font-weight: 900; }
+  .kecil { font-size: 12.5px; color: #64748b; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 12px; padding: 12px 16px; font-weight: 800; font-size: 15px; cursor: pointer; font-family: inherit; }
+  .btn-hijau { background: #059669; color: #fff; } .btn-hijau:disabled { background: #94a3b8; }
+  .btn-garis { background: #fff; color: #065f46; border: 2px solid #059669; }
+  .penuh { width: 100%; }
+  .bar { height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin: 4px 0 10px; }
+  .bar > i { display: block; height: 100%; border-radius: 999px; background: #10b981; }
+  .bar > i.amaran { background: #f59e0b; } .bar > i.lebih { background: #ef4444; }
+  .baris { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 700; }
+  label { display: block; font-size: 13px; font-weight: 800; margin: 10px 0 4px; color: #334155; }
+  input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 15px; font-family: inherit; background: #fff; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pil { display: inline-block; font-size: 12px; font-weight: 800; border-radius: 999px; padding: 3px 10px; }
+  .pil.baik { background: #dcfce7; color: #166534; } .pil.sederhana { background: #fef3c7; color: #92400e; } .pil.kurangkan { background: #fee2e2; color: #991b1b; }
+  .item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid #f1f5f9; }
+  .item:first-child { border-top: none; }
+  .pratonton { width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; margin-top: 10px; display: none; }
+  .modal { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+  .modal .isi { background: #fff; border-radius: 18px; padding: 20px; max-width: 440px; width: 100%; max-height: 90vh; overflow: auto; }
+  .chk { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; margin: 6px 0; }
+  .chk input { width: auto; }
+  .penafian { font-size: 11.5px; color: #64748b; text-align: center; margin: 18px 6px 0; line-height: 1.5; }
+  .putar { animation: putar 1s linear infinite; } @keyframes putar { to { transform: rotate(360deg); } }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div class="hbar">
+    <button class="ib" onclick="location.href='index.html'" title="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
+    <div class="logo"><span class="a">now</span><span class="b">Sihat</span></div>
+    <span class="kredit" id="kredit">Kredit: -</span>
+  </div>
+  <div class="tabs">
+    <button class="tab aktif" data-t="hari" onclick="tukarTab('hari')">Hari Ini</button>
+    <button class="tab" data-t="imbas" onclick="tukarTab('imbas')">Imbas</button>
+    <button class="tab" data-t="profil" onclick="tukarTab('profil')">Profil</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HARI INI -->
+  <section id="t-hari">
+    <div class="kad">
+      <div class="baris" style="margin-bottom:8px"><h2 style="margin:0">Ringkasan hari ini</h2><span class="kecil" id="bilImbas">0/8 imbasan</span></div>
+      <div id="ringkasan"></div>
+      <button class="btn btn-hijau penuh" style="margin-top:6px" onclick="tukarTab('imbas')"><i class="fa-solid fa-camera"></i> Imbas makanan</button>
+    </div>
+    <div class="kad">
+      <h2>Makanan hari ini</h2>
+      <div id="senaraiHari" class="kecil">Belum ada imbasan hari ini.</div>
+    </div>
+    <div class="kad" id="kadPanduan"></div>
+  </section>
+
+  <!-- IMBAS -->
+  <section id="t-imbas" class="hidden">
+    <div class="kad">
+      <h2>Imbas makanan</h2>
+      <p class="kecil" style="margin:0 0 10px">Ambil gambar dari atas, nampak keseluruhan pinggan. Gambar tidak disimpan.</p>
+      <div class="grid2">
+        <button class="btn btn-garis" onclick="document.getElementById('fKamera').click()"><i class="fa-solid fa-camera"></i> Kamera</button>
+        <button class="btn btn-garis" onclick="document.getElementById('fGaleri').click()"><i class="fa-regular fa-image"></i> Galeri</button>
+      </div>
+      <input type="file" id="fKamera" accept="image/*" capture="environment" class="hidden">
+      <input type="file" id="fGaleri" accept="image/*" class="hidden">
+      <img id="pratonton" class="pratonton" alt="">
+      <label for="nota">Keterangan (pilihan)</label>
+      <input id="nota" maxlength="200" placeholder="cth. separuh pinggan, teh tarik kurang manis">
+      <button id="btnAnalisis" class="btn btn-hijau penuh" style="margin-top:12px" disabled onclick="analisis()"><i class="fa-solid fa-wand-magic-sparkles"></i> Analisis</button>
+    </div>
+    <div class="kad hidden" id="kadHasil"></div>
+  </section>
+
+  <!-- PROFIL -->
+  <section id="t-profil" class="hidden">
+    <div class="kad">
+      <h2>Profil kesihatan</h2>
+      <p class="kecil" style="margin:0">Tarikh lahir dan jantina diambil dari myNasab. Lengkapkan yang lain supaya nasihat lebih tepat.</p>
+      <div class="grid2">
+        <div><label for="pDob">Tarikh lahir</label><input type="date" id="pDob"></div>
+        <div><label for="pJantina">Jantina</label><select id="pJantina"><option value="">Pilih</option><option value="L">Lelaki</option><option value="P">Perempuan</option></select></div>
+        <div><label for="pBerat">Berat (kg)</label><input type="number" id="pBerat" inputmode="decimal" min="10" max="300"></div>
+        <div><label for="pTinggi">Tinggi (cm)</label><input type="number" id="pTinggi" inputmode="decimal" min="50" max="250"></div>
+      </div>
+      <label for="pAktiviti">Tahap aktiviti</label>
+      <select id="pAktiviti">
+        <option value="1.2">Kurang aktif (banyak duduk)</option>
+        <option value="1.375">Ringan (bersenam 1–3 hari seminggu)</option>
+        <option value="1.55">Sederhana (3–5 hari seminggu)</option>
+        <option value="1.725">Aktif (6–7 hari seminggu / kerja fizikal)</option>
+      </select>
+      <label for="pMatlamat">Matlamat</label>
+      <select id="pMatlamat"><option value="kekal">Kekal berat badan</option><option value="turun">Turunkan berat badan</option><option value="naik">Naikkan berat badan</option></select>
+      <label>Fokus (pilihan)</label>
+      <div class="chk"><input type="checkbox" id="fGula"> <span>Kurangkan gula</span></div>
+      <div class="chk"><input type="checkbox" id="fGaram"> <span>Kurangkan garam</span></div>
+      <div class="chk"><input type="checkbox" id="fProtein"> <span>Lebih protein</span></div>
+      <button class="btn btn-hijau penuh" style="margin-top:14px" onclick="simpanProfil()">Simpan profil</button>
+    </div>
+    <div class="kad" id="kadSasaran"></div>
+    <div class="kad">
+      <h2>Langganan</h2>
+      <p class="kecil" id="infoLanggan" style="margin:0 0 10px"></p>
+      <button class="btn btn-garis penuh" onclick="perbaharui()">Perbaharui (20 kredit / 30 hari)</button>
+    </div>
+  </section>
+
+  <p class="penafian">nowSihat memberi <b>anggaran</b> nutrisi berdasarkan gambar dan bukan nasihat perubatan. Jika anda ada penyakit (cth. kencing manis, darah tinggi, buah pinggang), hamil atau menyusu, rujuk doktor atau pakar diet anda.</p>
+</div>
+
+<!-- Modal mula / langganan -->
+<div class="modal" id="modalMula"><div class="isi">
+  <h2>Selamat datang ke nowSihat</h2>
+  <p style="font-size:14px;line-height:1.6;margin:0 0 10px">Snap gambar makanan, dapat anggaran kalori, protein, gula dan garam, serta nasihat ringkas ikut umur dan matlamat anda.</p>
+  <ul style="font-size:13.5px;line-height:1.7;padding-left:18px;margin:0 0 12px">
+    <li><b>Percuma 30 hari pertama</b>, kemudian 20 kredit sebulan.</li>
+    <li>Sehingga <b>8 imbasan sehari</b>. Lebih dari itu: 1 kredit untuk 3 imbasan tambahan.</li>
+    <li>Gambar tidak disimpan. Hanya keputusan analisis disimpan untuk akaun anda.</li>
+    <li>Keputusan ialah anggaran, bukan nasihat perubatan.</li>
+  </ul>
+  <button class="btn btn-hijau penuh" id="btnMula" onclick="mulaPercubaan()">Saya faham, mula percuma</button>
+</div></div>
+
+<div class="modal" id="modalTamat"><div class="isi">
+  <h2>Langganan nowSihat tamat</h2>
+  <p style="font-size:14px;line-height:1.6;margin:0 0 14px">Perbaharui dengan <b>20 kredit</b> untuk 30 hari lagi. Rekod anda kekal selamat.</p>
+  <button class="btn btn-hijau penuh" onclick="perbaharui()">Perbaharui (20 kredit)</button>
+  <button class="btn btn-garis penuh" style="margin-top:8px" onclick="location.href='topup.html'">Tambah kredit</button>
+</div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+  authDomain: "familipintar.firebaseapp.com",
+  projectId: "familipintar",
+  storageBucket: "familipintar.firebasestorage.app",
+  messagingSenderId: "277029764059",
+  appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+});
+const auth = getAuth(app), db = getFirestore(app), fns = getFunctions(app, 'asia-southeast1');
+const HAD = 8;
+const S = { uid: null, user: {}, profil: {}, log: [], harian: { bil: 0, tambahan: 0 }, gambar: null };
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const tarikhMY = () => new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+const tarikhPapar = ms => new Date(ms).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+window.tukarTab = (t) => {
+  ['hari', 'imbas', 'profil'].forEach(x => $('t-' + x).classList.toggle('hidden', x !== t));
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('aktif', b.dataset.t === t));
+  window.scrollTo(0, 0);
+};
+
+// ---------- Umur & sasaran harian ----------
+function umur(dob) {
+  if (!dob) return null; const p = String(dob).split('-').map(Number); if (!p[0]) return null;
+  const k = new Date(Date.now() + 8 * 3600000); let u = k.getUTCFullYear() - p[0];
+  if ((k.getUTCMonth() + 1) < (p[1] || 1) || ((k.getUTCMonth() + 1) === (p[1] || 1) && k.getUTCDate() < (p[2] || 1))) u--;
+  return u >= 0 && u < 130 ? u : null;
+}
+function kiraSasaran(p) {
+  const u = umur(p.dob), w = +p.berat, h = +p.tinggi, f = +p.aktiviti || 1.2, fokus = p.fokus || [];
+  const s = { gula: fokus.includes('gula') ? 25 : 50, natrium: fokus.includes('garam') ? 1500 : 2000, kalori: null, protein: null, umur: u };
+  if (w > 0) s.protein = Math.round(w * (p.matlamat === 'turun' || fokus.includes('protein') ? 1.2 : 1.0));
+  if (u !== null && u >= 18 && w > 0 && h > 0 && p.jantina) {
+    const bmr = 10 * w + 6.25 * h - 5 * u + (p.jantina === 'L' ? 5 : -161);
+    let k = bmr * f;
+    if (p.matlamat === 'turun') k -= 400; else if (p.matlamat === 'naik') k += 300;
+    s.kalori = Math.round(Math.max(k, p.jantina === 'L' ? 1500 : 1200) / 10) * 10;   // had minimum selamat
+    s.bmi = +(w / ((h / 100) ** 2)).toFixed(1);
+  }
+  return s;
+}
+function panduanUmur(u) {
+  if (u === null) return ['Lengkapkan tarikh lahir', 'Isi tarikh lahir di tab Profil untuk panduan ikut umur.'];
+  if (u < 13) return ['Kanak-kanak', 'Fokus tumbesaran: susu atau sumber kalsium setiap hari, protein (telur, ikan, ayam), buah dan sayur. Hadkan minuman manis dan makanan ringan. Tiada sasaran kalori untuk kanak-kanak.'];
+  if (u < 18) return ['Remaja', 'Tumbesaran pesat: jangan langkau sarapan, cukupkan protein dan kalsium, banyakkan air kosong. Elak diet ketat; jika risau tentang berat badan, bincang dengan doktor.'];
+  if (u < 60) return ['Dewasa', 'Ikut Pinggan Sihat Malaysia: separuh sayur dan buah, suku protein, suku nasi atau karbohidrat. Hadkan gula tambahan, garam dan makanan bergoreng.'];
+  return ['Warga emas', 'Pastikan protein cukup untuk kekuatan otot, kalsium dan vitamin D untuk tulang, serat dan air untuk penghadaman. Kurangkan garam dan gula, terutama jika ada darah tinggi atau kencing manis.'];
+}
+
+// ---------- Paparan ----------
+function bar(label, nilai, sasaran, unit, hadAtas) {
+  if (!sasaran) return `<div class="baris"><span>${label}</span><span>${Math.round(nilai)} ${unit}</span></div><div class="bar"><i style="width:0"></i></div>`;
+  const pct = Math.min(100, nilai / sasaran * 100), kls = hadAtas ? (pct >= 100 ? 'lebih' : pct >= 80 ? 'amaran' : '') : '';
+  return `<div class="baris"><span>${label}</span><span>${Math.round(nilai)} / ${sasaran} ${unit}</span></div><div class="bar"><i class="${kls}" style="width:${pct}%"></i></div>`;
+}
+function paparHari() {
+  const s = kiraSasaran(S.profil), j = { kalori: 0, protein: 0, gula: 0, natrium: 0 };
+  S.log.forEach(r => { for (const k in j) j[k] += (r.jumlah || {})[k] || 0; });
+  const dewasa = s.umur === null || s.umur >= 18;
+  $('ringkasan').innerHTML = (dewasa ? bar('Kalori', j.kalori, s.kalori, 'kcal', true) : '') +
+    bar('Protein', j.protein, s.protein, 'g', false) + bar('Gula', j.gula, s.gula, 'g', true) + bar('Natrium (garam)', j.natrium, s.natrium, 'mg', true) +
+    (dewasa && !s.kalori ? '<p class="kecil" style="margin:4px 0 0">Lengkapkan profil (berat, tinggi, jantina) untuk sasaran kalori.</p>' : '');
+  $('bilImbas').textContent = `${S.harian.bil || 0}/${HAD + (S.harian.tambahan || 0)} imbasan`;
+  $('senaraiHari').innerHTML = S.log.length ? S.log.map(r => `<div class="item">
+      <div style="flex:1"><div style="font-weight:800;font-size:14px">${esc(r.makanan.map(m => m.nama).join(', '))}</div>
+      <div class="kecil">${new Date(r.masa).toLocaleTimeString('ms-MY', { hour: 'numeric', minute: '2-digit' })} · ${dewasa ? r.jumlah.kalori + ' kcal · ' : ''}protein ${r.jumlah.protein} g · gula ${r.jumlah.gula} g</div>
+      <div style="font-size:13px;margin-top:3px">${esc(r.nasihat)}</div></div>
+      <div style="text-align:right"><span class="pil ${esc(r.status)}">${{ baik: 'Baik', sederhana: 'Sederhana', kurangkan: 'Kurangkan' }[r.status] || ''}</span><br>
+      <button class="ib" style="font-size:14px;color:#94a3b8" onclick="padamRekod('${r.id}')" title="Padam"><i class="fa-regular fa-trash-can"></i></button></div></div>`).join('') : 'Belum ada imbasan hari ini.';
+  const [t, b] = panduanUmur(s.umur);
+  $('kadPanduan').innerHTML = `<h2>Panduan ikut umur: ${esc(t)}</h2><p style="font-size:14px;line-height:1.6;margin:0">${esc(b)}</p>`;
+  $('kadSasaran').innerHTML = `<h2>Sasaran harian anda</h2>` + (s.umur !== null && s.umur < 18
+    ? `<p style="font-size:14px;margin:0">Untuk bawah 18 tahun, nowSihat tidak menetapkan sasaran kalori. Fokus pada pinggan seimbang dan tumbesaran.</p>`
+    : `<p style="font-size:14px;line-height:1.8;margin:0">Kalori: <b>${s.kalori ? s.kalori + ' kcal' : '-'}</b><br>Protein: <b>${s.protein ? s.protein + ' g' : '-'}</b><br>Gula tambahan: maksimum <b>${s.gula} g</b><br>Natrium: maksimum <b>${s.natrium} mg</b>${s.bmi ? `<br>BMI: <b>${s.bmi}</b>` : ''}</p>`);
+  const tm = S.user.nowsihat_expiry_date;
+  $('infoLanggan').textContent = tm ? (tm > Date.now() ? `Aktif sehingga ${tarikhPapar(tm)}.` : `Tamat pada ${tarikhPapar(tm)}.`) : 'Belum bermula.';
+  $('kredit').textContent = 'Kredit: ' + (parseInt(S.user.credit_balance) || 0);
+}
+
+async function muatHari() {
+  const hari = tarikhMY();
+  try {
+    const sn = await getDocs(query(collection(db, 'nowsihat_log'), where('uid', '==', S.uid), where('tarikh', '==', hari)));
+    S.log = []; sn.forEach(d => S.log.push({ id: d.id, ...d.data() })); S.log.sort((a, b) => b.masa - a.masa);
+  } catch (e) { console.warn('Log:', e.message); }
+  try { const h = await getDoc(doc(db, 'nowsihat_harian', `${S.uid}_${hari}`)); S.harian = h.exists() ? h.data() : { bil: 0, tambahan: 0 }; } catch (e) {}
+  paparHari();
+}
+
+// ---------- Profil ----------
+function isiBorang() {
+  const p = S.profil;
+  $('pDob').value = p.dob || ''; $('pJantina').value = p.jantina || ''; $('pBerat').value = p.berat || ''; $('pTinggi').value = p.tinggi || '';
+  $('pAktiviti').value = p.aktiviti || '1.2'; $('pMatlamat').value = p.matlamat || 'kekal';
+  const f = p.fokus || []; $('fGula').checked = f.includes('gula'); $('fGaram').checked = f.includes('garam'); $('fProtein').checked = f.includes('protein');
+}
+window.simpanProfil = async () => {
+  const fokus = [['fGula', 'gula'], ['fGaram', 'garam'], ['fProtein', 'protein']].filter(([id]) => $(id).checked).map(([, v]) => v);
+  const p = { dob: $('pDob').value, jantina: $('pJantina').value, berat: +$('pBerat').value || null, tinggi: +$('pTinggi').value || null,
+    aktiviti: $('pAktiviti').value, matlamat: $('pMatlamat').value, fokus, kemas_kini: Date.now() };
+  p.sasaran = (({ kalori, protein, gula, natrium }) => ({ kalori, protein, gula, natrium }))(kiraSasaran(p));
+  try { await setDoc(doc(db, 'nowsihat_profil', S.uid), p); S.profil = p; paparHari(); alert('Profil disimpan.'); }
+  catch (e) { alert('Gagal simpan profil: ' + e.message); }
+};
+
+// ---------- Langganan ----------
+window.mulaPercubaan = async () => {
+  $('btnMula').disabled = true;
+  try {
+    const r = await httpsCallable(fns, 'nowSihatLanggan')({ tindakan: 'mula' });
+    S.user.nowsihat_expiry_date = r.data.tamat; $('modalMula').style.display = 'none';
+    if (r.data.baru) alert('Percubaan percuma 30 hari bermula hari ini. Tamat pada ' + tarikhPapar(r.data.tamat) + '.');
+    paparHari(); if (!S.profil.berat) tukarTab('profil');
+  } catch (e) { alert('Gagal: ' + e.message); }
+  $('btnMula').disabled = false;
+};
+window.perbaharui = async () => {
+  if (!confirm('Potong 20 kredit untuk 30 hari nowSihat?')) return;
+  try {
+    const r = await httpsCallable(fns, 'nowSihatLanggan')({ tindakan: 'baharu' });
+    S.user.nowsihat_expiry_date = r.data.tamat; S.user.credit_balance = r.data.baki;
+    $('modalTamat').style.display = 'none'; paparHari(); alert('Berjaya. Aktif sehingga ' + tarikhPapar(r.data.tamat) + '.');
+  } catch (e) { if (/Kredit tidak mencukupi/.test(e.message) && confirm(e.message + '\nTambah kredit sekarang?')) location.href = 'topup.html'; else alert(e.message); }
+};
+
+// ---------- Imbas ----------
+function kecilkan(fail) {
+  return new Promise((ok, gagal) => {
+    const img = new Image(), url = URL.createObjectURL(fail);
+    img.onload = () => {
+      const m = 1024, k = Math.min(1, m / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      ok(c.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => gagal(new Error('Gambar tidak dapat dibaca.')); img.src = url;
+  });
+}
+async function pilihGambar(e) {
+  const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { const d = await kecilkan(f); S.gambar = d.split(',')[1]; $('pratonton').src = d; $('pratonton').style.display = 'block'; $('btnAnalisis').disabled = false; $('kadHasil').classList.add('hidden'); }
+  catch (er) { alert(er.message); }
+}
+$('fKamera').onchange = pilihGambar; $('fGaleri').onchange = pilihGambar;
+
+window.analisis = async (bayarTambahan = false) => {
+  if (!S.gambar) return;
+  const b = $('btnAnalisis'); b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner putar"></i> Menganalisis...';
+  try {
+    const r = (await httpsCallable(fns, 'nowSihatImbas')({ gambar: S.gambar, nota: $('nota').value.trim(), bayarTambahan })).data;
+    paparHasil(r);
+    if (r.id) { S.gambar = null; $('nota').value = ''; $('pratonton').style.display = 'none'; }
+    await muatHari();
+    if (bayarTambahan) { try { const u = await getDoc(doc(db, 'mynasab_users', S.uid)); S.user = u.data() || S.user; paparHari(); } catch (e) {} }
+  } catch (e) {
+    const m = e.message || '';
+    if (/LANGGANAN_TAMAT/.test(m)) $('modalTamat').style.display = 'flex';
+    else if (/HAD_HARIAN/.test(m)) { if (confirm(`Had ${HAD} imbasan hari ini sudah habis.\nGuna 1 kredit untuk 3 imbasan tambahan?`)) { b.disabled = false; b.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analisis'; return window.analisis(true); } }
+    else if (/Kredit tidak mencukupi/.test(m)) { if (confirm(m + '\nTambah kredit sekarang?')) location.href = 'topup.html'; }
+    else alert(m || 'Analisis gagal. Cuba lagi.');
+  }
+  b.disabled = !S.gambar; b.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analisis';
+};
+function paparHasil(r) {
+  const k = $('kadHasil'); k.classList.remove('hidden');
+  if (!r.makanan || !r.makanan.length) { k.innerHTML = '<h2>Tiada makanan dikesan</h2><p class="kecil" style="margin:0">Cuba ambil gambar lebih dekat dan terang. Imbasan ini tidak dikira.</p>'; return; }
+  const dewasa = (() => { const u = umur(S.profil.dob); return u === null || u >= 18; })();
+  k.innerHTML = `<div class="baris" style="align-items:center"><h2 style="margin:0">Keputusan</h2><span class="pil ${esc(r.status)}">${{ baik: 'Baik', sederhana: 'Sederhana', kurangkan: 'Kurangkan' }[r.status] || ''}</span></div>
+    <p style="font-size:15px;line-height:1.55;margin:10px 0;font-weight:700;color:#065f46">${esc(r.nasihat)}</p>
+    ${r.makanan.map(m => `<div class="item"><div style="flex:1"><b style="font-size:14px">${esc(m.nama)}</b><div class="kecil">${esc(m.saiz)}</div></div><div class="kecil" style="text-align:right">${dewasa ? m.kalori + ' kcal<br>' : ''}P ${m.protein}g · G ${m.gula}g</div></div>`).join('')}
+    <div class="item" style="font-weight:800;font-size:13.5px"><div style="flex:1">Jumlah</div><div style="text-align:right">${dewasa ? r.jumlah.kalori + ' kcal · ' : ''}protein ${r.jumlah.protein} g<br>karbo ${r.jumlah.karbo} g · lemak ${r.jumlah.lemak} g · gula ${r.jumlah.gula} g · natrium ${r.jumlah.natrium} mg</div></div>
+    <p class="kecil" style="margin:8px 0 0">Anggaran sahaja. Nilai sebenar bergantung pada saiz hidangan dan cara masakan.</p>`;
+}
+window.padamRekod = async (id) => {
+  if (!confirm('Padam rekod makanan ini?')) return;
+  try { await deleteDoc(doc(db, 'nowsihat_log', id)); await muatHari(); } catch (e) { alert('Gagal padam: ' + e.message); }
+};
+
+// ---------- Mula ----------
+onAuthStateChanged(auth, async (u) => {
+  if (!u) { location.href = 'index.html'; return; }
+  S.uid = u.uid;
+  try { const s = await getDoc(doc(db, 'mynasab_users', u.uid)); S.user = s.exists() ? s.data() : {}; } catch (e) {}
+  try { const p = await getDoc(doc(db, 'nowsihat_profil', u.uid)); S.profil = p.exists() ? p.data() : {}; } catch (e) {}
+  if (!S.profil.dob || !S.profil.jantina) {
+    try { const r = await getDoc(doc(db, 'mynasab_nodes', 'root_' + u.uid)); if (r.exists()) { const d = r.data(); S.profil.dob = S.profil.dob || d.dob || ''; S.profil.jantina = S.profil.jantina || (d.gender === 'P' ? 'P' : d.gender === 'L' ? 'L' : ''); } } catch (e) {}
+  }
+  isiBorang(); await muatHari();
+  const tm = S.user.nowsihat_expiry_date;
+  if (!tm) $('modalMula').style.display = 'flex';
+  else if (tm < Date.now()) $('modalTamat').style.display = 'flex';
+});
+</script>
+</body>
+</html>
