@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notifikasi | Famili Pintar</title>
+<meta name="theme-color" content="#0ea5e9">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; background: #f8fafc; color: #0f172a; }
+  header { position: sticky; top: 0; z-index: 5; background: #fff; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #e2e8f0; }
+  header h1 { flex: 1; margin: 0; font-size: 20px; font-weight: 800; }
+  .btn-ikon { background: none; border: none; font-size: 20px; color: #334155; padding: 6px 8px; cursor: pointer; border-radius: 8px; }
+  .btn-ikon:disabled { color: #cbd5e1; cursor: default; }
+  .nota { margin: 12px 16px 4px; font-size: 12.5px; color: #64748b; }
+  ul { list-style: none; margin: 0; padding: 0 12px 24px; max-width: 720px; margin-inline: auto; }
+  li { display: flex; gap: 12px; align-items: flex-start; background: #fff; border-radius: 14px; padding: 14px; margin-top: 10px; box-shadow: 0 1px 3px rgba(15,23,42,.06); cursor: pointer; border: 1px solid transparent; }
+  li.baru { border-color: #bae6fd; background: #f0f9ff; }
+  .ikon { flex: none; width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .ikon.muhasabah { background: #ede9fe; color: #6d28d9; }
+  .ikon.checklist40 { background: #dcfce7; color: #15803d; }
+  .isi { flex: 1; min-width: 0; }
+  .masa { font-size: 12px; color: #64748b; display: flex; gap: 6px; align-items: center; }
+  .titik { width: 8px; height: 8px; border-radius: 50%; background: #0ea5e9; display: inline-block; }
+  .tajuk { font-weight: 800; font-size: 15px; margin: 2px 0; }
+  .badan { font-size: 13.5px; color: #334155; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .tag-per { font-size: 11px; font-weight: 700; color: #92400e; background: #fef3c7; border-radius: 6px; padding: 1px 6px; }
+  .kosong { text-align: center; color: #64748b; padding: 60px 24px; }
+  .kosong i { font-size: 40px; color: #cbd5e1; display: block; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <button class="btn-ikon" onclick="kembali()" title="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
+  <h1>Notifikasi</h1>
+  <button class="btn-ikon" id="btnSemua" onclick="tandaSemua()" title="Tanda semua dibaca" disabled><i class="fa-solid fa-check-double"></i></button>
+</header>
+<p class="nota">Peringatan Muhasabah dan myChecklist40 dalam 72 jam terakhir.</p>
+<ul id="senarai"><li style="cursor:default;justify-content:center;color:#64748b">Memuatkan...</li></ul>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, doc, updateDoc, writeBatch, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
+  authDomain: "familipintar.firebaseapp.com",
+  projectId: "familipintar",
+  storageBucket: "familipintar.firebasestorage.app",
+  messagingSenderId: "277029764059",
+  appId: "1:277029764059:web:0a21bb2e01d868b1ed05fe"
+});
+const auth = getAuth(app), db = getFirestore(app);
+let uid = null, item = [];
+
+const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// Tajuk dari server mungkin ada emoji di depan (cth. tajuk Muhasabah); ikon sudah ada di kiri
+const bersih = s => String(s || '').replace(/^[\p{Extended_Pictographic}️‍\s]+/u, '');
+function bila(ms) {
+  const m = Math.floor((Date.now() - ms) / 60000);
+  if (m < 1) return 'Baru sahaja';
+  if (m < 60) return m + ' minit lalu';
+  const j = Math.floor(m / 60);
+  if (j < 24) return j + ' jam lalu';
+  const d = new Date(ms);
+  return d.toLocaleDateString('ms-MY', { weekday: 'short', day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('ms-MY', { hour: 'numeric', minute: '2-digit' });
+}
+
+function papar() {
+  const ul = document.getElementById('senarai');
+  document.getElementById('btnSemua').disabled = !item.some(x => !x.dibaca);
+  if (!item.length) {
+    ul.innerHTML = '<div class="kosong"><i class="fa-regular fa-bell-slash"></i>Tiada notifikasi dalam 72 jam terakhir.</div>';
+    return;
+  }
+  ul.innerHTML = item.map((x, i) => `
+    <li class="${x.dibaca ? '' : 'baru'}" onclick="buka(${i})">
+      <div class="ikon ${x.app === 'checklist40' ? 'checklist40' : 'muhasabah'}"><i class="fa-solid ${x.app === 'checklist40' ? 'fa-list-check' : 'fa-hands-praying'}"></i></div>
+      <div class="isi">
+        <div class="masa">${x.dibaca ? '' : '<span class="titik"></span>'}${esc(bila(x.masaMs))}${x.per === 'pasangan' ? ' <span class="tag-per">Pasangan</span>' : ''}</div>
+        <div class="tajuk">${esc(bersih(x.tajuk))}</div>
+        <div class="badan">${esc(x.isi)}</div>
+      </div>
+    </li>`).join('');
+}
+
+async function muat() {
+  const sn = await getDocs(query(collection(db, 'mynasab_users', uid, 'notis'), where('luput_pada', '>', new Date()), limit(100)));
+  item = [];
+  sn.forEach(d => { const v = d.data(); item.push({ id: d.id, ...v, masaMs: v.masa && v.masa.toMillis ? v.masa.toMillis() : 0 }); });
+  item.sort((a, b) => b.masaMs - a.masaMs);
+  papar();
+}
+
+window.buka = async (i) => {
+  const x = item[i]; if (!x) return;
+  if (!x.dibaca) { try { await updateDoc(doc(db, 'mynasab_users', uid, 'notis', x.id), { dibaca: true }); } catch (e) {} }
+  if (x.url) location.href = x.url; else { x.dibaca = true; papar(); }
+};
+
+window.tandaSemua = async () => {
+  const belum = item.filter(x => !x.dibaca); if (!belum.length) return;
+  const b = writeBatch(db);
+  belum.forEach(x => { b.update(doc(db, 'mynasab_users', uid, 'notis', x.id), { dibaca: true }); x.dibaca = true; });
+  papar();
+  try { await b.commit(); } catch (e) { alert('Gagal kemas kini: ' + e.message); }
+};
+
+window.kembali = () => { if (history.length > 1 && document.referrer.includes(location.host)) history.back(); else location.href = 'index.html'; };
+
+onAuthStateChanged(auth, async (u) => {
+  if (!u) { location.href = 'index.html'; return; }
+  uid = u.uid;
+  try { await muat(); }
+  catch (e) { document.getElementById('senarai').innerHTML = `<div class="kosong">Gagal memuatkan notifikasi.<br><small>${esc(e.message)}</small></div>`; }
+});
+</script>
+</body>
+</html>

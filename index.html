@@ -249,6 +249,12 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
                 </div>
             </div>
 
+            <!-- Loceng Peti Notifikasi (Muhasabah & myChecklist40, 72 jam) - hanya bila log masuk -->
+            <button onclick="window.location.href='notifikasi.html'" id="btnLoceng" style="display:none" class="relative text-slate-600 text-2xl focus:outline-none p-2" title="Notifikasi">
+                <i class="fa-regular fa-bell"></i>
+                <span id="lencanaLoceng" style="display:none" class="absolute top-0 right-0 bg-red-500 text-white text-[11px] font-bold rounded-full min-w-[18px] h-[18px] px-1 items-center justify-center leading-none">0</span>
+            </button>
+
             <!-- Butang Hamburger (Hanya dipaparkan di Mobile / Telefon) -->
             <button onclick="toggleFrontPageMobileMenu()" id="hamburgerBtn" class="md:hidden text-slate-600 text-2xl focus:outline-none p-2">
                 <i class="fa-solid fa-bars transition-all duration-300"></i>
@@ -778,6 +784,19 @@ if ('Notification' in window) {
 
     window.penggunaSemasa = null;
 
+    // PETI NOTIFIKASI: kira notifikasi belum dibaca (72 jam terakhir) untuk lencana loceng
+    window.kiraNotis = async () => {
+        const u = window.penggunaSemasa, el = document.getElementById('lencanaLoceng');
+        if (!u || !el) return;
+        try {
+            const sn = await getDocs(query(collection(db, 'mynasab_users', u.uid, 'notis'), where('luput_pada', '>', new Date()), limit(50)));
+            let n = 0; sn.forEach(d => { if (!d.data().dibaca) n++; });
+            el.textContent = n > 9 ? '9+' : n;
+            el.style.display = n ? 'flex' : 'none';
+        } catch (e) { console.warn('Peti notifikasi:', e.message); }
+    };
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) window.kiraNotis(); });
+
   // ==========================================
     // 4C: KEMAS KINI UI APABILA LOG MASUK (HEADER, WALLET & NAMA)
     // ==========================================
@@ -854,6 +873,7 @@ if ('Notification' in window) {
 
         if (user) {
             window.penggunaSemasa = user; { const c = document.getElementById('ctaNasab'); if (c) c.textContent = 'Lihat Pokok Keluarga'; }
+            { const bl = document.getElementById('btnLoceng'); if (bl) bl.style.display = 'inline-block'; window.kiraNotis && window.kiraNotis(); }
 
             // --- 1. TUKAR PAPARAN UI KEPADA LOG MASUK DAHULU ---
             if(greetingBox) {
@@ -970,6 +990,7 @@ if ('Notification' in window) {
         } else {
             // --- 4. KEMAS KINI UI JIKA LOG KELUAR (SIGN OUT) ---
             window.penggunaSemasa = null; { const c = document.getElementById('ctaNasab'); if (c) c.textContent = 'Daftar Percuma'; }
+            { const bl = document.getElementById('btnLoceng'); if (bl) bl.style.display = 'none'; }
             if (new URLSearchParams(location.search).get('daftar') && !window._daftarAuto && window.bukaModalAuth) { window._daftarAuto = true; window.bukaModalAuth('daftar'); }
             
             if(greetingBox) {
