@@ -81,6 +81,7 @@
       langkah: [
         ['Kongsi', 'Tulis sesuatu dan tambah gambar dengan <b>Galeri</b> atau <b>Kamera</b>.'],
         ['Pilih siapa nampak', '<b>Kami</b> untuk anda, pasangan dan anak sahaja. <b>Semua</b> untuk seluruh keluarga.'],
+        ['Hilang selepas 48 jam', 'Siaran, gambar, komen dan reaksi dipadam sendiri selepas 48 jam, macam status.'],
         ['Reaksi & komen', 'Tekan ❤️ 🤲 😂 atau <b>Komen</b> pada siaran keluarga.'],
         ['Gambar profil', 'Tekan <b>Gambar profil</b> (atau Tetapan di halaman utama) supaya keluarga kenal anda.'],
         ['Sirah & hari kebesaran', 'Kisah sirah harian dan kiraan hari kebesaran Islam sentiasa ada di halaman ini.'],

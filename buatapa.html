@@ -106,7 +106,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, getDoc, doc, addDoc, setDoc, deleteDoc, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, getDoc, doc, addDoc, setDoc, deleteDoc, query, where, orderBy, limit, startAfter, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 import { firebaseConfig, esc, mampatGambar } from "./kongsi.js";
 import { BULAN_HIJRAH, BULAN_MASIHI, tarikhMalaysia, tarikhHijrah, namaHariMasihi, peristiwaHariIni, sirahHariIni, hitungMundur } from "./sejarah-islam.js";
@@ -117,6 +117,9 @@ const ADMIN_EMEL = 'dae.book89@gmail.com';
 const KUNCI_LARAS = 'buatapa_laras_hijrah';
 
 const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app), storage = getStorage(app);
+// Siaran, komen & reaksi dipadam oleh TTL Firestore (medan luput_pada) selepas 48 jam; gambar oleh peraturan Lifecycle Storage (buatapa/)
+const TEMPOH_MS = 48 * 3600000;
+const luputPos = p => Timestamp.fromMillis((p && p.created_at ? p.created_at : Date.now()) + TEMPOH_MS);
 const MAKS_GAMBAR = 4, MAKS_TEKS = 2000, SAIZ_HALAMAN = 15, EMOJI = ['❤️', '🤲', '😂'];
 const CACHE = 'public,max-age=31536000';
 const URL_STORAGE = 'https://firebasestorage.googleapis.com/';
@@ -289,7 +292,7 @@ async function muatPosts() {
   try {
     for (const k of D.kumpulan) {
       if (D.habis[k.id]) continue;
-      const c = [where('group_id', '==', k.id), orderBy('created_at', 'desc')];
+      const c = [where('group_id', '==', k.id), where('created_at', '>', Date.now() - TEMPOH_MS), orderBy('created_at', 'desc')];
       if (D.kursor[k.id]) c.push(startAfter(D.kursor[k.id]));
       c.push(limit(SAIZ_HALAMAN));
       const sn = await getDocs(query(collection(db, 'buatapa_posts'), ...c));
@@ -320,7 +323,7 @@ async function muatInteraksi(grp, ids) {
 function paparDinding() {
   const adaLagi = D.kumpulan.some(k => !D.habis[k.id]);
   $('muatLagi').classList.toggle('hidden', !adaLagi || !D.posts.length);
-  if (!D.posts.length) { $('dindingIsi').innerHTML = '<div class="kad text-center text-slate-500 text-sm">Belum ada siaran. Jadilah yang pertama berkongsi dengan keluarga.</div>'; return; }
+  if (!D.posts.length) { $('dindingIsi').innerHTML = '<div class="kad text-center text-slate-500 text-sm">Tiada siaran dalam 48 jam terakhir. Jadilah yang pertama berkongsi dengan keluarga.</div>'; return; }
   $('dindingIsi').innerHTML = D.posts.map(p => {
     const gam = (p.gambar || []).map((u, i) => ({ f: u, k: urlGambarSah((p.kecil || [])[i]) ? p.kecil[i] : u })).filter(g => urlGambarSah(g.f));
     const rx = D.reaksi[p.id] || {}, saya = rx[D.user.uid], km = D.komen[p.id] || [];
@@ -361,7 +364,7 @@ $('dindingIsi').addEventListener('submit', async (ev) => {
   const inp = f.querySelector('input'), teks = inp.value.trim(), pid = f.dataset.kmborang, p = D.posts.find(x => x.id === pid);
   if (!teks || !p) return; inp.disabled = true;
   try {
-    const k = { post_id: pid, group_id: p.group_id, author_uid: D.user.uid, author_nama: D.nama, teks: teks.slice(0, 500), created_at: Date.now() };
+    const k = { post_id: pid, group_id: p.group_id, author_uid: D.user.uid, author_nama: D.nama, teks: teks.slice(0, 500), created_at: Date.now(), luput_pada: luputPos(p) };
     const r = await addDoc(collection(db, 'buatapa_komen'), k);
     (D.komen[pid] = D.komen[pid] || []).push({ ...k, id: r.id });
     window._kmBuka = [...new Set([...(window._kmBuka || []), pid])]; paparDinding();
@@ -374,7 +377,7 @@ async function reaksi(pid, emoji) {
   const rx = (D.reaksi[pid] = D.reaksi[pid] || {}), lama = rx[D.user.uid], dRef = doc(db, 'buatapa_reaksi', `${pid}_${D.user.uid}`);
   try {
     if (lama === emoji) { delete rx[D.user.uid]; paparDinding(); await deleteDoc(dRef); }
-    else { rx[D.user.uid] = emoji; paparDinding(); await setDoc(dRef, { post_id: pid, group_id: p.group_id, uid: D.user.uid, emoji, created_at: Date.now() }); }
+    else { rx[D.user.uid] = emoji; paparDinding(); await setDoc(dRef, { post_id: pid, group_id: p.group_id, uid: D.user.uid, emoji, created_at: Date.now(), luput_pada: luputPos(p) }); }
   } catch (e) { if (lama) rx[D.user.uid] = lama; else delete rx[D.user.uid]; paparDinding(); alert('Gagal menyimpan reaksi: ' + e.message); }
 }
 
@@ -425,7 +428,8 @@ const siar = async (grp) => {
     }
     if (grp === D.kamiSendiri) await setDoc(doc(db, 'buatapa_kumpulan', grp), { owner_uid: D.user.uid, nama: D.nama.split(/\s+/)[0], ahli: D.ahliKami, updated_at: Date.now() });
     $('posStatus').textContent = 'Menyiarkan…';
-    const p = { group_id: grp, author_uid: D.user.uid, author_nama: D.nama, teks: teks.slice(0, MAKS_TEKS), gambar: dimuat, kecil, created_at: Date.now() };
+    const kini = Date.now();
+    const p = { group_id: grp, author_uid: D.user.uid, author_nama: D.nama, teks: teks.slice(0, MAKS_TEKS), gambar: dimuat, kecil, created_at: kini, luput_pada: Timestamp.fromMillis(kini + TEMPOH_MS) };
     const r = await addDoc(collection(db, 'buatapa_posts'), p);
     D.posts.unshift({ ...p, id: r.id }); tutupKomposer(); paparDinding(); lukisKandungan();
   } catch (e) {
@@ -461,6 +465,6 @@ onAuthStateChanged(auth, async (u) => {
   if (u) siapkanDinding(u);
 });
 </script>
-<script src="cara-guna.js?v=3" data-app="buatapa" defer></script>
+<script src="cara-guna.js?v=4" data-app="buatapa" defer></script>
 </body>
 </html>
