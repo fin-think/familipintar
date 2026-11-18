@@ -17,6 +17,11 @@
   .logo { flex: 1; font-weight: 900; font-size: 20px; display: flex; align-items: center; gap: 8px; }
   .logo i { color: #bef264; } .logo small { font-weight: 700; font-size: 12px; color: #dcfce7; display: block; letter-spacing: 0; }
   .ib { background: none; border: none; font-size: 18px; color: #fff; padding: 6px 8px; cursor: pointer; }
+  #paparan { width: auto; padding: 5px 8px; font: 800 12.5px 'Nunito', sans-serif; border-radius: 10px; border: 1px solid rgba(255,255,255,.4); background: rgba(255,255,255,.18); color: #fff; }
+  #paparan option { color: #0f172a; }
+  .tanya { font-size: 13px; margin-top: 6px; background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 6px 9px; color: #4c1d95; }
+  .tanya img { display: block; max-width: 180px; border-radius: 8px; margin-top: 5px; }
+  .chip.ungu { background: #ede9fe; color: #5b21b6; }
   .tabs { max-width: 1200px; margin: 0 auto; display: flex; gap: 6px; padding: 0 14px 12px; overflow-x: auto; }
   .tabs button { border: none; background: rgba(255,255,255,.16); color: #f0fdf4; font: 800 13.5px 'Nunito', sans-serif; padding: 8px 14px; border-radius: 12px; cursor: pointer; white-space: nowrap; display: flex; gap: 6px; align-items: center; }
   .tabs button.aktif { background: #fff; color: #047857; }
@@ -68,12 +73,13 @@
   <div class="hbar">
     <button class="ib" onclick="location.href='nowsihat.html'" title="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
     <div class="logo"><i class="fa-solid fa-clipboard-user"></i><span>Dashboard Coach<small id="namaCoach">nowSihat</small></span></div>
-    <button class="ib" onclick="muatSenarai()" title="Muat semula"><i class="fa-solid fa-rotate"></i></button>
+    <select id="paparan" onchange="tukarPaparan(this.value)" title="Paparan sebagai"><option value="saya">Saya</option></select>
+    <button class="ib" onclick="muatSemula()" title="Muat semula"><i class="fa-solid fa-rotate"></i></button>
   </div>
   <div class="tabs">
     <button data-t="klien" class="aktif" onclick="tukarTab('klien')"><i class="fa-solid fa-users"></i> Klien</button>
     <button data-t="pautan" onclick="tukarTab('pautan')"><i class="fa-solid fa-link"></i> Pautan saya</button>
-    <button data-t="admin" class="hidden" id="tabAdmin" onclick="tukarTab('admin')"><i class="fa-solid fa-user-shield"></i> Permohonan <span class="bil hidden" id="bilMohon">0</span></button>
+    <span id="tajukAdmin" class="hidden" style="color:#fff;font-weight:800;padding:8px 4px"><i class="fa-solid fa-user-shield"></i> Admin: urus coach <span class="bil hidden" id="bilMohon">0</span></span>
   </div>
 </header>
 
@@ -153,6 +159,8 @@ const fmtMasa = ms => new Date(ms).toLocaleTimeString('ms-MY', { hour: 'numeric'
 const MATLAMAT = { turun: 'Turun berat', naik: 'Naik berat', kekal: 'Kekal berat' };
 const desktop = () => matchMedia('(min-width: 960px)').matches;
 
+window.tukarPaparan = (v) => { if (v === 'saya') location.href = 'nowsihat.html'; else location.href = 'nowsihat-coach.html' + (v === 'admin' ? '?p=admin' : ''); };
+window.muatSemula = () => { if (C.mod === 'admin') muatAdmin(); else muatSenarai(); };
 window.tukarTab = (t) => {
   ['klien', 'pautan', 'admin'].forEach(x => $('t-' + x).classList.toggle('hidden', x !== t));
   document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('aktif', b.dataset.t === t));
@@ -161,13 +169,16 @@ window.tukarTab = (t) => {
 
 // ---------- Senarai klien ----------
 function amaran(k) {
-  const a = [], h = k.hari || C.data.hari, hr = k.harian;
-  if (hr) {
-    const kosong = h.slice(-3).filter(t => !hr[t].bil).length, semalam2 = !hr[h[5]].bil && !hr[h[6]].bil;
+  const a = [], hSemua = k.hari || C.data.hari, hr = k.harian;
+  const mula = k.sejak ? new Date(k.sejak + 8 * 3600000).toISOString().slice(0, 10) : '';
+  const h = hSemua.filter(t => !mula || t >= mula);          // hanya hari selepas klien berpaut
+  if (k.soalan) a.push(['ungu', 'fa-circle-question', k.soalan + ' soalan']);
+  if (hr && h.length >= 2) {
+    const kosong = h.slice(-3).filter(t => !hr[t].bil).length, semalam2 = !hr[h[h.length - 2]].bil && !hr[h[h.length - 1]].bil;
     if (semalam2) a.push(['merah', 'fa-triangle-exclamation', 'Tak catat 2 hari']);
     const lebih = k.sasaran.kalori ? h.slice(-3).filter(t => hr[t].kalori > k.sasaran.kalori).length : 0;
     if (lebih >= 3) a.push(['merah', 'fa-fire', 'Lebih kalori 3 hari']); else if (lebih === 2) a.push(['kuning', 'fa-fire', 'Lebih kalori 2 hari']);
-    if (!semalam2 && kosong >= 2) a.push(['kuning', 'fa-clock', 'Jarang catat']);
+    if (!semalam2 && h.length >= 3 && kosong >= 2) a.push(['kuning', 'fa-clock', 'Jarang catat']);
   }
   if (!k.langganan_aktif) a.push(['kelabu', 'fa-crown', 'Langganan tamat']);
   return a;
@@ -178,11 +189,12 @@ async function muatSenarai() {
     const r = await coachFn({ tindakan: 'senarai' }); C.data = r.data;
     $('namaCoach').textContent = r.data.coach.nama || 'nowSihat';
     const hari = tarikhMY(), list = r.data.klien.map(k => ({ ...k, amaran: amaran(k) }));
-    list.sort((a, b) => b.amaran.filter(x => x[0] === 'merah').length - a.amaran.filter(x => x[0] === 'merah').length || a.nama.localeCompare(b.nama));
+    const skor = k => (k.soalan ? 10 : 0) + k.amaran.filter(x => x[0] === 'merah').length;
+    list.sort((a, b) => skor(b) - skor(a) || a.nama.localeCompare(b.nama));
     C.list = list;
     $('stJumlah').textContent = list.length;
     $('stCatat').textContent = list.filter(k => k.harian && k.harian[hari] && k.harian[hari].bil).length;
-    $('stPerhatian').textContent = list.filter(k => k.amaran.some(x => x[0] === 'merah')).length;
+    $('stPerhatian').textContent = list.filter(k => k.soalan || k.amaran.some(x => x[0] === 'merah')).length;
     if (!list.length) { $('senarai').innerHTML = 'Belum ada klien. Kongsi pautan anda di tab <b>Pautan saya</b>.'; return; }
     $('senarai').innerHTML = list.map(k => {
       const hi = k.harian ? k.harian[hari] : null, sas = k.sasaran.kalori, pct = hi && sas ? Math.min(100, hi.kalori / sas * 100) : 0;
@@ -248,8 +260,9 @@ function lukisButiran(el) {
     ${b.kongsi.makan === false ? '<p class="kecil">Tidak dikongsi.</p>' : b.log.length ? b.log.map(l => `<div class="log">
       <div style="display:flex;justify-content:space-between;gap:8px"><b style="font-size:13.5px">${esc(l.makanan.map(m => m.nama).join(', '))}</b><b style="white-space:nowrap">${(l.jumlah || {}).kalori || 0} kcal</b></div>
       <div class="kecil">${namaHari(l.tarikh)} ${l.tarikh.slice(5)} · ${fmtMasa(l.masa)} · P ${(l.jumlah || {}).protein || 0}g · G ${(l.jumlah || {}).gula || 0}g · Na ${(l.jumlah || {}).natrium || 0}mg${l.sumber === 'kerap' ? ' · <i class="fa-solid fa-star"></i> kerap' : ''}</div>
+      ${l.tanya_coach ? `<div class="tanya"><i class="fa-solid fa-circle-question"></i> <b>Soalan klien${l.tanya_coach.dijawab ? '' : ' (belum dijawab)'}:</b> ${esc(l.tanya_coach.teks || '(gambar)')}${l.tanya_coach.gambar ? `<a href="${esc(l.tanya_coach.gambar)}" target="_blank"><img src="${esc(l.tanya_coach.gambar)}" alt=""></a>` : ''}</div>` : ''}
       ${l.komen_coach ? `<div class="komen-ada"><i class="fa-solid fa-comment-dots"></i> ${esc(l.komen_coach.teks)}</div>` : ''}
-      <div class="komen"><input id="km_${l.id}" maxlength="300" placeholder="${l.komen_coach ? 'Tukar komen' : 'Tulis komen untuk klien...'}"><button class="btn btn-hijau btn-kecil" onclick="hantarKomen('${l.id}')"><i class="fa-solid fa-paper-plane"></i></button></div></div>`).join('') : '<p class="kecil">Tiada rekod 7 hari lepas.</p>'}`;
+      <div class="komen"><input id="km_${l.id}" maxlength="300" placeholder="${l.tanya_coach && !l.tanya_coach.dijawab ? 'Jawab soalan klien...' : l.komen_coach ? 'Tukar komen' : 'Tulis komen untuk klien...'}"><button class="btn btn-hijau btn-kecil" onclick="hantarKomen('${l.id}')"><i class="fa-solid fa-paper-plane"></i></button></div></div>`).join('') : '<p class="kecil">Tiada rekod 7 hari lepas.</p>'}`;
 }
 window.simpanSasaran = async (padam) => {
   const b = C.butiran; if (!b) return;
@@ -259,7 +272,7 @@ window.simpanSasaran = async (padam) => {
 };
 window.hantarKomen = async (logId) => {
   const b = C.butiran, teks = ($('km_' + logId).value || '').trim(); if (!b || !teks) return;
-  try { await coachFn({ tindakan: 'komen', klien: b.uid, log: logId, teks }); const l = b.log.find(x => x.id === logId); if (l) l.komen_coach = { teks }; lukisButiran(desktop() ? $('panelButiran') : $('modalIsi')); }
+  try { await coachFn({ tindakan: 'komen', klien: b.uid, log: logId, teks }); const l = b.log.find(x => x.id === logId); if (l) { l.komen_coach = { teks }; if (l.tanya_coach) l.tanya_coach.dijawab = true; } lukisButiran(desktop() ? $('panelButiran') : $('modalIsi')); }
   catch (e) { alert('Gagal: ' + e.message); }
 };
 
@@ -290,9 +303,18 @@ onAuthStateChanged(auth, async (u) => {
   if (!u) { location.href = 'index.html'; return; }
   C.uid = u.uid; C.admin = (u.email || '').toLowerCase() === ADMIN;
   try { const c = await getDoc(doc(db, 'nowsihat_coach', u.uid)); C.coach = c.exists() ? c.data() : null; } catch (e) {}
-  if (C.admin) { $('tabAdmin').classList.remove('hidden'); muatAdmin(); }
-  if (!C.coach || C.coach.status !== 'aktif') {
-    if (C.admin) { $('gate').classList.add('hidden'); tukarTab('admin'); document.querySelector('.tabs button[data-t="klien"]').classList.add('hidden'); document.querySelector('.tabs button[data-t="pautan"]').classList.add('hidden'); return; }
+  const coachAktif = !!(C.coach && C.coach.status === 'aktif');
+  $('paparan').innerHTML = '<option value="saya">Saya</option>' + (coachAktif ? '<option value="coach">Coach</option>' : '') + (C.admin ? '<option value="admin">Admin</option>' : '');
+  const mahu = new URLSearchParams(location.search).get('p');
+  C.mod = (mahu === 'admin' && C.admin) || (!coachAktif && C.admin) ? 'admin' : coachAktif ? 'coach' : null;
+  $('paparan').value = C.mod || 'saya';
+  const tabKoc = document.querySelectorAll('.tabs button[data-t="klien"], .tabs button[data-t="pautan"]');
+  if (C.mod === 'admin') {
+    $('gate').classList.add('hidden'); tabKoc.forEach(b => b.classList.add('hidden')); $('tajukAdmin').classList.remove('hidden');
+    $('namaCoach').textContent = 'Admin'; document.querySelector('.logo span').firstChild.textContent = 'Urus Coach';
+    tukarTab('admin'); return;
+  }
+  if (C.mod !== 'coach') {
     $('gate').innerHTML = C.coach ? 'Permohonan coach anda sedang disemak.' : 'Halaman ini untuk coach nowSihat yang telah diluluskan.<br><br><a href="nowsihat.html" style="color:#16a34a;font-weight:800">Mohon di nowSihat → Profil</a>';
     return;
   }

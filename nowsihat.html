@@ -19,6 +19,10 @@
   .logo .a { color: #ecfccb; } .logo i { color: #bef264; font-size: 18px; }
   .ib { background: none; border: none; font-size: 18px; color: #334155; padding: 6px 8px; cursor: pointer; }
   header .ib { color: #fff; }
+  #paparan { width: auto; padding: 5px 8px; font: 800 12.5px 'Nunito', sans-serif; border-radius: 10px; border: 1px solid rgba(255,255,255,.4); background: rgba(255,255,255,.18); color: #fff; }
+  #paparan option { color: #0f172a; }
+  .tanya { font-size: 13px; margin-top: 6px; background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 6px 9px; color: #4c1d95; }
+  .tanya img { display: block; max-width: 140px; border-radius: 8px; margin-top: 5px; }
   .kredit { font-size: 12px; font-weight: 800; background: #fef9c3; border: 1px solid #fde047; color: #854d0e; border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
   .salam { color: #ecfdf5; font-size: 12.5px; font-weight: 700; padding: 0 14px 12px; max-width: 640px; margin: 0 auto; }
   .salam b { color: #fff; font-size: 15px; }
@@ -128,6 +132,7 @@
   <div class="hbar">
     <button class="ib" onclick="location.href='index.html'" title="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
     <div class="logo"><i class="fa-solid fa-leaf"></i><span><span class="a">now</span>Sihat</span></div>
+    <select id="paparan" class="hidden" onchange="tukarPaparan(this.value)" title="Paparan sebagai"><option value="saya">Saya</option></select>
     <span class="kredit" id="kredit">Kredit: -</span>
   </div>
   <div class="salam" id="salam">&nbsp;</div>
@@ -290,6 +295,23 @@
   <button class="btn btn-hijau penuh" style="margin-top:12px" onclick="simpanEdit()">Simpan</button>
 </div></div>
 
+<!-- Modal Tanya coach -->
+<div class="modal" id="modalTanya"><div class="isi">
+  <div class="baris"><h2 style="margin:0"><i class="fa-solid fa-circle-question" style="color:#6d28d9"></i> Tanya coach</h2><button class="ib" onclick="tutupTanya()"><i class="fa-solid fa-xmark"></i></button></div>
+  <p class="kecil" style="margin:6px 0 0" id="tanyaMakanan"></p>
+  <label for="tanyaTeks">Soalan</label>
+  <textarea id="tanyaTeks" rows="3" maxlength="300" placeholder="cth. Boleh ke saya makan ni waktu malam?"></textarea>
+  <label>Gambar (pilihan, dipadam selepas 7 hari)</label>
+  <div class="grid2">
+    <button class="btn btn-garis" onclick="document.getElementById('tKamera').click()"><i class="fa-solid fa-camera"></i> Kamera</button>
+    <button class="btn btn-garis" onclick="document.getElementById('tGaleri').click()"><i class="fa-regular fa-image"></i> Galeri</button>
+  </div>
+  <input type="file" id="tKamera" accept="image/*" capture="environment" class="hidden">
+  <input type="file" id="tGaleri" accept="image/*" class="hidden">
+  <img id="tanyaPrat" class="pratonton" alt="">
+  <button class="btn btn-hijau penuh" id="btnTanya" style="margin-top:12px;background:linear-gradient(135deg,#6d28d9,#8b5cf6);box-shadow:0 3px 10px rgba(109,40,217,.3)" onclick="hantarTanya()"><i class="fa-solid fa-paper-plane"></i> Hantar kepada coach</button>
+</div></div>
+
 <!-- Modal persetujuan kongsi dengan coach -->
 <div class="modal" id="modalCoach"><div class="isi">
   <h2><i class="fa-solid fa-user-check"></i> Kongsi dengan coach?</h2>
@@ -328,6 +350,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, deleteDoc, updateDoc, addDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
+import { getStorage, ref as sRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 import { tarikhMalaysia, tarikhHijrah, namaHariMasihi, BULAN_HIJRAH } from "./sejarah-islam.js";
 
 const app = initializeApp({
@@ -430,9 +453,11 @@ function paparHari() {
       <div style="flex:1;min-width:0"><div class="baris" style="align-items:flex-start"><div style="font-weight:800;font-size:14px;color:#0f172a">${esc(r.makanan.map(m => m.nama).join(', '))}</div>${dewasa ? `<b style="font-size:15px;white-space:nowrap">${r.jumlah.kalori}<span class="kecil"> kcal</span></b>` : ''}</div>
         <div style="margin-top:3px"><span class="kecil">${fmtMasa(r.masa)}</span> <span class="chip p">P ${r.jumlah.protein}g</span><span class="chip k">K ${r.jumlah.karbo || 0}g</span><span class="chip l">L ${r.jumlah.lemak || 0}g</span>${r.status && STATUS[r.status] ? ` <span class="pil ${esc(r.status)}" style="font-size:11px;padding:1px 8px">${STATUS[r.status]}</span>` : ''}</div>
         ${r.nasihat ? `<div style="font-size:13px;margin-top:4px;color:#334155">${esc(r.nasihat)}</div>` : ''}
+        ${r.tanya_coach ? `<div class="tanya"><i class="fa-solid fa-circle-question"></i> <b>Soalan anda:</b> ${esc(r.tanya_coach.teks || '(gambar)')} <span class="kecil">· ${r.tanya_coach.dijawab ? 'Dijawab' : 'Menunggu jawapan'}</span>${r.tanya_coach.gambar ? `<a href="${esc(r.tanya_coach.gambar)}" target="_blank"><img src="${esc(r.tanya_coach.gambar)}" alt=""></a>` : ''}</div>` : ''}
         ${r.komen_coach ? `<div style="font-size:13px;margin-top:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:6px 9px;color:#1e3a8a"><i class="fa-solid fa-comment-dots"></i> <b>${esc(r.komen_coach.oleh_nama || 'Coach')}:</b> ${esc(r.komen_coach.teks)}</div>` : ''}
         <div class="tindakan"><button class="btn btn-kelabu btn-kecil" onclick="bukaEdit('${r.id}')"><i class="fa-solid fa-sliders"></i> Laras</button>
           <button class="btn btn-kelabu btn-kecil" onclick="simpanKerap('${r.id}')"><i class="fa-regular fa-star"></i> Kerap</button>
+          ${S.pautan && (S.pautan.kongsi || {}).makan !== false ? `<button class="btn btn-kelabu btn-kecil" style="color:#6d28d9" onclick="bukaTanya('${r.id}')"><i class="fa-solid fa-circle-question"></i> Tanya coach</button>` : ''}
           <button class="btn btn-kelabu btn-kecil" onclick="padamRekod('${r.id}')"><i class="fa-regular fa-trash-can"></i></button></div></div></div>`).join('') : 'Belum ada makanan dicatat hari ini.';
   paparAir();
   paparSeterusnya(s, j, dewasa); paparSenaman(); paparPuasa();
@@ -779,7 +804,7 @@ let CALON = null;   // coach yang sedang ditawarkan persetujuan
 async function muatCoachSaya() {
   S.pautan = null; S.coachSaya = null;
   try { const p = await getDoc(doc(db, 'nowsihat_klien', S.uid)); if (p.exists() && p.data().status === 'aktif') { S.pautan = p.data(); const c = await getDoc(doc(db, 'nowsihat_coach', S.pautan.coach_uid)); S.coachSaya = c.exists() ? c.data() : { nama: 'Coach' }; } } catch (e) { console.warn('Coach saya:', e.message); }
-  paparCoachSaya();
+  paparCoachSaya(); if (S.log && S.log.length) paparHari();
 }
 function paparCoachSaya() {
   const k = $('kadCoachSaya'), p = S.pautan;
@@ -834,13 +859,48 @@ async function semakCoachRujukan() {
   try { const c = await getDoc(doc(db, 'nowsihat_coach', ref)); if (c.exists() && c.data().status === 'aktif') tawarCoach(c.data()); } catch (e) {}
 }
 
+// ---------- Paparan sebagai (Saya / Coach / Admin) ----------
+function isiPaparan() {
+  const adm = (S.email || '').toLowerCase() === 'dae.book89@gmail.com', sel = $('paparan');
+  sel.innerHTML = '<option value="saya">Saya</option>' + (S.coachAktif ? '<option value="coach">Coach</option>' : '') + (adm ? '<option value="admin">Admin</option>' : '');
+  sel.value = 'saya'; sel.classList.toggle('hidden', !(S.coachAktif || adm));
+}
+window.tukarPaparan = (v) => { if (v === 'coach') location.href = 'nowsihat-coach.html'; else if (v === 'admin') location.href = 'nowsihat-coach.html?p=admin'; };
+
+// ---------- Tanya coach ----------
+let TANYA = null;
+window.bukaTanya = (id) => {
+  const r = S.log.find(x => x.id === id); if (!r) return;
+  TANYA = { id, gambar: null }; $('tanyaTeks').value = ''; $('tanyaPrat').style.display = 'none';
+  $('tanyaMakanan').textContent = 'Tentang: ' + r.makanan.map(m => m.nama).join(', ') + ' · Kepada: ' + ((S.coachSaya || {}).nama || 'Coach');
+  $('modalTanya').style.display = 'flex';
+};
+window.tutupTanya = () => { $('modalTanya').style.display = 'none'; TANYA = null; };
+async function pilihTanya(e) {
+  const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f || !TANYA) return;
+  try { const d = await kecilkan(f); TANYA.gambar = d; $('tanyaPrat').src = d; $('tanyaPrat').style.display = 'block'; } catch (er) { alert(er.message); }
+}
+$('tKamera').onchange = pilihTanya; $('tGaleri').onchange = pilihTanya;
+window.hantarTanya = async () => {
+  if (!TANYA) return; const teks = $('tanyaTeks').value.trim();
+  if (!teks && !TANYA.gambar) { alert('Tulis soalan atau lampirkan gambar.'); return; }
+  const b = $('btnTanya'); b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner putar"></i> Menghantar...';
+  try {
+    let url = '';
+    if (TANYA.gambar) { const r = sRef(getStorage(app), `nowsihat_tanya/${S.uid}/${TANYA.id}_${Date.now()}.jpg`); await uploadString(r, TANYA.gambar, 'data_url'); url = await getDownloadURL(r); }
+    await httpsCallable(fns, 'nowSihatCoach')({ tindakan: 'tanya', log: TANYA.id, teks, gambar: url });
+    tutupTanya(); await muatHari(); alert('Soalan dihantar. Coach akan dimaklumkan.');
+  } catch (e) { alert('Gagal hantar: ' + e.message); }
+  b.disabled = false; b.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Hantar kepada coach';
+};
+
 // ---------- Jadi coach ----------
 async function muatJadiCoach() {
   const k = $('kadJadiCoach');
-  const adminBtn = (S.email || '').toLowerCase() === 'dae.book89@gmail.com' ? `<button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="location.href='nowsihat-coach.html'"><i class="fa-solid fa-user-shield"></i> Urus permohonan coach (admin)</button>` : '';
   let c = null; try { const d = await getDoc(doc(db, 'nowsihat_coach', S.uid)); c = d.exists() ? d.data() : null; } catch (e) {}
+  S.coachAktif = !!(c && c.status === 'aktif'); isiPaparan();
   if (c && c.status === 'aktif') {
-    k.innerHTML = `<h2><i class="fa-solid fa-clipboard-user"></i> Coach nowSihat</h2><p class="kecil" style="margin:0 0 8px">Akaun coach anda aktif. Kod: <b>${esc(c.kod)}</b></p>
+    k.innerHTML = `<h2><i class="fa-solid fa-clipboard-user"></i> Coach nowSihat</h2><p class="kecil" style="margin:0 0 8px">Akaun coach anda aktif. Kod: <b>${esc(c.kod)}</b>. Tukar ke paparan <b>Coach</b> melalui menu di atas.</p>
       <button class="btn btn-hijau penuh" onclick="location.href='nowsihat-coach.html'"><i class="fa-solid fa-gauge"></i> Buka Dashboard Coach</button>`;
   } else if (c && c.status === 'mohon') {
     k.innerHTML = `<h2><i class="fa-solid fa-clipboard-user"></i> Coach nowSihat</h2><p style="font-size:14px;margin:0">Permohonan anda sedang disemak. Kami akan maklumkan bila diluluskan.</p>`;
@@ -851,7 +911,6 @@ async function muatJadiCoach() {
       <label for="cBio">Bidang / pengalaman ringkas</label><textarea id="cBio" rows="2" maxlength="200" placeholder="cth. Coach diet bertauliah, fokus turun berat untuk ibu bekerja"></textarea>
       <button class="btn btn-garis penuh" style="margin-top:10px" onclick="mohonCoach()">Mohon jadi coach</button>`;
   }
-  if (adminBtn) k.insertAdjacentHTML('beforeend', adminBtn);
 }
 window.mohonCoach = async () => {
   if (!S.user.is_affiliate || !S.user.referral_code) {
