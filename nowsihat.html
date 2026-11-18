@@ -318,6 +318,7 @@
 
 <!-- Modal persetujuan kongsi dengan coach -->
 <div class="modal" id="modalCoach"><div class="isi">
+  <div id="mcFoto"></div>
   <h2><i class="fa-solid fa-user-check"></i> Kongsi dengan coach?</h2>
   <p style="font-size:14px;line-height:1.6;margin:0 0 6px"><b id="mcNama">Coach</b> boleh pantau kemajuan anda, tetapkan sasaran dan beri komen pada makanan.</p>
   <p class="kecil" style="margin:0 0 4px">Pilih apa yang dikongsi (boleh tukar atau putuskan bila-bila masa di Profil):</p>
@@ -821,7 +822,8 @@ function paparCoachSaya() {
   if (p) {
     const ks = p.kongsi || {};
     k.innerHTML = `<h2><i class="fa-solid fa-user-check"></i> Coach saya</h2>
-      <div class="baris" style="margin-bottom:6px"><span style="font-size:15px">${esc(S.coachSaya.nama || 'Coach')}</span><span class="pil hijau">Berpaut</span></div>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px">${S.coachSaya.foto ? `<span style="width:52px;height:52px;border-radius:50%;flex:none;background:url('${esc(S.coachSaya.foto)}') center/cover;border:2px solid #bbf7d0"></span>` : `<span style="width:52px;height:52px;border-radius:50%;flex:none;background:linear-gradient(135deg,#16a34a,#84cc16);color:#fff;font-weight:900;font-size:20px;display:flex;align-items:center;justify-content:center">${esc((S.coachSaya.nama || 'C')[0].toUpperCase())}</span>`}
+        <div style="flex:1"><b style="font-size:15px">${esc(S.coachSaya.nama || 'Coach')}</b><br><span class="pil hijau">Berpaut</span></div></div>
       ${S.coachSaya.bio ? `<p class="kecil" style="margin:0 0 6px">${esc(S.coachSaya.bio)}</p>` : ''}
       <p class="kecil" style="margin:0">Dikongsi:</p>
       ${[['makan', 'Rekod makan'], ['berat', 'Berat badan'], ['senaman', 'Senaman'], ['kesihatan', 'Keadaan kesihatan']].map(([x, l]) => `<div class="chk"><input type="checkbox" ${x === 'kesihatan' ? (ks[x] === true ? 'checked' : '') : (ks[x] !== false ? 'checked' : '')} onchange="ubahKongsi('${x}', this.checked)"> <span>${l}</span></div>`).join('')}
@@ -842,7 +844,7 @@ window.cariCoach = async () => {
     tawarCoach(c);
   } catch (e) { alert('Gagal mencari: ' + e.message); }
 };
-function tawarCoach(c) { CALON = c; $('mcNama').textContent = c.nama || 'Coach'; $('modalCoach').style.display = 'flex'; }
+function tawarCoach(c) { CALON = c; $('mcNama').textContent = c.nama || 'Coach'; $('mcFoto').innerHTML = c.foto ? `<span style="display:block;width:64px;height:64px;border-radius:50%;margin:0 auto 8px;background:url('${esc(c.foto)}') center/cover;border:3px solid #bbf7d0"></span>` : ''; $('modalCoach').style.display = 'flex'; }
 window.sahCoach = async () => {
   if (!CALON) return;
   const kongsi = { makan: $('mcMakan').checked, berat: $('mcBerat').checked, senaman: $('mcSenaman').checked, kesihatan: $('mcSihat').checked };

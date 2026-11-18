@@ -159,6 +159,8 @@ const namaHari = t => HARI[new Date(t + 'T12:00:00Z').getUTCDay()];
 const fmtMasa = ms => new Date(ms).toLocaleTimeString('ms-MY', { hour: 'numeric', minute: '2-digit' });
 const MATLAMAT = { turun: 'Turun berat', naik: 'Naik berat', kekal: 'Kekal berat' };
 const desktop = () => matchMedia('(min-width: 960px)').matches;
+// Avatar: gambar profil myNasab jika ada, jika tidak huruf pertama nama
+const avatar = (nama, foto, saiz) => foto ? `<div class="av" style="${saiz ? `width:${saiz}px;height:${saiz}px;` : ''}background:url('${esc(foto)}') center/cover"></div>` : `<div class="av" style="${saiz ? `width:${saiz}px;height:${saiz}px;` : ''}">${esc((nama || '?').trim()[0].toUpperCase())}</div>`;
 
 window.tukarPaparan = (v) => { if (v === 'saya') location.href = 'nowsihat.html'; else location.href = 'nowsihat-coach.html' + (v === 'admin' ? '?p=admin' : ''); };
 window.muatSemula = () => { if (C.mod === 'admin') muatAdmin(); else muatSenarai(); };
@@ -189,6 +191,7 @@ async function muatSenarai() {
   try {
     const r = await coachFn({ tindakan: 'senarai' }); C.data = r.data;
     $('namaCoach').textContent = r.data.coach.nama || 'nowSihat';
+    if (r.data.coach.foto) { const ic = document.querySelector('.logo > i'); if (ic) ic.outerHTML = `<span style="width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:url('${esc(r.data.coach.foto)}') center/cover;flex:none"></span>`; }
     { const c = r.data.coach, t = ms => ms ? new Date(ms).toLocaleDateString('en-GB') : '-', b = $('bannerUjian');
       if (!c.ujian_tamat && !c.coach_tamat) { b.classList.add('hidden'); } else
       b.innerHTML = c.ujian_lulus ? `<i class="fa-solid fa-circle-check" style="color:#16a34a"></i> Syarat klien lulus. Yuran coach aktif sehingga <b>${t(c.coach_tamat)}</b>.`
@@ -206,7 +209,7 @@ async function muatSenarai() {
       const hi = k.harian ? k.harian[hari] : null, sas = k.sasaran.kalori, pct = hi && sas ? Math.min(100, hi.kalori / sas * 100) : 0;
       const mx = Math.max(sas || 0, ...(k.harian ? Object.values(k.harian).map(x => x.kalori) : [1]), 1);
       return `<div class="klien ${C.pilih === k.uid ? 'pilih' : ''}" onclick="bukaKlien('${k.uid}')">
-        <div class="av">${esc((k.nama || '?').trim()[0].toUpperCase())}</div>
+        ${avatar(k.nama, k.foto)}
         <div style="flex:1;min-width:0">
           <div style="display:flex;justify-content:space-between;gap:6px"><b style="font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(k.nama)}</b>
             ${k.harian ? `<div class="mini">${C.data.hari.map(t => { const v = k.harian[t]; return `<i class="${!v.bil ? 'kosong' : sas && v.kalori > sas ? 'lebih' : ''}" style="height:${v.bil ? Math.max(8, v.kalori / mx * 100) : 8}%"></i>`; }).join('')}</div>` : ''}</div>
@@ -247,7 +250,7 @@ function lukisButiran(el) {
     const log = Object.entries(b.berat_log).sort((a, c) => a[0] < c[0] ? -1 : 1).slice(-12);
     grafB = log.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap">${log.map(([t, v]) => `<span class="chip kelabu">${t.slice(5)}: <b>${v}</b></span>`).join('')}</div>` : '<p class="kecil">Belum ada rekod berat.</p>';
   }
-  el.innerHTML = `<div style="display:flex;gap:12px;align-items:center"><div class="av">${esc((b.nama || '?').trim()[0].toUpperCase())}</div><div><h2 style="margin:0">${esc(b.nama)}</h2>
+  el.innerHTML = `<div style="display:flex;gap:12px;align-items:center">${avatar(b.nama, b.foto, 52)}<div><h2 style="margin:0">${esc(b.nama)}</h2>
       <div class="kecil">${esc(MATLAMAT[p.matlamat] || '')}${p.fokus && p.fokus.length ? ' · fokus: ' + p.fokus.map(esc).join(', ') : ''}${b.keadaan ? ' · <b style="color:#b45309">' + esc(b.keadaan) + '</b>' : ''}</div></div></div>
     <div style="margin-top:6px">${(ringkas.amaran || []).map(([w, i, t]) => `<span class="chip ${w}"><i class="fa-solid ${i}"></i> ${t}</span>`).join('')}</div>
 
@@ -300,7 +303,7 @@ async function muatAdmin() {
     sn.forEach(d => (d.data().status === 'aktif' ? aktif : lain).push(d));
     const t = ms => ms ? new Date(ms).toLocaleDateString('en-GB') : '-';
     const baris = (d) => { const c = d.data(), on = c.status === 'aktif', tamat = c.coach_tamat && c.coach_tamat < Date.now();
-      return `<div class="klien" style="cursor:default"><div class="av">${esc((c.nama || '?')[0].toUpperCase())}</div><div style="flex:1;min-width:0"><b>${esc(c.nama)}</b> <span class="kecil">${esc(c.emel || '')} · kod ${esc(c.kod || '-')}</span>
+      return `<div class="klien" style="cursor:default">${avatar(c.nama, c.foto)}<div style="flex:1;min-width:0"><b>${esc(c.nama)}</b> <span class="kecil">${esc(c.emel || '')} · kod ${esc(c.kod || '-')}</span>
         <div class="kecil">Mula ${t(c.mula)} · yuran sehingga ${t(c.coach_tamat)}${tamat ? ' <b style="color:#dc2626">(tamat)</b>' : ''} · ${c.ujian_lulus ? '<span class="chip hijau">lulus syarat</span>' : 'ujian hingga ' + t(c.ujian_tamat)}</div>
         ${c.sebab ? `<div class="kecil" style="color:#b91c1c">${esc(c.sebab)}</div>` : ''}${c.bio ? `<div class="kecil">${esc(c.bio)}</div>` : ''}</div>
         ${on ? `<button class="btn btn-merah btn-kecil" onclick="nyahAktif('${d.id}')">Nyahaktif</button>` : `<button class="btn btn-hijau btn-kecil" onclick="aktifkan('${d.id}')">Aktifkan</button>`}</div>`; };

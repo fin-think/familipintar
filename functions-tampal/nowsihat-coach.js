@@ -23,6 +23,14 @@ async function nsPautan(coach, pid) {
     const d = p.data(); return { ...d, klien_uid: d.klien_uid || pid.replace(/_pasangan$/, ''), per: nsPer(d.per || (pid.endsWith('_pasangan') ? 'pasangan' : 'induk')) };
 }
 const nsTarikhOff = (n) => nsTarikhMY(Date.now() + n * 86400000);
+// Gambar profil dari pokok myNasab (induk: nod root; pasangan: nod Suami/Isteri)
+async function nsFoto(uid, per) {
+    try {
+        if (nsPer(per) === 'induk') { const r = await db.collection('mynasab_nodes').doc('root_' + uid).get(); return (r.exists && r.data().photo_url) || ''; }
+        const q = await db.collection('mynasab_nodes').where('owner_uid', '==', uid).where('relationship', 'in', ['Suami', 'Isteri']).limit(1).get();
+        return q.empty ? '' : (q.docs[0].data().photo_url || '');
+    } catch (e) { return ''; }
+}
 // Sasaran automatik jika klien belum simpan profil (formula sama dengan nowsihat.html)
 async function nsSasaranAuto(klien, pr, per) {
     per = nsPer(per); const aw = per === 'pasangan' ? 'pasangan_' : '';
@@ -68,7 +76,7 @@ exports.nowSihatCoach = functions
                 if (!u.is_affiliate || !u.referral_code) throw new functions.https.HttpsError('failed-precondition', 'Daftar sebagai Affiliate dahulu.');
                 const nama = String((data && data.nama) || u.name || 'Coach').trim().slice(0, 60), bio = String((data && data.bio) || '').trim().slice(0, 200);
                 t.update(uref, { credit_balance: baki - T.coach_kredit });
-                t.set(cref, { uid, nama, bio, kod: u.referral_code, emel: u.email || '', status: 'aktif', mula: kini,
+                t.set(cref, { uid, nama, bio, foto: await nsFoto(uid, 'induk'), kod: u.referral_code, emel: u.email || '', status: 'aktif', mula: kini,
                               coach_tamat: kini + NS_HARI * 86400000, ujian_tamat: kini + T.coach_ujian_hari * 86400000, ujian_min: T.coach_min_klien, ujian_lulus: false, sebab: '' });
                 return { ok: true, baki: baki - T.coach_kredit };
             });
@@ -123,7 +131,7 @@ exports.nowSihatCoach = functions
                 const sasAuto = await nsSasaranAuto(kuid, pr, kper);
                 const bl = Object.entries(pr.berat_log || {}).sort((a, b) => a[0] < b[0] ? -1 : 1);
                 out.push({
-                    uid: k, nama: pk.nama_klien || (su.exists && su.data().name) || 'Klien', keluarga: keluarga.has(kuid), sejak: pk.masa || null, kongsi,
+                    uid: k, nama: pk.nama_klien || (su.exists && su.data().name) || 'Klien', foto: await nsFoto(kuid, kper), keluarga: keluarga.has(kuid), sejak: pk.masa || null, kongsi,
                     sasaran: Object.assign({}, sasAuto, pr.sasaran_coach || {}), sasaran_coach: !!pr.sasaran_coach, matlamat: pr.matlamat || '', soalan,
                     harian: kongsi.makan !== false ? harian : null,
                     berat: kongsi.berat !== false ? (pr.berat || null) : null,
@@ -133,8 +141,10 @@ exports.nowSihatCoach = functions
                     langganan_aktif: !!(su.exists && su.data().nowsihat_expiry_date > Date.now())
                 });
             }
+            const fotoCoach = await nsFoto(uid, 'induk');
+            if (fotoCoach !== (coach.foto || '')) db.collection('nowsihat_coach').doc(uid).update({ foto: fotoCoach }).catch(() => {});   // segarkan gambar coach
             const layak = new Set(out.filter(k => !k.keluarga && !k.uid.startsWith(uid)).map(k => k.uid.replace(/_pasangan$/, ''))).size;
-            return { klien: out, hari: hari7, coach: { nama: coach.nama, kod: coach.kod, coach_tamat: coach.coach_tamat || null, ujian_tamat: coach.ujian_tamat || null, ujian_lulus: !!coach.ujian_lulus, ujian_min: coach.ujian_min || T.coach_min_klien, layak } };
+            return { klien: out, hari: hari7, coach: { nama: coach.nama, kod: coach.kod, foto: fotoCoach, coach_tamat: coach.coach_tamat || null, ujian_tamat: coach.ujian_tamat || null, ujian_lulus: !!coach.ujian_lulus, ujian_min: coach.ujian_min || T.coach_min_klien, layak } };
         }
 
         const klien = String((data && data.klien) || '');
@@ -156,7 +166,7 @@ exports.nowSihatCoach = functions
                 ds.forEach(d => { if (d.exists) senaman.push(d.data()); });
             }
             return {
-                nama: pk.nama_klien || u.name || 'Klien', hari: hari7, kongsi,
+                nama: pk.nama_klien || u.name || 'Klien', foto: await nsFoto(kuid, kper), hari: hari7, kongsi,
                 profil: { matlamat: pr.matlamat || '', aktiviti: pr.aktiviti || '', fokus: pr.fokus || [], jantina: pr.jantina || '', dob: pr.dob || '', tinggi: pr.tinggi || null,
                           sasaran: await nsSasaranAuto(kuid, pr, kper), sasaran_coach: pr.sasaran_coach || null, senaman_rutin: kongsi.senaman !== false ? (pr.senaman || null) : null },
                 berat_log: kongsi.berat !== false ? (pr.berat_log || {}) : null,
