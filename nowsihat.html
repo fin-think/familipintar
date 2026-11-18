@@ -78,7 +78,9 @@
   .sisi b { color: var(--teks); font-size: 15px; }
   .makro { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
   .cincin { text-align: center; font-size: 12px; font-weight: 800; color: var(--lembut); }
-  .cincin svg { width: 64px; height: 64px; display: block; margin: 0 auto 4px; }
+  .cincin .bulat { position: relative; width: 64px; height: 64px; margin: 0 auto 4px; }
+  .cincin svg { width: 64px; height: 64px; display: block; }
+  .cincin .bulat i { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 17px; }
   .cincin b { color: var(--teks); font-size: 14px; }
   .air-cawan { display: flex; gap: 4px; flex-wrap: wrap; margin: 8px 0; }
   .air-cawan i { font-size: 20px; color: #cbd5e1; } .air-cawan i.penuh { color: #0ea5e9; }
@@ -429,9 +431,10 @@ function tolokSVG(pct, lebih) {
 }
 function cincin(label, nilai, sasaran, warna, ikon) {
   const r = 26, L = 2 * Math.PI * r, p = sasaran ? Math.min(1, nilai / sasaran) : 0;
-  return `<div class="cincin"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="#eef2f7" stroke-width="7"/>
-    <circle cx="32" cy="32" r="${r}" fill="none" stroke="${warna}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${L * p} ${L}" transform="rotate(-90 32 32)"/>
-    <text x="32" y="37" text-anchor="middle" font-family="Font Awesome 6 Free" font-weight="900" font-size="15" fill="${warna}">${ikon}</text></svg>
+  const kelas = { '\uf6d7': 'fa-drumstick-bite', '\uf7ec': 'fa-bread-slice', '\uf043': 'fa-droplet' }[ikon] || 'fa-circle';
+  return `<div class="cincin"><div class="bulat"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="#eef2f7" stroke-width="7"/>
+    <circle cx="32" cy="32" r="${r}" fill="none" stroke="${nilai > (sasaran || Infinity) ? '#ef4444' : warna}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${L * p} ${L}" transform="rotate(-90 32 32)"/></svg>
+    <i class="fa-solid ${kelas}" style="color:${warna}"></i></div>
     <b>${Math.round(nilai)}</b>${sasaran ? '/' + sasaran : ''} g<br>${label}</div>`;
 }
 const fmtMasa = ms => new Date(ms).toLocaleTimeString('ms-MY', { hour: 'numeric', minute: '2-digit' });
@@ -615,7 +618,7 @@ function paparSeterusnya(s, j, dewasa) {
     else if (baki < 700) t.push(['fa-scale-balanced', `Baki ~${baki} kcal: nasi suku pinggan, separuh pinggan sayur, suku lauk protein.`]);
   }
   if (!t.length) t.push(['fa-leaf', 'Setakat ini seimbang. Teruskan Pinggan Sihat: separuh sayur dan buah, suku protein, suku nasi.']);
-  const terkini = S.log[0] && S.log[0].seterusnya ? `<div class="tip"><i class="fa-solid fa-wand-magic-sparkles"></i><span>${esc(S.log[0].seterusnya)}</span></div>` : '';
+  const terkini = S.log[0] && S.log[0].seterusnya && Date.now() - S.log[0].masa < 3 * 3600000 ? `<div class="tip"><i class="fa-solid fa-wand-magic-sparkles"></i><span>${esc(S.log[0].seterusnya)}</span></div>` : '';
   $('kadSeterusnya').innerHTML = `<h2><i class="fa-solid fa-utensils"></i> Cadangan untuk ${esc(waktu.toLowerCase())}</h2>${terkini}` + t.slice(0, 4).map(([i, x]) => `<div class="tip"><i class="fa-solid ${i}"></i><span>${esc(x)}</span></div>`).join('');
 }
 

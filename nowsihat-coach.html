@@ -190,9 +190,10 @@ async function muatSenarai() {
     const r = await coachFn({ tindakan: 'senarai' }); C.data = r.data;
     $('namaCoach').textContent = r.data.coach.nama || 'nowSihat';
     { const c = r.data.coach, t = ms => ms ? new Date(ms).toLocaleDateString('en-GB') : '-', b = $('bannerUjian');
+      if (!c.ujian_tamat && !c.coach_tamat) { b.classList.add('hidden'); } else
       b.innerHTML = c.ujian_lulus ? `<i class="fa-solid fa-circle-check" style="color:#16a34a"></i> Syarat klien lulus. Yuran coach aktif sehingga <b>${t(c.coach_tamat)}</b>.`
         : `<i class="fa-solid fa-hourglass-half" style="color:#b45309"></i> Syarat: <b>${c.layak}/${c.ujian_min}</b> klien bukan keluarga sebelum <b>${t(c.ujian_tamat)}</b>. Klien keluarga sendiri tidak dikira. Yuran coach aktif sehingga <b>${t(c.coach_tamat)}</b>.`;
-      b.classList.remove('hidden'); }
+      if (c.ujian_tamat || c.coach_tamat) b.classList.remove('hidden'); }
     const hari = tarikhMY(), list = r.data.klien.map(k => ({ ...k, amaran: amaran(k) }));
     const skor = k => (k.soalan ? 10 : 0) + k.amaran.filter(x => x[0] === 'merah').length;
     list.sort((a, b) => skor(b) - skor(a) || a.nama.localeCompare(b.nama));
