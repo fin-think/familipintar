@@ -2,166 +2,288 @@
 <html lang="ms">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>nowSihat | Famili Pintar</title>
-<meta name="theme-color" content="#059669">
+<meta name="theme-color" content="#047857">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; background: linear-gradient(180deg,#ecfdf3 0%,#f7fee7 100%) fixed; color: #0f172a; min-height: 100vh; }
-  .wrap { max-width: 640px; margin: 0 auto; padding: 0 14px 90px; }
-  header { position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg,#047857 0%,#16a34a 55%,#65a30d 100%); box-shadow: 0 4px 14px rgba(4,120,87,.25); }
+  :root { --hijau: #16a34a; --hijau-gelap: #047857; --daun: #84cc16; --teks: #0f172a; --lembut: #64748b; }
+  body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; background: linear-gradient(180deg,#ecfdf3 0%,#f7fee7 100%) fixed; color: var(--teks); min-height: 100vh; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 14px 120px; }
+  header { position: sticky; top: 0; z-index: 20; background: linear-gradient(135deg,#047857 0%,#16a34a 55%,#65a30d 100%); box-shadow: 0 4px 14px rgba(4,120,87,.25); }
   .hbar { max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
-  .logo { flex: 1; font-weight: 900; font-size: 22px; letter-spacing: -.5px; }
-  .logo { color: #fff; display: flex; align-items: center; gap: 6px; } .logo .a { color: #ecfccb; } .logo .b { color: #fff; } .logo i { color: #bef264; font-size: 18px; }
-  .ib { background: none; border: none; font-size: 18px; color: #334155; padding: 6px 8px; cursor: pointer; } header .ib { color: #fff; }
-  .kredit { font-size: 12px; font-weight: 800; background: #fef9c3; border: 1px solid #fde047; color: #854d0e; border-radius: 999px; padding: 4px 10px; }
-  .tabs { display: flex; gap: 6px; max-width: 640px; margin: 0 auto; padding: 0 14px 10px; }
-  .tab { flex: 1; border: none; background: rgba(255,255,255,.16); color: #f0fdf4; font-weight: 800; font-size: 14px; padding: 9px 6px; border-radius: 10px; cursor: pointer; }
-  .tab.aktif { background: #fff; color: #047857; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
-  .kad { background: #fff; border-radius: 18px; padding: 16px; margin-top: 14px; box-shadow: 0 2px 10px rgba(22,101,52,.07); border: 1px solid #dcfce7; }
-  h2 i { color: #16a34a; margin-right: 4px; }
-  .kad-puasa { background: linear-gradient(135deg,#fffbeb,#fef3c7); border-color: #fde68a; } .kad-puasa h2 i { color: #b45309; }
-  .kad-sukan { background: linear-gradient(135deg,#f0fdf4,#ecfccb); }
-  .tip { display: flex; gap: 8px; font-size: 13.5px; line-height: 1.5; margin: 6px 0; } .tip i { color: #16a34a; margin-top: 3px; width: 16px; text-align: center; }
-  .hari-pil { display: flex; gap: 6px; flex-wrap: wrap; } .hari-pil label { margin: 0; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 999px; padding: 5px 10px; font-size: 13px; } .hari-pil input { width: auto; }
-  .streak { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 12.5px; color: #c2410c; background: #ffedd5; border-radius: 999px; padding: 3px 10px; }
+  .logo { flex: 1; font-weight: 900; font-size: 22px; letter-spacing: -.5px; color: #fff; display: flex; align-items: center; gap: 6px; }
+  .logo .a { color: #ecfccb; } .logo i { color: #bef264; font-size: 18px; }
+  .ib { background: none; border: none; font-size: 18px; color: #334155; padding: 6px 8px; cursor: pointer; }
+  header .ib { color: #fff; }
+  .kredit { font-size: 12px; font-weight: 800; background: #fef9c3; border: 1px solid #fde047; color: #854d0e; border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
+  .salam { color: #ecfdf5; font-size: 12.5px; font-weight: 700; padding: 0 14px 12px; max-width: 640px; margin: 0 auto; }
+  .salam b { color: #fff; font-size: 15px; }
+  /* Nav atas (desktop) & nav bawah (mobile) */
+  .navAtas { display: none; }
+  .navBawah { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: #fff; border-top: 1px solid #dcfce7; box-shadow: 0 -4px 16px rgba(22,101,52,.08);
+    display: grid; grid-template-columns: repeat(5, 1fr); align-items: end; padding: 6px 6px calc(8px + env(safe-area-inset-bottom)); }
+  .navBawah button { background: none; border: none; color: #94a3b8; font: 800 11px 'Nunito', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 0; }
+  .navBawah button i { font-size: 19px; }
+  .navBawah button.aktif { color: var(--hijau); }
+  .navBawah .fab { position: relative; top: -18px; }
+  .navBawah .fab span.bulat { width: 58px; height: 58px; border-radius: 50%; background: linear-gradient(135deg,#16a34a,#84cc16); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 6px 16px rgba(22,163,74,.45); border: 4px solid #fff; }
+  .kad { background: #fff; border-radius: 20px; padding: 16px; margin-top: 14px; box-shadow: 0 2px 10px rgba(22,101,52,.07); border: 1px solid #dcfce7; }
   h2 { font-size: 17px; margin: 0 0 10px; font-weight: 900; }
-  .kecil { font-size: 12.5px; color: #64748b; }
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 12px; padding: 12px 16px; font-weight: 800; font-size: 15px; cursor: pointer; font-family: inherit; }
-  .btn-hijau { background: linear-gradient(135deg,#059669,#16a34a); color: #fff; box-shadow: 0 3px 10px rgba(22,163,74,.3); } .btn-hijau:disabled { background: #94a3b8; }
+  h2 i { color: var(--hijau); margin-right: 4px; }
+  .kecil { font-size: 12.5px; color: var(--lembut); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 14px; padding: 12px 16px; font-weight: 800; font-size: 15px; cursor: pointer; font-family: inherit; }
+  .btn-hijau { background: linear-gradient(135deg,#059669,#16a34a); color: #fff; box-shadow: 0 3px 10px rgba(22,163,74,.3); } .btn-hijau:disabled { background: #94a3b8; box-shadow: none; }
   .btn-garis { background: #fff; color: #065f46; border: 2px solid #059669; }
   .btn-merah { background: linear-gradient(135deg,#dc2626,#ef4444); color: #fff; box-shadow: 0 3px 10px rgba(220,38,38,.3); flex-direction: column; gap: 2px; }
   .btn-merah small { font-weight: 600; font-size: 12px; opacity: .9; }
   .btn-kelabu { background: #f1f5f9; color: #475569; }
-  .status-pil { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 3px 10px; }
-  .status-pil.belum { background: #fee2e2; color: #b91c1c; } .status-pil.dah { background: #dcfce7; color: #15803d; }
-  .kad-sukan.belum { background: linear-gradient(135deg,#fff7f7,#fff1f2); border-color: #fecaca; } .kad-sukan.dah { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border-color: #86efac; }
+  .btn-kecil { padding: 6px 10px; font-size: 12.5px; border-radius: 10px; }
   .penuh { width: 100%; }
-  .bar { height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin: 4px 0 10px; }
+  .baris { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; font-weight: 700; gap: 8px; }
+  .bar { height: 9px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin: 4px 0 10px; }
   .bar > i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg,#22c55e,#84cc16); }
-  .bar > i.protein { background: linear-gradient(90deg,#0ea5e9,#22c55e); }
   .bar > i.amaran { background: #f59e0b; } .bar > i.lebih { background: #ef4444; }
-  .baris { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 700; }
   label { display: block; font-size: 13px; font-weight: 800; margin: 10px 0 4px; color: #334155; }
   input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 15px; font-family: inherit; background: #fff; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .pil { display: inline-block; font-size: 12px; font-weight: 800; border-radius: 999px; padding: 3px 10px; }
   .pil.baik { background: #dcfce7; color: #166534; } .pil.sederhana { background: #fef3c7; color: #92400e; } .pil.kurangkan { background: #fee2e2; color: #991b1b; }
-  .item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid #f1f5f9; }
-  .item:first-child { border-top: none; }
-  .pratonton { width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; margin-top: 10px; display: none; }
-  .modal { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
-  .modal .isi { background: #fff; border-radius: 18px; padding: 20px; max-width: 440px; width: 100%; max-height: 90vh; overflow: auto; }
+  .pil.hijau { background: #dcfce7; color: #166534; } .pil.biru { background: #e0f2fe; color: #075985; }
   .chk { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; margin: 6px 0; }
   .chk input { width: auto; }
-  .penafian { font-size: 11.5px; color: #64748b; text-align: center; margin: 18px 6px 0; line-height: 1.5; }
+  .tip { display: flex; gap: 8px; font-size: 13.5px; line-height: 1.5; margin: 6px 0; } .tip i { color: var(--hijau); margin-top: 3px; width: 16px; text-align: center; }
+  .hari-pil { display: flex; gap: 6px; flex-wrap: wrap; } .hari-pil label { margin: 0; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 999px; padding: 5px 10px; font-size: 13px; } .hari-pil input { width: auto; }
+  .streak { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 12.5px; color: #c2410c; background: #ffedd5; border-radius: 999px; padding: 3px 10px; }
+  .status-pil { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 3px 10px; }
+  .status-pil.belum { background: #fee2e2; color: #b91c1c; } .status-pil.dah { background: #dcfce7; color: #15803d; }
+  .kad-puasa { background: linear-gradient(135deg,#fffbeb,#fef3c7); border-color: #fde68a; } .kad-puasa h2 i { color: #b45309; }
+  .kad-sukan { background: linear-gradient(135deg,#f0fdf4,#ecfccb); }
+  .kad-sukan.belum { background: linear-gradient(135deg,#fff7f7,#fff1f2); border-color: #fecaca; } .kad-sukan.dah { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border-color: #86efac; }
+  /* Tolok kalori & cincin makro */
+  .tolok { position: relative; max-width: 300px; margin: 4px auto 0; }
+  .tolok svg { width: 100%; display: block; }
+  .tolok .tengah { position: absolute; left: 0; right: 0; bottom: 6px; text-align: center; }
+  .tolok .tengah b { display: block; font-size: 38px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+  .tolok .tengah span { font-size: 12.5px; color: var(--lembut); font-weight: 700; }
+  .sisi { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 800; color: var(--lembut); margin-top: 2px; }
+  .sisi b { color: var(--teks); font-size: 15px; }
+  .makro { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .cincin { text-align: center; font-size: 12px; font-weight: 800; color: var(--lembut); }
+  .cincin svg { width: 64px; height: 64px; display: block; margin: 0 auto 4px; }
+  .cincin b { color: var(--teks); font-size: 14px; }
+  .air-cawan { display: flex; gap: 4px; flex-wrap: wrap; margin: 8px 0; }
+  .air-cawan i { font-size: 20px; color: #cbd5e1; } .air-cawan i.penuh { color: #0ea5e9; }
+  .item { display: flex; gap: 10px; align-items: flex-start; padding: 12px 0; border-top: 1px solid #f1f5f9; }
+  .item:first-child { border-top: none; }
+  .ikonMakan { flex: none; width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg,#dcfce7,#ecfccb); color: var(--hijau); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .chip { display: inline-block; font-size: 11px; font-weight: 800; border-radius: 6px; padding: 1px 6px; margin-right: 3px; }
+  .chip.p { background: #e0f2fe; color: #075985; } .chip.k { background: #fae8ff; color: #86198f; } .chip.l { background: #fef9c3; color: #854d0e; }
+  .tindakan { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+  .pratonton { width: 100%; max-height: 300px; object-fit: cover; border-radius: 14px; margin-top: 10px; display: none; }
+  .modal { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: flex-end; justify-content: center; z-index: 50; padding: 0; }
+  .modal .isi { background: #fff; border-radius: 22px 22px 0 0; padding: 20px; max-width: 520px; width: 100%; max-height: 90vh; overflow: auto; }
+  .porsi { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  .porsi button { border: 1px solid #bbf7d0; background: #f0fdf4; color: #166534; border-radius: 999px; padding: 4px 10px; font: 800 12.5px 'Nunito', sans-serif; cursor: pointer; }
+  .porsi button.aktif { background: var(--hijau); color: #fff; border-color: var(--hijau); }
+  .edit-item { border: 1px solid #e2e8f0; border-radius: 14px; padding: 10px 12px; margin-top: 10px; }
+  .graf { display: flex; align-items: flex-end; gap: 8px; height: 150px; padding-top: 10px; position: relative; }
+  .graf .lajur { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .graf .lajur i { width: 100%; max-width: 34px; border-radius: 8px 8px 4px 4px; background: linear-gradient(180deg,#84cc16,#16a34a); display: block; min-height: 3px; }
+  .graf .lajur i.lebih { background: linear-gradient(180deg,#fb923c,#ef4444); }
+  .graf .lajur span { font-size: 11px; font-weight: 800; color: var(--lembut); }
+  .graf .garis { position: absolute; left: 0; right: 0; border-top: 2px dashed #f59e0b; }
+  .statistik { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .statistik div { background: #f0fdf4; border-radius: 14px; padding: 10px; text-align: center; font-size: 12px; font-weight: 700; color: var(--lembut); }
+  .statistik b { display: block; font-size: 18px; color: var(--teks); }
+  .penafian { font-size: 11.5px; color: var(--lembut); text-align: center; margin: 18px 6px 0; line-height: 1.5; }
   .putar { animation: putar 1s linear infinite; } @keyframes putar { to { transform: rotate(360deg); } }
   .hidden { display: none !important; }
+  .kolum > :first-child { margin-top: 14px; }
+
+  /* DESKTOP */
+  @media (min-width: 900px) {
+    .wrap, .hbar, .salam { max-width: 1120px; }
+    .wrap { padding-bottom: 40px; }
+    .navBawah { display: none; }
+    .navAtas { display: flex; gap: 6px; max-width: 1120px; margin: 0 auto; padding: 0 14px 12px; }
+    .navAtas button { border: none; background: rgba(255,255,255,.16); color: #f0fdf4; font: 800 14px 'Nunito', sans-serif; padding: 9px 18px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .navAtas button.aktif { background: #fff; color: var(--hijau-gelap); box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+    .salam { display: none; }
+    .grid-hari { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; align-items: start; }
+    .grid-dua { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+    .modal { align-items: center; padding: 16px; }
+    .modal .isi { border-radius: 22px; }
+    .tolok { max-width: 340px; }
+  }
 </style>
 </head>
 <body>
 <header>
   <div class="hbar">
     <button class="ib" onclick="location.href='index.html'" title="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
-    <div class="logo"><i class="fa-solid fa-leaf"></i><span><span class="a">now</span><span class="b">Sihat</span></span></div>
+    <div class="logo"><i class="fa-solid fa-leaf"></i><span><span class="a">now</span>Sihat</span></div>
     <span class="kredit" id="kredit">Kredit: -</span>
   </div>
-  <div class="tabs">
-    <button class="tab aktif" data-t="hari" onclick="tukarTab('hari')">Hari Ini</button>
-    <button class="tab" data-t="imbas" onclick="tukarTab('imbas')">Imbas</button>
-    <button class="tab" data-t="profil" onclick="tukarTab('profil')">Profil</button>
-  </div>
+  <div class="salam" id="salam">&nbsp;</div>
+  <nav class="navAtas">
+    <button data-t="hari" class="aktif" onclick="tukarTab('hari')"><i class="fa-solid fa-house"></i> Hari Ini</button>
+    <button data-t="imbas" onclick="tukarTab('imbas')"><i class="fa-solid fa-camera"></i> Imbas</button>
+    <button data-t="trend" onclick="tukarTab('trend')"><i class="fa-solid fa-chart-column"></i> Trend</button>
+    <button data-t="kerap" onclick="tukarTab('kerap')"><i class="fa-solid fa-star"></i> Kerap</button>
+    <button data-t="profil" onclick="tukarTab('profil')"><i class="fa-solid fa-user"></i> Profil</button>
+  </nav>
 </header>
 
 <div class="wrap">
   <!-- HARI INI -->
   <section id="t-hari">
-    <div class="kad kad-puasa hidden" id="kadPuasa"></div>
-    <div class="kad">
-      <div class="baris" style="margin-bottom:8px"><h2 style="margin:0">Ringkasan hari ini</h2><span class="kecil" id="bilImbas">0/8 imbasan</span></div>
-      <div id="ringkasan"></div>
-      <button class="btn btn-hijau penuh" style="margin-top:6px" onclick="tukarTab('imbas')"><i class="fa-solid fa-camera"></i> Imbas makanan</button>
+    <div class="grid-hari">
+      <div class="kolum">
+        <div class="kad kad-puasa hidden" id="kadPuasa"></div>
+        <div class="kad" id="kadTolok"></div>
+        <div class="kad" id="kadSeterusnya"></div>
+        <div class="kad kad-sukan" id="kadSenaman"></div>
+      </div>
+      <div class="kolum">
+        <div class="kad" id="kadAir"></div>
+        <div class="kad">
+          <div class="baris" style="margin-bottom:4px"><h2 style="margin:0"><i class="fa-solid fa-utensils"></i> Makanan hari ini</h2><span class="kecil" id="bilImbas">0/8 imbasan</span></div>
+          <div id="senaraiHari" class="kecil">Belum ada makanan dicatat hari ini.</div>
+          <div class="grid2" style="margin-top:10px">
+            <button class="btn btn-hijau" onclick="tukarTab('imbas')"><i class="fa-solid fa-camera"></i> Imbas</button>
+            <button class="btn btn-garis" onclick="tukarTab('kerap')"><i class="fa-solid fa-star"></i> Kerap</button>
+          </div>
+        </div>
+        <div class="kad" id="kadPanduan"></div>
+      </div>
     </div>
-    <div class="kad" id="kadSeterusnya"></div>
-    <div class="kad kad-sukan" id="kadSenaman"></div>
-    <div class="kad">
-      <h2>Makanan hari ini</h2>
-      <div id="senaraiHari" class="kecil">Belum ada imbasan hari ini.</div>
-    </div>
-    <div class="kad" id="kadPanduan"></div>
   </section>
 
   <!-- IMBAS -->
   <section id="t-imbas" class="hidden">
-    <div class="kad">
-      <h2>Imbas makanan</h2>
-      <p class="kecil" style="margin:0 0 10px">Ambil gambar dari atas, nampak keseluruhan pinggan. Gambar tidak disimpan.</p>
-      <div class="grid2">
-        <button class="btn btn-garis" onclick="document.getElementById('fKamera').click()"><i class="fa-solid fa-camera"></i> Kamera</button>
-        <button class="btn btn-garis" onclick="document.getElementById('fGaleri').click()"><i class="fa-regular fa-image"></i> Galeri</button>
+    <div class="grid-dua">
+      <div class="kad">
+        <h2><i class="fa-solid fa-camera"></i> Imbas makanan</h2>
+        <p class="kecil" style="margin:0 0 10px">Ambil gambar dari atas, nampak keseluruhan pinggan. Gambar tidak disimpan.</p>
+        <div class="grid2">
+          <button class="btn btn-garis" onclick="document.getElementById('fKamera').click()"><i class="fa-solid fa-camera"></i> Kamera</button>
+          <button class="btn btn-garis" onclick="document.getElementById('fGaleri').click()"><i class="fa-regular fa-image"></i> Galeri</button>
+        </div>
+        <input type="file" id="fKamera" accept="image/*" capture="environment" class="hidden">
+        <input type="file" id="fGaleri" accept="image/*" class="hidden">
+        <img id="pratonton" class="pratonton" alt="">
+        <label for="nota">Keterangan (pilihan)</label>
+        <input id="nota" maxlength="200" placeholder="cth. separuh pinggan, teh tarik kurang manis">
+        <button id="btnAnalisis" class="btn btn-hijau penuh" style="margin-top:12px" disabled onclick="analisis()"><i class="fa-solid fa-wand-magic-sparkles"></i> Analisis</button>
       </div>
-      <input type="file" id="fKamera" accept="image/*" capture="environment" class="hidden">
-      <input type="file" id="fGaleri" accept="image/*" class="hidden">
-      <img id="pratonton" class="pratonton" alt="">
-      <label for="nota">Keterangan (pilihan)</label>
-      <input id="nota" maxlength="200" placeholder="cth. separuh pinggan, teh tarik kurang manis">
-      <button id="btnAnalisis" class="btn btn-hijau penuh" style="margin-top:12px" disabled onclick="analisis()"><i class="fa-solid fa-wand-magic-sparkles"></i> Analisis</button>
+      <div class="kad hidden" id="kadHasil"></div>
     </div>
-    <div class="kad hidden" id="kadHasil"></div>
+  </section>
+
+  <!-- TREND -->
+  <section id="t-trend" class="hidden">
+    <div class="grid-dua">
+      <div class="kad">
+        <h2><i class="fa-solid fa-chart-column"></i> Kalori 7 hari</h2>
+        <div id="grafKalori" class="kecil">Memuatkan...</div>
+      </div>
+      <div class="kad">
+        <h2><i class="fa-solid fa-weight-scale"></i> Berat badan</h2>
+        <div style="display:flex;gap:8px">
+          <input type="number" id="inBerat" inputmode="decimal" step="0.1" min="10" max="300" placeholder="Berat hari ini (kg)">
+          <button class="btn btn-hijau" onclick="simpanBerat()">Simpan</button>
+        </div>
+        <div id="grafBerat" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KERAP -->
+  <section id="t-kerap" class="hidden">
+    <div class="kad">
+      <h2><i class="fa-solid fa-star"></i> Makanan kerap</h2>
+      <p class="kecil" style="margin:0 0 6px">Catat makanan yang selalu dimakan dengan satu tekan, tanpa gambar dan tanpa guna imbasan. Simpan dari senarai "Makanan hari ini" dengan butang <i class="fa-regular fa-star"></i>.</p>
+      <div id="senaraiKerap" class="kecil">Belum ada makanan kerap.</div>
+    </div>
   </section>
 
   <!-- PROFIL -->
   <section id="t-profil" class="hidden">
-    <div class="kad">
-      <h2>Profil kesihatan</h2>
-      <p class="kecil" style="margin:0">Tarikh lahir dan jantina diambil dari myNasab; berat, tinggi dan fokus dari myHEALTH jika ada. Lengkapkan yang lain supaya nasihat lebih tepat.</p>
-      <div class="grid2">
-        <div><label for="pDob">Tarikh lahir</label><input type="date" id="pDob"></div>
-        <div><label for="pJantina">Jantina</label><select id="pJantina"><option value="">Pilih</option><option value="L">Lelaki</option><option value="P">Perempuan</option></select></div>
-        <div><label for="pBerat">Berat (kg)</label><input type="number" id="pBerat" inputmode="decimal" min="10" max="300"></div>
-        <div><label for="pTinggi">Tinggi (cm)</label><input type="number" id="pTinggi" inputmode="decimal" min="50" max="250"></div>
+    <div class="grid-dua">
+      <div class="kolum">
+        <div class="kad">
+          <h2><i class="fa-solid fa-user"></i> Profil kesihatan</h2>
+          <p class="kecil" style="margin:0">Tarikh lahir dan jantina diambil dari myNasab; berat, tinggi dan fokus dari myHEALTH jika ada. Lengkapkan yang lain supaya nasihat lebih tepat.</p>
+          <div class="grid2">
+            <div><label for="pDob">Tarikh lahir</label><input type="date" id="pDob"></div>
+            <div><label for="pJantina">Jantina</label><select id="pJantina"><option value="">Pilih</option><option value="L">Lelaki</option><option value="P">Perempuan</option></select></div>
+            <div><label for="pBerat">Berat (kg)</label><input type="number" id="pBerat" inputmode="decimal" min="10" max="300"></div>
+            <div><label for="pTinggi">Tinggi (cm)</label><input type="number" id="pTinggi" inputmode="decimal" min="50" max="250"></div>
+          </div>
+          <label for="pAktiviti">Tahap aktiviti</label>
+          <select id="pAktiviti">
+            <option value="1.2">Kurang aktif (banyak duduk)</option>
+            <option value="1.375">Ringan (bersenam 1–3 hari seminggu)</option>
+            <option value="1.55">Sederhana (3–5 hari seminggu)</option>
+            <option value="1.725">Aktif (6–7 hari seminggu / kerja fizikal)</option>
+          </select>
+          <label for="pMatlamat">Matlamat</label>
+          <select id="pMatlamat"><option value="kekal">Kekal berat badan</option><option value="turun">Turunkan berat badan</option><option value="naik">Naikkan berat badan</option></select>
+          <label>Fokus (pilihan)</label>
+          <div class="chk"><input type="checkbox" id="fGula"> <span>Kurangkan gula</span></div>
+          <div class="chk"><input type="checkbox" id="fGaram"> <span>Kurangkan garam</span></div>
+          <div class="chk"><input type="checkbox" id="fProtein"> <span>Lebih protein</span></div>
+          <button class="btn btn-hijau penuh" style="margin-top:14px" onclick="simpanProfil()">Simpan profil</button>
+        </div>
+        <div class="kad" id="kadSasaran"></div>
       </div>
-      <label for="pAktiviti">Tahap aktiviti</label>
-      <select id="pAktiviti">
-        <option value="1.2">Kurang aktif (banyak duduk)</option>
-        <option value="1.375">Ringan (bersenam 1–3 hari seminggu)</option>
-        <option value="1.55">Sederhana (3–5 hari seminggu)</option>
-        <option value="1.725">Aktif (6–7 hari seminggu / kerja fizikal)</option>
-      </select>
-      <label for="pMatlamat">Matlamat</label>
-      <select id="pMatlamat"><option value="kekal">Kekal berat badan</option><option value="turun">Turunkan berat badan</option><option value="naik">Naikkan berat badan</option></select>
-      <label>Fokus (pilihan)</label>
-      <div class="chk"><input type="checkbox" id="fGula"> <span>Kurangkan gula</span></div>
-      <div class="chk"><input type="checkbox" id="fGaram"> <span>Kurangkan garam</span></div>
-      <div class="chk"><input type="checkbox" id="fProtein"> <span>Lebih protein</span></div>
-      <button class="btn btn-hijau penuh" style="margin-top:14px" onclick="simpanProfil()">Simpan profil</button>
-    </div>
-    <div class="kad" id="kadSasaran"></div>
-    <div class="kad">
-      <h2><i class="fa-solid fa-person-walking"></i> Rutin senaman</h2>
-      <div class="grid2">
-        <div><label for="sJenis">Jenis</label><select id="sJenis"><option value="brisk">Brisk walk</option><option value="jog">Jogging</option></select></div>
-        <div><label for="sMinit">Minit setiap sesi</label><input type="number" id="sMinit" min="5" max="180" value="30" inputmode="numeric"></div>
+      <div class="kolum">
+        <div class="kad">
+          <h2><i class="fa-solid fa-person-walking"></i> Rutin senaman</h2>
+          <div class="grid2">
+            <div><label for="sJenis">Jenis</label><select id="sJenis"><option value="brisk">Brisk walk</option><option value="jog">Jogging</option></select></div>
+            <div><label for="sMinit">Minit setiap sesi</label><input type="number" id="sMinit" min="5" max="180" value="30" inputmode="numeric"></div>
+          </div>
+          <label>Hari</label>
+          <div class="hari-pil" id="sHari"></div>
+          <div class="grid2">
+            <div><label for="sMasa">Masa peringatan</label><select id="sMasa"></select></div>
+            <div><label>&nbsp;</label><div class="chk" style="margin-top:10px"><input type="checkbox" id="sNotif" checked> <span>Hantar notifikasi</span></div></div>
+          </div>
+          <button class="btn btn-hijau penuh" style="margin-top:14px" onclick="simpanSenaman()">Simpan rutin</button>
+        </div>
+        <div class="kad">
+          <h2><i class="fa-solid fa-crown"></i> Langganan</h2>
+          <p class="kecil" id="infoLanggan" style="margin:0 0 10px"></p>
+          <button class="btn btn-garis penuh" onclick="perbaharui()">Perbaharui (20 kredit / 30 hari)</button>
+        </div>
       </div>
-      <label>Hari</label>
-      <div class="hari-pil" id="sHari"></div>
-      <div class="grid2">
-        <div><label for="sMasa">Masa peringatan</label><select id="sMasa"></select></div>
-        <div><label>&nbsp;</label><div class="chk" style="margin-top:10px"><input type="checkbox" id="sNotif" checked> <span>Hantar notifikasi</span></div></div>
-      </div>
-      <button class="btn btn-hijau penuh" style="margin-top:14px" onclick="simpanSenaman()">Simpan rutin</button>
-    </div>
-    <div class="kad">
-      <h2>Langganan</h2>
-      <p class="kecil" id="infoLanggan" style="margin:0 0 10px"></p>
-      <button class="btn btn-garis penuh" onclick="perbaharui()">Perbaharui (20 kredit / 30 hari)</button>
     </div>
   </section>
 
   <p class="penafian">nowSihat memberi <b>anggaran</b> nutrisi berdasarkan gambar dan bukan nasihat perubatan. Jika anda ada penyakit (cth. kencing manis, darah tinggi, buah pinggang), hamil atau menyusu, rujuk doktor atau pakar diet anda.</p>
 </div>
+
+<!-- Nav bawah (mobile) -->
+<nav class="navBawah">
+  <button data-t="hari" class="aktif" onclick="tukarTab('hari')"><i class="fa-solid fa-house"></i>Utama</button>
+  <button data-t="trend" onclick="tukarTab('trend')"><i class="fa-solid fa-chart-column"></i>Trend</button>
+  <button data-t="imbas" class="fab" onclick="tukarTab('imbas')"><span class="bulat"><i class="fa-solid fa-camera"></i></span></button>
+  <button data-t="kerap" onclick="tukarTab('kerap')"><i class="fa-solid fa-star"></i>Kerap</button>
+  <button data-t="profil" onclick="tukarTab('profil')"><i class="fa-solid fa-user"></i>Profil</button>
+</nav>
+
+<!-- Modal laras / betulkan rekod makanan -->
+<div class="modal" id="modalEdit"><div class="isi">
+  <div class="baris"><h2 style="margin:0"><i class="fa-solid fa-sliders"></i> Laras & betulkan</h2><button class="ib" onclick="tutupEdit()"><i class="fa-solid fa-xmark"></i></button></div>
+  <p class="kecil" style="margin:6px 0 0">Pilih saiz sebenar setiap item, betulkan nama jika AI tersilap, atau buang item yang tiada.</p>
+  <div id="editSenarai"></div>
+  <div class="baris" style="margin-top:12px;font-size:14px"><span>Jumlah</span><span id="editJumlah"></span></div>
+  <button class="btn btn-hijau penuh" style="margin-top:12px" onclick="simpanEdit()">Simpan</button>
+</div></div>
 
 <!-- Modal mula / langganan -->
 <div class="modal" id="modalMula"><div class="isi">
@@ -186,7 +308,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, updateDoc, addDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 import { tarikhMalaysia, tarikhHijrah, namaHariMasihi, BULAN_HIJRAH } from "./sejarah-islam.js";
 
@@ -200,15 +322,16 @@ const app = initializeApp({
 });
 const auth = getAuth(app), db = getFirestore(app), fns = getFunctions(app, 'asia-southeast1');
 const HAD = 8;
-const S = { uid: null, user: {}, profil: {}, log: [], harian: { bil: 0, tambahan: 0 }, gambar: null, senamanHari: null, laras: 0 };
+const S = { uid: null, user: {}, profil: {}, log: [], harian: { bil: 0, tambahan: 0 }, gambar: null, senamanHari: null, laras: 0, kerap: [], air: 0, terakhir: null };
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const tarikhMY = () => new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
 const tarikhPapar = ms => new Date(ms).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 window.tukarTab = (t) => {
-  ['hari', 'imbas', 'profil'].forEach(x => $('t-' + x).classList.toggle('hidden', x !== t));
-  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('aktif', b.dataset.t === t));
+  ['hari', 'imbas', 'trend', 'kerap', 'profil'].forEach(x => $('t-' + x).classList.toggle('hidden', x !== t));
+  document.querySelectorAll('.navAtas button, .navBawah button').forEach(b => b.classList.toggle('aktif', b.dataset.t === t));
+  if (t === 'trend') muatTrend(); else if (t === 'kerap') muatKerap();
   window.scrollTo(0, 0);
 };
 
@@ -246,32 +369,166 @@ function bar(label, nilai, sasaran, unit, hadAtas) {
   const pct = Math.min(100, nilai / sasaran * 100), kls = hadAtas ? (pct >= 100 ? 'lebih' : pct >= 80 ? 'amaran' : '') : 'protein';
   return `<div class="baris"><span>${label}</span><span>${Math.round(nilai)} / ${sasaran} ${unit}</span></div><div class="bar"><i class="${kls}" style="width:${pct}%"></i></div>`;
 }
+// Tolok separuh bulatan & cincin makro (SVG)
+function tolokSVG(pct, lebih) {
+  const r = 90, cx = 110, cy = 105, L = Math.PI * r, p = Math.max(0, Math.min(1, pct));
+  const d = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
+  return `<svg viewBox="0 0 220 115"><defs><linearGradient id="gT" x1="0" x2="1"><stop offset="0" stop-color="#22c55e"/><stop offset="1" stop-color="#84cc16"/></linearGradient></defs>
+    <path d="${d}" fill="none" stroke="#e2e8f0" stroke-width="16" stroke-linecap="round"/>
+    <path d="${d}" fill="none" stroke="${lebih ? '#ef4444' : 'url(#gT)'}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${L * p} ${L}"/></svg>`;
+}
+function cincin(label, nilai, sasaran, warna, ikon) {
+  const r = 26, L = 2 * Math.PI * r, p = sasaran ? Math.min(1, nilai / sasaran) : 0;
+  return `<div class="cincin"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="#eef2f7" stroke-width="7"/>
+    <circle cx="32" cy="32" r="${r}" fill="none" stroke="${warna}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${L * p} ${L}" transform="rotate(-90 32 32)"/>
+    <text x="32" y="37" text-anchor="middle" font-family="Font Awesome 6 Free" font-weight="900" font-size="15" fill="${warna}">${ikon}</text></svg>
+    <b>${Math.round(nilai)}</b>${sasaran ? '/' + sasaran : ''} g<br>${label}</div>`;
+}
+const fmtMasa = ms => new Date(ms).toLocaleTimeString('ms-MY', { hour: 'numeric', minute: '2-digit' });
+const STATUS = { baik: 'Baik', sederhana: 'Sederhana', kurangkan: 'Kurangkan' };
 function paparHari() {
-  const s = kiraSasaran(S.profil), j = { kalori: 0, protein: 0, gula: 0, natrium: 0 };
+  const s = kiraSasaran(S.profil), j = { kalori: 0, protein: 0, karbo: 0, lemak: 0, gula: 0, natrium: 0 };
   const bakar = (S.senamanHari && S.senamanHari.kalori) || 0;
-  if (s.kalori && bakar) s.kalori += bakar;     // kalori terbakar senaman tambah baki hari ini
+  const asas = s.kalori; if (s.kalori && bakar) s.kalori += bakar;     // kalori terbakar senaman tambah baki hari ini
   S.log.forEach(r => { for (const k in j) j[k] += (r.jumlah || {})[k] || 0; });
   const dewasa = s.umur === null || s.umur >= 18;
-  $('ringkasan').innerHTML = (dewasa ? bar('<i class="fa-solid fa-fire" style="color:#f97316"></i> Kalori' + (bakar ? ` <span class="kecil">(+${bakar} senaman)</span>` : ''), j.kalori, s.kalori, 'kcal', true) : '') +
-    bar('<i class="fa-solid fa-drumstick-bite" style="color:#0ea5e9"></i> Protein', j.protein, s.protein, 'g', false) + bar('<i class="fa-solid fa-cubes-stacked" style="color:#eab308"></i> Gula', j.gula, s.gula, 'g', true) + bar('<i class="fa-solid fa-jar" style="color:#64748b"></i> Natrium (garam)', j.natrium, s.natrium, 'mg', true) +
-    (dewasa && !s.kalori ? '<p class="kecil" style="margin:4px 0 0">Lengkapkan profil (berat, tinggi, jantina) untuk sasaran kalori.</p>' : '');
+  const sKarbo = s.kalori ? Math.round(s.kalori * 0.5 / 4) : null, sLemak = s.kalori ? Math.round(s.kalori * 0.3 / 9) : null;
+  const baki = s.kalori ? s.kalori - Math.round(j.kalori) : null;
+  const bar2 = (lbl, n, sas, unit) => { const p = sas ? Math.min(100, n / sas * 100) : 0, k = p >= 100 ? 'lebih' : p >= 80 ? 'amaran' : ''; return `<div class="baris" style="font-size:12.5px"><span>${lbl}</span><span>${Math.round(n)} / ${sas} ${unit}</span></div><div class="bar"><i class="${k}" style="width:${p}%"></i></div>`; };
+  $('kadTolok').innerHTML = (dewasa ? (s.kalori
+      ? `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-fire-flame-curved" style="color:#f97316"></i> Baki kalori hari ini</h2><span class="pil hijau">${asas} kcal/hari</span></div>
+         <div class="tolok">${tolokSVG(j.kalori / s.kalori, baki < 0)}<div class="tengah"><b style="${baki < 0 ? 'color:#dc2626' : ''}">${Math.abs(baki).toLocaleString()}</b><span>${baki < 0 ? 'kcal terlebih' : 'kcal lagi'}</span></div></div>
+         <div class="sisi"><span><i class="fa-solid fa-utensils" style="color:#16a34a"></i> Dimakan<br><b>${Math.round(j.kalori)}</b></span><span style="text-align:right"><i class="fa-solid fa-fire" style="color:#f97316"></i> Terbakar<br><b>${bakar}</b></span></div>`
+      : `<h2><i class="fa-solid fa-fire-flame-curved" style="color:#f97316"></i> Kalori hari ini: ${Math.round(j.kalori)} kcal</h2><p class="kecil" style="margin:0">Lengkapkan profil (berat, tinggi, jantina) untuk sasaran kalori.</p>`)
+    : `<h2><i class="fa-solid fa-seedling"></i> Pinggan seimbang hari ini</h2><p class="kecil" style="margin:0">Untuk bawah 18 tahun, fokus pada protein, sayur, buah dan kurangkan manis.</p>`) +
+    `<div class="makro">${cincin('Protein', j.protein, s.protein, '#0ea5e9', '')}${cincin('Karbo', j.karbo, dewasa ? sKarbo : null, '#c026d3', '')}${cincin('Lemak', j.lemak, dewasa ? sLemak : null, '#eab308', '')}</div>
+     <div style="margin-top:10px">${bar2('<i class="fa-solid fa-cubes-stacked" style="color:#eab308"></i> Gula', j.gula, s.gula, 'g')}${bar2('<i class="fa-solid fa-jar" style="color:#64748b"></i> Natrium (garam)', j.natrium, s.natrium, 'mg')}</div>`;
   $('bilImbas').textContent = `${S.harian.bil || 0}/${HAD + (S.harian.tambahan || 0)} imbasan`;
   $('senaraiHari').innerHTML = S.log.length ? S.log.map(r => `<div class="item">
-      <div style="flex:1"><div style="font-weight:800;font-size:14px">${esc(r.makanan.map(m => m.nama).join(', '))}</div>
-      <div class="kecil">${new Date(r.masa).toLocaleTimeString('ms-MY', { hour: 'numeric', minute: '2-digit' })} · ${dewasa ? r.jumlah.kalori + ' kcal · ' : ''}protein ${r.jumlah.protein} g · gula ${r.jumlah.gula} g</div>
-      <div style="font-size:13px;margin-top:3px">${esc(r.nasihat)}</div></div>
-      <div style="text-align:right"><span class="pil ${esc(r.status)}">${{ baik: 'Baik', sederhana: 'Sederhana', kurangkan: 'Kurangkan' }[r.status] || ''}</span><br>
-      <button class="ib" style="font-size:14px;color:#94a3b8" onclick="padamRekod('${r.id}')" title="Padam"><i class="fa-regular fa-trash-can"></i></button></div></div>`).join('') : 'Belum ada imbasan hari ini.';
+      <div class="ikonMakan"><i class="fa-solid ${r.sumber === 'kerap' ? 'fa-star' : 'fa-bowl-food'}"></i></div>
+      <div style="flex:1;min-width:0"><div class="baris" style="align-items:flex-start"><div style="font-weight:800;font-size:14px;color:#0f172a">${esc(r.makanan.map(m => m.nama).join(', '))}</div>${dewasa ? `<b style="font-size:15px;white-space:nowrap">${r.jumlah.kalori}<span class="kecil"> kcal</span></b>` : ''}</div>
+        <div style="margin-top:3px"><span class="kecil">${fmtMasa(r.masa)}</span> <span class="chip p">P ${r.jumlah.protein}g</span><span class="chip k">K ${r.jumlah.karbo || 0}g</span><span class="chip l">L ${r.jumlah.lemak || 0}g</span>${r.status && STATUS[r.status] ? ` <span class="pil ${esc(r.status)}" style="font-size:11px;padding:1px 8px">${STATUS[r.status]}</span>` : ''}</div>
+        ${r.nasihat ? `<div style="font-size:13px;margin-top:4px;color:#334155">${esc(r.nasihat)}</div>` : ''}
+        <div class="tindakan"><button class="btn btn-kelabu btn-kecil" onclick="bukaEdit('${r.id}')"><i class="fa-solid fa-sliders"></i> Laras</button>
+          <button class="btn btn-kelabu btn-kecil" onclick="simpanKerap('${r.id}')"><i class="fa-regular fa-star"></i> Kerap</button>
+          <button class="btn btn-kelabu btn-kecil" onclick="padamRekod('${r.id}')"><i class="fa-regular fa-trash-can"></i></button></div></div></div>`).join('') : 'Belum ada makanan dicatat hari ini.';
+  paparAir();
   paparSeterusnya(s, j, dewasa); paparSenaman(); paparPuasa();
   const [t, b] = panduanUmur(s.umur);
   $('kadPanduan').innerHTML = `<h2><i class="fa-solid fa-seedling"></i> Panduan ikut umur: ${esc(t)}</h2><p style="font-size:14px;line-height:1.6;margin:0">${esc(b)}</p>`;
-  $('kadSasaran').innerHTML = `<h2>Sasaran harian anda</h2>` + (s.umur !== null && s.umur < 18
+  $('kadSasaran').innerHTML = `<h2><i class="fa-solid fa-bullseye"></i> Sasaran harian anda</h2>` + (s.umur !== null && s.umur < 18
     ? `<p style="font-size:14px;margin:0">Untuk bawah 18 tahun, nowSihat tidak menetapkan sasaran kalori. Fokus pada pinggan seimbang dan tumbesaran.</p>`
     : `<p style="font-size:14px;line-height:1.8;margin:0">Kalori: <b>${s.kalori ? s.kalori + ' kcal' : '-'}</b><br>Protein: <b>${s.protein ? s.protein + ' g' : '-'}</b><br>Gula tambahan: maksimum <b>${s.gula} g</b><br>Natrium: maksimum <b>${s.natrium} mg</b>${s.bmi ? `<br>BMI: <b>${s.bmi}</b>` : ''}</p>`);
   const tm = S.user.nowsihat_expiry_date;
   $('infoLanggan').textContent = tm ? (tm > Date.now() ? `Aktif sehingga ${tarikhPapar(tm)}.` : `Tamat pada ${tarikhPapar(tm)}.`) : 'Belum bermula.';
   $('kredit').textContent = 'Kredit: ' + (parseInt(S.user.credit_balance) || 0);
 }
+
+// ---------- Air ----------
+const sasaranAir = () => { const w = +S.profil.berat || 60; return Math.round(((w * 0.033) + 0.5) * 4) * 250; };   // dibundar ke 250 ml
+function paparAir() {
+  const sas = sasaranAir(), n = S.air || 0, cawan = Math.ceil(sas / 250), penuh = Math.floor(n / 250);
+  $('kadAir').innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-glass-water" style="color:#0ea5e9"></i> Air</h2><span style="font-size:14px;font-weight:800">${(n / 1000).toFixed(2).replace(/\.?0+$/, '')} / ${(sas / 1000).toFixed(2).replace(/\.?0+$/, '')} L</span></div>
+    <div class="air-cawan">${Array.from({ length: cawan }, (_, i) => `<i class="fa-solid fa-glass-water ${i < penuh ? 'penuh' : ''}"></i>`).join('')}</div>
+    <div class="grid2"><button class="btn btn-kelabu" onclick="tambahAir(-250)"><i class="fa-solid fa-minus"></i> 250 ml</button><button class="btn btn-hijau" style="background:linear-gradient(135deg,#0284c7,#0ea5e9);box-shadow:0 3px 10px rgba(14,165,233,.3)" onclick="tambahAir(250)"><i class="fa-solid fa-plus"></i> 250 ml</button></div>`;
+}
+window.tambahAir = async (ml) => {
+  S.air = Math.max(0, (S.air || 0) + ml); paparAir();
+  try { await setDoc(doc(db, 'nowsihat_air', `${S.uid}_${tarikhMY()}`), { uid: S.uid, tarikh: tarikhMY(), ml: S.air, masa: Date.now() }); } catch (e) { console.warn('Air:', e.message); }
+};
+
+// ---------- Laras saiz & betulkan item ----------
+const PORSI = [0.5, 0.75, 1, 1.5, 2], MEDAN = ['kalori', 'protein', 'karbo', 'lemak', 'gula', 'natrium'];
+let EDIT = null;
+const asasItem = m => m.asas || Object.fromEntries(MEDAN.map(k => [k, (m[k] || 0) / (m.porsi || 1)]));
+function kiraItem(m) { const a = asasItem(m), p = m.porsi || 1; const o = { ...m, asas: a, porsi: p }; MEDAN.forEach(k => o[k] = Math.round(a[k] * p)); return o; }
+function jumlahItem(arr) { const j = Object.fromEntries(MEDAN.map(k => [k, 0])); arr.forEach(m => MEDAN.forEach(k => j[k] += m[k] || 0)); return j; }
+window.bukaEdit = (id) => {
+  const r = S.log.find(x => x.id === id) || (S.terakhir && S.terakhir.id === id ? S.terakhir : null); if (!r) return;
+  EDIT = { id, makanan: r.makanan.map(m => kiraItem(m)) }; lukisEdit(); $('modalEdit').style.display = 'flex';
+};
+window.tutupEdit = () => { $('modalEdit').style.display = 'none'; EDIT = null; };
+function lukisEdit() {
+  $('editSenarai').innerHTML = EDIT.makanan.map((m, i) => `<div class="edit-item">
+    <div style="display:flex;gap:6px"><input value="${esc(m.nama)}" oninput="EDITnama(${i}, this.value)" style="font-weight:800"><button class="btn btn-kelabu btn-kecil" onclick="EDITbuang(${i})" title="Buang"><i class="fa-regular fa-trash-can"></i></button></div>
+    <div class="kecil" style="margin-top:4px">${esc(m.saiz || '')} · ${m.kalori} kcal · P ${m.protein}g · G ${m.gula}g</div>
+    <div class="porsi">${PORSI.map(p => `<button class="${(m.porsi || 1) === p ? 'aktif' : ''}" onclick="EDITporsi(${i}, ${p})">${p === 0.5 ? '½' : p === 0.75 ? '¾' : p === 1.5 ? '1½' : p}×</button>`).join('')}</div></div>`).join('') || '<p class="kecil">Semua item dibuang. Simpan untuk padam rekod ini.</p>';
+  const j = jumlahItem(EDIT.makanan); $('editJumlah').textContent = `${j.kalori} kcal · P ${j.protein}g · G ${j.gula}g`;
+}
+window.EDITnama = (i, v) => { EDIT.makanan[i].nama = v.slice(0, 80); };
+window.EDITporsi = (i, p) => { EDIT.makanan[i].porsi = p; EDIT.makanan[i] = kiraItem(EDIT.makanan[i]); lukisEdit(); };
+window.EDITbuang = (i) => { EDIT.makanan.splice(i, 1); lukisEdit(); };
+window.simpanEdit = async () => {
+  if (!EDIT) return;
+  try {
+    if (!EDIT.makanan.length) await deleteDoc(doc(db, 'nowsihat_log', EDIT.id));
+    else await updateDoc(doc(db, 'nowsihat_log', EDIT.id), { makanan: EDIT.makanan, jumlah: jumlahItem(EDIT.makanan), diubah: Date.now() });
+    if (S.terakhir && S.terakhir.id === EDIT.id) { S.terakhir.makanan = EDIT.makanan; S.terakhir.jumlah = jumlahItem(EDIT.makanan); if (EDIT.makanan.length) paparHasil(S.terakhir); else $('kadHasil').classList.add('hidden'); }
+    tutupEdit(); await muatHari();
+  } catch (e) { alert('Gagal simpan: ' + e.message); }
+};
+
+// ---------- Makanan kerap ----------
+window.simpanKerap = async (id) => {
+  const r = S.log.find(x => x.id === id) || (S.terakhir && S.terakhir.id === id ? S.terakhir : null); if (!r) return;
+  const nama = prompt('Nama untuk makanan kerap ini:', r.makanan.map(m => m.nama).join(', ').slice(0, 60)); if (!nama) return;
+  try { await addDoc(collection(db, 'nowsihat_kerap'), { uid: S.uid, nama: nama.slice(0, 60), makanan: r.makanan.map(m => kiraItem(m)), jumlah: r.jumlah, masa: Date.now(), guna: 0 }); alert('Disimpan dalam Makanan kerap.'); S.kerap = null; }
+  catch (e) { alert('Gagal simpan: ' + e.message); }
+};
+async function muatKerap() {
+  try { const sn = await getDocs(query(collection(db, 'nowsihat_kerap'), where('uid', '==', S.uid))); S.kerap = []; sn.forEach(d => S.kerap.push({ id: d.id, ...d.data() })); S.kerap.sort((a, b) => (b.guna || 0) - (a.guna || 0) || b.masa - a.masa); }
+  catch (e) { S.kerap = []; console.warn('Kerap:', e.message); }
+  const dewasa = (() => { const u = umur(S.profil.dob); return u === null || u >= 18; })();
+  $('senaraiKerap').innerHTML = S.kerap.length ? S.kerap.map(k => `<div class="item"><div class="ikonMakan"><i class="fa-solid fa-star"></i></div>
+      <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:14px;color:#0f172a">${esc(k.nama)}</div>
+      <div class="kecil">${dewasa ? k.jumlah.kalori + ' kcal · ' : ''}P ${k.jumlah.protein}g · G ${k.jumlah.gula}g${k.guna ? ` · dicatat ${k.guna}×` : ''}</div></div>
+      <div style="display:flex;gap:4px;align-items:center"><button class="btn btn-hijau btn-kecil" onclick="catatKerap('${k.id}')"><i class="fa-solid fa-plus"></i> Catat</button>
+      <button class="btn btn-kelabu btn-kecil" onclick="padamKerap('${k.id}')"><i class="fa-regular fa-trash-can"></i></button></div></div>`).join('') : 'Belum ada makanan kerap. Selepas imbas, tekan butang <i class="fa-regular fa-star"></i> Kerap pada rekod makanan.';
+}
+window.catatKerap = async (id) => {
+  const k = (S.kerap || []).find(x => x.id === id); if (!k) return;
+  if (!S.user.nowsihat_expiry_date || S.user.nowsihat_expiry_date < Date.now()) { $('modalTamat').style.display = 'flex'; return; }
+  try {
+    await addDoc(collection(db, 'nowsihat_log'), { uid: S.uid, tarikh: tarikhMY(), masa: Date.now(), makanan: k.makanan, jumlah: k.jumlah, status: '', nasihat: '', sumber: 'kerap', puasa: sedangPuasa() });
+    updateDoc(doc(db, 'nowsihat_kerap', id), { guna: (k.guna || 0) + 1 }).catch(() => {});
+    await muatHari(); tukarTab('hari');
+  } catch (e) { alert('Gagal catat: ' + e.message); }
+};
+window.padamKerap = async (id) => { if (!confirm('Buang dari Makanan kerap?')) return; try { await deleteDoc(doc(db, 'nowsihat_kerap', id)); muatKerap(); } catch (e) { alert('Gagal: ' + e.message); } };
+
+// ---------- Trend: kalori 7 hari & berat ----------
+async function muatTrend() {
+  const s = kiraSasaran(S.profil), hari = Array.from({ length: 7 }, (_, i) => tarikhOff(i - 6));
+  const nilai = await Promise.all(hari.map(async t => {
+    if (t === tarikhMY()) return S.log.reduce((a, r) => a + ((r.jumlah || {}).kalori || 0), 0);
+    try { const sn = await getDocs(query(collection(db, 'nowsihat_log'), where('uid', '==', S.uid), where('tarikh', '==', t))); let n = 0; sn.forEach(d => n += ((d.data().jumlah || {}).kalori || 0)); return n; } catch (e) { return 0; }
+  }));
+  const maks = Math.max(s.kalori || 0, ...nilai, 1) * 1.1, ada = nilai.filter(n => n > 0);
+  const purata = ada.length ? Math.round(ada.reduce((a, b) => a + b, 0) / ada.length) : 0;
+  $('grafKalori').innerHTML = `<div class="graf">${s.kalori ? `<div class="garis" style="bottom:${s.kalori / maks * 100}%" title="Sasaran"></div>` : ''}
+    ${nilai.map((n, i) => `<div class="lajur"><span style="color:#0f172a">${n ? n : ''}</span><i class="${s.kalori && n > s.kalori ? 'lebih' : ''}" style="height:${n / maks * 100}%"></i><span>${NAMA_HARI[new Date(hari[i] + 'T12:00:00Z').getUTCDay()]}</span></div>`).join('')}</div>
+    <div class="statistik"><div><b>${purata}</b>purata kcal</div><div><b>${s.kalori || '-'}</b>sasaran</div><div><b>${ada.length}/7</b>hari dicatat</div></div>
+    ${s.kalori ? '<p class="kecil" style="margin:8px 0 0">Garis putus-putus ialah sasaran harian. Bar merah melebihi sasaran.</p>' : ''}`;
+  paparBerat();
+}
+function paparBerat() {
+  const log = Object.entries(S.profil.berat_log || {}).sort((a, b) => a[0] < b[0] ? -1 : 1).slice(-30);
+  if (!log.length) { $('grafBerat').innerHTML = '<p class="kecil" style="margin:0">Belum ada rekod berat. Timbang seminggu sekali pada waktu yang sama untuk lihat trend.</p>'; return; }
+  const v = log.map(x => x[1]), mn = Math.min(...v) - 1, mx = Math.max(...v) + 1, W = 300, H = 120;
+  const pt = v.map((y, i) => [log.length === 1 ? W / 2 : 10 + i * (W - 20) / (log.length - 1), H - 10 - (y - mn) / (mx - mn) * (H - 20)]);
+  const beza = +(v[v.length - 1] - v[0]).toFixed(1);
+  $('grafBerat').innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block"><polyline points="${pt.map(p => p.join(',')).join(' ')}" fill="none" stroke="#16a34a" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${pt.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#fff" stroke="#16a34a" stroke-width="2.5"/>`).join('')}</svg>
+    <div class="statistik"><div><b>${v[v.length - 1]}</b>kg terkini</div><div><b style="color:${beza < 0 ? '#16a34a' : beza > 0 ? '#dc2626' : '#0f172a'}">${beza > 0 ? '+' : ''}${beza}</b>kg berubah</div><div><b>${log.length}</b>rekod</div></div>`;
+}
+window.simpanBerat = async () => {
+  const b = +$('inBerat').value; if (!(b >= 10 && b <= 300)) { alert('Masukkan berat yang sah (kg).'); return; }
+  const logB = { ...(S.profil.berat_log || {}), [tarikhMY()]: b }; const kunci = Object.keys(logB).sort(); while (kunci.length > 120) delete logB[kunci.shift()];
+  try {
+    await setDoc(doc(db, 'nowsihat_profil', S.uid), { berat: b, berat_log: logB }, { merge: true }); S.profil.berat = b; S.profil.berat_log = logB;
+    setDoc(doc(db, 'mynasab_users', S.uid), { myhealth_berat: b, myhealth_kemas_kini: Date.now() }, { merge: true }).catch(() => {});
+    $('inBerat').value = ''; $('pBerat').value = b; paparBerat(); paparHari();
+  } catch (e) { alert('Gagal simpan: ' + e.message); }
+};
 
 async function muatHari() {
   const hari = tarikhMY();
@@ -281,6 +538,7 @@ async function muatHari() {
   } catch (e) { console.warn('Log:', e.message); }
   try { const h = await getDoc(doc(db, 'nowsihat_harian', `${S.uid}_${hari}`)); S.harian = h.exists() ? h.data() : { bil: 0, tambahan: 0 }; } catch (e) {}
   try { const x = await getDoc(doc(db, 'nowsihat_senaman', `${S.uid}_${hari}`)); S.senamanHari = x.exists() ? x.data() : null; } catch (e) {}
+  try { const a = await getDoc(doc(db, 'nowsihat_air', `${S.uid}_${hari}`)); S.air = a.exists() ? (a.data().ml || 0) : 0; } catch (e) {}
   paparHari();
 }
 
@@ -463,7 +721,7 @@ window.analisis = async (bayarTambahan = false) => {
   const b = $('btnAnalisis'); b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner putar"></i> Menganalisis...';
   try {
     const r = (await httpsCallable(fns, 'nowSihatImbas')({ gambar: S.gambar, nota: $('nota').value.trim(), bayarTambahan, puasa: sedangPuasa() })).data;
-    paparHasil(r);
+    S.terakhir = r; paparHasil(r);
     if (r.id) { S.gambar = null; $('nota').value = ''; $('pratonton').style.display = 'none'; }
     await muatHari();
     if (bayarTambahan) { try { const u = await getDoc(doc(db, 'mynasab_users', S.uid)); S.user = u.data() || S.user; paparHari(); } catch (e) {} }
@@ -485,6 +743,7 @@ function paparHasil(r) {
     ${r.makanan.map(m => `<div class="item"><div style="flex:1"><b style="font-size:14px">${esc(m.nama)}</b><div class="kecil">${esc(m.saiz)}</div></div><div class="kecil" style="text-align:right">${dewasa ? m.kalori + ' kcal<br>' : ''}P ${m.protein}g · G ${m.gula}g</div></div>`).join('')}
     <div class="item" style="font-weight:800;font-size:13.5px"><div style="flex:1">Jumlah</div><div style="text-align:right">${dewasa ? r.jumlah.kalori + ' kcal · ' : ''}protein ${r.jumlah.protein} g<br>karbo ${r.jumlah.karbo} g · lemak ${r.jumlah.lemak} g · gula ${r.jumlah.gula} g · natrium ${r.jumlah.natrium} mg</div></div>
     ${r.seterusnya ? `<div class="tip" style="margin-top:10px"><i class="fa-solid fa-utensils"></i><span><b>Seterusnya:</b> ${esc(r.seterusnya)}</span></div>` : ''}
+    ${r.id ? `<div class="grid2" style="margin-top:12px"><button class="btn btn-garis" onclick="bukaEdit('${r.id}')"><i class="fa-solid fa-sliders"></i> Laras saiz</button><button class="btn btn-garis" onclick="simpanKerap('${r.id}')"><i class="fa-regular fa-star"></i> Simpan kerap</button></div>` : ''}
     <p class="kecil" style="margin:8px 0 0">Anggaran sahaja. Nilai sebenar bergantung pada saiz hidangan dan cara masakan.</p>`;
 }
 window.padamRekod = async (id) => {
@@ -497,6 +756,7 @@ onAuthStateChanged(auth, async (u) => {
   if (!u) { location.href = 'index.html'; return; }
   S.uid = u.uid;
   try { const s = await getDoc(doc(db, 'mynasab_users', u.uid)); S.user = s.exists() ? s.data() : {}; } catch (e) {}
+  { const j = jamMY(), nm = String(S.user.name || (u.email || '').split('@')[0]).trim().split(/\s+/)[0]; $('salam').innerHTML = `${j < 12 ? 'Selamat pagi' : j < 15 ? 'Selamat tengah hari' : j < 19 ? 'Selamat petang' : 'Selamat malam'},<br><b>${esc(nm)}</b>`; }
   try { const p = await getDoc(doc(db, 'nowsihat_profil', u.uid)); S.profil = p.exists() ? p.data() : {}; } catch (e) {}
   if (!S.profil.dob || !S.profil.jantina) {
     try { const r = await getDoc(doc(db, 'mynasab_nodes', 'root_' + u.uid)); if (r.exists()) { const d = r.data(); S.profil.dob = S.profil.dob || d.dob || ''; S.profil.jantina = S.profil.jantina || (d.gender === 'P' ? 'P' : d.gender === 'L' ? 'L' : ''); } } catch (e) {}

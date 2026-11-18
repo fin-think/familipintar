@@ -197,7 +197,18 @@ exports.nowSihatPeringatan = functions
     }
     match /nowsihat_log/{id} {
       allow read, delete: if request.auth != null && resource.data.uid == request.auth.uid;
-      allow create, update: if false;      // hanya Cloud Function
+      // laras saiz / betulkan item oleh pemilik; catat "makanan kerap" (tanpa imbasan)
+      allow update: if request.auth != null && resource.data.uid == request.auth.uid && request.resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid && request.resource.data.sumber == 'kerap';
+    }
+    match /nowsihat_kerap/{id} {
+      allow read, update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
+    match /nowsihat_air/{id} {
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create, update: if request.auth != null && request.resource.data.uid == request.auth.uid
+                            && id == request.auth.uid + '_' + request.resource.data.tarikh;
     }
     match /nowsihat_senaman/{id} {
       allow read, delete: if request.auth != null && resource.data.uid == request.auth.uid;
