@@ -11,9 +11,9 @@
       langkah: [
         ['Pilih belah', 'Pilih ibu bapa belah anda atau belah pasangan di bahagian atas. Adik-beradik ditarik terus daripada myNasab.'],
         ['Profil kesihatan', 'Isi penyakit, ubat harian, alahan dan doktor ibu bapa di <b>Profil & Kesihatan</b>, supaya semua adik-beradik tahu.'],
-        ['Tambah tugasan', 'Tekan tarikh pada <b>Kalendar Jagaan</b>. Tanda <b>📋 Tugasan</b> (cth. bawa ke klinik, makan ubat) dan/atau <b>🏠 Balik Kampung</b>, kemudian simpan sekali.'],
+        ['Tambah tugasan', 'Tekan tarikh pada <b>Kalendar Jagaan</b>. Tanda <b>Tugasan</b> (cth. bawa ke klinik, makan ubat) dan/atau <b>🏠 Balik Kampung</b>, kemudian simpan sekali.'],
         ['Peringatan ubat', 'Tugasan ubat yang ada <b>masa</b> akan dihantar notifikasi kepada semua. Bila sudah beri ubat, tekan <b>✅ DONE</b> supaya yang lain tahu.'],
-        ['Giliran jaga', 'Tekan <b>🔄 Jana giliran</b>, pilih adik-beradik dan berapa hari seorang. Semua dimaklumkan bila giliran seseorang bermula.'],
+        ['Giliran jaga', 'Tekan <b>Jana giliran</b>, pilih adik-beradik dan berapa hari seorang. Semua dimaklumkan bila giliran seseorang bermula.'],
         ['Nota keluarga', 'Tulis makluman di <b>Papan Nota Keluarga</b>. Adik-beradik lain terima notifikasi.']
       ]
     },
@@ -86,6 +86,35 @@
         ['Gambar profil', 'Tekan <b>Gambar profil</b> (atau Tetapan di halaman utama) supaya keluarga kenal anda.'],
         ['Sirah & hari kebesaran', 'Kisah sirah harian dan kiraan hari kebesaran Islam sentiasa ada di halaman ini.'],
         ['Berbual', 'Tekan <b>JomSalam</b> untuk mesej peribadi dengan keluarga dan kenalan.']
+      ]
+    },
+    nowsihat: {
+      tajuk: 'Cara Guna nowSihat',
+      intro: 'Snap gambar makanan, dapat anggaran nutrisi dan nasihat ikut umur, matlamat dan keadaan kesihatan anda. Percuma 30 hari pertama.',
+      langkah: [
+        ['Lengkapkan profil', 'Tab <b>Profil</b>: tarikh lahir & jantina diambil dari myNasab, berat & tinggi dari myHEALTH. Pilih aktiviti, matlamat dan fokus (kurang gula/garam, lebih protein). Sasaran harian dikira sendiri.'],
+        ['Imbas makanan', 'Tekan butang <b>kamera</b>, ambil gambar dari atas, kemudian <b>Analisis</b>. Sehingga 8 imbasan sehari; lebih dari itu 1 kredit untuk 3 imbasan. Gambar tidak disimpan.'],
+        ['Laras saiz', 'Tekan <b>Laras</b> pada rekod untuk pilih saiz sebenar (½ hingga 2×), betulkan nama makanan, atau buang item yang tiada.'],
+        ['Baki & cadangan', 'Halaman utama tunjuk <b>baki kalori</b>, protein, karbo, lemak, gula dan garam, serta cadangan untuk makan tengah hari, malam, berbuka atau sahur seterusnya.'],
+        ['Makanan kerap', 'Tekan <b>☆ Kerap</b> pada rekod untuk simpan. Lain kali catat dari tab <b>Kerap</b> dengan satu tekan, tanpa gambar dan tanpa guna imbasan.'],
+        ['Air', 'Tekan <b>+250 ml</b> setiap kali minum. Sasaran air dikira ikut berat badan.'],
+        ['Senaman', 'Tetapkan rutin brisk walk atau jogging di Profil (hari, minit, masa peringatan). Kad merah <b>Belum buat</b> jadi hijau bila anda tekan dan isi minit. Kalori terbakar tambah baki kalori hari itu.'],
+        ['Puasa sunat', 'Pada hari Isnin, Khamis dan Hari Putih (13–15 Hijrah), tanda <b>Saya berpuasa hari ini</b> untuk panduan berbuka & sahur. Sehari sebelum, ada peringatan sediakan sahur.'],
+        ['Trend', 'Tab <b>Trend</b>: graf kalori 7 hari berbanding sasaran, dan log berat badan. Timbang seminggu sekali untuk lihat kemajuan.'],
+        ['Coach (pilihan)', 'Ada coach diet? Masukkan kod coach di Profil → <b>Coach saya</b> dan pilih apa yang dikongsi. Boleh putuskan bila-bila masa. Coach juga boleh memohon di <b>Jadi coach nowSihat</b>.']
+      ]
+    },
+    nowsihatcoach: {
+      tajuk: 'Cara Guna Dashboard Coach',
+      intro: 'Pantau klien yang bersetuju berkongsi data nowSihat dengan anda, tetapkan sasaran dan beri komen.',
+      langkah: [
+        ['Jemput klien', 'Tab <b>Pautan saya</b>: salin atau kongsi pautan ke WhatsApp. Klien yang mendaftar melalui pautan ini diminta bersetuju berkongsi, dan direkod sebagai rujukan affiliate anda.'],
+        ['Klien sedia ada', 'Klien yang sudah ada akaun boleh masukkan kod anda di nowSihat → Profil → Coach saya.'],
+        ['Ringkasan', 'Kad atas tunjuk jumlah klien, berapa yang catat hari ini, dan berapa yang perlu perhatian. Klien yang perlu perhatian disusun di atas.'],
+        ['Amaran', '<b>Tak catat 2 hari</b>, <b>Lebih kalori 3 hari</b> atau <b>Langganan tamat</b>. Graf mini menunjukkan 7 hari (merah = lebih sasaran).'],
+        ['Sasaran', 'Buka klien dan isi sasaran kalori, protein, gula atau natrium. Kosongkan medan untuk guna nilai automatik. Klien nampak "Ditetapkan oleh" nama anda.'],
+        ['Komen', 'Tulis komen pada rekod makan klien. Klien terima notifikasi dan nampak komen di bawah makanan itu.'],
+        ['Privasi', 'Anda hanya nampak apa yang klien benarkan, dan klien boleh putuskan bila-bila masa. Beri bimbingan gaya hidup, bukan diagnosis atau nasihat perubatan.']
       ]
     },
     jomsalam: {

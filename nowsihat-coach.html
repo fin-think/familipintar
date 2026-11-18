@@ -69,6 +69,7 @@
     <button class="ib" onclick="location.href='nowsihat.html'" title="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
     <div class="logo"><i class="fa-solid fa-clipboard-user"></i><span>Dashboard Coach<small id="namaCoach">nowSihat</small></span></div>
     <button class="ib" onclick="muatSenarai()" title="Muat semula"><i class="fa-solid fa-rotate"></i></button>
+    <span id="cgSlot"></span>
   </div>
   <div class="tabs">
     <button data-t="klien" class="aktif" onclick="tukarTab('klien')"><i class="fa-solid fa-users"></i> Klien</button>
@@ -302,5 +303,6 @@ onAuthStateChanged(auth, async (u) => {
   muatSenarai();
 });
 </script>
+<script src="cara-guna.js?v=5" data-app="nowsihatcoach" defer></script>
 </body>
 </html>
