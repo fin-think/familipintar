@@ -12,22 +12,25 @@
 
 async function nsCoachAktif(uid) {
     const c = await db.collection('nowsihat_coach').doc(uid).get();
-    if (!c.exists || c.data().status !== 'aktif') throw new functions.https.HttpsError('permission-denied', 'Akaun coach belum aktif.');
+    if (!c.exists || c.data().status !== 'aktif') throw new functions.https.HttpsError('permission-denied', 'Akaun coach tidak aktif.');
+    if (c.data().coach_tamat && c.data().coach_tamat < Date.now()) throw new functions.https.HttpsError('permission-denied', 'COACH_TAMAT');
     return c.data();
 }
-async function nsPautan(coach, klien) {
-    const p = await db.collection('nowsihat_klien').doc(klien).get();
+// Pautan klien: id dokumen = pid klien (uid atau uid_pasangan)
+async function nsPautan(coach, pid) {
+    const p = await db.collection('nowsihat_klien').doc(pid).get();
     if (!p.exists || p.data().coach_uid !== coach || p.data().status !== 'aktif') throw new functions.https.HttpsError('permission-denied', 'Klien ini tidak berpaut dengan anda.');
-    return p.data();
+    const d = p.data(); return { ...d, klien_uid: d.klien_uid || pid.replace(/_pasangan$/, ''), per: nsPer(d.per || (pid.endsWith('_pasangan') ? 'pasangan' : 'induk')) };
 }
 const nsTarikhOff = (n) => nsTarikhMY(Date.now() + n * 86400000);
 // Sasaran automatik jika klien belum simpan profil (formula sama dengan nowsihat.html)
-async function nsSasaranAuto(klien, pr) {
+async function nsSasaranAuto(klien, pr, per) {
+    per = nsPer(per); const aw = per === 'pasangan' ? 'pasangan_' : '';
     if (pr.sasaran && Object.keys(pr.sasaran).length) return pr.sasaran;
     let dob = pr.dob, jantina = pr.jantina;
-    if (!dob || !jantina) { try { const r = await db.collection('mynasab_nodes').doc('root_' + klien).get(); if (r.exists) { dob = dob || r.data().dob; jantina = jantina || (r.data().gender === 'P' ? 'P' : r.data().gender === 'L' ? 'L' : ''); } } catch (e) {} }
+    if ((!dob || !jantina) && per === 'induk') { try { const r = await db.collection('mynasab_nodes').doc('root_' + klien).get(); if (r.exists) { dob = dob || r.data().dob; jantina = jantina || (r.data().gender === 'P' ? 'P' : r.data().gender === 'L' ? 'L' : ''); } } catch (e) {} }
     let berat = +pr.berat, tinggi = +pr.tinggi;
-    if (!berat || !tinggi) { try { const u = await db.collection('mynasab_users').doc(klien).get(); if (u.exists) { berat = berat || +u.data().myhealth_berat; tinggi = tinggi || +u.data().myhealth_tinggi; } } catch (e) {} }
+    if (!berat || !tinggi) { try { const u = await db.collection('mynasab_users').doc(klien).get(); if (u.exists) { berat = berat || +u.data()[aw + 'myhealth_berat']; tinggi = tinggi || +u.data()[aw + 'myhealth_tinggi']; } } catch (e) {} }
     const u = nsUmur(dob), f = +pr.aktiviti || 1.2, fokus = pr.fokus || [];
     const s = { gula: fokus.includes('gula') ? 25 : 50, natrium: fokus.includes('garam') ? 1500 : 2000 };
     if (berat > 0) s.protein = Math.round(berat * (pr.matlamat === 'turun' || fokus.includes('protein') ? 1.2 : 1.0));
@@ -45,21 +48,47 @@ exports.nowSihatCoach = functions
         const uid = context.auth && context.auth.uid;
         if (!uid) throw new functions.https.HttpsError('unauthenticated', 'Sila log masuk.');
         const tindakan = data && data.tindakan;
+        const T = await nsTetapan();
+
+        // ---- DAFTAR COACH: aktif terus, potong yuran, mula tempoh ujian ----
+        if (tindakan === 'daftar' || tindakan === 'perbaharui_coach') {
+            const uref = db.collection('mynasab_users').doc(uid), cref = db.collection('nowsihat_coach').doc(uid);
+            return db.runTransaction(async (t) => {
+                const [su, sc] = await Promise.all([t.get(uref), t.get(cref)]);
+                const u = su.exists ? su.data() : {}, c = sc.exists ? sc.data() : null, kini = Date.now();
+                const baki = parseInt(u.credit_balance) || 0;
+                if (baki < T.coach_kredit) throw new functions.https.HttpsError('failed-precondition', `Kredit tidak mencukupi. Baki: ${baki} kredit.`);
+                if (tindakan === 'perbaharui_coach') {
+                    if (!c || c.status !== 'aktif') throw new functions.https.HttpsError('failed-precondition', 'Akaun coach tidak aktif. Sila daftar semula.');
+                    const tamat = Math.max(kini, c.coach_tamat || 0) + NS_HARI * 86400000;
+                    t.update(uref, { credit_balance: baki - T.coach_kredit }); t.update(cref, { coach_tamat: tamat });
+                    return { tamat, baki: baki - T.coach_kredit };
+                }
+                if (c && c.status === 'aktif') throw new functions.https.HttpsError('already-exists', 'Akaun coach anda sudah aktif.');
+                if (!u.is_affiliate || !u.referral_code) throw new functions.https.HttpsError('failed-precondition', 'Daftar sebagai Affiliate dahulu.');
+                const nama = String((data && data.nama) || u.name || 'Coach').trim().slice(0, 60), bio = String((data && data.bio) || '').trim().slice(0, 200);
+                t.update(uref, { credit_balance: baki - T.coach_kredit });
+                t.set(cref, { uid, nama, bio, kod: u.referral_code, emel: u.email || '', status: 'aktif', mula: kini,
+                              coach_tamat: kini + NS_HARI * 86400000, ujian_tamat: kini + T.coach_ujian_hari * 86400000, ujian_min: T.coach_min_klien, ujian_lulus: false, sebab: '' });
+                return { ok: true, baki: baki - T.coach_kredit };
+            });
+        }
 
         // ---- KLIEN: Tanya coach tentang satu rekod makan (pilihan gambar) ----
         if (tindakan === 'tanya') {
-            const pk = await db.collection('nowsihat_klien').doc(uid).get();
+            const per = nsPer(data && data.per);
+            const pk = await db.collection('nowsihat_klien').doc(nsPid(uid, per)).get();
             if (!pk.exists || pk.data().status !== 'aktif') throw new functions.https.HttpsError('failed-precondition', 'Anda belum berpaut dengan coach.');
             const ref = db.collection('nowsihat_log').doc(String(data.log || ''));
             const l = await ref.get();
-            if (!l.exists || l.data().uid !== uid) throw new functions.https.HttpsError('not-found', 'Rekod tidak dijumpai.');
+            if (!l.exists || l.data().uid !== uid || nsPer(l.data().per) !== per) throw new functions.https.HttpsError('not-found', 'Rekod tidak dijumpai.');
             const teks = String(data.teks || '').trim().slice(0, 300);
             const gambar = /^https:\/\/firebasestorage\.googleapis\.com\//.test(String(data.gambar || '')) ? String(data.gambar) : '';
             if (!teks && !gambar) throw new functions.https.HttpsError('invalid-argument', 'Tulis soalan atau lampirkan gambar.');
             await ref.update({ tanya_coach: { teks, gambar, masa: Date.now(), dijawab: false } });
             try {
                 const cu = await db.collection('mynasab_users').doc(pk.data().coach_uid).get();
-                const nama = String((await db.collection('mynasab_users').doc(uid).get()).data().name || 'Klien').split(' ')[0];
+                const nama = String(pk.data().nama_klien || (await db.collection('mynasab_users').doc(uid).get()).data().name || 'Klien').split(' ')[0];
                 if (cu.exists) await hantarKeSemuaPeranti(db, admin.messaging(), pk.data().coach_uid, cu.data(), {
                     notification: { title: `${nama} bertanya`, body: (teks || 'Hantar gambar makanan').slice(0, 120) },
                     data: { app: 'nowsihat', url: '/nowsihat-coach.html', tag: `nowsihat-tanya-${l.id}` }
@@ -75,10 +104,12 @@ exports.nowSihatCoach = functions
         if (tindakan === 'senarai') {
             const ps = await db.collection('nowsihat_klien').where('coach_uid', '==', uid).where('status', '==', 'aktif').get();
             const out = [];
+            let keluarga = new Set(); try { keluarga = await slKeluargaPenuh(uid); } catch (e) {}   // keluarga coach (ikut myNasab) tidak dikira dalam syarat
             for (const p of ps.docs) {
                 const k = p.id, pk = p.data(), kongsi = pk.kongsi || {};
+                const kuid = pk.klien_uid || k.replace(/_pasangan$/, ''), kper = nsPer(pk.per || (k.endsWith('_pasangan') ? 'pasangan' : 'induk'));
                 const [su, sp, ss] = await Promise.all([
-                    db.collection('mynasab_users').doc(k).get(),
+                    db.collection('mynasab_users').doc(kuid).get(),
                     db.collection('nowsihat_profil').doc(k).get(),
                     db.collection('nowsihat_senaman').doc(`${k}_${nsTarikhMY()}`).get()
                 ]);
@@ -86,13 +117,13 @@ exports.nowSihatCoach = functions
                 const harian = Object.fromEntries(hari7.map(t => [t, { kalori: 0, bil: 0 }]));
                 let soalan = 0;
                 if (kongsi.makan !== false) {
-                    const sl = await db.collection('nowsihat_log').where('uid', '==', k).where('tarikh', 'in', hari7).get();
-                    sl.forEach(d => { const x = d.data(); if (x.tanya_coach && !x.tanya_coach.dijawab) soalan++; if (harian[x.tarikh]) { harian[x.tarikh].kalori += (x.jumlah || {}).kalori || 0; harian[x.tarikh].bil++; } });
+                    const sl = await db.collection('nowsihat_log').where('uid', '==', kuid).where('tarikh', 'in', hari7).get();
+                    sl.forEach(d => { const x = d.data(); if (nsPer(x.per) !== kper) return; if (x.tanya_coach && !x.tanya_coach.dijawab) soalan++; if (harian[x.tarikh]) { harian[x.tarikh].kalori += (x.jumlah || {}).kalori || 0; harian[x.tarikh].bil++; } });
                 }
-                const sasAuto = await nsSasaranAuto(k, pr);
+                const sasAuto = await nsSasaranAuto(kuid, pr, kper);
                 const bl = Object.entries(pr.berat_log || {}).sort((a, b) => a[0] < b[0] ? -1 : 1);
                 out.push({
-                    uid: k, nama: (su.exists && su.data().name) || pk.nama_klien || 'Klien', sejak: pk.masa || null, kongsi,
+                    uid: k, nama: pk.nama_klien || (su.exists && su.data().name) || 'Klien', keluarga: keluarga.has(kuid), sejak: pk.masa || null, kongsi,
                     sasaran: Object.assign({}, sasAuto, pr.sasaran_coach || {}), sasaran_coach: !!pr.sasaran_coach, matlamat: pr.matlamat || '', soalan,
                     harian: kongsi.makan !== false ? harian : null,
                     berat: kongsi.berat !== false ? (pr.berat || null) : null,
@@ -102,21 +133,22 @@ exports.nowSihatCoach = functions
                     langganan_aktif: !!(su.exists && su.data().nowsihat_expiry_date > Date.now())
                 });
             }
-            return { klien: out, hari: hari7, coach: { nama: coach.nama, kod: coach.kod } };
+            const layak = new Set(out.filter(k => !k.keluarga && !k.uid.startsWith(uid)).map(k => k.uid.replace(/_pasangan$/, ''))).size;
+            return { klien: out, hari: hari7, coach: { nama: coach.nama, kod: coach.kod, coach_tamat: coach.coach_tamat || null, ujian_tamat: coach.ujian_tamat || null, ujian_lulus: !!coach.ujian_lulus, ujian_min: coach.ujian_min || T.coach_min_klien, layak } };
         }
 
         const klien = String((data && data.klien) || '');
         if (!klien) throw new functions.https.HttpsError('invalid-argument', 'Klien tidak dinyatakan.');
-        const pk = await nsPautan(uid, klien), kongsi = pk.kongsi || {};
+        const pk = await nsPautan(uid, klien), kongsi = pk.kongsi || {}, kuid = pk.klien_uid, kper = pk.per;   // klien = pid
 
         // ---- Butiran seorang klien ----
         if (tindakan === 'klien') {
-            const [su, sp] = await Promise.all([db.collection('mynasab_users').doc(klien).get(), db.collection('nowsihat_profil').doc(klien).get()]);
+            const [su, sp] = await Promise.all([db.collection('mynasab_users').doc(kuid).get(), db.collection('nowsihat_profil').doc(klien).get()]);
             const pr = sp.exists ? sp.data() : {}, u = su.exists ? su.data() : {};
             let log = [], senaman = [];
             if (kongsi.makan !== false) {
-                const sl = await db.collection('nowsihat_log').where('uid', '==', klien).where('tarikh', 'in', hari7).get();
-                sl.forEach(d => { const x = d.data(); log.push({ id: d.id, tarikh: x.tarikh, masa: x.masa, makanan: (x.makanan || []).map(m => ({ nama: m.nama, saiz: m.saiz || '', kalori: m.kalori, protein: m.protein, gula: m.gula, natrium: m.natrium })), jumlah: x.jumlah, status: x.status || '', nasihat: x.nasihat || '', komen_coach: x.komen_coach || null, tanya_coach: x.tanya_coach || null, sumber: x.sumber || '' }); });
+                const sl = await db.collection('nowsihat_log').where('uid', '==', kuid).where('tarikh', 'in', hari7).get();
+                sl.forEach(d => { const x = d.data(); if (nsPer(x.per) !== kper) return; log.push({ id: d.id, tarikh: x.tarikh, masa: x.masa, makanan: (x.makanan || []).map(m => ({ nama: m.nama, saiz: m.saiz || '', kalori: m.kalori, protein: m.protein, gula: m.gula, natrium: m.natrium })), jumlah: x.jumlah, status: x.status || '', nasihat: x.nasihat || '', komen_coach: x.komen_coach || null, tanya_coach: x.tanya_coach || null, sumber: x.sumber || '' }); });
                 log.sort((a, b) => b.masa - a.masa);
             }
             if (kongsi.senaman !== false) {
@@ -124,11 +156,11 @@ exports.nowSihatCoach = functions
                 ds.forEach(d => { if (d.exists) senaman.push(d.data()); });
             }
             return {
-                nama: u.name || 'Klien', hari: hari7, kongsi,
+                nama: pk.nama_klien || u.name || 'Klien', hari: hari7, kongsi,
                 profil: { matlamat: pr.matlamat || '', aktiviti: pr.aktiviti || '', fokus: pr.fokus || [], jantina: pr.jantina || '', dob: pr.dob || '', tinggi: pr.tinggi || null,
-                          sasaran: await nsSasaranAuto(klien, pr), sasaran_coach: pr.sasaran_coach || null, senaman_rutin: kongsi.senaman !== false ? (pr.senaman || null) : null },
+                          sasaran: await nsSasaranAuto(kuid, pr, kper), sasaran_coach: pr.sasaran_coach || null, senaman_rutin: kongsi.senaman !== false ? (pr.senaman || null) : null },
                 berat_log: kongsi.berat !== false ? (pr.berat_log || {}) : null,
-                keadaan: kongsi.kesihatan === true ? (u.myhealth_status || '') : null,
+                keadaan: kongsi.kesihatan === true ? (u[(kper === 'pasangan' ? 'pasangan_' : '') + 'myhealth_status'] || '') : null,
                 log, senaman
             };
         }
@@ -147,15 +179,15 @@ exports.nowSihatCoach = functions
             if (kongsi.makan === false) throw new functions.https.HttpsError('permission-denied', 'Klien tidak berkongsi rekod makan.');
             const ref = db.collection('nowsihat_log').doc(String(data.log || ''));
             const l = await ref.get();
-            if (!l.exists || l.data().uid !== klien) throw new functions.https.HttpsError('not-found', 'Rekod tidak dijumpai.');
+            if (!l.exists || l.data().uid !== kuid || nsPer(l.data().per) !== kper) throw new functions.https.HttpsError('not-found', 'Rekod tidak dijumpai.');
             const teks = String(data.teks || '').trim().slice(0, 300);
             const kemas = { komen_coach: teks ? { teks, oleh: uid, oleh_nama: coach.nama || 'Coach', masa: Date.now() } : admin.firestore.FieldValue.delete() };
             if (teks && l.data().tanya_coach) kemas['tanya_coach.dijawab'] = true;
             await ref.update(kemas);
             if (teks) {
                 try {
-                    const u = await db.collection('mynasab_users').doc(klien).get();
-                    if (u.exists) await hantarKeSemuaPeranti(db, admin.messaging(), klien, u.data(), {
+                    const u = await db.collection('mynasab_users').doc(kuid).get();
+                    if (u.exists) await hantarKeSemuaPeranti(db, admin.messaging(), kuid, u.data(), {
                         notification: { title: `${coach.nama || 'Coach'} komen pada makanan anda`, body: teks.slice(0, 120) },
                         data: { app: 'nowsihat', url: '/nowsihat.html', tag: `nowsihat-komen-${l.id}` }
                     });
@@ -165,6 +197,34 @@ exports.nowSihatCoach = functions
         }
 
         throw new functions.https.HttpsError('invalid-argument', 'Tindakan tidak sah.');
+    });
+
+// Semakan harian coach: selepas tempoh ujian, mesti ada sekurang-kurangnya N klien BUKAN keluarga (ikut myNasab).
+// Jika tidak, akaun coach dinyahaktifkan dan coach dimaklumkan.
+exports.nowSihatCoachSemak = functions
+    .region('asia-southeast1')
+    .pubsub.schedule('every day 09:00').timeZone('Asia/Kuala_Lumpur')
+    .onRun(async () => {
+        const sn = await db.collection('nowsihat_coach').where('status', '==', 'aktif').get();
+        for (const d of sn.docs) {
+            const c = d.data();
+            if (c.ujian_lulus || !c.ujian_tamat || c.ujian_tamat > Date.now()) continue;
+            let keluarga = new Set(); try { keluarga = await slKeluargaPenuh(d.id); } catch (e) {}
+            const ps = await db.collection('nowsihat_klien').where('coach_uid', '==', d.id).where('status', '==', 'aktif').get();
+            const layak = new Set(); ps.forEach(p => { const ku = p.data().klien_uid || p.id.replace(/_pasangan$/, ''); if (ku !== d.id && !keluarga.has(ku)) layak.add(ku); });
+            const min = c.ujian_min || 3;
+            if (layak.size >= min) { await d.ref.update({ ujian_lulus: true }); continue; }
+            const sebab = `Kurang daripada ${min} klien bukan keluarga dalam tempoh ujian (${layak.size} klien).`;
+            await d.ref.update({ status: 'nyahaktif', sebab, nyahaktif_pada: Date.now() });
+            try {
+                const u = await db.collection('mynasab_users').doc(d.id).get();
+                if (u.exists) await hantarKeSemuaPeranti(db, admin.messaging(), d.id, u.data(), {
+                    notification: { title: 'Akaun coach nowSihat dinyahaktifkan', body: sebab + ' Anda boleh daftar semula bila-bila masa.' },
+                    data: { app: 'nowsihat', url: '/nowsihat.html', tag: 'nowsihat-coach-semak' }
+                });
+            } catch (e) { console.error('Coach semak push:', e.message); }
+        }
+        return null;
     });
 
 // =====================================================================

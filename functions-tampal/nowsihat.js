@@ -18,7 +18,19 @@
 // =====================================================================
 
 const NS_MODEL = 'gemini-3.5-flash-lite';       // tukar di sini jika mahu model lain (cth 'gemini-3.5-flash')
-const NS_HAD_HARIAN = 8, NS_KREDIT_TAMBAHAN = 1, NS_IMBAS_TAMBAHAN = 3, NS_LANGGAN_KREDIT = 20, NS_HARI = 30;
+const NS_HARI = 30;   // tempoh setiap pembaharuan
+// Harga & syarat: dibaca daripada tetapan_awam/harga (admin boleh ubah), nilai di bawah ialah sandaran
+const NS_ASAL = { percubaan_hari: 30, nowsihat_kredit: 20, nowsihat_had: 8, nowsihat_tambahan_kredit: 1, nowsihat_tambahan_imbas: 3, coach_kredit: 10, coach_ujian_hari: 30, coach_min_klien: 3 };
+let nsCache = { t: 0, v: null };
+async function nsTetapan() {
+    if (nsCache.v && Date.now() - nsCache.t < 5 * 60000) return nsCache.v;
+    const v = { ...NS_ASAL };
+    try { const s = await db.collection('tetapan_awam').doc('harga').get(); if (s.exists) { const d = s.data(); for (const k in NS_ASAL) { const x = Number(d[k]); if (Number.isFinite(x) && x >= 0) v[k] = x; } } } catch (e) {}
+    nsCache = { t: Date.now(), v }; return v;
+}
+// Induk / pasangan: satu akaun, dua orang. id dokumen orang = uid (induk) atau uid_pasangan
+const nsPer = (x) => x === 'pasangan' ? 'pasangan' : 'induk';
+const nsPid = (uid, per) => per === 'pasangan' ? uid + '_pasangan' : uid;
 const nsTarikhMY = (ms) => new Date((ms || Date.now()) + 8 * 3600000).toISOString().slice(0, 10);
 
 function nsUmur(dob) {
@@ -36,22 +48,22 @@ exports.nowSihatLanggan = functions
     .https.onCall(async (data, context) => {
         const uid = context.auth && context.auth.uid;
         if (!uid) throw new functions.https.HttpsError('unauthenticated', 'Sila log masuk.');
-        const ref = db.collection('mynasab_users').doc(uid);
+        const ref = db.collection('mynasab_users').doc(uid), T = await nsTetapan();
         return db.runTransaction(async (t) => {
             const s = await t.get(ref); if (!s.exists) throw new functions.https.HttpsError('not-found', 'Akaun tidak dijumpai.');
             const u = s.data(), kini = Date.now();
             if (data && data.tindakan === 'mula') {
                 if (u.nowsihat_expiry_date) return { tamat: u.nowsihat_expiry_date, baru: false };
-                const tamat = kini + NS_HARI * 86400000;
+                const tamat = kini + T.percubaan_hari * 86400000;
                 t.update(ref, { nowsihat_expiry_date: tamat, nowsihat_mula: kini });
                 return { tamat, baru: true };
             }
             if (data && data.tindakan === 'baharu') {
                 const baki = parseInt(u.credit_balance) || 0;
-                if (baki < NS_LANGGAN_KREDIT) throw new functions.https.HttpsError('failed-precondition', `Kredit tidak mencukupi. Baki: ${baki} kredit.`);
+                if (baki < T.nowsihat_kredit) throw new functions.https.HttpsError('failed-precondition', `Kredit tidak mencukupi. Baki: ${baki} kredit.`);
                 const tamat = Math.max(kini, u.nowsihat_expiry_date || 0) + NS_HARI * 86400000;
-                t.update(ref, { credit_balance: baki - NS_LANGGAN_KREDIT, nowsihat_expiry_date: tamat });
-                return { tamat, baki: baki - NS_LANGGAN_KREDIT };
+                t.update(ref, { credit_balance: baki - T.nowsihat_kredit, nowsihat_expiry_date: tamat });
+                return { tamat, baki: baki - T.nowsihat_kredit };
             }
             throw new functions.https.HttpsError('invalid-argument', 'Tindakan tidak sah.');
         });
@@ -68,9 +80,10 @@ exports.nowSihatImbas = functions
         if (!gambar || gambar.length > 2.5 * 1024 * 1024) throw new functions.https.HttpsError('invalid-argument', 'Gambar tiada atau terlalu besar.');
         const nota = String((data && data.nota) || '').slice(0, 200);
         const puasa = !!(data && data.puasa);
+        const per = nsPer(data && data.per), pid = nsPid(uid, per), aw = per === 'pasangan' ? 'pasangan_' : '', T = await nsTetapan();
 
         const userRef = db.collection('mynasab_users').doc(uid);
-        const hari = nsTarikhMY(), harianRef = db.collection('nowsihat_harian').doc(`${uid}_${hari}`);
+        const hari = nsTarikhMY(), harianRef = db.collection('nowsihat_harian').doc(`${pid}_${hari}`);   // had harian setiap orang
 
         // 1. Semak langganan + had harian (dan potong kredit tambahan jika diminta) dalam satu transaksi
         await db.runTransaction(async (t) => {
@@ -78,29 +91,29 @@ exports.nowSihatImbas = functions
             const u = su.exists ? su.data() : {};
             if (!u.nowsihat_expiry_date || u.nowsihat_expiry_date < Date.now()) throw new functions.https.HttpsError('permission-denied', 'LANGGANAN_TAMAT');
             const h = sh.exists ? sh.data() : { uid, tarikh: hari, bil: 0, tambahan: 0 };
-            const had = NS_HAD_HARIAN + (h.tambahan || 0);
+            const had = T.nowsihat_had + (h.tambahan || 0);
             if ((h.bil || 0) >= had) {
                 if (!(data && data.bayarTambahan)) throw new functions.https.HttpsError('resource-exhausted', 'HAD_HARIAN');
                 const baki = parseInt(u.credit_balance) || 0;
-                if (baki < NS_KREDIT_TAMBAHAN) throw new functions.https.HttpsError('failed-precondition', `Kredit tidak mencukupi. Baki: ${baki} kredit.`);
-                t.update(userRef, { credit_balance: baki - NS_KREDIT_TAMBAHAN });
-                h.tambahan = (h.tambahan || 0) + NS_IMBAS_TAMBAHAN;
+                if (baki < T.nowsihat_tambahan_kredit) throw new functions.https.HttpsError('failed-precondition', `Kredit tidak mencukupi. Baki: ${baki} kredit.`);
+                t.update(userRef, { credit_balance: baki - T.nowsihat_tambahan_kredit });
+                h.tambahan = (h.tambahan || 0) + T.nowsihat_tambahan_imbas;
             }
-            t.set(harianRef, { uid, tarikh: hari, bil: (h.bil || 0) + 1, tambahan: h.tambahan || 0, luput_pada: admin.firestore.Timestamp.fromMillis(Date.now() + 3 * 86400000) }, { merge: true });
+            t.set(harianRef, { uid, per, tarikh: hari, bil: (h.bil || 0) + 1, tambahan: h.tambahan || 0, luput_pada: admin.firestore.Timestamp.fromMillis(Date.now() + 3 * 86400000) }, { merge: true });
         });
 
         // 2. Konteks pengguna: profil + jumlah hari ini
         const [sp, sr, slog, su2] = await Promise.all([
-            db.collection('nowsihat_profil').doc(uid).get(),
-            db.collection('mynasab_nodes').doc('root_' + uid).get(),
+            db.collection('nowsihat_profil').doc(pid).get(),
+            per === 'induk' ? db.collection('mynasab_nodes').doc('root_' + uid).get() : Promise.resolve({ exists: false }),
             db.collection('nowsihat_log').where('uid', '==', uid).where('tarikh', '==', hari).get(),
             userRef.get()
         ]);
-        const keadaan = (su2.exists && su2.data().myhealth_status && su2.data().myhealth_status !== 'tiada') ? String(su2.data().myhealth_status) : '';   // daripada myHEALTH
+        const keadaan = (su2.exists && su2.data()[aw + 'myhealth_status'] && su2.data()[aw + 'myhealth_status'] !== 'tiada') ? String(su2.data()[aw + 'myhealth_status']) : '';   // daripada myHEALTH
         const pr = sp.exists ? sp.data() : {}, akar = sr.exists ? sr.data() : {};
         const umur = nsUmur(pr.dob || akar.dob), jantina = pr.jantina || (akar.gender === 'P' ? 'P' : akar.gender === 'L' ? 'L' : '');
         const sudah = { kalori: 0, protein: 0, gula: 0, natrium: 0 };
-        slog.forEach(d => { const j = d.data().jumlah || {}; for (const k in sudah) sudah[k] += Number(j[k]) || 0; });
+        slog.forEach(d => { if (nsPer(d.data().per) !== per) return; const j = d.data().jumlah || {}; for (const k in sudah) sudah[k] += Number(j[k]) || 0; });
         const sasaran = Object.assign({}, pr.sasaran || {}, pr.sasaran_coach || {});
 
         const prompt = `Anda pembantu pemakanan untuk pengguna di Malaysia. Kenal pasti makanan/minuman dalam gambar dan anggarkan nutrisi untuk hidangan yang kelihatan.
@@ -150,7 +163,7 @@ Unit: kalori kcal; protein/karbo/lemak/gula gram; natrium mg. Nombor bulat.`;
         const jumlah = { kalori: 0, protein: 0, karbo: 0, lemak: 0, gula: 0, natrium: 0 };
         makanan.forEach(m => { for (const k in jumlah) jumlah[k] += m[k]; });
         const status = ['baik', 'sederhana', 'kurangkan', 'bukan_makanan'].includes(hasil.status) ? hasil.status : 'sederhana';
-        const rekod = { uid, tarikh: hari, masa: Date.now(), makanan, jumlah, status, nasihat: String(hasil.nasihat || '').slice(0, 400), seterusnya: String(hasil.seterusnya || '').slice(0, 300), puasa, nota, model: NS_MODEL };
+        const rekod = { uid, per, tarikh: hari, masa: Date.now(), makanan, jumlah, status, nasihat: String(hasil.nasihat || '').slice(0, 400), seterusnya: String(hasil.seterusnya || '').slice(0, 300), puasa, nota, model: NS_MODEL };
 
         if (status === 'bukan_makanan' || !makanan.length) {
             await harianRef.update({ bil: admin.firestore.FieldValue.increment(-1) }).catch(() => {});
@@ -174,11 +187,12 @@ exports.nowSihatPeringatan = functions
             const s = d.data().senaman || {};
             if (!(s.hari || []).includes(dow)) continue;
             if ((await db.collection('nowsihat_senaman').doc(`${d.id}_${hari}`).get()).exists) continue;
-            const u = await db.collection('mynasab_users').doc(d.id).get();
+            const uidAkaun = d.id.replace(/_pasangan$/, '');                                   // profil pasangan: uid_pasangan
+            const u = await db.collection('mynasab_users').doc(uidAkaun).get();
             if (!u.exists || !(u.data().nowsihat_expiry_date > Date.now())) continue;
             const nama = s.jenis === 'jog' ? 'jogging' : 'brisk walk';
             try {
-                n += await hantarKeSemuaPeranti(db, admin.messaging(), d.id, u.data(), {
+                n += await hantarKeSemuaPeranti(db, admin.messaging(), uidAkaun, u.data(), {
                     notification: { title: `Masa untuk ${nama}`, body: `${s.minit || 30} minit ${nama} hari ini. Siap nanti, tekan "Dah buat" di nowSihat.` },
                     data: { app: 'nowsihat', url: '/nowsihat.html', tag: `nowsihat-senaman-${hari}` }
                 });
@@ -210,11 +224,7 @@ exports.nowSihatPeringatan = functions
       allow create, update: if request.auth != null && request.resource.data.uid == request.auth.uid
                             && id == request.auth.uid + '_' + request.resource.data.tarikh;
     }
-    match /nowsihat_senaman/{id} {
-      allow read, delete: if request.auth != null && resource.data.uid == request.auth.uid;
-      allow create, update: if request.auth != null && request.resource.data.uid == request.auth.uid
-                            && id == request.auth.uid + '_' + request.resource.data.tarikh;
-    }
+    (lihat functions-tampal/nowsihat-coach.js untuk set penuh peraturan nowSihat terkini)
     match /nowsihat_harian/{id} {
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;
       allow write: if false;               // hanya Cloud Function

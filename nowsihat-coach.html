@@ -87,6 +87,7 @@
   <div class="kad gate" id="gate">Memuatkan...</div>
 
   <section id="t-klien" class="hidden">
+    <div class="kad hidden" id="bannerUjian" style="font-size:13.5px;line-height:1.6"></div>
     <div class="statistik" style="margin-top:14px">
       <div><b id="stJumlah">0</b>klien</div>
       <div><b id="stCatat">0</b>catat hari ini</div>
@@ -117,11 +118,11 @@
 
   <section id="t-admin" class="hidden">
     <div class="kad">
-      <h2><i class="fa-solid fa-user-shield"></i> Permohonan coach</h2>
+      <h2><i class="fa-solid fa-user-shield"></i> Coach aktif</h2>
       <div id="senaraiMohon" class="kecil">Memuatkan...</div>
     </div>
     <div class="kad">
-      <h2><i class="fa-solid fa-clipboard-user"></i> Coach aktif</h2>
+      <h2><i class="fa-solid fa-user-slash"></i> Coach tidak aktif</h2>
       <div id="senaraiAktif" class="kecil">Memuatkan...</div>
     </div>
   </section>
@@ -188,6 +189,10 @@ async function muatSenarai() {
   try {
     const r = await coachFn({ tindakan: 'senarai' }); C.data = r.data;
     $('namaCoach').textContent = r.data.coach.nama || 'nowSihat';
+    { const c = r.data.coach, t = ms => ms ? new Date(ms).toLocaleDateString('en-GB') : '-', b = $('bannerUjian');
+      b.innerHTML = c.ujian_lulus ? `<i class="fa-solid fa-circle-check" style="color:#16a34a"></i> Syarat klien lulus. Yuran coach aktif sehingga <b>${t(c.coach_tamat)}</b>.`
+        : `<i class="fa-solid fa-hourglass-half" style="color:#b45309"></i> Syarat: <b>${c.layak}/${c.ujian_min}</b> klien bukan keluarga sebelum <b>${t(c.ujian_tamat)}</b>. Klien keluarga sendiri tidak dikira. Yuran coach aktif sehingga <b>${t(c.coach_tamat)}</b>.`;
+      b.classList.remove('hidden'); }
     const hari = tarikhMY(), list = r.data.klien.map(k => ({ ...k, amaran: amaran(k) }));
     const skor = k => (k.soalan ? 10 : 0) + k.amaran.filter(x => x[0] === 'merah').length;
     list.sort((a, b) => skor(b) - skor(a) || a.nama.localeCompare(b.nama));
@@ -205,10 +210,14 @@ async function muatSenarai() {
           <div style="display:flex;justify-content:space-between;gap:6px"><b style="font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(k.nama)}</b>
             ${k.harian ? `<div class="mini">${C.data.hari.map(t => { const v = k.harian[t]; return `<i class="${!v.bil ? 'kosong' : sas && v.kalori > sas ? 'lebih' : ''}" style="height:${v.bil ? Math.max(8, v.kalori / mx * 100) : 8}%"></i>`; }).join('')}</div>` : ''}</div>
           ${hi ? `<div class="kecil" style="margin-top:2px">Hari ini ${hi.kalori}${sas ? ' / ' + sas : ''} kcal${k.matlamat ? ' · ' + (MATLAMAT[k.matlamat] || '') : ''}</div><div class="bar"><i class="${sas && hi.kalori > sas ? 'lebih' : ''}" style="width:${pct}%"></i></div>` : '<div class="kecil">Rekod makan tidak dikongsi</div>'}
-          <div>${k.senaman_hari_ini ? '<span class="chip hijau"><i class="fa-solid fa-person-walking"></i> Senaman</span>' : ''}${k.streak ? `<span class="chip kuning"><i class="fa-solid fa-fire"></i> ${k.streak} hari</span>` : ''}${k.berat_ubah !== null && k.berat_ubah !== undefined ? `<span class="chip ${k.berat_ubah <= 0 ? 'hijau' : 'kelabu'}"><i class="fa-solid fa-weight-scale"></i> ${k.berat_ubah > 0 ? '+' : ''}${k.berat_ubah} kg</span>` : ''}${k.amaran.map(([w, i, t]) => `<span class="chip ${w}"><i class="fa-solid ${i}"></i> ${t}</span>`).join('')}</div>
+          <div>${k.senaman_hari_ini ? '<span class="chip hijau"><i class="fa-solid fa-person-walking"></i> Senaman</span>' : ''}${k.streak ? `<span class="chip kuning"><i class="fa-solid fa-fire"></i> ${k.streak} hari</span>` : ''}${k.berat_ubah !== null && k.berat_ubah !== undefined ? `<span class="chip ${k.berat_ubah <= 0 ? 'hijau' : 'kelabu'}"><i class="fa-solid fa-weight-scale"></i> ${k.berat_ubah > 0 ? '+' : ''}${k.berat_ubah} kg</span>` : ''}${k.keluarga ? '<span class="chip kelabu"><i class="fa-solid fa-people-roof"></i> Keluarga</span>' : ''}${k.amaran.map(([w, i, t]) => `<span class="chip ${w}"><i class="fa-solid ${i}"></i> ${t}</span>`).join('')}</div>
         </div></div>`;
     }).join('');
-  } catch (e) { $('senarai').innerHTML = `<span style="color:#b91c1c">Gagal memuatkan: ${esc(e.message)}</span>`; }
+  } catch (e) {
+    $('senarai').innerHTML = /COACH_TAMAT/.test(e.message)
+      ? `<span style="color:#b91c1c;font-weight:800">Langganan coach anda telah tamat.</span><br><a href="nowsihat.html" style="color:#16a34a;font-weight:800">Perbaharui di nowSihat → Profil</a>`
+      : `<span style="color:#b91c1c">Gagal memuatkan: ${esc(e.message)}</span>`;
+  }
 }
 window.muatSenarai = muatSenarai;
 
@@ -286,17 +295,24 @@ window.kongsiWA = () => {
 // ---------- Admin: kelulusan coach ----------
 async function muatAdmin() {
   try {
-    const [m, a] = await Promise.all([getDocs(query(collection(db, 'nowsihat_coach'), where('status', '==', 'mohon'))), getDocs(query(collection(db, 'nowsihat_coach'), where('status', '==', 'aktif')))]);
-    const baris = (d, aktif) => { const c = d.data(); return `<div class="klien" style="cursor:default"><div class="av">${esc((c.nama || '?')[0].toUpperCase())}</div><div style="flex:1;min-width:0"><b>${esc(c.nama)}</b> <span class="kecil">${esc(c.emel || '')} · kod ${esc(c.kod || '-')}</span><div class="kecil">${esc(c.bio || '')}</div></div>
-      ${aktif ? `<button class="btn btn-merah btn-kecil" onclick="nyahAktif('${d.id}')">Nyahaktif</button>` : `<div style="display:flex;gap:4px"><button class="btn btn-hijau btn-kecil" onclick="lulus('${d.id}')">Lulus</button><button class="btn btn-merah btn-kecil" onclick="tolak('${d.id}')">Tolak</button></div>`}</div>`; };
-    $('senaraiMohon').innerHTML = m.size ? m.docs.map(d => baris(d, false)).join('') : 'Tiada permohonan baru.';
-    $('senaraiAktif').innerHTML = a.size ? a.docs.map(d => baris(d, true)).join('') : 'Belum ada coach aktif.';
-    $('bilMohon').textContent = m.size; $('bilMohon').classList.toggle('hidden', !m.size);
+    const sn = await getDocs(collection(db, 'nowsihat_coach')); const aktif = [], lain = [];
+    sn.forEach(d => (d.data().status === 'aktif' ? aktif : lain).push(d));
+    const t = ms => ms ? new Date(ms).toLocaleDateString('en-GB') : '-';
+    const baris = (d) => { const c = d.data(), on = c.status === 'aktif', tamat = c.coach_tamat && c.coach_tamat < Date.now();
+      return `<div class="klien" style="cursor:default"><div class="av">${esc((c.nama || '?')[0].toUpperCase())}</div><div style="flex:1;min-width:0"><b>${esc(c.nama)}</b> <span class="kecil">${esc(c.emel || '')} · kod ${esc(c.kod || '-')}</span>
+        <div class="kecil">Mula ${t(c.mula)} · yuran sehingga ${t(c.coach_tamat)}${tamat ? ' <b style="color:#dc2626">(tamat)</b>' : ''} · ${c.ujian_lulus ? '<span class="chip hijau">lulus syarat</span>' : 'ujian hingga ' + t(c.ujian_tamat)}</div>
+        ${c.sebab ? `<div class="kecil" style="color:#b91c1c">${esc(c.sebab)}</div>` : ''}${c.bio ? `<div class="kecil">${esc(c.bio)}</div>` : ''}</div>
+        ${on ? `<button class="btn btn-merah btn-kecil" onclick="nyahAktif('${d.id}')">Nyahaktif</button>` : `<button class="btn btn-hijau btn-kecil" onclick="aktifkan('${d.id}')">Aktifkan</button>`}</div>`; };
+    $('senaraiMohon').innerHTML = aktif.length ? aktif.map(baris).join('') : 'Belum ada coach aktif.';
+    $('senaraiAktif').innerHTML = lain.length ? lain.map(baris).join('') : 'Tiada.';
+    $('bilMohon').textContent = aktif.length; $('bilMohon').classList.toggle('hidden', !aktif.length); $('bilMohon').style.background = '#16a34a';
   } catch (e) { $('senaraiMohon').textContent = 'Gagal: ' + e.message; }
 }
-window.lulus = async (id) => { try { await updateDoc(doc(db, 'nowsihat_coach', id), { status: 'aktif', lulus_pada: Date.now() }); muatAdmin(); } catch (e) { alert('Gagal: ' + e.message); } };
-window.tolak = async (id) => { if (!confirm('Tolak dan padam permohonan ini?')) return; try { await deleteDoc(doc(db, 'nowsihat_coach', id)); muatAdmin(); } catch (e) { alert('Gagal: ' + e.message); } };
-window.nyahAktif = async (id) => { if (!confirm('Nyahaktifkan coach ini? Dashboard mereka akan ditutup.')) return; try { await updateDoc(doc(db, 'nowsihat_coach', id), { status: 'mohon' }); muatAdmin(); } catch (e) { alert('Gagal: ' + e.message); } };
+// Admin: aktifkan semula (beri 30 hari & tempoh ujian baharu) / nyahaktif manual
+window.aktifkan = async (id) => { if (!confirm('Aktifkan coach ini? Diberi 30 hari dan tempoh ujian baharu, tanpa potongan kredit.')) return;
+  const k = Date.now(); try { await updateDoc(doc(db, 'nowsihat_coach', id), { status: 'aktif', sebab: '', coach_tamat: k + 30 * 864e5, ujian_tamat: k + 30 * 864e5, ujian_lulus: false, diaktif_admin: k }); muatAdmin(); } catch (e) { alert('Gagal: ' + e.message); } };
+window.nyahAktif = async (id) => { const sb = prompt('Nyahaktifkan coach ini. Sebab (dipapar kepada coach):', 'Dinyahaktifkan oleh admin'); if (sb === null) return;
+  try { await updateDoc(doc(db, 'nowsihat_coach', id), { status: 'nyahaktif', sebab: sb.slice(0, 200), nyahaktif_pada: Date.now() }); muatAdmin(); } catch (e) { alert('Gagal: ' + e.message); } };
 
 // ---------- Mula ----------
 onAuthStateChanged(auth, async (u) => {
@@ -315,7 +331,7 @@ onAuthStateChanged(auth, async (u) => {
     tukarTab('admin'); return;
   }
   if (C.mod !== 'coach') {
-    $('gate').innerHTML = C.coach ? 'Permohonan coach anda sedang disemak.' : 'Halaman ini untuk coach nowSihat yang telah diluluskan.<br><br><a href="nowsihat.html" style="color:#16a34a;font-weight:800">Mohon di nowSihat → Profil</a>';
+    $('gate').innerHTML = (C.coach && C.coach.status === 'nyahaktif' ? `Akaun coach anda tidak aktif${C.coach.sebab ? ': ' + esc(C.coach.sebab) : ''}.<br><br>` : 'Halaman ini untuk coach nowSihat.<br><br>') + '<a href="nowsihat.html" style="color:#16a34a;font-weight:800">Daftar di nowSihat → Profil → Jadi coach</a>';
     return;
   }
   $('gate').classList.add('hidden'); tukarTab('klien');
@@ -324,6 +340,6 @@ onAuthStateChanged(auth, async (u) => {
   muatSenarai();
 });
 </script>
-<script src="cara-guna.js?v=5" data-app="nowsihatcoach" defer></script>
+<script src="cara-guna.js?v=6" data-app="nowsihatcoach" defer></script>
 </body>
 </html>

@@ -1,0 +1,52 @@
+// =====================================================================
+// PERATURAN FIRESTORE nowSihat (set penuh terkini)
+// GANTI semua blok nowsihat_* lama dengan blok di bawah (tetapan_awam kekal seperti sedia ada).
+// Induk/pasangan: id dokumen orang = uid (induk) atau uid_pasangan (pasangan).
+// =====================================================================
+
+match /nowsihat_profil/{pid} {
+  allow read, write: if request.auth != null && (pid == request.auth.uid || pid == request.auth.uid + '_pasangan');
+}
+match /nowsihat_log/{id} {
+  allow read, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+  allow update: if request.auth != null && resource.data.uid == request.auth.uid && request.resource.data.uid == request.auth.uid;
+  allow create: if request.auth != null && request.resource.data.uid == request.auth.uid && request.resource.data.sumber == 'kerap';
+}
+match /nowsihat_kerap/{id} {
+  allow read, update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+  allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+}
+match /nowsihat_air/{id} {
+  allow read: if request.auth != null && (resource == null || resource.data.uid == request.auth.uid);
+  allow create, update: if request.auth != null && request.resource.data.uid == request.auth.uid
+                        && (id == request.auth.uid + '_' + request.resource.data.tarikh
+                            || id == request.auth.uid + '_pasangan_' + request.resource.data.tarikh);
+}
+match /nowsihat_harian/{id} {
+  allow read: if request.auth != null && (resource == null || resource.data.uid == request.auth.uid);
+  allow write: if false;
+}
+match /nowsihat_senaman/{id} {
+  allow read: if request.auth != null && (resource == null || resource.data.uid == request.auth.uid);
+  allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+  allow create, update: if request.auth != null && request.resource.data.uid == request.auth.uid
+                        && (id == request.auth.uid + '_' + request.resource.data.tarikh
+                            || id == request.auth.uid + '_pasangan_' + request.resource.data.tarikh);
+}
+// Coach: didaftar oleh server (yuran & tempoh ujian). Pemilik hanya boleh ubah nama & bio. Admin boleh ubah semua.
+match /nowsihat_coach/{uid} {
+  allow read: if request.auth != null;
+  allow create: if false;
+  allow update: if request.auth != null && (
+                  request.auth.token.email == 'dae.book89@gmail.com' ||
+                  (request.auth.uid == uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nama', 'bio'])));
+  allow delete: if request.auth != null && request.auth.token.email == 'dae.book89@gmail.com';
+}
+// Pautan klien -> coach (id = pid klien)
+match /nowsihat_klien/{pid} {
+  allow read: if request.auth != null && (resource == null || resource.data.klien_uid == request.auth.uid || resource.data.coach_uid == request.auth.uid);
+  allow create, update: if request.auth != null && request.resource.data.klien_uid == request.auth.uid
+                        && (pid == request.auth.uid || pid == request.auth.uid + '_pasangan')
+                        && get(/databases/$(database)/documents/nowsihat_coach/$(request.resource.data.coach_uid)).data.status == 'aktif';
+  allow delete: if request.auth != null && (resource.data.klien_uid == request.auth.uid || resource.data.coach_uid == request.auth.uid);
+}

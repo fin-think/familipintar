@@ -92,6 +92,7 @@
       tajuk: 'Cara Guna nowSihat',
       intro: 'Snap gambar makanan, dapat anggaran nutrisi dan nasihat ikut umur, matlamat dan keadaan kesihatan anda. Percuma 30 hari pertama.',
       langkah: [
+        ['Untuk siapa', 'Satu langganan untuk anda dan pasangan. Pilih nama di bar <b>Untuk</b> di atas; setiap orang ada profil, rekod makan, senaman, air dan coach sendiri.'],
         ['Lengkapkan profil', 'Tab <b>Profil</b>: tarikh lahir & jantina diambil dari myNasab, berat & tinggi dari myHEALTH. Pilih aktiviti, matlamat dan fokus (kurang gula/garam, lebih protein). Sasaran harian dikira sendiri.'],
         ['Imbas makanan', 'Tekan butang <b>kamera</b>, ambil gambar dari atas, kemudian <b>Analisis</b>. Sehingga 8 imbasan sehari; lebih dari itu 1 kredit untuk 3 imbasan. Gambar tidak disimpan.'],
         ['Laras saiz', 'Tekan <b>Laras</b> pada rekod untuk pilih saiz sebenar (½ hingga 2×), betulkan nama makanan, atau buang item yang tiada.'],
@@ -101,19 +102,24 @@
         ['Senaman', 'Tetapkan rutin brisk walk atau jogging di Profil (hari, minit, masa peringatan). Kad merah <b>Belum buat</b> jadi hijau bila anda tekan dan isi minit. Kalori terbakar tambah baki kalori hari itu.'],
         ['Puasa sunat', 'Pada hari Isnin, Khamis dan Hari Putih (13–15 Hijrah), tanda <b>Saya berpuasa hari ini</b> untuk panduan berbuka & sahur. Sehari sebelum, ada peringatan sediakan sahur.'],
         ['Trend', 'Tab <b>Trend</b>: graf kalori 7 hari berbanding sasaran, dan log berat badan. Timbang seminggu sekali untuk lihat kemajuan.'],
-        ['Coach (pilihan)', 'Ada coach diet? Masukkan kod coach di Profil → <b>Coach saya</b> dan pilih apa yang dikongsi. Boleh putuskan bila-bila masa. Coach juga boleh memohon di <b>Jadi coach nowSihat</b>.']
+        ['Coach (pilihan)', 'Ada coach diet? Masukkan kod coach di Profil → <b>Coach saya</b> dan pilih apa yang dikongsi. Coach nampak rekod anda secara automatik; boleh putuskan bila-bila masa.'],
+        ['Tanya coach', 'Selepas imbas, tekan <b>Tanya coach tentang ni</b> (gambar terus dilampir), atau butang <b>Tanya coach</b> pada rekod. Anda dapat notifikasi bila coach menjawab.'],
+        ['Paparan sebagai', 'Jika anda juga coach atau admin, tukar paparan melalui menu <b>Saya / Coach / Admin</b> di atas.']
       ]
     },
     nowsihatcoach: {
       tajuk: 'Cara Guna Dashboard Coach',
       intro: 'Pantau klien yang bersetuju berkongsi data nowSihat dengan anda, tetapkan sasaran dan beri komen.',
       langkah: [
+        ['Daftar coach', 'Di nowSihat → Profil → <b>Jadi coach nowSihat</b>. Akaun aktif terus dengan yuran bulanan (kredit). Perlu berdaftar Affiliate dahulu.'],
+        ['Syarat klien', 'Dalam tempoh ujian (30 hari), perlu ada sekurang-kurangnya 3 klien <b>bukan keluarga sendiri</b> (ikut myNasab). Jika tidak, akaun coach dinyahaktifkan automatik. Kemajuan dipapar di atas senarai klien.'],
         ['Jemput klien', 'Tab <b>Pautan saya</b>: salin atau kongsi pautan ke WhatsApp. Klien yang mendaftar melalui pautan ini diminta bersetuju berkongsi, dan direkod sebagai rujukan affiliate anda.'],
         ['Klien sedia ada', 'Klien yang sudah ada akaun boleh masukkan kod anda di nowSihat → Profil → Coach saya.'],
         ['Ringkasan', 'Kad atas tunjuk jumlah klien, berapa yang catat hari ini, dan berapa yang perlu perhatian. Klien yang perlu perhatian disusun di atas.'],
         ['Amaran', '<b>Tak catat 2 hari</b>, <b>Lebih kalori 3 hari</b> atau <b>Langganan tamat</b>. Graf mini menunjukkan 7 hari (merah = lebih sasaran).'],
         ['Sasaran', 'Buka klien dan isi sasaran kalori, protein, gula atau natrium. Kosongkan medan untuk guna nilai automatik. Klien nampak "Ditetapkan oleh" nama anda.'],
-        ['Komen', 'Tulis komen pada rekod makan klien. Klien terima notifikasi dan nampak komen di bawah makanan itu.'],
+        ['Soalan & komen', 'Klien yang bertanya (chip ungu <b>soalan</b>) disusun paling atas. Jawab melalui ruang komen pada rekod makan; klien terima notifikasi.'],
+        ['Pembaharuan', 'Perbaharui yuran coach di nowSihat → Profil sebelum tamat. Tukar antara paparan <b>Saya</b> dan <b>Coach</b> melalui menu di atas.'],
         ['Privasi', 'Anda hanya nampak apa yang klien benarkan, dan klien boleh putuskan bila-bila masa. Beri bimbingan gaya hidup, bukan diagnosis atau nasihat perubatan.']
       ]
     },
