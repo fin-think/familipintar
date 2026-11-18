@@ -70,3 +70,9 @@ match /buatapa/{grp}/{fail} {
 === INDEKS ===
 Pertama kali buka halaman, Firestore akan beri pautan ciptaan indeks (group_id + created_at
 untuk buatapa_posts). Klik, Create, tunggu beberapa minit. Halaman papar pautan itu sendiri.
+
+    // Tetapan awam (laras tarikh Hijrah untuk semua pengguna). Semua boleh baca, hanya admin boleh tulis.
+    match /tetapan_awam/{id} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == 'dae.book89@gmail.com';
+    }

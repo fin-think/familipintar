@@ -36,7 +36,7 @@
     <h1 class="text-2xl font-extrabold mt-2">Buat Apa Hari Ini?</h1>
     <p id="tarikhMasihi" class="text-teal-100 text-sm mt-1">&nbsp;</p>
     <p class="mt-1 flex items-center gap-2 flex-wrap"><span id="tarikhHijrah" class="text-lg font-extrabold text-amber-300">&nbsp;</span>
-      <span class="laras inline-flex items-center gap-1 text-xs text-teal-100" title="Laras jika tarikh Hijrah berbeza sehari daripada pengumuman rasmi Malaysia">
+      <span id="larasKotak" class="laras hidden inline-flex items-center gap-1 text-xs text-teal-100" title="Laras jika tarikh Hijrah berbeza sehari daripada pengumuman rasmi Malaysia">
         <button id="larasKurang" aria-label="Kurangkan sehari">−</button><span id="larasNilai" class="w-14 text-center"></span><button id="larasTambah" aria-label="Tambah sehari">+</button>
       </span></p>
   </div>
@@ -115,7 +115,6 @@ import { BULAN_HIJRAH, BULAN_MASIHI, tarikhMalaysia, tarikhHijrah, namaHariMasih
 // Fasa ujian: admin sahaja. Tukar kepada false apabila dibuka kepada pengguna.
 const UJIAN_ADMIN = false;
 const ADMIN_EMEL = 'dae.book89@gmail.com';
-const KUNCI_LARAS = 'buatapa_laras_hijrah';
 
 const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app), storage = getStorage(app);
 // Siaran, komen & reaksi dipadam oleh TTL Firestore (medan luput_pada) selepas 48 jam; gambar oleh peraturan Lifecycle Storage (buatapa/)
@@ -126,7 +125,8 @@ const CACHE = 'public,max-age=31536000';
 const URL_STORAGE = 'https://firebasestorage.googleapis.com/';
 const $ = (id) => document.getElementById(id);
 const g = tarikhMalaysia();
-let laras = 0; try { laras = Math.max(-1, Math.min(1, parseInt(localStorage.getItem(KUNCI_LARAS) || '0', 10) || 0)); } catch (e) {}
+// Laras Hijrah global (tetapan_awam/hijrah), hanya admin boleh ubah; semua pengguna & app (nowSihat) ikut nilai yang sama
+let laras = 0;
 let nodUser = null; // nod pokok keluarga; null = belum dimuat atau tiada
 // Dinding: kumpulan = uid induk pautan aktif (atau uid sendiri), sama seperti weCare. Seseorang boleh baca kumpulan sendiri dan kumpulan induknya.
 const D = { user: null, admin: false, nama: '', kumpulan: [], posts: [], reaksi: {}, komen: {}, kursor: {}, habis: {}, fail: [], hantar: false };
@@ -448,12 +448,19 @@ $('posSemua').onclick = () => siar(D.idSemua);
 $('posKami').onclick = () => siar(D.idKami);
 $('muatLagi').onclick = muatPosts;
 
-function ubahLaras(d) { laras = Math.max(-1, Math.min(1, laras + d)); try { localStorage.setItem(KUNCI_LARAS, String(laras)); } catch (e) {} lukisKandungan(); }
+async function ubahLaras(d) {
+  if (!D.admin) return;
+  const baru = Math.max(-1, Math.min(1, laras + d)); if (baru === laras) return;
+  try { await setDoc(doc(db, 'tetapan_awam', 'hijrah'), { laras: baru, oleh: D.user.email, masa: Date.now() }); laras = baru; lukisKandungan(); }
+  catch (e) { alert('Gagal simpan laras: ' + e.message); }
+}
 $('larasKurang').onclick = () => ubahLaras(-1);
 $('larasTambah').onclick = () => ubahLaras(1);
 
 onAuthStateChanged(auth, async (u) => {
   const admin = !!u && (u.email || '').toLowerCase() === ADMIN_EMEL;
+  try { const t = await getDoc(doc(db, 'tetapan_awam', 'hijrah')); if (t.exists()) laras = Math.max(-1, Math.min(1, parseInt(t.data().laras, 10) || 0)); } catch (e) {}
+  $('larasKotak').classList.toggle('hidden', !admin);
   if (UJIAN_ADMIN && !admin) { $('gate').textContent = 'Halaman ini dalam fasa ujian (admin sahaja). Sila log masuk dengan akaun admin.'; return; }
   $('gate').classList.add('hidden');
   if (u) {
