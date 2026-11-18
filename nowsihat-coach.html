@@ -194,8 +194,8 @@ async function muatSenarai() {
     if (r.data.coach.foto) { const ic = document.querySelector('.logo > i'); if (ic) ic.outerHTML = `<span style="width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:url('${esc(r.data.coach.foto)}') center/cover;flex:none"></span>`; }
     { const c = r.data.coach, t = ms => ms ? new Date(ms).toLocaleDateString('en-GB') : '-', b = $('bannerUjian');
       if (!c.ujian_tamat && !c.coach_tamat) { b.classList.add('hidden'); } else
-      b.innerHTML = c.ujian_lulus ? `<i class="fa-solid fa-circle-check" style="color:#16a34a"></i> Syarat klien lulus. Yuran coach aktif sehingga <b>${t(c.coach_tamat)}</b>.`
-        : `<i class="fa-solid fa-hourglass-half" style="color:#b45309"></i> Syarat: <b>${c.layak}/${c.ujian_min}</b> klien bukan keluarga sebelum <b>${t(c.ujian_tamat)}</b>. Klien keluarga sendiri tidak dikira. Yuran coach aktif sehingga <b>${t(c.coach_tamat)}</b>.`;
+      b.innerHTML = c.ujian_lulus ? `<i class="fa-solid fa-circle-check" style="color:#16a34a"></i> Syarat klien lulus. Coach aktif sehingga <b>${t(c.coach_tamat)}</b>, selepas itu <b>${c.yuran || 10} kredit sebulan</b>.`
+        : `<i class="fa-solid fa-hourglass-half" style="color:#b45309"></i> Syarat: <b>${c.layak}/${c.ujian_min}</b> klien bukan keluarga sebelum <b>${t(c.ujian_tamat)}</b>. Klien keluarga sendiri tidak dikira. Jika tidak cukup, akaun coach dinyahaktifkan automatik.<br><i class="fa-solid fa-crown" style="color:#16a34a"></i> Coach aktif sehingga <b>${t(c.coach_tamat)}</b>, selepas itu <b>${c.yuran || 10} kredit sebulan</b> (perbaharui di nowSihat → Profil).`;
       if (c.ujian_tamat || c.coach_tamat) b.classList.remove('hidden'); }
     const hari = tarikhMY(), list = r.data.klien.map(k => ({ ...k, amaran: amaran(k) }));
     const skor = k => (k.soalan ? 10 : 0) + k.amaran.filter(x => x[0] === 'merah').length;

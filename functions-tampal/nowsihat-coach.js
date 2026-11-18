@@ -65,8 +65,8 @@ exports.nowSihatCoach = functions
                 const [su, sc] = await Promise.all([t.get(uref), t.get(cref)]);
                 const u = su.exists ? su.data() : {}, c = sc.exists ? sc.data() : null, kini = Date.now();
                 const baki = parseInt(u.credit_balance) || 0;
-                if (baki < T.coach_kredit) throw new functions.https.HttpsError('failed-precondition', `Kredit tidak mencukupi. Baki: ${baki} kredit.`);
                 if (tindakan === 'perbaharui_coach') {
+                    if (baki < T.coach_kredit) throw new functions.https.HttpsError('failed-precondition', `Kredit tidak mencukupi. Baki: ${baki} kredit.`);
                     if (!c || c.status !== 'aktif') throw new functions.https.HttpsError('failed-precondition', 'Akaun coach tidak aktif. Sila daftar semula.');
                     const tamat = Math.max(kini, c.coach_tamat || 0) + NS_HARI * 86400000;
                     t.update(uref, { credit_balance: baki - T.coach_kredit }); t.update(cref, { coach_tamat: tamat });
@@ -74,11 +74,15 @@ exports.nowSihatCoach = functions
                 }
                 if (c && c.status === 'aktif') throw new functions.https.HttpsError('already-exists', 'Akaun coach anda sudah aktif.');
                 if (!u.is_affiliate || !u.referral_code) throw new functions.https.HttpsError('failed-precondition', 'Daftar sebagai Affiliate dahulu.');
+                // Kali pertama: percuma (sama seperti app lain). Daftar semula selepas dinyahaktif: berbayar.
+                const percuma = !c || !c.pernah_percuma;
+                if (!percuma && baki < T.coach_kredit) throw new functions.https.HttpsError('failed-precondition', `Kredit tidak mencukupi. Baki: ${baki} kredit.`);
                 const nama = String((data && data.nama) || u.name || 'Coach').trim().slice(0, 60), bio = String((data && data.bio) || '').trim().slice(0, 200);
-                t.update(uref, { credit_balance: baki - T.coach_kredit });
-                t.set(cref, { uid, nama, bio, foto: await nsFoto(uid, 'induk'), kod: u.referral_code, emel: u.email || '', status: 'aktif', mula: kini,
-                              coach_tamat: kini + NS_HARI * 86400000, ujian_tamat: kini + T.coach_ujian_hari * 86400000, ujian_min: T.coach_min_klien, ujian_lulus: false, sebab: '' });
-                return { ok: true, baki: baki - T.coach_kredit };
+                const hariAwal = percuma ? T.percubaan_hari : NS_HARI;
+                if (!percuma) t.update(uref, { credit_balance: baki - T.coach_kredit });
+                t.set(cref, { uid, nama, bio, foto: await nsFoto(uid, 'induk'), kod: u.referral_code, emel: u.email || '', status: 'aktif', mula: kini, pernah_percuma: true,
+                              coach_tamat: kini + hariAwal * 86400000, ujian_tamat: kini + T.coach_ujian_hari * 86400000, ujian_min: T.coach_min_klien, ujian_lulus: false, sebab: '' });
+                return { ok: true, percuma, hari: hariAwal, baki: percuma ? baki : baki - T.coach_kredit };
             });
         }
 
@@ -144,7 +148,7 @@ exports.nowSihatCoach = functions
             const fotoCoach = await nsFoto(uid, 'induk');
             if (fotoCoach !== (coach.foto || '')) db.collection('nowsihat_coach').doc(uid).update({ foto: fotoCoach }).catch(() => {});   // segarkan gambar coach
             const layak = new Set(out.filter(k => !k.keluarga && !k.uid.startsWith(uid)).map(k => k.uid.replace(/_pasangan$/, ''))).size;
-            return { klien: out, hari: hari7, coach: { nama: coach.nama, kod: coach.kod, foto: fotoCoach, coach_tamat: coach.coach_tamat || null, ujian_tamat: coach.ujian_tamat || null, ujian_lulus: !!coach.ujian_lulus, ujian_min: coach.ujian_min || T.coach_min_klien, layak } };
+            return { klien: out, hari: hari7, coach: { nama: coach.nama, kod: coach.kod, foto: fotoCoach, yuran: T.coach_kredit, coach_tamat: coach.coach_tamat || null, ujian_tamat: coach.ujian_tamat || null, ujian_lulus: !!coach.ujian_lulus, ujian_min: coach.ujian_min || T.coach_min_klien, layak } };
         }
 
         const klien = String((data && data.klien) || '');

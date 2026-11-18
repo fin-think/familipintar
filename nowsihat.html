@@ -918,7 +918,7 @@ async function muatJadiCoach() {
     const tamat = (c.coach_tamat || 0) < Date.now();
     k.innerHTML = `<h2><i class="fa-solid fa-clipboard-user"></i> Coach nowSihat</h2>
       <p style="font-size:13.5px;line-height:1.7;margin:0 0 8px">Kod: <b>${esc(c.kod)}</b><br>Langganan coach: ${tamat ? '<b style="color:#dc2626">tamat ' + tarikh(c.coach_tamat) + '</b>' : 'aktif sehingga <b>' + tarikh(c.coach_tamat) + '</b>'}<br>
-      ${c.ujian_lulus ? '<span class="pil hijau">Lulus syarat klien</span>' : `Syarat: <b>${T.coach_min_klien} klien bukan keluarga</b> sebelum <b>${tarikh(c.ujian_tamat)}</b>`}</p>
+      </p>
       <p class="kecil" style="margin:0 0 8px">Tukar ke paparan <b>Coach</b> melalui menu di atas.</p>
       <button class="btn ${tamat ? 'btn-hijau' : 'btn-garis'} penuh" onclick="perbaharuiCoach()">Perbaharui coach (${T.coach_kredit} kredit / 30 hari)</button>`;
   } else {
@@ -926,10 +926,10 @@ async function muatJadiCoach() {
     k.innerHTML = `<h2><i class="fa-solid fa-clipboard-user"></i> Jadi coach nowSihat</h2>
       ${gagal ? `<p style="font-size:13px;margin:0 0 8px;color:#b91c1c"><i class="fa-solid fa-circle-exclamation"></i> Akaun coach dinyahaktifkan${c.sebab ? ': ' + esc(c.sebab) : ''}. Anda boleh daftar semula.</p>` : ''}
       <p class="kecil" style="margin:0 0 6px">Untuk coach diet & kecergasan: pantau klien, tetapkan sasaran, beri komen pada makanan, dan dapat komisen affiliate setiap klien yang melanggan.</p>
-      <ul class="kecil" style="margin:0 0 6px;padding-left:18px;line-height:1.6"><li>Yuran <b>${T.coach_kredit} kredit sebulan</b>, aktif terus.</li><li>Dalam <b>${T.coach_ujian_hari} hari</b>, perlu ada sekurang-kurangnya <b>${T.coach_min_klien} klien bukan keluarga sendiri</b> (ikut myNasab). Jika tidak, akaun coach dinyahaktifkan automatik.</li><li>Perlu berdaftar sebagai Affiliate (untuk kod & komisen).</li></ul>
+      <p class="kecil" style="margin:0 0 6px"><i class="fa-solid fa-circle-info" style="color:#16a34a"></i> Perlu berdaftar sebagai <b>Affiliate</b> dahulu (untuk kod jemputan & komisen).</p>
       <label for="cNama">Nama paparan coach</label><input id="cNama" maxlength="60" value="${esc((c && c.nama) || S.user.name || '')}">
       <label for="cBio">Bidang / pengalaman ringkas</label><textarea id="cBio" rows="2" maxlength="200" placeholder="cth. Coach diet bertauliah, fokus turun berat untuk ibu bekerja">${esc((c && c.bio) || '')}</textarea>
-      <button class="btn btn-garis penuh" style="margin-top:10px" id="btnDaftarCoach" onclick="mohonCoach()">Daftar coach (${T.coach_kredit} kredit)</button>`;
+      <button class="btn btn-garis penuh" style="margin-top:10px" id="btnDaftarCoach" onclick="mohonCoach()">Daftar coach</button>`;
   }
 }
 window.mohonCoach = async () => {
@@ -939,11 +939,12 @@ window.mohonCoach = async () => {
   }
   const nama = $('cNama').value.trim(), bio = $('cBio').value.trim();
   if (!nama) { alert('Isi nama paparan.'); return; }
-  if (!confirm(`Daftar sebagai coach nowSihat?\n\n${T.coach_kredit} kredit akan ditolak untuk 30 hari pertama.\nSyarat: ${T.coach_min_klien} klien bukan keluarga dalam ${T.coach_ujian_hari} hari.`)) return;
+  if (!confirm('Daftar sebagai coach nowSihat?')) return;
   const b = $('btnDaftarCoach'); b.disabled = true;
   try {
     const r = await httpsCallable(fns, 'nowSihatCoach')({ tindakan: 'daftar', nama, bio });
-    S.user.credit_balance = r.data.baki; paparHari(); await muatJadiCoach(); alert('Tahniah! Akaun coach aktif. Tukar ke paparan Coach melalui menu di atas.');
+    if (typeof r.data.baki === 'number') S.user.credit_balance = r.data.baki; paparHari(); await muatJadiCoach();
+    alert(r.data.percuma ? `Tahniah! Akaun coach aktif, percuma ${r.data.hari} hari pertama.\nTukar ke paparan Coach melalui menu di atas.` : 'Tahniah! Akaun coach aktif. Tukar ke paparan Coach melalui menu di atas.');
   } catch (e) { if (/Kredit tidak mencukupi/.test(e.message) && confirm(e.message + '\nTambah kredit sekarang?')) location.href = 'topup.html'; else alert(e.message); }
   b.disabled = false;
 };
