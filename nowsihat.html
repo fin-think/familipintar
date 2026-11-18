@@ -102,6 +102,8 @@
   .penafian { font-size: 11.5px; color: var(--lembut); text-align: center; margin: 18px 6px 0; line-height: 1.5; }
   .putar { animation: putar 1s linear infinite; } @keyframes putar { to { transform: rotate(360deg); } }
   .hidden { display: none !important; }
+  /* Butang Cara Guna terapung: naik di atas nav bawah (mobile) */
+  @media (max-width: 899px) { #cgBtn { bottom: calc(92px + env(safe-area-inset-bottom)) !important; } }
   .kolum > :first-child { margin-top: 14px; }
 
   /* DESKTOP */
@@ -127,7 +129,6 @@
     <button class="ib" onclick="location.href='index.html'" title="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
     <div class="logo"><i class="fa-solid fa-leaf"></i><span><span class="a">now</span>Sihat</span></div>
     <span class="kredit" id="kredit">Kredit: -</span>
-    <span id="cgSlot"></span>
   </div>
   <div class="salam" id="salam">&nbsp;</div>
   <nav class="navAtas">
