@@ -32,6 +32,12 @@
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 12px; padding: 12px 16px; font-weight: 800; font-size: 15px; cursor: pointer; font-family: inherit; }
   .btn-hijau { background: linear-gradient(135deg,#059669,#16a34a); color: #fff; box-shadow: 0 3px 10px rgba(22,163,74,.3); } .btn-hijau:disabled { background: #94a3b8; }
   .btn-garis { background: #fff; color: #065f46; border: 2px solid #059669; }
+  .btn-merah { background: linear-gradient(135deg,#dc2626,#ef4444); color: #fff; box-shadow: 0 3px 10px rgba(220,38,38,.3); flex-direction: column; gap: 2px; }
+  .btn-merah small { font-weight: 600; font-size: 12px; opacity: .9; }
+  .btn-kelabu { background: #f1f5f9; color: #475569; }
+  .status-pil { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 3px 10px; }
+  .status-pil.belum { background: #fee2e2; color: #b91c1c; } .status-pil.dah { background: #dcfce7; color: #15803d; }
+  .kad-sukan.belum { background: linear-gradient(135deg,#fff7f7,#fff1f2); border-color: #fecaca; } .kad-sukan.dah { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border-color: #86efac; }
   .penuh { width: 100%; }
   .bar { height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin: 4px 0 10px; }
   .bar > i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg,#22c55e,#84cc16); }
@@ -313,11 +319,13 @@ function paparSenaman() {
   if (!sn) { k.innerHTML = `<h2><i class="fa-solid fa-person-walking"></i> Senaman</h2><p style="font-size:14px;margin:0 0 10px">Tetapkan rutin brisk walk atau jogging, dan dapat peringatan pada masa pilihan anda.</p><button class="btn btn-garis penuh" onclick="tukarTab('profil');document.getElementById('sJenis').scrollIntoView({behavior:'smooth',block:'center'})">Tetapkan rutin</button>`; return; }
   const [nama, , ikon] = JENIS[sn.jenis] || JENIS.brisk, dijadual = (sn.hari || []).includes(hariIniDow()), x = S.senamanHari;
   const st = (S.profil.senaman_streak && (S.profil.senaman_terakhir === tarikhMY() || S.profil.senaman_terakhir === tarikhOff(-1))) ? S.profil.senaman_streak : 0;
-  k.innerHTML = `<div class="baris" style="align-items:center"><h2 style="margin:0"><i class="fa-solid ${ikon}"></i> ${esc(nama)} ${sn.minit} minit</h2>${st ? `<span class="streak"><i class="fa-solid fa-fire"></i> ${st} hari</span>` : ''}</div>` +
-    (x ? `<p style="font-size:14px;margin:10px 0 0"><b style="color:#15803d"><i class="fa-solid fa-circle-check"></i> Dah buat hari ini:</b> ${esc((JENIS[x.jenis] || JENIS.brisk)[0])} ${x.minit} minit, anggaran <b>${x.kalori} kcal</b> terbakar. Baki kalori hari ini bertambah.</p>
-         <button class="btn btn-garis penuh" style="margin-top:10px" onclick="batalSenaman()">Batalkan tanda</button>`
+  k.classList.toggle('dah', !!x); k.classList.toggle('belum', !x && dijadual);
+  k.innerHTML = `<div class="baris" style="align-items:center;gap:8px"><h2 style="margin:0"><i class="fa-solid ${ikon}"></i> ${esc(nama)} ${sn.minit} minit</h2>
+      <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${st ? `<span class="streak"><i class="fa-solid fa-fire"></i> ${st} hari</span>` : ''}${x ? '<span class="status-pil dah"><i class="fa-solid fa-circle-check"></i> Dah buat</span>' : dijadual ? '<span class="status-pil belum"><i class="fa-regular fa-clock"></i> Belum buat</span>' : ''}</span></div>` +
+    (x ? `<p style="font-size:14px;margin:10px 0 0">${esc((JENIS[x.jenis] || JENIS.brisk)[0])} <b>${x.minit} minit</b> siap hari ini, anggaran <b>${x.kalori} kcal</b> terbakar. Baki kalori hari ini bertambah.</p>
+         <button class="btn btn-kelabu penuh" style="margin-top:10px;font-size:13.5px" onclick="batalSenaman()">Batalkan tanda</button>`
        : `<p class="kecil" style="margin:8px 0 10px">${dijadual ? 'Dijadualkan hari ini' + (sn.notif ? `, peringatan ${esc(sn.masa)}` : '') + '.' : 'Bukan hari dijadualkan, tapi boleh tetap buat.'} Jadual: ${(sn.hari || []).map(h => NAMA_HARI[h]).join(', ')}</p>
-         <button class="btn btn-hijau penuh" onclick="tandaSenaman()"><i class="fa-solid fa-check"></i> Dah buat</button>`);
+         <button class="btn ${dijadual ? 'btn-merah' : 'btn-garis'} penuh" onclick="tandaSenaman()">${dijadual ? '<span><i class="fa-regular fa-clock"></i> Belum buat</span><small>Tekan bila dah siap</small>' : '<i class="fa-solid fa-check"></i> Tanda dah buat'}</button>`);
 }
 window.tandaSenaman = async () => {
   const sn = S.profil.senaman || { jenis: 'brisk', minit: 30 };
