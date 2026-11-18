@@ -33,7 +33,7 @@ match /nowsihat_senaman/{id} {
                         && (id == request.auth.uid + '_' + request.resource.data.tarikh
                             || id == request.auth.uid + '_pasangan_' + request.resource.data.tarikh);
 }
-// Coach: didaftar oleh server (yuran & tempoh ujian). Pemilik hanya boleh ubah nama & bio. Admin boleh ubah semua.
+// Coach: didaftar oleh server (percuma, tempoh ujian klien). Pemilik hanya boleh ubah nama & bio. Admin boleh ubah semua.
 match /nowsihat_coach/{uid} {
   allow read: if request.auth != null;
   allow create: if false;

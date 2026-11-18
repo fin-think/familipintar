@@ -104,7 +104,8 @@
         ['Trend', 'Tab <b>Trend</b>: graf kalori 7 hari berbanding sasaran, dan log berat badan. Timbang seminggu sekali untuk lihat kemajuan.'],
         ['Coach (pilihan)', 'Ada coach diet? Masukkan kod coach di Profil → <b>Coach saya</b> dan pilih apa yang dikongsi. Coach nampak rekod anda secara automatik; boleh putuskan bila-bila masa.'],
         ['Tanya coach', 'Selepas imbas, tekan <b>Tanya coach tentang ni</b> (gambar terus dilampir), atau butang <b>Tanya coach</b> pada rekod. Anda dapat notifikasi bila coach menjawab.'],
-        ['Paparan sebagai', 'Jika anda juga coach atau admin, tukar paparan melalui menu <b>Saya / Coach / Admin</b> di atas.']
+        ['Jadi coach', 'Coach diet atau kecergasan? Daftar di Profil → <b>Jadi coach nowSihat</b> (perlu Affiliate). Dashboard coach <b>percuma</b>; perlu 3 klien bukan keluarga dalam 30 hari. Untuk imbas makanan sendiri, langganan biasa tetap diperlukan.'],
+        ['Paparan sebagai', 'Jika anda juga coach atau admin, tukar paparan melalui menu <b>Saya / Coach / Admin</b> di atas. Mod Saya perlukan langganan nowSihat yang aktif.']
       ]
     },
     nowsihatcoach: {
