@@ -111,7 +111,7 @@
       tajuk: 'Cara Guna Dashboard Coach',
       intro: 'Pantau klien yang bersetuju berkongsi data nowSihat dengan anda, tetapkan sasaran dan beri komen.',
       langkah: [
-        ['Daftar coach', 'Di nowSihat → Profil → <b>Jadi coach nowSihat</b>. Akaun aktif terus dengan yuran bulanan (kredit). Perlu berdaftar Affiliate dahulu.'],
+        ['Daftar coach', 'Di nowSihat → Profil → <b>Jadi coach nowSihat</b>. Akaun aktif terus dan <b>percuma</b>. Perlu berdaftar Affiliate dahulu. Untuk imbas makanan sendiri (dan pasangan), langgan nowSihat biasa.'],
         ['Syarat klien', 'Dalam tempoh ujian (30 hari), perlu ada sekurang-kurangnya 3 klien <b>bukan keluarga sendiri</b> (ikut myNasab). Jika tidak, akaun coach dinyahaktifkan automatik. Kemajuan dipapar di atas senarai klien.'],
         ['Jemput klien', 'Tab <b>Pautan saya</b>: salin atau kongsi pautan ke WhatsApp. Klien yang mendaftar melalui pautan ini diminta bersetuju berkongsi, dan direkod sebagai rujukan affiliate anda.'],
         ['Klien sedia ada', 'Klien yang sudah ada akaun boleh masukkan kod anda di nowSihat → Profil → Coach saya.'],
@@ -119,7 +119,7 @@
         ['Amaran', '<b>Tak catat 2 hari</b>, <b>Lebih kalori 3 hari</b> atau <b>Langganan tamat</b>. Graf mini menunjukkan 7 hari (merah = lebih sasaran).'],
         ['Sasaran', 'Buka klien dan isi sasaran kalori, protein, gula atau natrium. Kosongkan medan untuk guna nilai automatik. Klien nampak "Ditetapkan oleh" nama anda.'],
         ['Soalan & komen', 'Klien yang bertanya (chip ungu <b>soalan</b>) disusun paling atas. Jawab melalui ruang komen pada rekod makan; klien terima notifikasi.'],
-        ['Pembaharuan', 'Perbaharui yuran coach di nowSihat → Profil sebelum tamat. Tukar antara paparan <b>Saya</b> dan <b>Coach</b> melalui menu di atas.'],
+        ['Paparan', 'Tukar antara paparan <b>Saya</b> dan <b>Coach</b> melalui menu di atas. Mod Saya perlukan langganan nowSihat.'],
         ['Privasi', 'Anda hanya nampak apa yang klien benarkan, dan klien boleh putuskan bila-bila masa. Beri bimbingan gaya hidup, bukan diagnosis atau nasihat perubatan.']
       ]
     },

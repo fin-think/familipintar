@@ -193,10 +193,9 @@ async function muatSenarai() {
     $('namaCoach').textContent = r.data.coach.nama || 'nowSihat';
     if (r.data.coach.foto) { const ic = document.querySelector('.logo > i'); if (ic) ic.outerHTML = `<span style="width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:url('${esc(r.data.coach.foto)}') center/cover;flex:none"></span>`; }
     { const c = r.data.coach, t = ms => ms ? new Date(ms).toLocaleDateString('en-GB') : '-', b = $('bannerUjian');
-      if (!c.ujian_tamat && !c.coach_tamat) { b.classList.add('hidden'); } else
-      b.innerHTML = c.ujian_lulus ? `<i class="fa-solid fa-circle-check" style="color:#16a34a"></i> Syarat klien lulus. Coach aktif sehingga <b>${t(c.coach_tamat)}</b>, selepas itu <b>${c.yuran || 10} kredit sebulan</b>.`
-        : `<i class="fa-solid fa-hourglass-half" style="color:#b45309"></i> Syarat: <b>${c.layak}/${c.ujian_min}</b> klien bukan keluarga sebelum <b>${t(c.ujian_tamat)}</b>. Klien keluarga sendiri tidak dikira. Jika tidak cukup, akaun coach dinyahaktifkan automatik.<br><i class="fa-solid fa-crown" style="color:#16a34a"></i> Coach aktif sehingga <b>${t(c.coach_tamat)}</b>, selepas itu <b>${c.yuran || 10} kredit sebulan</b> (perbaharui di nowSihat → Profil).`;
-      if (c.ujian_tamat || c.coach_tamat) b.classList.remove('hidden'); }
+      if (c.ujian_lulus || !c.ujian_tamat) { b.classList.add('hidden'); } else {
+      b.innerHTML = `<i class="fa-solid fa-hourglass-half" style="color:#b45309"></i> Syarat: <b>${c.layak}/${c.ujian_min}</b> klien bukan keluarga sebelum <b>${t(c.ujian_tamat)}</b>. Klien keluarga sendiri tidak dikira. Jika tidak cukup, akaun coach dinyahaktifkan automatik.<br><i class="fa-solid fa-gift" style="color:#16a34a"></i> Dashboard coach <b>percuma</b>. Untuk imbas makanan sendiri, langgan nowSihat biasa.`;
+      b.classList.remove('hidden'); } }
     const hari = tarikhMY(), list = r.data.klien.map(k => ({ ...k, amaran: amaran(k) }));
     const skor = k => (k.soalan ? 10 : 0) + k.amaran.filter(x => x[0] === 'merah').length;
     list.sort((a, b) => skor(b) - skor(a) || a.nama.localeCompare(b.nama));
@@ -218,8 +217,8 @@ async function muatSenarai() {
         </div></div>`;
     }).join('');
   } catch (e) {
-    $('senarai').innerHTML = /COACH_TAMAT/.test(e.message)
-      ? `<span style="color:#b91c1c;font-weight:800">Langganan coach anda telah tamat.</span><br><a href="nowsihat.html" style="color:#16a34a;font-weight:800">Perbaharui di nowSihat → Profil</a>`
+    $('senarai').innerHTML = /tidak aktif/.test(e.message)
+      ? `<span style="color:#b91c1c;font-weight:800">Akaun coach anda tidak aktif.</span><br><a href="nowsihat.html" style="color:#16a34a;font-weight:800">Daftar semula di nowSihat → Profil</a>`
       : `<span style="color:#b91c1c">Gagal memuatkan: ${esc(e.message)}</span>`;
   }
 }
@@ -302,9 +301,9 @@ async function muatAdmin() {
     const sn = await getDocs(collection(db, 'nowsihat_coach')); const aktif = [], lain = [];
     sn.forEach(d => (d.data().status === 'aktif' ? aktif : lain).push(d));
     const t = ms => ms ? new Date(ms).toLocaleDateString('en-GB') : '-';
-    const baris = (d) => { const c = d.data(), on = c.status === 'aktif', tamat = c.coach_tamat && c.coach_tamat < Date.now();
+    const baris = (d) => { const c = d.data(), on = c.status === 'aktif';
       return `<div class="klien" style="cursor:default">${avatar(c.nama, c.foto)}<div style="flex:1;min-width:0"><b>${esc(c.nama)}</b> <span class="kecil">${esc(c.emel || '')} · kod ${esc(c.kod || '-')}</span>
-        <div class="kecil">Mula ${t(c.mula)} · yuran sehingga ${t(c.coach_tamat)}${tamat ? ' <b style="color:#dc2626">(tamat)</b>' : ''} · ${c.ujian_lulus ? '<span class="chip hijau">lulus syarat</span>' : 'ujian hingga ' + t(c.ujian_tamat)}</div>
+        <div class="kecil">Mula ${t(c.mula)} · ${c.ujian_lulus ? '<span class="chip hijau">lulus syarat</span>' : 'ujian hingga ' + t(c.ujian_tamat)}</div>
         ${c.sebab ? `<div class="kecil" style="color:#b91c1c">${esc(c.sebab)}</div>` : ''}${c.bio ? `<div class="kecil">${esc(c.bio)}</div>` : ''}</div>
         ${on ? `<button class="btn btn-merah btn-kecil" onclick="nyahAktif('${d.id}')">Nyahaktif</button>` : `<button class="btn btn-hijau btn-kecil" onclick="aktifkan('${d.id}')">Aktifkan</button>`}</div>`; };
     $('senaraiMohon').innerHTML = aktif.length ? aktif.map(baris).join('') : 'Belum ada coach aktif.';
@@ -312,9 +311,9 @@ async function muatAdmin() {
     $('bilMohon').textContent = aktif.length; $('bilMohon').classList.toggle('hidden', !aktif.length); $('bilMohon').style.background = '#16a34a';
   } catch (e) { $('senaraiMohon').textContent = 'Gagal: ' + e.message; }
 }
-// Admin: aktifkan semula (beri 30 hari & tempoh ujian baharu) / nyahaktif manual
-window.aktifkan = async (id) => { if (!confirm('Aktifkan coach ini? Diberi 30 hari dan tempoh ujian baharu, tanpa potongan kredit.')) return;
-  const k = Date.now(); try { await updateDoc(doc(db, 'nowsihat_coach', id), { status: 'aktif', sebab: '', coach_tamat: k + 30 * 864e5, ujian_tamat: k + 30 * 864e5, ujian_lulus: false, diaktif_admin: k }); muatAdmin(); } catch (e) { alert('Gagal: ' + e.message); } };
+// Admin: aktifkan semula (tempoh ujian baharu) / nyahaktif manual
+window.aktifkan = async (id) => { if (!confirm('Aktifkan coach ini? Tempoh ujian 30 hari baharu bermula.')) return;
+  const k = Date.now(); try { await updateDoc(doc(db, 'nowsihat_coach', id), { status: 'aktif', sebab: '', ujian_tamat: k + 30 * 864e5, ujian_lulus: false, diaktif_admin: k }); muatAdmin(); } catch (e) { alert('Gagal: ' + e.message); } };
 window.nyahAktif = async (id) => { const sb = prompt('Nyahaktifkan coach ini. Sebab (dipapar kepada coach):', 'Dinyahaktifkan oleh admin'); if (sb === null) return;
   try { await updateDoc(doc(db, 'nowsihat_coach', id), { status: 'nyahaktif', sebab: sb.slice(0, 200), nyahaktif_pada: Date.now() }); muatAdmin(); } catch (e) { alert('Gagal: ' + e.message); } };
 
@@ -344,6 +343,6 @@ onAuthStateChanged(auth, async (u) => {
   muatSenarai();
 });
 </script>
-<script src="cara-guna.js?v=6" data-app="nowsihatcoach" defer></script>
+<script src="cara-guna.js?v=7" data-app="nowsihatcoach" defer></script>
 </body>
 </html>

@@ -341,6 +341,7 @@
     <li>Keputusan ialah anggaran, bukan nasihat perubatan.</li>
   </ul>
   <button class="btn btn-hijau penuh" id="btnMula" onclick="mulaPercubaan()">Saya faham, mula percuma</button>
+  <button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="keCoachSahaja()">Saya nak jadi coach sahaja</button>
 </div></div>
 
 <div class="modal" id="modalTamat"><div class="isi">
@@ -348,6 +349,15 @@
   <p style="font-size:14px;line-height:1.6;margin:0 0 14px">Perbaharui dengan <b><span class="tk-kredit">20</span> kredit</b> untuk 30 hari lagi. Rekod anda kekal selamat.</p>
   <button class="btn btn-hijau penuh" onclick="perbaharui()"><span>Perbaharui (<span class="tk-kredit">20</span> kredit)</span></button>
   <button class="btn btn-garis penuh" style="margin-top:8px" onclick="location.href='topup.html'">Tambah kredit</button>
+  <button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="keCoachSahaja()">Jadi coach (percuma)</button>
+</div></div>
+
+<div class="modal" id="modalKunciCoach"><div class="isi">
+  <h2><i class="fa-solid fa-clipboard-user" style="color:#16a34a"></i> Akaun coach anda aktif</h2>
+  <p style="font-size:14px;line-height:1.6;margin:0 0 14px">Dashboard coach adalah <b>percuma</b>. Untuk guna nowSihat sendiri (imbas makanan anda dan pasangan), langgan <b><span class="tk-kredit">20</span> kredit sebulan</b>.</p>
+  <button class="btn btn-hijau penuh" onclick="location.href='nowsihat-coach.html'"><i class="fa-solid fa-gauge"></i> Pergi Dashboard Coach</button>
+  <button class="btn btn-garis penuh" style="margin-top:8px" id="btnKunciLanggan" onclick="langganCoach()">Langgan untuk guna sendiri</button>
+  <button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="keCoachSahaja()">Tutup</button>
 </div></div>
 
 <script type="module">
@@ -378,7 +388,18 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const tarikhMY = () => new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
 const tarikhPapar = ms => new Date(ms).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
+const adaLanggan = () => (S.user.nowsihat_expiry_date || 0) > Date.now();
+// Tiada langganan: coach boleh guna dashboard sahaja; pengguna lain dapat modal mula/tamat
+function bukaKunci() {
+  ['modalMula', 'modalTamat', 'modalKunciCoach'].forEach(id => $(id).style.display = 'none');
+  if (S.coachAktif) { $('btnKunciLanggan').textContent = S.user.nowsihat_expiry_date ? `Langgan untuk guna sendiri (${T.nowsihat_kredit} kredit)` : `Mula percuma ${T.percubaan_hari} hari untuk guna sendiri`; $('modalKunciCoach').style.display = 'flex'; }
+  else if (!S.user.nowsihat_expiry_date) $('modalMula').style.display = 'flex';
+  else $('modalTamat').style.display = 'flex';
+}
+window.keCoachSahaja = () => { ['modalMula', 'modalTamat', 'modalKunciCoach'].forEach(id => $(id).style.display = 'none'); tukarTab('profil'); const k = $('kadJadiCoach'); if (k) k.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+window.langganCoach = () => { $('modalKunciCoach').style.display = 'none'; if (S.user.nowsihat_expiry_date) perbaharui(); else mulaPercubaan(); };
 window.tukarTab = (t) => {
+  if (t !== 'profil' && !adaLanggan()) { bukaKunci(); return; }
   ['hari', 'imbas', 'trend', 'kerap', 'profil'].forEach(x => $('t-' + x).classList.toggle('hidden', x !== t));
   document.querySelectorAll('.navAtas button, .navBawah button').forEach(b => b.classList.toggle('aktif', b.dataset.t === t));
   if (t === 'trend') muatTrend(); else if (t === 'kerap') muatKerap();
@@ -544,7 +565,7 @@ async function muatKerap() {
 }
 window.catatKerap = async (id) => {
   const k = (S.kerap || []).find(x => x.id === id); if (!k) return;
-  if (!S.user.nowsihat_expiry_date || S.user.nowsihat_expiry_date < Date.now()) { $('modalTamat').style.display = 'flex'; return; }
+  if (!adaLanggan()) { bukaKunci(); return; }
   try {
     await addDoc(collection(db, 'nowsihat_log'), { uid: S.uid, per: S.per, tarikh: tarikhMY(), masa: Date.now(), makanan: k.makanan, jumlah: k.jumlah, status: '', nasihat: '', sumber: 'kerap', puasa: sedangPuasa() });
     updateDoc(doc(db, 'nowsihat_kerap', id), { guna: (k.guna || 0) + 1 }).catch(() => {});
@@ -740,7 +761,7 @@ window.mulaPercubaan = async () => {
     const r = await httpsCallable(fns, 'nowSihatLanggan')({ tindakan: 'mula' });
     S.user.nowsihat_expiry_date = r.data.tamat; $('modalMula').style.display = 'none';
     if (r.data.baru) alert('Percubaan percuma ' + T.percubaan_hari + ' hari bermula hari ini. Tamat pada ' + tarikhPapar(r.data.tamat) + '.');
-    paparHari(); if (!S.profil.berat) tukarTab('profil');
+    paparHari(); tukarTab(S.profil.berat ? 'hari' : 'profil');
     semakCoachRujukan();
   } catch (e) { alert('Gagal: ' + e.message); }
   $('btnMula').disabled = false;
@@ -750,7 +771,7 @@ window.perbaharui = async () => {
   try {
     const r = await httpsCallable(fns, 'nowSihatLanggan')({ tindakan: 'baharu' });
     S.user.nowsihat_expiry_date = r.data.tamat; S.user.credit_balance = r.data.baki;
-    $('modalTamat').style.display = 'none'; paparHari(); alert('Berjaya. Aktif sehingga ' + tarikhPapar(r.data.tamat) + '.');
+    $('modalTamat').style.display = 'none'; paparHari(); tukarTab('hari'); alert('Berjaya. Aktif sehingga ' + tarikhPapar(r.data.tamat) + '.');
   } catch (e) { if (/Kredit tidak mencukupi/.test(e.message) && confirm(e.message + '\nTambah kredit sekarang?')) location.href = 'topup.html'; else alert(e.message); }
 };
 
@@ -785,7 +806,7 @@ window.analisis = async (bayarTambahan = false) => {
     if (bayarTambahan) { try { const u = await getDoc(doc(db, 'mynasab_users', S.uid)); S.user = u.data() || S.user; paparHari(); } catch (e) {} }
   } catch (e) {
     const m = e.message || '';
-    if (/LANGGANAN_TAMAT/.test(m)) $('modalTamat').style.display = 'flex';
+    if (/LANGGANAN_TAMAT/.test(m)) bukaKunci();
     else if (/HAD_HARIAN/.test(m)) { if (confirm(`Had ${HAD} imbasan hari ini sudah habis.\nGuna ${T.nowsihat_tambahan_kredit} kredit untuk ${T.nowsihat_tambahan_imbas} imbasan tambahan?`)) { b.disabled = false; b.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analisis'; return window.analisis(true); } }
     else if (/Kredit tidak mencukupi/.test(m)) { if (confirm(m + '\nTambah kredit sekarang?')) location.href = 'topup.html'; }
     else alert(m || 'Analisis gagal. Cuba lagi.');
@@ -908,19 +929,16 @@ window.hantarTanya = async () => {
   b.disabled = false; b.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Hantar kepada coach';
 };
 
-// ---------- Jadi coach (aktif terus, yuran bulanan, ujian klien) ----------
+// ---------- Jadi coach (percuma, ujian klien; guna sendiri perlu langganan biasa) ----------
 async function muatJadiCoach() {
   const k = $('kadJadiCoach');
   let c = null; try { const d = await getDoc(doc(db, 'nowsihat_coach', S.uid)); c = d.exists() ? d.data() : null; } catch (e) {}
   S.coachAktif = !!(c && c.status === 'aktif'); isiPaparan();
-  const tarikh = ms => ms ? tarikhPapar(ms) : '-';
   if (c && c.status === 'aktif') {
-    const tamat = (c.coach_tamat || 0) < Date.now();
     k.innerHTML = `<h2><i class="fa-solid fa-clipboard-user"></i> Coach nowSihat</h2>
-      <p style="font-size:13.5px;line-height:1.7;margin:0 0 8px">Kod: <b>${esc(c.kod)}</b><br>Langganan coach: ${tamat ? '<b style="color:#dc2626">tamat ' + tarikh(c.coach_tamat) + '</b>' : 'aktif sehingga <b>' + tarikh(c.coach_tamat) + '</b>'}<br>
-      </p>
+      <p style="font-size:13.5px;line-height:1.7;margin:0 0 8px">Kod: <b>${esc(c.kod)}</b> · <span class="pil hijau">Aktif</span></p>
       <p class="kecil" style="margin:0 0 8px">Tukar ke paparan <b>Coach</b> melalui menu di atas.</p>
-      <button class="btn ${tamat ? 'btn-hijau' : 'btn-garis'} penuh" onclick="perbaharuiCoach()">Perbaharui coach (${T.coach_kredit} kredit / 30 hari)</button>`;
+      <button class="btn btn-hijau penuh" onclick="location.href='nowsihat-coach.html'"><i class="fa-solid fa-gauge"></i> Pergi Dashboard Coach</button>`;
   } else {
     const gagal = c && c.status === 'nyahaktif';
     k.innerHTML = `<h2><i class="fa-solid fa-clipboard-user"></i> Jadi coach nowSihat</h2>
@@ -943,17 +961,11 @@ window.mohonCoach = async () => {
   const b = $('btnDaftarCoach'); b.disabled = true;
   try {
     const r = await httpsCallable(fns, 'nowSihatCoach')({ tindakan: 'daftar', nama, bio });
-    if (typeof r.data.baki === 'number') S.user.credit_balance = r.data.baki; paparHari(); await muatJadiCoach();
-    alert(r.data.percuma ? `Tahniah! Akaun coach aktif, percuma ${r.data.hari} hari pertama.\nTukar ke paparan Coach melalui menu di atas.` : 'Tahniah! Akaun coach aktif. Tukar ke paparan Coach melalui menu di atas.');
-  } catch (e) { if (/Kredit tidak mencukupi/.test(e.message) && confirm(e.message + '\nTambah kredit sekarang?')) location.href = 'topup.html'; else alert(e.message); }
+    await muatJadiCoach();
+    alert('Tahniah! Akaun coach aktif.\nTukar ke paparan Coach melalui menu di atas.');
+  } catch (e) { alert(e.message); }
   b.disabled = false;
 };
-window.perbaharuiCoach = async () => {
-  if (!confirm(`Perbaharui coach: tolak ${T.coach_kredit} kredit untuk 30 hari lagi?`)) return;
-  try { const r = await httpsCallable(fns, 'nowSihatCoach')({ tindakan: 'perbaharui_coach' }); S.user.credit_balance = r.data.baki; paparHari(); await muatJadiCoach(); alert('Berjaya. Coach aktif sehingga ' + tarikhPapar(r.data.tamat) + '.'); }
-  catch (e) { if (/Kredit tidak mencukupi/.test(e.message) && confirm(e.message + '\nTambah kredit sekarang?')) location.href = 'topup.html'; else alert(e.message); }
-};
-
 // ---------- Tetapan harga & syarat (tetapan_awam/harga) ----------
 async function muatTetapan() {
   try { const t = await getDoc(doc(db, 'tetapan_awam', 'harga')); if (t.exists()) { const d = t.data(); for (const k in T) { const v = Number(d[k]); if (Number.isFinite(v) && v >= 0) T[k] = v; } } } catch (e) {}
@@ -1009,12 +1021,10 @@ onAuthStateChanged(auth, async (u) => {
     Peranan.pasang('#pilih-peranan', info, { onTukar: async (m) => { S.per = m === 'pasangan' ? 'pasangan' : 'induk'; await muatOrang(); } });
   } catch (e) { console.warn('Peranan:', e.message); }
   await muatOrang();
-  muatJadiCoach(); semakCoachRujukan();
-  const tm = S.user.nowsihat_expiry_date;
-  if (!tm) $('modalMula').style.display = 'flex';
-  else if (tm < Date.now()) $('modalTamat').style.display = 'flex';
+  await muatJadiCoach(); semakCoachRujukan();
+  if (!adaLanggan()) { tukarTab('profil'); bukaKunci(); }
 });
 </script>
-<script src="cara-guna.js?v=6" data-app="nowsihat" defer></script>
+<script src="cara-guna.js?v=7" data-app="nowsihat" defer></script>
 </body>
 </html>
