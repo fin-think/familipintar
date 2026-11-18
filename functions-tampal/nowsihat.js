@@ -101,7 +101,7 @@ exports.nowSihatImbas = functions
         const umur = nsUmur(pr.dob || akar.dob), jantina = pr.jantina || (akar.gender === 'P' ? 'P' : akar.gender === 'L' ? 'L' : '');
         const sudah = { kalori: 0, protein: 0, gula: 0, natrium: 0 };
         slog.forEach(d => { const j = d.data().jumlah || {}; for (const k in sudah) sudah[k] += Number(j[k]) || 0; });
-        const sasaran = pr.sasaran || {};
+        const sasaran = Object.assign({}, pr.sasaran || {}, pr.sasaran_coach || {});
 
         const prompt = `Anda pembantu pemakanan untuk pengguna di Malaysia. Kenal pasti makanan/minuman dalam gambar dan anggarkan nutrisi untuk hidangan yang kelihatan.
 Maklumat pengguna: umur ${umur ?? 'tidak diketahui'}, jantina ${jantina === 'P' ? 'perempuan' : jantina === 'L' ? 'lelaki' : 'tidak diketahui'}, matlamat ${pr.matlamat || 'kekal sihat'}${pr.fokus && pr.fokus.length ? ', fokus: ' + pr.fokus.join(', ') : ''}.

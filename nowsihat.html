@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>nowSihat | Famili Pintar</title>
 <meta name="theme-color" content="#047857">
+<link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -255,6 +256,8 @@
           </div>
           <button class="btn btn-hijau penuh" style="margin-top:14px" onclick="simpanSenaman()">Simpan rutin</button>
         </div>
+        <div class="kad" id="kadCoachSaya"></div>
+        <div class="kad" id="kadJadiCoach"></div>
         <div class="kad">
           <h2><i class="fa-solid fa-crown"></i> Langganan</h2>
           <p class="kecil" id="infoLanggan" style="margin:0 0 10px"></p>
@@ -283,6 +286,19 @@
   <div id="editSenarai"></div>
   <div class="baris" style="margin-top:12px;font-size:14px"><span>Jumlah</span><span id="editJumlah"></span></div>
   <button class="btn btn-hijau penuh" style="margin-top:12px" onclick="simpanEdit()">Simpan</button>
+</div></div>
+
+<!-- Modal persetujuan kongsi dengan coach -->
+<div class="modal" id="modalCoach"><div class="isi">
+  <h2><i class="fa-solid fa-user-check"></i> Kongsi dengan coach?</h2>
+  <p style="font-size:14px;line-height:1.6;margin:0 0 6px"><b id="mcNama">Coach</b> boleh pantau kemajuan anda, tetapkan sasaran dan beri komen pada makanan.</p>
+  <p class="kecil" style="margin:0 0 4px">Pilih apa yang dikongsi (boleh tukar atau putuskan bila-bila masa di Profil):</p>
+  <div class="chk"><input type="checkbox" id="mcMakan" checked> <span>Rekod makan</span></div>
+  <div class="chk"><input type="checkbox" id="mcBerat" checked> <span>Berat badan</span></div>
+  <div class="chk"><input type="checkbox" id="mcSenaman" checked> <span>Senaman</span></div>
+  <div class="chk"><input type="checkbox" id="mcSihat"> <span>Keadaan kesihatan (dari myHEALTH)</span></div>
+  <button class="btn btn-hijau penuh" style="margin-top:12px" onclick="sahCoach()">Setuju & kongsi</button>
+  <button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="tolakCoach()">Tidak sekarang</button>
 </div></div>
 
 <!-- Modal mula / langganan -->
@@ -353,6 +369,9 @@ function kiraSasaran(p) {
     s.kalori = Math.round(Math.max(k, p.jantina === 'L' ? 1500 : 1200) / 10) * 10;   // had minimum selamat
     s.bmi = +(w / ((h / 100) ** 2)).toFixed(1);
   }
+  // Sasaran yang ditetapkan coach mengatasi kiraan automatik
+  const c = p.sasaran_coach;
+  if (c) { ['protein', 'gula', 'natrium'].forEach(k => { if (c[k]) s[k] = c[k]; }); if (c.kalori && (u === null || u >= 18)) s.kalori = c.kalori; s.coach = c.oleh_nama || 'Coach'; }
   return s;
 }
 function panduanUmur(u) {
@@ -409,6 +428,7 @@ function paparHari() {
       <div style="flex:1;min-width:0"><div class="baris" style="align-items:flex-start"><div style="font-weight:800;font-size:14px;color:#0f172a">${esc(r.makanan.map(m => m.nama).join(', '))}</div>${dewasa ? `<b style="font-size:15px;white-space:nowrap">${r.jumlah.kalori}<span class="kecil"> kcal</span></b>` : ''}</div>
         <div style="margin-top:3px"><span class="kecil">${fmtMasa(r.masa)}</span> <span class="chip p">P ${r.jumlah.protein}g</span><span class="chip k">K ${r.jumlah.karbo || 0}g</span><span class="chip l">L ${r.jumlah.lemak || 0}g</span>${r.status && STATUS[r.status] ? ` <span class="pil ${esc(r.status)}" style="font-size:11px;padding:1px 8px">${STATUS[r.status]}</span>` : ''}</div>
         ${r.nasihat ? `<div style="font-size:13px;margin-top:4px;color:#334155">${esc(r.nasihat)}</div>` : ''}
+        ${r.komen_coach ? `<div style="font-size:13px;margin-top:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:6px 9px;color:#1e3a8a"><i class="fa-solid fa-comment-dots"></i> <b>${esc(r.komen_coach.oleh_nama || 'Coach')}:</b> ${esc(r.komen_coach.teks)}</div>` : ''}
         <div class="tindakan"><button class="btn btn-kelabu btn-kecil" onclick="bukaEdit('${r.id}')"><i class="fa-solid fa-sliders"></i> Laras</button>
           <button class="btn btn-kelabu btn-kecil" onclick="simpanKerap('${r.id}')"><i class="fa-regular fa-star"></i> Kerap</button>
           <button class="btn btn-kelabu btn-kecil" onclick="padamRekod('${r.id}')"><i class="fa-regular fa-trash-can"></i></button></div></div></div>`).join('') : 'Belum ada makanan dicatat hari ini.';
@@ -416,7 +436,7 @@ function paparHari() {
   paparSeterusnya(s, j, dewasa); paparSenaman(); paparPuasa();
   const [t, b] = panduanUmur(s.umur);
   $('kadPanduan').innerHTML = `<h2><i class="fa-solid fa-seedling"></i> Panduan ikut umur: ${esc(t)}</h2><p style="font-size:14px;line-height:1.6;margin:0">${esc(b)}</p>`;
-  $('kadSasaran').innerHTML = `<h2><i class="fa-solid fa-bullseye"></i> Sasaran harian anda</h2>` + (s.umur !== null && s.umur < 18
+  $('kadSasaran').innerHTML = `<h2><i class="fa-solid fa-bullseye"></i> Sasaran harian anda</h2>${s.coach ? `<p class="kecil" style="margin:-4px 0 8px"><i class="fa-solid fa-user-check" style="color:#16a34a"></i> Ditetapkan oleh ${esc(s.coach)}</p>` : ''}` + (s.umur !== null && s.umur < 18
     ? `<p style="font-size:14px;margin:0">Untuk bawah 18 tahun, nowSihat tidak menetapkan sasaran kalori. Fokus pada pinggan seimbang dan tumbesaran.</p>`
     : `<p style="font-size:14px;line-height:1.8;margin:0">Kalori: <b>${s.kalori ? s.kalori + ' kcal' : '-'}</b><br>Protein: <b>${s.protein ? s.protein + ' g' : '-'}</b><br>Gula tambahan: maksimum <b>${s.gula} g</b><br>Natrium: maksimum <b>${s.natrium} mg</b>${s.bmi ? `<br>BMI: <b>${s.bmi}</b>` : ''}</p>`);
   const tm = S.user.nowsihat_expiry_date;
@@ -684,6 +704,7 @@ window.mulaPercubaan = async () => {
     S.user.nowsihat_expiry_date = r.data.tamat; $('modalMula').style.display = 'none';
     if (r.data.baru) alert('Percubaan percuma 30 hari bermula hari ini. Tamat pada ' + tarikhPapar(r.data.tamat) + '.');
     paparHari(); if (!S.profil.berat) tukarTab('profil');
+    semakCoachRujukan();
   } catch (e) { alert('Gagal: ' + e.message); }
   $('btnMula').disabled = false;
 };
@@ -751,10 +772,100 @@ window.padamRekod = async (id) => {
   try { await deleteDoc(doc(db, 'nowsihat_log', id)); await muatHari(); } catch (e) { alert('Gagal padam: ' + e.message); }
 };
 
+// ---------- Coach: klien (Coach saya) ----------
+let CALON = null;   // coach yang sedang ditawarkan persetujuan
+async function muatCoachSaya() {
+  S.pautan = null; S.coachSaya = null;
+  try { const p = await getDoc(doc(db, 'nowsihat_klien', S.uid)); if (p.exists() && p.data().status === 'aktif') { S.pautan = p.data(); const c = await getDoc(doc(db, 'nowsihat_coach', S.pautan.coach_uid)); S.coachSaya = c.exists() ? c.data() : { nama: 'Coach' }; } } catch (e) { console.warn('Coach saya:', e.message); }
+  paparCoachSaya();
+}
+function paparCoachSaya() {
+  const k = $('kadCoachSaya'), p = S.pautan;
+  if (p) {
+    const ks = p.kongsi || {};
+    k.innerHTML = `<h2><i class="fa-solid fa-user-check"></i> Coach saya</h2>
+      <div class="baris" style="margin-bottom:6px"><span style="font-size:15px">${esc(S.coachSaya.nama || 'Coach')}</span><span class="pil hijau">Berpaut</span></div>
+      ${S.coachSaya.bio ? `<p class="kecil" style="margin:0 0 6px">${esc(S.coachSaya.bio)}</p>` : ''}
+      <p class="kecil" style="margin:0">Dikongsi:</p>
+      ${[['makan', 'Rekod makan'], ['berat', 'Berat badan'], ['senaman', 'Senaman'], ['kesihatan', 'Keadaan kesihatan']].map(([x, l]) => `<div class="chk"><input type="checkbox" ${x === 'kesihatan' ? (ks[x] === true ? 'checked' : '') : (ks[x] !== false ? 'checked' : '')} onchange="ubahKongsi('${x}', this.checked)"> <span>${l}</span></div>`).join('')}
+      <button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="putusCoach()"><i class="fa-solid fa-link-slash"></i> Putuskan hubungan</button>`;
+  } else {
+    k.innerHTML = `<h2><i class="fa-solid fa-user-check"></i> Coach saya</h2>
+      <p class="kecil" style="margin:0 0 8px">Ada coach diet? Masukkan kod coach supaya dia boleh pantau kemajuan anda. Pilihan sahaja.</p>
+      <div style="display:flex;gap:8px"><input id="inKodCoach" placeholder="Kod coach (cth. REFAB12CD)" style="text-transform:uppercase"><button class="btn btn-hijau" onclick="cariCoach()">Sambung</button></div>`;
+  }
+}
+window.cariCoach = async () => {
+  const kod = ($('inKodCoach').value || '').trim().toUpperCase(); if (!kod) return;
+  try {
+    const sn = await getDocs(query(collection(db, 'nowsihat_coach'), where('kod', '==', kod), where('status', '==', 'aktif')));
+    let c = null; sn.forEach(d => c = d.data());
+    if (!c) { alert('Kod coach tidak dijumpai atau belum aktif.'); return; }
+    if (c.uid === S.uid) { alert('Itu kod anda sendiri.'); return; }
+    tawarCoach(c);
+  } catch (e) { alert('Gagal mencari: ' + e.message); }
+};
+function tawarCoach(c) { CALON = c; $('mcNama').textContent = c.nama || 'Coach'; $('modalCoach').style.display = 'flex'; }
+window.sahCoach = async () => {
+  if (!CALON) return;
+  const kongsi = { makan: $('mcMakan').checked, berat: $('mcBerat').checked, senaman: $('mcSenaman').checked, kesihatan: $('mcSihat').checked };
+  try {
+    await setDoc(doc(db, 'nowsihat_klien', S.uid), { klien_uid: S.uid, coach_uid: CALON.uid, status: 'aktif', kongsi, nama_klien: S.user.name || '', masa: Date.now() });
+    try { localStorage.removeItem('ns_coach_tolak_' + CALON.uid); } catch (e) {}
+    $('modalCoach').style.display = 'none'; CALON = null; await muatCoachSaya(); alert('Berjaya berpaut dengan coach.');
+  } catch (e) { alert('Gagal: ' + e.message); }
+};
+window.tolakCoach = () => { if (CALON) { try { localStorage.setItem('ns_coach_tolak_' + CALON.uid, '1'); } catch (e) {} } $('modalCoach').style.display = 'none'; CALON = null; };
+window.ubahKongsi = async (x, on) => {
+  if (!S.pautan) return; const ks = { ...(S.pautan.kongsi || {}), [x]: on };
+  try { await setDoc(doc(db, 'nowsihat_klien', S.uid), { ...S.pautan, kongsi: ks }); S.pautan.kongsi = ks; } catch (e) { alert('Gagal: ' + e.message); paparCoachSaya(); }
+};
+window.putusCoach = async () => {
+  if (!confirm('Putuskan hubungan dengan coach? Coach tidak lagi nampak data anda.')) return;
+  try { await deleteDoc(doc(db, 'nowsihat_klien', S.uid)); await setDoc(doc(db, 'nowsihat_profil', S.uid), { sasaran_coach: null }, { merge: true }); S.profil.sasaran_coach = null; await muatCoachSaya(); paparHari(); }
+  catch (e) { alert('Gagal: ' + e.message); }
+};
+// Pengguna yang mendaftar melalui pautan coach: tawar persetujuan sekali (jika belum berpaut / belum menolak)
+async function semakCoachRujukan() {
+  const ref = S.user.referred_by; if (!ref || S.pautan || ref === S.uid || !S.user.nowsihat_expiry_date) return;
+  try { if (localStorage.getItem('ns_coach_tolak_' + ref)) return; } catch (e) {}
+  try { const c = await getDoc(doc(db, 'nowsihat_coach', ref)); if (c.exists() && c.data().status === 'aktif') tawarCoach(c.data()); } catch (e) {}
+}
+
+// ---------- Jadi coach ----------
+async function muatJadiCoach() {
+  const k = $('kadJadiCoach');
+  const adminBtn = (S.email || '').toLowerCase() === 'dae.book89@gmail.com' ? `<button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="location.href='nowsihat-coach.html'"><i class="fa-solid fa-user-shield"></i> Urus permohonan coach (admin)</button>` : '';
+  let c = null; try { const d = await getDoc(doc(db, 'nowsihat_coach', S.uid)); c = d.exists() ? d.data() : null; } catch (e) {}
+  if (c && c.status === 'aktif') {
+    k.innerHTML = `<h2><i class="fa-solid fa-clipboard-user"></i> Coach nowSihat</h2><p class="kecil" style="margin:0 0 8px">Akaun coach anda aktif. Kod: <b>${esc(c.kod)}</b></p>
+      <button class="btn btn-hijau penuh" onclick="location.href='nowsihat-coach.html'"><i class="fa-solid fa-gauge"></i> Buka Dashboard Coach</button>`;
+  } else if (c && c.status === 'mohon') {
+    k.innerHTML = `<h2><i class="fa-solid fa-clipboard-user"></i> Coach nowSihat</h2><p style="font-size:14px;margin:0">Permohonan anda sedang disemak. Kami akan maklumkan bila diluluskan.</p>`;
+  } else {
+    k.innerHTML = `<h2><i class="fa-solid fa-clipboard-user"></i> Jadi coach nowSihat</h2>
+      <p class="kecil" style="margin:0 0 6px">Untuk coach diet & kecergasan: pantau klien, tetapkan sasaran, beri komen pada makanan, dan dapat komisen affiliate setiap klien yang melanggan.</p>
+      <label for="cNama">Nama paparan coach</label><input id="cNama" maxlength="60" value="${esc(S.user.name || '')}">
+      <label for="cBio">Bidang / pengalaman ringkas</label><textarea id="cBio" rows="2" maxlength="200" placeholder="cth. Coach diet bertauliah, fokus turun berat untuk ibu bekerja"></textarea>
+      <button class="btn btn-garis penuh" style="margin-top:10px" onclick="mohonCoach()">Mohon jadi coach</button>`;
+  }
+  if (adminBtn) k.insertAdjacentHTML('beforeend', adminBtn);
+}
+window.mohonCoach = async () => {
+  if (!S.user.is_affiliate || !S.user.referral_code) {
+    if (confirm('Coach perlu berdaftar sebagai Affiliate dahulu (untuk kod dan bayaran komisen). Daftar sekarang?')) location.href = 'affiliates.html';
+    return;
+  }
+  const nama = $('cNama').value.trim(), bio = $('cBio').value.trim();
+  if (!nama) { alert('Isi nama paparan.'); return; }
+  try { await setDoc(doc(db, 'nowsihat_coach', S.uid), { uid: S.uid, nama: nama.slice(0, 60), bio: bio.slice(0, 200), kod: S.user.referral_code, emel: S.user.email || '', status: 'mohon', masa: Date.now() }); muatJadiCoach(); alert('Permohonan dihantar. Admin akan menyemak.'); }
+  catch (e) { alert('Gagal: ' + e.message); }
+};
+
 // ---------- Mula ----------
 onAuthStateChanged(auth, async (u) => {
   if (!u) { location.href = 'index.html'; return; }
-  S.uid = u.uid;
+  S.uid = u.uid; S.email = u.email || '';
   try { const s = await getDoc(doc(db, 'mynasab_users', u.uid)); S.user = s.exists() ? s.data() : {}; } catch (e) {}
   { const j = jamMY(), nm = String(S.user.name || (u.email || '').split('@')[0]).trim().split(/\s+/)[0]; $('salam').innerHTML = `${j < 12 ? 'Selamat pagi' : j < 15 ? 'Selamat tengah hari' : j < 19 ? 'Selamat petang' : 'Selamat malam'},<br><b>${esc(nm)}</b>`; }
   try { const p = await getDoc(doc(db, 'nowsihat_profil', u.uid)); S.profil = p.exists() ? p.data() : {}; } catch (e) {}
@@ -776,6 +887,7 @@ onAuthStateChanged(auth, async (u) => {
   }
   try { const t = await getDoc(doc(db, 'tetapan_awam', 'hijrah')); if (t.exists()) S.laras = Math.max(-1, Math.min(1, parseInt(t.data().laras, 10) || 0)); } catch (e) {}
   isiBorang(); isiSenamanBorang(); await muatHari();
+  muatJadiCoach(); muatCoachSaya().then(semakCoachRujukan);
   const tm = S.user.nowsihat_expiry_date;
   if (!tm) $('modalMula').style.display = 'flex';
   else if (tm < Date.now()) $('modalTamat').style.display = 'flex';
