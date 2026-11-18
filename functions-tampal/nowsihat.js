@@ -9,7 +9,7 @@
 //        firebase functions:secrets:set GEMINI_KEY
 //      (tampal kunci bila diminta, tekan Enter)
 //   3. Deploy:
-//        firebase deploy --only functions:nowSihatLanggan,functions:nowSihatImbas
+//        firebase deploy --only functions:nowSihatLanggan,functions:nowSihatImbas,functions:nowSihatPeringatan
 //
 // Peraturan perniagaan:
 //   - Percubaan percuma 30 hari bila pengguna mula (sama seperti weCare & OurMoney), kemudian 20 kredit / 30 hari.
@@ -67,6 +67,7 @@ exports.nowSihatImbas = functions
         const gambar = String((data && data.gambar) || '');
         if (!gambar || gambar.length > 2.5 * 1024 * 1024) throw new functions.https.HttpsError('invalid-argument', 'Gambar tiada atau terlalu besar.');
         const nota = String((data && data.nota) || '').slice(0, 200);
+        const puasa = !!(data && data.puasa);
 
         const userRef = db.collection('mynasab_users').doc(uid);
         const hari = nsTarikhMY(), harianRef = db.collection('nowsihat_harian').doc(`${uid}_${hari}`);
@@ -107,14 +108,17 @@ Maklumat pengguna: umur ${umur ?? 'tidak diketahui'}, jantina ${jantina === 'P' 
 ${keadaan ? 'Keadaan kesihatan yang dilaporkan pengguna: ' + keadaan + '. Ambil kira dalam nasihat (cth. gula, garam, lemak, purin), tanpa diagnosis.\n' : ''}Sasaran harian: kalori ${sasaran.kalori || '-'} kcal, protein ${sasaran.protein || '-'} g, gula tambahan maksimum ${sasaran.gula || 50} g, natrium maksimum ${sasaran.natrium || 2000} mg.
 Sudah dimakan hari ini (sebelum hidangan ini): kalori ${Math.round(sudah.kalori)} kcal, protein ${Math.round(sudah.protein)} g, gula ${Math.round(sudah.gula)} g, natrium ${Math.round(sudah.natrium)} mg.
 ${nota ? 'Keterangan daripada pengguna: ' + nota : ''}
+Waktu sekarang (Malaysia): ${new Date(Date.now() + 8 * 3600000).toISOString().slice(11, 16)}.
+${puasa ? 'Pengguna sedang berpuasa sunat hari ini: anggap hidangan ini sahur atau berbuka (ikut waktu) dan beri nasihat yang sesuai.' : ''}
 Peraturan:
 - Gunakan anggaran saiz hidangan biasa di Malaysia jika saiz tidak jelas. Nyatakan anggaran saiz.
 - Jika gambar bukan makanan atau minuman, pulangkan makanan = [] dan status "bukan_makanan".
 - Nasihat dalam Bahasa Melayu santai dan mesra, maksimum 2 ayat, praktikal (cth. kurangkan kuah, tambah sayur). Jangan memalukan pengguna. Jangan beri nasihat perubatan atau diagnosis.
 ${umur !== null && umur < 18 ? '- Pengguna bawah 18 tahun: JANGAN sebut kiraan kalori atau diet dalam nasihat; fokus pada pinggan seimbang dan tumbesaran.' : ''}
+- seterusnya: SATU ayat cadangan konkrit untuk waktu makan seterusnya (tengah hari / malam / sarapan esok, atau berbuka / sahur jika berpuasa) berdasarkan baki hari ini, cth. apa yang perlu dikurangkan dan apa yang perlu ditambah.
 - status: "baik" (sesuai), "sederhana" (boleh, dengan pelarasan), "kurangkan" (tinggi gula/garam/lemak berbanding baki hari ini).
 Pulangkan JSON SAHAJA dengan bentuk:
-{"makanan":[{"nama":"","saiz":"","kalori":0,"protein":0,"karbo":0,"lemak":0,"gula":0,"natrium":0}],"jumlah":{"kalori":0,"protein":0,"karbo":0,"lemak":0,"gula":0,"natrium":0},"status":"baik","nasihat":""}
+{"makanan":[{"nama":"","saiz":"","kalori":0,"protein":0,"karbo":0,"lemak":0,"gula":0,"natrium":0}],"jumlah":{"kalori":0,"protein":0,"karbo":0,"lemak":0,"gula":0,"natrium":0},"status":"baik","nasihat":"","seterusnya":""}
 Unit: kalori kcal; protein/karbo/lemak/gula gram; natrium mg. Nombor bulat.`;
 
         let hasil;
@@ -146,7 +150,7 @@ Unit: kalori kcal; protein/karbo/lemak/gula gram; natrium mg. Nombor bulat.`;
         const jumlah = { kalori: 0, protein: 0, karbo: 0, lemak: 0, gula: 0, natrium: 0 };
         makanan.forEach(m => { for (const k in jumlah) jumlah[k] += m[k]; });
         const status = ['baik', 'sederhana', 'kurangkan', 'bukan_makanan'].includes(hasil.status) ? hasil.status : 'sederhana';
-        const rekod = { uid, tarikh: hari, masa: Date.now(), makanan, jumlah, status, nasihat: String(hasil.nasihat || '').slice(0, 400), nota, model: NS_MODEL };
+        const rekod = { uid, tarikh: hari, masa: Date.now(), makanan, jumlah, status, nasihat: String(hasil.nasihat || '').slice(0, 400), seterusnya: String(hasil.seterusnya || '').slice(0, 300), puasa, nota, model: NS_MODEL };
 
         if (status === 'bukan_makanan' || !makanan.length) {
             await harianRef.update({ bil: admin.firestore.FieldValue.increment(-1) }).catch(() => {});
@@ -156,6 +160,33 @@ Unit: kalori kcal; protein/karbo/lemak/gula gram; natrium mg. Nombor bulat.`;
         return { ...rekod, id: ref.id };
     });
 
+
+// Peringatan senaman: setiap 30 minit, hantar push kepada pengguna yang rutinnya jatuh pada slot ini dan belum tanda "Dah buat"
+exports.nowSihatPeringatan = functions
+    .region('asia-southeast1')
+    .pubsub.schedule('every 30 minutes').timeZone('Asia/Kuala_Lumpur')
+    .onRun(async () => {
+        const k = new Date(Date.now() + 8 * 3600000);
+        const slot = `${String(k.getUTCHours()).padStart(2, '0')}:${k.getUTCMinutes() < 30 ? '00' : '30'}`, dow = k.getUTCDay(), hari = nsTarikhMY();
+        const sn = await db.collection('nowsihat_profil').where('senaman.notif', '==', true).where('senaman.masa', '==', slot).get();
+        let n = 0;
+        for (const d of sn.docs) {
+            const s = d.data().senaman || {};
+            if (!(s.hari || []).includes(dow)) continue;
+            if ((await db.collection('nowsihat_senaman').doc(`${d.id}_${hari}`).get()).exists) continue;
+            const u = await db.collection('mynasab_users').doc(d.id).get();
+            if (!u.exists || !(u.data().nowsihat_expiry_date > Date.now())) continue;
+            const nama = s.jenis === 'jog' ? 'jogging' : 'brisk walk';
+            try {
+                n += await hantarKeSemuaPeranti(db, admin.messaging(), d.id, u.data(), {
+                    notification: { title: `Masa untuk ${nama}`, body: `${s.minit || 30} minit ${nama} hari ini. Siap nanti, tekan "Dah buat" di nowSihat.` },
+                    data: { app: 'nowsihat', url: '/nowsihat.html', tag: `nowsihat-senaman-${hari}` }
+                });
+            } catch (e) { console.error('nowSihat peringatan:', d.id, e.message); }
+        }
+        console.log(`nowSihat peringatan ${slot}: ${n} push`);
+        return null;
+    });
 
 // =====================================================================
 // PERATURAN FIRESTORE (tampal dalam match /databases/{database}/documents { ... })
@@ -167,6 +198,11 @@ Unit: kalori kcal; protein/karbo/lemak/gula gram; natrium mg. Nombor bulat.`;
     match /nowsihat_log/{id} {
       allow read, delete: if request.auth != null && resource.data.uid == request.auth.uid;
       allow create, update: if false;      // hanya Cloud Function
+    }
+    match /nowsihat_senaman/{id} {
+      allow read, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create, update: if request.auth != null && request.resource.data.uid == request.auth.uid
+                            && id == request.auth.uid + '_' + request.resource.data.tarikh;
     }
     match /nowsihat_harian/{id} {
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;

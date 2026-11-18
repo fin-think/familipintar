@@ -9,26 +9,33 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; background: #f0fdf4; color: #0f172a; }
+  body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; background: linear-gradient(180deg,#ecfdf3 0%,#f7fee7 100%) fixed; color: #0f172a; min-height: 100vh; }
   .wrap { max-width: 640px; margin: 0 auto; padding: 0 14px 90px; }
-  header { position: sticky; top: 0; z-index: 10; background: #fff; border-bottom: 1px solid #d1fae5; }
+  header { position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg,#047857 0%,#16a34a 55%,#65a30d 100%); box-shadow: 0 4px 14px rgba(4,120,87,.25); }
   .hbar { max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
   .logo { flex: 1; font-weight: 900; font-size: 22px; letter-spacing: -.5px; }
-  .logo .a { color: #0f172a; } .logo .b { color: #059669; }
-  .ib { background: none; border: none; font-size: 18px; color: #334155; padding: 6px 8px; cursor: pointer; }
+  .logo { color: #fff; display: flex; align-items: center; gap: 6px; } .logo .a { color: #ecfccb; } .logo .b { color: #fff; } .logo i { color: #bef264; font-size: 18px; }
+  .ib { background: none; border: none; font-size: 18px; color: #334155; padding: 6px 8px; cursor: pointer; } header .ib { color: #fff; }
   .kredit { font-size: 12px; font-weight: 800; background: #fef9c3; border: 1px solid #fde047; color: #854d0e; border-radius: 999px; padding: 4px 10px; }
   .tabs { display: flex; gap: 6px; max-width: 640px; margin: 0 auto; padding: 0 14px 10px; }
-  .tab { flex: 1; border: none; background: #ecfdf5; color: #065f46; font-weight: 800; font-size: 14px; padding: 9px 6px; border-radius: 10px; cursor: pointer; }
-  .tab.aktif { background: #059669; color: #fff; }
-  .kad { background: #fff; border-radius: 16px; padding: 16px; margin-top: 14px; box-shadow: 0 1px 3px rgba(15,23,42,.06); }
+  .tab { flex: 1; border: none; background: rgba(255,255,255,.16); color: #f0fdf4; font-weight: 800; font-size: 14px; padding: 9px 6px; border-radius: 10px; cursor: pointer; }
+  .tab.aktif { background: #fff; color: #047857; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+  .kad { background: #fff; border-radius: 18px; padding: 16px; margin-top: 14px; box-shadow: 0 2px 10px rgba(22,101,52,.07); border: 1px solid #dcfce7; }
+  h2 i { color: #16a34a; margin-right: 4px; }
+  .kad-puasa { background: linear-gradient(135deg,#fffbeb,#fef3c7); border-color: #fde68a; } .kad-puasa h2 i { color: #b45309; }
+  .kad-sukan { background: linear-gradient(135deg,#f0fdf4,#ecfccb); }
+  .tip { display: flex; gap: 8px; font-size: 13.5px; line-height: 1.5; margin: 6px 0; } .tip i { color: #16a34a; margin-top: 3px; width: 16px; text-align: center; }
+  .hari-pil { display: flex; gap: 6px; flex-wrap: wrap; } .hari-pil label { margin: 0; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 999px; padding: 5px 10px; font-size: 13px; } .hari-pil input { width: auto; }
+  .streak { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 12.5px; color: #c2410c; background: #ffedd5; border-radius: 999px; padding: 3px 10px; }
   h2 { font-size: 17px; margin: 0 0 10px; font-weight: 900; }
   .kecil { font-size: 12.5px; color: #64748b; }
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 12px; padding: 12px 16px; font-weight: 800; font-size: 15px; cursor: pointer; font-family: inherit; }
-  .btn-hijau { background: #059669; color: #fff; } .btn-hijau:disabled { background: #94a3b8; }
+  .btn-hijau { background: linear-gradient(135deg,#059669,#16a34a); color: #fff; box-shadow: 0 3px 10px rgba(22,163,74,.3); } .btn-hijau:disabled { background: #94a3b8; }
   .btn-garis { background: #fff; color: #065f46; border: 2px solid #059669; }
   .penuh { width: 100%; }
   .bar { height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin: 4px 0 10px; }
-  .bar > i { display: block; height: 100%; border-radius: 999px; background: #10b981; }
+  .bar > i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg,#22c55e,#84cc16); }
+  .bar > i.protein { background: linear-gradient(90deg,#0ea5e9,#22c55e); }
   .bar > i.amaran { background: #f59e0b; } .bar > i.lebih { background: #ef4444; }
   .baris { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 700; }
   label { display: block; font-size: 13px; font-weight: 800; margin: 10px 0 4px; color: #334155; }
@@ -52,7 +59,7 @@
 <header>
   <div class="hbar">
     <button class="ib" onclick="location.href='index.html'" title="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
-    <div class="logo"><span class="a">now</span><span class="b">Sihat</span></div>
+    <div class="logo"><i class="fa-solid fa-leaf"></i><span><span class="a">now</span><span class="b">Sihat</span></span></div>
     <span class="kredit" id="kredit">Kredit: -</span>
   </div>
   <div class="tabs">
@@ -65,11 +72,14 @@
 <div class="wrap">
   <!-- HARI INI -->
   <section id="t-hari">
+    <div class="kad kad-puasa hidden" id="kadPuasa"></div>
     <div class="kad">
       <div class="baris" style="margin-bottom:8px"><h2 style="margin:0">Ringkasan hari ini</h2><span class="kecil" id="bilImbas">0/8 imbasan</span></div>
       <div id="ringkasan"></div>
       <button class="btn btn-hijau penuh" style="margin-top:6px" onclick="tukarTab('imbas')"><i class="fa-solid fa-camera"></i> Imbas makanan</button>
     </div>
+    <div class="kad" id="kadSeterusnya"></div>
+    <div class="kad kad-sukan" id="kadSenaman"></div>
     <div class="kad">
       <h2>Makanan hari ini</h2>
       <div id="senaraiHari" class="kecil">Belum ada imbasan hari ini.</div>
@@ -124,6 +134,20 @@
     </div>
     <div class="kad" id="kadSasaran"></div>
     <div class="kad">
+      <h2><i class="fa-solid fa-person-walking"></i> Rutin senaman</h2>
+      <div class="grid2">
+        <div><label for="sJenis">Jenis</label><select id="sJenis"><option value="brisk">Brisk walk</option><option value="jog">Jogging</option></select></div>
+        <div><label for="sMinit">Minit setiap sesi</label><input type="number" id="sMinit" min="5" max="180" value="30" inputmode="numeric"></div>
+      </div>
+      <label>Hari</label>
+      <div class="hari-pil" id="sHari"></div>
+      <div class="grid2">
+        <div><label for="sMasa">Masa peringatan</label><select id="sMasa"></select></div>
+        <div><label>&nbsp;</label><div class="chk" style="margin-top:10px"><input type="checkbox" id="sNotif" checked> <span>Hantar notifikasi</span></div></div>
+      </div>
+      <button class="btn btn-hijau penuh" style="margin-top:14px" onclick="simpanSenaman()">Simpan rutin</button>
+    </div>
+    <div class="kad">
       <h2>Langganan</h2>
       <p class="kecil" id="infoLanggan" style="margin:0 0 10px"></p>
       <button class="btn btn-garis penuh" onclick="perbaharui()">Perbaharui (20 kredit / 30 hari)</button>
@@ -158,6 +182,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
+import { tarikhMalaysia, tarikhHijrah, namaHariMasihi, BULAN_HIJRAH } from "./sejarah-islam.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -169,7 +194,7 @@ const app = initializeApp({
 });
 const auth = getAuth(app), db = getFirestore(app), fns = getFunctions(app, 'asia-southeast1');
 const HAD = 8;
-const S = { uid: null, user: {}, profil: {}, log: [], harian: { bil: 0, tambahan: 0 }, gambar: null };
+const S = { uid: null, user: {}, profil: {}, log: [], harian: { bil: 0, tambahan: 0 }, gambar: null, senamanHari: null, laras: 0 };
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const tarikhMY = () => new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
@@ -212,15 +237,17 @@ function panduanUmur(u) {
 // ---------- Paparan ----------
 function bar(label, nilai, sasaran, unit, hadAtas) {
   if (!sasaran) return `<div class="baris"><span>${label}</span><span>${Math.round(nilai)} ${unit}</span></div><div class="bar"><i style="width:0"></i></div>`;
-  const pct = Math.min(100, nilai / sasaran * 100), kls = hadAtas ? (pct >= 100 ? 'lebih' : pct >= 80 ? 'amaran' : '') : '';
+  const pct = Math.min(100, nilai / sasaran * 100), kls = hadAtas ? (pct >= 100 ? 'lebih' : pct >= 80 ? 'amaran' : '') : 'protein';
   return `<div class="baris"><span>${label}</span><span>${Math.round(nilai)} / ${sasaran} ${unit}</span></div><div class="bar"><i class="${kls}" style="width:${pct}%"></i></div>`;
 }
 function paparHari() {
   const s = kiraSasaran(S.profil), j = { kalori: 0, protein: 0, gula: 0, natrium: 0 };
+  const bakar = (S.senamanHari && S.senamanHari.kalori) || 0;
+  if (s.kalori && bakar) s.kalori += bakar;     // kalori terbakar senaman tambah baki hari ini
   S.log.forEach(r => { for (const k in j) j[k] += (r.jumlah || {})[k] || 0; });
   const dewasa = s.umur === null || s.umur >= 18;
-  $('ringkasan').innerHTML = (dewasa ? bar('Kalori', j.kalori, s.kalori, 'kcal', true) : '') +
-    bar('Protein', j.protein, s.protein, 'g', false) + bar('Gula', j.gula, s.gula, 'g', true) + bar('Natrium (garam)', j.natrium, s.natrium, 'mg', true) +
+  $('ringkasan').innerHTML = (dewasa ? bar('<i class="fa-solid fa-fire" style="color:#f97316"></i> Kalori' + (bakar ? ` <span class="kecil">(+${bakar} senaman)</span>` : ''), j.kalori, s.kalori, 'kcal', true) : '') +
+    bar('<i class="fa-solid fa-drumstick-bite" style="color:#0ea5e9"></i> Protein', j.protein, s.protein, 'g', false) + bar('<i class="fa-solid fa-cubes-stacked" style="color:#eab308"></i> Gula', j.gula, s.gula, 'g', true) + bar('<i class="fa-solid fa-jar" style="color:#64748b"></i> Natrium (garam)', j.natrium, s.natrium, 'mg', true) +
     (dewasa && !s.kalori ? '<p class="kecil" style="margin:4px 0 0">Lengkapkan profil (berat, tinggi, jantina) untuk sasaran kalori.</p>' : '');
   $('bilImbas').textContent = `${S.harian.bil || 0}/${HAD + (S.harian.tambahan || 0)} imbasan`;
   $('senaraiHari').innerHTML = S.log.length ? S.log.map(r => `<div class="item">
@@ -229,8 +256,9 @@ function paparHari() {
       <div style="font-size:13px;margin-top:3px">${esc(r.nasihat)}</div></div>
       <div style="text-align:right"><span class="pil ${esc(r.status)}">${{ baik: 'Baik', sederhana: 'Sederhana', kurangkan: 'Kurangkan' }[r.status] || ''}</span><br>
       <button class="ib" style="font-size:14px;color:#94a3b8" onclick="padamRekod('${r.id}')" title="Padam"><i class="fa-regular fa-trash-can"></i></button></div></div>`).join('') : 'Belum ada imbasan hari ini.';
+  paparSeterusnya(s, j, dewasa); paparSenaman(); paparPuasa();
   const [t, b] = panduanUmur(s.umur);
-  $('kadPanduan').innerHTML = `<h2>Panduan ikut umur: ${esc(t)}</h2><p style="font-size:14px;line-height:1.6;margin:0">${esc(b)}</p>`;
+  $('kadPanduan').innerHTML = `<h2><i class="fa-solid fa-seedling"></i> Panduan ikut umur: ${esc(t)}</h2><p style="font-size:14px;line-height:1.6;margin:0">${esc(b)}</p>`;
   $('kadSasaran').innerHTML = `<h2>Sasaran harian anda</h2>` + (s.umur !== null && s.umur < 18
     ? `<p style="font-size:14px;margin:0">Untuk bawah 18 tahun, nowSihat tidak menetapkan sasaran kalori. Fokus pada pinggan seimbang dan tumbesaran.</p>`
     : `<p style="font-size:14px;line-height:1.8;margin:0">Kalori: <b>${s.kalori ? s.kalori + ' kcal' : '-'}</b><br>Protein: <b>${s.protein ? s.protein + ' g' : '-'}</b><br>Gula tambahan: maksimum <b>${s.gula} g</b><br>Natrium: maksimum <b>${s.natrium} mg</b>${s.bmi ? `<br>BMI: <b>${s.bmi}</b>` : ''}</p>`);
@@ -246,8 +274,120 @@ async function muatHari() {
     S.log = []; sn.forEach(d => S.log.push({ id: d.id, ...d.data() })); S.log.sort((a, b) => b.masa - a.masa);
   } catch (e) { console.warn('Log:', e.message); }
   try { const h = await getDoc(doc(db, 'nowsihat_harian', `${S.uid}_${hari}`)); S.harian = h.exists() ? h.data() : { bil: 0, tambahan: 0 }; } catch (e) {}
+  try { const x = await getDoc(doc(db, 'nowsihat_senaman', `${S.uid}_${hari}`)); S.senamanHari = x.exists() ? x.data() : null; } catch (e) {}
   paparHari();
 }
+
+// ---------- Cadangan makan seterusnya (tanpa AI: ikut baki hari ini) ----------
+const jamMY = () => new Date(Date.now() + 8 * 3600000).getUTCHours() + new Date(Date.now() + 8 * 3600000).getUTCMinutes() / 60;
+function paparSeterusnya(s, j, dewasa) {
+  const puasa = sedangPuasa(), jm = jamMY();
+  const waktu = puasa ? (jm < 19.3 ? 'Berbuka nanti' : 'Sahur esok') : (jm < 11 ? 'Makan tengah hari' : jm < 17 ? 'Makan malam' : 'Sarapan esok');
+  const t = [];
+  const r = (n, sas) => sas ? n / sas : 0;
+  if (puasa && jm < 19.3) t.push(['fa-glass-water', 'Mula dengan air kosong dan 1–3 biji kurma, kemudian solat dahulu sebelum makan berat.']);
+  if (puasa && jm >= 19.3) t.push(['fa-bowl-rice', 'Sahur: pilih karbohidrat perlahan (nasi perang, oat, roti wholemeal), telur atau ikan, dan minum air secukupnya.']);
+  if (r(j.gula, s.gula) >= 0.8) t.push(['fa-mug-hot', 'Gula dah hampir had: elak minuman manis, kuih dan pencuci mulut. Pilih air kosong atau teh tanpa gula.']);
+  else if (r(j.gula, s.gula) >= 0.5) t.push(['fa-mug-hot', 'Gula dah separuh: minum kurang manis atau kosong untuk hidangan seterusnya.']);
+  if (r(j.natrium, s.natrium) >= 0.8) t.push(['fa-jar', 'Garam tinggi hari ini: kurangkan kuah, sos, kicap, keropok dan makanan proses. Pilih masakan rebus atau bakar.']);
+  else if (r(j.natrium, s.natrium) >= 0.5) t.push(['fa-jar', 'Garam dah separuh: ambil kuah sedikit sahaja.']);
+  if (s.protein && r(j.protein, s.protein) < 0.5) t.push(['fa-fish', `Protein masih rendah (baki ~${Math.max(0, s.protein - Math.round(j.protein))} g): tambah ikan, ayam, telur, tauhu atau tempe.`]);
+  if (dewasa && s.kalori) {
+    const baki = s.kalori - Math.round(j.kalori);
+    if (baki < 300) t.push(['fa-scale-balanced', `Baki kalori tinggal ~${Math.max(0, baki)} kcal: pilih hidangan ringan (sup, sayur, buah) dan kecilkan nasi.`]);
+    else if (baki < 700) t.push(['fa-scale-balanced', `Baki ~${baki} kcal: nasi suku pinggan, separuh pinggan sayur, suku lauk protein.`]);
+  }
+  if (!t.length) t.push(['fa-leaf', 'Setakat ini seimbang. Teruskan Pinggan Sihat: separuh sayur dan buah, suku protein, suku nasi.']);
+  const terkini = S.log[0] && S.log[0].seterusnya ? `<div class="tip"><i class="fa-solid fa-wand-magic-sparkles"></i><span>${esc(S.log[0].seterusnya)}</span></div>` : '';
+  $('kadSeterusnya').innerHTML = `<h2><i class="fa-solid fa-utensils"></i> Cadangan untuk ${esc(waktu.toLowerCase())}</h2>${terkini}` + t.slice(0, 4).map(([i, x]) => `<div class="tip"><i class="fa-solid ${i}"></i><span>${esc(x)}</span></div>`).join('');
+}
+
+// ---------- Senaman (brisk walk / jogging) ----------
+const JENIS = { brisk: ['Brisk walk', 4.3, 'fa-person-walking'], jog: ['Jogging', 7.0, 'fa-person-running'] };
+const NAMA_HARI = ['Ahd', 'Isn', 'Sel', 'Rab', 'Kha', 'Jum', 'Sab'];
+const hariIniDow = () => new Date(Date.now() + 8 * 3600000).getUTCDay();
+const tarikhOff = (n) => new Date(Date.now() + 8 * 3600000 + n * 86400000).toISOString().slice(0, 10);
+function kalBakar(jenis, minit) { const w = +S.profil.berat || 60; return Math.round((JENIS[jenis] || JENIS.brisk)[1] * 3.5 * w / 200 * minit); }
+function paparSenaman() {
+  const sn = S.profil.senaman, k = $('kadSenaman');
+  if (!sn) { k.innerHTML = `<h2><i class="fa-solid fa-person-walking"></i> Senaman</h2><p style="font-size:14px;margin:0 0 10px">Tetapkan rutin brisk walk atau jogging, dan dapat peringatan pada masa pilihan anda.</p><button class="btn btn-garis penuh" onclick="tukarTab('profil');document.getElementById('sJenis').scrollIntoView({behavior:'smooth',block:'center'})">Tetapkan rutin</button>`; return; }
+  const [nama, , ikon] = JENIS[sn.jenis] || JENIS.brisk, dijadual = (sn.hari || []).includes(hariIniDow()), x = S.senamanHari;
+  const st = (S.profil.senaman_streak && (S.profil.senaman_terakhir === tarikhMY() || S.profil.senaman_terakhir === tarikhOff(-1))) ? S.profil.senaman_streak : 0;
+  k.innerHTML = `<div class="baris" style="align-items:center"><h2 style="margin:0"><i class="fa-solid ${ikon}"></i> ${esc(nama)} ${sn.minit} minit</h2>${st ? `<span class="streak"><i class="fa-solid fa-fire"></i> ${st} hari</span>` : ''}</div>` +
+    (x ? `<p style="font-size:14px;margin:10px 0 0"><b style="color:#15803d"><i class="fa-solid fa-circle-check"></i> Dah buat hari ini:</b> ${esc((JENIS[x.jenis] || JENIS.brisk)[0])} ${x.minit} minit, anggaran <b>${x.kalori} kcal</b> terbakar. Baki kalori hari ini bertambah.</p>
+         <button class="btn btn-garis penuh" style="margin-top:10px" onclick="batalSenaman()">Batalkan tanda</button>`
+       : `<p class="kecil" style="margin:8px 0 10px">${dijadual ? 'Dijadualkan hari ini' + (sn.notif ? `, peringatan ${esc(sn.masa)}` : '') + '.' : 'Bukan hari dijadualkan, tapi boleh tetap buat.'} Jadual: ${(sn.hari || []).map(h => NAMA_HARI[h]).join(', ')}</p>
+         <button class="btn btn-hijau penuh" onclick="tandaSenaman()"><i class="fa-solid fa-check"></i> Dah buat</button>`);
+}
+window.tandaSenaman = async () => {
+  const sn = S.profil.senaman || { jenis: 'brisk', minit: 30 };
+  const v = prompt(`Berapa minit ${(JENIS[sn.jenis] || JENIS.brisk)[0].toLowerCase()} hari ini?`, sn.minit || 30); if (v === null) return;
+  const minit = Math.max(1, Math.min(300, parseInt(v, 10) || 0)); if (!minit) return;
+  const hari = tarikhMY(), rek = { uid: S.uid, tarikh: hari, jenis: sn.jenis, minit, kalori: kalBakar(sn.jenis, minit), masa: Date.now() };
+  try {
+    await setDoc(doc(db, 'nowsihat_senaman', `${S.uid}_${hari}`), rek); S.senamanHari = rek;
+    if (S.profil.senaman_terakhir !== hari) {
+      const streak = S.profil.senaman_terakhir === tarikhOff(-1) ? (S.profil.senaman_streak || 0) + 1 : 1;
+      S.profil.senaman_streak = streak; S.profil.senaman_terakhir = hari;
+      await setDoc(doc(db, 'nowsihat_profil', S.uid), { senaman_streak: streak, senaman_terakhir: hari }, { merge: true });
+    }
+    paparHari();
+  } catch (e) { alert('Gagal simpan: ' + e.message); }
+};
+window.batalSenaman = async () => {
+  if (!confirm('Batalkan tanda senaman hari ini?')) return;
+  try {
+    await deleteDoc(doc(db, 'nowsihat_senaman', `${S.uid}_${tarikhMY()}`)); S.senamanHari = null;
+    if (S.profil.senaman_terakhir === tarikhMY()) { const st = Math.max(0, (S.profil.senaman_streak || 1) - 1); S.profil.senaman_streak = st; S.profil.senaman_terakhir = st ? tarikhOff(-1) : ''; await setDoc(doc(db, 'nowsihat_profil', S.uid), { senaman_streak: st, senaman_terakhir: S.profil.senaman_terakhir }, { merge: true }); }
+    paparHari();
+  } catch (e) { alert('Gagal: ' + e.message); }
+};
+function isiSenamanBorang() {
+  const sn = S.profil.senaman || { jenis: 'brisk', minit: 30, hari: [1, 3, 5], masa: '18:00', notif: true };
+  $('sJenis').value = sn.jenis; $('sMinit').value = sn.minit; $('sNotif').checked = sn.notif !== false;
+  $('sHari').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(h => `<label><input type="checkbox" value="${h}" ${(sn.hari || []).includes(h) ? 'checked' : ''}> ${NAMA_HARI[h]}</label>`).join('');
+  let op = ''; for (let h = 5; h <= 22; h++) for (const m of ['00', '30']) { const v = `${String(h).padStart(2, '0')}:${m}`; op += `<option value="${v}">${(h % 12 || 12)}:${m} ${h < 12 ? 'pagi' : h < 19 ? 'petang' : 'malam'}</option>`; }
+  $('sMasa').innerHTML = op; $('sMasa').value = sn.masa || '18:00';
+}
+window.simpanSenaman = async () => {
+  const hari = [...document.querySelectorAll('#sHari input:checked')].map(i => +i.value);
+  if (!hari.length) { alert('Pilih sekurang-kurangnya satu hari.'); return; }
+  const sn = { jenis: $('sJenis').value, minit: Math.max(5, Math.min(180, parseInt($('sMinit').value, 10) || 30)), hari, masa: $('sMasa').value, notif: $('sNotif').checked };
+  try { await setDoc(doc(db, 'nowsihat_profil', S.uid), { senaman: sn }, { merge: true }); S.profil.senaman = sn; paparHari(); alert('Rutin senaman disimpan.' + (sn.notif ? ' Peringatan akan dihantar pada hari dan masa yang dipilih.' : '')); }
+  catch (e) { alert('Gagal simpan: ' + e.message); }
+};
+
+// ---------- Mod puasa sunat (Isnin, Khamis, Hari Putih 13-15 Hijrah) ----------
+function infoPuasa(offset) {
+  const t = new Date(Date.now() + 8 * 3600000 + offset * 86400000), g = { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate() };
+  const h = tarikhHijrah(g, S.laras), dow = t.getUTCDay();
+  if (h.m === 9) return null;                                                     // Ramadan: puasa wajib
+  if ((h.m === 10 && h.d === 1) || (h.m === 12 && h.d >= 10 && h.d <= 13)) return null;   // Aidilfitri, Aidiladha & hari Tasyrik: haram berpuasa
+  const sebab = [];
+  if (dow === 1) sebab.push('Isnin'); if (dow === 4) sebab.push('Khamis');
+  if (h.d >= 13 && h.d <= 15) sebab.push(`Hari Putih (${h.d} ${BULAN_HIJRAH[h.m - 1]})`);
+  return sebab.length ? { sebab: sebab.join(' & '), hijrah: h } : null;
+}
+const kunciPuasa = () => 'ns_puasa_' + tarikhMY();
+function sedangPuasa() { try { return localStorage.getItem(kunciPuasa()) === '1'; } catch (e) { return false; } }
+function paparPuasa() {
+  const kini = infoPuasa(0), esok = infoPuasa(1), k = $('kadPuasa');
+  if (!kini && !esok) { k.classList.add('hidden'); return; }
+  k.classList.remove('hidden');
+  let h = '';
+  if (kini) {
+    const on = sedangPuasa();
+    h += `<h2><i class="fa-solid fa-moon"></i> Hari ini: puasa sunat ${esc(kini.sebab)}</h2>
+      <div class="chk"><input type="checkbox" id="cbPuasa" ${on ? 'checked' : ''} onchange="tukarPuasa(this.checked)"> <span>Saya berpuasa hari ini</span></div>
+      ${on ? `<div class="tip"><i class="fa-solid fa-glass-water" style="color:#b45309"></i><span>Berbuka: air kosong dan kurma dahulu, solat Maghrib, kemudian makan sederhana. Elak terus makan berat dan bergoreng.</span></div>
+      <div class="tip"><i class="fa-solid fa-droplet" style="color:#b45309"></i><span>Antara berbuka dan tidur, cukupkan 6–8 gelas air sedikit demi sedikit.</span></div>` : ''}`;
+  }
+  if (esok) h += `${kini ? '<hr style="border:none;border-top:1px solid #fde68a;margin:10px 0">' : ''}<h2 style="font-size:15px"><i class="fa-regular fa-calendar"></i> Esok: puasa sunat ${esc(esok.sebab)}</h2>
+      <div class="tip"><i class="fa-solid fa-bowl-rice" style="color:#b45309"></i><span>Sediakan sahur: karbohidrat perlahan (oat, roti wholemeal, nasi), telur atau ikan, buah, dan air secukupnya. Kurangkan masin supaya tidak cepat dahaga.</span></div>`;
+  h += `<p class="kecil" style="margin:8px 0 0">Tarikh Hijrah ialah anggaran. Tanda amalan puasa di <a href="app/mychecklist40.html" style="color:#b45309;font-weight:800">myChecklist40</a>.</p>`;
+  k.innerHTML = h;
+}
+window.tukarPuasa = (on) => { try { on ? localStorage.setItem(kunciPuasa(), '1') : localStorage.removeItem(kunciPuasa()); } catch (e) {} paparHari(); };
 
 // ---------- Profil ----------
 function isiBorang() {
@@ -262,7 +402,7 @@ window.simpanProfil = async () => {
     aktiviti: $('pAktiviti').value, matlamat: $('pMatlamat').value, fokus, kemas_kini: Date.now() };
   p.sasaran = (({ kalori, protein, gula, natrium }) => ({ kalori, protein, gula, natrium }))(kiraSasaran(p));
   try {
-    await setDoc(doc(db, 'nowsihat_profil', S.uid), p); S.profil = p;
+    await setDoc(doc(db, 'nowsihat_profil', S.uid), p, { merge: true }); S.profil = { ...S.profil, ...p };
     // Kongsi berat & tinggi terkini dengan myHEALTH (profil induk)
     if (p.berat || p.tinggi) setDoc(doc(db, 'mynasab_users', S.uid), { ...(p.berat ? { myhealth_berat: p.berat } : {}), ...(p.tinggi ? { myhealth_tinggi: p.tinggi } : {}), myhealth_kemas_kini: Date.now() }, { merge: true }).catch(e => console.warn('Kongsi myHEALTH:', e.message));
     paparHari(); alert('Profil disimpan.');
@@ -314,7 +454,7 @@ window.analisis = async (bayarTambahan = false) => {
   if (!S.gambar) return;
   const b = $('btnAnalisis'); b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner putar"></i> Menganalisis...';
   try {
-    const r = (await httpsCallable(fns, 'nowSihatImbas')({ gambar: S.gambar, nota: $('nota').value.trim(), bayarTambahan })).data;
+    const r = (await httpsCallable(fns, 'nowSihatImbas')({ gambar: S.gambar, nota: $('nota').value.trim(), bayarTambahan, puasa: sedangPuasa() })).data;
     paparHasil(r);
     if (r.id) { S.gambar = null; $('nota').value = ''; $('pratonton').style.display = 'none'; }
     await muatHari();
@@ -336,6 +476,7 @@ function paparHasil(r) {
     <p style="font-size:15px;line-height:1.55;margin:10px 0;font-weight:700;color:#065f46">${esc(r.nasihat)}</p>
     ${r.makanan.map(m => `<div class="item"><div style="flex:1"><b style="font-size:14px">${esc(m.nama)}</b><div class="kecil">${esc(m.saiz)}</div></div><div class="kecil" style="text-align:right">${dewasa ? m.kalori + ' kcal<br>' : ''}P ${m.protein}g · G ${m.gula}g</div></div>`).join('')}
     <div class="item" style="font-weight:800;font-size:13.5px"><div style="flex:1">Jumlah</div><div style="text-align:right">${dewasa ? r.jumlah.kalori + ' kcal · ' : ''}protein ${r.jumlah.protein} g<br>karbo ${r.jumlah.karbo} g · lemak ${r.jumlah.lemak} g · gula ${r.jumlah.gula} g · natrium ${r.jumlah.natrium} mg</div></div>
+    ${r.seterusnya ? `<div class="tip" style="margin-top:10px"><i class="fa-solid fa-utensils"></i><span><b>Seterusnya:</b> ${esc(r.seterusnya)}</span></div>` : ''}
     <p class="kecil" style="margin:8px 0 0">Anggaran sahaja. Nilai sebenar bergantung pada saiz hidangan dan cara masakan.</p>`;
 }
 window.padamRekod = async (id) => {
@@ -365,7 +506,8 @@ onAuthStateChanged(auth, async (u) => {
       if (f.length) S.profil.fokus = f;
     }
   }
-  isiBorang(); await muatHari();
+  try { const t = await getDoc(doc(db, 'tetapan_awam', 'hijrah')); if (t.exists()) S.laras = Math.max(-1, Math.min(1, parseInt(t.data().laras, 10) || 0)); } catch (e) {}
+  isiBorang(); isiSenamanBorang(); await muatHari();
   const tm = S.user.nowsihat_expiry_date;
   if (!tm) $('modalMula').style.display = 'flex';
   else if (tm < Date.now()) $('modalTamat').style.display = 'flex';
