@@ -769,7 +769,7 @@ window.analisis = async (bayarTambahan = false) => {
   const b = $('btnAnalisis'); b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner putar"></i> Menganalisis...';
   try {
     const r = (await httpsCallable(fns, 'nowSihatImbas')({ gambar: S.gambar, nota: $('nota').value.trim(), bayarTambahan, puasa: sedangPuasa() })).data;
-    S.terakhir = r; paparHasil(r);
+    S.terakhir = r; S.gambarTerakhir = r.id ? 'data:image/jpeg;base64,' + S.gambar : null; paparHasil(r);
     if (r.id) { S.gambar = null; $('nota').value = ''; $('pratonton').style.display = 'none'; }
     await muatHari();
     if (bayarTambahan) { try { const u = await getDoc(doc(db, 'mynasab_users', S.uid)); S.user = u.data() || S.user; paparHari(); } catch (e) {} }
@@ -791,6 +791,7 @@ function paparHasil(r) {
     ${r.makanan.map(m => `<div class="item"><div style="flex:1"><b style="font-size:14px">${esc(m.nama)}</b><div class="kecil">${esc(m.saiz)}</div></div><div class="kecil" style="text-align:right">${dewasa ? m.kalori + ' kcal<br>' : ''}P ${m.protein}g · G ${m.gula}g</div></div>`).join('')}
     <div class="item" style="font-weight:800;font-size:13.5px"><div style="flex:1">Jumlah</div><div style="text-align:right">${dewasa ? r.jumlah.kalori + ' kcal · ' : ''}protein ${r.jumlah.protein} g<br>karbo ${r.jumlah.karbo} g · lemak ${r.jumlah.lemak} g · gula ${r.jumlah.gula} g · natrium ${r.jumlah.natrium} mg</div></div>
     ${r.seterusnya ? `<div class="tip" style="margin-top:10px"><i class="fa-solid fa-utensils"></i><span><b>Seterusnya:</b> ${esc(r.seterusnya)}</span></div>` : ''}
+    ${r.id && S.pautan && (S.pautan.kongsi || {}).makan !== false ? `<button class="btn penuh" style="margin-top:12px;background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;box-shadow:0 3px 10px rgba(109,40,217,.3)" onclick="bukaTanya('${r.id}', true)"><i class="fa-solid fa-circle-question"></i> Tanya ${esc((S.coachSaya || {}).nama || 'coach')} tentang ni</button>` : ''}
     ${r.id ? `<div class="grid2" style="margin-top:12px"><button class="btn btn-garis" onclick="bukaEdit('${r.id}')"><i class="fa-solid fa-sliders"></i> Laras saiz</button><button class="btn btn-garis" onclick="simpanKerap('${r.id}')"><i class="fa-regular fa-star"></i> Simpan kerap</button></div>` : ''}
     <p class="kecil" style="margin:8px 0 0">Anggaran sahaja. Nilai sebenar bergantung pada saiz hidangan dan cara masakan.</p>`;
 }
@@ -869,9 +870,11 @@ window.tukarPaparan = (v) => { if (v === 'coach') location.href = 'nowsihat-coac
 
 // ---------- Tanya coach ----------
 let TANYA = null;
-window.bukaTanya = (id) => {
-  const r = S.log.find(x => x.id === id); if (!r) return;
-  TANYA = { id, gambar: null }; $('tanyaTeks').value = ''; $('tanyaPrat').style.display = 'none';
+window.bukaTanya = (id, pakaiGambarImbas) => {
+  const r = S.log.find(x => x.id === id) || (S.terakhir && S.terakhir.id === id ? S.terakhir : null); if (!r) return;
+  const g = pakaiGambarImbas && S.terakhir && S.terakhir.id === id ? S.gambarTerakhir : null;   // gambar imbasan terus dilampir
+  TANYA = { id, gambar: g }; $('tanyaTeks').value = '';
+  if (g) { $('tanyaPrat').src = g; $('tanyaPrat').style.display = 'block'; } else $('tanyaPrat').style.display = 'none';
   $('tanyaMakanan').textContent = 'Tentang: ' + r.makanan.map(m => m.nama).join(', ') + ' · Kepada: ' + ((S.coachSaya || {}).nama || 'Coach');
   $('modalTanya').style.display = 'flex';
 };
