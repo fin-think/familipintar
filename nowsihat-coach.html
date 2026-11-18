@@ -193,8 +193,10 @@ async function muatSenarai() {
     $('namaCoach').textContent = r.data.coach.nama || 'nowSihat';
     if (r.data.coach.foto) { const ic = document.querySelector('.logo > i'); if (ic) ic.outerHTML = `<span style="width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:url('${esc(r.data.coach.foto)}') center/cover;flex:none"></span>`; }
     { const c = r.data.coach, t = ms => ms ? new Date(ms).toLocaleDateString('en-GB') : '-', b = $('bannerUjian');
-      if (c.ujian_lulus || !c.ujian_tamat) { b.classList.add('hidden'); } else {
-      b.innerHTML = `<i class="fa-solid fa-hourglass-half" style="color:#b45309"></i> Syarat: <b>${c.layak}/${c.ujian_min}</b> klien bukan keluarga sebelum <b>${t(c.ujian_tamat)}</b>. Klien keluarga sendiri tidak dikira. Jika tidak cukup, akaun coach dinyahaktifkan automatik.<br><i class="fa-solid fa-gift" style="color:#16a34a"></i> Dashboard coach <b>percuma</b>. Untuk imbas makanan sendiri, langgan nowSihat biasa.`;
+      let kredit = 20; try { const h = await getDoc(doc(db, 'tetapan_awam', 'harga')); if (h.exists() && Number(h.data().nowsihat_kredit) > 0) kredit = Number(h.data().nowsihat_kredit); } catch (e) {}
+      { const free = `<br><i class="fa-solid fa-gift" style="color:#16a34a"></i> Dashboard coach <b>percuma</b>. Untuk imbas makanan sendiri dan pasangan, langgan nowSihat biasa (${kredit} kredit sebulan).`;
+      b.innerHTML = c.ujian_lulus || !c.ujian_tamat ? `<i class="fa-solid fa-circle-check" style="color:#16a34a"></i> Akaun coach aktif. Syarat klien bukan keluarga: <b>${c.layak}/${c.ujian_min}</b>${c.ujian_lulus ? ' (lulus)' : ''}.` + free
+        : `<i class="fa-solid fa-hourglass-half" style="color:#b45309"></i> Syarat: <b>${c.layak}/${c.ujian_min}</b> klien bukan keluarga sebelum <b>${t(c.ujian_tamat)}</b>. Klien keluarga sendiri tidak dikira. Jika tidak cukup, akaun coach dinyahaktifkan automatik.` + free;
       b.classList.remove('hidden'); } }
     const hari = tarikhMY(), list = r.data.klien.map(k => ({ ...k, amaran: amaran(k) }));
     const skor = k => (k.soalan ? 10 : 0) + k.amaran.filter(x => x[0] === 'merah').length;
