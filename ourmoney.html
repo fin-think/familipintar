@@ -772,7 +772,7 @@
             <p>Selamat datang ke <b>OurMoney</b>, modul kewangan komprehensif yang dihubungkan dengan <b>myNasab</b> & <b>JomBercuti</b>.</p>
             
             <b style="color:var(--ink); display:block; margin-top:12px;">1. Langganan Premium</b>
-            <p style="margin-top:4px;">OurMoney adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar kewangan, integrasi percutian, analisis bulanan dan storan gambar (resit) tertakluk kepada caj langganan sebanyak <b>20 Kredit / Sebulan</b>. Anda mendapat <b>percubaan percuma 30 hari</b> bermula sebaik sahaja anda menekan "Saya Faham &amp; Bersetuju". Selepas tempoh percubaan tamat, langganan diteruskan dengan 20 Kredit sebulan.</p>
+            <p style="margin-top:4px;">OurMoney adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar kewangan, integrasi percutian, analisis bulanan dan storan gambar (resit) tertakluk kepada caj langganan sebanyak <b><span class="tk-kredit">20</span> Kredit / Sebulan</b>. Anda mendapat <b>percubaan percuma <span class="tk-percuba">30</span> hari</b> bermula sebaik sahaja anda menekan "Saya Faham &amp; Bersetuju". Selepas tempoh percubaan tamat, langganan diteruskan dengan <span class="tk-kredit">20</span> Kredit sebulan.</p>
 
             <b style="color:var(--ink); display:block; margin-top:12px;">2. Akses Tambahan (Seumur Hidup)</b>
             <p style="margin-top:4px;">Laporan Eksekutif (10 Kredit), Arkib Sejarah Bulan Lepas (1 Kredit) dan Cetakan Laporan Tahunan (5 Kredit) adalah akses seumur hidup yang dicaj sekali sahaja.</p>
@@ -793,11 +793,11 @@
         
         <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-bottom:24px;">
             Langganan OurMoney anda telah tamat tempoh. Akses merekod aliran tunai dan integrasi percutian kini dikunci.<br><br>
-            Sila perbaharui langganan menggunakan <b>20 Kredit</b> untuk terus menggunakan sistem kewangan ini tanpa gangguan selama 30 hari.
+            Sila perbaharui langganan menggunakan <b><span class="tk-kredit">20</span> Kredit</b> untuk terus menggunakan sistem kewangan ini tanpa gangguan selama 30 hari.
         </p>
         
         <button onclick="bayarGunaKredit()" style="width:100%; background:var(--primary); color:#fff; padding:14px; border:none; border-radius:8px; font-weight:700; font-size:16px; cursor:pointer; margin-bottom:12px; transition:0.2s;">
-            Potong 20 Kredit
+            Potong <span class="tk-kredit">20</span> Kredit
         </button>
         
         <button onclick="window.location.href='../topup.html'" style="width:100%; background:transparent; color:var(--muted); padding:10px; border:none; font-weight:600; font-size:14px; cursor:pointer; margin-bottom:5px;">
@@ -829,6 +829,12 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // Tetapan harga & syarat (tetapan_awam/harga); nilai asal dipakai jika tiada
+    const TH = {};
+    const th = (k, asal, min = 0) => { const v = Number(TH[k]); return TH[k] != null && Number.isFinite(v) && v >= min ? v : asal; };
+    async function muatTH() { try { const s = await getDoc(doc(db, 'tetapan_awam', 'harga')); if (s.exists()) Object.assign(TH, s.data()); } catch (e) {} }
+    muatTH().then(() => { document.querySelectorAll('.tk-kredit').forEach(e => e.textContent = th('ourmoney_kredit', 20)); document.querySelectorAll('.tk-percuba').forEach(e => e.textContent = th('percubaan_hari', 30, 1)); });
     const storage = getStorage(app); 
 
     let currentUser = null;
@@ -1099,13 +1105,14 @@
                     const data = userSnap.data();
                     if (!data.ourmoney_expiry_date) {
                         const masaSekarang = new Date().getTime();
-                        const tambah30Hari = masaSekarang + (30 * 24 * 60 * 60 * 1000); 
+                        await muatTH();
+                        const tambah30Hari = masaSekarang + (th('percubaan_hari', 30, 1) * 24 * 60 * 60 * 1000);
                         await setDoc(userRef, { ourmoney_expiry_date: tambah30Hari }, { merge: true });
                     }
                 }
                 await window.semakStatusLangganan(currentUser.uid);
                 const sBaru = await getDoc(userRef); const tm = sBaru.exists() && sBaru.data().ourmoney_expiry_date;
-                if (tm) alert('Percubaan percuma 30 hari bermula hari ini. Tamat pada ' + new Date(tm).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.');
+                if (tm) alert('Percubaan percuma ' + th('percubaan_hari', 30, 1) + ' hari bermula hari ini. Tamat pada ' + new Date(tm).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.');
             } catch (err) { console.error(err); }
         }
     });
@@ -1117,11 +1124,13 @@
             const snap = await getDoc(userRef);
             if (snap.exists()) {
                 let baki = parseInt(snap.data().credit_balance) || 0;
-                if (baki >= 20) {
+                await muatTH();
+                const KREDIT = th('ourmoney_kredit', 20);
+                if (baki >= KREDIT) {
                     const masaSekarang = new Date().getTime();
                     const tambah30Hari = masaSekarang + (30 * 24 * 60 * 60 * 1000);
-                    await setDoc(userRef, { credit_balance: baki - 20, ourmoney_expiry_date: tambah30Hari }, { merge: true });
-                    alert("Pembaharuan berjaya! 20 Kredit telah dipotong dari akun Anda.");
+                    await setDoc(userRef, { credit_balance: baki - KREDIT, ourmoney_expiry_date: tambah30Hari }, { merge: true });
+                    alert("Pembaharuan berjaya! " + KREDIT + " Kredit telah dipotong dari akun Anda.");
                     document.getElementById('modalPaywall').style.display = 'none';
                     paparTamat(tambah30Hari);
                 } else {

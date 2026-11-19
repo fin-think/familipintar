@@ -94,7 +94,8 @@ import { firebaseConfig, esc } from "./kongsi.js";
 
 const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
 const $ = (id) => document.getElementById(id);
-const MAKS_TEKS = 2000, HARI_ADAM = 90, HAD_HULUR_SEHARI = 10;
+const MAKS_TEKS = 2000, HAD_HULUR_SEHARI = 10;
+let HARI_ADAM = 90;   // tetapan jomsalam_hari (tetapan_awam/harga), asal 90
 const S = { user: null, nama: '', dewasa: false, kod: '', grp: '', keluarga: [], chats: [], profil: {}, aktif: null, unsubMesej: null, tab: 'keluarga' };
 const idChat = (a, b) => [a, b].sort().join('_');
 const lain = (c) => c.ahli.find(x => x !== S.user.uid);
@@ -107,6 +108,7 @@ const avatar = (uid, nama) => { const f = S.profil[uid]; return `<div class="ava
 
 // ---------- Mula ----------
 onAuthStateChanged(auth, async (u) => {
+  try { const h = await getDoc(doc(db, 'tetapan_awam', 'harga')); const v = h.exists() ? Number(h.data().jomsalam_hari) : NaN; if (Number.isFinite(v) && v >= 1) HARI_ADAM = v; } catch (e) {}
   if (!u) { $('status').innerHTML = 'Sila <a href="index.html" class="text-teal-700 font-bold underline">log masuk</a> dahulu.'; return; }
   S.user = u;
   try {

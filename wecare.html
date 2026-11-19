@@ -372,6 +372,12 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Tetapan harga & syarat (tetapan_awam/harga); nilai asal dipakai jika tiada
+const TH = {};
+const th = (k, asal, min = 0) => { const v = Number(TH[k]); return TH[k] != null && Number.isFinite(v) && v >= min ? v : asal; };
+async function muatTH() { try { const s = await getDoc(doc(db, 'tetapan_awam', 'harga')); if (s.exists()) Object.assign(TH, s.data()); } catch (e) {} }
+muatTH().then(() => { document.querySelectorAll('.tk-kredit').forEach(e => e.textContent = th('wecare_kredit', 20)); document.querySelectorAll('.tk-percuba').forEach(e => e.textContent = th('percubaan_hari', 30, 1)); });
+
 let currentGroup = null;   // = UID induk (dikongsi semua adik-beradik)
 let currentUser = null;
 let namaSaya = '';
@@ -434,12 +440,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const userRef = doc(db, "mynasab_users", currentUser.uid);
           const userSnap = await getDoc(userRef);
           if (userSnap.exists() && !userSnap.data().wecare_expiry_date) {
-            const tambah30Hari = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
+            await muatTH();
+            const tambah30Hari = new Date().getTime() + (th('percubaan_hari', 30, 1) * 24 * 60 * 60 * 1000);
             await setDoc(userRef, { wecare_expiry_date: tambah30Hari }, { merge: true });
           }
           await window.semakStatusLangganan(currentUser.uid);
           const sBaru = await getDoc(userRef); const tm = sBaru.exists() && sBaru.data().wecare_expiry_date;
-          if (tm) alert('Percubaan percuma 30 hari bermula hari ini. Tamat pada ' + new Date(tm).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.');
+          if (tm) alert('Percubaan percuma ' + th('percubaan_hari', 30, 1) + ' hari bermula hari ini. Tamat pada ' + new Date(tm).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.');
         } catch (err) { console.error("Ralat mengaktifkan percubaan percuma:", err); }
       }
     });
@@ -541,10 +548,12 @@ window.bayarGunaKredit = async () => {
     const snap = await getDoc(userRef);
     if (snap.exists()) {
       const baki = parseInt(snap.data().credit_balance) || 0;
-      if (baki >= 20) {
+      await muatTH();
+      const KREDIT = th('wecare_kredit', 20);
+      if (baki >= KREDIT) {
         const tambah30Hari = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
-        await setDoc(userRef, { credit_balance: baki - 20, wecare_expiry_date: tambah30Hari }, { merge: true });
-        alert("Pembaharuan berjaya! 20 Kredit telah dipotong dari akaun anda.");
+        await setDoc(userRef, { credit_balance: baki - KREDIT, wecare_expiry_date: tambah30Hari }, { merge: true });
+        alert("Pembaharuan berjaya! " + KREDIT + " Kredit telah dipotong dari akaun anda.");
         document.getElementById('modalPaywall').style.display = 'none';
         paparTamat(tambah30Hari);
       } else {
@@ -1467,7 +1476,7 @@ window.simpanProfilKesihatan = async () => {
       <b style="color:var(--ink);display:block;margin-top:12px;">1. Sumber Data (myNasab)</b>
       <p style="margin-top:4px;">Aplikasi weCare tidak mempunyai sistem pendaftarannya sendiri. Segala data profil, senarai waris, dan status ibu bapa diambil secara langsung dari akaun myNasab anda. Sila pastikan anda mengemaskini e-mel ahli keluarga di myNasab untuk membolehkan mereka mengakses weCare.</p>
       <b style="color:var(--ink);display:block;margin-top:12px;">2. Langganan Premium</b>
-      <p style="margin-top:4px;">weCare adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar penjagaan, pengurusan ubat, dan nota handover keluarga tertakluk kepada caj langganan sebanyak <b>20 Kredit / Sebulan</b>. Anda mendapat <b>percubaan percuma 30 hari</b> bermula sebaik sahaja anda menekan "Saya Faham &amp; Bersetuju". Selepas tempoh percubaan tamat, langganan diteruskan dengan 20 Kredit sebulan.</p>
+      <p style="margin-top:4px;">weCare adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar penjagaan, pengurusan ubat, dan nota handover keluarga tertakluk kepada caj langganan sebanyak <b><span class="tk-kredit">20</span> Kredit / Sebulan</b>. Anda mendapat <b>percubaan percuma <span class="tk-percuba">30</span> hari</b> bermula sebaik sahaja anda menekan "Saya Faham &amp; Bersetuju". Selepas tempoh percubaan tamat, langganan diteruskan dengan <span class="tk-kredit">20</span> Kredit sebulan.</p>
       <b style="color:var(--ink);display:block;margin-top:12px;">3. Privasi Keluarga</b>
       <p style="margin-top:4px;">Paparan data dikawal ketat mengikut hierarki keluarga (Induk / Pasangan) yang ditetapkan di dalam myNasab bagi menjamin privasi setiap isi rumah.</p>
     </div>
@@ -1482,9 +1491,9 @@ window.simpanProfilKesihatan = async () => {
     <h2 style="margin:0 0 12px;color:var(--ink);font-size:22px;font-weight:800;">Akses weCare Disekat</h2>
     <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;">
       Langganan weCare anda telah tamat tempoh. Akses ke modul Kalendar, Pengurusan Ubat, dan Nota Handover Keluarga kini dikunci.<br><br>
-      Sila perbaharui langganan menggunakan <b>20 Kredit</b> untuk terus menggunakan sistem penjagaan ini tanpa gangguan selama 30 hari.
+      Sila perbaharui langganan menggunakan <b><span class="tk-kredit">20</span> Kredit</b> untuk terus menggunakan sistem penjagaan ini tanpa gangguan selama 30 hari.
     </p>
-    <button onclick="bayarGunaKredit()" style="width:100%;background:var(--primary);color:#fff;padding:14px;border:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer;margin-bottom:12px;transition:.2s;box-shadow:0 4px 6px -1px rgba(79,70,229,.3);">Potong 20 Kredit</button>
+    <button onclick="bayarGunaKredit()" style="width:100%;background:var(--primary);color:#fff;padding:14px;border:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer;margin-bottom:12px;transition:.2s;box-shadow:0 4px 6px -1px rgba(79,70,229,.3);">Potong <span class="tk-kredit">20</span> Kredit</button>
     <button onclick="window.location.href='../topup.html'" style="width:100%;background:transparent;color:var(--muted);padding:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;margin-bottom:5px;">Tambah Nilai Kredit</button>
     <button onclick="window.location.href='../index.html'" style="width:100%;background:transparent;color:#94a3b8;padding:5px;border:none;font-weight:400;font-size:12px;cursor:pointer;">Kembali ke Muka Depan myNasab</button>
   </div>

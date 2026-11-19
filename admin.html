@@ -572,10 +572,10 @@
     const TETAPAN = [
         { kump: 'Percubaan & kredit', items: [
             { k: 'percubaan_hari', l: 'Hari percubaan percuma', min: 1, max: 90, asal: 30 },
-            { k: 'kredit_daftar', l: 'Kredit percuma semasa daftar', min: 0, max: 20 } ] },
+            { k: 'kredit_daftar', l: 'Kredit percuma semasa daftar', min: 0, max: 100, asal: 20 } ] },
         { kump: 'Kredit langganan sebulan', items: [
-            { k: 'wecare_kredit', l: 'weCare', min: 0, max: 100 },
-            { k: 'ourmoney_kredit', l: 'OurMoney', min: 0, max: 100 },
+            { k: 'wecare_kredit', l: 'weCare', min: 0, max: 100, asal: 20 },
+            { k: 'ourmoney_kredit', l: 'OurMoney', min: 0, max: 100, asal: 20 },
             { k: 'nowsihat_kredit', l: 'nowSihat', min: 0, max: 100, asal: 20 } ] },
         { kump: 'nowSihat imbasan', items: [
             { k: 'nowsihat_had', l: 'Had imbasan sehari (setiap orang)', min: 1, max: 50, asal: 6 },
@@ -585,8 +585,8 @@
             { k: 'coach_ujian_hari', l: 'Hari ujian coach', min: 7, max: 90, asal: 30 },
             { k: 'coach_min_klien', l: 'Minimum klien bukan keluarga', min: 1, max: 50, asal: 3 } ] },
         { kump: 'Tempoh app lain', items: [
-            { k: 'bahi_hari', l: 'Tempoh BAHI (hari)', min: 0, max: 365 },
-            { k: 'jomsalam_hari', l: 'Tempoh JomSalam (hari)', min: 0, max: 365 } ] }
+            { k: 'bahi_hari', l: 'Tempoh BAHI (hari, siaran & komen)', min: 1, max: 7, asal: 2 },
+            { k: 'jomsalam_hari', l: 'Tempoh mesej JomSalam Kita Nasab Adam (hari)', min: 1, max: 365, asal: 90 } ] }
     ];
     let hargaAsal = {}, hijrahAsal = {};
     const inputT = (dok, i, nilai) => `<label class="block text-xs font-bold text-slate-600">${esc(i.l)} <span class="font-normal text-slate-400">(${i.min} – ${i.max})</span>
@@ -595,11 +595,11 @@
         const [h, j] = await Promise.all([getDoc(doc(db, "tetapan_awam", "harga")), getDoc(doc(db, "tetapan_awam", "hijrah"))]);
         hargaAsal = h.exists() ? h.data() : {};
         hijrahAsal = {};
-        if (j.exists()) Object.entries(j.data()).forEach(([k, v]) => { if (typeof v === 'number') hijrahAsal[k] = v; });
+        if (j.exists()) if (typeof j.data().laras === 'number') hijrahAsal.laras = j.data().laras;
         const kotak = (tajuk, isi) => `<div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200"><h3 class="font-bold mb-3 text-slate-800">${tajuk}</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-4">${isi}</div></div>`;
         let html = TETAPAN.map(g => kotak(g.kump, g.items.map(i => inputT('harga', i, hargaAsal[i.k])).join(''))).join('');
         const hk = Object.keys(hijrahAsal);
-        html += kotak('Laras Hijrah (dokumen sedia ada: tetapan_awam/hijrah)', hk.length ? hk.map(k => inputT('hijrah', { k, l: k, min: -5, max: 5 }, hijrahAsal[k])).join('') : '<p class="text-sm text-slate-400">Tiada medan nombor dijumpai.</p>');
+        html += kotak('Laras Hijrah (dokumen sedia ada: tetapan_awam/hijrah)', inputT('hijrah', { k: 'laras', l: 'Laras Hijrah (hari, -1 / 0 / +1)', min: -1, max: 1, asal: 0 }, hijrahAsal.laras));
         document.getElementById('hargaBorang').innerHTML = html;
         try {
             const s = await getDocs(query(collection(db, "tetapan_log"), orderBy("masa", "desc"), limit(20)));
@@ -609,7 +609,7 @@
     window.simpanTetapan = async () => {
         const semua = [];
         TETAPAN.forEach(g => g.items.forEach(i => semua.push({ dok: 'harga', ...i })));
-        Object.keys(hijrahAsal).forEach(k => semua.push({ dok: 'hijrah', k, l: 'Hijrah ' + k, min: -5, max: 5 }));
+        semua.push({ dok: 'hijrah', k: 'laras', l: 'Laras Hijrah', min: -1, max: 1 });
         const ubah = { harga: {}, hijrah: {} }, log = [], ralat = [];
         semua.forEach(i => {
             const el = document.querySelector(`[data-dok="${i.dok}"][data-k="${i.k}"]`);

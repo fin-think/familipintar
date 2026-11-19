@@ -118,7 +118,7 @@ const ADMIN_EMEL = 'dae.book89@gmail.com';
 
 const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app), storage = getStorage(app);
 // Siaran, komen & reaksi dipadam oleh TTL Firestore (medan luput_pada) selepas 48 jam; gambar oleh peraturan Lifecycle Storage (buatapa/)
-const TEMPOH_MS = 48 * 3600000;
+let TEMPOH_MS = 48 * 3600000;   // tetapan bahi_hari (tetapan_awam/harga), asal 2 hari
 const luputPos = p => Timestamp.fromMillis((p && p.created_at ? p.created_at : Date.now()) + TEMPOH_MS);
 const MAKS_GAMBAR = 4, MAKS_TEKS = 2000, SAIZ_HALAMAN = 15, EMOJI = ['❤️', '🤲', '😂'];
 const CACHE = 'public,max-age=31536000';
@@ -329,7 +329,7 @@ async function muatInteraksi(grp, ids) {
 function paparDinding() {
   const adaLagi = D.kumpulan.some(k => !D.habis[k.id]);
   $('muatLagi').classList.toggle('hidden', !adaLagi || !D.posts.length);
-  if (!D.posts.length) { $('dindingIsi').innerHTML = '<div class="kad text-center text-slate-500 text-sm">Tiada siaran dalam 48 jam terakhir. Jadilah yang pertama berkongsi dengan keluarga.</div>'; return; }
+  if (!D.posts.length) { $('dindingIsi').innerHTML = '<div class="kad text-center text-slate-500 text-sm">Tiada siaran dalam ' + Math.round(TEMPOH_MS / 3600000) + ' jam terakhir. Jadilah yang pertama berkongsi dengan keluarga.</div>'; return; }
   $('dindingIsi').innerHTML = D.posts.map(p => {
     const gam = (p.gambar || []).map((u, i) => ({ f: u, k: urlGambarSah((p.kecil || [])[i]) ? p.kecil[i] : u })).filter(g => urlGambarSah(g.f));
     const rx = D.reaksi[p.id] || {}, saya = rx[D.user.uid], km = D.komen[p.id] || [];
@@ -458,6 +458,7 @@ $('larasKurang').onclick = () => ubahLaras(-1);
 $('larasTambah').onclick = () => ubahLaras(1);
 
 onAuthStateChanged(auth, async (u) => {
+  try { const h = await getDoc(doc(db, 'tetapan_awam', 'harga')); const v = h.exists() ? Number(h.data().bahi_hari) : NaN; if (Number.isFinite(v) && v >= 1) TEMPOH_MS = v * 86400000; } catch (e) {}
   const admin = !!u && (u.email || '').toLowerCase() === ADMIN_EMEL;
   try { const t = await getDoc(doc(db, 'tetapan_awam', 'hijrah')); if (t.exists()) laras = Math.max(-1, Math.min(1, parseInt(t.data().laras, 10) || 0)); } catch (e) {}
   $('larasKotak').classList.toggle('hidden', !admin);

@@ -346,7 +346,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
   <div class="fpm-pintas" id="fpmPintas"></div>
   <div id="fpmBuatapa" style="display:none;margin:14px 16px 0"></div>
   <div class="fpm-hero"><img id="fpmHeroImg" src="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.png" alt="Keluarga"><span class="fpm-foto" id="fpmFoto"><button type="button" aria-label="Tukar gambar" title="Tukar gambar" onclick="document.getElementById('heroFotoTukar').click()"><i class="fa-solid fa-camera"></i><span id="fpmFotoTeks">Letak gambar famili anda</span></button><button type="button" id="fpmFotoBuang" aria-label="Guna gambar asal" onclick="document.getElementById('heroFotoBuang').click()" title="Guna gambar asal"><i class="fa-solid fa-rotate-left"></i></button></span><div><b>Keluarga Yang Kukuh</b><span>Dibina bersama, satu langkah demi satu langkah.</span></div></div>
-  <button type="button" class="fpm-daftar" id="fpmDaftar" onclick="bukaModalAuth('daftar')"><i class="fa-solid fa-gift"></i> Daftar &amp; Tebus 20 Kredit Percuma</button>
+  <button type="button" class="fpm-daftar" id="fpmDaftar" onclick="bukaModalAuth('daftar')"><i class="fa-solid fa-gift"></i> Daftar &amp; Tebus <span class="tk-daftar">20</span> Kredit Percuma</button>
   <div class="fpm-tajuk">Teroka Bersama</div>
   <div class="fpm-grid" id="fpmJalur"></div>
   <nav id="fpBawah" aria-label="Navigasi utama">
@@ -488,7 +488,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         Satu Akaun, Satu Ekosistem Keluarga
     </h3>
     <p class="text-sky-800 text-base md:text-lg mb-8 max-w-4xl mx-auto leading-relaxed">
-        Daftar percuma sekali sahaja untuk masuk ke semua pintu di bawah. Maklumat keluarga anda dikongsi antara aplikasi, jadi tak perlu diisi berulang kali. Sebagai hadiah selamat datang, anda akan menerima <strong class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded border border-yellow-300 whitespace-nowrap">20 Kredit Dompet</strong> secara percuma untuk meneroka fungsi kalkulator dan sistem premium kami!
+        Daftar percuma sekali sahaja untuk masuk ke semua pintu di bawah. Maklumat keluarga anda dikongsi antara aplikasi, jadi tak perlu diisi berulang kali. Sebagai hadiah selamat datang, anda akan menerima <strong class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded border border-yellow-300 whitespace-nowrap"><span class="tk-daftar">20</span> Kredit Dompet</strong> secara percuma untuk meneroka fungsi kalkulator dan sistem premium kami!
     </p>
     <button onclick="bukaModalAuth()" class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white py-3.5 px-8 rounded-full text-lg font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer">
         Daftar Akaun Percuma Sekarang <i class="fa-solid fa-arrow-right"></i>
@@ -692,7 +692,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         <div style="width:72px;height:72px;margin:0 auto 15px;border-radius:999px;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;font-size:30px;"><i class="fa-solid fa-door-open"></i></div>
         <h2 style="font-size: 22px; font-weight: 800; color: #2c3e50; margin-bottom: 10px;">Daftar Percuma Untuk Meneroka!</h2>
         <p style="color: #7f8c8d; font-size: 15px; margin-bottom: 25px; line-height: 1.5;">
-            Akses ke <strong id="namaPintuSekat" style="color:#2980b9;">Sistem Ini</strong> memerlukan akaun Famili Pintar. Jangan risau, pendaftaran adalah 100% PERCUMA dan anda akan dikreditkan <strong>20 Kredit percuma</strong> serta-merta!
+            Akses ke <strong id="namaPintuSekat" style="color:#2980b9;">Sistem Ini</strong> memerlukan akaun Famili Pintar. Jangan risau, pendaftaran adalah 100% PERCUMA dan anda akan dikreditkan <strong><span class="tk-daftar">20</span> Kredit percuma</strong> serta-merta!
         </p>
         <button onclick="tutupModalPenghalang(); bukaModalAuth('daftar');" style="width: 100%; background: #27ae60; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 10px;">
             Daftar Sekarang (Percuma)
@@ -736,7 +736,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
         <div id="paparanDaftar" class="hidden animate-fade-in">
             <h2 class="text-2xl font-extrabold text-slate-800 mb-2 text-center">Daftar Akaun Baru</h2>
             <p class="text-sm text-emerald-700 font-bold text-center mb-6 bg-emerald-50 py-2 rounded-lg border border-emerald-200">
-                <i class="fa-solid fa-gift"></i> Percuma 20 Kredit!
+                <i class="fa-solid fa-gift"></i> Percuma <span class="tk-daftar">20</span> Kredit!
             </p>
 
             <!-- Tambah input Nama supaya nampak beza dari Log Masuk -->
@@ -795,6 +795,12 @@ if ('Notification' in window) {
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // Tetapan harga & syarat (tetapan_awam/harga); nilai asal dipakai jika tiada
+    const TH = {};
+    const th = (k, asal, min = 0) => { const v = Number(TH[k]); return TH[k] != null && Number.isFinite(v) && v >= min ? v : asal; };
+    async function muatTH() { try { const s = await getDoc(doc(db, 'tetapan_awam', 'harga')); if (s.exists()) Object.assign(TH, s.data()); } catch (e) {} }
+    muatTH().then(() => { document.querySelectorAll('.tk-daftar').forEach(e => e.textContent = th('kredit_daftar', 20)); });
 
     window.penggunaSemasa = null;
 
@@ -1173,20 +1179,21 @@ if ('Notification' in window) {
                 const kredensial = await createUserWithEmailAndPassword(auth, emel, pass);
                 const user = kredensial.user;
 
-                // Simpan profil & Beri 20 Kredit Percuma
+                // Simpan profil & beri kredit percuma (tetapan kredit_daftar, asal 20)
+                await muatTH(); const KD = th('kredit_daftar', 20);
                 const sumber = window.FPSumber ? window.FPSumber.untukDaftar(false) : {};
                 const refUid = sumber.ref ? await window.FPSumber.selesaikanRef(db, { query, collection, where, getDocs }, sumber.ref, user.uid) : null;
                 await setDoc(doc(db, "mynasab_users", user.uid), {
                     name: nama,
                     email: emel,
                     dob: dob,
-                    credit_balance: 20, 
+                    credit_balance: KD,
                     sumber: sumber,
                     ...(refUid ? { referred_by: refUid } : {}),
                     created_at: new Date()
                 });
 
-                alert(`Tahniah ${nama}! Pendaftaran berjaya. 20 Kredit Percuma telah dimasukkan ke dalam dompet anda.`);
+                alert(`Tahniah ${nama}! Pendaftaran berjaya. ${KD} Kredit Percuma telah dimasukkan ke dalam dompet anda.`);
                 window.tutupModalAuth();
                 if (sumber.utm_campaign === 'wecare') { window.location.href = 'mynasab/index.html?panduan=wecare'; return; }
                 if (sumber.utm_campaign === 'nowsihat') { window.location.href = 'nowsihat.html'; return; }
