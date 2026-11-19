@@ -604,7 +604,7 @@
         let html = TETAPAN.map(g => kotak(g.kump, g.items.map(i => inputT('harga', i, hargaAsal[i.k])).join(''))).join('');
         const hk = Object.keys(hijrahAsal);
         html += kotak('Laras Hijrah (dokumen sedia ada: tetapan_awam/hijrah)', inputT('hijrah', { k: 'laras', l: 'Laras Hijrah (hari, -1 / 0 / +1)', min: -1, max: 1, asal: 0 }, hijrahAsal.laras));
-        html += kotak('Komisen affiliate <span class="text-xs font-normal text-amber-600">(disimpan sahaja; belum disambung ke fungsi Billplz, jadi komisen sebenar belum berubah)</span>', KOMISEN.map(i => inputT('harga', i, hargaAsal[i.k])).join(''));
+        html += kotak('Komisen affiliate <span class="text-xs font-normal text-slate-500">(terpakai pada jualan baru sahaja; jualan lama kekal ikut kadar masa jualan)</span>', KOMISEN.map(i => inputT('harga', i, hargaAsal[i.k])).join(''));
         document.getElementById('hargaBorang').innerHTML = html;
         try {
             const s = await getDocs(query(collection(db, "tetapan_log"), orderBy("masa", "desc"), limit(20)));
