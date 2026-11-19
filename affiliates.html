@@ -31,7 +31,7 @@
             <!-- Pautan Affiliate -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                 <h3 class="font-bold text-lg mb-4 text-slate-700">Pautan Affiliate Anda</h3>
-                <p class="text-sm text-slate-500 mb-2">Kongsi pautan ini. Anda dapat 30% untuk setiap jualan berjaya!</p>
+                <p class="text-sm text-slate-500 mb-2">Kongsi pautan ini. Anda dapat <span class="tk-komisen">30</span>% untuk setiap jualan berjaya!</p>
                 <div class="flex items-center gap-2 bg-slate-100 rounded-xl p-1.5 pl-3">
                     <input type="text" id="refLink" class="flex-1 min-w-0 bg-transparent outline-none text-blue-600 font-semibold text-sm truncate" readonly>
                     <button onclick="salinLink(event)" class="flex-none inline-flex items-center gap-1.5 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-bold hover:bg-blue-700" aria-label="Salin pautan"><i class="fa-regular fa-copy"></i> Salin</button>
@@ -94,7 +94,7 @@
                             <th class="p-3">Pembeli</th>
                             <th class="p-3">Pakej</th>
                             <th class="p-3">Jualan (RM)</th>
-                            <th class="p-3 text-green-600">Komisen (30%)</th>
+                            <th class="p-3 text-green-600">Komisen (<span class="tk-komisen">30</span>%)</th>
                             <th class="p-3">Status Bayaran</th>
                         </tr>
                     </thead>
@@ -125,6 +125,14 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    // Tetapan komisen (tetapan_awam/harga); nilai asal jika tiada
+    let BAYAR_MIN = 50;
+    getDoc(doc(db, 'tetapan_awam', 'harga')).then(t => {
+        if (!t.exists()) return;
+        const k = Number(t.data().komisen_peratus), m = Number(t.data().bayar_minimum);
+        if (Number.isFinite(k) && k >= 0 && k <= 50) document.querySelectorAll('.tk-komisen').forEach(e => e.textContent = k);
+        if (Number.isFinite(m) && m >= 10) BAYAR_MIN = m;
+    }).catch(() => {});
     const fungsi = getFunctions(app);
     let currentUser = null;
     let bakiKomisen = 0;
@@ -252,8 +260,8 @@
     };
 
     window.mohonPengeluaran = async () => {
-        if(bakiKomisen < 50) {
-            return alert("Baki minimum pengeluaran adalah RM 50.00. Baki anda: RM " + bakiKomisen.toFixed(2));
+        if(bakiKomisen < BAYAR_MIN) {
+            return alert("Baki minimum pengeluaran adalah RM " + BAYAR_MIN.toFixed(2) + ". Baki anda: RM " + bakiKomisen.toFixed(2));
         }
         const btn = document.getElementById('btnWithdraw');
         btn.disabled = true;
