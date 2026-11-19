@@ -293,7 +293,7 @@ window.hantarKomen = async (logId) => {
 // ---------- Pautan ----------
 window.salinPautan = () => { const i = $('pautanSaya'); i.select(); navigator.clipboard.writeText(i.value).then(() => alert('Pautan disalin.')).catch(() => document.execCommand('copy')); };
 window.kongsiWA = () => {
-  const t = `Jom pantau pemakanan dengan saya guna nowSihat: snap gambar makanan, terus dapat kalori & nasihat. Percuma 30 hari pertama.\n${$('pautanSaya').value}`;
+  const t = `Jom jaga pemakanan dengan nowSihat. Snap gambar makanan, terus tahu kalori & dapat nasihat. Nak tanya apa-apa pasal makan, tanya saya anytime. Saya ada untuk awak.\n${$('pautanSaya').value}`;
   window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank');
 };
 
