@@ -588,6 +588,10 @@
             { k: 'bahi_hari', l: 'Tempoh BAHI (hari, siaran & komen)', min: 1, max: 7, asal: 2 },
             { k: 'jomsalam_hari', l: 'Tempoh mesej JomSalam Kita Nasab Adam (hari)', min: 1, max: 365, asal: 90 } ] }
     ];
+    const KOMISEN = [
+        { k: 'komisen_peratus', l: 'Komisen affiliate (% daripada top-up klien)', min: 0, max: 50, asal: 30 },
+        { k: 'bayar_minimum', l: 'Baki minimum untuk keluarkan komisen (RM)', min: 10, max: 500, asal: 50 }
+    ];
     let hargaAsal = {}, hijrahAsal = {};
     const inputT = (dok, i, nilai) => `<label class="block text-xs font-bold text-slate-600">${esc(i.l)} <span class="font-normal text-slate-400">(${i.min} – ${i.max})</span>
         <input type="number" step="1" min="${i.min}" max="${i.max}" data-dok="${dok}" data-k="${esc(i.k)}" value="${nilai != null ? nilai : ''}" placeholder="${i.asal != null ? 'asal ' + i.asal : 'belum ditetapkan'}" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm font-normal"></label>`;
@@ -600,6 +604,7 @@
         let html = TETAPAN.map(g => kotak(g.kump, g.items.map(i => inputT('harga', i, hargaAsal[i.k])).join(''))).join('');
         const hk = Object.keys(hijrahAsal);
         html += kotak('Laras Hijrah (dokumen sedia ada: tetapan_awam/hijrah)', inputT('hijrah', { k: 'laras', l: 'Laras Hijrah (hari, -1 / 0 / +1)', min: -1, max: 1, asal: 0 }, hijrahAsal.laras));
+        html += kotak('Komisen affiliate <span class="text-xs font-normal text-amber-600">(disimpan sahaja; belum disambung ke fungsi Billplz, jadi komisen sebenar belum berubah)</span>', KOMISEN.map(i => inputT('harga', i, hargaAsal[i.k])).join(''));
         document.getElementById('hargaBorang').innerHTML = html;
         try {
             const s = await getDocs(query(collection(db, "tetapan_log"), orderBy("masa", "desc"), limit(20)));
@@ -609,6 +614,7 @@
     window.simpanTetapan = async () => {
         const semua = [];
         TETAPAN.forEach(g => g.items.forEach(i => semua.push({ dok: 'harga', ...i })));
+        KOMISEN.forEach(i => semua.push({ dok: 'harga', ...i }));
         semua.push({ dok: 'hijrah', k: 'laras', l: 'Laras Hijrah', min: -1, max: 1 });
         const ubah = { harga: {}, hijrah: {} }, log = [], ralat = [];
         semua.forEach(i => {
