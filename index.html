@@ -189,7 +189,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
   }
 </script>
     
-<script src="sumber.js?v=1"></script>
+<script src="sumber.js?v=2"></script>
 <script src="huruf.js?v=1"></script>
 <script src="/pwa.js" defer></script>
 </head>
@@ -1195,8 +1195,10 @@ if ('Notification' in window) {
 
                 alert(`Tahniah ${nama}! Pendaftaran berjaya. ${KD} Kredit Percuma telah dimasukkan ke dalam dompet anda.`);
                 window.tutupModalAuth();
-                if (sumber.utm_campaign === 'wecare') { window.location.href = 'mynasab/index.html?panduan=wecare'; return; }
-                if (sumber.utm_campaign === 'nowsihat') { window.location.href = 'nowsihat.html'; return; }
+                const ke = (window.FPSumber && window.FPSumber.ke && window.FPSumber.ke()) || sumber.utm_campaign;
+                if (window.FPSumber && window.FPSumber.bersihKe) window.FPSumber.bersihKe();
+                if (ke === 'wecare') { window.location.href = 'mynasab/index.html?panduan=wecare'; return; }
+                if (ke === 'nowsihat') { window.location.href = 'nowsihat.html'; return; }
             } catch (error) {
                 alert("Ralat pendaftaran: E-mel ini mungkin telah wujud.");
             }
