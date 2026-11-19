@@ -13,14 +13,14 @@
 //
 // Peraturan perniagaan:
 //   - Percubaan percuma 30 hari bila pengguna mula (sama seperti weCare & OurMoney), kemudian 20 kredit / 30 hari.
-//   - Had 8 imbasan sehari dalam langganan. Lepas had: 1 kredit = 3 imbasan tambahan (hari itu sahaja).
+//   - Had 6 imbasan sehari dalam langganan. Lepas had: 1 kredit = 3 imbasan tambahan (hari itu sahaja).
 //   - Gambar TIDAK disimpan. Hanya keputusan analisis disimpan dalam nowsihat_log.
 // =====================================================================
 
 const NS_MODEL = 'gemini-3.5-flash-lite';       // tukar di sini jika mahu model lain (cth 'gemini-3.5-flash')
 const NS_HARI = 30;   // tempoh setiap pembaharuan
 // Harga & syarat: dibaca daripada tetapan_awam/harga (admin boleh ubah), nilai di bawah ialah sandaran
-const NS_ASAL = { percubaan_hari: 30, nowsihat_kredit: 20, nowsihat_had: 8, nowsihat_tambahan_kredit: 1, nowsihat_tambahan_imbas: 3, coach_kredit: 10, coach_ujian_hari: 30, coach_min_klien: 3 };
+const NS_ASAL = { percubaan_hari: 30, nowsihat_kredit: 20, nowsihat_had: 6, nowsihat_tambahan_kredit: 1, nowsihat_tambahan_imbas: 3, coach_kredit: 10, coach_ujian_hari: 30, coach_min_klien: 3 };
 let nsCache = { t: 0, v: null };
 async function nsTetapan() {
     if (nsCache.v && Date.now() - nsCache.t < 5 * 60000) return nsCache.v;

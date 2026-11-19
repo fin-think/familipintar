@@ -162,7 +162,7 @@
       <div class="kolum">
         <div class="kad" id="kadAir"></div>
         <div class="kad">
-          <div class="baris" style="margin-bottom:4px"><h2 style="margin:0"><i class="fa-solid fa-utensils"></i> Makanan hari ini</h2><span class="kecil" id="bilImbas">0/8 imbasan</span></div>
+          <div class="baris" style="margin-bottom:4px"><h2 style="margin:0"><i class="fa-solid fa-utensils"></i> Makanan hari ini</h2><span class="kecil" id="bilImbas">0/6 imbasan</span></div>
           <div id="senaraiHari" class="kecil">Belum ada makanan dicatat hari ini.</div>
           <div class="grid2" style="margin-top:10px">
             <button class="btn btn-hijau" onclick="tukarTab('imbas')"><i class="fa-solid fa-camera"></i> Imbas</button>
@@ -336,7 +336,7 @@
   <p style="font-size:14px;line-height:1.6;margin:0 0 10px">Snap gambar makanan, dapat anggaran kalori, protein, gula dan garam, serta nasihat ringkas ikut umur dan matlamat anda.</p>
   <ul style="font-size:13.5px;line-height:1.7;padding-left:18px;margin:0 0 12px">
     <li><b>Percuma <span class="tk-percuma">30</span> hari pertama</b>, kemudian <span class="tk-kredit">20</span> kredit sebulan. Satu langganan untuk anda dan pasangan.</li>
-    <li>Sehingga <b><span class="tk-had">8</span> imbasan sehari</b> setiap orang. Lebih dari itu: <span class="tk-tk">1</span> kredit untuk <span class="tk-ti">3</span> imbasan tambahan.</li>
+    <li>Sehingga <b><span class="tk-had">6</span> imbasan sehari</b> setiap orang. Lebih dari itu: <span class="tk-tk">1</span> kredit untuk <span class="tk-ti">3</span> imbasan tambahan.</li>
     <li>Gambar dihantar ke Google Gemini untuk dianalisis dan tidak disimpan. Hanya keputusan analisis disimpan untuk akaun anda.</li>
     <li>Data pemakanan dan kesihatan anda hanya dikongsi dengan coach jika anda sendiri bersetuju, dan boleh dihentikan bila-bila masa.</li>
     <li>Keputusan ialah anggaran, bukan nasihat perubatan.</li>
@@ -379,7 +379,7 @@ const app = initializeApp({
 });
 const auth = getAuth(app), db = getFirestore(app), fns = getFunctions(app, 'asia-southeast1');
 let HAD = 8;   // dikemas kini daripada tetapan_awam/harga
-const T = { nowsihat_kredit: 20, percubaan_hari: 30, nowsihat_had: 8, nowsihat_tambahan_kredit: 1, nowsihat_tambahan_imbas: 3, coach_ujian_hari: 30, coach_min_klien: 3 };
+const T = { nowsihat_kredit: 20, percubaan_hari: 30, nowsihat_had: 6, nowsihat_tambahan_kredit: 1, nowsihat_tambahan_imbas: 3, coach_ujian_hari: 30, coach_min_klien: 3 };
 const S = { uid: null, user: {}, profil: {}, log: [], harian: { bil: 0, tambahan: 0 }, gambar: null, senamanHari: null, laras: 0, per: 'induk', kerap: [], air: 0, terakhir: null };
 const $ = id => document.getElementById(id);
 const PID = () => S.per === 'pasangan' ? S.uid + '_pasangan' : S.uid;   // id dokumen ikut orang (induk / pasangan)
@@ -1026,6 +1026,6 @@ onAuthStateChanged(auth, async (u) => {
   if (!adaLanggan()) { tukarTab('profil'); bukaKunci(); }
 });
 </script>
-<script src="cara-guna.js?v=9" data-app="nowsihat" defer></script>
+<script src="cara-guna.js?v=10" data-app="nowsihat" defer></script>
 </body>
 </html>

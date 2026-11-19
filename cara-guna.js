@@ -94,7 +94,7 @@
       langkah: [
         ['Untuk siapa', 'Satu langganan untuk anda dan pasangan. Pilih nama di bar <b>Untuk</b> di atas; setiap orang ada profil, rekod makan, senaman, air dan coach sendiri.'],
         ['Lengkapkan profil', 'Tab <b>Profil</b>: tarikh lahir & jantina diambil dari myNasab, berat & tinggi dari myHEALTH. Pilih aktiviti, matlamat dan fokus (kurang gula/garam, lebih protein). Sasaran harian dikira sendiri.'],
-        ['Imbas makanan', 'Tekan butang <b>kamera</b>, ambil gambar dari atas, kemudian <b>Analisis</b>. Sehingga 8 imbasan sehari; lebih dari itu 1 kredit untuk 3 imbasan. Gambar tidak disimpan.'],
+        ['Imbas makanan', 'Tekan butang <b>kamera</b>, ambil gambar dari atas, kemudian <b>Analisis</b>. Sehingga 6 imbasan sehari setiap orang; lebih dari itu 1 kredit untuk 3 imbasan tambahan. Gambar tidak disimpan.'],
         ['Laras saiz', 'Tekan <b>Laras</b> pada rekod untuk pilih saiz sebenar (½ hingga 2×), betulkan nama makanan, atau buang item yang tiada.'],
         ['Baki & cadangan', 'Halaman utama tunjuk <b>baki kalori</b>, protein, karbo, lemak, gula dan garam, serta cadangan untuk makan tengah hari, malam, berbuka atau sahur seterusnya.'],
         ['Makanan kerap', 'Tekan <b>☆ Kerap</b> pada rekod untuk simpan. Lain kali catat dari tab <b>Kerap</b> dengan satu tekan, tanpa gambar dan tanpa guna imbasan.'],
