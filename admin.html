@@ -54,6 +54,7 @@
                 <button data-tab="act" onclick="tab('act')" class="hover:text-sky-300 transition text-sm font-semibold">Aktiviti</button>
                 <button data-tab="aff" onclick="tab('aff')" class="hover:text-sky-300 transition text-sm font-semibold">Payouts</button>
                 <button data-tab="cash" onclick="tab('cash')" class="hover:text-sky-300 transition text-sm font-semibold">Expenses</button>
+                <button data-tab="harga" onclick="tab('harga')" class="hover:text-sky-300 transition text-sm font-semibold">Tetapan</button>
                 <button onclick="window.location.href='direktori-admin.html'" class="bg-slate-800 border border-slate-600 hover:border-amber-300 px-4 py-1.5 rounded-lg text-sm transition font-extrabold flex items-center gap-2" title="Direktori servis rumah (fasa 2)"><i class="fa-solid fa-address-book text-amber-300"></i><span><span class="text-amber-300">yellow</span><span class="text-sky-400">BLUE</span><span class="text-amber-300">pages</span></span></button>
                 <button onclick="window.location.href='nowsihat.html'" class="bg-slate-800 border border-slate-600 hover:border-emerald-300 px-4 py-1.5 rounded-lg text-sm transition font-extrabold flex items-center gap-2" title="nowSihat (fasa ujian)"><i class="fa-solid fa-heart-pulse text-emerald-300"></i><span><span class="text-white">now</span><span class="text-emerald-300">Sihat</span></span></button>
                 <span class="text-slate-600">|</span>
@@ -240,12 +241,26 @@
             </div>
         </div>
 
+        <!-- TAB: TETAPAN HARGA & SYARAT -->
+        <div id="tab-harga" class="hidden animate-fade-in">
+            <h2 class="text-2xl font-bold mb-2 text-slate-800">Tetapan Harga &amp; Syarat</h2>
+            <p class="text-sm text-slate-500 mb-4">Kosongkan medan untuk guna nilai asal app. Hanya medan yang diubah akan disimpan dan dilog.</p>
+            <div id="hargaBorang" class="space-y-6 mb-6"></div>
+            <button onclick="simpanTetapan()" class="bg-slate-800 text-white font-bold px-6 py-3 rounded-xl hover:bg-slate-900 transition mb-8">Simpan perubahan</button>
+            <h3 class="text-lg font-bold mb-3 text-slate-800">Log perubahan (20 terkini)</h3>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"><div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-100 text-slate-600"><tr><th class="p-3">Masa</th><th class="p-3">Medan</th><th class="p-3">Lama</th><th class="p-3">Baru</th><th class="p-3">Oleh</th></tr></thead>
+                    <tbody id="hargaLog" class="divide-y"><tr><td colspan="5" class="p-4 text-center">Memuatkan...</td></tr></tbody>
+                </table></div></div>
+        </div>
+
     </main>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, getDocs, collection, updateDoc, addDoc, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, updateDoc, addDoc, setDoc, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -278,6 +293,7 @@
         document.getElementById('tab-cash').classList.add('hidden');
         document.getElementById('tab-reg').classList.add('hidden');
         document.getElementById('tab-act').classList.add('hidden');
+        document.getElementById('tab-harga').classList.add('hidden');
         document.getElementById('tab-'+id).classList.remove('hidden');
         document.querySelectorAll('.an-links [data-tab]').forEach(b => b.classList.toggle('an-aktif', b.dataset.tab === id));
         
@@ -288,6 +304,7 @@
         if(id === 'sub') loadLangganan();
         if(id === 'reg') loadPendaftaran();
         if(id === 'act') loadAktiviti();
+        if(id === 'harga') loadTetapan();
     };
 
     async function calculatePNL() {
@@ -550,6 +567,69 @@
             const l = label[a.jenis] || [a.jenis || '-', 'slate'];
             return `<tr><td class="p-3 whitespace-nowrap">${fmtMasa(a.masa)}</td><td class="p-3 font-bold">${esc(a.nama || (a.uid || '').slice(0, 6))}</td><td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-bold bg-${l[1]}-100 text-${l[1]}-700">${l[0]}</span></td><td class="p-3">${esc(a.butiran || '')}</td></tr>`;
         }).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-400">Tiada rekod lagi. Pastikan rule <code>mynasab_aktiviti</code> telah ditambah dalam Firestore Rules.</td></tr>';
+    };
+
+    // ===== TETAPAN HARGA & SYARAT =====
+    const TETAPAN = [
+        { kump: 'Percubaan & kredit', items: [
+            { k: 'percubaan_hari', l: 'Hari percubaan percuma', min: 1, max: 90, asal: 30 },
+            { k: 'kredit_daftar', l: 'Kredit percuma semasa daftar', min: 0, max: 20 } ] },
+        { kump: 'Kredit langganan sebulan', items: [
+            { k: 'wecare_kredit', l: 'weCare', min: 0, max: 100 },
+            { k: 'ourmoney_kredit', l: 'OurMoney', min: 0, max: 100 },
+            { k: 'nowsihat_kredit', l: 'nowSihat', min: 0, max: 100, asal: 20 } ] },
+        { kump: 'nowSihat imbasan', items: [
+            { k: 'nowsihat_had', l: 'Had imbasan sehari (setiap orang)', min: 1, max: 50, asal: 6 },
+            { k: 'nowsihat_tambahan_kredit', l: 'Kredit untuk imbasan tambahan', min: 0, max: 10, asal: 1 },
+            { k: 'nowsihat_tambahan_imbas', l: 'Bilangan imbasan tambahan', min: 1, max: 20, asal: 3 } ] },
+        { kump: 'Syarat coach', items: [
+            { k: 'coach_ujian_hari', l: 'Hari ujian coach', min: 7, max: 90, asal: 30 },
+            { k: 'coach_min_klien', l: 'Minimum klien bukan keluarga', min: 1, max: 50, asal: 3 } ] },
+        { kump: 'Tempoh app lain', items: [
+            { k: 'bahi_hari', l: 'Tempoh BAHI (hari)', min: 0, max: 365 },
+            { k: 'jomsalam_hari', l: 'Tempoh JomSalam (hari)', min: 0, max: 365 } ] }
+    ];
+    let hargaAsal = {}, hijrahAsal = {};
+    const inputT = (dok, i, nilai) => `<label class="block text-xs font-bold text-slate-600">${esc(i.l)} <span class="font-normal text-slate-400">(${i.min} – ${i.max})</span>
+        <input type="number" step="1" min="${i.min}" max="${i.max}" data-dok="${dok}" data-k="${esc(i.k)}" value="${nilai != null ? nilai : ''}" placeholder="${i.asal != null ? 'asal ' + i.asal : 'belum ditetapkan'}" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm font-normal"></label>`;
+    window.loadTetapan = async () => {
+        const [h, j] = await Promise.all([getDoc(doc(db, "tetapan_awam", "harga")), getDoc(doc(db, "tetapan_awam", "hijrah"))]);
+        hargaAsal = h.exists() ? h.data() : {};
+        hijrahAsal = {};
+        if (j.exists()) Object.entries(j.data()).forEach(([k, v]) => { if (typeof v === 'number') hijrahAsal[k] = v; });
+        const kotak = (tajuk, isi) => `<div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200"><h3 class="font-bold mb-3 text-slate-800">${tajuk}</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-4">${isi}</div></div>`;
+        let html = TETAPAN.map(g => kotak(g.kump, g.items.map(i => inputT('harga', i, hargaAsal[i.k])).join(''))).join('');
+        const hk = Object.keys(hijrahAsal);
+        html += kotak('Laras Hijrah (dokumen sedia ada: tetapan_awam/hijrah)', hk.length ? hk.map(k => inputT('hijrah', { k, l: k, min: -5, max: 5 }, hijrahAsal[k])).join('') : '<p class="text-sm text-slate-400">Tiada medan nombor dijumpai.</p>');
+        document.getElementById('hargaBorang').innerHTML = html;
+        try {
+            const s = await getDocs(query(collection(db, "tetapan_log"), orderBy("masa", "desc"), limit(20)));
+            document.getElementById('hargaLog').innerHTML = s.docs.map(d => d.data()).map(x => `<tr><td class="p-3 whitespace-nowrap">${esc((x.masa || '').substring(0, 16).replace('T', ' '))}</td><td class="p-3 font-mono text-xs">${esc(x.dok)}.${esc(x.medan)}</td><td class="p-3">${x.lama == null ? '-' : esc(x.lama)}</td><td class="p-3 font-bold">${esc(x.baru)}</td><td class="p-3 text-xs">${esc(x.oleh)}</td></tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada perubahan.</td></tr>';
+        } catch (e) { document.getElementById('hargaLog').innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-600">Gagal muat log: ${esc(e.message)} (semak rule tetapan_log)</td></tr>`; }
+    };
+    window.simpanTetapan = async () => {
+        const semua = [];
+        TETAPAN.forEach(g => g.items.forEach(i => semua.push({ dok: 'harga', ...i })));
+        Object.keys(hijrahAsal).forEach(k => semua.push({ dok: 'hijrah', k, l: 'Hijrah ' + k, min: -5, max: 5 }));
+        const ubah = { harga: {}, hijrah: {} }, log = [], ralat = [];
+        semua.forEach(i => {
+            const el = document.querySelector(`[data-dok="${i.dok}"][data-k="${i.k}"]`);
+            if (!el || el.value.trim() === '') return;
+            const v = Number(el.value);
+            if (!Number.isInteger(v) || v < i.min || v > i.max) { ralat.push(`${i.l}: mesti nombor bulat ${i.min} hingga ${i.max}`); return; }
+            const lama = (i.dok === 'harga' ? hargaAsal : hijrahAsal)[i.k];
+            if (lama === v) return;
+            ubah[i.dok][i.k] = v;
+            log.push({ dok: i.dok, medan: i.k, lama: lama == null ? null : lama, baru: v });
+        });
+        if (ralat.length) { alert(ralat.join('\n')); return; }
+        if (!log.length) { alert('Tiada perubahan.'); return; }
+        if (!confirm('Simpan perubahan ini?\n\n' + log.map(l => `${l.dok}.${l.medan}: ${l.lama == null ? '-' : l.lama} → ${l.baru}`).join('\n') + '\n\nNilai yang dibaca app yang sedang berjalan akan berkuat kuasa serta-merta.')) return;
+        for (const d of ['harga', 'hijrah']) if (Object.keys(ubah[d]).length) await setDoc(doc(db, "tetapan_awam", d), ubah[d], { merge: true });
+        const oleh = auth.currentUser.email, masa = new Date().toISOString();
+        await Promise.all(log.map(l => addDoc(collection(db, "tetapan_log"), { ...l, oleh, masa })));
+        alert('Disimpan.');
+        loadTetapan();
     };
 
     // Auto-load dash
