@@ -1877,7 +1877,23 @@ window.kongsiWA = () => {
     const anak = sel && sel.selectedIndex >= 0 && sel.options[sel.selectedIndex].dataset.jenis === 'anak_saudara';
     const teks = anak
         ? `Assalamualaikum. Pak cik/mak cik dah sediakan salasilah keluarga kita di Famili Pintar. Atuk, nenek dan keluarga dah siap ada. Daftar guna pautan ni, terus nampak pokok keluarga:\n${pautan}`
-        : `Assalamualaikum. Aku dah mula susun salasilah keluarga kita di Famili Pintar. Lepas ni senang kita bergilir jaga mak ayah, semua nampak jadual yang sama. Masuk guna pautan ni (percuma, dapat 20 kredit):\n${pautan}`;
+        : [
+            'Assalamualaikum abang/kakak/adik ku. Aku menemui satu web apps nama Famili Pintar yang bermanfaat untuk seisi keluarga dan ingin menjemput adik beradik bersama-sama guna myNasab untuk susun salasilah keluarga kita. Dalam Famili Pintar ada apps yang bersambung daripada myNasab yang keluarga masing-masing boleh guna:',
+            '',
+            '• myNasab – pendaftaran salasilah keluarga, asas semua app lain',
+            '• weCare – alat bantu jaga mak ayah, semua adik-beradik nampak jadual yang sama',
+            '• goTravel – rancang cuti keluarga bersama',
+            '• myJurnal – nilai dan rancang keluarga dengan 20+ kalkulator kewangan, hubungan, anak dan legasi',
+            '• myKids – rancang pendidikan, kerjaya dan didikan anak ikut umur',
+            '• myTADBIR – unjuran persaraan dan analisis hutang',
+            '• OurMoney – rekod belanja harian dan kewangan rumah',
+            '• nowSihat – snap makanan, tahu kalori dan dapat nasihat sihat',
+            '',
+            'Bonus: BAHI – kongsi gambar dan cerita harian lebih selamat sesama keluarga.',
+            '',
+            'Masuk guna pautan ni (percuma, dapat 20 kredit):',
+            pautan
+        ].join('\n');
     window.open('https://wa.me/?text=' + encodeURIComponent(teks), '_blank');
 };
 
