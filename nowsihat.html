@@ -134,7 +134,7 @@
 <header>
   <div class="hbar">
     <button class="ib" onclick="location.href='index.html'" title="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
-    <div class="logo"><i class="fa-solid fa-leaf"></i><span><span class="a">now</span>Sihat</span></div>
+    <div class="logo"><i class="fa-solid fa-heart-pulse"></i><span><span class="a">now</span>Sihat</span></div>
     <select id="paparan" class="hidden" onchange="tukarPaparan(this.value)" title="Paparan sebagai"><option value="saya">Saya</option></select>
     <span class="kredit" id="kredit">Kredit: -</span>
   </div>
@@ -640,7 +640,7 @@ function paparSeterusnya(s, j, dewasa) {
     if (baki < 300) t.push(['fa-scale-balanced', `Baki kalori tinggal ~${Math.max(0, baki)} kcal: pilih hidangan ringan (sup, sayur, buah) dan kecilkan nasi.`]);
     else if (baki < 700) t.push(['fa-scale-balanced', `Baki ~${baki} kcal: nasi suku pinggan, separuh pinggan sayur, suku lauk protein.`]);
   }
-  if (!t.length) t.push(['fa-leaf', 'Setakat ini seimbang. Teruskan Pinggan Sihat: separuh sayur dan buah, suku protein, suku nasi.']);
+  if (!t.length) t.push(['fa-heart-pulse', 'Setakat ini seimbang. Teruskan Pinggan Sihat: separuh sayur dan buah, suku protein, suku nasi.']);
   const terkini = S.log[0] && S.log[0].seterusnya && Date.now() - S.log[0].masa < 3 * 3600000 ? `<div class="tip"><i class="fa-solid fa-wand-magic-sparkles"></i><span>${esc(S.log[0].seterusnya)}</span></div>` : '';
   $('kadSeterusnya').innerHTML = `<h2><i class="fa-solid fa-utensils"></i> Cadangan untuk ${esc(waktu.toLowerCase())}</h2>${terkini}` + t.slice(0, 4).map(([i, x]) => `<div class="tip"><i class="fa-solid ${i}"></i><span>${esc(x)}</span></div>`).join('');
 }
