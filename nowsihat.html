@@ -91,8 +91,8 @@
   .chip.p { background: #e0f2fe; color: #075985; } .chip.k { background: #fae8ff; color: #86198f; } .chip.l { background: #fef9c3; color: #854d0e; }
   .tindakan { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
   .pratonton { width: 100%; max-height: 300px; object-fit: cover; border-radius: 14px; margin-top: 10px; display: none; }
-  .modal { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: flex-end; justify-content: center; z-index: 50; padding: 0; }
-  .modal .isi { background: #fff; border-radius: 22px 22px 0 0; padding: 20px; max-width: 520px; width: 100%; max-height: 90vh; overflow: auto; }
+  .modal { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none; align-items: center; justify-content: center; z-index: 50; padding: 18px; }
+  .modal .isi { background: #fff; border-radius: 22px; padding: 20px; max-width: 440px; width: 100%; max-height: 86vh; overflow: auto; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
   .porsi { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
   .porsi button { border: 1px solid #bbf7d0; background: #f0fdf4; color: #166534; border-radius: 999px; padding: 4px 10px; font: 800 12.5px 'Nunito', sans-serif; cursor: pointer; }
   .porsi button.aktif { background: var(--hijau); color: #fff; border-color: var(--hijau); }
@@ -397,7 +397,7 @@ function bukaKunci() {
   else if (!S.user.nowsihat_expiry_date) $('modalMula').style.display = 'flex';
   else $('modalTamat').style.display = 'flex';
 }
-window.keCoachSahaja = () => { ['modalMula', 'modalTamat', 'modalKunciCoach'].forEach(id => $(id).style.display = 'none'); tukarTab('profil'); const k = $('kadJadiCoach'); if (k) k.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+window.keCoachSahaja = () => { try { localStorage.setItem('ns_coach_sahaja_' + S.uid, '1'); } catch (e) {} if (S.coachAktif) { location.href = 'nowsihat-coach.html'; return; } ['modalMula', 'modalTamat', 'modalKunciCoach'].forEach(id => $(id).style.display = 'none'); tukarTab('profil'); const k = $('kadJadiCoach'); if (k) k.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
 window.langganCoach = () => { $('modalKunciCoach').style.display = 'none'; if (S.user.nowsihat_expiry_date) perbaharui(); else mulaPercubaan(); };
 window.tukarTab = (t) => {
   if (t !== 'profil' && !adaLanggan()) { bukaKunci(); return; }
@@ -888,8 +888,8 @@ window.putusCoach = async () => {
 };
 // Pengguna yang mendaftar melalui pautan coach: tawar persetujuan sekali (jika belum berpaut / belum menolak)
 async function semakCoachRujukan() {
-  const ref = S.user.referred_by; if (!ref || S.pautan || ref === S.uid || !S.user.nowsihat_expiry_date || S.per !== 'induk') return;
-  try { if (localStorage.getItem('ns_coach_tolak_' + ref)) return; } catch (e) {}
+  const ref = S.user.referred_by; if (!ref || S.pautan || S.coachAktif || ref === S.uid || !S.user.nowsihat_expiry_date || S.per !== 'induk') return;
+  try { if (localStorage.getItem('ns_coach_tolak_' + ref) || localStorage.getItem('ns_coach_sahaja_' + S.uid)) return; } catch (e) {}
   try { const c = await getDoc(doc(db, 'nowsihat_coach', ref)); if (c.exists() && c.data().status === 'aktif') tawarCoach(c.data()); } catch (e) {}
 }
 
