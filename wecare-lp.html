@@ -69,6 +69,8 @@ a { color: inherit; }
 
 /* HERO */
 .hero { padding-block: 32px 72px; }
+.skrin { margin: 0 auto; max-width: 340px; border-radius: 28px; overflow: hidden; border: 6px solid #0f172a; background: #0f172a; box-shadow: 0 20px 40px rgba(0,0,0,0.18); }
+.skrin img { display: block; width: 100%; height: auto; }
 .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
 .hero h1 { font-size: clamp(38px, 6vw, 66px); font-weight: 800; margin: 14px 0 20px; }
 .hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, color-mix(in srgb, var(--warm) 55%, transparent) 62%); }
@@ -196,21 +198,9 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
       </div>
 
       <div>
-        <div class="demo" role="img" aria-label="Contoh kalendar weCare: ubat ayah, temu janji klinik ibu dan giliran adik-beradik menjaga, dengan satu nota untuk penjaga lain.">
-          <div class="demo-head"><b>Kalendar Jagaan &amp; Ubat</b><span>Contoh seminggu</span></div>
-          <div class="minggu">
-            <div class="n">Isn</div><div class="n">Sel</div><div class="n">Rab</div><div class="n">Kha</div><div class="n">Jum</div><div class="n">Sab</div><div class="n">Aha</div>
-            <div class="h"><small>12</small><span class="ev a">Ubat</span></div>
-            <div class="h"><small>13</small><span class="ev i">Klinik</span></div>
-            <div class="h hari-ini"><small>14</small><span class="ev a">Ubat</span><span class="ev u">Along</span></div>
-            <div class="h"><small>15</small><span class="ev i">Ubat</span></div>
-            <div class="h"><small>16</small><span class="ev a">Ubat</span><span class="ev u">Angah</span></div>
-            <div class="h"><small>17</small><span class="ev u">Hospital</span></div>
-            <div class="h"><small>18</small><span class="ev a">Ubat</span></div>
-          </div>
-          <div class="demo-nota"><b>Nota untuk penjaga</b>Ubat tekanan darah ayah tinggal 3 hari. Along, tolong ambil di farmasi sebelum Khamis.</div>
-          <p class="demo-label">Biru = ayah · Merah jambu = ibu · Hijau = umum</p>
-        </div>
+        <figure class="skrin">
+          <img src="wecare-skrin.jpg" width="720" height="1600" alt="Skrin weCare: profil kesihatan ibu bapa, kalendar jagaan dan ubat, serta aktiviti hari ini" fetchpriority="high">
+        </figure>
       </div>
     </div>
   </div>

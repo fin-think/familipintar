@@ -74,6 +74,8 @@ a { color: inherit; }
 
 /* HERO */
 .hero { padding-block: 32px 72px; }
+.skrin { margin: 0 auto; max-width: 340px; border-radius: 28px; overflow: hidden; border: 6px solid #0f172a; background: #0f172a; box-shadow: 0 20px 40px rgba(0,0,0,0.18); }
+.skrin img { display: block; width: 100%; height: auto; }
 .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
 .hero h1 { font-size: clamp(38px, 6vw, 68px); font-weight: 800; margin: 14px 0 20px; }
 .hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, color-mix(in srgb, var(--warm) 55%, transparent) 62%); }
@@ -205,35 +207,9 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
       </div>
 
       <div>
-        <div class="demo" role="img" aria-label="Contoh pokok nasab: Tok Wan dan Tok Ma, tiga anak mereka iaitu Pak Long, Ayah dan Mak Su, dan seorang anak bagi setiap seorang.">
-          <div class="tr">
-            <div class="pair" style="max-width:260px">
-              <div class="kad l" style="max-width:120px">Tok Wan<small>Meninggal dunia</small><span class="tag">Datuk</span></div>
-              <div class="gap"></div>
-              <div class="kad p" style="max-width:120px">Tok Ma<small>Lahir 1951</small><span class="tag">Nenek</span></div>
-            </div>
-            <div class="stem"></div>
-            <div class="bar"></div>
-            <div class="cols">
-              <div class="col"><div class="stem"></div>
-                <div class="kad l">Pak Long<small>Lahir 1974</small><span class="tag">Bapa saudara</span></div>
-                <div class="stem"></div>
-                <div class="kad l">Aiman<small>Lahir 2008</small><span class="tag">Sepupu</span></div>
-              </div>
-              <div class="col"><div class="stem"></div>
-                <div class="kad l">Ayah<small>Lahir 1979</small><span class="tag">Ayah</span></div>
-                <div class="stem"></div>
-                <div class="kad p anda">Nur Iman<small>Lahir 2012</small><span class="tag">Anda</span></div>
-              </div>
-              <div class="col"><div class="stem"></div>
-                <div class="kad p">Mak Su<small>Lahir 1984</small><span class="tag">Mak saudara</span></div>
-                <div class="stem"></div>
-                <div class="kad p">Sofea<small>Lahir 2014</small><span class="tag">Sepupu</span></div>
-              </div>
-            </div>
-          </div>
-          <p class="demo-label">Contoh paparan Nasab Keluarga Besar</p>
-        </div>
+        <figure class="skrin">
+          <img src="mynasab-skrin.jpg" width="720" height="1600" alt="Skrin myNasab: tindakan pintar seperti preview famili tree, jemput keluarga, cari waris, dan senarai ahli keluarga" fetchpriority="high">
+        </figure>
       </div>
     </div>
   </div>

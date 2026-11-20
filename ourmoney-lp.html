@@ -66,6 +66,8 @@ a { color: inherit; }
 
 /* HERO */
 .hero { padding-block: 32px 72px; }
+.skrin { margin: 0 auto; max-width: 340px; border-radius: 28px; overflow: hidden; border: 6px solid #0f172a; background: #0f172a; box-shadow: 0 20px 40px rgba(0,0,0,0.18); }
+.skrin img { display: block; width: 100%; height: auto; }
 .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
 .hero h1 { font-size: clamp(38px, 6vw, 66px); font-weight: 800; margin: 14px 0 20px; }
 .hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, color-mix(in srgb, var(--blue) 35%, transparent) 62%); }
@@ -199,34 +201,9 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
       </div>
 
       <div>
-        <div class="demo" role="img" aria-label="Demo Paparan OurMoney">
-          <div class="demo-head"><b>📊 Aliran Tunai</b><span>Gabungan Keluarga</span></div>
-          
-          <div class="demo-grid">
-            <div class="demo-box in">
-              <div class="demo-label">Jumlah Masuk</div>
-              <div class="demo-val">RM 8,450.00</div>
-            </div>
-            <div class="demo-box out">
-              <div class="demo-label">Jumlah Keluar</div>
-              <div class="demo-val">RM 4,210.00</div>
-            </div>
-          </div>
-
-          <div class="demo-balance">
-            <div class="demo-label">Baki Bersih Semasa</div>
-            <div class="demo-val">RM 4,240.00</div>
-          </div>
-
-          <div class="demo-misi">
-            <span class="demo-misi-text">🤝 Amanah Ibu Bapa</span>
-            <span class="demo-misi-btn">Selesai ✅</span>
-          </div>
-          <div class="demo-misi" style="background:#fef3c7; border-color:#fde68a;">
-            <span class="demo-misi-text" style="color:#92400e;">🕋 Simpanan Haji (Suami)</span>
-            <span class="demo-misi-btn" style="background:#d97706;">Baki RM 150</span>
-          </div>
-        </div>
+        <figure class="skrin">
+          <img src="ourmoney-skrin.jpg" width="720" height="1600" alt="Skrin OurMoney: rekod transaksi harian duit keluar dan duit masuk, kategori, nota, resit dan butang simpan rekod" fetchpriority="high">
+        </figure>
       </div>
     </div>
   </div>
