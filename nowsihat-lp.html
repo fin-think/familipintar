@@ -142,12 +142,6 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
 .harga span { color: var(--muted); font-size: 15px; }
 .harga b span { color: inherit; font-size: inherit; }
 
-/* COACH */
-.coach { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; padding: 28px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-.coach div { flex: 1 1 360px; min-width: 0; }
-.coach h3 { font-size: 24px; margin-bottom: 6px; }
-.coach p { color: var(--muted); }
-
 /* TINDAKAN AKHIR */
 .akhir-box { background: linear-gradient(135deg, #16a34a, #14532d); color: #fff; border-radius: 16px; padding: 56px 40px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: center; box-shadow: 0 20px 40px rgba(22, 163, 74, 0.2); }
 .akhir h2 { color: #fff; }
@@ -326,21 +320,8 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
     </div>
   </section>
 
-  <!-- COACH -->
-  <section>
-    <div class="wrap">
-      <div class="coach">
-        <div>
-          <h3>Coach diet atau kecergasan?</h3>
-          <p>Daftar sebagai coach nowSihat secara percuma, pantau klien anda, dan dapat komisen <span class="tk-komisen">30</span>% setiap kali klien yang mendaftar melalui pautan anda menambah kredit. Perlu sekurang-kurangnya 3 klien (bukan ahli keluarga) dalam 30 hari.</p>
-        </div>
-        <a class="btn alt" href="affiliates.html">Jadi coach nowSihat</a>
-      </div>
-    </div>
-  </section>
-
   <!-- TINDAKAN AKHIR -->
-  <section class="akhir" style="padding-top:0">
+  <section class="akhir" style="padding-top:72px">
     <div class="wrap">
       <div class="akhir-box">
         <div>
@@ -397,7 +378,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
 
   // Harga dan syarat diambil daripada tetapan (tetapan_awam/harga); nilai dalam halaman ialah sandaran
   var peta = { 'tk-percuba': 'percubaan_hari', 'tk-kredit': 'nowsihat_kredit', 'tk-had': 'nowsihat_had', 'tk-tkredit': 'nowsihat_tambahan_kredit',
-    'tk-timbas': 'nowsihat_tambahan_imbas', 'tk-daftar': 'kredit_daftar', 'tk-komisen': 'komisen_peratus' };
+    'tk-timbas': 'nowsihat_tambahan_imbas', 'tk-daftar': 'kredit_daftar' };
   try {
     fetch('https://firestore.googleapis.com/v1/projects/familipintar/databases/(default)/documents/tetapan_awam/harga')
       .then(function (r) { return r.ok ? r.json() : null; })
