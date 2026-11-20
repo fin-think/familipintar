@@ -358,7 +358,7 @@
   <p style="font-size:14px;line-height:1.6;margin:0 0 14px">Dashboard coach adalah <b>percuma</b>. Untuk guna nowSihat sendiri (imbas makanan anda dan pasangan), langgan <b><span class="tk-kredit">20</span> kredit sebulan</b>.</p>
   <button class="btn btn-hijau penuh" onclick="location.href='nowsihat-coach.html'"><i class="fa-solid fa-gauge"></i> Pergi Dashboard Coach</button>
   <button class="btn btn-garis penuh" style="margin-top:8px" id="btnKunciLanggan" onclick="langganCoach()">Langgan untuk guna sendiri</button>
-  <button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="keCoachSahaja()">Tutup</button>
+  <button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="keCoachSahaja(true)">Tutup</button>
 </div></div>
 
 <script type="module">
@@ -397,7 +397,7 @@ function bukaKunci() {
   else if (!S.user.nowsihat_expiry_date) $('modalMula').style.display = 'flex';
   else $('modalTamat').style.display = 'flex';
 }
-window.keCoachSahaja = () => { try { localStorage.setItem('ns_coach_sahaja_' + S.uid, '1'); } catch (e) {} if (S.coachAktif) { location.href = 'nowsihat-coach.html'; return; } ['modalMula', 'modalTamat', 'modalKunciCoach'].forEach(id => $(id).style.display = 'none'); tukarTab('profil'); const k = $('kadJadiCoach'); if (k) k.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+window.keCoachSahaja = (tutupSahaja) => { if (!tutupSahaja) { try { localStorage.setItem('ns_coach_sahaja_' + S.uid, '1'); } catch (e) {} if (S.coachAktif) { location.href = 'nowsihat-coach.html'; return; } } ['modalMula', 'modalTamat', 'modalKunciCoach'].forEach(id => $(id).style.display = 'none'); tukarTab('profil'); const k = $('kadJadiCoach'); if (k) k.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
 window.langganCoach = () => { $('modalKunciCoach').style.display = 'none'; if (S.user.nowsihat_expiry_date) perbaharui(); else mulaPercubaan(); };
 window.tukarTab = (t) => {
   if (t !== 'profil' && !adaLanggan()) { bukaKunci(); return; }
