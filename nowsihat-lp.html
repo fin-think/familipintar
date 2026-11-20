@@ -104,6 +104,14 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
 .kelebihan div { padding: 22px 0; border-top: 1px solid var(--line); }
 .kelebihan h3 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
 .kelebihan p { color: var(--muted); font-size: 16.5px; }
+.unik { margin-top: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.unik div { background: var(--surface, #fff); border: 2px solid var(--brand); border-radius: 16px; padding: 20px; position: relative; }
+.unik .lencana { position: absolute; top: -11px; left: 16px; background: var(--brand); color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; }
+.unik h3 { font-size: 20px; font-weight: 800; margin: 4px 0 6px; }
+.unik p { color: var(--muted); font-size: 16px; }
+.asas-tajuk { margin-top: 44px; font-size: 18px; font-weight: 800; }
+.asas-tajuk span { display: block; font-size: 15px; font-weight: 500; color: var(--muted); margin-top: 4px; }
+.kelebihan.asas { margin-top: 12px; }
 
 /* LANGKAH */
 .langkah { margin-top: 40px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; counter-reset: l; padding: 0; list-style: none; }
@@ -142,7 +150,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
   .hero-grid, .masalah-grid, .akhir-box { grid-template-columns: minmax(0, 1fr); }
   .hero-grid { gap: 36px; }
   .langkah { grid-template-columns: 1fr 1fr; row-gap: 40px; }
-  .kelebihan, .manfaat { grid-template-columns: 1fr; }
+  .kelebihan, .manfaat, .unik { grid-template-columns: 1fr; }
   .akhir-box { padding: 36px 24px; }
   section { padding-block: 56px; }
 }
@@ -232,15 +240,21 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
   <!-- CIRI-CIRI -->
   <section class="band" id="ciri">
     <div class="wrap">
-      <p class="eyebrow">Apa yang ada dalam nowSihat</p>
-      <h2>Bukan sekadar kira kalori, tapi pembantu harian yang faham anda.</h2>
-      <div class="kelebihan">
-        <div><h3>📸 Snap, terus dapat anggaran</h3><p>Ambil gambar makanan atau minuman dan dapat anggaran kalori, protein, gula dan garam. Anggaran saiz hidangan Malaysia sudah diambil kira.</p></div>
-        <div><h3>💬 Nasihat ringkas, bukan ceramah</h3><p>Dua ayat yang praktikal dan mesra, ikut umur dan matlamat anda, serta cadangan konkrit untuk waktu makan seterusnya.</p></div>
+      <p class="eyebrow">Apa yang nowSihat ada, app lain tiada</p>
+      <h2>App kalori lain cuma beri nombor. nowSihat beri anda jalan.</h2>
+      <div class="unik">
+        <div><span class="lencana">Hanya di nowSihat</span><h3>💬 Nasihat, bukan sekadar nombor</h3><p>Selepas setiap snap, dapat dua ayat nasihat dalam Bahasa Melayu yang mesra, ikut umur dan matlamat anda, serta cadangan apa nak makan seterusnya.</p></div>
+        <div><span class="lencana">Hanya di nowSihat</span><h3>👫 Satu langganan, suami isteri</h3><p>Anda dan pasangan guna satu langganan, dengan profil, sasaran dan rekod masing-masing. App lain caj setiap orang.</p></div>
+        <div><span class="lencana">Hanya di nowSihat</span><h3>🌙 Faham puasa sunat</h3><p>Tandakan hari berpuasa dan nasihat terus disesuaikan untuk sahur dan berbuka. App luar negara tak kenal Isnin Khamis.</p></div>
+        <div><span class="lencana">Hanya di nowSihat</span><h3>🤝 Coach sebenar, bila anda mahu</h3><p>Kongsi rekod dengan coach diet pilihan anda, yang boleh beri komen dan sasaran. Hanya jika anda setuju, dan boleh dihentikan bila-bila masa.</p></div>
+        <div><span class="lencana">Hanya di nowSihat</span><h3>👨‍👩‍👧 Sudah kenal keluarga anda</h3><p>Tarikh lahir, jantina dan pasangan diambil terus dari pokok keluarga myNasab. Tak perlu isi borang panjang.</p></div>
+        <div><span class="lencana">Hanya di nowSihat</span><h3>🍛 Faham hidangan Malaysia</h3><p>Nasi lemak, roti canai, teh tarik. Anggaran ikut saiz hidangan kita, bukan saiz pinggan orang barat.</p></div>
+      </div>
+
+      <p class="asas-tajuk">Yang asas pun ada, dan lebih mudah.<span>Ciri yang biasa ada pada app lain, tapi tanpa timbang dan tanpa taip.</span></p>
+      <div class="kelebihan asas">
+        <div><h3>📸 Snap, terus dapat anggaran</h3><p>Ambil gambar makanan atau minuman dan dapat anggaran kalori, protein, gula dan garam. Tak perlu cari dalam senarai makanan.</p></div>
         <div><h3>📊 Jejak jumlah harian</h3><p>Lihat berapa yang sudah dimakan berbanding sasaran hari ini, dan apa yang perlu dikurangkan atau ditambah.</p></div>
-        <div><h3>🌙 Sedia untuk puasa sunat</h3><p>Tandakan hari berpuasa dan nasihat disesuaikan untuk sahur dan berbuka.</p></div>
-        <div><h3>👫 Satu langganan, dua orang</h3><p>Anda dan pasangan berkongsi satu langganan, dengan profil, sasaran dan rekod masing-masing.</p></div>
-        <div><h3>🤝 Pilihan berpaut dengan coach</h3><p>Mahu bimbingan? Kongsi rekod dengan coach diet pilihan anda, hanya jika anda setuju dan boleh dihentikan bila-bila masa.</p></div>
       </div>
     </div>
   </section>
