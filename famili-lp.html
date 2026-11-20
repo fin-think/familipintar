@@ -77,6 +77,13 @@ a { color: inherit; }
 .hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 .hero .note { margin-top: 14px; font-size: 15px; color: var(--muted); }
 .hub { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 22px 12px 16px; min-width: 0; }
+.lebih { margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.lebih > div { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+.lebih .ik { font-size: 26px; line-height: 1; }
+.lebih h3 { font-size: 19px; margin: 12px 0 6px; }
+.lebih p { color: var(--muted); font-size: 15.5px; }
+@media (max-width: 860px) { .lebih { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .lebih { grid-template-columns: 1fr; } }
 .skrin-dua { display: flex; gap: 28px; justify-content: center; align-items: flex-end; flex-wrap: wrap; margin-top: 44px; }
 .skrin { margin: 0; max-width: 300px; width: 100%; border-radius: 28px; overflow: hidden; border: 6px solid #0f172a; background: #0f172a; box-shadow: 0 20px 40px rgba(0,0,0,0.18); }
 .skrin img { display: block; width: 100%; height: auto; }
@@ -207,7 +214,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
       </div>
       <div>
         <div class="hub">
-          <svg viewBox="0 0 420 420" role="img" aria-label="Rajah: keluarga anda di tengah, disambungkan kepada lapan alat iaitu myNasab, weCare, nowSihat, myJurnal, Anakku Hartaku, goTravel, myTadbir dan ourMoney." style="width:100%;height:auto;display:block;max-width:440px;margin:0 auto"><line x1="210" y1="210" x2="210.0" y2="60.0" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="316.1" y2="103.9" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="360.0" y2="210.0" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="316.1" y2="316.1" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="210.0" y2="360.0" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="103.9" y2="316.1" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="60.0" y2="210.0" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="103.9" y2="103.9" stroke="var(--line)" stroke-width="2"/><circle cx="210" cy="210" r="60" fill="var(--brand)"/><text x="210" y="205" text-anchor="middle" font-size="15" font-weight="800" fill="#fff">Keluarga</text><text x="210" y="225" text-anchor="middle" font-size="15" font-weight="800" fill="#fff">anda</text><circle cx="210.0" cy="60.0" r="38" fill="#a7f3d0" stroke="rgba(0,0,0,.12)"/><text x="210.0" y="64.5" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">myNasab</text><circle cx="316.1" cy="103.9" r="38" fill="#fecdd3" stroke="rgba(0,0,0,.12)"/><text x="316.1" y="108.4" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">weCare</text><circle cx="360.0" cy="210.0" r="38" fill="#bbf7d0" stroke="rgba(0,0,0,.12)"/><text x="360.0" y="214.5" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">nowSihat</text><circle cx="316.1" cy="316.1" r="38" fill="#bae6fd" stroke="rgba(0,0,0,.12)"/><text x="316.1" y="320.6" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">myJurnal</text><circle cx="210.0" cy="360.0" r="38" fill="#99f6e4" stroke="rgba(0,0,0,.12)"/><text x="210.0" y="359.0" text-anchor="middle" font-size="11.5" font-weight="800" fill="#1b2b28">Anakku</text><text x="210.0" y="373.0" text-anchor="middle" font-size="11.5" font-weight="800" fill="#1b2b28">Hartaku</text><circle cx="103.9" cy="316.1" r="38" fill="#a5f3fc" stroke="rgba(0,0,0,.12)"/><text x="103.9" y="320.6" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">goTravel</text><circle cx="60.0" cy="210.0" r="38" fill="#cbd5e1" stroke="rgba(0,0,0,.12)"/><text x="60.0" y="214.5" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">myTadbir</text><circle cx="103.9" cy="103.9" r="38" fill="#c7d2fe" stroke="rgba(0,0,0,.12)"/><text x="103.9" y="108.4" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">ourMoney</text></svg>
+          <svg viewBox="0 0 420 420" role="img" aria-label="Rajah: keluarga anda di tengah, disambungkan kepada lapan alat iaitu myNasab, weCare, myJurnal, Anakku Hartaku, goTravel, myTadbir, ourMoney dan nowSihat." style="width:100%;height:auto;display:block;max-width:440px;margin:0 auto"><line x1="210" y1="210" x2="210.0" y2="60.0" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="316.1" y2="103.9" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="360.0" y2="210.0" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="316.1" y2="316.1" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="210.0" y2="360.0" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="103.9" y2="316.1" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="60.0" y2="210.0" stroke="var(--line)" stroke-width="2"/><line x1="210" y1="210" x2="103.9" y2="103.9" stroke="var(--line)" stroke-width="2"/><circle cx="210" cy="210" r="60" fill="var(--brand)"/><text x="210" y="205" text-anchor="middle" font-size="15" font-weight="800" fill="#fff">Keluarga</text><text x="210" y="225" text-anchor="middle" font-size="15" font-weight="800" fill="#fff">anda</text><circle cx="210.0" cy="60.0" r="38" fill="#a7f3d0" stroke="rgba(0,0,0,.12)"/><text x="210.0" y="64.5" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">myNasab</text><circle cx="316.1" cy="103.9" r="38" fill="#fecdd3" stroke="rgba(0,0,0,.12)"/><text x="316.1" y="108.4" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">weCare</text><circle cx="360.0" cy="210.0" r="38" fill="#bae6fd" stroke="rgba(0,0,0,.12)"/><text x="360.0" y="214.5" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">myJurnal</text><circle cx="316.1" cy="316.1" r="38" fill="#99f6e4" stroke="rgba(0,0,0,.12)"/><text x="316.1" y="315.1" text-anchor="middle" font-size="11.5" font-weight="800" fill="#1b2b28">Anakku</text><text x="316.1" y="329.1" text-anchor="middle" font-size="11.5" font-weight="800" fill="#1b2b28">Hartaku</text><circle cx="210.0" cy="360.0" r="38" fill="#a5f3fc" stroke="rgba(0,0,0,.12)"/><text x="210.0" y="364.5" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">goTravel</text><circle cx="103.9" cy="316.1" r="38" fill="#cbd5e1" stroke="rgba(0,0,0,.12)"/><text x="103.9" y="320.6" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">myTadbir</text><circle cx="60.0" cy="210.0" r="38" fill="#c7d2fe" stroke="rgba(0,0,0,.12)"/><text x="60.0" y="214.5" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">ourMoney</text><circle cx="103.9" cy="103.9" r="38" fill="#bbf7d0" stroke="rgba(0,0,0,.12)"/><text x="103.9" y="108.4" text-anchor="middle" font-size="12" font-weight="800" fill="#1b2b28">nowSihat</text></svg>
           <p class="hub-label">Satu keluarga, lapan alat yang berkongsi maklumat</p>
         </div>
       </div>
@@ -364,22 +371,8 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
           </div>
         </article>
 
-        <article class="bab c-sihat">
-          <div class="bab-kiri"><span class="no">Bab 7 &middot; Kesihatan</span><h3>nowSihat</h3><span class="tag">Pemakanan suami isteri</span></div>
-          <div class="bab-kanan">
-            <p class="masalah">Doktor pesan kurangkan gula dan garam, tapi tak tahu pun berapa banyak yang dimakan setiap hari.</p>
-            <p>Snap gambar makanan, terus dapat anggaran kalori, protein, gula dan garam, serta nasihat ringkas ikut umur dan matlamat anda.</p>
-            <ul>
-              <li>Satu langganan untuk anda dan pasangan</li>
-              <li>Baki kalori harian dan cadangan makan seterusnya</li>
-              <li>Boleh kongsi kemajuan dengan coach pilihan anda</li>
-            </ul>
-            <p class="sambung"><b>Bersambung dengan:</b> tarikh lahir, jantina dan pasangan daripada pokok keluarga anda.</p>
-          </div>
-        </article>
-
         <article class="bab c-money">
-          <div class="bab-kiri"><span class="no">Bab 8 &middot; Setiap hari</span><h3>ourMoney</h3><span class="tag">Aliran tunai keluarga</span></div>
+          <div class="bab-kiri"><span class="no">Bab 7 &middot; Setiap hari</span><h3>ourMoney</h3><span class="tag">Aliran tunai keluarga</span></div>
           <div class="bab-kanan">
             <p class="masalah">Gaji habis sebelum hujung bulan, dan tak tahu pergi mana.</p>
             <p>Jejak setiap sen yang masuk dan keluar, pantau kesihatan kewangan, dan tetapkan matlamat simpanan keluarga.</p>
@@ -388,7 +381,21 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
               <li>Matlamat simpanan bersama</li>
               <li>Peringatan simpanan ke telefon menjelang hujung bulan</li>
             </ul>
-            <p class="sambung"><b>Penutup cerita:</b> bila duit harian teratur, perancangan di bab 3 dan 6 benar-benar boleh dijalankan.</p>
+            <p class="sambung"><b>Kesannya:</b> bila duit harian teratur, perancangan di bab 3 dan 6 benar-benar boleh dijalankan.</p>
+          </div>
+        </article>
+
+        <article class="bab c-sihat">
+          <div class="bab-kiri"><span class="no">Bab 8 &middot; Penutup</span><h3>nowSihat</h3><span class="tag">Pemakanan suami isteri</span></div>
+          <div class="bab-kanan">
+            <p class="masalah">Doktor pesan kurangkan gula dan garam, tapi tak tahu pun berapa banyak yang dimakan setiap hari.</p>
+            <p>Snap gambar makanan, terus dapat anggaran kalori, protein, gula dan garam, serta nasihat ringkas ikut umur dan matlamat anda.</p>
+            <ul>
+              <li>Satu langganan untuk anda dan pasangan</li>
+              <li>Baki kalori harian dan cadangan makan seterusnya</li>
+              <li>Boleh kongsi kemajuan dengan coach pilihan anda</li>
+            </ul>
+            <p class="sambung"><b>Penutup cerita:</b> duit boleh dicari, tetapi sihat tak boleh dibeli. Semua perancangan di bab sebelum ini hanya bermakna bila anda dan pasangan sihat untuk menikmatinya.</p>
           </div>
         </article>
       </div>
@@ -396,6 +403,23 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
       <div class="tambahan">
         <p><b>Dan untuk sepanjang jalan:</b> lebih 30 e-book panduan parenting, kewangan, pelaburan dan motivasi, serta ruang belajar Mandarin setahap demi setahap bersama anak-anak.</p>
         <a class="btn alt" href="https://www.familipintar.com/?utm_source=lp&amp;utm_medium=landing&amp;utm_campaign=ekosistem">Lihat semua</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- KELEBIHAN -->
+  <section id="kelebihan">
+    <div class="wrap">
+      <p class="eyebrow">Kelebihan Famili Pintar</p>
+      <h2>Bukan sekadar laman web. Ia teman keluarga yang mengingatkan.</h2>
+      <p class="sec-lead">Kebanyakan web app hanya menunggu anda buka. Famili Pintar datang kepada anda, pada peranti yang anda pilih, untuk orang yang betul.</p>
+      <div class="lebih">
+        <div><div class="ik">&#128276;</div><h3>Notifikasi nasihat ke telefon</h3><p>Peringatan muhasabah, checklist, ubat ibu bapa, hari jadi keluarga dan simpanan hujung bulan dihantar terus ke telefon. Web app lain biasanya tiada fungsi ini.</p></div>
+        <div><div class="ik">&#128241;</div><h3>Guna di pelbagai peranti</h3><p>Telefon, tablet atau komputer, log masuk dengan akaun yang sama dan data anda sentiasa sama. Boleh tambah ke skrin utama macam app, tanpa muat turun dari App Store.</p></div>
+        <div><div class="ik">&#128107;</div><h3>Satu akaun untuk suami isteri</h3><p>Pasangan guna akaun yang sama dan tukar antara Induk dan Pasangan dengan satu tekan. Satu langganan, rekod masing-masing kekal berasingan.</p></div>
+        <div><div class="ik">&#9881;&#65039;</div><h3>Tetapan ikut telefon</h3><p>Pilih "telefon ini milik siapa", jadi peringatan peribadi hanya sampai kepada orang yang betul. Boleh uji notifikasi, tukar gambar profil dan semak baki kredit di satu tempat.</p></div>
+        <div><div class="ik">&#128179;</div><h3>Satu dompet kredit</h3><p>Top-up sekali, guna untuk semua app. Tiada langganan berasingan untuk setiap aplikasi dan tiada kad kredit disimpan.</p></div>
+        <div><div class="ik">&#128274;</div><h3>Data keluarga anda milik anda</h3><p>Maklumat peribadi hanya untuk akaun anda. Hanya ruang yang sengaja dikongsi, seperti penjagaan ibu bapa, dilihat bersama adik-beradik.</p></div>
       </div>
     </div>
   </section>
