@@ -90,7 +90,7 @@
     },
     nowsihat: {
       tajuk: 'Cara Guna nowSihat',
-      intro: 'Snap gambar makanan, dapat anggaran nutrisi dan nasihat ikut umur, matlamat dan keadaan kesihatan anda. Percuma 30 hari pertama.',
+      intro: 'Snap gambar makanan, dapat anggaran nutrisi dan nasihat ikut umur, matlamat dan keadaan kesihatan anda. Percuma 15 hari pertama.',
       langkah: [
         ['Untuk siapa', 'Satu langganan untuk anda dan pasangan. Pilih nama di bar <b>Untuk</b> di atas; setiap orang ada profil, rekod makan, senaman, air dan coach sendiri.'],
         ['Lengkapkan profil', 'Tab <b>Profil</b>: tarikh lahir & jantina diambil dari myNasab, berat & tinggi dari myHEALTH. Pilih aktiviti, matlamat dan fokus (kurang gula/garam, lebih protein). Sasaran harian dikira sendiri.'],
@@ -104,7 +104,7 @@
         ['Trend', 'Tab <b>Trend</b>: graf kalori 7 hari berbanding sasaran, dan log berat badan. Timbang seminggu sekali untuk lihat kemajuan.'],
         ['Coach (pilihan)', 'Ada coach diet? Masukkan kod coach di Profil → <b>Coach saya</b> dan pilih apa yang dikongsi. Coach nampak rekod anda secara automatik; boleh putuskan bila-bila masa.'],
         ['Tanya coach', 'Selepas imbas, tekan <b>Tanya coach tentang ni</b> (gambar terus dilampir), atau butang <b>Tanya coach</b> pada rekod. Anda dapat notifikasi bila coach menjawab.'],
-        ['Jadi coach', 'Coach diet atau kecergasan? Daftar di Profil → <b>Jadi coach nowSihat</b> (perlu Affiliate). Dashboard coach <b>percuma</b>; perlu 3 klien bukan keluarga dalam 30 hari. Coach juga dapat percubaan percuma 30 hari untuk guna nowSihat sendiri; selepas tamat, mod <b>Saya</b> dikunci sehingga anda melanggan.'],
+        ['Jadi coach', 'Coach diet atau kecergasan? Daftar di Profil → <b>Jadi coach nowSihat</b> (perlu Affiliate). Dashboard coach <b>percuma</b>; perlu 3 klien bukan keluarga dalam 30 hari. Coach juga dapat percubaan percuma 15 hari untuk guna nowSihat sendiri; selepas tamat, mod <b>Saya</b> dikunci sehingga anda melanggan.'],
         ['Paparan sebagai', 'Jika anda juga coach atau admin, tukar paparan melalui menu <b>Saya / Coach / Admin</b> di atas. Mod Saya perlukan langganan nowSihat yang aktif.']
       ]
     },
@@ -112,7 +112,7 @@
       tajuk: 'Cara Guna Dashboard Coach',
       intro: 'Pantau klien yang bersetuju berkongsi data nowSihat dengan anda, tetapkan sasaran dan beri komen.',
       langkah: [
-        ['Daftar coach', 'Di nowSihat → Profil → <b>Jadi coach nowSihat</b>. Akaun aktif terus dan <b>percuma</b>. Perlu berdaftar Affiliate dahulu. Untuk imbas makanan sendiri (dan pasangan): percuma 30 hari pertama, kemudian langgan nowSihat biasa. Tanpa langganan, mod Saya dikunci tetapi dashboard coach tetap boleh diguna.'],
+        ['Daftar coach', 'Di nowSihat → Profil → <b>Jadi coach nowSihat</b>. Akaun aktif terus dan <b>percuma</b>. Perlu berdaftar Affiliate dahulu. Untuk imbas makanan sendiri (dan pasangan): percuma 15 hari pertama, kemudian langgan nowSihat biasa. Tanpa langganan, mod Saya dikunci tetapi dashboard coach tetap boleh diguna.'],
         ['Syarat klien', 'Dalam tempoh ujian (30 hari), perlu ada sekurang-kurangnya 3 klien <b>bukan keluarga sendiri</b> (ikut myNasab). Jika tidak, akaun coach dinyahaktifkan automatik. Kemajuan dipapar di atas senarai klien.'],
         ['Jemput klien', 'Tab <b>Pautan saya</b>: salin atau kongsi pautan ke WhatsApp. Klien yang mendaftar melalui pautan ini diminta bersetuju berkongsi, dan direkod sebagai rujukan affiliate anda.'],
         ['Klien sedia ada', 'Klien yang sudah ada akaun boleh masukkan kod anda di nowSihat → Profil → Coach saya.'],
