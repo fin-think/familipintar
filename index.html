@@ -189,7 +189,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
   }
 </script>
     
-<script src="sumber.js?v=2"></script>
+<script src="sumber.js?v=3"></script>
 <script src="huruf.js?v=1"></script>
 <script src="/pwa.js" defer></script>
 </head>
@@ -882,9 +882,10 @@ if ('Notification' in window) {
 
     let semakPertamaLP = true;
     onAuthStateChanged(auth, async (user) => {
-        // Datang dari LP nowSihat & sudah log masuk (semakan pertama sahaja, bukan selepas daftar baharu): terus ke nowSihat
+        // Datang dari LP nowSihat / OurMoney / weCare & sudah log masuk (semakan pertama sahaja, bukan selepas daftar baharu): terus ke nowSihat
         if (semakPertamaLP) { semakPertamaLP = false; const q = new URLSearchParams(location.search);
-            if (user && q.get('daftar') && q.get('utm_campaign') === 'nowsihat') { location.replace('nowsihat.html'); return; } }
+            const keApp = { nowsihat: 'nowsihat.html', ourmoney: 'ourmoney.html', wecare: 'wecare.html' }[q.get('utm_campaign')];
+            if (user && q.get('daftar') && keApp) { location.replace(keApp); return; } }
         const greetingBox = document.getElementById('userGreetingBox');
         const namaDisplay = document.getElementById('headerNamaPengguna');
         const menuBelum = document.getElementById('menuBelumLogMasuk');
@@ -1203,6 +1204,7 @@ if ('Notification' in window) {
                 if (window.FPSumber && window.FPSumber.bersihKe) window.FPSumber.bersihKe();
                 if (ke === 'wecare') { window.location.href = 'mynasab/index.html?panduan=wecare'; return; }
                 if (ke === 'nowsihat') { window.location.href = 'nowsihat.html'; return; }
+                if (ke === 'ourmoney') { window.location.href = 'ourmoney.html'; return; }
             } catch (error) {
                 alert("Ralat pendaftaran: E-mel ini mungkin telah wujud.");
             }

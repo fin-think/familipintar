@@ -32,10 +32,19 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                 <h3 class="font-bold text-lg mb-4 text-slate-700">Pautan Affiliate Anda</h3>
                 <p class="text-sm text-slate-500 mb-2">Kongsi pautan ini. Anda dapat <span class="tk-komisen">30</span>% untuk setiap jualan berjaya!</p>
+                <label for="pilihApp" class="block text-xs font-bold text-slate-500 mb-1">Nak promosi apa?</label>
+                <select id="pilihApp" onchange="kemasLink()" class="w-full mb-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700">
+                    <option value="umum">Famili Pintar (semua app)</option>
+                    <option value="mynasab">myNasab: salasilah keluarga</option>
+                    <option value="wecare">weCare: jaga ibu bapa</option>
+                    <option value="ourmoney">OurMoney: kewangan keluarga</option>
+                    <option value="nowsihat">nowSihat: pemakanan</option>
+                </select>
                 <div class="flex items-center gap-2 bg-slate-100 rounded-xl p-1.5 pl-3">
                     <input type="text" id="refLink" class="flex-1 min-w-0 bg-transparent outline-none text-blue-600 font-semibold text-sm truncate" readonly>
                     <button onclick="salinLink(event)" class="flex-none inline-flex items-center gap-1.5 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-bold hover:bg-blue-700" aria-label="Salin pautan"><i class="fa-regular fa-copy"></i> Salin</button>
                 </div>
+                <button onclick="kongsiWA()" class="mt-2 w-full inline-flex items-center justify-center gap-2 bg-[#25D366] text-white px-3 py-2.5 rounded-xl text-sm font-bold hover:opacity-90"><i class="fa-brands fa-whatsapp text-lg"></i> Kongsi di WhatsApp</button>
                 <div class="mt-3 flex gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 text-[13px] leading-relaxed text-amber-900">
                     <i class="fa-solid fa-circle-info mt-0.5 text-amber-500"></i>
                     <div><b>Pautan ini untuk kenalan &amp; bakal pelanggan sahaja</b> (rakan, rakan sekerja, pelanggan), bukan untuk ahli keluarga.<br>
@@ -159,7 +168,7 @@
                 refCode = "REF" + currentUser.uid.substring(0,6).toUpperCase();
                 await updateDoc(doc(db, "mynasab_users", currentUser.uid), { referral_code: refCode });
             }
-            document.getElementById('refLink').value = `https://familipintar.com/?ref=${refCode}`;
+            window._refCode = refCode; kemasLink();
             
             if(data.name) document.getElementById('namaPenuh').value = data.name;
             // Maklumat telefon & bank disimpan dalam dokumen peribadi (hanya pemilik & admin boleh baca)
@@ -228,6 +237,24 @@
         if (payProses > 0 && btn) btn.title = 'RM ' + payProses.toFixed(2) + ' sedang diproses oleh Admin';
     }
 
+    // Pautan affiliate ikut app: setiap satu ke landing page masing-masing (ref dibawa hingga pendaftaran oleh sumber.js)
+    const APP_AFF = {
+        umum: { lp: 'famili-lp.html', teks: 'Saya guna Famili Pintar untuk urus salasilah, jaga ibu bapa dan kewangan keluarga dalam satu app. Cuba tengok:' },
+        mynasab: { lp: 'mynasab-lp.html', teks: 'Jom bina pokok keluarga kita, supaya anak-anak kenal sepupu dan saudara mara. Tengok sini:' },
+        wecare: { lp: 'wecare-lp.html', teks: 'Senang nak bahagi giliran jaga mak ayah, ubat dan temu janji klinik, semua dalam satu kalendar. Cuba:' },
+        ourmoney: { lp: 'ourmoney-lp.html', teks: 'Saya rekod duit masuk keluar keluarga guna OurMoney, baru nampak duit pergi mana. Cuba:' },
+        nowsihat: { lp: 'nowsihat-lp.html', teks: 'Snap gambar makanan, terus tahu kalori & gula. Sesuai untuk suami isteri jaga pemakanan. Cuba:' }
+    };
+    window.kemasLink = () => {
+        if (!window._refCode) return;
+        const k = (document.getElementById('pilihApp') || {}).value || 'umum', a = APP_AFF[k] || APP_AFF.umum;
+        document.getElementById('refLink').value = `https://familipintar.com/${a.lp}?ref=${encodeURIComponent(window._refCode)}&utm_source=affiliate&utm_medium=pautan&utm_campaign=${k}`;
+    };
+    window.kongsiWA = () => {
+        const k = document.getElementById('pilihApp').value, a = APP_AFF[k] || APP_AFF.umum, link = document.getElementById('refLink').value;
+        if (!link) return;
+        window.open('https://wa.me/?text=' + encodeURIComponent(a.teks + '\n' + link), '_blank');
+    };
     window.salinLink = async (e) => {
         const link = document.getElementById('refLink'), btn = (e && e.currentTarget) || document.querySelector('[onclick^="salinLink"]');
         try { await navigator.clipboard.writeText(link.value); } catch (err) { link.select(); document.execCommand("copy"); }

@@ -9,7 +9,7 @@
   // Sasaran selepas daftar (last-touch, luput 7 hari): pautan nowSihat / weCare membawa pengguna terus ke app itu.
   // Berasingan daripada rekod sumber first-touch di atas supaya laporan admin tak berubah.
   var KE = 'fp_ke';
-  if (utm.c === 'nowsihat' || utm.c === 'wecare') { try { localStorage.setItem(KE, JSON.stringify({ k: utm.c, t: Date.now() })); } catch (e) {} }
+  if (utm.c === 'nowsihat' || utm.c === 'wecare' || utm.c === 'ourmoney') { try { localStorage.setItem(KE, JSON.stringify({ k: utm.c, t: Date.now() })); } catch (e) {} }
   var ada = baca();
   var jemput = p.get('jemput') || p.get('kod');
   // first-touch: simpan sekali sahaja, kecuali ref baharu muncul dan belum ada ref
