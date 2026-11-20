@@ -957,13 +957,48 @@
         BANK[per] = ada;
         return baru.id;
     }
+
+    // ===== URUS AKAUN BANK: tukar nama / padam (padam hanya jika tiada rekod guna akaun itu) =====
+    let urusPer = 'induk';
+    window.bukaUrusBank = (per) => { urusPer = per; paparUrusBank(); document.getElementById('modalUrusBank').style.display = 'flex'; };
+    window.tutupUrusBank = () => { document.getElementById('modalUrusBank').style.display = 'none'; };
+    function paparUrusBank() {
+        const bank = senaraiBank(urusPer);
+        document.getElementById('urusBankSenarai').innerHTML = bank.map(b => `<div style="display:flex;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #e2e8f0;"><span style="flex:1;font-weight:700;color:#0f172a;word-break:break-word;">${esc(b.nama)}</span><button type="button" data-id="${esc(b.id)}" class="ub-edit" style="background:#eef2ff;color:#4f46e5;border:none;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;">Edit</button>${bank.length > 1 ? `<button type="button" data-id="${esc(b.id)}" class="ub-padam" style="background:#fef2f2;color:#dc2626;border:none;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;">Padam</button>` : ''}</div>`).join('');
+        document.querySelectorAll('#urusBankSenarai .ub-edit').forEach(b => b.onclick = () => editNamaBank(b.dataset.id));
+        document.querySelectorAll('#urusBankSenarai .ub-padam').forEach(b => b.onclick = () => padamAkaunBank(b.dataset.id));
+    }
+    async function simpanSenaraiBank(senarai) {
+        await updateDoc(doc(db, "mynasab_users", currentUser.uid), { ['om_bank_' + urusPer]: senarai });
+        BANK[urusPer] = senarai; paparUrusBank();
+        if (typeof kemaskiniSenaraiKategori === 'function') kemaskiniSenaraiKategori();
+    }
+    async function editNamaBank(id) {
+        const bank = senaraiBank(urusPer).map(b => ({ ...b })), b = bank.find(x => x.id === id); if (!b) return;
+        const n = (prompt('Nama baharu untuk akaun ini:', b.nama) || '').trim(); if (!n || n === b.nama) return;
+        b.nama = n.slice(0, 30);
+        try { await simpanSenaraiBank(bank); } catch (er) { alert('Gagal menyimpan: ' + er.message); }
+    }
+    async function padamAkaunBank(id) {
+        const bank = senaraiBank(urusPer), b = bank.find(x => x.id === id); if (!b || bank.length < 2) return;
+        try {
+            const tS = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
+            let guna = 0;
+            tS.forEach(d => { const t = d.data(); if (peranRekod(t) !== urusPer) return;
+                if ((t.txnAccount !== 'Tunai' && bankIdRekod(t) === id) || (t.bank_ke || '') === id) guna++; });
+            if (guna > 0) { alert('Akaun "' + b.nama + '" ada ' + guna + ' rekod, jadi tak boleh dipadam supaya baki tidak rosak.\n\nKalau nak tukar nama sahaja, tekan Edit.'); return; }
+            if (!confirm('Padam akaun "' + b.nama + '"? Tindakan ini tidak boleh diundur.')) return;
+            await simpanSenaraiBank(bank.filter(x => x.id !== id));
+        } catch (er) { alert('Gagal memadam: ' + er.message); }
+    }
     // Isi dropdown kaedah: Tunai + setiap akaun bank + Tambah akaun
     function isiPilihanKaedah(sel, per, nilai, tanpaTunai = false) {
         const bank = senaraiBank(per);
         sel.innerHTML = '<option value="" disabled>-- Pilih Bank / Tunai --</option>'
             + (tanpaTunai ? '' : '<option value="Tunai">Tunai di Tangan</option>')
             + bank.map(b => `<option value="Bank:${esc(b.id)}">${esc(b.nama)}</option>`).join('')
-            + '<option value="__tambah">+ Tambah akaun bank…</option>';
+            + '<option value="__tambah">+ Tambah akaun bank…</option>'
+            + '<option value="__urus">✏️ Urus akaun bank (edit / padam)…</option>';
         sel.value = [...sel.options].some(o => o.value === nilai) ? nilai : '';
     }
     const labelKaedah = (t) => {
@@ -1009,6 +1044,7 @@
         if (pindahAkaun) { const k0 = ke.value; ke.innerHTML = '<option value="" disabled selected>-- Ke akaun --</option>' + bank.map(b => `<option value="${esc(b.id)}">➜ ${esc(b.nama)}</option>`).join(''); if ([...ke.options].some(o => o.value === k0)) ke.value = k0; }
     }
     document.getElementById('txnAccount').addEventListener('change', async (e) => {
+        if (e.target.value === '__urus') { e.target.value = ''; bukaUrusBank(perananBorang()); return; }
         if (e.target.value !== '__tambah') return;
         const per = perananBorang(); e.target.value = '';
         try { const id = await tambahAkaunBank(per); kemaskiniSenaraiKategori(); if (id) e.target.value = 'Bank:' + id; } catch (er) { alert('Gagal menambah akaun: ' + er.message); }
@@ -2096,7 +2132,7 @@
         document.getElementById('sgTarikh').value = t.date || '';
         const acc = document.getElementById('sgKaedah');
         isiPilihanKaedah(acc, peranRekod(t), t.txnAccount === 'Tunai' ? 'Tunai' : 'Bank:' + bankIdRekod(t), !!t.pindahan_tunai);
-        acc.querySelector('option[value="__tambah"]') && acc.querySelector('option[value="__tambah"]').remove();
+        acc.querySelector('option[value="__tambah"]') && acc.querySelector('option[value="__tambah"]').remove(); acc.querySelector('option[value="__urus"]') && acc.querySelector('option[value="__urus"]').remove();
         acc.disabled = isPindahAkaun(t);
         const kat = document.getElementById('sgKat');
         const pilihan = senarai.includes(t.category) ? senarai : [t.category, ...senarai];
@@ -2289,7 +2325,7 @@
         if(!currentUser) return;
         if (!document.getElementById('txnCat').value) { alert("Sila pilih kategori dahulu."); document.getElementById('txnCat').focus(); return; }
         const nilaiAcc = document.getElementById('txnAccount').value, catV = document.getElementById('txnCat').value;
-        if (!nilaiAcc || nilaiAcc === '__tambah') { alert(catV.startsWith('pindahan:') ? "Sila pilih akaun bank sumber." : "Sila pilih kaedah: Bank atau Tunai."); document.getElementById('txnAccount').focus(); return; }
+        if (!nilaiAcc || nilaiAcc === '__tambah' || nilaiAcc === '__urus') { alert(catV.startsWith('pindahan:') ? "Sila pilih akaun bank sumber." : "Sila pilih kaedah: Bank atau Tunai."); document.getElementById('txnAccount').focus(); return; }
         if (catV === 'pindahan:akaun') { const ke = document.getElementById('txnAkaunKe').value; if (!ke) { alert("Sila pilih akaun destinasi."); return; } if ('Bank:' + ke === nilaiAcc) { alert("Akaun sumber dan destinasi tidak boleh sama."); return; } }
 
         const btn = document.getElementById('btn-save-txn');
@@ -3137,6 +3173,13 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
   </div>
 </div>
 <!-- MODAL PELARASAN BAKI -->
+<div id="modalUrusBank" onclick="if(event.target===this)tutupUrusBank()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:20px;padding:22px;width:100%;max-width:420px;max-height:85vh;overflow:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><h3 style="margin:0;font-size:1.1rem;font-weight:800;color:#0f172a;">Urus Akaun Bank</h3><button type="button" onclick="tutupUrusBank()" style="background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;">&times;</button></div>
+    <p style="margin:0 0 8px;font-size:.85rem;color:#64748b;">Tukar nama akaun. Akaun hanya boleh dipadam jika tiada rekod menggunakannya.</p>
+    <div id="urusBankSenarai"></div>
+  </div>
+</div>
 <div id="modalLaras" onclick="if(event.target===this)tutupLaras()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.6);align-items:center;justify-content:center;padding:16px;">
   <div style="background:#fff;border-radius:18px;padding:20px;width:100%;max-width:380px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><h3 style="margin:0;font-size:1.1rem;font-weight:800;color:#0f172a;">Betulkan Baki</h3><button onclick="tutupLaras()" style="background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;">&times;</button></div>
