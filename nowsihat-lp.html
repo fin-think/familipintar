@@ -344,7 +344,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
   });
 
   // Harga dan syarat diambil daripada tetapan (tetapan_awam/harga); nilai dalam halaman ialah sandaran
-  var peta = { 'tk-percuba': 'percubaan_hari', 'tk-kredit': 'nowsihat_kredit', 'tk-had': 'nowsihat_had', 'tk-tkredit': 'nowsihat_tambahan_kredit',
+  var peta = { 'tk-percuba': 'nowsihat_percuba_hari', 'tk-kredit': 'nowsihat_kredit', 'tk-had': 'nowsihat_had', 'tk-tkredit': 'nowsihat_tambahan_kredit',
     'tk-timbas': 'nowsihat_tambahan_imbas', 'tk-daftar': 'kredit_daftar' };
   try {
     fetch('https://firestore.googleapis.com/v1/projects/familipintar/databases/(default)/documents/tetapan_awam/harga')

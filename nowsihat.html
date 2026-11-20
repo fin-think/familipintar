@@ -379,7 +379,7 @@ const app = initializeApp({
 });
 const auth = getAuth(app), db = getFirestore(app), fns = getFunctions(app, 'asia-southeast1');
 let HAD = 8;   // dikemas kini daripada tetapan_awam/harga
-const T = { nowsihat_kredit: 20, percubaan_hari: 30, nowsihat_had: 6, nowsihat_tambahan_kredit: 1, nowsihat_tambahan_imbas: 3, coach_ujian_hari: 30, coach_min_klien: 3 };
+const T = { nowsihat_kredit: 20, nowsihat_percuba_hari: 30, nowsihat_had: 6, nowsihat_tambahan_kredit: 1, nowsihat_tambahan_imbas: 3, coach_ujian_hari: 30, coach_min_klien: 3 };
 const S = { uid: null, user: {}, profil: {}, log: [], harian: { bil: 0, tambahan: 0 }, gambar: null, senamanHari: null, laras: 0, per: 'induk', kerap: [], air: 0, terakhir: null };
 const $ = id => document.getElementById(id);
 const PID = () => S.per === 'pasangan' ? S.uid + '_pasangan' : S.uid;   // id dokumen ikut orang (induk / pasangan)
@@ -393,7 +393,7 @@ const adaLanggan = () => (S.user.nowsihat_expiry_date || 0) > Date.now();
 // Tiada langganan: coach boleh guna dashboard sahaja; pengguna lain dapat modal mula/tamat
 function bukaKunci() {
   ['modalMula', 'modalTamat', 'modalKunciCoach'].forEach(id => $(id).style.display = 'none');
-  if (S.coachAktif) { $('btnKunciLanggan').textContent = S.user.nowsihat_expiry_date ? `Langgan untuk guna sendiri (${T.nowsihat_kredit} kredit)` : `Mula percuma ${T.percubaan_hari} hari untuk guna sendiri`; $('modalKunciCoach').style.display = 'flex'; }
+  if (S.coachAktif) { $('btnKunciLanggan').textContent = S.user.nowsihat_expiry_date ? `Langgan untuk guna sendiri (${T.nowsihat_kredit} kredit)` : `Mula percuma ${T.nowsihat_percuba_hari} hari untuk guna sendiri`; $('modalKunciCoach').style.display = 'flex'; }
   else if (!S.user.nowsihat_expiry_date) $('modalMula').style.display = 'flex';
   else $('modalTamat').style.display = 'flex';
 }
@@ -761,7 +761,7 @@ window.mulaPercubaan = async () => {
   try {
     const r = await httpsCallable(fns, 'nowSihatLanggan')({ tindakan: 'mula' });
     S.user.nowsihat_expiry_date = r.data.tamat; $('modalMula').style.display = 'none';
-    if (r.data.baru) alert('Percubaan percuma ' + T.percubaan_hari + ' hari bermula hari ini. Tamat pada ' + tarikhPapar(r.data.tamat) + '.');
+    if (r.data.baru) alert('Percubaan percuma ' + T.nowsihat_percuba_hari + ' hari bermula hari ini. Tamat pada ' + tarikhPapar(r.data.tamat) + '.');
     paparHari(); tukarTab(S.profil.berat ? 'hari' : 'profil');
     semakCoachRujukan();
   } catch (e) { alert('Gagal: ' + e.message); }
@@ -972,7 +972,7 @@ async function muatTetapan() {
   try { const t = await getDoc(doc(db, 'tetapan_awam', 'harga')); if (t.exists()) { const d = t.data(); for (const k in T) { const v = Number(d[k]); if (Number.isFinite(v) && v >= 0) T[k] = v; } } } catch (e) {}
   HAD = T.nowsihat_had;
   document.querySelectorAll('.tk-kredit').forEach(e => e.textContent = T.nowsihat_kredit);
-  document.querySelectorAll('.tk-percuma').forEach(e => e.textContent = T.percubaan_hari);
+  document.querySelectorAll('.tk-percuma').forEach(e => e.textContent = T.nowsihat_percuba_hari);
   document.querySelectorAll('.tk-had').forEach(e => e.textContent = T.nowsihat_had);
   document.querySelectorAll('.tk-tk').forEach(e => e.textContent = T.nowsihat_tambahan_kredit);
   document.querySelectorAll('.tk-ti').forEach(e => e.textContent = T.nowsihat_tambahan_imbas);
