@@ -70,27 +70,9 @@ a { color: inherit; }
 .hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 .hero .note { margin-top: 14px; font-size: 15px; color: var(--muted); }
 
-/* CONTOH PAPARAN */
-.demo { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; min-width: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-.demo-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 8px; }
-.demo-head b { font-family: var(--font-display); font-size: 20px; }
-.demo-head span { background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 800; white-space: nowrap; }
-.demo-food { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
-.demo-food b { display: block; font-size: 17px; }
-.demo-food span { color: var(--muted); font-size: 14px; }
-.demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-.demo-box { background: var(--bg); padding: 14px; border-radius: 12px; text-align: center; border: 1px solid var(--line); border-bottom: 4px solid var(--brand); }
-.demo-box.warn { border-bottom-color: var(--warm); }
-.demo-label { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; }
-.demo-val { font-size: 20px; font-weight: 800; color: var(--ink); margin-top: 4px; line-height: 1.1; }
-.demo-baki { background: var(--ink); color: #fff; padding: 14px 16px; border-radius: 12px; margin-bottom: 12px; }
-.demo-baki .demo-label { color: #94a3b8; }
-.demo-baki .demo-val { color: #fff; font-size: 22px; }
-.demo-bar { height: 8px; border-radius: 99px; background: #334155; margin-top: 10px; overflow: hidden; }
-.demo-bar i { display: block; height: 100%; width: 40%; background: #4ade80; border-radius: 99px; }
-.demo-nasihat { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 14px; font-size: 14px; font-weight: 600; color: #14532d; margin-bottom: 8px; }
-.demo-nasihat.lain { background: #fffbeb; border-color: #fde68a; color: #78350f; }
-.demo-nota { text-align: center; color: var(--muted); font-size: 12px; margin-top: 10px; }
+/* SKRIN APP SEBENAR */
+.skrin { margin: 0 auto; max-width: 340px; border-radius: 28px; overflow: hidden; border: 6px solid var(--ink); background: var(--ink); box-shadow: 0 20px 40px rgba(0,0,0,0.18); }
+.skrin img { display: block; width: 100%; height: auto; }
 
 section { padding-block: 72px; }
 section .eyebrow + h2 { margin-top: 10px; }
@@ -201,24 +183,9 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
       </div>
 
       <div>
-        <div class="demo" role="img" aria-label="Contoh paparan hasil imbasan nowSihat">
-          <div class="demo-head"><b>🍽️ Hasil Imbasan</b><span>Contoh paparan</span></div>
-          <div class="demo-food"><b>Nasi lemak dengan ayam goreng</b><span>Anggaran saiz: 1 pinggan biasa</span></div>
-          <div class="demo-grid">
-            <div class="demo-box"><div class="demo-label">Kalori</div><div class="demo-val">720 kcal</div></div>
-            <div class="demo-box"><div class="demo-label">Protein</div><div class="demo-val">28 g</div></div>
-            <div class="demo-box warn"><div class="demo-label">Gula</div><div class="demo-val">9 g</div></div>
-            <div class="demo-box warn"><div class="demo-label">Garam (natrium)</div><div class="demo-val">1,150 mg</div></div>
-          </div>
-          <div class="demo-baki">
-            <div class="demo-label">Baki kalori hari ini</div>
-            <div class="demo-val">1,080 kcal</div>
-            <div class="demo-bar"><i></i></div>
-          </div>
-          <div class="demo-nasihat">Sedap! Kurangkan sambal sedikit dan tambah timun atau sayur supaya lebih seimbang.</div>
-          <div class="demo-nasihat lain">Makan seterusnya: pilih lauk panggang dan banyakkan sayur.</div>
-          <p class="demo-nota">Contoh sahaja. Angka sebenar bergantung pada gambar dan profil anda.</p>
-        </div>
+        <figure class="skrin">
+          <img src="nowsihat-skrin.jpg" width="720" height="1600" alt="Skrin utama nowSihat: baki kalori harian, protein, karbo, lemak, gula dan natrium, serta cadangan makan seterusnya" fetchpriority="high">
+        </figure>
       </div>
     </div>
   </div>
