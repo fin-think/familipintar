@@ -880,7 +880,11 @@ if ('Notification' in window) {
         } catch (e) { console.warn('Buat apa hari ni:', e.message); }
     }
 
+    let semakPertamaLP = true;
     onAuthStateChanged(auth, async (user) => {
+        // Datang dari LP nowSihat & sudah log masuk (semakan pertama sahaja, bukan selepas daftar baharu): terus ke nowSihat
+        if (semakPertamaLP) { semakPertamaLP = false; const q = new URLSearchParams(location.search);
+            if (user && q.get('daftar') && q.get('utm_campaign') === 'nowsihat') { location.replace('nowsihat.html'); return; } }
         const greetingBox = document.getElementById('userGreetingBox');
         const namaDisplay = document.getElementById('headerNamaPengguna');
         const menuBelum = document.getElementById('menuBelumLogMasuk');

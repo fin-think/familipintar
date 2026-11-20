@@ -341,7 +341,7 @@ onAuthStateChanged(auth, async (u) => {
   }
   $('gate').classList.add('hidden'); tukarTab('klien');
   $('kodSaya').textContent = C.coach.kod || '-';
-  $('pautanSaya').value = `https://familipintar.com/?ref=${encodeURIComponent(C.coach.kod || '')}&utm_source=coach&utm_medium=pautan&utm_campaign=nowsihat&daftar=1`;
+  $('pautanSaya').value = `https://familipintar.com/nowsihat-lp.html?ref=${encodeURIComponent(C.coach.kod || '')}&utm_source=coach&utm_medium=pautan&utm_campaign=nowsihat`;
   muatSenarai();
 });
 </script>
