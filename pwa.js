@@ -57,7 +57,7 @@
   var safari = /safari/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
   if (ios && safari) {
     window.addEventListener('load', function () {
-      setTimeout(function () { papar('Untuk install: tekan butang Kongsi, kemudian "Tambah ke Skrin Utama"', null, null, 'Tip: paparan terbaik guna desktop / laptop'); }, 2500);
+      setTimeout(function () { papar('Pasang di iPhone: tekan Kongsi (Share) \u2B06\uFE0F, kemudian "Tambah ke Skrin Utama" (Add to Home Screen).', null, null, 'Wajib untuk terima notifikasi peringatan di iPhone. Tak nampak Kongsi? Tekan \u2022\u2022\u2022 dahulu.'); }, 2500);
     });
   }
 })();
