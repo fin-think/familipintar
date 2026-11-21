@@ -134,18 +134,18 @@
                             <section class="space-y-4">
                                 <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">Sejarah & Gaya Hidup</h3>
                                 <div class="space-y-1">
-                                    <label class="text-xs font-bold text-slate-600 uppercase">Sejarah Penyakit</label>
-                                    <select id="medicalHistory" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-teal-500">
-                                        <option value="tiada">Tiada Sejarah Penyakit</option>
-                                        <option value="Diabetes">Diabetes (Kencing Manis)</option>
-                                        <option value="Kolesterol">Kolesterol Tinggi</option>
-                                        <option value="Darah Tinggi">Darah Tinggi (Hipertensi)</option>
-                                        <option value="Gout">Gout</option>
-                                        <option value="Asma">Asma / Pernafasan</option>
-                                        <option value="Jantung">Penyakit Jantung</option>
-                                        <option value="Buah Pinggang">Penyakit Buah Pinggang</option>
-                                        <option value="Gastrik">Gastrik / GERD</option>
-                                    </select>
+                                    <label class="text-xs font-bold text-slate-600 uppercase">Sejarah Penyakit <span class="normal-case font-medium text-slate-400">(boleh pilih lebih dari satu; kosongkan jika tiada)</span></label>
+                                    <div id="medicalHistory" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                                        <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" class="mhK w-4 h-4 accent-teal-600" value="Diabetes"> Diabetes (Kencing Manis)</label>
+                                        <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" class="mhK w-4 h-4 accent-teal-600" value="Kolesterol"> Kolesterol Tinggi</label>
+                                        <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" class="mhK w-4 h-4 accent-teal-600" value="Darah Tinggi"> Darah Tinggi (Hipertensi)</label>
+                                        <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" class="mhK w-4 h-4 accent-teal-600" value="Gout"> Gout</label>
+                                        <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" class="mhK w-4 h-4 accent-teal-600" value="Asma"> Asma / Pernafasan</label>
+                                        <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" class="mhK w-4 h-4 accent-teal-600" value="Jantung"> Penyakit Jantung</label>
+                                        <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" class="mhK w-4 h-4 accent-teal-600" value="Buah Pinggang"> Penyakit Buah Pinggang</label>
+                                        <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" class="mhK w-4 h-4 accent-teal-600" value="Gastrik"> Gastrik / GERD</label>
+                                    </div>
+                                    <input id="mhLain" type="text" maxlength="80" placeholder="Lain-lain (cth. tiroid, anemia), pisahkan dengan koma" class="w-full mt-2 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-teal-500">
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="space-y-1">
@@ -270,6 +270,7 @@
             ambil: () => window.latestHealthData ? (function (a) {
                 var o = {};
                 o[a + 'myhealth_status'] = window.latestHealthData.status;
+                o[a + 'myhealth_keadaan'] = window.latestHealthData.keadaan || [];
                 o[a + 'myhealth_medical_cost'] = window.latestHealthData.medCost;
                 o[a + 'myhealth_smoking_cost'] = window.latestHealthData.smokeCost;
                 // Data asas untuk nowSihat & isian semula borang
@@ -280,7 +281,12 @@
                 return o;
             })(Peranan.awalan()) : null,
             mesejTunda: 'Jana laporan untuk disimpan automatik ke myTADBIR.',
-            simpan: (d) => setDoc(doc(db, "mynasab_users", currentUser.uid), d, { merge: true })
+            simpan: async (d) => {
+                await setDoc(doc(db, "mynasab_users", currentUser.uid), d, { merge: true });
+                // Selaraskan dengan profil nowSihat orang yang sama (nasihat imbasan & panduan ikut keadaan)
+                const a = Peranan.awalan(), k = d[a + 'myhealth_keadaan'];
+                if (Array.isArray(k)) setDoc(doc(db, "nowsihat_profil", currentUser.uid + (a ? '_pasangan' : '')), { keadaan: k }, { merge: true }).catch(e => console.warn('Selaras nowSihat:', e.message));
+            }
         });
 
         lucide.createIcons();
@@ -364,7 +370,7 @@
             try { await AS.siram(); } catch (e) {}
             window.latestHealthData = null;
             ['age', 'weight', 'height', 'waterIntake', 'sugaryDrinks'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-            const mh = document.getElementById('medicalHistory'); if (mh) mh.value = 'tiada';
+            isiPenyakit([]);
             tabResults.disabled = true;
             tabResults.classList.add('opacity-50', 'cursor-not-allowed');
             window.showTab('input');
@@ -382,12 +388,26 @@
                 const isi = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined && v !== null && v !== '' && !el.value) el.value = v; };
                 isi('weight', d[a + 'myhealth_berat']); isi('height', d[a + 'myhealth_tinggi']);
                 isi('waterIntake', d[a + 'myhealth_air']); isi('sugaryDrinks', d[a + 'myhealth_manis']);
-                const mh = document.getElementById('medicalHistory'), st = d[a + 'myhealth_status'];
-                if (mh && st && [...mh.options].some(o => o.value === st) && mh.value === 'tiada') mh.value = st;
+                const st = d[a + 'myhealth_status'], kd = d[a + 'myhealth_keadaan'];
+                if (!document.querySelector('.mhK:checked') && !document.getElementById('mhLain').value) isiPenyakit(Array.isArray(kd) ? kd : (st && st !== 'tiada' ? [st] : []));
                 const rk = d[a + 'myhealth_rokok'];
                 if (rk) { const r = document.querySelector(`input[name="smoking"][value="${rk}"]`); if (r) r.checked = true; }
             } catch (e) { console.warn("Isi data myHEALTH:", e.message); }
         }
+
+        // Sejarah penyakit: pelbagai pilihan + lain-lain. myhealth_status = penyakit dengan kos rawatan tertinggi (untuk myTADBIR)
+        const KOS_PENYAKIT = { 'Diabetes': 4500, 'Kolesterol': 2000, 'Darah Tinggi': 2500, 'Gout': 1500, 'Asma': 3000, 'Jantung': 35000, 'Buah Pinggang': 45000, 'Gastrik': 1200 };
+        const bacaPenyakit = () => {
+            const pilih = [...document.querySelectorAll('.mhK:checked')].map(x => x.value);
+            const lain = (document.getElementById('mhLain').value || '').split(',').map(x => x.trim().slice(0, 30)).filter(Boolean).slice(0, 4);
+            const utama = pilih.slice().sort((a, b) => KOS_PENYAKIT[b] - KOS_PENYAKIT[a])[0] || 'tiada';
+            return { pilih, lain, semua: [...pilih, ...lain], utama };
+        };
+        const isiPenyakit = (senarai) => {
+            const ada = Array.isArray(senarai) ? senarai : [];
+            document.querySelectorAll('.mhK').forEach(x => { x.checked = ada.includes(x.value); });
+            document.getElementById('mhLain').value = ada.filter(x => !KOS_PENYAKIT[x]).join(', ');
+        };
 
         const form = document.getElementById('health-form');
         const tabInput = document.getElementById('tab-input');
@@ -416,7 +436,7 @@
             const age = parseInt(document.getElementById('age').value);
             const weight = parseFloat(document.getElementById('weight').value);
             const height = parseFloat(document.getElementById('height').value);
-            const medicalHistory = document.getElementById('medicalHistory').value;
+            const penyakit = bacaPenyakit(), medicalHistory = penyakit.utama;
             const waterIntake = parseFloat(document.getElementById('waterIntake').value);
             const sugaryDrinks = parseInt(document.getElementById('sugaryDrinks').value);
             const smoking = document.querySelector('input[name="smoking"]:checked').value;
@@ -457,16 +477,7 @@
             const alerts = [];
 
            // Gunakan nilai maksimum mutlak (absolute figure)
-            const costEstimates = {
-                'Diabetes': 4500,
-                'Kolesterol': 2000,
-                'Darah Tinggi': 2500,
-                'Gout': 1500,
-                'Asma': 3000,
-                'Jantung': 35000,
-                'Buah Pinggang': 45000,
-                'Gastrik': 1200
-            };
+            const costEstimates = KOS_PENYAKIT;
 
             let savedMedicalCost = 'RM 0';
             let savedSmokingCost = 'RM 0';
@@ -482,9 +493,11 @@
             if (sugaryDrinks > 1) {
                 alerts.push({ type: 'warning', icon: 'wine', title: 'RISIKO DIABETES', msg: `Pengambilan ${sugaryDrinks} gelas air manis sehari meningkatkan risiko.` });
             }
+            if (penyakit.semua.length) {
+                alerts.push({ type: 'danger', icon: 'alert-circle', title: `STATUS: ${penyakit.semua.join(', ').toUpperCase().replace(/</g, '')}`, msg: `Sila ikuti nasihat diet pakar. Panduan makan & senaman ikut keadaan anda ada dalam nowSihat.` });
+            }
             if (medicalHistory !== 'tiada') {
-                alerts.push({ type: 'danger', icon: 'alert-circle', title: `STATUS: ${medicalHistory.toUpperCase()}`, msg: `Sila ikuti nasihat diet pakar.` });
-                alerts.push({ type: 'financial', icon: 'calculator', title: `KOS RAWATAN`, msg: `Anggaran kos penjagaan: ${formatRM(costEstimates[medicalHistory])} setahun.` });
+                alerts.push({ type: 'financial', icon: 'calculator', title: `KOS RAWATAN`, msg: `Anggaran kos penjagaan: ${formatRM(costEstimates[medicalHistory])} setahun${penyakit.pilih.length > 1 ? ' (ikut keadaan dengan kos tertinggi: ' + medicalHistory + ')' : ''}.` });
                 savedMedicalCost = formatRM(costEstimates[medicalHistory]);
             }
 
@@ -512,7 +525,7 @@
 
             window.latestHealthData = {
                 berat: weight, tinggi: height, umur: age, jantina: gender, air: waterIntake, manis: sugaryDrinks, rokok: smoking,
-                status: medicalHistory,
+                status: medicalHistory, keadaan: penyakit.semua,
                 medCost: savedMedicalCost,
                 smokeCost: savedSmokingCost
             };

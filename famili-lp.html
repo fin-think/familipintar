@@ -84,9 +84,15 @@ a { color: inherit; }
 .lebih p { color: var(--muted); font-size: 15.5px; }
 @media (max-width: 860px) { .lebih { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 520px) { .lebih { grid-template-columns: 1fr; } }
-.skrin-dua { display: flex; gap: 28px; justify-content: center; align-items: flex-end; flex-wrap: wrap; margin-top: 44px; }
+.skrin-dua { display: flex; gap: 28px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 44px; }
 .skrin { margin: 0; max-width: 300px; width: 100%; border-radius: 28px; overflow: hidden; border: 6px solid #0f172a; background: #0f172a; box-shadow: 0 20px 40px rgba(0,0,0,0.18); }
 .skrin img { display: block; width: 100%; height: auto; }
+.desktop { margin: 0; flex: 1 1 560px; max-width: 760px; border-radius: 14px; overflow: hidden; border: 1px solid #cbd5e1; background: #fff; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+.desktop .bar { display: flex; gap: 6px; padding: 9px 12px; background: #e2e8f0; }
+.desktop .bar i { width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; display: block; }
+.desktop img { display: block; width: 100%; height: auto; }
+.skrin-dua > div:last-child { flex: 0 0 auto; }
+@media (max-width: 860px) { .desktop { flex-basis: 100%; } }
 .skrin-cap { text-align: center; font-size: 14px; color: var(--muted); margin-top: 12px; }
 .hub-label { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: center; margin-top: 10px; }
 
@@ -271,6 +277,10 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
         <li><h3>Jemput keluarga bersama</h3><p>Hantar pautan atau emel kepada adik-beradik. Mereka daftar akaun sendiri, dan menerima 20 kredit percuma.</p></li>
       </ol>
       <div class="skrin-dua">
+        <div style="flex:1 1 560px;max-width:760px">
+          <figure class="desktop"><div class="bar"><i></i><i></i><i></i></div><img src="famili-desktop.jpg" width="1060" height="880" loading="lazy" alt="Laman utama Famili Pintar di komputer: selamat datang, satu akaun untuk satu ekosistem keluarga, dan 20 kredit dompet percuma"></figure>
+          <p class="skrin-cap">Di komputer pun sama: log masuk, data keluarga terus ada.</p>
+        </div>
         <div>
           <figure class="skrin"><img src="famili-skrin.jpg" width="720" height="1600" loading="lazy" alt="Skrin utama Famili Pintar di telefon: semua app myNasab, weCare, goTravel, myJurnal, SmartSolo, myKids, myTADBIR, OurMoney dan nowSihat dalam satu skrin"></figure>
           <p class="skrin-cap">Semua app dalam satu skrin, di telefon anda.</p>

@@ -252,6 +252,7 @@
           <label>Keadaan kesihatan (pilihan, boleh pilih lebih dari satu)</label>
           <p class="kecil" style="margin:0 0 4px">Untuk nasihat makanan dan senaman yang sesuai. Tidak dikongsi dengan coach kecuali anda benarkan.</p>
           <div id="pKeadaan"></div>
+          <input type="text" id="pLain" maxlength="80" placeholder="Lain-lain (cth. tiroid, anemia), pisahkan dengan koma" style="margin-top:6px">
           <button class="btn btn-hijau penuh" style="margin-top:14px" onclick="simpanProfil()">Simpan profil</button>
         </div>
         <div class="kad" id="kadSasaran"></div>
@@ -422,9 +423,11 @@ const KEADAAN = {
   'Buah Pinggang': { l: 'Penyakit buah pinggang', elak: 'Garam, makanan proses dan minuman bergas berwarna gelap. Protein, kalium (pisang, kentang) dan fosforus mungkin perlu dihadkan ikut tahap penyakit.', pilih: 'Hidangan bersaiz sederhana dan masakan rebus. Ikut had air dan protein yang ditetapkan doktor atau pakar diet anda.', senaman: 'Berjalan ringan ikut kemampuan, dan bincang dengan doktor sebelum mula rutin baharu.' },
   'Gastrik': { l: 'Gastrik / GERD', elak: 'Makanan pedas dan berminyak, kopi, teh pekat, minuman bergas, coklat, makanan masam, makan lewat malam atau terlalu kenyang.', pilih: 'Makan sedikit tetapi kerap dan ikut waktu, oat, roti, sayur rebus, pisang. Tunggu 2 hingga 3 jam selepas makan sebelum baring.', senaman: 'Berjalan santai sesuai. Elakkan senaman berat atau membongkok sejurus selepas makan.' }
 };
+const KOS_PENYAKIT = { 'Diabetes': 4500, 'Kolesterol': 2000, 'Darah Tinggi': 2500, 'Gout': 1500, 'Asma': 3000, 'Jantung': 35000, 'Buah Pinggang': 45000, 'Gastrik': 1200 };   // sama dengan myHEALTH
 const keadaanOrang = () => (S.profil.keadaan || []).filter(k => KEADAAN[k]);
 function isiKeadaan() {
   const ada = keadaanOrang();
+  $('pLain').value = (S.profil.keadaan || []).filter(k => !KEADAAN[k]).join(', ');
   $('pKeadaan').innerHTML = Object.entries(KEADAAN).map(([k, v]) => `<div class="chk"><input type="checkbox" class="kKeadaan" value="${esc(k)}" ${ada.includes(k) ? 'checked' : ''}> <span>${esc(v.l)}</span></div>`).join('');
 }
 function paparKeadaan() {
@@ -775,12 +778,15 @@ function isiBorang() {
 window.simpanProfil = async () => {
   const fokus = [['fGula', 'gula'], ['fGaram', 'garam'], ['fProtein', 'protein']].filter(([id]) => $(id).checked).map(([, v]) => v);
   const p = { dob: $('pDob').value, jantina: $('pJantina').value, berat: +$('pBerat').value || null, tinggi: +$('pTinggi').value || null,
-    aktiviti: $('pAktiviti').value, matlamat: $('pMatlamat').value, fokus, keadaan: [...document.querySelectorAll('.kKeadaan:checked')].map(x => x.value), kemas_kini: Date.now() };
+    aktiviti: $('pAktiviti').value, matlamat: $('pMatlamat').value, fokus, keadaan: [...[...document.querySelectorAll('.kKeadaan:checked')].map(x => x.value), ...($('pLain').value || '').split(',').map(x => x.trim().slice(0, 30)).filter(Boolean).slice(0, 4)], kemas_kini: Date.now() };
   p.sasaran = (({ kalori, protein, gula, natrium }) => ({ kalori, protein, gula, natrium }))(kiraSasaran(p));
   try {
     await setDoc(doc(db, 'nowsihat_profil', PID()), p, { merge: true }); S.profil = { ...S.profil, ...p };
-    // Kongsi berat & tinggi terkini dengan myHEALTH (profil induk)
-    if (p.berat || p.tinggi) setDoc(doc(db, 'mynasab_users', S.uid), { ...(p.berat ? { [AW() + 'myhealth_berat']: p.berat } : {}), ...(p.tinggi ? { [AW() + 'myhealth_tinggi']: p.tinggi } : {}), [AW() + 'myhealth_kemas_kini']: Date.now() }, { merge: true }).catch(e => console.warn('Kongsi myHEALTH:', e.message));
+    // Kongsi berat, tinggi & sejarah penyakit dengan myHEALTH (status = penyakit kos tertinggi, untuk myTADBIR)
+    const utama = p.keadaan.filter(k => KOS_PENYAKIT[k]).sort((a, b) => KOS_PENYAKIT[b] - KOS_PENYAKIT[a])[0] || 'tiada';
+    setDoc(doc(db, 'mynasab_users', S.uid), { ...(p.berat ? { [AW() + 'myhealth_berat']: p.berat } : {}), ...(p.tinggi ? { [AW() + 'myhealth_tinggi']: p.tinggi } : {}),
+      [AW() + 'myhealth_keadaan']: p.keadaan, [AW() + 'myhealth_status']: utama, [AW() + 'myhealth_medical_cost']: 'RM ' + (KOS_PENYAKIT[utama] || 0).toLocaleString('en-MY'),
+      [AW() + 'myhealth_kemas_kini']: Date.now() }, { merge: true }).catch(e => console.warn('Kongsi myHEALTH:', e.message));
     paparHari(); alert('Profil disimpan.');
   }
   catch (e) { alert('Gagal simpan profil: ' + e.message); }
@@ -1025,7 +1031,7 @@ async function muatOrang() {
     if (!S.profil.berat && u[a + 'myhealth_berat']) S.profil.berat = u[a + 'myhealth_berat'];
     if (!S.profil.tinggi && u[a + 'myhealth_tinggi']) S.profil.tinggi = u[a + 'myhealth_tinggi'];
     if (!S.profil.jantina && u[a + 'myhealth_jantina']) S.profil.jantina = u[a + 'myhealth_jantina'] === 'perempuan' ? 'P' : u[a + 'myhealth_jantina'] === 'lelaki' ? 'L' : '';
-    if (!Array.isArray(S.profil.keadaan)) { const st = u[a + 'myhealth_status'] || ''; S.profil.keadaan = KEADAAN[st] ? [st] : []; }
+    if (!Array.isArray(S.profil.keadaan)) { const kd = u[a + 'myhealth_keadaan'], st = u[a + 'myhealth_status'] || ''; S.profil.keadaan = Array.isArray(kd) ? kd : (KEADAAN[st] ? [st] : []); }
     if (baru && !S.profil.fokus) {
       const st = u[a + 'myhealth_status'] || '', f = [];
       if (st === 'Diabetes') f.push('gula');
