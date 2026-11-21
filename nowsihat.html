@@ -158,6 +158,7 @@
         <div class="kad" id="kadTolok"></div>
         <div class="kad" id="kadSeterusnya"></div>
         <div class="kad kad-sukan" id="kadSenaman"></div>
+        <div class="kad" id="kadKeadaan"></div>
       </div>
       <div class="kolum">
         <div class="kad" id="kadAir"></div>
@@ -228,7 +229,7 @@
       <div class="kolum">
         <div class="kad">
           <h2><i class="fa-solid fa-user"></i> Profil kesihatan</h2>
-          <p class="kecil" style="margin:0">Tarikh lahir dan jantina diambil dari myNasab; berat, tinggi dan fokus dari myHEALTH jika ada. Lengkapkan yang lain supaya nasihat lebih tepat.</p>
+          <p class="kecil" style="margin:0">Tarikh lahir dan jantina diambil dari myNasab; berat, tinggi, fokus dan sejarah penyakit dari myHEALTH jika ada. Lengkapkan yang lain supaya nasihat lebih tepat.</p>
           <div class="grid2">
             <div><label for="pDob">Tarikh lahir</label><input type="date" id="pDob"></div>
             <div><label for="pJantina">Jantina</label><select id="pJantina"><option value="">Pilih</option><option value="L">Lelaki</option><option value="P">Perempuan</option></select></div>
@@ -248,6 +249,9 @@
           <div class="chk"><input type="checkbox" id="fGula"> <span>Kurangkan gula</span></div>
           <div class="chk"><input type="checkbox" id="fGaram"> <span>Kurangkan garam</span></div>
           <div class="chk"><input type="checkbox" id="fProtein"> <span>Lebih protein</span></div>
+          <label>Keadaan kesihatan (pilihan, boleh pilih lebih dari satu)</label>
+          <p class="kecil" style="margin:0 0 4px">Untuk nasihat makanan dan senaman yang sesuai. Tidak dikongsi dengan coach kecuali anda benarkan.</p>
+          <div id="pKeadaan"></div>
           <button class="btn btn-hijau penuh" style="margin-top:14px" onclick="simpanProfil()">Simpan profil</button>
         </div>
         <div class="kad" id="kadSasaran"></div>
@@ -407,6 +411,31 @@ window.tukarTab = (t) => {
   window.scrollTo(0, 0);
 };
 
+// ---------- Panduan ikut keadaan kesihatan (panduan umum, bukan ganti nasihat doktor) ----------
+const KEADAAN = {
+  'Diabetes': { l: 'Kencing manis (diabetes)', elak: 'Minuman manis (teh tarik, sirap, air kotak), kuih dan pencuci mulut manis, nasi atau roti putih berlebihan, buah sangat manis dalam jumlah besar.', pilih: 'Suku pinggan nasi (cuba beras perang), separuh pinggan sayur, suku pinggan protein (ikan, ayam tanpa kulit, telur, tempe), buah segar sehiris, air kosong.', senaman: 'Brisk walk 30 minit, 5 hari seminggu. Berjalan 10 hingga 15 minit selepas makan membantu gula darah. Jika ambil insulin atau ubat, bawa gula-gula untuk kecemasan.' },
+  'Kolesterol': { l: 'Kolesterol tinggi', elak: 'Gorengan, santan pekat, kulit dan lemak daging, jeroan (hati, limpa), mentega, makanan bergoreng dengan minyak berulang.', pilih: 'Oat, kekacang dan dhal, ikan berlemak seperti sardin dan kembung, sayur dan buah, masakan rebus, kukus atau panggang.', senaman: 'Aktiviti aerobik sederhana (brisk walk, basikal, berenang) sekurang-kurangnya 150 minit seminggu.' },
+  'Darah Tinggi': { l: 'Darah tinggi', elak: 'Garam berlebihan, kicap, sos, perencah, ikan masin, budu, cencaluk, mi segera, makanan proses dan kuah pekat.', pilih: 'Sayur dan buah (pisang, betik, tembikai), ikan, masakan kukus atau rebus, rasa dari herba, bawang dan limau, bukan garam.', senaman: 'Aerobik sederhana 30 minit kebanyakan hari. Elakkan angkat beban terlalu berat atau menahan nafas semasa bersenam.' },
+  'Gout': { l: 'Gout', elak: 'Jeroan (hati, limpa, perut), daging merah berlebihan, makanan laut (udang, kerang, sotong, ikan bilis), sup tulang pekat, minuman manis berfruktosa.', pilih: 'Air kosong sekurang-kurangnya 8 gelas sehari, susu rendah lemak, sayur, buah seperti ceri, nasi dan roti dalam kadar sederhana, telur.', senaman: 'Berjalan, berenang atau berbasikal. Jangan bersenam semasa sendi bengkak dan sakit; rehat sehingga reda.' },
+  'Asma': { l: 'Asma / pernafasan', elak: 'Makanan yang anda tahu mencetuskan alahan, dan makan terlalu kenyang sebelum bersenam.', pilih: 'Pemakanan seimbang dengan banyak sayur dan buah, serta kekalkan berat badan sihat.', senaman: 'Berenang dan berjalan sesuai. Panaskan badan 10 minit, bawa inhaler, dan elakkan bersenam ketika jerebu atau udara sejuk.' },
+  'Jantung': { l: 'Penyakit jantung', elak: 'Garam, lemak tepu, gorengan, santan, makanan proses dan minuman manis.', pilih: 'Ikan, sayur, buah, bijirin penuh, kekacang, masakan kukus atau rebus.', senaman: 'Hanya ikut kebenaran doktor. Mula perlahan dengan berjalan ringan. Berhenti segera jika sakit dada, pening atau sesak nafas.' },
+  'Buah Pinggang': { l: 'Penyakit buah pinggang', elak: 'Garam, makanan proses dan minuman bergas berwarna gelap. Protein, kalium (pisang, kentang) dan fosforus mungkin perlu dihadkan ikut tahap penyakit.', pilih: 'Hidangan bersaiz sederhana dan masakan rebus. Ikut had air dan protein yang ditetapkan doktor atau pakar diet anda.', senaman: 'Berjalan ringan ikut kemampuan, dan bincang dengan doktor sebelum mula rutin baharu.' },
+  'Gastrik': { l: 'Gastrik / GERD', elak: 'Makanan pedas dan berminyak, kopi, teh pekat, minuman bergas, coklat, makanan masam, makan lewat malam atau terlalu kenyang.', pilih: 'Makan sedikit tetapi kerap dan ikut waktu, oat, roti, sayur rebus, pisang. Tunggu 2 hingga 3 jam selepas makan sebelum baring.', senaman: 'Berjalan santai sesuai. Elakkan senaman berat atau membongkok sejurus selepas makan.' }
+};
+const keadaanOrang = () => (S.profil.keadaan || []).filter(k => KEADAAN[k]);
+function isiKeadaan() {
+  const ada = keadaanOrang();
+  $('pKeadaan').innerHTML = Object.entries(KEADAAN).map(([k, v]) => `<div class="chk"><input type="checkbox" class="kKeadaan" value="${esc(k)}" ${ada.includes(k) ? 'checked' : ''}> <span>${esc(v.l)}</span></div>`).join('');
+}
+function paparKeadaan() {
+  const ada = keadaanOrang(), k = $('kadKeadaan');
+  if (!ada.length) { k.innerHTML = `<h2><i class="fa-solid fa-notes-medical"></i> Panduan ikut kesihatan</h2><p style="font-size:14px;margin:0 0 10px">Ada gout, kencing manis, darah tinggi atau masalah lain? Tandakan di Profil untuk dapat panduan makan dan senaman yang khusus, dan nasihat imbasan yang lebih tepat.</p><button class="btn btn-garis penuh" onclick="tukarTab('profil');document.getElementById('pKeadaan').scrollIntoView({behavior:'smooth',block:'center'})">Tandakan keadaan</button>`; return; }
+  const bah = (ik, w, t, x) => `<p style="font-size:13.5px;line-height:1.55;margin:6px 0 0"><i class="fa-solid ${ik}" style="color:${w};width:18px"></i> <b>${t}:</b> ${esc(x)}</p>`;
+  k.innerHTML = `<h2><i class="fa-solid fa-notes-medical"></i> Panduan ikut kesihatan</h2>` + ada.map((x, i) => { const v = KEADAAN[x];
+    return `<details ${i === 0 ? 'open' : ''} style="border-top:1px solid #e2e8f0;padding:8px 0"><summary style="font-weight:800;cursor:pointer">${esc(v.l)}</summary>${bah('fa-ban', '#dc2626', 'Kurangkan / elak', v.elak)}${bah('fa-circle-check', '#16a34a', 'Pilih', v.pilih)}${bah('fa-person-walking', '#2563eb', 'Senaman', v.senaman)}</details>`; }).join('') +
+    `<p class="kecil" style="margin:8px 0 0">Panduan umum sahaja. Ikut nasihat doktor atau pakar diet anda jika berbeza.</p>`;
+}
+
 // ---------- Umur & sasaran harian ----------
 function umur(dob) {
   if (!dob) return null; const p = String(dob).split('-').map(Number); if (!p[0]) return null;
@@ -415,9 +444,10 @@ function umur(dob) {
   return u >= 0 && u < 130 ? u : null;
 }
 function kiraSasaran(p) {
-  const u = umur(p.dob), w = +p.berat, h = +p.tinggi, f = +p.aktiviti || 1.2, fokus = p.fokus || [];
-  const s = { gula: fokus.includes('gula') ? 25 : 50, natrium: fokus.includes('garam') ? 1500 : 2000, kalori: null, protein: null, umur: u };
-  if (w > 0) s.protein = Math.round(w * (p.matlamat === 'turun' || fokus.includes('protein') ? 1.2 : 1.0));
+  const u = umur(p.dob), w = +p.berat, h = +p.tinggi, f = +p.aktiviti || 1.2, fokus = p.fokus || [], kd = p.keadaan || [];
+  const kurangGaram = fokus.includes('garam') || ['Darah Tinggi', 'Jantung', 'Buah Pinggang'].some(x => kd.includes(x));
+  const s = { gula: fokus.includes('gula') || kd.includes('Diabetes') ? 25 : 50, natrium: kurangGaram ? 1500 : 2000, kalori: null, protein: null, umur: u };
+  if (w > 0) s.protein = Math.round(w * (!kd.includes('Buah Pinggang') && (p.matlamat === 'turun' || fokus.includes('protein')) ? 1.2 : 1.0));   // buah pinggang: jangan naikkan protein
   if (u !== null && u >= 18 && w > 0 && h > 0 && p.jantina) {
     const bmr = 10 * w + 6.25 * h - 5 * u + (p.jantina === 'L' ? 5 : -161);
     let k = bmr * f;
@@ -492,7 +522,7 @@ function paparHari() {
           ${S.pautan && (S.pautan.kongsi || {}).makan !== false ? `<button class="btn btn-kelabu btn-kecil" style="color:#6d28d9" onclick="bukaTanya('${r.id}')"><i class="fa-solid fa-circle-question"></i> Tanya coach</button>` : ''}
           <button class="btn btn-kelabu btn-kecil" onclick="padamRekod('${r.id}')"><i class="fa-regular fa-trash-can"></i></button></div></div></div>`).join('') : 'Belum ada makanan dicatat hari ini.';
   paparAir();
-  paparSeterusnya(s, j, dewasa); paparSenaman(); paparPuasa();
+  paparSeterusnya(s, j, dewasa); paparSenaman(); paparKeadaan(); paparPuasa();
   const [t, b] = panduanUmur(s.umur);
   $('kadPanduan').innerHTML = `<h2><i class="fa-solid fa-seedling"></i> Panduan ikut umur: ${esc(t)}</h2><p style="font-size:14px;line-height:1.6;margin:0">${esc(b)}</p>`;
   $('kadSasaran').innerHTML = `<h2><i class="fa-solid fa-bullseye"></i> Sasaran harian anda</h2>${s.coach ? `<p class="kecil" style="margin:-4px 0 8px"><i class="fa-solid fa-user-check" style="color:#16a34a"></i> Ditetapkan oleh ${esc(s.coach)}</p>` : ''}` + (s.umur !== null && s.umur < 18
@@ -740,11 +770,12 @@ function isiBorang() {
   $('pDob').value = p.dob || ''; $('pJantina').value = p.jantina || ''; $('pBerat').value = p.berat || ''; $('pTinggi').value = p.tinggi || '';
   $('pAktiviti').value = p.aktiviti || '1.2'; $('pMatlamat').value = p.matlamat || 'kekal';
   const f = p.fokus || []; $('fGula').checked = f.includes('gula'); $('fGaram').checked = f.includes('garam'); $('fProtein').checked = f.includes('protein');
+  isiKeadaan();
 }
 window.simpanProfil = async () => {
   const fokus = [['fGula', 'gula'], ['fGaram', 'garam'], ['fProtein', 'protein']].filter(([id]) => $(id).checked).map(([, v]) => v);
   const p = { dob: $('pDob').value, jantina: $('pJantina').value, berat: +$('pBerat').value || null, tinggi: +$('pTinggi').value || null,
-    aktiviti: $('pAktiviti').value, matlamat: $('pMatlamat').value, fokus, kemas_kini: Date.now() };
+    aktiviti: $('pAktiviti').value, matlamat: $('pMatlamat').value, fokus, keadaan: [...document.querySelectorAll('.kKeadaan:checked')].map(x => x.value), kemas_kini: Date.now() };
   p.sasaran = (({ kalori, protein, gula, natrium }) => ({ kalori, protein, gula, natrium }))(kiraSasaran(p));
   try {
     await setDoc(doc(db, 'nowsihat_profil', PID()), p, { merge: true }); S.profil = { ...S.profil, ...p };
@@ -994,6 +1025,7 @@ async function muatOrang() {
     if (!S.profil.berat && u[a + 'myhealth_berat']) S.profil.berat = u[a + 'myhealth_berat'];
     if (!S.profil.tinggi && u[a + 'myhealth_tinggi']) S.profil.tinggi = u[a + 'myhealth_tinggi'];
     if (!S.profil.jantina && u[a + 'myhealth_jantina']) S.profil.jantina = u[a + 'myhealth_jantina'] === 'perempuan' ? 'P' : u[a + 'myhealth_jantina'] === 'lelaki' ? 'L' : '';
+    if (!Array.isArray(S.profil.keadaan)) { const st = u[a + 'myhealth_status'] || ''; S.profil.keadaan = KEADAAN[st] ? [st] : []; }
     if (baru && !S.profil.fokus) {
       const st = u[a + 'myhealth_status'] || '', f = [];
       if (st === 'Diabetes') f.push('gula');

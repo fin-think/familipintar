@@ -160,7 +160,7 @@ exports.nowSihatCoach = functions
                 profil: { matlamat: pr.matlamat || '', aktiviti: pr.aktiviti || '', fokus: pr.fokus || [], jantina: pr.jantina || '', dob: pr.dob || '', tinggi: pr.tinggi || null,
                           sasaran: await nsSasaranAuto(kuid, pr, kper), sasaran_coach: pr.sasaran_coach || null, senaman_rutin: kongsi.senaman !== false ? (pr.senaman || null) : null },
                 berat_log: kongsi.berat !== false ? (pr.berat_log || {}) : null,
-                keadaan: kongsi.kesihatan === true ? (u[(kper === 'pasangan' ? 'pasangan_' : '') + 'myhealth_status'] || '') : null,
+                keadaan: kongsi.kesihatan === true ? (Array.isArray(pr.keadaan) ? pr.keadaan.join(', ') : (u[(kper === 'pasangan' ? 'pasangan_' : '') + 'myhealth_status'] || '')) : null,
                 log, senaman
             };
         }

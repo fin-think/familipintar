@@ -109,8 +109,10 @@ exports.nowSihatImbas = functions
             db.collection('nowsihat_log').where('uid', '==', uid).where('tarikh', '==', hari).get(),
             userRef.get()
         ]);
-        const keadaan = (su2.exists && su2.data()[aw + 'myhealth_status'] && su2.data()[aw + 'myhealth_status'] !== 'tiada') ? String(su2.data()[aw + 'myhealth_status']) : '';   // daripada myHEALTH
         const pr = sp.exists ? sp.data() : {}, akar = sr.exists ? sr.data() : {};
+        // Keadaan kesihatan: pilihan dalam profil nowSihat; jika belum pernah diisi, guna sejarah penyakit myHEALTH
+        const mhs = su2.exists ? su2.data()[aw + 'myhealth_status'] : '';
+        const keadaan = (Array.isArray(pr.keadaan) ? pr.keadaan : (mhs && mhs !== 'tiada' ? [mhs] : [])).map(x => String(x).slice(0, 30)).slice(0, 8).join(', ');
         const umur = nsUmur(pr.dob || akar.dob), jantina = pr.jantina || (akar.gender === 'P' ? 'P' : akar.gender === 'L' ? 'L' : '');
         const sudah = { kalori: 0, protein: 0, gula: 0, natrium: 0 };
         slog.forEach(d => { if (nsPer(d.data().per) !== per) return; const j = d.data().jumlah || {}; for (const k in sudah) sudah[k] += Number(j[k]) || 0; });
@@ -118,7 +120,7 @@ exports.nowSihatImbas = functions
 
         const prompt = `Anda pembantu pemakanan untuk pengguna di Malaysia. Kenal pasti makanan/minuman dalam gambar dan anggarkan nutrisi untuk hidangan yang kelihatan.
 Maklumat pengguna: umur ${umur ?? 'tidak diketahui'}, jantina ${jantina === 'P' ? 'perempuan' : jantina === 'L' ? 'lelaki' : 'tidak diketahui'}, matlamat ${pr.matlamat || 'kekal sihat'}${pr.fokus && pr.fokus.length ? ', fokus: ' + pr.fokus.join(', ') : ''}.
-${keadaan ? 'Keadaan kesihatan yang dilaporkan pengguna: ' + keadaan + '. Ambil kira dalam nasihat (cth. gula, garam, lemak, purin), tanpa diagnosis.\n' : ''}Sasaran harian: kalori ${sasaran.kalori || '-'} kcal, protein ${sasaran.protein || '-'} g, gula tambahan maksimum ${sasaran.gula || 50} g, natrium maksimum ${sasaran.natrium || 2000} mg.
+${keadaan ? 'Keadaan kesihatan yang dilaporkan pengguna: ' + keadaan + '. WAJIB ambil kira dalam nasihat dan cadangan seterusnya: jika hidangan mengandungi bahan yang patut dihadkan untuk keadaan ini (cth. purin tinggi seperti jeroan, makanan laut dan daging merah untuk gout; gula dan karbohidrat ringkas untuk diabetes; garam, kicap dan sos untuk darah tinggi, jantung dan buah pinggang; gorengan dan santan untuk kolesterol; pedas, berminyak dan berasid untuk gastrik), sebut bahan itu dengan jelas dan cadangkan pilihan yang lebih sesuai. Tetapkan status "kurangkan" jika hidangan jelas tidak sesuai untuk keadaan ini. Jangan beri diagnosis atau ubah ubat.\n' : ''}Sasaran harian: kalori ${sasaran.kalori || '-'} kcal, protein ${sasaran.protein || '-'} g, gula tambahan maksimum ${sasaran.gula || 50} g, natrium maksimum ${sasaran.natrium || 2000} mg.
 Sudah dimakan hari ini (sebelum hidangan ini): kalori ${Math.round(sudah.kalori)} kcal, protein ${Math.round(sudah.protein)} g, gula ${Math.round(sudah.gula)} g, natrium ${Math.round(sudah.natrium)} mg.
 ${nota ? 'Keterangan daripada pengguna: ' + nota : ''}
 Waktu sekarang (Malaysia): ${new Date(Date.now() + 8 * 3600000).toISOString().slice(11, 16)}.
@@ -126,7 +128,7 @@ ${puasa ? 'Pengguna sedang berpuasa sunat hari ini: anggap hidangan ini sahur at
 Peraturan:
 - Gunakan anggaran saiz hidangan biasa di Malaysia jika saiz tidak jelas. Nyatakan anggaran saiz.
 - Jika gambar bukan makanan atau minuman, pulangkan makanan = [] dan status "bukan_makanan".
-- Nasihat dalam Bahasa Melayu santai dan mesra, maksimum 2 ayat, praktikal (cth. kurangkan kuah, tambah sayur). Jangan memalukan pengguna. Jangan beri nasihat perubatan atau diagnosis.
+- Nasihat dalam Bahasa Melayu santai dan mesra, maksimum 2 ayat, praktikal (cth. kurangkan kuah, tambah sayur). Jangan memalukan pengguna. Jangan beri nasihat perubatan atau diagnosis. Jika ada keadaan kesihatan, nasihat boleh sampai 3 ayat supaya kaitan dengan keadaan itu jelas.
 ${umur !== null && umur < 18 ? '- Pengguna bawah 18 tahun: JANGAN sebut kiraan kalori atau diet dalam nasihat; fokus pada pinggan seimbang dan tumbesaran.' : ''}
 - seterusnya: SATU ayat cadangan konkrit untuk waktu makan seterusnya (tengah hari / malam / sarapan esok, atau berbuka / sahur jika berpuasa) berdasarkan baki hari ini, cth. apa yang perlu dikurangkan dan apa yang perlu ditambah.
 - status: "baik" (sesuai), "sederhana" (boleh, dengan pelarasan), "kurangkan" (tinggi gula/garam/lemak berbanding baki hari ini).
