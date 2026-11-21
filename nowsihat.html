@@ -27,6 +27,8 @@
   .kredit { font-size: 12px; font-weight: 800; background: #fef9c3; border: 1px solid #fde047; color: #854d0e; border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
   .salam { color: #ecfdf5; font-size: 12.5px; font-weight: 700; padding: 0 14px 12px; max-width: 640px; margin: 0 auto; }
   .salam b { color: #fff; font-size: 15px; }
+  .salam.tamat { margin-top: -8px; font-weight: 600; font-size: 12px; opacity: .95; }
+  .salam.tamat.hampir { color: #fecaca; font-weight: 800; }
   /* Nav atas (desktop) & nav bawah (mobile) */
   .navAtas { display: none; }
   .navBawah { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: #fff; border-top: 1px solid #dcfce7; box-shadow: 0 -4px 16px rgba(22,101,52,.08);
@@ -139,6 +141,7 @@
     <span class="kredit" id="kredit">Kredit: -</span>
   </div>
   <div class="salam" id="salam">&nbsp;</div>
+  <div class="salam tamat" id="lencanaTamat" style="display:none"></div>
   <nav class="navAtas">
     <button data-t="hari" class="aktif" onclick="tukarTab('hari')"><i class="fa-solid fa-house"></i> Hari Ini</button>
     <button data-t="imbas" onclick="tukarTab('imbas')"><i class="fa-solid fa-camera"></i> Imbas</button>
@@ -261,7 +264,7 @@
         <div class="kad">
           <h2><i class="fa-solid fa-person-walking"></i> Rutin senaman</h2>
           <div class="grid2">
-            <div><label for="sJenis">Jenis</label><select id="sJenis"><option value="brisk">Brisk walk</option><option value="jog">Jogging</option></select></div>
+            <div><label for="sJenis">Jenis</label><select id="sJenis"><optgroup label="Senaman ringan"><option value="jalan">Jalan santai</option><option value="regangan">Regangan / stretching</option><option value="rumah">Senaman ringan di rumah</option><option value="basikal">Berbasikal santai</option><option value="renang">Berenang santai</option></optgroup><optgroup label="Kardio"><option value="brisk">Brisk walk</option><option value="jog">Jogging</option></optgroup></select></div>
             <div><label for="sMinit">Minit setiap sesi</label><input type="number" id="sMinit" min="5" max="180" value="30" inputmode="numeric"></div>
           </div>
           <label>Hari</label>
@@ -352,9 +355,9 @@
 
 <div class="modal" id="modalSenaman"><div class="isi">
   <h2 style="margin:0 0 6px;font-size:18px" id="msTajuk">Senaman hari ini</h2>
-  <p class="kecil" style="margin:0 0 10px">Isi <b>langkah</b> (lebih tepat, dari telefon atau jam pintar) atau <b>minit</b>. Masukkan langkah untuk sesi ini sahaja, bukan jumlah sepanjang hari.</p>
-  <label>Langkah sesi ini</label><input type="number" id="msLangkah" min="0" max="60000" inputmode="numeric" placeholder="cth. 6500">
-  <label style="margin-top:8px">atau minit</label><input type="number" id="msMinit" min="0" max="300" inputmode="numeric">
+  <div id="msBlokLangkah"><p class="kecil" style="margin:0 0 10px">Isi <b>langkah</b> (dari telefon atau jam pintar) atau <b>minit</b>. Masukkan langkah untuk sesi ini sahaja, bukan jumlah sepanjang hari.</p>
+  <label>Langkah sesi ini</label><input type="number" id="msLangkah" min="0" max="60000" inputmode="numeric" placeholder="cth. 6500"></div>
+  <label style="margin-top:8px" id="msLabelMinit">atau minit</label><input type="number" id="msMinit" min="0" max="300" inputmode="numeric">
   <p class="kecil" id="msAnggar" style="margin:8px 0 0"></p>
   <button class="btn btn-hijau penuh" style="margin-top:12px" onclick="simpanSenamanModal()">Simpan</button>
   <button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="document.getElementById('modalSenaman').style.display='none'">Batal</button>
@@ -542,16 +545,26 @@ function paparHari() {
     : `<p style="font-size:14px;line-height:1.8;margin:0">Kalori: <b>${s.kalori ? s.kalori + ' kcal' : '-'}</b><br>Protein: <b>${s.protein ? s.protein + ' g' : '-'}</b><br>Gula tambahan: maksimum <b>${s.gula} g</b><br>Natrium: maksimum <b>${s.natrium} mg</b>${s.bmi ? `<br>BMI: <b>${s.bmi}</b>` : ''}</p>`);
   const tm = S.user.nowsihat_expiry_date;
   $('infoLanggan').textContent = tm ? (tm > Date.now() ? `Aktif sehingga ${tarikhPapar(tm)}.` : `Tamat pada ${tarikhPapar(tm)}.`) : 'Belum bermula.';
+  const lt = $('lencanaTamat');
+  if (tm) { const baki = Math.ceil((tm - Date.now()) / 86400000), tkh = new Date(tm).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    lt.textContent = baki > 0 ? `Langganan tamat: ${tkh} (${baki} hari lagi)` : `Langganan tamat pada ${tkh}`; lt.classList.toggle('hampir', baki <= 5); lt.style.display = 'block'; }
+  else lt.style.display = 'none';
   $('kredit').textContent = 'Kredit: ' + (parseInt(S.user.credit_balance) || 0);
 }
 
 // ---------- Air ----------
-const sasaranAir = () => { const w = +S.profil.berat || 60; return Math.round(((w * 0.033) + 0.5) * 4) * 250; };   // dibundar ke 250 ml
+const saizGelas = () => [150, 200, 250, 300].includes(+S.profil.gelas) ? +S.profil.gelas : 200;   // gelas biasa di dapur ~200 ml
+const sasaranAir = () => { const w = +S.profil.berat || 60, g = saizGelas(); return Math.round(((w * 0.033) + 0.5) * 1000 / g) * g; };   // dibundar ikut saiz gelas
 function paparAir() {
-  const sas = sasaranAir(), n = S.air || 0, cawan = Math.ceil(sas / 250), penuh = Math.floor(n / 250);
+  const g = saizGelas(), sas = sasaranAir(), n = S.air || 0, cawan = Math.ceil(sas / g), penuh = Math.floor(n / g);
   $('kadAir').innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-glass-water" style="color:#0ea5e9"></i> Air</h2><span style="font-size:14px;font-weight:800">${(n / 1000).toFixed(2).replace(/\.?0+$/, '')} / ${(sas / 1000).toFixed(2).replace(/\.?0+$/, '')} L</span></div>
     <div class="air-cawan">${Array.from({ length: cawan }, (_, i) => `<i class="fa-solid fa-glass-water ${i < penuh ? 'penuh' : ''}"></i>`).join('')}</div>
-    <div class="grid2"><button class="btn btn-kelabu" onclick="tambahAir(-250)"><i class="fa-solid fa-minus"></i> 250 ml</button><button class="btn btn-hijau" style="background:linear-gradient(135deg,#0284c7,#0ea5e9);box-shadow:0 3px 10px rgba(14,165,233,.3)" onclick="tambahAir(250)"><i class="fa-solid fa-plus"></i> 250 ml</button></div>`;
+    <div class="grid2"><button class="btn btn-kelabu" onclick="tambahAir(-${g})"><i class="fa-solid fa-minus"></i> 1 gelas</button><button class="btn btn-hijau" style="background:linear-gradient(135deg,#0284c7,#0ea5e9);box-shadow:0 3px 10px rgba(14,165,233,.3)" onclick="tambahAir(${g})"><i class="fa-solid fa-plus"></i> 1 gelas</button></div>
+    <p class="kecil" style="margin:8px 0 0">${penuh} / ${cawan} gelas · Saiz gelas: <select onchange="tukarGelas(this.value)" style="width:auto;display:inline-block;padding:2px 6px;font-size:12.5px">${[150, 200, 250, 300].map(x => `<option value="${x}" ${x === g ? 'selected' : ''}>${x} ml${x === 200 ? ' (biasa)' : x === 150 ? ' (cawan kecil)' : x === 300 ? ' (mug)' : ''}</option>`).join('')}</select></p>`;
+}
+window.tukarGelas = async (v) => {
+  S.profil.gelas = +v; paparAir();
+  try { await setDoc(doc(db, 'nowsihat_profil', PID()), { gelas: +v }, { merge: true }); } catch (e) { console.warn('Gelas:', e.message); }
 }
 window.tambahAir = async (ml) => {
   S.air = Math.max(0, (S.air || 0) + ml); paparAir();
@@ -688,15 +701,21 @@ function paparSeterusnya(s, j, dewasa) {
 }
 
 // ---------- Senaman (brisk walk / jogging) ----------
-const JENIS = { brisk: ['Brisk walk', 4.3, 'fa-person-walking', 110], jog: ['Jogging', 7.0, 'fa-person-running', 160] };   // [nama, MET, ikon, langkah seminit]
+const JENIS = {   // [nama, MET, ikon, langkah seminit (null = tiada kiraan langkah)]
+  brisk: ['Brisk walk', 4.3, 'fa-person-walking', 110], jog: ['Jogging', 7.0, 'fa-person-running', 160],
+  jalan: ['Jalan santai', 3.0, 'fa-person-walking', 95], regangan: ['Regangan / stretching', 2.3, 'fa-child-reaching', null],
+  rumah: ['Senaman ringan di rumah', 3.5, 'fa-dumbbell', null], basikal: ['Berbasikal santai', 4.0, 'fa-person-biking', null],
+  renang: ['Berenang santai', 6.0, 'fa-person-swimming', null]
+};
 const NAMA_HARI = ['Ahd', 'Isn', 'Sel', 'Rab', 'Kha', 'Jum', 'Sab'];
 const hariIniDow = () => new Date(Date.now() + 8 * 3600000).getUTCDay();
 const tarikhOff = (n) => new Date(Date.now() + 8 * 3600000 + n * 86400000).toISOString().slice(0, 10);
-const minitDariLangkah = (jenis, langkah) => Math.max(1, Math.round(langkah / (JENIS[jenis] || JENIS.brisk)[3]));
+const adaLangkah = (jenis) => !!(JENIS[jenis] || JENIS.brisk)[3];
+const minitDariLangkah = (jenis, langkah) => Math.max(1, Math.round(langkah / ((JENIS[jenis] || JENIS.brisk)[3] || 100)));
 function kalBakar(jenis, minit) { const w = +S.profil.berat || 60; return Math.round((JENIS[jenis] || JENIS.brisk)[1] * 3.5 * w / 200 * minit); }
 function paparSenaman() {
   const sn = S.profil.senaman, k = $('kadSenaman');
-  if (!sn) { k.innerHTML = `<h2><i class="fa-solid fa-person-walking"></i> Senaman</h2><p style="font-size:14px;margin:0 0 10px">Tetapkan rutin brisk walk atau jogging, dan dapat peringatan pada masa pilihan anda.</p><button class="btn btn-garis penuh" onclick="tukarTab('profil');document.getElementById('sJenis').scrollIntoView({behavior:'smooth',block:'center'})">Tetapkan rutin</button>`; return; }
+  if (!sn) { k.innerHTML = `<h2><i class="fa-solid fa-person-walking"></i> Senaman</h2><p style="font-size:14px;margin:0 0 10px">Tetapkan rutin senaman, dari regangan dan jalan santai hingga jogging, dan dapat peringatan pada masa pilihan anda.</p><button class="btn btn-garis penuh" onclick="tukarTab('profil');document.getElementById('sJenis').scrollIntoView({behavior:'smooth',block:'center'})">Tetapkan rutin</button>`; return; }
   const [nama, , ikon] = JENIS[sn.jenis] || JENIS.brisk, dijadual = (sn.hari || []).includes(hariIniDow()), x = S.senamanHari;
   const st = (S.profil.senaman_streak && (S.profil.senaman_terakhir === tarikhMY() || S.profil.senaman_terakhir === tarikhOff(-1))) ? S.profil.senaman_streak : 0;
   k.classList.toggle('dah', !!x); k.classList.toggle('belum', !x && dijadual);
@@ -710,12 +729,13 @@ function paparSenaman() {
 window.tandaSenaman = () => {
   const sn = S.profil.senaman || { jenis: 'brisk', minit: 30 };
   $('msTajuk').textContent = (JENIS[sn.jenis] || JENIS.brisk)[0] + ' hari ini';
+  const l = adaLangkah(sn.jenis); $('msBlokLangkah').style.display = l ? '' : 'none'; $('msLabelMinit').textContent = l ? 'atau minit' : 'Minit';
   $('msLangkah').value = ''; $('msMinit').value = sn.minit || 30; anggarSenaman();
   $('modalSenaman').style.display = 'flex';
 };
 function nilaiSenaman() {
   const sn = S.profil.senaman || { jenis: 'brisk', minit: 30 };
-  const langkah = Math.min(60000, Math.max(0, parseInt($('msLangkah').value, 10) || 0));
+  const langkah = adaLangkah(sn.jenis) ? Math.min(60000, Math.max(0, parseInt($('msLangkah').value, 10) || 0)) : 0;
   const minit = langkah ? Math.min(300, minitDariLangkah(sn.jenis, langkah)) : Math.min(300, Math.max(0, parseInt($('msMinit').value, 10) || 0));
   return { sn, langkah, minit };
 }

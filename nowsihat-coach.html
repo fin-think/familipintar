@@ -268,7 +268,7 @@ function lukisButiran(el) {
     <h2 style="margin-top:16px;font-size:15px"><i class="fa-solid fa-chart-column"></i> Kalori 7 hari</h2>${grafK}
     <h2 style="margin-top:16px;font-size:15px"><i class="fa-solid fa-weight-scale"></i> Berat</h2>${grafB}
     ${b.kongsi.senaman !== false ? `<h2 style="margin-top:16px;font-size:15px"><i class="fa-solid fa-person-walking"></i> Senaman 7 hari</h2>
-      <div>${p.senaman_rutin ? `<span class="kecil">Rutin: ${p.senaman_rutin.jenis === 'jog' ? 'Jogging' : 'Brisk walk'} ${p.senaman_rutin.minit} minit</span><br>` : ''}${b.hari.map(t => { const s = b.senaman.find(x => x.tarikh === t); return `<span class="chip ${s ? 'hijau' : 'kelabu'}">${namaHari(t)} ${s ? s.minit + 'm' : '–'}</span>`; }).join('')}</div>` : ''}
+      <div>${p.senaman_rutin ? `<span class="kecil">Rutin: ${({ jog: 'Jogging', jalan: 'Jalan santai', regangan: 'Regangan', rumah: 'Senaman ringan di rumah', basikal: 'Berbasikal santai', renang: 'Berenang santai' })[p.senaman_rutin.jenis] || 'Brisk walk'} ${p.senaman_rutin.minit} minit</span><br>` : ''}${b.hari.map(t => { const s = b.senaman.find(x => x.tarikh === t); return `<span class="chip ${s ? 'hijau' : 'kelabu'}">${namaHari(t)} ${s ? s.minit + 'm' : '–'}</span>`; }).join('')}</div>` : ''}
 
     <h2 style="margin-top:16px;font-size:15px"><i class="fa-solid fa-utensils"></i> Rekod makan</h2>
     ${b.kongsi.makan === false ? '<p class="kecil">Tidak dikongsi.</p>' : b.log.length ? b.log.map(l => `<div class="log">

@@ -192,7 +192,7 @@ exports.nowSihatPeringatan = functions
             const uidAkaun = d.id.replace(/_pasangan$/, '');                                   // profil pasangan: uid_pasangan
             const u = await db.collection('mynasab_users').doc(uidAkaun).get();
             if (!u.exists || !(u.data().nowsihat_expiry_date > Date.now())) continue;
-            const nama = s.jenis === 'jog' ? 'jogging' : 'brisk walk';
+            const nama = ({ jog: 'jogging', jalan: 'jalan santai', regangan: 'regangan', rumah: 'senaman ringan', basikal: 'berbasikal', renang: 'berenang' })[s.jenis] || 'brisk walk';
             try {
                 n += await hantarKeSemuaPeranti(db, admin.messaging(), uidAkaun, u.data(), {
                     notification: { title: `Masa untuk ${nama}`, body: `${s.minit || 30} minit ${nama} hari ini. Siap nanti, tekan "Dah buat" di nowSihat.` },
