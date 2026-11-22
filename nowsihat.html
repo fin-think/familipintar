@@ -84,8 +84,9 @@
   .cincin svg { width: 64px; height: 64px; display: block; }
   .cincin .bulat i { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 17px; }
   .cincin b { color: var(--teks); font-size: 14px; }
-  .air-cawan { display: flex; gap: 4px; flex-wrap: wrap; margin: 8px 0; }
-  .air-cawan i { font-size: 20px; color: #cbd5e1; } .air-cawan i.isi { color: #0ea5e9; }
+  .air-cawan { display: flex; gap: 2px; flex-wrap: nowrap; margin: 8px 0; justify-content: space-between; }
+  .air-cawan i { flex: 1 1 0; min-width: 0; text-align: center; font-size: min(22px, 5.2vw); color: #0ea5e9; }   /* gelas penuh = belum minum */
+  .air-cawan i.kosong { color: #fff; -webkit-text-stroke: 1.5px #7dd3fc; }   /* sudah diminum */
   .item { display: flex; gap: 10px; align-items: flex-start; padding: 12px 0; border-top: 1px solid #f1f5f9; }
   .item:first-child { border-top: none; }
   .ikonMakan { flex: none; width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg,#dcfce7,#ecfccb); color: var(--hijau); display: flex; align-items: center; justify-content: center; font-size: 18px; }
@@ -558,7 +559,7 @@ const sasaranAir = () => { const w = +S.profil.berat || 60, g = saizGelas(); ret
 function paparAir() {
   const g = saizGelas(), sas = sasaranAir(), n = S.air || 0, cawan = Math.ceil(sas / g), penuh = Math.floor(n / g);
   $('kadAir').innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-glass-water" style="color:#0ea5e9"></i> Air</h2><span style="font-size:14px;font-weight:800">${(n / 1000).toFixed(2).replace(/\.?0+$/, '')} / ${(sas / 1000).toFixed(2).replace(/\.?0+$/, '')} L</span></div>
-    <div class="air-cawan">${Array.from({ length: cawan }, (_, i) => `<i class="fa-solid fa-glass-water ${i < penuh ? 'isi' : ''}"></i>`).join('')}</div>
+    <div class="air-cawan">${Array.from({ length: cawan }, (_, i) => `<i class="fa-solid fa-glass-water ${i < penuh ? 'kosong' : ''}"></i>`).join('')}</div>
     <div class="grid2"><button class="btn btn-kelabu" onclick="tambahAir(-${g})"><i class="fa-solid fa-minus"></i> 1 gelas</button><button class="btn btn-hijau" style="background:linear-gradient(135deg,#0284c7,#0ea5e9);box-shadow:0 3px 10px rgba(14,165,233,.3)" onclick="tambahAir(${g})"><i class="fa-solid fa-plus"></i> 1 gelas</button></div>
     ${['Buah Pinggang', 'Jantung'].some(x => keadaanOrang().includes(x)) ? '<p class="kecil" style="margin:6px 0 0;color:#b45309"><i class="fa-solid fa-triangle-exclamation"></i> Penyakit buah pinggang / jantung: ikut had air yang ditetapkan doktor, bukan sasaran ini.</p>' : ''}
     <p class="kecil" style="margin:8px 0 0">${penuh} / ${cawan} gelas · Saiz gelas: <select onchange="tukarGelas(this.value)" style="width:auto;display:inline-block;padding:2px 6px;font-size:12.5px">${[150, 200, 250, 300].map(x => `<option value="${x}" ${x === g ? 'selected' : ''}>${x} ml${x === 200 ? ' (biasa)' : x === 150 ? ' (cawan kecil)' : x === 300 ? ' (mug)' : ''}</option>`).join('')}</select></p>`;
