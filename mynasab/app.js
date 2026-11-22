@@ -4490,8 +4490,9 @@ window.muatSenaraiWaris = async (idBekas) => {
             }
         } catch (e) {}
         // Dalam paparan pokok: jangan senaraikan waris yang sudah ada dalam pokok (cth adik-beradik)
-        if (idBekas === 'senaraiWarisBesar' && window._uidDalamPokok) {
-            for (let i = baris.length - 1; i >= 0; i--) if (window._uidDalamPokok.has(baris[i].uid)) baris.splice(i, 1);
+        if (idBekas === 'senaraiWarisBesar') { window._uidDalamPokok = window._uidDalamPokok || new Set();
+            const namaPokok = new Set([...document.querySelectorAll('#ruangAutoLayout .mh-name')].map(e => (e.textContent || '').trim().toLowerCase()));
+            for (let i = baris.length - 1; i >= 0; i--) if (window._uidDalamPokok.has(baris[i].uid) || namaPokok.has(String(baris[i].nama).trim().toLowerCase())) baris.splice(i, 1);
             const bs = document.getElementById('bahagianWarisBerpaut'); if (bs) bs.style.display = baris.length ? '' : 'none';
             if (!baris.length) { el.innerHTML = ''; return; }
         }
