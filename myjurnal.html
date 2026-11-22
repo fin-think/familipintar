@@ -77,6 +77,9 @@
             width: auto;
             object-fit: contain;
         }
+        /* Modul berkunci: kad jelas tetapi bertanda kunci */
+        .terkunci .kad-ujian { opacity: .82; position: relative; }
+        .terkunci .kad-ujian::after { content: '\f023'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; top: 10px; right: 12px; color: #94a3b8; font-size: 13px; }
     </style>
 <script src="huruf.js?v=1"></script>
 <script src="/pwa.js" defer></script>
@@ -609,26 +612,20 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
             const timeline = el.querySelector('.timeline-container');
             const existingOverlay = document.getElementById(`lock-${mod.id}`);
             
+            timeline.style.filter = 'none'; timeline.style.pointerEvents = 'auto';
+            timeline.classList.toggle('terkunci', !hasAccess);
             if (!hasAccess) {
-                timeline.style.filter = 'blur(3px)';
-                timeline.style.pointerEvents = 'none';
                 if (!existingOverlay) {
-                    const overlay = document.createElement('div');
-                    overlay.id = `lock-${mod.id}`;
-                    overlay.className = "absolute inset-0 z-30 flex items-center justify-center lock-container px-4 pt-40";
-                    overlay.innerHTML = `
-                        <div class="bg-white/95 p-8 rounded-2xl shadow-xl text-center border border-slate-200 lock-box max-w-[400px]">
-                            <i class="fa-solid fa-lock text-slate-300 text-3xl mb-3"></i>
-                            <h4 class="font-bold text-sm mb-4 text-slate-800">Buka kunci untuk teruskan perjalanan</h4>
-                            <button onclick="window.bukaModalKredit('${mod.key}', ${mod.cost})" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-sm font-bold shadow-md transition"> Buka (${mod.cost} Kredit) </button>
-                        </div>`;
-                    el.appendChild(overlay);
+                    const r = ringkasModul(mod.id);
+                    const bar = document.createElement('div');
+                    bar.id = `lock-${mod.id}`;
+                    bar.className = "max-w-4xl mx-auto mb-4 mx-4 flex items-center gap-3 bg-sky-50 border border-sky-200 rounded-2xl px-4 py-3";
+                    bar.innerHTML = `<i class="fa-solid fa-lock text-sky-500"></i>
+                        <span class="flex-1 text-sm text-sky-900"><b>Modul berkunci</b> · ${r.ujian} ujian${r.ebook ? ' + ' + r.ebook + ' e-book' : ''}</span>
+                        <button onclick="window.bukaModalKredit('${mod.key}', ${mod.cost})" class="flex-none py-2 px-4 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-sm font-bold shadow-sm transition">Buka ${mod.cost} kredit</button>`;
+                    timeline.parentNode.insertBefore(bar, timeline);
                 }
-            } else {
-                timeline.style.filter = 'none';
-                timeline.style.pointerEvents = 'auto';
-                if (existingOverlay) existingOverlay.remove();
-            }
+            } else if (existingOverlay) existingOverlay.remove();
         });
     };
 
@@ -763,7 +760,7 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
                     ${stage.tools.map(tool => `
-                        <div onclick="window.openModal('${tool.id}', '${stage.color}', '${seksyen}')" class="bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
+                        <div onclick="window.openModal('${tool.id}', '${stage.color}', '${seksyen}')" class="kad-ujian bg-white p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition cursor-pointer flex items-center group">
                             <div class="w-12 h-12 rounded-xl bg-${stage.color}-50 text-${stage.color}-600 flex items-center justify-center text-xl mr-4 group-hover:bg-${stage.color}-600 group-hover:text-white transition">
                                 <i class="fa-solid ${tool.icon}"></i>
                             </div>
@@ -787,7 +784,31 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
        
     };
        
+    // Peta seksyen -> modul berkunci
+    const MODUL_KUNCI = { finance: ['mapa-finance', 'main', 20], parenting: ['mapa-parenting', 'parenting', 30], legacy: ['mapa-legacy', 'legacy', 20], anakku: ['anakku', 'kids', 50] };
+    const DATA_SEKSYEN = { 'mapa-finance': 'finance', 'mapa-parenting': 'parenting', 'mapa-legacy': 'legacy', 'anakku': 'kids' };
+    function alatModul(modId) { return (timelineData[DATA_SEKSYEN[modId]] || []).flatMap(st => st.tools); }
+    function ebookModul(modId) { return [...new Set(alatModul(modId).flatMap(t => t.reqs || []).filter(k => ebooks[k]))]; }
+    function ringkasModul(modId) { return { ujian: alatModul(modId).length, ebook: ebookModul(modId).length }; }
+    // Popup "Apa yang anda dapat" bila kad dalam modul berkunci ditekan
+    function paparKunci(modId, key, cost) {
+        const lama = document.getElementById('modalKunciJurnal'); if (lama) lama.remove();
+        const w = document.createElement('div'); w.id = 'modalKunciJurnal';
+        w.className = 'fixed inset-0 z-[60] bg-slate-900/60 flex items-center justify-center p-4';
+        w.onclick = (e) => { if (e.target === w) w.remove(); };
+        const alat = alatModul(modId), eb = ebookModul(modId);
+        w.innerHTML = `<div class="bg-white rounded-2xl max-w-md w-full max-h-[85vh] overflow-auto p-5">
+            <div class="flex items-center justify-between mb-2"><h3 class="font-bold text-slate-800"><i class="fa-solid fa-lock text-sky-500 mr-1"></i> Apa yang anda dapat</h3><button onclick="document.getElementById('modalKunciJurnal').remove()" class="text-slate-400 text-xl">&times;</button></div>
+            <ul class="space-y-2 mb-4">${alat.map(t => `<li class="flex gap-3 items-start"><i class="fa-solid ${t.icon} text-sky-500 mt-1 w-5 text-center"></i><span class="text-sm"><b class="text-slate-800">${t.title}</b><br><span class="text-slate-500 text-xs">${t.desc}</span></span></li>`).join('')}</ul>
+            ${eb.length ? `<p class="text-xs font-bold text-slate-500 uppercase mb-2">E-book disertakan</p><div class="flex gap-2 overflow-x-auto pb-2 mb-4">${eb.map(k => `<img src="${ebooks[k].coverImage}" alt="${ebooks[k].title}" title="${ebooks[k].title}" loading="lazy" class="h-28 rounded-md shadow border border-slate-200 flex-none">`).join('')}</div>` : ''}
+            <button onclick="document.getElementById('modalKunciJurnal').remove(); window.bukaModalKredit('${key}', ${cost})" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-sm font-bold shadow-md">Buka modul (${cost} kredit)</button>
+        </div>`;
+        document.body.appendChild(w);
+    }
+
     window.openModal = (toolId, color, sectionId) => {
+        const mk = MODUL_KUNCI[sectionId];
+        if (mk && !modulTerbuka.includes(mk[1])) { paparKunci(mk[0], mk[1], mk[2]); return; }
         if (sectionId) window.currentSectionId = sectionId;
         let tool = null;
         Object.values(timelineData).forEach(stages => {
