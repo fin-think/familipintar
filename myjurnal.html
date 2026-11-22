@@ -80,6 +80,10 @@
         /* Modul berkunci: kad jelas tetapi bertanda kunci */
         .terkunci .kad-ujian { opacity: .82; position: relative; }
         .terkunci .kad-ujian::after { content: '\f023'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; top: 10px; right: 12px; color: #94a3b8; font-size: 13px; }
+        .chip-modul { flex: none; padding: 6px 14px; border-radius: 999px; background: #f1f5f9; color: #475569; font-size: 13px; font-weight: 700; white-space: nowrap; border: 1px solid #e2e8f0; }
+        .chip-modul.aktif { background: #0ea5e9; color: #fff; border-color: #0ea5e9; }
+        .chip-modul.kunci::after { content: '\f023'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 10px; margin-left: 5px; opacity: .7; }
+        #chipModul::-webkit-scrollbar { display: none; }
     </style>
 <script src="huruf.js?v=1"></script>
 <script src="/pwa.js" defer></script>
@@ -281,37 +285,21 @@
                         
                     </div>
 
-                    <div class="md:hidden ml-auto flex items-center gap-4">
-                        <button onclick="toggleJournalMobileMenu()" class="text-2xl"><i class="fa-solid fa-bars"></i></button>
+                    <div class="md:hidden ml-auto flex items-center">
+                        <button onclick="window.location.href='../index.html'" class="bg-sky-500 hover:bg-sky-600 px-4 py-1.5 rounded-full font-bold transition text-white text-sm shadow-sm"><i class="fa-solid fa-arrow-left mr-1"></i> Kembali</button>
                     </div>
                 </div>
             </div>
+            <!-- Lompat ke modul (mobile): chip melintang melekat di bawah kepala -->
+            <div id="chipModul" class="md:hidden flex gap-2 overflow-x-auto px-4 pb-2.5 pt-0.5 bg-white" style="scrollbar-width:none">
+                <a href="#mapa-intro" data-chip="mapa-intro" class="chip-modul">Diri</a>
+                <a href="#mapa-finance" data-chip="mapa-finance" class="chip-modul">Kewangan</a>
+                <a href="#mapa-parenting" data-chip="mapa-parenting" class="chip-modul">Keharmonian</a>
+                <a href="#mapa-legacy" data-chip="mapa-legacy" class="chip-modul">Legasi</a>
+                <a href="#anakku" data-chip="anakku" class="chip-modul">Zuriat</a>
+            </div>
         </nav>
 
-<!-- MOBILE MENU UTAMA --> 
-        <div id="journalmobileMenu" class="fixed top-0 left-0 w-full h-full bg-slate-900/95 z-[9999] hidden p-8 text-white"> 
-            <div class="flex justify-between items-center mb-10"> 
-                <h2 class="text-2xl font-extrabold"> Famili Pintar </h2> 
-                <button onclick="toggleJournalMobileMenu()" class="text-3xl"> 
-                    <i class="fa-solid fa-xmark"></i> 
-                </button> 
-            </div> 
-            
-            <div class="flex flex-col gap-5 text-lg font-semibold"> 
-                <a href="#mapa-finance" onclick="toggleJournalMobileMenu()">Kewangan</a>
-<a href="#mapa-parenting" onclick="toggleJournalMobileMenu()">Keharmonian</a>
-<a href="#mapa-legacy" onclick="toggleJournalMobileMenu()">Legasi</a>
-<a href="#anakku" onclick="toggleJournalMobileMenu()">Zuriat</a>
-              
-                
-                <!-- Butang Kembali (Ganti Log Keluar di Mobile) -->
-                <div class="mt-4 pt-4 border-t border-slate-800">
-                    <button onclick="window.location.href='../index.html'" class="w-full bg-sky-500 hover:bg-sky-600 py-3.5 px-4 rounded-xl font-bold transition text-white text-base shadow-md flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-arrow-left"></i> Kembali ke Halaman Utama
-                    </button>
-                </div>
-            </div> 
-        </div>
 
        <header id="heroSection" class="bg-gradient-to-b from-sky-400 to-sky-600 text-white py-16 text-center px-4">
             <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Anda tidak perlu ada semua jawapan sekarang.</h1>
@@ -330,7 +318,7 @@
                      
 
             <div id="timelineContent">
-                <section id="mapa-intro" class="mb-24 relative scroll-mt-24"> 
+                <section id="mapa-intro" class="mb-24 relative scroll-mt-32"> 
                     <div class="text-center mb-12 px-4"> 
                         <h2 class="text-base md:text-2xl font-semibold md:font-bold leading-snug text-blue-500 mb-2"> <i class="fa-solid fa-compass mr-2"></i> Anda tak boleh perbaiki apa yang anda tak sedar.
 Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewangan, dan kesihatan anda — hari ini. Kerana permulaan yang jujur adalah permulaan yang betul.</h2> 
@@ -338,28 +326,28 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                     <div class="relative timeline-container" id="intro-timeline"></div> 
                 </section>
 
-                <section id="mapa-finance" class="mb-24 relative scroll-mt-24">
+                <section id="mapa-finance" class="mb-24 relative scroll-mt-32">
                     <div class="text-center mb-12 px-4">
                         <h2 class="text-base md:text-2xl font-semibold md:font-bold leading-snug text-sky-600 mb-2"><i class="fa-solid fa-sack-dollar mr-2"></i>Ramai yang rasa 'masih okay' — sehingga sesuatu berlaku. Tahu tahap sebenar kewangan anda sebelum terlambat.</h2>
                     </div>
                     <div class="relative timeline-container" id="finance-timeline"></div>
                 </section>
 
-                <section id="mapa-parenting" class="mb-24 relative scroll-mt-24">
+                <section id="mapa-parenting" class="mb-24 relative scroll-mt-32">
                     <div class="text-center mb-12 px-4">
                         <h2 class="text-base md:text-2xl font-semibold md:font-bold leading-snug text-pink-600 mb-2"><i class="fa-solid fa-heart-pulse mr-2"></i>Ramai keluarga tak gagal… mereka cuma tak ada sistem. Mulakan dengan 1 ujian ringkas untuk faham keadaan sebenar keluarga anda - pasangan anda?</h2>
                     </div>
                     <div class="relative timeline-container" id="parenting-timeline"></div>
                 </section>
 
-                <section id="mapa-legacy" class="mb-24 relative scroll-mt-24">
+                <section id="mapa-legacy" class="mb-24 relative scroll-mt-32">
                     <div class="text-center mb-12 px-4">
                         <h2 class="text-base md:text-2xl font-semibold md:font-bold leading-snug text-indigo-700 mb-2"><i class="fa-solid fa-seedling mr-2"></i>90% keluarga tak sedar mereka ada masalah ini. Semak sekarang, sebelum ia terlambat.</h2>
                     </div>
                     <div class="relative timeline-container" id="legacy-timeline"></div>
                 </section>
 
-                <section id="anakku" class="mb-24 relative scroll-mt-24">
+                <section id="anakku" class="mb-24 relative scroll-mt-32">
                     <div class="text-center mb-12 px-4">
                         <h2 class="text-base md:text-2xl font-semibold md:font-bold leading-snug text-orange-500 mb-2"><i class="fa-solid fa-child-reaching mr-2"></i>Anda fikir anda kenal anak anda — tapi adakah anda tahu apa yang benar-benar ada dalam fikirannya?</h2>
                     </div>
@@ -628,7 +616,18 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                 }
             } else if (existingOverlay) existingOverlay.remove();
         });
+        modules.forEach(mod => { const c = document.querySelector(`[data-chip="${mod.id}"]`); if (c) c.classList.toggle('kunci', !(mod.key === null || modulTerbuka.includes(mod.key))); });
     };
+
+    // Tonjolkan chip modul yang sedang dibaca
+    (() => {
+        const io = new IntersectionObserver((en) => en.forEach(e => {
+            if (!e.isIntersecting) return;
+            document.querySelectorAll('.chip-modul').forEach(c => c.classList.toggle('aktif', c.dataset.chip === e.target.id));
+            const a = document.querySelector(`.chip-modul[data-chip="${e.target.id}"]`); if (a) a.scrollIntoView({ block: 'nearest', inline: 'center' });
+        }), { rootMargin: '-45% 0px -50% 0px' });
+        ['mapa-intro', 'mapa-finance', 'mapa-parenting', 'mapa-legacy', 'anakku'].forEach(id => { const el = document.getElementById(id); if (el) io.observe(el); });
+    })();
 
     window.showApp = () => {
         const intro = document.getElementById('introPage');
