@@ -619,7 +619,8 @@ Sebelum merancang hari esok, kenali dulu keadaan sebenar hidup, kerjaya, kewanga
                     const r = ringkasModul(mod.id);
                     const bar = document.createElement('div');
                     bar.id = `lock-${mod.id}`;
-                    bar.className = "max-w-4xl mx-auto mb-4 mx-4 flex items-center gap-3 bg-sky-50 border border-sky-200 rounded-2xl px-4 py-3";
+                    bar.className = "flex items-center gap-3 bg-sky-50 border border-sky-200 rounded-2xl px-4 py-3";
+                    bar.style.cssText = "max-width: 56rem; width: calc(100% - 2rem); margin: 0 auto 1rem;";
                     bar.innerHTML = `<i class="fa-solid fa-lock text-sky-500"></i>
                         <span class="flex-1 text-sm text-sky-900"><b>Modul berkunci</b> · ${r.ujian} ujian${r.ebook ? ' + ' + r.ebook + ' e-book' : ''}</span>
                         <button onclick="window.bukaModalKredit('${mod.key}', ${mod.cost})" class="flex-none py-2 px-4 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-sm font-bold shadow-sm transition">Buka ${mod.cost} kredit</button>`;
