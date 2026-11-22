@@ -2164,6 +2164,7 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
 
         const nodInduk = await kayakan(await ambil(indukUid));
         const akaun = await Promise.all(pautan.map(async p => ({ uid: p.uid, sasaran: p.sasaran_id, nod: await kayakan(await ambil(p.uid)) })));
+        window._uidDalamPokok = new Set([indukUid, ...pautan.map(p => p.uid)]);   // akaun yang sudah dilukis dalam pokok (adik-beradik dsb.)
 
         const kelompok = (nod) => {
             const k = {
@@ -4488,6 +4489,12 @@ window.muatSenaraiWaris = async (idBekas) => {
                 if (r) { dah.add(u); baris.push({ uid: u, nama: r.data().name || 'Waris', hub: 'Waris' }); }
             }
         } catch (e) {}
+        // Dalam paparan pokok: jangan senaraikan waris yang sudah ada dalam pokok (cth adik-beradik)
+        if (idBekas === 'senaraiWarisBesar' && window._uidDalamPokok) {
+            for (let i = baris.length - 1; i >= 0; i--) if (window._uidDalamPokok.has(baris[i].uid)) baris.splice(i, 1);
+            const bs = document.getElementById('bahagianWarisBerpaut'); if (bs) bs.style.display = baris.length ? '' : 'none';
+            if (!baris.length) { el.innerHTML = ''; return; }
+        }
         if (!baris.length) {
             el.innerHTML = '<p style="color:#94a3b8; font-size:13px; margin:0;">Belum ada waris berpaut. Gunakan Cari Waris untuk mula.</p>';
             return;
