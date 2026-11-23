@@ -682,6 +682,12 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             <div class="text-center pb-8 pt-6 opacity-40">
                 <p class="text-[10px] font-bold tracking-[0.4em] text-slate-500 uppercase">HCH x DAEBOOK &copy; 2026</p>
             </div>
+            <div class="hidden md:block text-center pb-8 -mt-4 text-xs text-slate-500">
+                <a href="terma-privasi.html" class="hover:text-sky-600 hover:underline">Dasar Privasi</a> ·
+                <a href="terma-privasi.html#terma" class="hover:text-sky-600 hover:underline">Terma Penggunaan</a> ·
+                <a href="terma-privasi.html#kredit" class="hover:text-sky-600 hover:underline">Polisi Kredit</a> ·
+                <a href="mailto:dae.book89@gmail.com" class="hover:text-sky-600 hover:underline">dae.book89@gmail.com</a>
+            </div>
 
         </div>
     </div>
@@ -749,6 +755,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             <button onclick="prosesDaftarAsing()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl shadow-md transition transform hover:-translate-y-0.5">
                 Daftar & Tebus Kredit
             </button>
+            <p class="text-center text-xs text-slate-500 mt-3">Dengan mendaftar, anda bersetuju dengan <a href="terma-privasi.html" target="_blank" class="text-sky-600 font-bold underline">Dasar Privasi, Terma &amp; Polisi Kredit</a> kami.</p>
 
             <p class="text-center text-sm text-slate-500 mt-6">
                 Sudah ada akaun? <button onclick="tukarPaparanAuth('login')" class="text-orange-500 font-bold hover:underline">Log Masuk</button>
@@ -1198,6 +1205,7 @@ if ('Notification' in window) {
                     credit_balance: KD,
                     sumber: sumber,
                     ...(refUid ? { referred_by: refUid } : {}),
+                    terma_versi: '2.0', terma_setuju_pada: Date.now(),
                     created_at: new Date()
                 });
 
@@ -1576,6 +1584,8 @@ window.pantauLencanaWeCareUtama = async (user) => {
       <button class="tp-item" onclick="tutupTetapan();bukaTukarKataLaluan()"><i class="fa-solid fa-key tp-ik" style="background:#fef3c7;color:#b45309"></i><span>Tukar kata laluan</span></button>
       <label class="tp-item cursor-pointer"><i class="fa-solid fa-image-portrait tp-ik" style="background:#dcfce7;color:#15803d"></i><span>Gambar profil<small id="tpFotoSt">Dipaparkan di Laman keluarga (Buat Apa Hari Ini)</small></span><input id="tpFoto" type="file" accept="image/*" class="hidden"></label>
       <button class="tp-item" onclick="location.href='topup.html'"><i class="fa-solid fa-wallet tp-ik" style="background:#fef9c3;color:#a16207"></i><span>Kredit &amp; Top-up<small>Baki: <b id="tpKredit">0</b> kredit</small></span></button>
+      <button class="tp-item" onclick="location.href='terma-privasi.html'"><i class="fa-solid fa-shield-halved tp-ik" style="background:#ede9fe;color:#6d28d9"></i><span>Privasi, Terma &amp; Polisi Kredit<small>Cara kami jaga data anda</small></span></button>
+      <button class="tp-item" onclick="location.href='mailto:dae.book89@gmail.com'"><i class="fa-solid fa-envelope tp-ik" style="background:#f1f5f9;color:#475569"></i><span>Hubungi sokongan<small>dae.book89@gmail.com</small></span></button>
       <button class="tp-item" style="border-bottom:0;color:#dc2626" onclick="tutupTetapan();logKeluar()"><i class="fa-solid fa-right-from-bracket tp-ik" style="background:#fee2e2;color:#dc2626"></i><span>Log keluar</span></button>
     </div>
     <div id="tpPeranti" class="hidden">

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dasar Privasi, Terma Penggunaan & Polisi Kredit | Famili Pintar</title>
+<meta name="description" content="Dasar Privasi, Terma Penggunaan dan Polisi Kredit untuk semua aplikasi Famili Pintar.">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --teks:#2c3e50; --lembut:#5f7285; --garis:#e3e9ee; --biru:#0ea5e9; --kuning:#f1c40f; --latar:#f8fafc; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:'Nunito','Segoe UI',Tahoma,sans-serif; background:var(--latar); color:var(--teks); line-height:1.7; }
+  header { background:#fff; border-bottom:1px solid var(--garis); padding:14px 20px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:5; }
+  .logo { font-size:22px; font-weight:800; text-decoration:none; }
+  .logo .a { color:var(--kuning); } .logo .b { color:var(--biru); }
+  header a.balik { color:var(--biru); font-weight:700; text-decoration:none; font-size:15px; }
+  main { max-width:760px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:30px; line-height:1.25; margin:0 0 6px; }
+  .meta { color:var(--lembut); font-size:14px; margin:0 0 20px; }
+  nav.isi-kandungan { background:#fff; border:1px solid var(--garis); border-radius:10px; padding:12px 18px; margin:0 0 12px; }
+  nav.isi-kandungan a { display:block; color:var(--biru); text-decoration:none; font-weight:700; padding:3px 0; }
+  h2 { font-size:24px; margin:44px 0 6px; padding-top:22px; border-top:2px solid var(--garis); scroll-margin-top:70px; }
+  h3 { font-size:18px; margin:26px 0 4px; }
+  p, li { font-size:16px; }
+  ul { padding-left:22px; margin:8px 0; } li { margin:4px 0; }
+  .ringkas { background:#fff; border:1px solid var(--garis); border-left:4px solid var(--biru); border-radius:6px; padding:12px 16px; margin:10px 0; }
+  .ringkas p { margin:0; }
+  table { width:100%; border-collapse:collapse; margin:10px 0; font-size:15px; background:#fff; table-layout:fixed; overflow-wrap:anywhere; }
+  body { overflow-x:hidden; }
+  th, td { border:1px solid var(--garis); padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:#f1f5f9; }
+  a { color:var(--biru); }
+  .bahasa { display:flex; border:1px solid var(--garis); border-radius:999px; overflow:hidden; }
+  .bahasa button { border:0; background:#fff; padding:5px 12px; font:700 13px Nunito,sans-serif; color:var(--lembut); cursor:pointer; }
+  .bahasa button.on { background:var(--biru); color:#fff; }
+  footer { text-align:center; color:var(--lembut); font-size:13px; padding:0 20px 40px; }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="index.html"><span class="a">Famili</span> <span class="b">Pintar</span></a>
+  <div style="display:flex;gap:10px;align-items:center">
+    <div class="bahasa" role="group" aria-label="Bahasa / Language"><button type="button" id="b-ms" class="on" onclick="tukarBahasa('ms')">BM</button><button type="button" id="b-en" onclick="tukarBahasa('en')">EN</button></div>
+    <a class="balik" href="index.html">&larr; <span class="t-ms">Kembali</span><span class="t-en" hidden>Back</span></a>
+  </div>
+</header>
+<main>
+<div id="v-ms" lang="ms">
+  <h1>Dasar Privasi, Terma Penggunaan &amp; Polisi Kredit</h1>
+  <p class="meta">Versi 2.0, dikemas kini 23 November 2026. Terpakai untuk semua aplikasi Famili Pintar di familipintar.com.</p>
+
+  <div class="ringkas"><p><b>Ringkasnya:</b> kami simpan maklumat yang anda masukkan supaya aplikasi berfungsi untuk keluarga anda. Data peribadi hanya untuk akaun anda, kecuali ruang yang anda sendiri pilih untuk dikongsi. Kami tidak menjual data anda. Kredit ialah bayaran untuk menggunakan ciri berbayar dan tertakluk kepada polisi di Bahagian C.</p></div>
+
+  <nav class="isi-kandungan" aria-label="Isi kandungan">
+    <a href="#privasi">A. Dasar Privasi</a>
+    <a href="#terma">B. Terma Penggunaan</a>
+    <a href="#kredit">C. Polisi Kredit &amp; Bayaran Balik</a>
+    <a href="#hubungi">D. Hubungi kami</a>
+  </nav>
+
+  <!-- ================= A. PRIVASI ================= -->
+  <h2 id="privasi">A. Dasar Privasi</h2>
+
+  <h3>1. Siapa kami</h3>
+  <p>Famili Pintar dikendalikan oleh Dahanis Estore (003707742-M) ("kami"). Dasar ini menerangkan bagaimana kami mengumpul, menggunakan, menyimpan dan melindungi data peribadi anda, selaras dengan Akta Perlindungan Data Peribadi 2010 (PDPA) dan pindaannya.</p>
+
+  <h3>2. Data yang kami kumpul</h3>
+  <table>
+    <tr><th>Kategori</th><th>Contoh</th><th>Digunakan dalam</th></tr>
+    <tr><td>Akaun</td><td>Emel, nama, jantina, kata laluan (disimpan secara selamat oleh Firebase Authentication; kami tidak dapat melihat kata laluan anda)</td><td>Semua aplikasi</td></tr>
+    <tr><td>Keluarga</td><td>Nama, hubungan, jantina, tarikh lahir, nombor telefon, bandar, negeri dan gambar ahli keluarga, jika anda memasukkannya</td><td>myNasab, myWARIS, myKids dan aplikasi yang membaca pokok keluarga</td></tr>
+    <tr><td>Kesihatan (data sensitif)</td><td>Berat, tinggi, sejarah penyakit, rekod makanan, gambar makanan, senaman, air minuman, maklumat ubat dan temu janji ibu bapa</td><td>myHEALTH, nowSihat, weCare</td></tr>
+    <tr><td>Kewangan</td><td>Transaksi harian, kategori, baki akaun yang anda masukkan, gambar resit, maklumat hutang dan perancangan kewangan</td><td>OurMoney, myDEBT, myFINPLAN, myTADBIR</td></tr>
+    <tr><td>Jurnal &amp; penilaian</td><td>Jawapan dan keputusan ujian, catatan jurnal, senarai semak</td><td>myJurnal dan ujian berkaitan</td></tr>
+    <tr><td>Bayaran &amp; kredit</td><td>Rekod top up, baki kredit, langganan, komisen affiliate. Maklumat kad atau perbankan diproses oleh Billplz dan <b>tidak disimpan</b> oleh kami.</td><td>Top Up, Affiliate, semua langganan</td></tr>
+    <tr><td>Teknikal</td><td>Token notifikasi peranti, sumber pendaftaran (cth. pautan affiliate atau kempen), tarikh dan versi persetujuan dasar</td><td>Notifikasi, statistik dalaman</td></tr>
+  </table>
+
+  <h3>3. Data kesihatan dan persetujuan jelas</h3>
+  <p>Maklumat kesihatan ialah data peribadi sensitif di bawah PDPA. Kami hanya memprosesnya dengan persetujuan jelas anda, iaitu apabila anda sendiri memasukkannya dan bersetuju dengan dasar ini semasa mendaftar atau mula menggunakan nowSihat. Anda boleh memadam maklumat ini pada bila-bila masa dalam aplikasi berkaitan.</p>
+  <p>Panduan, anggaran nutrisi dan nasihat dalam aplikasi ialah maklumat umum, <b>bukan nasihat perubatan</b>. Sentiasa ikut nasihat doktor atau pakar diet anda.</p>
+
+  <h3>4. Gambar makanan dan kecerdasan buatan (AI)</h3>
+  <p>Apabila anda mengimbas makanan dalam nowSihat, gambar itu dihantar kepada Google Gemini untuk dianalisis. Gambar <b>tidak disimpan</b> oleh kami; hanya keputusan analisis (nama makanan dan anggaran nutrisi) disimpan dalam akaun anda. Maklumat konteks seperti umur, matlamat dan keadaan kesihatan yang anda pilih turut dihantar bersama supaya nasihat lebih tepat. Penggunaan oleh Google tertakluk kepada terma perkhidmatan Google.</p>
+
+  <h3>5. Bagaimana kami menggunakan data</h3>
+  <ul>
+    <li>Menjalankan aplikasi: membina pokok keluarga, mengira baki, menyusun jadual, memberi nasihat.</li>
+    <li>Menghantar notifikasi yang anda aktifkan (cth. peringatan senaman, ubat, muhasabah).</li>
+    <li>Memproses top up, langganan dan komisen affiliate.</li>
+    <li>Statistik dalaman tanpa nama untuk menambah baik perkhidmatan.</li>
+    <li>Mematuhi undang-undang dan menyiasat penyalahgunaan.</li>
+  </ul>
+  <p>Kami <b>tidak menjual</b> data anda dan tidak menggunakannya untuk iklan pihak ketiga.</p>
+
+  <h3>6. Siapa boleh melihat data anda</h3>
+  <ul>
+    <li><b>Anda sahaja,</b> secara asal, untuk data peribadi, jurnal, kesihatan dan kewangan.</li>
+    <li><b>Keluarga yang anda pautkan,</b> untuk ruang yang memang dikongsi: pokok keluarga myNasab dan penjagaan ibu bapa di weCare.</li>
+    <li><b>Pasangan dalam akaun yang sama</b> (mod Induk/Pasangan) boleh melihat rekod kedua-dua orang dalam akaun itu.</li>
+    <li><b>Coach nowSihat,</b> hanya jika anda bersetuju, dan hanya bahagian yang anda tanda (rekod makan, berat, senaman, keadaan kesihatan). Anda boleh menghentikan perkongsian bila-bila masa di Profil.</li>
+    <li><b>Penyedia perkhidmatan</b> yang membantu kami menjalankan sistem: penyedia awan untuk pangkalan data, log masuk, storan dan notifikasi (Google Firebase), penyedia analisis AI untuk gambar makanan (Google Gemini) dan gateway pembayaran berlesen (Billplz). Mereka hanya memproses data untuk tujuan itu.</li>
+    <li><b>Pihak berkuasa,</b> jika dikehendaki oleh undang-undang.</li>
+  </ul>
+
+  <h3>7. Di mana data disimpan</h3>
+  <p>Data disimpan dalam Google Firebase, yang mungkin berada di pusat data di luar Malaysia. Dengan menggunakan perkhidmatan ini, anda bersetuju dengan pemindahan tersebut. Google melindungi data dengan penyulitan semasa disimpan dan semasa dihantar.</p>
+
+  <h3>8. Tempoh simpanan</h3>
+  <p>Data disimpan selagi akaun anda aktif. Sebahagian data sementara dipadam secara automatik (cth. siaran BAHI selepas tempohnya, mesej JomSalam, kiraan imbasan harian). Rekod bayaran disimpan sekurang-kurangnya 7 tahun untuk tujuan perakaunan dan cukai.</p>
+
+  <h3>9. Hak anda</h3>
+  <ul>
+    <li>Mengakses dan membetulkan data anda (kebanyakannya boleh dibuat terus dalam aplikasi).</li>
+    <li>Menarik balik persetujuan, termasuk untuk data kesihatan dan perkongsian dengan coach.</li>
+    <li>Meminta akaun dan data anda dipadam. Hantar emel kepada kami dari emel akaun anda; kami akan memprosesnya dalam 21 hari. Data yang telah dikongsi dalam pokok keluarga orang lain mungkin kekal dalam salinan mereka.</li>
+  </ul>
+
+  <h3>10. Kanak-kanak</h3>
+  <p>Akaun hendaklah didaftarkan oleh orang dewasa. Maklumat anak (cth. dalam myKids atau pokok keluarga) dimasukkan dan diurus oleh ibu bapa atau penjaga.</p>
+
+  <h3>11. Keselamatan</h3>
+  <p>Kami menggunakan peraturan akses pangkalan data supaya setiap akaun hanya boleh membaca datanya sendiri dan ruang yang dikongsi dengannya. Tiada sistem yang 100% selamat; jika berlaku pelanggaran data yang menjejaskan anda, kami akan memaklumkan anda.</p>
+
+  <!-- ================= B. TERMA ================= -->
+  <h2 id="terma">B. Terma Penggunaan</h2>
+
+  <h3>1. Penerimaan</h3>
+  <p>Dengan mendaftar atau menggunakan Famili Pintar, anda bersetuju dengan terma ini. Jika tidak bersetuju, sila jangan gunakan perkhidmatan ini.</p>
+
+  <h3>2. Akaun anda</h3>
+  <ul>
+    <li>Anda mestilah berumur 18 tahun ke atas untuk mendaftar.</li>
+    <li>Maklumat yang anda berikan hendaklah benar. Anda bertanggungjawab menjaga kata laluan dan semua aktiviti dalam akaun anda.</li>
+    <li>Satu akaun boleh digunakan oleh anda dan pasangan (mod Induk/Pasangan). Akaun tidak boleh dijual atau dipindah milik.</li>
+  </ul>
+
+  <h3>3. Kandungan yang anda masukkan</h3>
+  <p>Anda kekal sebagai pemilik maklumat yang anda masukkan. Anda hanya boleh memasukkan maklumat orang lain (cth. ahli keluarga) jika anda mempunyai sebab yang munasabah dan tidak bertentangan dengan kehendak mereka. Jangan muat naik kandungan yang menyalahi undang-undang, mengaibkan atau melanggar hak orang lain.</p>
+
+  <h3>4. Had tanggungjawab</h3>
+  <ul>
+    <li>Kalkulator, anggaran faraid, nutrisi, kos rawatan dan keputusan ujian ialah <b>panduan umum</b>, bukan nasihat perubatan, kewangan, perundangan atau agama yang muktamad. Rujuk pakar bertauliah untuk keputusan penting.</li>
+    <li>Perkhidmatan disediakan "seadanya". Kami berusaha memastikan ia sentiasa tersedia, tetapi tidak menjamin bebas gangguan atau ralat.</li>
+    <li>Setakat yang dibenarkan undang-undang, kami tidak bertanggungjawab atas kerugian tidak langsung akibat penggunaan perkhidmatan ini.</li>
+  </ul>
+
+  <h3>5. Program Affiliate dan Coach</h3>
+  <ul>
+    <li>Affiliate menerima komisen daripada top up pengguna yang mendaftar melalui pautan mereka, pada kadar yang dipaparkan di halaman Affiliate semasa jualan berlaku. Komisen boleh dikeluarkan apabila mencapai baki minimum yang dipaparkan.</li>
+    <li>Komisen tidak dibayar untuk top up yang dibatalkan, dipulangkan atau didapati menipu. Kami berhak menahan atau membatalkan komisen jika berlaku penyalahgunaan (cth. mendaftar akaun palsu).</li>
+    <li>Coach nowSihat mesti menghormati privasi klien dan hanya menggunakan data yang dikongsi untuk membimbing klien tersebut. Akaun coach boleh dinyahaktifkan jika syarat tidak dipenuhi.</li>
+  </ul>
+
+  <h3>6. Penamatan</h3>
+  <p>Anda boleh berhenti menggunakan perkhidmatan bila-bila masa. Kami boleh menggantung atau menamatkan akaun yang melanggar terma ini, dengan notis jika munasabah.</p>
+
+  <h3>7. Perubahan</h3>
+  <p>Kami boleh mengemas kini dokumen ini. Perubahan besar akan dimaklumkan dalam aplikasi atau melalui emel. Penggunaan berterusan selepas perubahan bermakna anda menerima versi baharu.</p>
+
+  <h3>8. Undang-undang</h3>
+  <p>Terma ini tertakluk kepada undang-undang Malaysia.</p>
+
+  <!-- ================= C. KREDIT ================= -->
+  <h2 id="kredit">C. Polisi Kredit &amp; Bayaran Balik</h2>
+
+  <h3>1. Apa itu kredit</h3>
+  <p>Kredit ialah unit dalam dompet Famili Pintar untuk membayar ciri berbayar dan langganan dalam semua aplikasi. Kredit dibeli melalui Top Up (pembayaran diproses oleh Billplz). Pakej semasa dan bonus dipaparkan di halaman Top Up.</p>
+
+  <h3>2. Kredit percuma</h3>
+  <p>Kredit percuma (cth. hadiah pendaftaran atau promosi) tiada nilai tunai, tidak boleh ditukar kepada wang dan boleh ditarik balik jika diperoleh secara tidak sah.</p>
+
+  <h3>3. Tempoh sah</h3>
+  <p>Kredit luput jika akaun tiada sebarang aktiviti (log masuk, top up atau penggunaan kredit) selama 6 bulan berturut-turut. Kami akan menghantar peringatan melalui emel atau notifikasi sebelum kredit luput.</p>
+
+  <h3>4. Langganan</h3>
+  <ul>
+    <li>Langganan aplikasi (cth. weCare, OurMoney, nowSihat) memotong kredit untuk tempoh yang dipaparkan sebelum anda mengesahkan.</li>
+    <li>Langganan <b>tidak diperbaharui secara automatik</b>; anda memperbaharuinya sendiri.</li>
+    <li>Tempoh percubaan percuma, jika ada, hanya sekali bagi setiap akaun.</li>
+    <li>Harga boleh berubah; perubahan tidak menjejaskan tempoh langganan yang telah dibayar.</li>
+  </ul>
+
+  <h3>5. Bayaran balik</h3>
+  <ul>
+    <li>Kredit yang telah dibeli tidak boleh dipulangkan, kecuali seperti di bawah.</li>
+    <li>Jika bayaran berjaya tetapi kredit tidak masuk, atau anda dicaj dua kali, hubungi kami dalam 14 hari dengan bukti bayaran. Kami akan memasukkan kredit atau memulangkan wang anda.</li>
+    <li>Kredit yang telah digunakan untuk langganan atau ciri yang telah dibuka tidak boleh dipulangkan.</li>
+    <li>Jika akaun ditamatkan kerana melanggar terma, baki kredit tidak dipulangkan.</li>
+  </ul>
+
+  <!-- ================= D. HUBUNGI ================= -->
+  <h2 id="hubungi">D. Hubungi kami</h2>
+  <p>Untuk sebarang pertanyaan tentang privasi, akaun, bayaran atau kredit, sila emel <a href="mailto:dae.book89@gmail.com"><b>dae.book89@gmail.com</b></a>. Sertakan emel akaun anda dan, untuk isu bayaran, nombor rujukan Billplz atau tangkap layar resit.</p>
+</div>
+
+<div id="v-en" lang="en" hidden>
+  <h1>Privacy Policy, Terms of Use &amp; Credit Policy</h1>
+  <p class="meta">Version 2.0, last updated 23 November 2026. Applies to all Famili Pintar applications at familipintar.com. If there is any inconsistency between the Malay and English versions, the Malay version prevails.</p>
+
+  <div class="ringkas"><p><b>In short:</b> we store the information you enter so the apps work for your family. Personal data is for your account only, except for spaces you choose to share. We do not sell your data. Credits are payment for paid features and subscriptions and are subject to the policy in Part C.</p></div>
+
+  <nav class="isi-kandungan" aria-label="Contents">
+    <a href="#en-privasi">A. Privacy Policy</a>
+    <a href="#en-terma">B. Terms of Use</a>
+    <a href="#en-kredit">C. Credit &amp; Refund Policy</a>
+    <a href="#en-hubungi">D. Contact us</a>
+  </nav>
+
+  <h2 id="en-privasi">A. Privacy Policy</h2>
+  <h3>1. Who we are</h3>
+  <p>Famili Pintar is operated by Dahanis Estore (003707742-M) ("we"). This policy explains how we collect, use, store and protect your personal data in accordance with the Personal Data Protection Act 2010 (PDPA) and its amendments.</p>
+
+  <h3>2. Data we collect</h3>
+  <table>
+    <tr><th>Category</th><th>Examples</th><th>Used in</th></tr>
+    <tr><td>Account</td><td>Email, name, gender, password (stored securely by Firebase Authentication; we cannot see your password)</td><td>All apps</td></tr>
+    <tr><td>Family</td><td>Names, relationships, gender, dates of birth, phone numbers, city, state and photos of family members, if you enter them</td><td>myNasab, myWARIS, myKids and apps that read the family tree</td></tr>
+    <tr><td>Health (sensitive data)</td><td>Weight, height, medical history, food records, food photos, exercise, water intake, parents' medication and appointments</td><td>myHEALTH, nowSihat, weCare</td></tr>
+    <tr><td>Financial</td><td>Daily transactions, categories, account balances you enter, receipt photos, debt and financial planning information</td><td>OurMoney, myDEBT, myFINPLAN, myTADBIR</td></tr>
+    <tr><td>Journal &amp; assessments</td><td>Test answers and results, journal entries, checklists</td><td>myJurnal and related tests</td></tr>
+    <tr><td>Payments &amp; credits</td><td>Top-up records, credit balance, subscriptions, affiliate commissions. Card or banking details are processed by Billplz and are <b>not stored</b> by us.</td><td>Top Up, Affiliate, all subscriptions</td></tr>
+    <tr><td>Technical</td><td>Device notification tokens, sign-up source (e.g. affiliate link or campaign), date and version of policy consent</td><td>Notifications, internal statistics</td></tr>
+  </table>
+
+  <h3>3. Health data and explicit consent</h3>
+  <p>Health information is sensitive personal data under the PDPA. We only process it with your explicit consent, that is, when you enter it yourself and agree to this policy when signing up or starting nowSihat. You may delete this information at any time in the relevant app.</p>
+  <p>Guidance, nutrition estimates and advice in the apps are general information, <b>not medical advice</b>. Always follow the advice of your doctor or dietitian.</p>
+
+  <h3>4. Food photos and artificial intelligence (AI)</h3>
+  <p>When you scan food in nowSihat, the photo is sent to Google Gemini for analysis. The photo is <b>not stored</b> by us; only the analysis result (food names and nutrition estimates) is saved to your account. Context such as your age, goal and the health conditions you selected is sent with it so the advice is more accurate. Google's processing is subject to Google's terms of service.</p>
+
+  <h3>5. How we use data</h3>
+  <ul>
+    <li>To run the apps: building the family tree, calculating balances, arranging schedules, giving advice.</li>
+    <li>To send notifications you have enabled (e.g. exercise, medication and reflection reminders).</li>
+    <li>To process top-ups, subscriptions and affiliate commissions.</li>
+    <li>Anonymous internal statistics to improve the service.</li>
+    <li>To comply with the law and investigate misuse.</li>
+  </ul>
+  <p>We <b>do not sell</b> your data and do not use it for third-party advertising.</p>
+
+  <h3>6. Who can see your data</h3>
+  <ul>
+    <li><b>Only you,</b> by default, for personal, journal, health and financial data.</li>
+    <li><b>Family members you link,</b> for spaces that are meant to be shared: the myNasab family tree and parent care in weCare.</li>
+    <li><b>Your spouse in the same account</b> (Main/Spouse mode) can see both people's records in that account.</li>
+    <li><b>A nowSihat coach,</b> only if you agree, and only the parts you tick (food records, weight, exercise, health conditions). You can stop sharing at any time in Profile.</li>
+    <li><b>Service providers</b> that help us run the system: a cloud provider for database, sign-in, storage and notifications (Google Firebase), an AI provider for food photo analysis (Google Gemini) and a licensed payment gateway (Billplz). They only process data for these purposes.</li>
+    <li><b>Authorities,</b> where required by law.</li>
+  </ul>
+
+  <h3>7. Where data is stored</h3>
+  <p>Data is stored in Google Firebase, which may be located in data centres outside Malaysia. By using the service, you agree to this transfer. Google protects data with encryption at rest and in transit.</p>
+
+  <h3>8. Retention</h3>
+  <p>Data is kept while your account is active. Some temporary data is deleted automatically (e.g. BAHI posts after their period, JomSalam messages, daily scan counts). Payment records are kept for at least 7 years for accounting and tax purposes.</p>
+
+  <h3>9. Your rights</h3>
+  <ul>
+    <li>To access and correct your data (most of it can be done directly in the apps).</li>
+    <li>To withdraw consent, including for health data and sharing with a coach.</li>
+    <li>To request deletion of your account and data. Email us from your account email; we will process it within 21 days. Data already shared into other people's family trees may remain in their copies.</li>
+  </ul>
+
+  <h3>10. Children</h3>
+  <p>Accounts must be registered by adults. Children's information (e.g. in myKids or the family tree) is entered and managed by parents or guardians.</p>
+
+  <h3>11. Security</h3>
+  <p>We use database access rules so each account can only read its own data and the spaces shared with it. No system is 100% secure; if a data breach affects you, we will notify you.</p>
+
+  <h2 id="en-terma">B. Terms of Use</h2>
+  <h3>1. Acceptance</h3>
+  <p>By signing up for or using Famili Pintar, you agree to these terms. If you do not agree, please do not use the service.</p>
+  <h3>2. Your account</h3>
+  <ul>
+    <li>You must be 18 years or older to sign up.</li>
+    <li>The information you provide must be true. You are responsible for keeping your password safe and for all activity in your account.</li>
+    <li>One account may be used by you and your spouse (Main/Spouse mode). Accounts may not be sold or transferred.</li>
+  </ul>
+  <h3>3. Content you enter</h3>
+  <p>You remain the owner of the information you enter. You may only enter other people's information (e.g. family members) where you have a reasonable basis and it is not against their wishes. Do not upload content that is unlawful, defamatory or infringes the rights of others.</p>
+  <h3>4. Limitation of liability</h3>
+  <ul>
+    <li>Calculators, faraid estimates, nutrition, treatment cost estimates and test results are <b>general guidance</b>, not final medical, financial, legal or religious advice. Consult a qualified professional for important decisions.</li>
+    <li>The service is provided "as is". We aim to keep it available but do not guarantee it will be free of interruptions or errors.</li>
+    <li>To the extent permitted by law, we are not liable for indirect losses arising from use of the service.</li>
+  </ul>
+  <h3>5. Affiliate and Coach programmes</h3>
+  <ul>
+    <li>Affiliates earn commission on top-ups by users who sign up through their link, at the rate shown on the Affiliate page at the time of the sale. Commission can be withdrawn once the minimum balance shown is reached.</li>
+    <li>Commission is not paid on top-ups that are cancelled, refunded or found to be fraudulent. We may withhold or cancel commission in cases of misuse (e.g. creating fake accounts).</li>
+    <li>nowSihat coaches must respect clients' privacy and only use shared data to guide those clients. Coach accounts may be deactivated if the requirements are not met.</li>
+  </ul>
+  <h3>6. Termination</h3>
+  <p>You may stop using the service at any time. We may suspend or terminate accounts that breach these terms, with notice where reasonable.</p>
+  <h3>7. Changes</h3>
+  <p>We may update this document. Major changes will be announced in the apps or by email. Continued use after a change means you accept the new version.</p>
+  <h3>8. Governing law</h3>
+  <p>These terms are governed by the laws of Malaysia.</p>
+
+  <h2 id="en-kredit">C. Credit &amp; Refund Policy</h2>
+  <h3>1. What credits are</h3>
+  <p>Credits are units in the Famili Pintar wallet used to pay for paid features and subscriptions across all apps. Credits are bought through Top Up (payments processed by Billplz). Current packages and bonuses are shown on the Top Up page.</p>
+  <h3>2. Free credits</h3>
+  <p>Free credits (e.g. sign-up gifts or promotions) have no cash value, cannot be exchanged for money and may be withdrawn if obtained improperly.</p>
+  <h3>3. Validity</h3>
+  <p>Credits expire if the account has no activity (sign-in, top-up or credit use) for 6 consecutive months. We will send a reminder by email or notification before credits expire.</p>
+  <h3>4. Subscriptions</h3>
+  <ul>
+    <li>App subscriptions (e.g. weCare, OurMoney, nowSihat) deduct credits for the period shown before you confirm.</li>
+    <li>Subscriptions <b>do not renew automatically</b>; you renew them yourself.</li>
+    <li>Free trials, where offered, are once per account.</li>
+    <li>Prices may change; changes do not affect subscription periods already paid for.</li>
+  </ul>
+  <h3>5. Refunds</h3>
+  <ul>
+    <li>Purchased credits are non-refundable, except as set out below.</li>
+    <li>If a payment succeeded but credits were not added, or you were charged twice, contact us within 14 days with proof of payment. We will add the credits or refund your money.</li>
+    <li>Credits already used for subscriptions or unlocked features cannot be refunded.</li>
+    <li>If an account is terminated for breaching these terms, the remaining credit balance is not refunded.</li>
+  </ul>
+
+  <h2 id="en-hubungi">D. Contact us</h2>
+  <p>For any questions about privacy, your account, payments or credits, email <a href="mailto:dae.book89@gmail.com"><b>dae.book89@gmail.com</b></a>. Include your account email and, for payment issues, the Billplz reference number or a screenshot of the receipt.</p>
+</div>
+</main>
+<footer>&copy; 2026 Famili Pintar · Dahanis Estore (003707742-M). <span class="t-ms">Dokumen ini menggantikan Dasar Privasi myNasab versi 1.0.</span><span class="t-en" hidden>This document replaces the myNasab Privacy Policy version 1.0.</span></footer>
+<script>
+function tukarBahasa(b) {
+  document.getElementById('v-ms').hidden = b !== 'ms'; document.getElementById('v-en').hidden = b !== 'en';
+  document.querySelectorAll('.t-ms').forEach(e => e.hidden = b !== 'ms'); document.querySelectorAll('.t-en').forEach(e => e.hidden = b !== 'en');
+  document.getElementById('b-ms').classList.toggle('on', b === 'ms'); document.getElementById('b-en').classList.toggle('on', b === 'en');
+  document.documentElement.lang = b; try { localStorage.setItem('fp_bahasa_terma', b); } catch (e) {}
+}
+try { const b = new URLSearchParams(location.search).get('lang') || localStorage.getItem('fp_bahasa_terma'); if (b === 'en') tukarBahasa('en'); } catch (e) {}
+</script>
+</body>
+</html>

@@ -88,7 +88,7 @@ onAuthStateChanged(auth, async (user) => {
                 window.__sedangTuntutKredit = true;
                 try {
                     const bakal = parseInt(dataPengguna.kredit_menunggu, 10);
-                    if (confirm(`Selamat datang ke Famili Pintar!\n\nAnda menerima ${bakal} kredit percuma.\nDengan menekan OK, anda bersetuju dengan Dasar Privasi kami (familipintar.com/mynasab/privasi.html).`)) {
+                    if (confirm(`Selamat datang ke Famili Pintar!\n\nAnda menerima ${bakal} kredit percuma.\nDengan menekan OK, anda bersetuju dengan Dasar Privasi, Terma & Polisi Kredit kami (familipintar.com/terma-privasi.html).`)) {
                         const hasil = await httpsCallable(fungsi, 'tuntutKreditAwal')({ pdpa: true });
                         dataPengguna.credit_balance = (parseInt(dataPengguna.credit_balance, 10) || 0) + ((hasil.data && hasil.data.kredit) || 0);
                     }
