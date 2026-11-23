@@ -316,7 +316,9 @@ async function pilih(i) {
   };
   render();
 }
-const simpan = () => setDoc(doc(db,"mykids_plans",S.anak[S.i].id), { owner_uid:S.uid, kerjaya:S.plan.ker, tier:S.plan.tier||'awam', tick:S.plan.tick, updated_at:Date.now() }, { merge:true });
+// Simpan automatik; anggaran kos (jika ada) turut dihantar ke myTADBIR supaya pengguna tak perlu tekan butang
+const simpan = () => setDoc(doc(db,"mykids_plans",S.anak[S.i].id), { owner_uid:S.uid, nama_anak:S.anak[S.i].name, kerjaya:S.plan.ker, tier:S.plan.tier||'awam', tick:S.plan.tick, updated_at:Date.now(),
+  ...(S.kos ? { kos_semasa:S.kos.jumlah, jenis_uni:S.kos.jenis, umur_masuk:S.kos.umur, kos_dikemas:Date.now() } : {}) }, { merge:true });
 
 function render() {
   const a = S.anak && S.anak[S.i];
@@ -556,7 +558,7 @@ function kosBox(K) {
     <p class="nota"><b>Kos anggaran.</b> Semak yuran rasmi universiti sebelum membuat keputusan.${d.anggaran_dalaman ? ' Tiada angka khusus program ini, angka proksi digunakan.' : ''}</p>
     <p class="nota">Sumber: ${esc(d.sumber)}</p>
     ${simpBox()}
-    <button class="btn" id="btnKos" style="width:100%;border:0;cursor:pointer;font:800 15px inherit;font-family:inherit">Simpan ke myTADBIR (${RM(tengah)})</button>
+    <button class="btn" id="btnKos" style="width:100%;border:0;cursor:pointer;font:800 15px inherit;font-family:inherit">✔ Disimpan automatik ke myTADBIR (${RM(tengah)})</button>
     <a class="btn" style="background:#fff;color:var(--dunia);border:2px solid var(--dunia)" href="${URL_MYTADBIR}">Buka myTADBIR</a></div>`;
   return h;
 }
@@ -578,8 +580,8 @@ document.addEventListener('click', e => {
 document.getElementById('tD').onclick = () => { S.tab='dunia'; render(); };
 document.getElementById('tA').onclick = () => { S.tab='akhirat'; render(); };
 document.addEventListener('change', e => {
-  if (e.target.id==='ker') { S.plan.ker = e.target.value; simpan(); render(); }
-  else if (e.target.id==='tier') { S.plan.tier = e.target.value; simpan(); render(); }
+  if (e.target.id==='ker') { S.plan.ker = e.target.value; render(); simpan(); }
+  else if (e.target.id==='tier') { S.plan.tier = e.target.value; render(); simpan(); }
   else if (e.target.dataset.k) { S.plan.tick[e.target.dataset.k] = e.target.checked; simpan(); }
   else if (e.target.id==='simpEdu') {
     const v = Math.max(0, Math.round((parseFloat(e.target.value)||0) * 100) / 100), a = S.anak[S.i];
