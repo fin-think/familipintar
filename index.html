@@ -899,6 +899,9 @@ if ('Notification' in window) {
         if (user) {
             window.penggunaSemasa = user; { const c = document.getElementById('ctaNasab'); if (c) c.textContent = 'Lihat myNasab'; }
             { const bl = document.getElementById('btnLoceng'); if (bl) bl.style.display = 'inline-block'; window.kiraNotis && window.kiraNotis(); }
+            // Aktiviti terakhir (sekali sehari) untuk polisi luput kredit 6 bulan
+            try { const kunci = 'fp_aktif_' + user.uid, hari = new Date().toISOString().slice(0, 10);
+                if (localStorage.getItem(kunci) !== hari) { setDoc(doc(db, 'mynasab_users', user.uid), { last_active: Date.now() }, { merge: true }).then(() => localStorage.setItem(kunci, hari)).catch(() => {}); } } catch (e) {}
 
             // --- 1. TUKAR PAPARAN UI KEPADA LOG MASUK DAHULU ---
             if(greetingBox) {
