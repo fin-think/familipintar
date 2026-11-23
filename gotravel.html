@@ -534,6 +534,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { tentukanKumpulan } from "./kumpulan.js?v=1";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -1334,6 +1335,7 @@ window.muatKalendarIntegrasi = async (groupUid, nodSaya, nodInduk, sayaInduk, sa
         jangkarCal.pasangan = idPasangan(nodSaya); jangkarCal.induk = !sayaInduk ? (sasaranIdPusat || idDiri(nodSaya)) : idDiri(nodSaya);
         jangkarCal.lamaInduk = idDiri(nodInduk); jangkarCal.lamaPasangan = idPasangan(nodInduk);
 
+        try { groupUid = await tentukanKumpulan(db, currentUser.uid); } catch (e) {}   // kumpulan weCare (termasuk Salam Paut)
         const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", groupUid)));
         dataWeCareCal = snap.docs.map(d => ({ ...d.data(), id: d.id })); window.renderKalendarWeCare();
     } catch (e) { console.warn("Gagal muat kalendar weCare:", e); }

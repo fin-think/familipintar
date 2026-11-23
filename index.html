@@ -772,6 +772,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, arrayUnion, collection, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { tentukanKumpulan } from "./kumpulan.js?v=1";
     import { tarikhMalaysia, sirahHariIni } from "./sejarah-islam.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
 
@@ -1291,12 +1292,8 @@ window.pantauLencanaWeCareUtama = async (user) => {
 
     // 1. Kenal pasti Kumpulan Induk
     let groupUid = user.uid;
-    try {
-        const sLink = await getDoc(doc(db, "mynasab_links", user.uid));
-        if (sLink.exists() && sLink.data().status === 'aktif') {
-            groupUid = sLink.data().owner_uid;
-        }
-    } catch (e) { console.warn("Ralat pautan:", e); }
+    try { groupUid = await tentukanKumpulan(db, user.uid); }   // termasuk Salam Paut (kumpulan.js)
+    catch (e) { console.warn("Ralat pautan:", e); }
 
     // 2. Kira Hari Jadi (Tidak termasuk yang telah meninggal dunia)
     let jumlahHariJadi = 0;
