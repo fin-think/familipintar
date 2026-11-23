@@ -253,6 +253,7 @@
           <div class="chk"><input type="checkbox" id="fGula"> <span>Kurangkan gula</span></div>
           <div class="chk"><input type="checkbox" id="fGaram"> <span>Kurangkan garam</span></div>
           <div class="chk"><input type="checkbox" id="fProtein"> <span>Lebih protein</span></div>
+          <div class="chk"><input type="checkbox" id="pOmTawar"> <span>Tawar rekod belanja makan ke OurMoney selepas imbasan</span></div>
           <label>Keadaan kesihatan (pilihan, boleh pilih lebih dari satu)</label>
           <p class="kecil" style="margin:0 0 4px">Untuk nasihat makanan dan senaman yang sesuai. Tidak dikongsi dengan coach kecuali anda benarkan.</p>
           <div id="pKeadaan"></div>
@@ -822,11 +823,12 @@ function isiBorang() {
   $('pAktiviti').value = p.aktiviti || '1.2'; $('pMatlamat').value = p.matlamat || 'kekal';
   const f = p.fokus || []; $('fGula').checked = f.includes('gula'); $('fGaram').checked = f.includes('garam'); $('fProtein').checked = f.includes('protein');
   isiKeadaan();
+  $('pOmTawar').checked = p.om_tawar !== false;
 }
 window.simpanProfil = async () => {
   const fokus = [['fGula', 'gula'], ['fGaram', 'garam'], ['fProtein', 'protein']].filter(([id]) => $(id).checked).map(([, v]) => v);
   const p = { dob: $('pDob').value, jantina: $('pJantina').value, berat: +$('pBerat').value || null, tinggi: +$('pTinggi').value || null,
-    aktiviti: $('pAktiviti').value, matlamat: $('pMatlamat').value, fokus, keadaan: [...[...document.querySelectorAll('.kKeadaan:checked')].map(x => x.value), ...($('pLain').value || '').split(',').map(x => x.trim().slice(0, 30)).filter(Boolean).slice(0, 4)], kemas_kini: Date.now() };
+    aktiviti: $('pAktiviti').value, matlamat: $('pMatlamat').value, fokus, om_tawar: $('pOmTawar').checked, keadaan: [...[...document.querySelectorAll('.kKeadaan:checked')].map(x => x.value), ...($('pLain').value || '').split(',').map(x => x.trim().slice(0, 30)).filter(Boolean).slice(0, 4)], kemas_kini: Date.now() };
   p.sasaran = (({ kalori, protein, gula, natrium }) => ({ kalori, protein, gula, natrium }))(kiraSasaran(p));
   try {
     await setDoc(doc(db, 'nowsihat_profil', PID()), p, { merge: true }); S.profil = { ...S.profil, ...p };
@@ -899,7 +901,43 @@ window.analisis = async (bayarTambahan = false) => {
   }
   b.disabled = !S.gambar; b.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analisis';
 };
+// ---------- Rekod belanja makan ke OurMoney (pilihan, dalam kad keputusan) ----------
+const omAktif = () => (S.user.ourmoney_expiry_date || 0) > Date.now();
+function barisOurMoney(r) {
+  if (S.profil.om_tawar === false) return '';
+  if (!omAktif()) return `<p class="kecil" style="margin:10px 0 0"><i class="fa-solid fa-wallet" style="color:#4f46e5"></i> Nak jejak belanja makan juga? <a href="ourmoney.html" style="color:#4f46e5;font-weight:800">Cuba OurMoney</a></p>`;
+  const bank = Array.isArray(S.user['om_bank_' + S.per]) ? S.user['om_bank_' + S.per] : [];   // akaun bank OurMoney ikut orang
+  let akhir = ''; try { akhir = localStorage.getItem('ns_om_akaun_' + S.uid) || ''; } catch (e) {}
+  const pil = [['Tunai', 'Tunai'], ...(bank.length ? bank.map(b => ['Bank:' + b.id, b.nama]) : [['Bank:utama', 'Bank']])];
+  return `<div id="omBaris" style="margin-top:12px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:10px 12px">
+    <div style="font-size:13px;font-weight:800;color:#3730a3;margin-bottom:6px"><i class="fa-solid fa-wallet"></i> Beli di luar? Rekod dalam OurMoney</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <input type="number" id="omJumlah" min="0" step="0.01" inputmode="decimal" placeholder="RM" style="flex:1 1 80px;min-width:70px">
+      <select id="omAkaun" style="flex:1 1 90px;width:auto">${pil.map(([v, n]) => `<option value="${esc(v)}" ${v === akhir ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>
+      <select id="omKat" style="flex:1 1 110px;width:auto"><option value="Makan Luar (Sendiri)">Sendiri</option><option value="Makan Luar (Keluarga)">Keluarga</option></select>
+      <button class="btn btn-hijau" style="flex:0 0 auto;padding:8px 14px;background:linear-gradient(135deg,#4338ca,#6366f1)" onclick="simpanKeOurMoney('${esc(r.id)}')">Simpan</button>
+    </div></div>`;
+}
+window.simpanKeOurMoney = async (id) => {
+  const amaun = Math.round((parseFloat($('omJumlah').value) || 0) * 100) / 100;
+  if (!(amaun > 0)) { alert('Isi jumlah belanja (RM).'); return; }
+  const r = S.hasilAkhir || {}, akaun = $('omAkaun').value;
+  const nama = (r.makanan || []).map(m => m.nama).filter(Boolean).slice(0, 3).join(', ');
+  try {
+    await addDoc(collection(db, 'ourmoney_transactions'), {
+      owner_uid: S.uid, type: 'outflow', category: $('omKat').value, date: tarikhMY(), amount: amaun,
+      note: (nama ? nama + ' ' : '') + '(dari nowSihat)', receipt_url: '', created_at: Date.now(),
+      txnUser: namaOrang() || (S.per === 'pasangan' ? 'Pasangan' : 'Induk'), txnPeranan: S.per,
+      txnAccount: akaun === 'Tunai' ? 'Tunai' : 'Bank', ...(akaun.startsWith('Bank:') ? { bank_id: akaun.slice(5) } : {}),
+      sumber: 'nowsihat', nowsihat_log: id
+    });
+    try { localStorage.setItem('ns_om_akaun_' + S.uid, akaun); } catch (e) {}
+    $('omBaris').innerHTML = `<div style="font-size:13px;font-weight:800;color:#3730a3"><i class="fa-solid fa-circle-check"></i> RM ${amaun.toFixed(2)} direkod dalam OurMoney (${esc($('omKat') ? $('omKat').value : '')}).</div>`;
+  } catch (e) { alert('Gagal simpan ke OurMoney: ' + e.message); }
+};
+
 function paparHasil(r) {
+  S.hasilAkhir = r;
   const k = $('kadHasil'); k.classList.remove('hidden');
   if (!r.makanan || !r.makanan.length) { k.innerHTML = '<h2>Tiada makanan dikesan</h2><p class="kecil" style="margin:0">Cuba ambil gambar lebih dekat dan terang. Imbasan ini tidak dikira.</p>'; return; }
   const dewasa = (() => { const u = umur(S.profil.dob); return u === null || u >= 18; })();
@@ -908,6 +946,7 @@ function paparHasil(r) {
     ${r.makanan.map(m => `<div class="item"><div style="flex:1"><b style="font-size:14px">${esc(m.nama)}</b><div class="kecil">${esc(m.saiz)}</div></div><div class="kecil" style="text-align:right">${dewasa ? m.kalori + ' kcal<br>' : ''}P ${m.protein}g · G ${m.gula}g</div></div>`).join('')}
     <div class="item" style="font-weight:800;font-size:13.5px"><div style="flex:1">Jumlah</div><div style="text-align:right">${dewasa ? r.jumlah.kalori + ' kcal · ' : ''}protein ${r.jumlah.protein} g<br>karbo ${r.jumlah.karbo} g · lemak ${r.jumlah.lemak} g · gula ${r.jumlah.gula} g · natrium ${r.jumlah.natrium} mg</div></div>
     ${r.seterusnya ? `<div class="tip" style="margin-top:10px"><i class="fa-solid fa-utensils"></i><span><b>Seterusnya:</b> ${esc(r.seterusnya)}</span></div>` : ''}
+    ${r.id ? barisOurMoney(r) : ''}
     ${r.id && S.pautan && (S.pautan.kongsi || {}).makan !== false ? `<button class="btn penuh" style="margin-top:12px;background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;box-shadow:0 3px 10px rgba(109,40,217,.3)" onclick="bukaTanya('${r.id}', true)"><i class="fa-solid fa-circle-question"></i> Tanya ${esc((S.coachSaya || {}).nama || 'coach')} tentang ni</button>` : ''}
     ${r.id ? `<div class="grid2" style="margin-top:12px"><button class="btn btn-garis" onclick="bukaEdit('${r.id}')"><i class="fa-solid fa-sliders"></i> Laras saiz</button><button class="btn btn-garis" onclick="simpanKerap('${r.id}')"><i class="fa-regular fa-star"></i> Simpan kerap</button></div>` : ''}
     <p class="kecil" style="margin:8px 0 0">Anggaran sahaja. Nilai sebenar bergantung pada saiz hidangan dan cara masakan.</p>`;
