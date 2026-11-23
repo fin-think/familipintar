@@ -512,10 +512,17 @@ async function siapkanJangkar(user, groupUid) {
   const nodSaya = await baca(user.uid);
 
   jangkar.pasangan = idPasangan(nodSaya);
+  jangkar.diriSaya = idDiri(nodSaya);
   jangkar.induk = berpaut ? (sLink.data().sasaran_id || idDiri(nodSaya)) : idDiri(nodSaya);
 
+  // Adik-beradik Salam Paut (tiada jemputan, tetapi kumpulan = adik-beradik lain):
+  // keluarga induk dikenal pasti dengan nod diri pemilik kumpulan, sama seperti yang dilihat oleh pemilik kumpulan
+  const salamPaut = !berpaut && groupUid && groupUid !== user.uid;
+  const nodKumpulan = salamPaut ? await baca(groupUid) : null;
+  if (salamPaut && idDiri(nodKumpulan)) jangkar.induk = idDiri(nodKumpulan);
+
   // untuk tugas lama (tiada anchor_id): sudut pandang pemilik kumpulan
-  const nodPemilik = berpaut ? await baca(groupUid) : nodSaya;
+  const nodPemilik = berpaut ? await baca(groupUid) : (salamPaut ? nodKumpulan : nodSaya);
   jangkar.lamaInduk = idDiri(nodPemilik);
   jangkar.lamaPasangan = idPasangan(nodPemilik);
   window._jangkar = jangkar;   // untuk semakan di Console
@@ -534,7 +541,8 @@ async function migrasiDataLama(uid, groupBaru) {
         const ubah = { group_id: groupBaru };
         // data lama ditulis dari sudut pandang SAYA, jadi tetapkan jangkar sekarang
         const a = x.belah === 'pasangan' ? jangkar.pasangan : jangkar.induk;
-        if (!x.anchor_id && a) ubah.anchor_id = a;
+        // (termasuk data yang dijangkar pada nod diri sendiri semasa belum berkumpulan, cth Salam Paut)
+        if (a && (!x.anchor_id || (x.belah !== 'pasangan' && x.anchor_id === jangkar.diriSaya))) ubah.anchor_id = a;
         await updateDoc(d.ref, ubah);
       }
     }
