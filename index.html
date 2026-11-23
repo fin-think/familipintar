@@ -368,8 +368,8 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     ['#kadSmartsolo', 'SmartSolo', 'fa-person-walking-luggage', '#ede9fe', '#6d28d9', 'linear-gradient(135deg,#8b5cf6,#6d28d9)'],
     ['#kadMykids', 'myKids', 'fa-child-reaching', '#fef3c7', '#b45309', 'linear-gradient(135deg,#f59e0b,#ea580c)'],
     ['a[onclick*="mytadbir"]', 'myTADBIR', 'fa-building-columns', '#e2e8f0', '#1e293b', 'linear-gradient(135deg,#475569,#0f172a)'],
-    ['a[onclick*="\'ourmoney\'"]', 'OurMoney', 'fa-wallet', '#e0e7ff', '#4338ca', 'linear-gradient(135deg,#6366f1,#4338ca)', 'lencanaLuarOurMoney'],
-    ['a[onclick*="nowsihat.html"]', 'nowSihat', 'fa-heart-pulse', '#dcfce7', '#16a34a', 'linear-gradient(135deg,#16a34a,#65a30d)']];
+    ['a[onclick*="nowsihat.html"]', 'nowSihat', 'fa-heart-pulse', '#dcfce7', '#16a34a', 'linear-gradient(135deg,#16a34a,#65a30d)'],
+    ['a[onclick*="\'ourmoney\'"]', 'OurMoney', 'fa-wallet', '#e0e7ff', '#4338ca', 'linear-gradient(135deg,#6366f1,#4338ca)', 'lencanaLuarOurMoney']];
   var TAMBAH = [['a[onclick*="daebook"]', 'fa-book', 'linear-gradient(135deg,#eab308,#a16207)'], ['a[onclick*="mandarin.html"]', 'fa-language', 'linear-gradient(135deg,#f97316,#c2410c)']];
   var $ = function (id) { return document.getElementById(id); };
   function nampak(el) { return el && getComputedStyle(el).display !== 'none' && !el.closest('[style*="display: none"]'); }
@@ -611,7 +611,20 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             </span>
         </a>
 
-        <!-- 7. OurMoney (Putih) -->
+        <!-- 7. nowSihat (Hijau segar) -->
+        <a onclick="semakAksesPintu('nowSihat', 'nowsihat.html')" class="cursor-pointer group bg-gradient-to-br from-green-50 to-lime-50 rounded-3xl p-7 border border-green-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
+            <div class="w-14 h-14 rounded-2xl bg-green-600 text-white flex items-center justify-center text-2xl mb-5">
+                <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-800">Makan Apa Hari Ni?</h3>
+            <p class="text-green-700 text-sm font-semibold mb-3">Pembantu pemakanan & gaya hidup sihat</p>
+            <p class="text-slate-500 text-sm leading-relaxed mb-5 flex-grow">Snap gambar makanan, dapat anggaran kalori, protein, gula dan garam serta nasihat ikut umur. Ada peringatan senaman, panduan puasa sunat dan pilihan coach diet.</p>
+            <span class="inline-flex items-center gap-2 font-bold text-green-700 group-hover:gap-3 transition-all">
+                Guna nowSihat <i class="fa-solid fa-arrow-right"></i>
+            </span>
+        </a>
+
+        <!-- 8. OurMoney (Putih) -->
         <a onclick="semakAksesPintu('ourmoney', 'ourmoney.html')" class="cursor-pointer group bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
             <div class="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl mb-5">
                 <i class="fa-solid fa-wallet"></i>
@@ -624,19 +637,6 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
             <p class="text-slate-500 text-sm leading-relaxed mb-5 flex-grow">Selalu bocor poket hujung bulan? Jejak setiap sen, pantau kesihatan kewangan, dan urus duit keluarga tanpa pening kepala!</p>
             <span class="inline-flex items-center gap-2 font-bold text-indigo-600 group-hover:gap-3 transition-all">
                 Guna ourMoney <i class="fa-solid fa-arrow-right"></i>
-            </span>
-        </a>
-
-        <!-- 8. nowSihat (Hijau segar) -->
-        <a onclick="semakAksesPintu('nowSihat', 'nowsihat.html')" class="cursor-pointer group bg-gradient-to-br from-green-50 to-lime-50 rounded-3xl p-7 border border-green-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
-            <div class="w-14 h-14 rounded-2xl bg-green-600 text-white flex items-center justify-center text-2xl mb-5">
-                <i class="fa-solid fa-heart-pulse"></i>
-            </div>
-            <h3 class="text-xl font-extrabold text-slate-800">Makan Apa Hari Ni?</h3>
-            <p class="text-green-700 text-sm font-semibold mb-3">Pembantu pemakanan & gaya hidup sihat</p>
-            <p class="text-slate-500 text-sm leading-relaxed mb-5 flex-grow">Snap gambar makanan, dapat anggaran kalori, protein, gula dan garam serta nasihat ikut umur. Ada peringatan senaman, panduan puasa sunat dan pilihan coach diet.</p>
-            <span class="inline-flex items-center gap-2 font-bold text-green-700 group-hover:gap-3 transition-all">
-                Guna nowSihat <i class="fa-solid fa-arrow-right"></i>
             </span>
         </a>
 
@@ -1512,15 +1512,15 @@ window.pantauLencanaWeCareUtama = async (user) => {
           <ul><li>Ahli keluarga dari myNasab, hutang dari myDEBT, persaraan dari myFINPLAN.</li><li>Dikira: harta bersih, DSR, dana persaraan, zakat dan sasaran dana.</li><li>Agihan faraid dalam RM guna formula yang sama dengan myWARIS.</li></ul>
           <div class="pd-guna"><div class="pd-label">Kelebihan</div><p>Nampak gambaran kewangan sebenar keluarga dalam satu skrin: berapa harta bersih, sejauh mana hutang menekan, dan cukupkah untuk bersara. Hasilnya terus menjadi sasaran simpanan di OurMoney.</p></div>
         </div>
-        <div class="pd-langkah" style="--w:#6366f1;--b:#eef2ff">
-          <div class="pd-tajuk"><span class="no">7</span> <i class="fa-solid fa-wallet" style="color:#4f46e5"></i> OurMoney</div>
-          <ul><li>Sasaran simpanan dan zakat ditarik dari myTADBIR.</li><li>Percutian dari JomBercuti jadi misi simpanan.</li><li>Ibu bapa dari myNasab untuk misi Amanah.</li></ul>
-          <div class="pd-guna"><div class="pd-label">Kelebihan</div><p>Jejak duit masuk dan keluar harian ikut individu (suami, isteri atau gabungan), dengan laporan bulanan dan tahunan boleh cetak PDF, nisbah 50/30/20 dan peringatan simpanan. Ada juga misi akhirat: infaq harian dan Amanah ibu bapa.</p></div>
-        </div>
         <div class="pd-langkah" style="--w:#16a34a;--b:#f0fdf4">
-          <div class="pd-tajuk"><span class="no">8</span> <i class="fa-solid fa-heart-pulse" style="color:#16a34a"></i> nowSihat</div>
-          <ul><li>Tarikh lahir dan jantina dari myNasab; berat dan tinggi dari myHEALTH.</li><li>Satu langganan untuk anda dan pasangan.</li><li>Kalendar Hijrah untuk panduan puasa sunat.</li></ul>
+          <div class="pd-tajuk"><span class="no">7</span> <i class="fa-solid fa-heart-pulse" style="color:#16a34a"></i> nowSihat</div>
+          <ul><li>Tarikh lahir dan jantina dari myNasab; berat dan tinggi dari myHEALTH.</li><li>Satu langganan untuk anda dan pasangan.</li><li>Belanja makan luar boleh terus direkod ke OurMoney selepas imbasan.</li><li>Kalendar Hijrah untuk panduan puasa sunat.</li></ul>
           <div class="pd-guna"><div class="pd-label">Kelebihan</div><p>Snap gambar makanan untuk anggaran kalori, protein, gula dan garam, dengan nasihat ikut umur dan matlamat. Ada peringatan senaman, rekod air dan berat, serta pilihan berpaut dengan coach diet.</p></div>
+        </div>
+        <div class="pd-langkah" style="--w:#6366f1;--b:#eef2ff">
+          <div class="pd-tajuk"><span class="no">8</span> <i class="fa-solid fa-wallet" style="color:#4f46e5"></i> OurMoney</div>
+          <ul><li>Belanja makan luar dari nowSihat boleh terus masuk sebagai rekod.</li><li>Sasaran simpanan dan zakat ditarik dari myTADBIR.</li><li>Percutian dari JomBercuti jadi misi simpanan.</li><li>Ibu bapa dari myNasab untuk misi Amanah.</li></ul>
+          <div class="pd-guna"><div class="pd-label">Kelebihan</div><p>Jejak duit masuk dan keluar harian ikut individu (suami, isteri atau gabungan), dengan laporan bulanan dan tahunan boleh cetak PDF, nisbah 50/30/20 dan peringatan simpanan. Ada juga misi akhirat: infaq harian dan Amanah ibu bapa.</p></div>
         </div>
       </div>
       <p style="font-size:.74rem;color:#64748b;font-weight:600;text-align:center;margin:12px 0 4px;line-height:1.5">Tak perlu ikut semua. Mulakan di myNasab, kemudian pilih app yang anda perlukan. Anda boleh buka panduan ini semula bila-bila masa melalui butang <b>Teroka ekosistem</b>.</p>
