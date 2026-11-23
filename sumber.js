@@ -47,7 +47,9 @@
     selesaikanRef: async function (db, fs, ref, uidSendiri) {
       if (!ref) return null;
       try {
-        var q = fs.query(fs.collection(db, 'mynasab_users'), fs.where('referral_code', '==', ref));
+        var syarat = [fs.collection(db, 'mynasab_users'), fs.where('is_affiliate', '==', true), fs.where('referral_code', '==', ref)];
+        if (fs.limit) syarat.push(fs.limit(1));   // peraturan Firestore hanya benarkan carian affiliate, 1 hasil
+        var q = fs.query.apply(null, syarat);
         var sn = await fs.getDocs(q);
         var uid = null; sn.forEach(function (d) { uid = d.id; });
         return uid && uid !== uidSendiri ? uid : null;

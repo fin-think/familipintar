@@ -189,7 +189,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
   }
 </script>
     
-<script src="sumber.js?v=3"></script>
+<script src="sumber.js?v=4"></script>
 <script src="huruf.js?v=1"></script>
 <script src="/pwa.js" defer></script>
 </head>
@@ -1197,7 +1197,7 @@ if ('Notification' in window) {
                 // Simpan profil & beri kredit percuma (tetapan kredit_daftar, asal 20)
                 await muatTH(); const KD = th('kredit_daftar', 20);
                 const sumber = window.FPSumber ? window.FPSumber.untukDaftar(false) : {};
-                const refUid = sumber.ref ? await window.FPSumber.selesaikanRef(db, { query, collection, where, getDocs }, sumber.ref, user.uid) : null;
+                const refUid = sumber.ref ? await window.FPSumber.selesaikanRef(db, { query, collection, where, getDocs, limit }, sumber.ref, user.uid) : null;
                 await setDoc(doc(db, "mynasab_users", user.uid), {
                     name: nama,
                     email: emel,

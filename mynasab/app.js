@@ -801,7 +801,7 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDafta
 
         // Sumber pendaftaran. Pendaftaran melalui pautan jemputan TIDAK layak komisen (tiada referred_by).
         const sumber = window.FPSumber ? window.FPSumber.untukDaftar(!!jem) : {};
-        const refUid = (!jem && sumber.ref) ? await window.FPSumber.selesaikanRef(db, { query, collection, where, getDocs }, sumber.ref, user.uid) : null;
+        const refUid = (!jem && sumber.ref) ? await window.FPSumber.selesaikanRef(db, { query, collection, where, getDocs, limit }, sumber.ref, user.uid) : null;
 
         await setDoc(doc(db, "mynasab_users", user.uid), {
             name: namaKeluarga,
