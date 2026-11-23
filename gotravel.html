@@ -1336,6 +1336,14 @@ window.muatKalendarIntegrasi = async (groupUid, nodSaya, nodInduk, sayaInduk, sa
         jangkarCal.lamaInduk = idDiri(nodInduk); jangkarCal.lamaPasangan = idPasangan(nodInduk);
 
         try { groupUid = await tentukanKumpulan(db, currentUser.uid); } catch (e) {}   // kumpulan weCare (termasuk Salam Paut)
+        // Adik-beradik Salam Paut: guna jangkar keluarga pemilik kumpulan (sama seperti weCare)
+        if (sayaInduk && groupUid && groupUid !== currentUser.uid) {
+            try {
+                const sp = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", groupUid)));
+                const idK = idDiri(sp.docs.map(d => ({ ...d.data(), id: d.id })));
+                if (idK) { jangkarCal.induk = idK; jangkarCal.lamaInduk = idK; }
+            } catch (e) {}
+        }
         const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", groupUid)));
         dataWeCareCal = snap.docs.map(d => ({ ...d.data(), id: d.id })); window.renderKalendarWeCare();
     } catch (e) { console.warn("Gagal muat kalendar weCare:", e); }
