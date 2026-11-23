@@ -24,11 +24,15 @@ export async function tentukanKumpulan(db, uid) {
   const tetap = (g) => (cache[uid] = g);
 
   const induk = await pautanAktif(db, uid);
-  if (induk) return tetap(induk);
-  if (await adaPengikut(db, uid)) return tetap(uid);
+  if (induk) { console.info('[FP kumpulan] ikut jemputan:', induk); return tetap(induk); }
+  if (await adaPengikut(db, uid)) { console.info('[FP kumpulan] saya induk (ada pengikut)'); return tetap(uid); }
 
   let adik = [];
-  try { const r = await getDoc(doc(db, "mynasab_nodes", "root_" + uid)); adik = r.exists() ? (r.data().linked_adik || []).filter(Boolean) : []; } catch (e) {}
+  try {
+    const r = await getDoc(doc(db, "mynasab_nodes", "root_" + uid));
+    adik = r.exists() ? (r.data().linked_adik || []).filter(Boolean) : [];
+    console.info('[FP kumpulan] root wujud:', r.exists(), '| linked_adik:', JSON.stringify(adik), '| linked_uids:', JSON.stringify(r.exists() ? (r.data().linked_uids || []) : []));
+  } catch (e) { console.warn('[FP kumpulan] gagal baca root:', e.message); }
   if (!adik.length) return tetap(uid);
 
   const utama = [];
@@ -37,6 +41,7 @@ export async function tentukanKumpulan(db, uid) {
     if (g) utama.push(g);
     else if (await adaPengikut(db, s)) utama.push(s);
   }
-  if (utama.length) return tetap(utama.sort()[0]);
-  return tetap([uid, ...adik].sort()[0]);
+  const g = utama.length ? utama.sort()[0] : [uid, ...adik].sort()[0];
+  console.info('[FP kumpulan] uid:', uid, '| utama:', JSON.stringify(utama), '| kumpulan dipilih:', g);
+  return tetap(g);
 }
