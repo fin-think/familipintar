@@ -1398,7 +1398,7 @@ function binaSenaraiCuti(tahun, bulan0) {
 window.renderKalendarWeCare = () => {
     const grid = document.getElementById('gridKalendarWeCare'); if (!grid) return;
     const goVal = document.getElementById('date-go')?.value || ''; const backVal = document.getElementById('date-back')?.value || goVal;
-    if (goVal && goVal !== tarikhGoTerakhir) { tarikhGoTerakhir = goVal; const dGo = new Date(goVal); if (!isNaN(dGo)) { calBulan = dGo.getMonth(); calTahun = dGo.getFullYear(); } }
+    // Kalendar kekal pada bulan semasa (tak lompat ke tarikh percutian) — pengguna guna ‹ › untuk ke bulan lain
     const senaraiBulan = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
     document.getElementById('paparanBulanTahunCal').innerText = `${senaraiBulan[calBulan]} ${calTahun}`;
     const hariMula = new Date(calTahun, calBulan, 1).getDay(); const jumlahHari = new Date(calTahun, calBulan + 1, 0).getDate();
