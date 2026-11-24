@@ -380,8 +380,8 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
         const L = sd.data.gender === 'L';
         const pasanganSd = sd === rootInduk
             ? nodes.filter(n => adaRel(n, /^(suami|isteri)$/i))
-            : nodes.filter(n => adaRel(n, /^ipar$/i) && n.data.ref_id === sd.id);
-        const idPasanganSd = nodes.filter(n => adaRel(n, /^(ipar|suami|isteri)$/i) && n.data.ref_id === sd.id).map(n => n.id);
+            : nodes.filter(n => adaRel(n, /^(ipar|kakak ipar|abang ipar|adik ipar|suami|isteri)$/i) && n.data.ref_id === sd.id);
+        const idPasanganSd = nodes.filter(n => adaRel(n, /^(ipar|kakak ipar|abang ipar|adik ipar|suami|isteri)$/i) && n.data.ref_id === sd.id).map(n => n.id);
         const anakSd = sd === rootInduk
             ? nodes.filter(n => adaRel(n, /^anak$/i))
             : nodes.filter(n => adaRel(n, /^anak saudara$/i) && (n.data.ref_id === sd.id || idPasanganSd.includes(n.data.ref_id) || (!n.data.ref_id && sd === tertuaSaudara)));
