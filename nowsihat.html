@@ -890,7 +890,8 @@ const fmtT = (k) => k ? k.split('-').reverse().join('/') : '';
 const haidDari = (prof) => { const h = (prof && prof.haid) || {}; return { rekod: Array.isArray(h.rekod) ? h.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [], qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi, log: (h.log && typeof h.log === 'object') ? { ...h.log } : {} }; };
 const haidData = () => haidDari(S.profil);
 async function simpanHaid(h) {
-  const log = {}; Object.keys(h.log || {}).sort().slice(-150).forEach(k => { log[k] = h.log[k]; });   // simpan ~5 bulan log harian
+  const had = tambahHari(tarikhMY(), -31), log = {};   // log harian disimpan sebulan terakhir sahaja
+  Object.keys(h.log || {}).filter(k => k >= had).forEach(k => { log[k] = h.log[k]; });
   const v = { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi, log };
   await setDoc(doc(db, 'nowsihat_profil', PID()), { haid: v }, { merge: true });
   S.profil.haid = v;
