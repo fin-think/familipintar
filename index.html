@@ -774,7 +774,7 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     import { getFirestore, doc, setDoc, getDoc, arrayUnion, collection, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { tentukanKumpulan } from "./kumpulan.js?v=3";
     import { tarikhMalaysia, sirahHariIni } from "./sejarah-islam.js";
-    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
 
 // KOD MEMINTA IZIN NOTIFIKASI DARI TELEFON
 if ('Notification' in window) {
@@ -1022,6 +1022,17 @@ if ('Notification' in window) {
                         const kemas = { fcm_token: currentToken, fcm_tokens: arrayUnion(currentToken), fcm_masa: Date.now() };   // fcm_masa: server buang token ini dari akaun lain
                         if (per) kemas['fcm_' + per] = arrayUnion(currentToken);
                         await setDoc(doc(db, "mynasab_users", user.uid), kemas, { merge: true });
+                        // Notifikasi semasa app sedang dibuka (foreground): papar sendiri, kerana FCM tak papar automatik
+                        if (!window._fpOnMsg) {
+                            window._fpOnMsg = true;
+                            onMessage(messaging, async (p) => {
+                                try {
+                                    const n = p.notification || {}, dd = p.data || {};
+                                    const reg = (await navigator.serviceWorker.getRegistration('/')) || (await navigator.serviceWorker.ready);
+                                    await reg.showNotification(n.title || dd.title || 'Famili Pintar', { body: n.body || dd.body || '', icon: '/icon-192.png', tag: dd.tag || undefined, data: { url: dd.url || '/' } });
+                                } catch (e) { console.warn('Papar notifikasi foreground:', e); }
+                            });
+                        }
                         console.log("Token FCM berjaya dikemaskini.");
                     }
                 } catch (err) {
