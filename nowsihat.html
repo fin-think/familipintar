@@ -66,6 +66,9 @@
   .hari-pil { display: flex; gap: 6px; flex-wrap: wrap; } .hari-pil label { margin: 0; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 999px; padding: 5px 10px; font-size: 13px; } .hari-pil input { width: auto; }
   .streak { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 12.5px; color: #c2410c; background: #ffedd5; border-radius: 999px; padding: 3px 10px; }
   .status-pil { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 3px 10px; }
+  .rutin-baris { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid #e2e8f0; padding: 10px 0; }
+  .rutin-baris:first-of-type { border-top: 0; } .rutin-baris b { font-size: 14.5px; } .rutin-baris .kecil { margin: 2px 0 0; }
+  .btn-kecil { padding: 7px 12px; font-size: 13px; border-radius: 10px; width: auto; }
   .status-pil.belum { background: #fee2e2; color: #b91c1c; } .status-pil.dah { background: #dcfce7; color: #15803d; }
   .kad-puasa { background: linear-gradient(135deg,#fffbeb,#fef3c7); border-color: #fde68a; } .kad-puasa h2 i { color: #b45309; }
   .kad-sukan { background: linear-gradient(135deg,#f0fdf4,#ecfccb); }
@@ -265,6 +268,8 @@
       <div class="kolum">
         <div class="kad">
           <h2><i class="fa-solid fa-person-walking"></i> Rutin senaman</h2>
+          <div id="senaraiRutin"></div>
+          <h3 id="sTajukBorang" style="font-size:15px;margin:14px 0 6px">Tambah rutin</h3>
           <div class="grid2">
             <div><label for="sJenis">Jenis</label><select id="sJenis"><optgroup label="Senaman ringan"><option value="jalan">Jalan santai</option><option value="regangan">Regangan / stretching</option><option value="rumah">Senaman ringan di rumah</option><option value="basikal">Berbasikal santai</option><option value="renang">Berenang santai</option></optgroup><optgroup label="Kardio"><option value="brisk">Brisk walk</option><option value="jog">Jogging</option></optgroup></select></div>
             <div><label for="sMinit">Minit setiap sesi</label><input type="number" id="sMinit" min="5" max="180" value="30" inputmode="numeric"></div>
@@ -275,7 +280,8 @@
             <div><label for="sMasa">Masa peringatan</label><select id="sMasa"></select></div>
             <div><label>&nbsp;</label><div class="chk" style="margin-top:10px"><input type="checkbox" id="sNotif" checked> <span>Hantar notifikasi</span></div></div>
           </div>
-          <button class="btn btn-hijau penuh" style="margin-top:14px" onclick="simpanSenaman()">Simpan rutin</button>
+          <button class="btn btn-hijau penuh" style="margin-top:14px" onclick="simpanSenaman()" id="sBtnSimpan">Tambah rutin</button>
+          <button class="btn btn-kelabu penuh hidden" style="margin-top:8px" onclick="batalEditRutin()" id="sBtnBatal">Batal edit</button>
         </div>
         <div class="kad" id="kadCoachSaya"></div>
         <div class="kad" id="kadJadiCoach"></div>
@@ -357,6 +363,7 @@
 
 <div class="modal" id="modalSenaman"><div class="isi">
   <h2 style="margin:0 0 6px;font-size:18px" id="msTajuk">Senaman hari ini</h2>
+  <div id="msBlokJenis" style="display:none"><label for="msJenis">Jenis senaman</label><select id="msJenis"></select></div>
   <div id="msBlokLangkah"><p class="kecil" style="margin:0 0 10px">Isi <b>langkah</b> (dari telefon atau jam pintar) atau <b>minit</b>. Masukkan langkah untuk sesi ini sahaja, bukan jumlah sepanjang hari.</p>
   <label>Langkah sesi ini</label><input type="number" id="msLangkah" min="0" max="60000" inputmode="numeric" placeholder="cth. 6500"></div>
   <label style="margin-top:8px" id="msLabelMinit">atau minit</label><input type="number" id="msMinit" min="0" max="300" inputmode="numeric">
@@ -716,43 +723,83 @@ const tarikhOff = (n) => new Date(Date.now() + 8 * 3600000 + n * 86400000).toISO
 const adaLangkah = (jenis) => !!(JENIS[jenis] || JENIS.brisk)[3];
 const minitDariLangkah = (jenis, langkah) => Math.max(1, Math.round(langkah / ((JENIS[jenis] || JENIS.brisk)[3] || 100)));
 function kalBakar(jenis, minit) { const w = +S.profil.berat || 60; return Math.round((JENIS[jenis] || JENIS.brisk)[1] * 3.5 * w / 200 * minit); }
-function paparSenaman() {
-  const sn = S.profil.senaman, k = $('kadSenaman');
-  if (!sn) { k.innerHTML = `<h2><i class="fa-solid fa-person-walking"></i> Senaman</h2><p style="font-size:14px;margin:0 0 10px">Tetapkan rutin senaman, dari regangan dan jalan santai hingga jogging, dan dapat peringatan pada masa pilihan anda.</p><button class="btn btn-garis penuh" onclick="tukarTab('profil');document.getElementById('sJenis').scrollIntoView({behavior:'smooth',block:'center'})">Tetapkan rutin</button>`; return; }
-  const [nama, , ikon] = JENIS[sn.jenis] || JENIS.brisk, dijadual = (sn.hari || []).includes(hariIniDow()), x = S.senamanHari;
-  const st = (S.profil.senaman_streak && (S.profil.senaman_terakhir === tarikhMY() || S.profil.senaman_terakhir === tarikhOff(-1))) ? S.profil.senaman_streak : 0;
-  k.classList.toggle('dah', !!x); k.classList.toggle('belum', !x && dijadual);
-  k.innerHTML = `<div class="baris" style="align-items:center;gap:8px"><h2 style="margin:0"><i class="fa-solid ${ikon}"></i> ${esc(nama)} ${sn.minit} minit</h2>
-      <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${st ? `<span class="streak"><i class="fa-solid fa-fire"></i> ${st} hari</span>` : ''}${x ? '<span class="status-pil dah"><i class="fa-solid fa-circle-check"></i> Dah buat</span>' : dijadual ? '<span class="status-pil belum"><i class="fa-regular fa-clock"></i> Belum buat</span>' : ''}</span></div>` +
-    (x ? `<p style="font-size:14px;margin:10px 0 0">${esc((JENIS[x.jenis] || JENIS.brisk)[0])} ${x.langkah ? `<b>${x.langkah.toLocaleString('en-MY')} langkah</b> (~${x.minit} minit)` : `<b>${x.minit} minit</b>`} siap hari ini, anggaran <b>${x.kalori} kcal</b> terbakar. Baki kalori hari ini bertambah.</p>
-         <button class="btn btn-kelabu penuh" style="margin-top:10px;font-size:13.5px" onclick="batalSenaman()">Batalkan tanda</button>`
-       : `<p class="kecil" style="margin:8px 0 10px">${dijadual ? 'Dijadualkan hari ini' + (sn.notif ? `, peringatan ${esc(sn.masa)}` : '') + '.' : 'Bukan hari dijadualkan, tapi boleh tetap buat.'} Jadual: ${(sn.hari || []).map(h => NAMA_HARI[h]).join(', ')}</p>
-         <button class="btn ${dijadual ? 'btn-merah' : 'btn-garis'} penuh" onclick="tandaSenaman()">${dijadual ? '<span><i class="fa-regular fa-clock"></i> Belum buat</span><small>Tekan bila dah siap</small>' : '<i class="fa-solid fa-check"></i> Tanda dah buat'}</button>`);
+// Rutin: senarai senaman_rutin (rutin lama 'senaman' ditukar menjadi item pertama)
+const rutin = () => Array.isArray(S.profil.senaman_rutin) ? S.profil.senaman_rutin : (S.profil.senaman ? [{ id: 'r1', ...S.profil.senaman }] : []);
+const slotRutin = (list) => [...new Set(list.filter(r => r.notif).flatMap(r => (r.hari || []).map(h => `${h}_${r.masa}`)))];
+const masaLabel = (v) => { const [h, m] = String(v || '18:00').split(':').map(Number); return `${(h % 12 || 12)}:${String(m).padStart(2, '0')} ${h < 12 ? 'pagi' : h < 19 ? 'petang' : 'malam'}`; };
+// Sesi hari ini (rekod lama satu sesi -> senarai)
+const sesiHari = () => { const x = S.senamanHari; if (!x) return []; return Array.isArray(x.sesi) ? x.sesi : [{ rid: '', jenis: x.jenis, minit: x.minit, kalori: x.kalori, langkah: x.langkah || 0, masa: x.masa }]; };
+async function naikTarafRutin() {   // simpan format baharu sekali supaya peringatan server ikut rutin
+  if (Array.isArray(S.profil.senaman_rutin) || !S.profil.senaman) return;
+  const list = rutin();
+  try { await setDoc(doc(db, 'nowsihat_profil', PID()), { senaman_rutin: list, senaman_slot: slotRutin(list) }, { merge: true }); S.profil.senaman_rutin = list; S.profil.senaman_slot = slotRutin(list); } catch (e) {}
 }
-window.tandaSenaman = () => {
-  const sn = S.profil.senaman || { jenis: 'brisk', minit: 30 };
-  $('msTajuk').textContent = (JENIS[sn.jenis] || JENIS.brisk)[0] + ' hari ini';
-  const l = adaLangkah(sn.jenis); $('msBlokLangkah').style.display = l ? '' : 'none'; $('msLabelMinit').textContent = l ? 'atau minit' : 'Minit';
-  $('msLangkah').value = ''; $('msMinit').value = sn.minit || 30; anggarSenaman();
+function paparSenaman() {
+  const list = rutin(), k = $('kadSenaman');
+  if (!list.length) { k.classList.remove('dah', 'belum'); k.innerHTML = `<h2><i class="fa-solid fa-person-walking"></i> Senaman</h2><p style="font-size:14px;margin:0 0 10px">Tetapkan rutin senaman, dari regangan dan jalan santai hingga jogging, dan dapat peringatan pada masa pilihan anda. Boleh tambah lebih dari satu rutin.</p><button class="btn btn-garis penuh" onclick="tukarTab('profil');document.getElementById('sJenis').scrollIntoView({behavior:'smooth',block:'center'})">Tetapkan rutin</button>`; return; }
+  const dow = hariIniDow(), hariIni = list.filter(r => (r.hari || []).includes(dow)).sort((x, y) => String(x.masa).localeCompare(String(y.masa)));
+  const sesi = sesiHari(), ridDah = new Set(sesi.map(x => x.rid));
+  const st = (S.profil.senaman_streak && (S.profil.senaman_terakhir === tarikhMY() || S.profil.senaman_terakhir === tarikhOff(-1))) ? S.profil.senaman_streak : 0;
+  const semuaDah = hariIni.length ? hariIni.every(r => ridDah.has(r.id)) : sesi.length > 0;
+  k.classList.toggle('dah', semuaDah && sesi.length > 0); k.classList.toggle('belum', !semuaDah && hariIni.length > 0);
+  const jumKal = sesi.reduce((t, x) => t + (x.kalori || 0), 0);
+  const baris = hariIni.map(r => {
+    const [nama, , ikon] = JENIS[r.jenis] || JENIS.brisk, x = sesi.find(z => z.rid === r.id), i = sesi.indexOf(x);
+    return `<div class="rutin-baris"><div><b><i class="fa-solid ${ikon}"></i> ${esc(nama)} ${r.minit} minit</b><p class="kecil">${r.notif ? 'Peringatan ' + masaLabel(r.masa) : masaLabel(r.masa)}${x ? ` · siap ${x.langkah ? x.langkah.toLocaleString('en-MY') + ' langkah, ' : ''}${x.minit} minit, ${x.kalori} kcal` : ''}</p></div>` +
+      (x ? `<button class="btn btn-kelabu btn-kecil" onclick="batalSesi(${i})" title="Batalkan tanda"><i class="fa-solid fa-circle-check" style="color:#16a34a"></i> Dah buat</button>`
+         : `<button class="btn btn-merah btn-kecil" onclick="tandaSenaman('${r.id}')"><i class="fa-regular fa-clock"></i> Tanda siap</button>`) + `</div>`;
+  }).join('');
+  const lain = sesi.map((x, i) => ({ x, i })).filter(o => !hariIni.some(r => r.id === o.x.rid)).map(({ x, i }) => {
+    const [nama, , ikon] = JENIS[x.jenis] || JENIS.brisk;
+    return `<div class="rutin-baris"><div><b><i class="fa-solid ${ikon}"></i> ${esc(nama)}</b><p class="kecil">Siap ${x.langkah ? x.langkah.toLocaleString('en-MY') + ' langkah, ' : ''}${x.minit} minit, ${x.kalori} kcal</p></div><button class="btn btn-kelabu btn-kecil" onclick="batalSesi(${i})" title="Batalkan tanda"><i class="fa-solid fa-circle-check" style="color:#16a34a"></i> Dah buat</button></div>`;
+  }).join('');
+  k.innerHTML = `<div class="baris" style="align-items:center;gap:8px"><h2 style="margin:0"><i class="fa-solid fa-person-walking"></i> Senaman hari ini</h2>
+      <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${st ? `<span class="streak"><i class="fa-solid fa-fire"></i> ${st} hari</span>` : ''}${hariIni.length ? (semuaDah ? '<span class="status-pil dah"><i class="fa-solid fa-circle-check"></i> Semua siap</span>' : '<span class="status-pil belum"><i class="fa-regular fa-clock"></i> Belum siap</span>') : ''}</span></div>` +
+    (hariIni.length ? '' : `<p class="kecil" style="margin:8px 0 0">Tiada rutin dijadualkan hari ini, tapi boleh tetap bersenam.</p>`) +
+    `<div style="margin-top:6px">${baris}${lain}</div>` +
+    (jumKal ? `<p style="font-size:13.5px;margin:6px 0 0">Anggaran <b>${jumKal} kcal</b> terbakar hari ini. Baki kalori hari ini bertambah.</p>` : '') +
+    `<button class="btn btn-garis penuh" style="margin-top:10px;font-size:13.5px" onclick="tandaSenaman('')"><i class="fa-solid fa-plus"></i> Rekod senaman lain</button>`;
+}
+window.tandaSenaman = (rid) => {
+  S.msRid = rid || '';
+  const r = rid ? rutin().find(x => x.id === rid) : null;
+  $('msBlokJenis').style.display = r ? 'none' : '';
+  if (!r && !$('msJenis').options.length) $('msJenis').innerHTML = Object.entries(JENIS).map(([v, j]) => `<option value="${v}">${j[0]}</option>`).join('');
+  if (!r) $('msJenis').value = 'brisk';
+  aturModalJenis(r ? r.jenis : $('msJenis').value, r ? r.minit : 30);
   $('modalSenaman').style.display = 'flex';
 };
+function aturModalJenis(jenis, minit) {
+  $('msTajuk').textContent = S.msRid ? (JENIS[jenis] || JENIS.brisk)[0] + ' hari ini' : 'Rekod senaman';
+  const l = adaLangkah(jenis); $('msBlokLangkah').style.display = l ? '' : 'none'; $('msLabelMinit').textContent = l ? 'atau minit' : 'Minit';
+  $('msLangkah').value = ''; if (minit) $('msMinit').value = minit; anggarSenaman();
+}
+$('msJenis').addEventListener('change', () => aturModalJenis($('msJenis').value, 0));
 function nilaiSenaman() {
-  const sn = S.profil.senaman || { jenis: 'brisk', minit: 30 };
-  const langkah = adaLangkah(sn.jenis) ? Math.min(60000, Math.max(0, parseInt($('msLangkah').value, 10) || 0)) : 0;
-  const minit = langkah ? Math.min(300, minitDariLangkah(sn.jenis, langkah)) : Math.min(300, Math.max(0, parseInt($('msMinit').value, 10) || 0));
-  return { sn, langkah, minit };
+  const r = S.msRid ? rutin().find(x => x.id === S.msRid) : null;
+  const jenis = r ? r.jenis : ($('msJenis').value || 'brisk');
+  const langkah = adaLangkah(jenis) ? Math.min(60000, Math.max(0, parseInt($('msLangkah').value, 10) || 0)) : 0;
+  const minit = langkah ? Math.min(300, minitDariLangkah(jenis, langkah)) : Math.min(300, Math.max(0, parseInt($('msMinit').value, 10) || 0));
+  return { sn: { jenis }, langkah, minit };
 }
 function anggarSenaman() {
   const { sn, langkah, minit } = nilaiSenaman();
   $('msAnggar').innerHTML = minit ? `Anggaran <b>${kalBakar(sn.jenis, minit)} kcal</b> terbakar${langkah ? ` (${langkah.toLocaleString('en-MY')} langkah ≈ ${minit} minit)` : ''}.` : '';
 }
 $('msLangkah').addEventListener('input', anggarSenaman); $('msMinit').addEventListener('input', anggarSenaman);
+async function simpanSesi(sesi) {
+  const hari = tarikhMY(), ref = doc(db, 'nowsihat_senaman', `${PID()}_${hari}`);
+  if (!sesi.length) { await deleteDoc(ref); S.senamanHari = null; return; }
+  const jum = (k) => sesi.reduce((t, x) => t + (x[k] || 0), 0), langkah = jum('langkah');
+  const rek = { uid: S.uid, per: S.per, tarikh: hari, sesi, jenis: sesi[0].jenis, minit: jum('minit'), kalori: jum('kalori'), masa: Date.now(), ...(langkah ? { langkah } : {}) };
+  await setDoc(ref, rek); S.senamanHari = rek;
+}
 window.simpanSenamanModal = async () => {
   const { sn, langkah, minit } = nilaiSenaman(); if (!minit) { alert('Isi langkah atau minit.'); return; }
   $('modalSenaman').style.display = 'none';
-  const hari = tarikhMY(), rek = { uid: S.uid, per: S.per, tarikh: hari, jenis: sn.jenis, minit, kalori: kalBakar(sn.jenis, minit), masa: Date.now(), ...(langkah ? { langkah } : {}) };
+  const hari = tarikhMY(), baru = { rid: S.msRid || ('x' + Date.now()), jenis: sn.jenis, minit, kalori: kalBakar(sn.jenis, minit), masa: Date.now(), ...(langkah ? { langkah } : {}) };
   try {
-    await setDoc(doc(db, 'nowsihat_senaman', `${PID()}_${hari}`), rek); S.senamanHari = rek;
+    await simpanSesi([...sesiHari().filter(x => !S.msRid || x.rid !== S.msRid), baru]);
     if (S.profil.senaman_terakhir !== hari) {
       const streak = S.profil.senaman_terakhir === tarikhOff(-1) ? (S.profil.senaman_streak || 0) + 1 : 1;
       S.profil.senaman_streak = streak; S.profil.senaman_terakhir = hari;
@@ -761,27 +808,55 @@ window.simpanSenamanModal = async () => {
     paparHari();
   } catch (e) { alert('Gagal simpan: ' + e.message); }
 };
-window.batalSenaman = async () => {
-  if (!confirm('Batalkan tanda senaman hari ini?')) return;
+window.batalSesi = async (i) => {
+  if (!confirm('Batalkan tanda senaman ini?')) return;
   try {
-    await deleteDoc(doc(db, 'nowsihat_senaman', `${PID()}_${tarikhMY()}`)); S.senamanHari = null;
-    if (S.profil.senaman_terakhir === tarikhMY()) { const st = Math.max(0, (S.profil.senaman_streak || 1) - 1); S.profil.senaman_streak = st; S.profil.senaman_terakhir = st ? tarikhOff(-1) : ''; await setDoc(doc(db, 'nowsihat_profil', PID()), { senaman_streak: st, senaman_terakhir: S.profil.senaman_terakhir }, { merge: true }); }
+    const sesi = sesiHari().filter((_, j) => j !== i);
+    await simpanSesi(sesi);
+    if (!sesi.length && S.profil.senaman_terakhir === tarikhMY()) { const st = Math.max(0, (S.profil.senaman_streak || 1) - 1); S.profil.senaman_streak = st; S.profil.senaman_terakhir = st ? tarikhOff(-1) : ''; await setDoc(doc(db, 'nowsihat_profil', PID()), { senaman_streak: st, senaman_terakhir: S.profil.senaman_terakhir }, { merge: true }); }
     paparHari();
   } catch (e) { alert('Gagal: ' + e.message); }
 };
-function isiSenamanBorang() {
-  const sn = S.profil.senaman || { jenis: 'brisk', minit: 30, hari: [1, 3, 5], masa: '18:00', notif: true };
+window.batalSenaman = () => batalSesi(0);
+function paparSenaraiRutin() {
+  const list = rutin();
+  $('senaraiRutin').innerHTML = list.length ? list.map(r => {
+    const [nama, , ikon] = JENIS[r.jenis] || JENIS.brisk;
+    return `<div class="rutin-baris"><div><b><i class="fa-solid ${ikon}"></i> ${esc(nama)} ${r.minit} minit</b><p class="kecil">${(r.hari || []).slice().sort((a, b) => ((a || 7) - (b || 7))).map(h => NAMA_HARI[h]).join(', ')} · ${masaLabel(r.masa)}${r.notif ? ' · <i class="fa-solid fa-bell"></i>' : ''}</p></div>
+      <span style="display:flex;gap:6px"><button class="btn btn-garis btn-kecil" onclick="editRutin('${r.id}')" aria-label="Edit"><i class="fa-solid fa-pen"></i></button><button class="btn btn-kelabu btn-kecil" onclick="padamRutin('${r.id}')" aria-label="Padam"><i class="fa-solid fa-trash"></i></button></span></div>`;
+  }).join('') : '<p class="kecil" style="margin:0">Belum ada rutin. Tambah rutin pertama anda di bawah.</p>';
+}
+function isiSenamanBorang(r) {
+  S.editRid = r ? r.id : '';
+  const sn = r || { jenis: 'brisk', minit: 30, hari: [1, 3, 5], masa: '18:00', notif: true };
   $('sJenis').value = sn.jenis; $('sMinit').value = sn.minit; $('sNotif').checked = sn.notif !== false;
   $('sHari').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(h => `<label><input type="checkbox" value="${h}" ${(sn.hari || []).includes(h) ? 'checked' : ''}> ${NAMA_HARI[h]}</label>`).join('');
-  let op = ''; for (let h = 5; h <= 22; h++) for (const m of ['00', '30']) { const v = `${String(h).padStart(2, '0')}:${m}`; op += `<option value="${v}">${(h % 12 || 12)}:${m} ${h < 12 ? 'pagi' : h < 19 ? 'petang' : 'malam'}</option>`; }
+  let op = ''; for (let h = 5; h <= 22; h++) for (const m of ['00', '30']) { const v = `${String(h).padStart(2, '0')}:${m}`; op += `<option value="${v}">${masaLabel(v)}</option>`; }
   $('sMasa').innerHTML = op; $('sMasa').value = sn.masa || '18:00';
+  $('sTajukBorang').textContent = r ? 'Edit rutin' : 'Tambah rutin';
+  $('sBtnSimpan').textContent = r ? 'Simpan perubahan' : 'Tambah rutin';
+  $('sBtnBatal').classList.toggle('hidden', !r);
+  paparSenaraiRutin();
+}
+window.editRutin = (id) => { const r = rutin().find(x => x.id === id); if (r) { isiSenamanBorang(r); $('sJenis').scrollIntoView({ behavior: 'smooth', block: 'center' }); } };
+window.batalEditRutin = () => isiSenamanBorang();
+async function simpanSenaraiRutin(list, mesej) {
+  await setDoc(doc(db, 'nowsihat_profil', PID()), { senaman_rutin: list, senaman: list[0] || null, senaman_slot: slotRutin(list) }, { merge: true });
+  S.profil.senaman_rutin = list; S.profil.senaman = list[0] || null; S.profil.senaman_slot = slotRutin(list);
+  isiSenamanBorang(); paparHari(); if (mesej) alert(mesej);
 }
 window.simpanSenaman = async () => {
   const hari = [...document.querySelectorAll('#sHari input:checked')].map(i => +i.value);
   if (!hari.length) { alert('Pilih sekurang-kurangnya satu hari.'); return; }
-  const sn = { jenis: $('sJenis').value, minit: Math.max(5, Math.min(180, parseInt($('sMinit').value, 10) || 30)), hari, masa: $('sMasa').value, notif: $('sNotif').checked };
-  try { await setDoc(doc(db, 'nowsihat_profil', PID()), { senaman: sn }, { merge: true }); S.profil.senaman = sn; paparHari(); alert('Rutin senaman disimpan.' + (sn.notif ? ' Peringatan akan dihantar pada hari dan masa yang dipilih.' : '')); }
+  const r = { id: S.editRid || ('r' + Date.now()), jenis: $('sJenis').value, minit: Math.max(5, Math.min(180, parseInt($('sMinit').value, 10) || 30)), hari, masa: $('sMasa').value, notif: $('sNotif').checked };
+  const list = rutin().slice(), i = list.findIndex(x => x.id === r.id);
+  if (i >= 0) list[i] = r; else { if (list.length >= 10) { alert('Maksimum 10 rutin.'); return; } list.push(r); }
+  try { await simpanSenaraiRutin(list, (i >= 0 ? 'Rutin dikemas kini.' : 'Rutin ditambah.') + (r.notif ? ' Peringatan akan dihantar pada hari dan masa yang dipilih.' : '')); }
   catch (e) { alert('Gagal simpan: ' + e.message); }
+};
+window.padamRutin = async (id) => {
+  if (!confirm('Padam rutin ini?')) return;
+  try { await simpanSenaraiRutin(rutin().filter(x => x.id !== id)); } catch (e) { alert('Gagal: ' + e.message); }
 };
 
 // ---------- Mod puasa sunat (Isnin, Khamis, Hari Putih 13-15 Hijrah) ----------
@@ -1107,6 +1182,7 @@ const namaOrang = () => { const o = window.Peranan && Peranan.orang ? Peranan.or
 async function muatOrang() {
   S.profil = {};
   try { const p = await getDoc(doc(db, 'nowsihat_profil', PID())); S.profil = p.exists() ? p.data() : {}; } catch (e) {}
+  naikTarafRutin();
   const o = window.Peranan && Peranan.orang ? Peranan.orang(S.per) : null;
   if (o) { if (!S.profil.dob && o.dob) S.profil.dob = o.dob; if (!S.profil.jantina && o.jantina) S.profil.jantina = /^p|perempuan|f/i.test(o.jantina) ? 'P' : /^l|lelaki|m/i.test(o.jantina) ? 'L' : ''; }
   if (S.per === 'induk' && (!S.profil.dob || !S.profil.jantina)) {
