@@ -66,6 +66,15 @@
   .hari-pil { display: flex; gap: 6px; flex-wrap: wrap; } .hari-pil label { margin: 0; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 999px; padding: 5px 10px; font-size: 13px; } .hari-pil input { width: auto; }
   .streak { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 12.5px; color: #c2410c; background: #ffedd5; border-radius: 999px; padding: 3px 10px; }
   .status-pil { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 3px 10px; }
+  .kh-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px; text-align:center; }
+  .kh-grid .h { font-size:11px; font-weight:800; color:#64748b; padding:2px 0; }
+  .kh-d { aspect-ratio:1/1; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#1e293b; position:relative; cursor:pointer; border:1px solid transparent; }
+  .kh-d.haid { background:#e11d48; color:#fff; } .kh-d.jangka { background:#fce7f3; color:#9d174d; } .kh-d.subur { background:#fef9c3; color:#854d0e; }
+  .kh-d.ovul { box-shadow: inset 0 0 0 2px #f59e0b; } .kh-d.kini { border-color:#0f766e; } .kh-d.adalog::after { content:''; position:absolute; bottom:3px; width:4px; height:4px; border-radius:9px; background:#7c3aed; }
+  .kh-leg { display:flex; flex-wrap:wrap; gap:10px; font-size:11.5px; color:#475569; margin-top:8px; } .kh-leg i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
+  .cipL { border:1.5px solid #e2e8f0; background:#fff; border-radius:999px; padding:6px 11px; font-size:13px; font-weight:700; color:#334155; cursor:pointer; }
+  .cipL.on { background:#fdf2f8; border-color:#db2777; color:#9d174d; }
+  .kh-bar { display:flex; height:12px; border-radius:6px; overflow:hidden; background:#e2e8f0; } .kh-bar b { background:#e11d48; display:block; }
   .rutin-baris { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid #e2e8f0; padding: 10px 0; }
   .rutin-baris:first-of-type { border-top: 0; } .rutin-baris b { font-size: 14.5px; } .rutin-baris .kecil { margin: 2px 0 0; }
   .btn-kecil { padding: 7px 12px; font-size: 13px; border-radius: 10px; width: auto; }
@@ -233,6 +242,10 @@
   <!-- KITARAN -->
   <section id="t-kitaran" class="hidden">
     <div class="kad" id="kadHaid" style="border-color:#fbcfe8"></div>
+    <div class="kad" id="kadLogHaid" style="border-color:#fbcfe8"></div>
+    <div class="kad" id="kadKalHaid" style="border-color:#fbcfe8"></div>
+    <div class="kad hidden" id="kadSelfCare" style="border-color:#fbcfe8"></div>
+    <div class="kad" id="kadSejarahHaid" style="border-color:#fbcfe8"></div>
     <div class="kad" id="kadPanduan" style="border-color:#fbcfe8"></div>
   </section>
 
@@ -874,10 +887,11 @@ const HM = 86400000;
 const hariAntara = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / HM);
 const tambahHari = (k, n) => new Date(Date.parse(k + 'T00:00:00Z') + n * HM).toISOString().slice(0, 10);
 const fmtT = (k) => k ? k.split('-').reverse().join('/') : '';
-const haidDari = (prof) => { const h = (prof && prof.haid) || {}; return { rekod: Array.isArray(h.rekod) ? h.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [], qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi }; };
+const haidDari = (prof) => { const h = (prof && prof.haid) || {}; return { rekod: Array.isArray(h.rekod) ? h.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [], qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi, log: (h.log && typeof h.log === 'object') ? { ...h.log } : {} }; };
 const haidData = () => haidDari(S.profil);
 async function simpanHaid(h) {
-  const v = { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi };
+  const log = {}; Object.keys(h.log || {}).sort().slice(-150).forEach(k => { log[k] = h.log[k]; });   // simpan ~5 bulan log harian
+  const v = { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi, log };
   await setDoc(doc(db, 'nowsihat_profil', PID()), { haid: v }, { merge: true });
   S.profil.haid = v;
 }
@@ -893,7 +907,8 @@ function analisisHaid(h) {
   // Qadha puasa Ramadan: hari haid/nifas yang jatuh dalam bulan Ramadan (ikut kiraan Hijrah + laras)
   let qadha = 0;
   h.rekod.forEach(r => { const t = r.t || kini; for (let k = r.m; k <= t; k = tambahHari(k, 1)) { const [y, m, d] = k.split('-').map(Number); if (tarikhHijrah({ y, m, d }, S.laras).m === 9) qadha++; } });
-  return { kini, semasa, kitaran, lama, akhir, jangka, qadha: Math.max(0, qadha - (h.qadha_bayar || 0)), bilKit: kit.length };
+  const k6 = kit.slice(-6), takTeratur = k6.length >= 2 && (Math.max(...k6) - Math.min(...k6) > 7 || kitaran < 21 || kitaran > 35);
+  return { kini, semasa, kitaran, lama, akhir, jangka, qadha: Math.max(0, qadha - (h.qadha_bayar || 0)), bilKit: kit.length, takTeratur };
 }
 function paparHaid() {
   const k = $('kadHaid');
@@ -913,7 +928,7 @@ function paparHaid() {
     butang = `<button class="btn btn-merah penuh" style="margin-top:8px" onclick="haidMula('haid')"><i class="fa-solid fa-droplet"></i> Haid mula hari ini</button>`;
   }
   const qd = a.qadha ? `<div class="baris" style="margin-top:10px;background:#fdf2f8;border-radius:10px;padding:8px 10px"><span style="font-size:13.5px"><i class="fa-solid fa-moon"></i> Qadha puasa Ramadan: <b>${a.qadha} hari</b></span><button class="btn btn-garis btn-kecil" onclick="qadhaDah()">+1 dah qadha</button></div>` : '';
-  k.innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-spa" style="color:#db2777"></i> meTime</h2><span class="kecil">${a.bilKit ? `Kitaran ~${a.kitaran} hari · haid ~${a.lama} hari` : 'Peribadi'}</span></div>
+  k.innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-spa" style="color:#db2777"></i> meTime</h2><span class="kecil">${a.bilKit ? `Kitaran ~${a.kitaran} hari · haid ~${a.lama} hari` : 'Peribadi'}${a.takTeratur ? ' <span class="pil kurangkan">Tidak teratur</span>' : ''}</span></div>
     ${status}${nota}${butang}${qd}
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
       <button class="btn btn-kelabu btn-kecil" onclick="borangHaid()"><i class="fa-solid fa-pen"></i> Rekod tarikh lain</button>
@@ -923,7 +938,113 @@ function paparHaid() {
     <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:13.5px;background:#fdf2f8;border-radius:10px;padding:9px 10px;cursor:pointer"><input type="checkbox" ${h.kongsi ? 'checked' : ''} onchange="kongsiSuami(this.checked)" style="margin-top:3px"> <span><b>Benarkan suami lihat</b> kitaran ini dan panduan untuk memahami isteri. Suami lihat dari tab meTime pada profilnya.</span></label>
     <p class="kecil" style="margin:8px 0 0">${h.kongsi ? 'Dikongsi dengan suami sahaja.' : 'Hanya dilihat oleh anda.'} Panduan fiqh mazhab Syafie secara ringkas; untuk kes luar biasa, rujuk ustazah.</p>`;
   $('kadPanduan').innerHTML = panduanFasa(a, false);
+  paparLogHaid(h, false); lukisKalHaid(h, a, false); paparSejarahBar(h, a); paparSelfCare(h, a);
 }
+// ----- meTime: log harian, kalendar, sejarah & self-care -----
+const LOG_ALIRAN = [['sedikit', 'Sedikit'], ['sederhana', 'Sederhana'], ['banyak', 'Banyak']];
+const LOG_SIMPTOM = [['senggugut', 'Senggugut'], ['sakit_kepala', 'Sakit kepala'], ['letih', 'Letih'], ['kembung', 'Kembung'], ['sakit_pinggang', 'Sakit pinggang'], ['jerawat', 'Jerawat']];
+const LOG_MOOD = [['gembira', '😊 Gembira'], ['biasa', '🙂 Biasa'], ['sensitif', '🥺 Sensitif'], ['sedih', '😢 Sedih'], ['marah', '😠 Mudah marah'], ['cemas', '😟 Cemas']];
+const labelDari = (senarai, v) => (senarai.find(x => x[0] === v) || [, v])[1];
+function ringkasLog(L) {
+  if (!L) return '';
+  const b = []; if (L.a) b.push('aliran ' + labelDari(LOG_ALIRAN, L.a).toLowerCase());
+  (L.s || []).forEach(x => b.push(labelDari(LOG_SIMPTOM, x).toLowerCase())); if (L.m) b.push('mood ' + labelDari(LOG_MOOD, L.m).replace(/^\S+\s/, '').toLowerCase());
+  return b.join(', ');
+}
+S.logHari = null;
+function paparLogHaid(h, lihatSahaja) {
+  const k = $('kadLogHaid'), hari = S.logHari || tarikhMY(), L = h.log[hari] || {};
+  if (lihatSahaja) {
+    const r = ringkasLog(h.log[tarikhMY()]);
+    k.innerHTML = `<h2 style="margin:0 0 6px"><i class="fa-solid fa-notes-medical" style="color:#db2777"></i> Keadaan isteri hari ini</h2><p style="font-size:14px;margin:0">${r ? esc(r[0].toUpperCase() + r.slice(1)) + '.' : 'Isteri belum catat keadaan hari ini.'}</p>${(h.log[tarikhMY()] || {}).s && h.log[tarikhMY()].s.includes('senggugut') ? '<p class="kecil" style="margin:6px 0 0">Isteri senggugut hari ini: sediakan air suam atau tuaman panas, dan ringankan kerjanya.</p>' : ''}`;
+    return;
+  }
+  const cip = (kump, v, label, on) => `<button class="cipL ${on ? 'on' : ''}" onclick="logHaid('${kump}','${v}')">${label}</button>`;
+  k.innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-notes-medical" style="color:#db2777"></i> Log ${hari === tarikhMY() ? 'hari ini' : fmtT(hari)}</h2>${hari !== tarikhMY() ? '<button class="btn btn-kelabu btn-kecil" onclick="S.logHari=null;paparHaid()">Hari ini</button>' : ''}</div>
+    <p class="kecil" style="margin:8px 0 4px"><b>Aliran</b></p><div style="display:flex;gap:6px;flex-wrap:wrap">${LOG_ALIRAN.map(([v, l]) => cip('a', v, l, L.a === v)).join('')}</div>
+    <p class="kecil" style="margin:10px 0 4px"><b>Simptom</b></p><div style="display:flex;gap:6px;flex-wrap:wrap">${LOG_SIMPTOM.map(([v, l]) => cip('s', v, l, (L.s || []).includes(v))).join('')}</div>
+    <p class="kecil" style="margin:10px 0 4px"><b>Mood</b></p><div style="display:flex;gap:6px;flex-wrap:wrap">${LOG_MOOD.map(([v, l]) => cip('m', v, l, L.m === v)).join('')}</div>
+    <p class="kecil" style="margin:8px 0 0">Tekan untuk tanda atau buang. Tekan tarikh pada kalendar untuk log hari lain.</p>`;
+}
+window.logHaid = async (kump, v) => {
+  const h = haidData(), hari = S.logHari || tarikhMY(), L = { ...(h.log[hari] || {}) };
+  if (kump === 's') { const s0 = new Set(L.s || []); s0.has(v) ? s0.delete(v) : s0.add(v); L.s = [...s0]; }
+  else L[kump] = L[kump] === v ? '' : v;
+  if (!L.a && !(L.s || []).length && !L.m) delete h.log[hari]; else h.log[hari] = L;
+  try { await simpanHaid(h); paparHaid(); } catch (e) { alert('Gagal simpan: ' + e.message); }
+};
+S.kalHaid = null;
+function setHariHaid(h, a) {
+  const haid = new Set(), jangka = new Set(), subur = new Set(), ovul = new Set();
+  h.rekod.forEach(r => { const t = r.t || a.kini; for (let k = r.m; k <= t; k = tambahHari(k, 1)) haid.add(k); });
+  const mulaHaid = h.rekod.filter(r => r.j !== 'nifas');
+  if (mulaHaid.length) {
+    const terakhir = mulaHaid[mulaHaid.length - 1].m;
+    let p = tambahHari(terakhir, a.kitaran);
+    const tandaSubur = (mula) => { const ov = tambahHari(mula, -14); ovul.add(ov); for (let d = -5; d <= 1; d++) subur.add(tambahHari(ov, d)); };
+    tandaSubur(p);
+    for (let c = 0; c < 3; c++) { for (let d = 0; d < a.lama; d++) { const k = tambahHari(p, d); if (!haid.has(k) && k >= a.kini) jangka.add(k); } p = tambahHari(p, a.kitaran); tandaSubur(p); }
+  }
+  return { haid, jangka, subur, ovul };
+}
+function lukisKalHaid(h, a, lihatSahaja) {
+  if (!S.kalHaid) { const [y, m] = tarikhMY().split('-').map(Number); S.kalHaid = { y, m }; }
+  const { y, m } = S.kalHaid, set = setHariHaid(h, a);
+  const mula = new Date(Date.UTC(y, m - 1, 1)).getUTCDay(), bil = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const BLN = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
+  let g = ['Ahd', 'Isn', 'Sel', 'Rab', 'Kha', 'Jum', 'Sab'].map(x => `<div class="h">${x}</div>`).join('');
+  for (let i = 0; i < mula; i++) g += '<div></div>';
+  for (let d = 1; d <= bil; d++) {
+    const k = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const c = set.haid.has(k) ? 'haid' : set.jangka.has(k) ? 'jangka' : set.subur.has(k) ? 'subur' : '';
+    g += `<div class="kh-d ${c} ${set.ovul.has(k) ? 'ovul' : ''} ${k === a.kini ? 'kini' : ''} ${h.log[k] ? 'adalog' : ''}" ${!lihatSahaja && k <= a.kini ? `onclick="pilihHariHaid('${k}')"` : ''} title="${esc(ringkasLog(h.log[k]))}">${d}</div>`;
+  }
+  $('kadKalHaid').innerHTML = `<div class="baris"><button class="btn btn-kelabu btn-kecil" onclick="geserKalHaid(-1)" aria-label="Bulan sebelum"><i class="fa-solid fa-chevron-left"></i></button><h2 style="margin:0;font-size:16px">${BLN[m - 1]} ${y}</h2><button class="btn btn-kelabu btn-kecil" onclick="geserKalHaid(1)" aria-label="Bulan seterusnya"><i class="fa-solid fa-chevron-right"></i></button></div>
+    <div class="kh-grid" style="margin-top:8px">${g}</div>
+    <div class="kh-leg"><span><i style="background:#e11d48"></i>Haid</span><span><i style="background:#fce7f3"></i>Jangkaan</span><span><i style="background:#fef9c3"></i>Tempoh subur</span><span><i style="box-shadow:inset 0 0 0 2px #f59e0b"></i>Anggaran ovulasi</span><span><i style="background:#7c3aed;border-radius:9px;width:6px;height:6px"></i>Ada log</span></div>
+    <p class="kecil" style="margin:6px 0 0">Jangkaan dan tempoh subur ialah anggaran berdasarkan purata kitaran.</p>`;
+}
+window.geserKalHaid = (n) => { let { y, m } = S.kalHaid; m += n; if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } S.kalHaid = { y, m }; paparKitaran(); };
+window.pilihHariHaid = (k) => { S.logHari = k === tarikhMY() ? null : k; paparHaid(); $('kadLogHaid').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+function paparSejarahBar(h, a) {
+  const haid = h.rekod.filter(r => r.j !== 'nifas'), baris = [];
+  for (let i = haid.length - 1; i >= 0 && baris.length < 6; i--) {
+    const r = haid[i], seterusnya = haid[i + 1], panjang = seterusnya ? hariAntara(r.m, seterusnya.m) : null, lama = r.t ? hariAntara(r.m, r.t) + 1 : hariAntara(r.m, a.kini) + 1;
+    const lebar = panjang ? Math.min(100, Math.round(lama / panjang * 100)) : 100;
+    baris.push(`<div style="margin:8px 0"><div class="baris kecil" style="margin-bottom:3px"><span>${fmtT(r.m)}${seterusnya ? ' – ' + fmtT(tambahHari(seterusnya.m, -1)) : ' (semasa)'}</span><span><b>${lama}</b> hari haid${panjang ? ` · kitaran <b>${panjang}</b> hari` : ''}</span></div><div class="kh-bar"><b style="width:${lebar}%"></b></div></div>`);
+  }
+  $('kadSejarahHaid').innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-chart-simple" style="color:#db2777"></i> Sejarah kitaran</h2>${a.takTeratur ? '<span class="pil kurangkan">Tidak teratur</span>' : (a.bilKit >= 2 ? '<span class="pil hijau">Teratur</span>' : '')}</div>` +
+    (baris.length ? baris.join('') : '<p class="kecil" style="margin:8px 0 0">Belum ada rekod.</p>') +
+    (a.takTeratur ? '<p class="kecil" style="margin:6px 0 0">Kitaran berbeza lebih 7 hari antara bulan, atau di luar julat biasa 21 hingga 35 hari. Tekanan, perubahan berat badan atau keadaan kesihatan boleh menjadi punca. Jika berterusan, rujuk doktor.</p>' : '');
+}
+const SELFCARE = [
+  ['Posisi kanak-kanak (child\'s pose)', 'Melutut, duduk atas tumit, bongkok ke depan dan hulur tangan ke hadapan. Tarik nafas perlahan.', 60],
+  ['Lutut ke dada', 'Baring, peluk kedua-dua lutut ke dada dan goyang perlahan ke kiri dan kanan.', 60],
+  ['Kucing-lembu (cat-cow)', 'Merangkak; lengkungkan belakang ke atas sambil hembus nafas, kemudian turunkan perut sambil tarik nafas.', 60],
+  ['Kupu-kupu', 'Duduk, temukan tapak kaki, biarkan lutut jatuh ke sisi. Bongkok sedikit ke hadapan.', 60],
+  ['Pernafasan perut', 'Baring, letak tangan di perut. Tarik nafas 4 saat, tahan 2 saat, hembus 6 saat.', 60]
+];
+function paparSelfCare(h, a) {
+  const k = $('kadSelfCare'), L = h.log[tarikhMY()] || {};
+  const papar = !!a.semasa || (L.s || []).includes('senggugut') || fasaKitaran(a) === 'pms';
+  k.classList.toggle('hidden', !papar); if (!papar) return;
+  k.innerHTML = `<h2 style="margin:0 0 6px"><i class="fa-solid fa-person-praying" style="color:#db2777"></i> Self-care: legakan senggugut</h2>
+    <p class="kecil" style="margin:0 0 6px">5 minit, 5 regangan lembut. Berhenti jika sakit bertambah.</p>
+    ${SELFCARE.map(([t, b], i) => `<p style="font-size:13.5px;margin:6px 0"><b>${i + 1}. ${t}</b><br><span class="kecil">${b}</span></p>`).join('')}
+    <button class="btn btn-hijau penuh" style="margin-top:8px" onclick="mulaSelfCare(0)"><i class="fa-solid fa-play"></i> Mula 5 minit</button>
+    <p class="kecil" style="margin:8px 0 0">Tip lain: tuaman panas di perut, air suam atau halia, dan rehat secukupnya. Jika senggugut terlalu teruk sehingga mengganggu aktiviti, rujuk doktor.</p>`;
+}
+let scTimer = null;
+window.mulaSelfCare = (i) => {
+  clearInterval(scTimer);
+  if (i >= SELFCARE.length) { tutupH(); alert('Selesai. Semoga lebih lega. 🌸'); return; }
+  const [t, b, saat] = SELFCARE[i]; let baki = saat;
+  modalH(`<p class="kecil" style="margin:0">Regangan ${i + 1} / ${SELFCARE.length}</p><h2 style="margin:4px 0 6px;font-size:18px">${t}</h2><p style="font-size:14px;margin:0 0 10px">${b}</p>
+    <p style="text-align:center;font-size:40px;font-weight:800;color:#db2777;margin:6px 0" id="scBaki">${baki}</p>
+    <button class="btn btn-hijau penuh" onclick="mulaSelfCare(${i + 1})">${i + 1 < SELFCARE.length ? 'Seterusnya' : 'Selesai'}</button>`);
+  scTimer = setInterval(() => { baki--; const el = $('scBaki'); if (!el || $('modalHaid').style.display === 'none') { clearInterval(scTimer); return; } el.textContent = Math.max(0, baki); if (baki <= 0) mulaSelfCare(i + 1); }, 1000);
+};
+
 window.kongsiSuami = async (on) => { const h = haidData(); h.kongsi = !!on; try { await simpanHaid(h); paparHaid(); } catch (e) { alert('Gagal: ' + e.message); } };
 // Fasa kitaran (anggaran) & panduan: untuk isteri sendiri atau untuk suami
 function fasaKitaran(a) {
@@ -967,6 +1088,7 @@ async function paparKitaran() {
   if (!pr || pr.jantina !== 'P' || !h.kongsi || !h.rekod.length) {
     k.innerHTML = `<h2 style="margin:0 0 6px"><i class="fa-solid fa-spa" style="color:#db2777"></i> meTime isteri</h2><p style="font-size:14px;margin:0">${pr && pr.jantina === 'P' && h.kongsi ? 'Isteri belum merekod kitaran.' : 'Isteri belum berkongsi kitarannya. Dia boleh tick <b>"Benarkan suami lihat"</b> di tab meTime pada profilnya (tukar ke profil Pasangan).'}</p>
       <p class="kecil" style="margin:8px 0 0">Bila dikongsi, anda boleh lihat fasa kitaran isteri dan panduan untuk memahami emosinya serta hukum berkaitan.</p>`;
+    ['kadLogHaid', 'kadKalHaid', 'kadSejarahHaid'].forEach(id => $(id).innerHTML = ''); $('kadSelfCare').classList.add('hidden');
     return;
   }
   const a = analisisHaid(h);
@@ -975,6 +1097,7 @@ async function paparKitaran() {
   else if (a.jangka) { const lagi = hariAntara(a.kini, a.jangka); status = lagi >= 0 ? `Haid seterusnya dijangka <b>${fmtT(a.jangka)}</b> (${lagi === 0 ? 'hari ini' : lagi + ' hari lagi'})` : `Haid lewat <b>${-lagi} hari</b> daripada jangkaan`; }
   k.innerHTML = `<h2 style="margin:0 0 6px"><i class="fa-solid fa-spa" style="color:#db2777"></i> meTime isteri</h2><p style="font-size:15px;margin:0">${status}</p><p class="kecil" style="margin:6px 0 0">Dikongsi oleh isteri. Lihat sahaja.</p>`;
   pd.innerHTML = panduanFasa(a, true);
+  paparLogHaid(h, true); lukisKalHaid(h, a, true); $('kadSejarahHaid').innerHTML = ''; $('kadSelfCare').classList.add('hidden');
 }
 const modalH = (html) => { $('mhIsi').innerHTML = html + '<button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="document.getElementById(\'modalHaid\').style.display=\'none\'">Tutup</button>'; $('modalHaid').style.display = 'flex'; };
 const tutupH = () => { $('modalHaid').style.display = 'none'; };
