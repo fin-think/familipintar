@@ -98,7 +98,7 @@
         ['Laras saiz', 'Tekan <b>Laras</b> pada rekod untuk pilih saiz sebenar (½ hingga 2×), betulkan nama makanan, atau buang item yang tiada.'],
         ['Baki & cadangan', 'Halaman utama tunjuk <b>baki kalori</b>, protein, karbo, lemak, gula dan garam, serta cadangan untuk makan tengah hari, malam, berbuka atau sahur seterusnya.'],
         ['Makanan kerap', 'Tekan <b>☆ Kerap</b> pada rekod untuk simpan. Lain kali catat dari butang <b>Kerap</b> dalam kad Makanan hari ini, dengan satu tekan, tanpa gambar dan tanpa guna imbasan.'],
-        ['Kitaran (wanita)', 'Tab <b>Kitaran</b>: rekod haid dan nifas, ramalan haid seterusnya, panduan fiqh ringkas dan kiraan qadha puasa Ramadan. Tick <b>Benarkan suami lihat</b> supaya suami dapat lihat fasa kitaran dan panduan memahami isteri di tab Kitaran pada profilnya.'],
+        ['meTime (wanita)', 'Tab <b>meTime</b>: rekod haid dan nifas, ramalan haid seterusnya, panduan fiqh ringkas dan kiraan qadha puasa Ramadan. Tick <b>Benarkan suami lihat</b> supaya suami dapat lihat fasa kitaran dan panduan memahami isteri di tab meTime pada profilnya.'],
         ['Air', 'Tekan <b>+250 ml</b> setiap kali minum. Sasaran air dikira ikut berat badan.'],
         ['Senaman', 'Tetapkan rutin brisk walk atau jogging di Profil (hari, minit, masa peringatan). Kad merah <b>Belum buat</b> jadi hijau bila anda tekan dan isi minit. Kalori terbakar tambah baki kalori hari itu.'],
         ['Puasa sunat', 'Pada hari Isnin, Khamis dan Hari Putih (13–15 Hijrah), tanda <b>Saya berpuasa hari ini</b> untuk panduan berbuka & sahur. Sehari sebelum, ada peringatan sediakan sahur.'],
