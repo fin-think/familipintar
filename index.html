@@ -1012,10 +1012,16 @@ if ('Notification' in window) {
                     const currentToken = await getToken(messaging, { vapidKey: 'BC-vntpi-9WxGGKUPeGopgcykMKc87MODe1aEpwieX096IQ8Hzu3Mh89SI8YxuvvOvPSqhW7Eu2Ziqn4ZjwBugs'});
                     
                     if (currentToken) {
-                        await setDoc(doc(db, "mynasab_users", user.uid), {
-                            fcm_token: currentToken,
-                            fcm_tokens: arrayUnion(currentToken)
-                        }, { merge: true });
+                        // Token baru ikut orang yang dipilih pada telefon ini (fcm_induk / fcm_pasangan),
+                        // supaya Muhasabah, infaq & myChecklist40 tak hilang bila token bertukar.
+                        let per = null; try { per = localStorage.getItem('fp_peranti_untuk'); } catch (e) {}
+                        if (per !== 'induk' && per !== 'pasangan') {
+                            // Belum pilih orang: anggap Induk jika akaun belum ada peranti pasangan
+                            try { const us = await getDoc(doc(db, "mynasab_users", user.uid)); const fp = us.exists() ? us.data().fcm_pasangan : null; per = (Array.isArray(fp) && fp.length) ? null : 'induk'; } catch (e) { per = null; }
+                        }
+                        const kemas = { fcm_token: currentToken, fcm_tokens: arrayUnion(currentToken), fcm_masa: Date.now() };   // fcm_masa: server buang token ini dari akaun lain
+                        if (per) kemas['fcm_' + per] = arrayUnion(currentToken);
+                        await setDoc(doc(db, "mynasab_users", user.uid), kemas, { merge: true });
                         console.log("Token FCM berjaya dikemaskini.");
                     }
                 } catch (err) {
