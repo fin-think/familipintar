@@ -2285,6 +2285,28 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
             }
         }
 
+        // Adik-beradik Salam Paut: adik-beradik yang join melalui JEMPUTAN mereka juga adik-beradik saya
+        // (supaya paparan sama sama ada saya induk, dijemput, atau disambung melalui Salam Paut)
+        if (!sebagai && (sayaInduk || sasaranIdPusat === indukRootId)) {
+            const sudahAda3 = new Set([saya, indukUid, ...akaun.map(a => a.uid), ...cantumAdik.map(c => c.uid), ...cantumLain.map(c => c.uid)]);
+            for (const c of [...cantumAdik]) {
+                const rootAdik = c.k.diri && c.k.diri.id;
+                try {
+                    const sl = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", c.uid), where("status", "==", "aktif")));
+                    for (const d of sl.docs) {
+                        const u = d.id;
+                        if (sudahAda3.has(u) || d.data().sasaran_id !== rootAdik) continue;   // hanya adik-beradik (bukan ipar)
+                        sudahAda3.add(u);
+                        const nodLuar = await kayakan(await ambil(u));
+                        const kLuar = kelompok(nodLuar);
+                        if (!kLuar.diri) continue;
+                        nodLuar.forEach(n => semuaId.add(n.id));
+                        uidAdikCantum.add(u); cantumAdik.push({ uid: u, k: kLuar });
+                    }
+                } catch (e) { console.warn('Pengikut adik Salam Paut:', e.message); }
+            }
+        }
+
         const sasaranNodeInduk = nodInduk.find(n => n.id === sasaranIdPusat);
         const sasaranAdalahPasangan = !sayaInduk && !!sasaranNodeInduk && /suami|isteri/i.test(sasaranNodeInduk.relationship || '');
 
