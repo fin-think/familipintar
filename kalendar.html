@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master Kalendar | Famili Pintar</title>
+<meta name="robots" content="noindex">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="peranan.js?v=1"></script>
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; }
+  .kad { background:#fff; border:1px solid #e2e8f0; border-radius:1.25rem; padding:1rem 1.1rem; }
+  .grid7 { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; }
+  .hari { aspect-ratio:1/1; border-radius:.8rem; border:1px solid #e2e8f0; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:.35rem; cursor:pointer; position:relative; }
+  .hari.kosong { border:0; background:transparent; cursor:default; }
+  .hari .n { font-size:.85rem; font-weight:800; color:#1e293b; }
+  .hari.cuti .n { color:#dc2626; }
+  .hari.hariini { border-color:#0d9488; background:#f0fdfa; }
+  .hari.pilih { outline:2px solid #0f766e; outline-offset:-1px; }
+  .titik { display:flex; flex-wrap:wrap; gap:2px; justify-content:center; margin-top:.25rem; max-width:90%; }
+  .titik i { width:.42rem; height:.42rem; border-radius:999px; display:block; }
+  .cip { font-size:.75rem; font-weight:800; padding:.35rem .7rem; border-radius:999px; border:1.5px solid; display:inline-flex; align-items:center; gap:.35rem; background:#fff; }
+  .cip.mati { opacity:.4; text-decoration:line-through; }
+  .ev { display:flex; gap:.7rem; align-items:flex-start; padding:.7rem 0; border-top:1px solid #f1f5f9; }
+  .ev:first-child { border-top:0; }
+  .ev .ik { width:2.1rem; height:2.1rem; border-radius:.7rem; display:flex; align-items:center; justify-content:center; flex:none; color:#fff; font-size:.9rem; }
+</style>
+</head>
+<body class="min-h-screen pb-16">
+<header class="bg-gradient-to-br from-teal-800 to-emerald-950 text-white">
+  <div class="max-w-2xl mx-auto px-4 pt-5 pb-6">
+    <a href="buatapa.html" class="text-teal-200 text-sm font-semibold"><i class="fa-solid fa-arrow-left"></i> Buat Apa Hari Ini</a>
+    <h1 class="text-2xl font-extrabold mt-2"><i class="fa-regular fa-calendar-days"></i> Master Kalendar</h1>
+    <p class="text-teal-100 text-sm mt-1">Semua jadual keluarga dalam satu tempat: weCare, goTravel, hari jadi, nowSihat, cuti dan hari kebesaran Islam.</p>
+  </div>
+</header>
+
+<main class="max-w-2xl mx-auto px-4 mt-5 space-y-4">
+  <div id="penapis" class="flex flex-wrap gap-2"></div>
+
+  <section class="kad">
+    <div class="flex items-center justify-between">
+      <button id="sebelum" class="w-9 h-9 rounded-full bg-slate-100 text-slate-700" aria-label="Bulan sebelum"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="text-center"><div id="tajukBulan" class="font-extrabold text-slate-800 text-lg"></div><button id="keHariIni" class="text-xs font-bold text-teal-700">Hari ini</button></div>
+      <button id="selepas" class="w-9 h-9 rounded-full bg-slate-100 text-slate-700" aria-label="Bulan seterusnya"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <div class="grid7 mt-3 text-center text-[.7rem] font-extrabold text-slate-500"><div>Ahd</div><div>Isn</div><div>Sel</div><div>Rab</div><div>Kha</div><div>Jum</div><div>Sab</div></div>
+    <div id="grid" class="grid7 mt-1"></div>
+    <p id="status" class="text-xs text-slate-500 mt-3"><i class="fa-solid fa-spinner fa-spin"></i> Memuatkan jadual keluarga…</p>
+  </section>
+
+  <section class="kad">
+    <h2 id="tajukHari" class="font-extrabold text-slate-800"></h2>
+    <div id="senarai" class="mt-1"></div>
+  </section>
+
+  <section class="kad">
+    <h2 class="font-extrabold text-slate-800 text-sm"><i class="fa-solid fa-flag text-red-600"></i> Cuti ikut negeri</h2>
+    <div class="flex items-center gap-2 mt-2 flex-wrap text-sm">
+      <select id="negeri" class="border rounded-lg px-2 py-1.5 text-sm"></select>
+      <label class="inline-flex items-center gap-1.5"><input type="checkbox" id="sekolah"> Cuti sekolah</label>
+      <span id="infoNegeri" class="text-xs text-slate-500"></span>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, collection, getDocs, getDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { firebaseConfig, esc } from "./kongsi.js";
+import { BULAN_MASIHI, tarikhMalaysia, hitungMundur } from "./sejarah-islam.js";
+import { tentukanKumpulan } from "./kumpulan.js?v=3";
+
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const $ = (id) => document.getElementById(id);
+const g0 = tarikhMalaysia();
+const kunci = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+const HARI_INI = kunci(g0.y, g0.m, g0.d);
+const NAMA_HARI = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
+const bacaLS = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const tulisLS = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+
+// Sumber & warna
+const SUMBER = {
+  wecare:   { n: 'weCare',      w: '#0d9488', ik: 'fa-hand-holding-heart' },
+  gotravel: { n: 'goTravel',    w: '#2563eb', ik: 'fa-plane' },
+  harijadi: { n: 'Hari jadi',   w: '#db2777', ik: 'fa-cake-candles' },
+  nowsihat: { n: 'nowSihat',    w: '#16a34a', ik: 'fa-heart-pulse' },
+  islam:    { n: 'Hari Islam',  w: '#d97706', ik: 'fa-star-and-crescent' },
+  cuti:     { n: 'Cuti',        w: '#dc2626', ik: 'fa-flag' }
+};
+const KUNCI_TAPIS = 'fp_kalendar_tapis';
+let tapis = {}; try { tapis = JSON.parse(bacaLS(KUNCI_TAPIS) || '{}'); } catch (e) {}
+const hidup = (s) => tapis[s] !== false;
+
+const K = { y: g0.y, m: g0.m, pilih: HARI_INI, wecare: [], trips: [], dob: [], rutin: [], islam: [], cuti: { umum: [], sekolah: {}, kumpulanA: ['Kedah', 'Kelantan', 'Terengganu'] }, negeriMyNasab: '' };
+
+// ---------- Cuti (data & pilihan negeri dikongsi dengan weCare / goTravel) ----------
+const NEGERI = ['Johor', 'Kedah', 'Kelantan', 'Melaka', 'Negeri Sembilan', 'Pahang', 'Perak', 'Perlis', 'Pulau Pinang', 'Sabah', 'Sarawak', 'Selangor', 'Terengganu', 'W.P. Kuala Lumpur', 'W.P. Labuan', 'W.P. Putrajaya'];
+const KUNCI_NEG = 'wecare_negeri_cuti', KUNCI_SEK = 'wecare_papar_sekolah';
+const negeri = () => { const v = bacaLS(KUNCI_NEG); return v !== null ? v : K.negeriMyNasab; };
+const kumpulanSekolah = () => (K.cuti.kumpulanA || []).includes(negeri()) ? 'A' : 'B';
+const paparSekolah = () => bacaLS(KUNCI_SEK) !== '0';
+const cutiBerlaku = (c, n) => n ? ((!c.negeri || c.negeri.includes(n)) && !(c.kecuali || []).includes(n)) : !c.negeri;
+function pilihanCuti() {
+  $('negeri').innerHTML = '<option value="">Persekutuan sahaja</option>' + NEGERI.map(n => `<option>${n}</option>`).join('');
+  $('negeri').value = negeri(); $('sekolah').checked = paparSekolah();
+  $('infoNegeri').textContent = negeri() ? 'Kumpulan ' + kumpulanSekolah() + (negeri() === K.negeriMyNasab ? ' · dari myNasab' : '') : '';
+}
+$('negeri').onchange = (e) => { tulisLS(KUNCI_NEG, e.target.value === K.negeriMyNasab ? null : e.target.value); pilihanCuti(); lukis(); };
+$('sekolah').onchange = (e) => { tulisLS(KUNCI_SEK, e.target.checked ? '1' : '0'); lukis(); };
+
+// ---------- Event bagi satu tarikh ----------
+function eventPada(k) {
+  const [y, m, d] = k.split('-').map(Number), dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay(), ev = [];
+  if (hidup('cuti')) {
+    const n = negeri();
+    K.cuti.umum.filter(c => c.t === k && cutiBerlaku(c, n)).forEach(c => ev.push({ s: 'cuti', t: c.n, sub: 'Cuti umum' + (c.nota ? ' · ' + c.nota : ''), cuti: true }));
+    if (paparSekolah()) (K.cuti.sekolah[kumpulanSekolah()] || []).filter(c => k >= c.m && k <= c.h && cutiBerlaku(c, n)).forEach(c => ev.push({ s: 'cuti', t: c.n, sub: `Cuti sekolah · ${c.m.split('-').reverse().join('/')} hingga ${c.h.split('-').reverse().join('/')}`, sekolah: true }));
+  }
+  if (hidup('islam')) K.islam.filter(e => e.k === k).forEach(e => ev.push({ s: 'islam', t: e.n, sub: e.h, url: 'buatapa.html' }));
+  if (hidup('harijadi')) K.dob.filter(x => x.mmdd === k.slice(5)).forEach(x => ev.push({ s: 'harijadi', t: 'Hari jadi ' + x.nama, sub: x.lahir ? `Genap ${y - x.lahir} tahun` : '', url: 'mynasab/index.html' }));
+  if (hidup('gotravel')) K.trips.filter(t => k >= t.go && k <= (t.back || t.go)).forEach(t => ev.push({ s: 'gotravel', t: t.nama, sub: k === t.go ? 'Hari bertolak' : k === t.back ? 'Hari pulang' : 'Dalam percutian', url: t.url }));
+  if (hidup('wecare')) K.wecare.filter(t => k >= t.date && k <= (t.end_date || t.date)).sort((a, b) => String(a.time || '99').localeCompare(String(b.time || '99'))).forEach(t => {
+    const untuk = { ayah: 'Bapa', ibu: 'Ibu', umum: 'Ibu bapa' }[t.for_whom] || '';
+    const tajuk = t.jenis === 'balik' ? `${t.shift_siapa || 'Ahli keluarga'} ${t.balik_jenis === 'hari' ? 'balik hari' : 'balik bermalam'}` : t.title;
+    ev.push({ s: 'wecare', t: tajuk || 'Tugasan', sub: [t.time, t.shift_siapa && t.shift_siapa !== 'Umum' && t.jenis !== 'balik' ? 'Bertugas: ' + t.shift_siapa : '', untuk].filter(Boolean).join(' · '), url: 'wecare.html?tugas=' + t.id });
+  });
+  if (hidup('nowsihat')) K.rutin.filter(r => (r.hari || []).includes(dow)).forEach(r => ev.push({ s: 'nowsihat', t: r.nama + ' ' + r.minit + ' minit', sub: 'Rutin senaman' + (r.masa ? ' · ' + r.masa : ''), url: 'nowsihat.html' }));
+  return ev;
+}
+
+// ---------- Lukis ----------
+function lukisPenapis() {
+  $('penapis').innerHTML = Object.entries(SUMBER).map(([s, v]) => `<button class="cip ${hidup(s) ? '' : 'mati'}" style="border-color:${v.w};color:${v.w}" data-s="${s}"><i class="fa-solid ${v.ik}"></i> ${v.n}</button>`).join('');
+  $('penapis').querySelectorAll('button').forEach(b => b.onclick = () => { tapis[b.dataset.s] = !hidup(b.dataset.s); tulisLS(KUNCI_TAPIS, JSON.stringify(tapis)); lukisPenapis(); lukis(); });
+}
+function lukis() {
+  $('tajukBulan').textContent = `${BULAN_MASIHI[K.m - 1]} ${K.y}`;
+  const mula = new Date(Date.UTC(K.y, K.m - 1, 1)).getUTCDay(), bil = new Date(Date.UTC(K.y, K.m, 0)).getUTCDate();
+  let h = ''; for (let i = 0; i < mula; i++) h += '<div class="hari kosong"></div>';
+  for (let d = 1; d <= bil; d++) {
+    const k = kunci(K.y, K.m, d), ev = eventPada(k);
+    const warna = [...new Set(ev.map(e => SUMBER[e.s].w))];
+    h += `<div class="hari ${k === HARI_INI ? 'hariini' : ''} ${k === K.pilih ? 'pilih' : ''} ${ev.some(e => e.cuti) ? 'cuti' : ''}" data-k="${k}"><span class="n">${d}</span><span class="titik">${warna.slice(0, 6).map(w => `<i style="background:${w}"></i>`).join('')}</span></div>`;
+  }
+  $('grid').innerHTML = h;
+  $('grid').querySelectorAll('[data-k]').forEach(el => el.onclick = () => { K.pilih = el.dataset.k; lukis(); });
+  lukisSenarai();
+}
+function lukisSenarai() {
+  const [y, m, d] = K.pilih.split('-').map(Number), dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  $('tajukHari').textContent = `${NAMA_HARI[dow]}, ${d} ${BULAN_MASIHI[m - 1]} ${y}${K.pilih === HARI_INI ? ' (hari ini)' : ''}`;
+  const ev = eventPada(K.pilih);
+  $('senarai').innerHTML = ev.length ? ev.map(e => {
+    const v = SUMBER[e.s], isi = `<div class="ik" style="background:${v.w}"><i class="fa-solid ${v.ik}"></i></div><div class="min-w-0 flex-1"><div class="font-bold text-slate-800 text-[.95rem]">${esc(e.t)}</div><div class="text-xs text-slate-500">${esc(v.n)}${e.sub ? ' · ' + esc(e.sub) : ''}</div></div>`;
+    return e.url ? `<a class="ev" href="${e.url}">${isi}<i class="fa-solid fa-chevron-right text-slate-300 self-center"></i></a>` : `<div class="ev">${isi}</div>`;
+  }).join('') : '<p class="text-sm text-slate-500 py-2">Tiada jadual pada hari ini.</p>';
+}
+$('sebelum').onclick = () => { K.m--; if (K.m < 1) { K.m = 12; K.y--; } lukis(); };
+$('selepas').onclick = () => { K.m++; if (K.m > 12) { K.m = 1; K.y++; } lukis(); };
+$('keHariIni').onclick = () => { K.y = g0.y; K.m = g0.m; K.pilih = HARI_INI; lukis(); };
+
+// ---------- Muat data ----------
+const bacaNod = async (uid) => { try { const s = await getDocs(query(collection(db, 'mynasab_nodes'), where('owner_uid', '==', uid))); return s.docs.map(d => ({ ...d.data(), id: d.id })); } catch (e) { return []; } };
+const idDiri = (nod) => (nod.find(n => n.is_root) || {}).id || null;
+const idPasangan = (nod) => (nod.find(n => /suami|isteri/i.test(n.relationship || '')) || {}).id || null;
+const JENIS = { brisk: 'Brisk walk', jog: 'Jogging', jalan: 'Jalan santai', regangan: 'Regangan', rumah: 'Senaman ringan', basikal: 'Berbasikal', renang: 'Berenang' };
+
+async function muatWeCare(uid, nodSaya) {
+  let g = uid; try { g = await tentukanKumpulan(db, uid); } catch (e) {}
+  const j = { induk: idDiri(nodSaya), pasangan: idPasangan(nodSaya), lamaInduk: null, lamaPasangan: null };
+  let lk = null; try { const s = await getDoc(doc(db, 'mynasab_links', uid)); if (s.exists() && s.data().status === 'aktif') lk = s.data(); } catch (e) {}
+  if (lk) j.induk = lk.sasaran_id || j.induk;
+  const nodPemilik = g !== uid ? await bacaNod(g) : nodSaya;
+  if (!lk && g !== uid && idDiri(nodPemilik)) j.induk = idDiri(nodPemilik);           // Salam Paut
+  j.lamaInduk = idDiri(nodPemilik); j.lamaPasangan = idPasangan(nodPemilik);
+  const s = await getDocs(query(collection(db, 'wecare_calendar'), where('group_id', '==', g)));
+  K.wecare = s.docs.map(d => ({ ...d.data(), id: d.id })).filter(t => {
+    const a = t.anchor_id || (t.belah === 'pasangan' ? j.lamaPasangan : j.lamaInduk);
+    return t.date && (a === j.induk || a === j.pasangan);
+  });
+}
+async function muatTrips(uid) {
+  const [a, b] = await Promise.all([
+    getDocs(query(collection(db, 'jombercuti_trips'), where('owner_uid', '==', uid))).catch(() => ({ docs: [] })),
+    getDocs(query(collection(db, 'jombercuti_trips'), where('viewer_uids', 'array-contains', uid))).catch(() => ({ docs: [] }))
+  ]);
+  const peta = new Map();
+  [...a.docs, ...b.docs].forEach(d => { const x = d.data(); if (x.date_go) peta.set(d.id, { go: x.date_go, back: x.date_back || x.date_go, nama: x.title || x.destination || 'Percutian', url: x.owner_uid === uid ? 'gotravel.html?trip=' + encodeURIComponent(d.id) : 'gotravel.html' }); });
+  K.trips = [...peta.values()];
+}
+function muatHariJadi(nod) {
+  const lihat = new Set();
+  K.dob = nod.filter(n => n.dob && n.name && n.status !== 'meninggal').map(n => {
+    const [y, m, d] = String(n.dob).split('-').map(Number);
+    return m && d ? { nama: String(n.name).trim().split(/\s+/).slice(0, 2).join(' '), mmdd: `${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`, lahir: y || 0, kunci: String(n.name).toLowerCase() + n.dob } : null;
+  }).filter(x => x && !lihat.has(x.kunci) && lihat.add(x.kunci));
+}
+async function muatRutin(uid) {
+  let per = 'induk';
+  try { await Peranan.muat(db, uid, { collection, query, where, getDocs }); per = Peranan.mod === 'pasangan' ? 'pasangan' : 'induk'; } catch (e) {}
+  try {
+    const p = await getDoc(doc(db, 'nowsihat_profil', per === 'pasangan' ? uid + '_pasangan' : uid));
+    const x = p.exists() ? p.data() : {};
+    const list = Array.isArray(x.senaman_rutin) ? x.senaman_rutin : (x.senaman ? [x.senaman] : []);
+    K.rutin = list.map(r => ({ ...r, nama: JENIS[r.jenis] || 'Brisk walk' }));
+  } catch (e) {}
+}
+function muatIslam(laras) {
+  K.islam = hitungMundur(g0, laras, 20).map(e => ({ k: kunci(e.g.y, e.g.m, e.g.d), n: e.n, h: `${e.h.d}/${e.h.m}/${e.h.y} H · anggaran` }));
+}
+
+(async () => {
+  try { const r = await fetch('/cuti-malaysia.json?v=' + HARI_INI); if (r.ok) { const d = await r.json(); K.cuti = { umum: d.umum || [], sekolah: d.sekolah || {}, kumpulanA: d.kumpulanA || K.cuti.kumpulanA }; } } catch (e) {}
+  muatIslam(0); pilihanCuti(); lukisPenapis(); lukis();
+})();
+
+onAuthStateChanged(auth, async (u) => {
+  if (!u) { location.href = 'index.html'; return; }
+  let laras = 0;
+  try { const t = await getDoc(doc(db, 'tetapan_awam', 'hijrah')); if (t.exists()) laras = Math.max(-1, Math.min(1, parseInt(t.data().laras, 10) || 0)); } catch (e) {}
+  muatIslam(laras);
+  const nodSaya = await bacaNod(u.uid);
+  const akar = nodSaya.find(n => n.is_root); K.negeriMyNasab = (akar && akar.state) || '';
+  muatHariJadi(nodSaya); pilihanCuti(); lukis();
+  const gagal = [];
+  await Promise.all([
+    muatWeCare(u.uid, nodSaya).catch(e => { console.warn('weCare:', e.message); gagal.push('weCare'); }),
+    muatTrips(u.uid).catch(e => { console.warn('goTravel:', e.message); gagal.push('goTravel'); }),
+    muatRutin(u.uid)
+  ]);
+  $('status').innerHTML = gagal.length ? `<i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Tidak dapat memuatkan: ${gagal.join(', ')}.` : 'Tekan tarikh untuk lihat butiran. Tekan label di atas untuk tapis.';
+  lukis();
+})();
+</script>
+<script src="pwa.js" defer></script>
+</body>
+</html>

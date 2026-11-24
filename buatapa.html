@@ -32,7 +32,7 @@
 <header class="bg-gradient-to-br from-teal-800 to-emerald-950 text-white">
   <div class="max-w-2xl mx-auto px-4 pt-5 pb-6">
     <div class="flex items-center justify-between"><a href="index.html" class="text-teal-200 text-sm font-semibold"><i class="fa-solid fa-arrow-left"></i> Utama</a>
-    <a href="jomsalam.html" class="bg-white/15 hover:bg-white/25 text-white text-sm font-bold rounded-full px-3 py-1.5"><i class="fa-solid fa-comments"></i> JomSalam <span id="jsBelum" class="hidden ml-1 bg-green-500 text-white text-[.7rem] font-extrabold rounded-full px-1.5"></span></a></div>
+    <a href="kalendar.html" class="bg-white/15 hover:bg-white/25 text-white text-sm font-bold rounded-full px-3 py-1.5"><i class="fa-regular fa-calendar-days"></i> Master Kalendar</a></div>
     <h1 class="text-2xl font-extrabold mt-2">Buat Apa Hari Ini?</h1>
     <p id="tarikhMasihi" class="text-teal-100 text-sm mt-1">&nbsp;</p>
     <p class="mt-1 flex items-center gap-2 flex-wrap"><span id="tarikhHijrah" class="text-lg font-extrabold text-amber-300">&nbsp;</span>
@@ -486,11 +486,6 @@ onAuthStateChanged(auth, async (u) => {
   if (UJIAN_ADMIN && !admin) { $('gate').textContent = 'Halaman ini dalam fasa ujian (admin sahaja). Sila log masuk dengan akaun admin.'; return; }
   $('gate').classList.add('hidden');
   if (u) {
-    // Bilangan mesej JomSalam belum dibaca (+ Hulur Salam menunggu) pada butang di header
-    getDocs(query(collection(db, 'salam_chat'), where('ahli', 'array-contains', u.uid))).then(sn => {
-      let n = 0; sn.forEach(d => { const c = d.data(); n += (c.belum && c.belum[u.uid]) || 0; if (c.status === 'menunggu' && c.pemohon !== u.uid) n++; });
-      if (n) { $('jsBelum').textContent = n > 99 ? '99+' : n; $('jsBelum').classList.remove('hidden'); }
-    }).catch(() => {});
     try {
       const sn = await getDocs(query(collection(db, 'mynasab_nodes'), where('owner_uid', '==', u.uid)));
       nodUser = sn.docs.map(d => ({ ...d.data(), id: d.id }));

@@ -85,7 +85,7 @@
         ['Reaksi & komen', 'Tekan ❤️ 🤲 😂 atau <b>Komen</b> pada siaran keluarga.'],
         ['Gambar profil', 'Tekan <b>Gambar profil</b> (atau Tetapan di halaman utama) supaya keluarga kenal anda.'],
         ['Sunnah & hari kebesaran', 'Satu sunnah harian Rasulullah SAW (dengan rujukan hadis dan doa) serta kiraan hari kebesaran Islam sentiasa ada di halaman ini. Tekan "Dah amal" bila sudah amalkan.'],
-        ['Berbual', 'Tekan <b>JomSalam</b> untuk mesej peribadi dengan keluarga dan kenalan.']
+        ['Master Kalendar', 'Tekan <b>Master Kalendar</b> untuk lihat semua jadual keluarga dalam satu kalendar: weCare, goTravel, hari jadi, rutin nowSihat, cuti dan hari kebesaran Islam. JomSalam masih boleh dibuka dari ikon mesej di muka depan.']
       ]
     },
     nowsihat: {
