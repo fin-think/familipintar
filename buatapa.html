@@ -76,12 +76,21 @@
 
   <section id="sirah" class="kad hidden bg-gradient-to-br from-amber-50 to-white border-amber-200">
     <div class="flex items-center justify-between gap-2">
-      <h2 class="font-extrabold text-slate-800"><i class="fa-solid fa-book-quran text-emerald-700"></i> Kisah Sirah hari ini</h2>
+      <h2 class="font-extrabold text-slate-800"><i class="fa-solid fa-star-and-crescent text-emerald-700"></i> Sunnah hari ini</h2>
       <span id="sirahNo" class="lencana bg-amber-100 text-amber-800"></span>
     </div>
     <h3 id="sirahTajuk" class="text-lg font-extrabold text-emerald-900 mt-3"></h3>
     <p id="sirahBadan" class="text-slate-700 leading-relaxed mt-1 text-[.95rem]"></p>
-    <a id="sirahWa" target="_blank" rel="noopener" class="inline-flex items-center gap-2 mt-3 text-sm font-bold text-emerald-700"><i class="fa-brands fa-whatsapp"></i> Kongsi ke keluarga</a>
+    <div id="sunnahDoa" class="hidden mt-3 bg-white/80 border border-amber-100 rounded-xl px-3 py-2.5">
+      <p id="sunnahAr" dir="rtl" lang="ar" class="text-xl leading-loose text-emerald-900 text-right"></p>
+      <p id="sunnahRumi" class="text-sm italic text-slate-700 mt-1"></p>
+      <p id="sunnahMaksud" class="text-xs text-slate-500 mt-1"></p>
+    </div>
+    <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-book-open"></i> Rujukan: <span id="sunnahRujukan"></span></p>
+    <div class="flex items-center gap-3 mt-3 flex-wrap">
+      <button id="sunnahAmal" type="button" class="inline-flex items-center gap-2 text-sm font-bold rounded-xl px-3 py-2 bg-emerald-600 text-white"><i class="fa-regular fa-circle"></i> Dah amal hari ini</button>
+      <a id="sirahWa" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-sm font-bold text-emerald-700"><i class="fa-brands fa-whatsapp"></i> Kongsi ke keluarga</a>
+    </div>
     <div class="mt-4 pt-3 border-t border-amber-200">
       <h4 class="text-sm font-extrabold text-slate-800"><i class="fa-regular fa-calendar-check text-amber-700"></i> Hari kebesaran Islam</h4>
       <div id="hitungMundur" class="mt-2 space-y-2"></div>
@@ -110,7 +119,8 @@ import { getFirestore, collection, getDocs, getDoc, doc, addDoc, setDoc, deleteD
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 import { firebaseConfig, esc, mampatGambar } from "./kongsi.js";
-import { BULAN_HIJRAH, BULAN_MASIHI, tarikhMalaysia, tarikhHijrah, namaHariMasihi, peristiwaHariIni, sirahHariIni, hitungMundur } from "./sejarah-islam.js";
+import { BULAN_HIJRAH, BULAN_MASIHI, tarikhMalaysia, tarikhHijrah, namaHariMasihi, peristiwaHariIni, hitungMundur } from "./sejarah-islam.js";
+import { sunnahHariIni } from "./sunnah-harian.js";
 
 // Fasa ujian: admin sahaja. Tukar kepada false apabila dibuka kepada pengguna.
 const UJIAN_ADMIN = false;
@@ -157,17 +167,28 @@ function lukisKandungan() {
       <p class="text-slate-600 text-[.93rem] leading-relaxed mt-1">${esc(e.teks)}</p>
       <a target="_blank" rel="noopener" href="${teksWa(e.tajuk + ' (' + e.label + ')', e.teks)}" class="inline-flex items-center gap-2 mt-2 text-sm font-bold text-emerald-700"><i class="fa-brands fa-whatsapp"></i> Kongsi</a>
     </div>`).join('');
-  // 3. Bila tiada kongsian keluarga hari ini (hari jadi atau siaran 24 jam lepas), paparkan kisah sirah
-  const s = sirahHariIni(g);
+  // 3. Bila tiada kongsian keluarga hari ini (hari jadi atau siaran 24 jam lepas), paparkan sunnah harian
+  const s = sunnahHariIni(g);
   const adaAktiviti = aktifHariIni() || kk.some(x => x.includes('Hari ini'));
   // Sirah sentiasa dipaparkan: di atas Laman keluarga bila tiada aktiviti, di bawah siaran keluarga bila ada
   $('sirah').classList.remove('hidden');
   const din = $('dinding');
   if (adaAktiviti) din.after($('sirah')); else din.before($('sirah'));
-  $('sirahNo').textContent = `Bahagian ${s.no} / ${s.jumlah}`;
+  $('sirahNo').textContent = `Sunnah ${s.no} / ${s.jumlah}`;
   $('sirahTajuk').textContent = s.t;
   $('sirahBadan').textContent = s.b;
-  $('sirahWa').href = teksWa('Kisah Sirah: ' + s.t, s.b);
+  $('sunnahRujukan').textContent = 'Riwayat ' + s.r;
+  $('sunnahDoa').classList.toggle('hidden', !s.doa);
+  if (s.doa) { $('sunnahAr').textContent = s.doa.ar; $('sunnahRumi').textContent = s.doa.rumi; $('sunnahMaksud').textContent = 'Maksudnya: ' + s.doa.maksud; }
+  const doaWa = s.doa ? `\n\n${s.doa.ar}\n${s.doa.rumi}\nMaksudnya: ${s.doa.maksud}` : '';
+  $('sirahWa').href = teksWa('Sunnah hari ini: ' + s.t, s.b + doaWa + `\n(Riwayat ${s.r})`);
+  // Tanda "Dah amal" (disimpan dalam peranti ini, setiap hari)
+  const kunciAmal = `fp_sunnah_${g.y}-${g.m}-${g.d}`;
+  const papAmal = () => { let dah = false; try { dah = localStorage.getItem(kunciAmal) === '1'; } catch (e) {}
+    const b = $('sunnahAmal'); b.className = 'inline-flex items-center gap-2 text-sm font-bold rounded-xl px-3 py-2 ' + (dah ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-600 text-white');
+    b.innerHTML = dah ? '<i class="fa-solid fa-circle-check"></i> Alhamdulillah, dah amal' : '<i class="fa-regular fa-circle"></i> Dah amal hari ini'; };
+  $('sunnahAmal').onclick = () => { try { localStorage.getItem(kunciAmal) === '1' ? localStorage.removeItem(kunciAmal) : localStorage.setItem(kunciAmal, '1'); } catch (e) {} papAmal(); };
+  papAmal();
   $('hitungMundur').innerHTML = hitungMundur(g, laras, 4).map(e => `<div class="flex items-center justify-between gap-3 bg-white/70 border border-amber-100 rounded-xl px-3 py-2">
       <div class="min-w-0"><div class="font-bold text-slate-800 text-sm truncate">${esc(e.n)}</div><div class="text-[.72rem] text-slate-500">${e.h.d} ${BULAN_HIJRAH[e.h.m - 1]} ${e.h.y} H · ${namaHariMasihi(e.g)}, ${e.g.d} ${BULAN_MASIHI[e.g.m - 1]} ${e.g.y}</div></div>
       <div class="text-right flex-none">${e.i === 0 ? '<span class="font-extrabold text-emerald-700">Hari ini</span>' : `<span class="text-lg font-extrabold text-emerald-800">${e.i}</span> <span class="text-xs text-slate-500">hari lagi</span>`}</div></div>`).join('');

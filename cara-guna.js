@@ -84,7 +84,7 @@
         ['Hilang selepas 48 jam', 'Siaran, gambar, komen dan reaksi dipadam sendiri selepas 48 jam, macam status.'],
         ['Reaksi & komen', 'Tekan ❤️ 🤲 😂 atau <b>Komen</b> pada siaran keluarga.'],
         ['Gambar profil', 'Tekan <b>Gambar profil</b> (atau Tetapan di halaman utama) supaya keluarga kenal anda.'],
-        ['Sirah & hari kebesaran', 'Kisah sirah harian dan kiraan hari kebesaran Islam sentiasa ada di halaman ini.'],
+        ['Sunnah & hari kebesaran', 'Satu sunnah harian Rasulullah SAW (dengan rujukan hadis dan doa) serta kiraan hari kebesaran Islam sentiasa ada di halaman ini. Tekan "Dah amal" bila sudah amalkan.'],
         ['Berbual', 'Tekan <b>JomSalam</b> untuk mesej peribadi dengan keluarga dan kenalan.']
       ]
     },

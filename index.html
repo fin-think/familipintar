@@ -773,7 +773,8 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, arrayUnion, collection, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { tentukanKumpulan } from "./kumpulan.js?v=3";
-    import { tarikhMalaysia, sirahHariIni } from "./sejarah-islam.js";
+    import { tarikhMalaysia } from "./sejarah-islam.js";
+    import { sunnahHariIni } from "./sunnah-harian.js";
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
 
 // KOD MEMINTA IZIN NOTIFIKASI DARI TELEFON
@@ -850,8 +851,8 @@ if ('Notification' in window) {
         const rangka = (isi) => `<div class="bap"><div class="bap-bar" onclick="__bapTuju(true)"><span class="bap-av">${av}</span><span class="bap-pil">Buat apa hari ni?</span><i class="fa-regular fa-image bap-gb" aria-hidden="true"></i><a href="jomsalam.html" class="bap-js" onclick="event.stopPropagation()" title="JomSalam" aria-label="JomSalam"><i class="fa-solid fa-comments"></i>${jsBelum ? `<b>${jsBelum > 99 ? '99+' : jsBelum}</b>` : ''}</a></div>${isi}</div>`;
         const pasang = (isi) => ['kadBuatapa', 'fpmBuatapa'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = rangka(isi); });
         // sirah dahulu (tiada lencana kosong semasa menunggu data)
-        const sr = sirahHariIni(tarikhMalaysia());
-        const isiSirah = `<div class="bap-isi" onclick="__bapTuju(false)"><div class="tx"><div class="kt"><i class="fa-solid fa-book-quran"></i> Kisah sirah hari ini</div><b>${E(sr.t)}</b><div class="ct">${E(sr.b)}</div></div><i class="fa-solid fa-chevron-right" style="color:#94a3b8"></i></div>`;
+        const sr = sunnahHariIni(tarikhMalaysia());
+        const isiSirah = `<div class="bap-isi" onclick="__bapTuju(false)"><div class="tx"><div class="kt"><i class="fa-solid fa-star-and-crescent"></i> Sunnah hari ini</div><b>${E(sr.t)}</b><div class="ct">${E(sr.b)}</div></div><i class="fa-solid fa-chevron-right" style="color:#94a3b8"></i></div>`;
         pasang(isiSirah);
         try {
             const kump = [user.uid];
