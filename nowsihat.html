@@ -874,13 +874,10 @@ const HM = 86400000;
 const hariAntara = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / HM);
 const tambahHari = (k, n) => new Date(Date.parse(k + 'T00:00:00Z') + n * HM).toISOString().slice(0, 10);
 const fmtT = (k) => k ? k.split('-').reverse().join('/') : '';
-const haidDari = (prof) => { const h = (prof && prof.haid) || {}; return { rekod: Array.isArray(h.rekod) ? h.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [], qadha_bayar: h.qadha_bayar || 0, pin: h.pin || '', kongsi: !!h.kongsi }; };
+const haidDari = (prof) => { const h = (prof && prof.haid) || {}; return { rekod: Array.isArray(h.rekod) ? h.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [], qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi }; };
 const haidData = () => haidDari(S.profil);
-const kunciBuka = () => 'fp_haid_buka_' + PID();
-const haidTerkunci = () => { const h = haidData(); if (!h.pin) return false; try { return sessionStorage.getItem(kunciBuka()) !== '1'; } catch (e) { return true; } };
-async function hashPin(pin) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(PID() + ':' + pin)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
 async function simpanHaid(h) {
-  const v = { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, pin: h.pin || '', kongsi: !!h.kongsi };
+  const v = { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi };
   await setDoc(doc(db, 'nowsihat_profil', PID()), { haid: v }, { merge: true });
   S.profil.haid = v;
 }
@@ -901,7 +898,6 @@ function analisisHaid(h) {
 function paparHaid() {
   const k = $('kadHaid');
   const h = haidData();
-  if (haidTerkunci()) { $('kadPanduan').innerHTML = ''; k.innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-lock" style="color:#db2777"></i> Kitaran peribadi</h2></div><p class="kecil" style="margin:8px 0 10px">Dilindungi PIN.</p><button class="btn btn-garis penuh" onclick="bukaHaid()">Buka dengan PIN</button>`; return; }
   const a = analisisHaid(h);
   let status = '', butang = '', nota = '';
   if (a.semasa) {
@@ -923,9 +919,8 @@ function paparHaid() {
       <button class="btn btn-kelabu btn-kecil" onclick="borangHaid()"><i class="fa-solid fa-pen"></i> Rekod tarikh lain</button>
       <button class="btn btn-kelabu btn-kecil" onclick="sejarahHaid()"><i class="fa-solid fa-list"></i> Sejarah</button>
       ${a.semasa ? '' : '<button class="btn btn-kelabu btn-kecil" onclick="haidMula(\'nifas\')"><i class="fa-solid fa-baby"></i> Mula nifas</button>'}
-      <button class="btn btn-kelabu btn-kecil" onclick="tetapPin()"><i class="fa-solid fa-lock"></i> ${h.pin ? 'Tukar PIN' : 'PIN'}</button>
     </div>
-    <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:13.5px;background:#fdf2f8;border-radius:10px;padding:9px 10px;cursor:pointer"><input type="checkbox" ${h.kongsi ? 'checked' : ''} onchange="kongsiSuami(this.checked)" style="margin-top:3px"> <span><b>Benarkan suami lihat</b> kitaran ini dan panduan untuk memahami isteri. Suami lihat dari tab Kitaran pada profilnya (tanpa PIN).</span></label>
+    <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:13.5px;background:#fdf2f8;border-radius:10px;padding:9px 10px;cursor:pointer"><input type="checkbox" ${h.kongsi ? 'checked' : ''} onchange="kongsiSuami(this.checked)" style="margin-top:3px"> <span><b>Benarkan suami lihat</b> kitaran ini dan panduan untuk memahami isteri. Suami lihat dari tab Kitaran pada profilnya.</span></label>
     <p class="kecil" style="margin:8px 0 0">${h.kongsi ? 'Dikongsi dengan suami sahaja.' : 'Hanya dilihat oleh anda.'} Panduan fiqh mazhab Syafie secara ringkas; untuk kes luar biasa, rujuk ustazah.</p>`;
   $('kadPanduan').innerHTML = panduanFasa(a, false);
 }
@@ -1027,21 +1022,6 @@ window.padamHaid = async (id) => {
   try { await simpanHaid(h); sejarahHaid(); paparHaid(); } catch (e) { alert('Gagal: ' + e.message); }
 };
 window.qadhaDah = async () => { const h = haidData(); h.qadha_bayar = (h.qadha_bayar || 0) + 1; try { await simpanHaid(h); paparHaid(); } catch (e) { alert('Gagal: ' + e.message); } };
-window.bukaHaid = () => modalH(`<h2 style="margin:0 0 6px;font-size:18px">Masukkan PIN</h2><input type="password" id="mhPin" inputmode="numeric" maxlength="6" autocomplete="off"><button class="btn btn-hijau penuh" style="margin-top:12px" onclick="semakPinHaid()">Buka</button>`);
-window.semakPinHaid = async () => {
-  if (await hashPin($('mhPin').value) !== haidData().pin) { alert('PIN salah.'); return; }
-  try { sessionStorage.setItem(kunciBuka(), '1'); } catch (e) {}
-  tutupH(); paparHaid();
-};
-window.tetapPin = () => modalH(`<h2 style="margin:0 0 6px;font-size:18px">PIN kitaran</h2><p class="kecil" style="margin:0 0 8px">PIN 4 hingga 6 nombor untuk sembunyikan kad ini daripada orang lain yang guna akaun atau telefon yang sama. Kosongkan untuk buang PIN.</p>
-  <input type="password" id="mhPinBaru" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="PIN baharu"><button class="btn btn-hijau penuh" style="margin-top:12px" onclick="simpanPinHaid()">Simpan PIN</button>`);
-window.simpanPinHaid = async () => {
-  const v = $('mhPinBaru').value.trim();
-  if (v && !/^\d{4,6}$/.test(v)) { alert('PIN mesti 4 hingga 6 nombor.'); return; }
-  const h = haidData(); h.pin = v ? await hashPin(v) : '';
-  try { await simpanHaid(h); try { sessionStorage.setItem(kunciBuka(), '1'); } catch (e) {} tutupH(); paparHaid(); alert(v ? 'PIN disimpan. Kad akan dikunci bila app dibuka semula.' : 'PIN dibuang.'); } catch (e) { alert('Gagal: ' + e.message); }
-};
-
 // ---------- Mod puasa sunat (Isnin, Khamis, Hari Putih 13-15 Hijrah) ----------
 function infoPuasa(offset) {
   const t = new Date(Date.now() + 8 * 3600000 + offset * 86400000), g = { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate() };
