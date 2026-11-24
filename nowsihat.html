@@ -150,7 +150,7 @@
     <button data-t="hari" class="aktif" onclick="tukarTab('hari')"><i class="fa-solid fa-house"></i> Hari Ini</button>
     <button data-t="imbas" onclick="tukarTab('imbas')"><i class="fa-solid fa-camera"></i> Imbas</button>
     <button data-t="trend" onclick="tukarTab('trend')"><i class="fa-solid fa-chart-column"></i> Trend</button>
-    <button data-t="kerap" onclick="tukarTab('kerap')"><i class="fa-solid fa-star"></i> Kerap</button>
+    <button data-t="kitaran" onclick="tukarTab('kitaran')"><i class="fa-solid fa-droplet"></i> Kitaran</button>
     <button data-t="profil" onclick="tukarTab('profil')"><i class="fa-solid fa-user"></i> Profil</button>
   </nav>
 </header>
@@ -165,7 +165,6 @@
         <div class="kad" id="kadTolok"></div>
         <div class="kad" id="kadSeterusnya"></div>
         <div class="kad kad-sukan" id="kadSenaman"></div>
-        <div class="kad hidden" id="kadHaid" style="border-color:#fbcfe8"></div>
         <div class="kad" id="kadKeadaan"></div>
       </div>
       <div class="kolum">
@@ -229,6 +228,12 @@
       <p class="kecil" style="margin:0 0 6px">Catat makanan yang selalu dimakan dengan satu tekan, tanpa gambar dan tanpa guna imbasan. Simpan dari senarai "Makanan hari ini" dengan butang <i class="fa-regular fa-star"></i>.</p>
       <div id="senaraiKerap" class="kecil">Belum ada makanan kerap.</div>
     </div>
+  </section>
+
+  <!-- KITARAN -->
+  <section id="t-kitaran" class="hidden">
+    <div class="kad" id="kadHaid" style="border-color:#fbcfe8"></div>
+    <div class="kad" id="kadPanduan" style="border-color:#fbcfe8"></div>
   </section>
 
   <!-- PROFIL -->
@@ -303,7 +308,7 @@
   <button data-t="hari" class="aktif" onclick="tukarTab('hari')"><i class="fa-solid fa-house"></i>Utama</button>
   <button data-t="trend" onclick="tukarTab('trend')"><i class="fa-solid fa-chart-column"></i>Trend</button>
   <button data-t="imbas" class="fab" onclick="tukarTab('imbas')"><span class="bulat"><i class="fa-solid fa-camera"></i></span></button>
-  <button data-t="kerap" onclick="tukarTab('kerap')"><i class="fa-solid fa-star"></i>Kerap</button>
+  <button data-t="kitaran" onclick="tukarTab('kitaran')"><i class="fa-solid fa-droplet"></i>Kitaran</button>
   <button data-t="profil" onclick="tukarTab('profil')"><i class="fa-solid fa-user"></i>Profil</button>
 </nav>
 
@@ -430,9 +435,9 @@ window.keCoachSahaja = (tutupSahaja) => { if (!tutupSahaja) { try { localStorage
 window.langganCoach = () => { $('modalKunciCoach').style.display = 'none'; if (S.user.nowsihat_expiry_date) perbaharui(); else mulaPercubaan(); };
 window.tukarTab = (t) => {
   if (t !== 'profil' && !adaLanggan()) { bukaKunci(); return; }
-  ['hari', 'imbas', 'trend', 'kerap', 'profil'].forEach(x => $('t-' + x).classList.toggle('hidden', x !== t));
+  ['hari', 'imbas', 'trend', 'kerap', 'kitaran', 'profil'].forEach(x => $('t-' + x).classList.toggle('hidden', x !== t));
   document.querySelectorAll('.navAtas button, .navBawah button').forEach(b => b.classList.toggle('aktif', b.dataset.t === t));
-  if (t === 'trend') muatTrend(); else if (t === 'kerap') muatKerap();
+  if (t === 'trend') muatTrend(); else if (t === 'kerap') muatKerap(); else if (t === 'kitaran') paparKitaran();
   window.scrollTo(0, 0);
 };
 
@@ -549,7 +554,7 @@ function paparHari() {
           ${S.pautan && (S.pautan.kongsi || {}).makan !== false ? `<button class="btn btn-kelabu btn-kecil" style="color:#6d28d9" onclick="bukaTanya('${r.id}')"><i class="fa-solid fa-circle-question"></i> Tanya coach</button>` : ''}
           <button class="btn btn-kelabu btn-kecil" onclick="padamRekod('${r.id}')"><i class="fa-regular fa-trash-can"></i></button></div></div></div>`).join('') : 'Belum ada makanan dicatat hari ini.';
   paparAir();
-  paparSeterusnya(s, j, dewasa); paparSenaman(); paparHaid(); paparKeadaan(); paparPuasa();
+  paparSeterusnya(s, j, dewasa); paparSenaman(); paparKeadaan(); paparPuasa(); if (!$('t-kitaran').classList.contains('hidden')) paparKitaran();
   const [t, b] = panduanUmur(s.umur);
   $('kadPanduan').innerHTML = `<h2><i class="fa-solid fa-seedling"></i> Panduan ikut umur: ${esc(t)}</h2><p style="font-size:14px;line-height:1.6;margin:0">${esc(b)}</p>`;
   $('kadSasaran').innerHTML = `<h2><i class="fa-solid fa-bullseye"></i> Sasaran harian anda</h2>${s.coach ? `<p class="kecil" style="margin:-4px 0 8px"><i class="fa-solid fa-user-check" style="color:#16a34a"></i> Ditetapkan oleh ${esc(s.coach)}</p>` : ''}` + (s.umur !== null && s.umur < 18
@@ -869,13 +874,15 @@ const HM = 86400000;
 const hariAntara = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / HM);
 const tambahHari = (k, n) => new Date(Date.parse(k + 'T00:00:00Z') + n * HM).toISOString().slice(0, 10);
 const fmtT = (k) => k ? k.split('-').reverse().join('/') : '';
-const haidData = () => { const h = S.profil.haid || {}; return { rekod: Array.isArray(h.rekod) ? h.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [], qadha_bayar: h.qadha_bayar || 0, pin: h.pin || '' }; };
+const haidDari = (prof) => { const h = (prof && prof.haid) || {}; return { rekod: Array.isArray(h.rekod) ? h.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [], qadha_bayar: h.qadha_bayar || 0, pin: h.pin || '', kongsi: !!h.kongsi }; };
+const haidData = () => haidDari(S.profil);
 const kunciBuka = () => 'fp_haid_buka_' + PID();
 const haidTerkunci = () => { const h = haidData(); if (!h.pin) return false; try { return sessionStorage.getItem(kunciBuka()) !== '1'; } catch (e) { return true; } };
 async function hashPin(pin) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(PID() + ':' + pin)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
 async function simpanHaid(h) {
-  await setDoc(doc(db, 'nowsihat_profil', PID()), { haid: { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, pin: h.pin || '' } }, { merge: true });
-  S.profil.haid = { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, pin: h.pin || '' };
+  const v = { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, pin: h.pin || '', kongsi: !!h.kongsi };
+  await setDoc(doc(db, 'nowsihat_profil', PID()), { haid: v }, { merge: true });
+  S.profil.haid = v;
 }
 function analisisHaid(h) {
   const kini = tarikhMY(), haid = h.rekod.filter(r => r.j !== 'nifas');
@@ -893,10 +900,8 @@ function analisisHaid(h) {
 }
 function paparHaid() {
   const k = $('kadHaid');
-  if (S.profil.jantina !== 'P') { k.classList.add('hidden'); return; }
-  k.classList.remove('hidden');
   const h = haidData();
-  if (haidTerkunci()) { k.innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-lock" style="color:#db2777"></i> Kitaran peribadi</h2></div><p class="kecil" style="margin:8px 0 10px">Dilindungi PIN.</p><button class="btn btn-garis penuh" onclick="bukaHaid()">Buka dengan PIN</button>`; return; }
+  if (haidTerkunci()) { $('kadPanduan').innerHTML = ''; k.innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-lock" style="color:#db2777"></i> Kitaran peribadi</h2></div><p class="kecil" style="margin:8px 0 10px">Dilindungi PIN.</p><button class="btn btn-garis penuh" onclick="bukaHaid()">Buka dengan PIN</button>`; return; }
   const a = analisisHaid(h);
   let status = '', butang = '', nota = '';
   if (a.semasa) {
@@ -920,7 +925,61 @@ function paparHaid() {
       ${a.semasa ? '' : '<button class="btn btn-kelabu btn-kecil" onclick="haidMula(\'nifas\')"><i class="fa-solid fa-baby"></i> Mula nifas</button>'}
       <button class="btn btn-kelabu btn-kecil" onclick="tetapPin()"><i class="fa-solid fa-lock"></i> ${h.pin ? 'Tukar PIN' : 'PIN'}</button>
     </div>
-    <p class="kecil" style="margin:8px 0 0">Hanya dilihat oleh anda. Panduan fiqh mazhab Syafie secara ringkas; untuk kes luar biasa, rujuk ustazah.</p>`;
+    <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:13.5px;background:#fdf2f8;border-radius:10px;padding:9px 10px;cursor:pointer"><input type="checkbox" ${h.kongsi ? 'checked' : ''} onchange="kongsiSuami(this.checked)" style="margin-top:3px"> <span><b>Benarkan suami lihat</b> kitaran ini dan panduan untuk memahami isteri. Suami lihat dari tab Kitaran pada profilnya (tanpa PIN).</span></label>
+    <p class="kecil" style="margin:8px 0 0">${h.kongsi ? 'Dikongsi dengan suami sahaja.' : 'Hanya dilihat oleh anda.'} Panduan fiqh mazhab Syafie secara ringkas; untuk kes luar biasa, rujuk ustazah.</p>`;
+  $('kadPanduan').innerHTML = panduanFasa(a, false);
+}
+window.kongsiSuami = async (on) => { const h = haidData(); h.kongsi = !!on; try { await simpanHaid(h); paparHaid(); } catch (e) { alert('Gagal: ' + e.message); } };
+// Fasa kitaran (anggaran) & panduan: untuk isteri sendiri atau untuk suami
+function fasaKitaran(a) {
+  if (a.semasa) return a.semasa.j === 'nifas' ? 'nifas' : 'haid';
+  if (!a.jangka) return '';
+  const lagi = hariAntara(a.kini, a.jangka);
+  if (lagi < 0) return 'lewat';
+  if (lagi <= 7) return 'pms';
+  const ov = hariAntara(a.kini, tambahHari(a.jangka, -14));
+  if (ov <= 5 && ov >= -1) return 'subur';
+  return 'selepas';
+}
+const PANDUAN = {
+  haid: { t: 'Sedang haid', diri: ['Rehat secukupnya, minum air suam dan gunakan tuaman panas jika senggugut.', 'Makan makanan kaya zat besi (sayur hijau, daging, kekacang).', 'Tetap berzikir, berselawat dan berdoa walaupun tidak solat.'],
+    suami: ['Isteri mungkin penat, senggugut atau lebih sensitif. Banyakkan sabar dan jangan ambil hati.', 'Ringankan bebannya: bantu kerja rumah, jaga anak, belikan makanan kegemarannya.', 'Tanya khabar dan beri perhatian, cukup dengan pelukan dan kata-kata lembut.', 'Hukum: suami isteri dilarang bersama (jimak) semasa haid hingga isteri mandi wajib (al-Baqarah: 222). Kasih sayang dan bermesra lain tetap digalakkan.'] },
+  nifas: { t: 'Dalam tempoh nifas', diri: ['Utamakan pemulihan, rehat dan pemakanan berkhasiat.', 'Jika rasa sedih berpanjangan atau tertekan, bercakap dengan suami, keluarga atau doktor.'],
+    suami: ['Isteri sedang pulih selepas bersalin. Ambil alih sebanyak mungkin tugasan rumah dan bayi.', 'Perhatikan emosinya; perubahan hormon boleh membuat isteri mudah sedih atau letih. Dengar tanpa menghakimi.', 'Jika isteri kerap menangis, hilang minat atau tidak dapat tidur lama, galakkan berjumpa doktor.', 'Hukum: suami isteri dilarang bersama (jimak) semasa nifas hingga isteri mandi wajib.'] },
+  pms: { t: 'Menjelang haid (beberapa hari sebelum)', diri: ['Sesetengah wanita mudah letih, kembung atau berubah mood pada fasa ini. Kurangkan kafein dan garam.', 'Bersenam ringan dan tidur cukup boleh membantu.'],
+    suami: ['Ini fasa sebelum haid. Sesetengah isteri lebih sensitif, cepat penat atau mudah tersinggung.', 'Elakkan berbincang isu berat atau bertegang leher. Tangguhkan jika boleh.', 'Lebihkan pujian, bantuan kecil dan masa bersama. Hadiah kecil atau makanan kegemarannya sangat dihargai.'] },
+  selepas: { t: 'Selepas haid', diri: ['Tenaga biasanya kembali meningkat. Masa sesuai untuk rancang aktiviti dan senaman.'],
+    suami: ['Tenaga dan mood isteri biasanya lebih baik pada fasa ini. Masa sesuai untuk aktiviti bersama, berbincang perancangan keluarga atau keluar berdua.'] },
+  subur: { t: 'Anggaran tempoh subur', diri: ['Anggaran sahaja berdasarkan purata kitaran; boleh berbeza setiap bulan.'],
+    suami: ['Ini anggaran tempoh subur isteri. Berguna jika merancang zuriat, tetapi ia anggaran sahaja dan boleh berbeza setiap bulan.', 'Tetap tunjukkan kasih sayang dan perhatian seperti biasa.'] },
+  lewat: { t: 'Haid lewat daripada jangkaan', diri: ['Kitaran boleh berubah kerana tekanan, penyakit atau perubahan berat badan. Jika lewat lama atau mungkin hamil, buat ujian atau rujuk doktor.'],
+    suami: ['Haid isteri lewat daripada jangkaan. Ia boleh berlaku kerana tekanan atau perubahan badan, atau kemungkinan hamil.', 'Bertanya dengan lembut dan beri sokongan; jangan menekan.'] }
+};
+function panduanFasa(a, untukSuami) {
+  const f = fasaKitaran(a), p = PANDUAN[f]; if (!p) return '';
+  const senarai = untukSuami ? p.suami : p.diri;
+  return `<h2 style="margin:0 0 6px"><i class="fa-solid fa-hand-holding-heart" style="color:#db2777"></i> ${untukSuami ? 'Panduan untuk suami' : 'Panduan untuk anda'}</h2><p class="kecil" style="margin:0 0 6px"><b>${p.t}</b> · anggaran</p>` +
+    senarai.map(x => `<p style="font-size:14px;margin:6px 0;display:flex;gap:8px"><i class="fa-solid fa-heart" style="color:#f472b6;margin-top:4px;font-size:11px"></i><span>${x}</span></p>`).join('');
+}
+// Tab Kitaran: profil perempuan urus kitaran sendiri; profil lain lihat kitaran pasangan (jika dibenarkan)
+async function paparKitaran() {
+  if (S.profil.jantina === 'P') { paparHaid(); return; }
+  const k = $('kadHaid'), pd = $('kadPanduan');
+  k.innerHTML = '<p class="kecil"><i class="fa-solid fa-spinner fa-spin"></i> Memuatkan…</p>'; pd.innerHTML = '';
+  const lain = S.per === 'pasangan' ? S.uid : S.uid + '_pasangan';
+  let pr = null; try { const d = await getDoc(doc(db, 'nowsihat_profil', lain)); pr = d.exists() ? d.data() : null; } catch (e) {}
+  const h = haidDari(pr);
+  if (!pr || pr.jantina !== 'P' || !h.kongsi || !h.rekod.length) {
+    k.innerHTML = `<h2 style="margin:0 0 6px"><i class="fa-solid fa-droplet" style="color:#db2777"></i> Kitaran isteri</h2><p style="font-size:14px;margin:0">${pr && pr.jantina === 'P' && h.kongsi ? 'Isteri belum merekod kitaran.' : 'Isteri belum berkongsi kitarannya. Dia boleh tick <b>"Benarkan suami lihat"</b> di tab Kitaran pada profilnya (tukar ke profil Pasangan).'}</p>
+      <p class="kecil" style="margin:8px 0 0">Bila dikongsi, anda boleh lihat fasa kitaran isteri dan panduan untuk memahami emosinya serta hukum berkaitan.</p>`;
+    return;
+  }
+  const a = analisisHaid(h);
+  let status = '';
+  if (a.semasa) status = `<b>${a.semasa.j === 'nifas' ? 'Nifas' : 'Haid'} hari ke-${hariAntara(a.semasa.m, a.kini) + 1}</b>`;
+  else if (a.jangka) { const lagi = hariAntara(a.kini, a.jangka); status = lagi >= 0 ? `Haid seterusnya dijangka <b>${fmtT(a.jangka)}</b> (${lagi === 0 ? 'hari ini' : lagi + ' hari lagi'})` : `Haid lewat <b>${-lagi} hari</b> daripada jangkaan`; }
+  k.innerHTML = `<h2 style="margin:0 0 6px"><i class="fa-solid fa-droplet" style="color:#db2777"></i> Kitaran isteri</h2><p style="font-size:15px;margin:0">${status}</p><p class="kecil" style="margin:6px 0 0">Dikongsi oleh isteri. Lihat sahaja.</p>`;
+  pd.innerHTML = panduanFasa(a, true);
 }
 const modalH = (html) => { $('mhIsi').innerHTML = html + '<button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="document.getElementById(\'modalHaid\').style.display=\'none\'">Tutup</button>'; $('modalHaid').style.display = 'flex'; };
 const tutupH = () => { $('modalHaid').style.display = 'none'; };
