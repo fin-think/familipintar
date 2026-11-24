@@ -533,7 +533,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, arrayUnion, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { tentukanKumpulan } from "./kumpulan.js?v=3";
 
     const firebaseConfig = {
@@ -1513,10 +1513,11 @@ window.janaDanKongsi = async (tripId) => {
         const userRef = doc(db, "mynasab_users", currentUser.uid);
         const baki = parseInt((await getDoc(userRef)).data().credit_balance) || 0;
         if (baki < 1) { alert("Kredit tidak mencukupi. Baki: " + baki + "."); return; }
-        await setDoc(userRef, { credit_balance: baki - 1 }, { merge: true });
-        try {
-            await updateDoc(ref, { published: true, published_at: Date.now(), viewer_uids: penerima, seen_by: [] });
-        } catch (e) { await setDoc(userRef, { credit_balance: baki }, { merge: true }); throw e; }   // pulangkan kredit jika gagal
+        // Tolak kredit & terbitkan dalam SATU tulisan: kalau gagal, kredit tak terpotong
+        const batch = writeBatch(db);
+        batch.set(userRef, { credit_balance: baki - 1 }, { merge: true });
+        batch.update(ref, { published: true, published_at: Date.now(), viewer_uids: penerima, seen_by: [] });
+        await batch.commit();
         const t = senaraiPelanTersimpan.find(x => x.id === tripId); if (t) Object.assign(t, { published: true, viewer_uids: penerima });
         renderSenaraiPelan(); showToast("✅ Itinerari dijana & dikongsi!"); bukaPreview(tripId);
     } catch (e) { console.error(e); alert("Gagal menjana: " + (e.code || '') + " " + (e.message || e)); }

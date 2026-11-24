@@ -99,7 +99,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -118,6 +118,7 @@
         window.fbOnAuth = onAuthStateChanged;
         window.fbDoc = doc;
         window.fbSetDoc = setDoc;
+        window.fbWriteBatch = writeBatch;
         window.fbGetDoc = getDoc;
         window.fbCollection = collection;
         window.fbQuery = query;
@@ -2441,14 +2442,11 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
                       // 2. Semak jika kredit mencukupi (>= 10)
                       if (bakiSemasa >= 10) {
                           // Tolak 10 kredit dan kemas kini baki
-                          await window.fbSetDoc(userRef, {
-                              credit_balance: bakiSemasa - 10
-                          }, { merge: true });
-                          
-                          // Simpan status unlock ke myTADBIR profile supaya kekal
-                          await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), {
-                              is_dashboard_unlocked: true
-                          }, { merge: true });
+                          // Tolak kredit & simpan status unlock dalam SATU tulisan (rules semak kredit ditolak)
+                          const batch = window.fbWriteBatch(window.fbDb);
+                          batch.set(userRef, { credit_balance: bakiSemasa - 10 }, { merge: true });
+                          batch.set(window.fbDoc(window.fbDb, "mytadbir_profiles", user.uid), { is_dashboard_unlocked: true }, { merge: true });
+                          await batch.commit();
 
                           alert("Buka kunci berjaya! 10 Kredit telah ditolak.\nBaki terkini: " + (bakiSemasa - 10) + " Kredit.");
 
