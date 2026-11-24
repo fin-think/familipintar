@@ -815,6 +815,7 @@
     import { getFirestore, doc, setDoc, updateDoc, increment, arrayUnion, addDoc, deleteDoc, collection, query, where, getDocs, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -827,6 +828,8 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const fns = getFunctions(app, 'asia-southeast1');
+    const langganApp = (tindakan) => httpsCallable(fns, 'langganApp')({ app: 'ourmoney', tindakan }).then(r => r.data);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
@@ -1140,10 +1143,8 @@
                 if (userSnap.exists()) {
                     const data = userSnap.data();
                     if (!data.ourmoney_expiry_date) {
-                        const masaSekarang = new Date().getTime();
                         await muatTH();
-                        const tambah30Hari = masaSekarang + (th('percubaan_hari', 30, 1) * 24 * 60 * 60 * 1000);
-                        await setDoc(userRef, { ourmoney_expiry_date: tambah30Hari }, { merge: true });
+                        await langganApp('mula');   // percubaan dimulakan di server
                     }
                 }
                 await window.semakStatusLangganan(currentUser.uid);
@@ -1163,12 +1164,10 @@
                 await muatTH();
                 const KREDIT = th('ourmoney_kredit', 20);
                 if (baki >= KREDIT) {
-                    const masaSekarang = new Date().getTime();
-                    const tambah30Hari = masaSekarang + (30 * 24 * 60 * 60 * 1000);
-                    await setDoc(userRef, { credit_balance: baki - KREDIT, ourmoney_expiry_date: tambah30Hari }, { merge: true });
-                    alert("Pembaharuan berjaya! " + KREDIT + " Kredit telah dipotong dari akun Anda.");
+                    const r = await langganApp('baharu');   // potong kredit & sambung tempoh di server
+                    alert("Pembaharuan berjaya! " + (r.kredit ?? KREDIT) + " Kredit telah dipotong dari akaun anda.");
                     document.getElementById('modalPaywall').style.display = 'none';
-                    paparTamat(tambah30Hari);
+                    paparTamat(r.tamat);
                 } else {
                     alert("Kredit tidak mencukupi. Baki saat ini: " + baki + " Kredit.");
                     window.location.href = "../topup.html";

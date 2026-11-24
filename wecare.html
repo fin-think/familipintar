@@ -358,6 +358,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, arrayUnion, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { tentukanKumpulan } from "./kumpulan.js?v=3";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA7SW4U--evGtfRyPz5Feh3mEN8MF92gTg",
@@ -370,6 +371,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const fns = getFunctions(app, 'asia-southeast1');
+const langganApp = (tindakan) => httpsCallable(fns, 'langganApp')({ app: 'wecare', tindakan }).then(r => r.data);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
@@ -442,8 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const userSnap = await getDoc(userRef);
           if (userSnap.exists() && !userSnap.data().wecare_expiry_date) {
             await muatTH();
-            const tambah30Hari = new Date().getTime() + (th('percubaan_hari', 30, 1) * 24 * 60 * 60 * 1000);
-            await setDoc(userRef, { wecare_expiry_date: tambah30Hari }, { merge: true });
+            await langganApp('mula');   // percubaan dimulakan di server
           }
           await window.semakStatusLangganan(currentUser.uid);
           const sBaru = await getDoc(userRef); const tm = sBaru.exists() && sBaru.data().wecare_expiry_date;
@@ -559,11 +561,10 @@ window.bayarGunaKredit = async () => {
       await muatTH();
       const KREDIT = th('wecare_kredit', 20);
       if (baki >= KREDIT) {
-        const tambah30Hari = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
-        await setDoc(userRef, { credit_balance: baki - KREDIT, wecare_expiry_date: tambah30Hari }, { merge: true });
-        alert("Pembaharuan berjaya! " + KREDIT + " Kredit telah dipotong dari akaun anda.");
+        const r = await langganApp('baharu');   // potong kredit & sambung tempoh di server
+        alert("Pembaharuan berjaya! " + (r.kredit ?? KREDIT) + " Kredit telah dipotong dari akaun anda.");
         document.getElementById('modalPaywall').style.display = 'none';
-        paparTamat(tambah30Hari);
+        paparTamat(r.tamat);
       } else {
         alert("Kredit tidak mencukupi. Baki semasa anda: " + baki + " Kredit.\n\nSila tambah nilai kredit di myNasab terlebih dahulu.");
         window.location.href = "../topup.html";
