@@ -88,6 +88,7 @@ const SUMBER = {
   gotravel: { n: 'goTravel',    w: '#2563eb', ik: 'fa-plane' },
   harijadi: { n: 'Hari jadi',   w: '#db2777', ik: 'fa-cake-candles' },
   nowsihat: { n: 'nowSihat',    w: '#16a34a', ik: 'fa-heart-pulse' },
+  peribadi: { n: 'Peribadi',    w: '#f472b6', ik: 'fa-lock' },
   islam:    { n: 'Hari Islam',  w: '#d97706', ik: 'fa-star-and-crescent' },
   cuti:     { n: 'Cuti',        w: '#dc2626', ik: 'fa-flag' }
 };
@@ -95,7 +96,7 @@ const KUNCI_TAPIS = 'fp_kalendar_tapis';
 let tapis = {}; try { tapis = JSON.parse(bacaLS(KUNCI_TAPIS) || '{}'); } catch (e) {}
 const hidup = (s) => tapis[s] !== false;
 
-const K = { y: g0.y, m: g0.m, pilih: HARI_INI, wecare: [], trips: [], dob: [], rutin: [], islam: [], cuti: { umum: [], sekolah: {}, kumpulanA: ['Kedah', 'Kelantan', 'Terengganu'] }, negeriMyNasab: '' };
+const K = { y: g0.y, m: g0.m, pilih: HARI_INI, wecare: [], trips: [], dob: [], rutin: [], haid: new Set(), jangka: new Set(), islam: [], cuti: { umum: [], sekolah: {}, kumpulanA: ['Kedah', 'Kelantan', 'Terengganu'] }, negeriMyNasab: '' };
 
 // ---------- Cuti (data & pilihan negeri dikongsi dengan weCare / goTravel) ----------
 const NEGERI = ['Johor', 'Kedah', 'Kelantan', 'Melaka', 'Negeri Sembilan', 'Pahang', 'Perak', 'Perlis', 'Pulau Pinang', 'Sabah', 'Sarawak', 'Selangor', 'Terengganu', 'W.P. Kuala Lumpur', 'W.P. Labuan', 'W.P. Putrajaya'];
@@ -128,6 +129,7 @@ function eventPada(k) {
     const tajuk = t.jenis === 'balik' ? `${t.shift_siapa || 'Ahli keluarga'} ${t.balik_jenis === 'hari' ? 'balik hari' : 'balik bermalam'}` : t.title;
     ev.push({ s: 'wecare', t: tajuk || 'Tugasan', sub: [t.time, t.shift_siapa && t.shift_siapa !== 'Umum' && t.jenis !== 'balik' ? 'Bertugas: ' + t.shift_siapa : '', untuk].filter(Boolean).join(' · '), url: 'wecare.html?tugas=' + t.id });
   });
+  if (hidup('peribadi') && (K.haid.has(k) || K.jangka.has(k))) ev.push({ s: 'peribadi', t: K.haid.has(k) ? 'Catatan peribadi' : 'Jangkaan peribadi', sub: 'Lihat di nowSihat', url: 'nowsihat.html' });
   if (hidup('nowsihat')) K.rutin.filter(r => (r.hari || []).includes(dow)).forEach(r => ev.push({ s: 'nowsihat', t: r.nama + ' ' + r.minit + ' minit', sub: 'Rutin senaman' + (r.masa ? ' · ' + r.masa : ''), url: 'nowsihat.html' }));
   return ev;
 }
@@ -207,6 +209,21 @@ async function muatRutin(uid) {
     const x = p.exists() ? p.data() : {};
     const list = Array.isArray(x.senaman_rutin) ? x.senaman_rutin : (x.senaman ? [x.senaman] : []);
     K.rutin = list.map(r => ({ ...r, nama: JENIS[r.jenis] || 'Brisk walk' }));
+    // Kitaran haid/nifas (profil perempuan sahaja): titik peribadi tanpa label pada grid
+    const pid = per === 'pasangan' ? uid + '_pasangan' : uid;
+    let kunci = false; try { kunci = !!(x.haid && x.haid.pin) && sessionStorage.getItem('fp_haid_buka_' + pid) !== '1'; } catch (e) { kunci = true; }   // ber-PIN & belum dibuka: tidak dipaparkan
+    const rek = (!kunci && x.jantina === 'P' && x.haid && Array.isArray(x.haid.rekod)) ? x.haid.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [];
+    const tambah = (k0, n) => new Date(Date.parse(k0 + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);
+    const beza = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000);
+    rek.forEach(r => { const t = r.t || HARI_INI; for (let k0 = r.m; k0 <= t; k0 = tambah(k0, 1)) K.haid.add(k0); });
+    const haid = rek.filter(r => r.j !== 'nifas');
+    if (haid.length && rek[rek.length - 1].t) {
+      const kit = []; for (let i = 1; i < haid.length; i++) { const d = beza(haid[i - 1].m, haid[i].m); if (d >= 15 && d <= 60) kit.push(d); }
+      const lm = haid.filter(r => r.t).map(r => beza(r.m, r.t) + 1).filter(d => d >= 1 && d <= 15);
+      const avg = (a, asal) => a.length ? Math.round(a.slice(-6).reduce((p, q) => p + q, 0) / Math.min(6, a.length)) : asal;
+      let mula = tambah(haid[haid.length - 1].m, avg(kit, 28));
+      for (let c = 0; c < 3; c++) { for (let d = 0; d < avg(lm, 7); d++) K.jangka.add(tambah(mula, d)); mula = tambah(mula, avg(kit, 28)); }
+    }
   } catch (e) {}
 }
 function muatIslam(laras) {

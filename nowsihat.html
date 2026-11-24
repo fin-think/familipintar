@@ -165,6 +165,7 @@
         <div class="kad" id="kadTolok"></div>
         <div class="kad" id="kadSeterusnya"></div>
         <div class="kad kad-sukan" id="kadSenaman"></div>
+        <div class="kad hidden" id="kadHaid" style="border-color:#fbcfe8"></div>
         <div class="kad" id="kadKeadaan"></div>
       </div>
       <div class="kolum">
@@ -361,6 +362,8 @@
   <button class="btn btn-hijau penuh" id="btnMula" onclick="mulaPercubaan()">Saya faham, mula percuma</button>
 </div></div>
 
+<div class="modal" id="modalHaid"><div class="isi" id="mhIsi"></div></div>
+
 <div class="modal" id="modalSenaman"><div class="isi">
   <h2 style="margin:0 0 6px;font-size:18px" id="msTajuk">Senaman hari ini</h2>
   <div id="msBlokJenis" style="display:none"><label for="msJenis">Jenis senaman</label><select id="msJenis"></select></div>
@@ -546,7 +549,7 @@ function paparHari() {
           ${S.pautan && (S.pautan.kongsi || {}).makan !== false ? `<button class="btn btn-kelabu btn-kecil" style="color:#6d28d9" onclick="bukaTanya('${r.id}')"><i class="fa-solid fa-circle-question"></i> Tanya coach</button>` : ''}
           <button class="btn btn-kelabu btn-kecil" onclick="padamRekod('${r.id}')"><i class="fa-regular fa-trash-can"></i></button></div></div></div>`).join('') : 'Belum ada makanan dicatat hari ini.';
   paparAir();
-  paparSeterusnya(s, j, dewasa); paparSenaman(); paparKeadaan(); paparPuasa();
+  paparSeterusnya(s, j, dewasa); paparSenaman(); paparHaid(); paparKeadaan(); paparPuasa();
   const [t, b] = panduanUmur(s.umur);
   $('kadPanduan').innerHTML = `<h2><i class="fa-solid fa-seedling"></i> Panduan ikut umur: ${esc(t)}</h2><p style="font-size:14px;line-height:1.6;margin:0">${esc(b)}</p>`;
   $('kadSasaran').innerHTML = `<h2><i class="fa-solid fa-bullseye"></i> Sasaran harian anda</h2>${s.coach ? `<p class="kecil" style="margin:-4px 0 8px"><i class="fa-solid fa-user-check" style="color:#16a34a"></i> Ditetapkan oleh ${esc(s.coach)}</p>` : ''}` + (s.umur !== null && s.umur < 18
@@ -857,6 +860,127 @@ window.simpanSenaman = async () => {
 window.padamRutin = async (id) => {
   if (!confirm('Padam rutin ini?')) return;
   try { await simpanSenaraiRutin(rutin().filter(x => x.id !== id)); } catch (e) { alert('Gagal: ' + e.message); }
+};
+
+// ---------- Kitaran haid & nifas (peribadi; profil perempuan sahaja) ----------
+// Panduan fiqh ringkas mazhab Syafie: haid min sehari semalam, maks 15 hari, kebiasaan 6-7 hari; suci min 15 hari antara dua haid;
+// nifas kebiasaan 40 hari, maks 60 hari. Kes luar biasa: rujuk ustazah.
+const HM = 86400000;
+const hariAntara = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / HM);
+const tambahHari = (k, n) => new Date(Date.parse(k + 'T00:00:00Z') + n * HM).toISOString().slice(0, 10);
+const fmtT = (k) => k ? k.split('-').reverse().join('/') : '';
+const haidData = () => { const h = S.profil.haid || {}; return { rekod: Array.isArray(h.rekod) ? h.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [], qadha_bayar: h.qadha_bayar || 0, pin: h.pin || '' }; };
+const kunciBuka = () => 'fp_haid_buka_' + PID();
+const haidTerkunci = () => { const h = haidData(); if (!h.pin) return false; try { return sessionStorage.getItem(kunciBuka()) !== '1'; } catch (e) { return true; } };
+async function hashPin(pin) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(PID() + ':' + pin)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
+async function simpanHaid(h) {
+  await setDoc(doc(db, 'nowsihat_profil', PID()), { haid: { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, pin: h.pin || '' } }, { merge: true });
+  S.profil.haid = { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, pin: h.pin || '' };
+}
+function analisisHaid(h) {
+  const kini = tarikhMY(), haid = h.rekod.filter(r => r.j !== 'nifas');
+  const semasa = h.rekod.length && !h.rekod[h.rekod.length - 1].t ? h.rekod[h.rekod.length - 1] : null;
+  const kit = []; for (let i = 1; i < haid.length; i++) { const d = hariAntara(haid[i - 1].m, haid[i].m); if (d >= 15 && d <= 60) kit.push(d); }
+  const tempoh = haid.filter(r => r.t).map(r => hariAntara(r.m, r.t) + 1).filter(d => d >= 1 && d <= 15);
+  const purata = (a, asal) => a.length ? Math.round(a.slice(-6).reduce((x, y) => x + y, 0) / Math.min(6, a.length)) : asal;
+  const kitaran = purata(kit, 28), lama = purata(tempoh, 7);
+  const akhir = haid.length ? haid[haid.length - 1] : null;
+  const jangka = akhir && !semasa ? tambahHari(akhir.m, kitaran) : null;
+  // Qadha puasa Ramadan: hari haid/nifas yang jatuh dalam bulan Ramadan (ikut kiraan Hijrah + laras)
+  let qadha = 0;
+  h.rekod.forEach(r => { const t = r.t || kini; for (let k = r.m; k <= t; k = tambahHari(k, 1)) { const [y, m, d] = k.split('-').map(Number); if (tarikhHijrah({ y, m, d }, S.laras).m === 9) qadha++; } });
+  return { kini, semasa, kitaran, lama, akhir, jangka, qadha: Math.max(0, qadha - (h.qadha_bayar || 0)), bilKit: kit.length };
+}
+function paparHaid() {
+  const k = $('kadHaid');
+  if (S.profil.jantina !== 'P') { k.classList.add('hidden'); return; }
+  k.classList.remove('hidden');
+  const h = haidData();
+  if (haidTerkunci()) { k.innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-lock" style="color:#db2777"></i> Kitaran peribadi</h2></div><p class="kecil" style="margin:8px 0 10px">Dilindungi PIN.</p><button class="btn btn-garis penuh" onclick="bukaHaid()">Buka dengan PIN</button>`; return; }
+  const a = analisisHaid(h);
+  let status = '', butang = '', nota = '';
+  if (a.semasa) {
+    const ke = hariAntara(a.semasa.m, a.kini) + 1, nifas = a.semasa.j === 'nifas';
+    status = `<p style="font-size:15px;margin:8px 0 4px"><b>${nifas ? 'Nifas' : 'Haid'} hari ke-${ke}</b> <span class="kecil">(mula ${fmtT(a.semasa.m)})</span></p>`;
+    if (!nifas && ke > 15) nota = `<p class="kecil" style="color:#b91c1c;margin:6px 0 0"><i class="fa-solid fa-triangle-exclamation"></i> Melebihi 15 hari: darah selepas tempoh maksimum haid mungkin <b>istihadah</b> (wajib solat dan puasa). Sila rujuk ustazah untuk menentukan hari haid sebenar.</p>`;
+    if (nifas && ke > 60) nota = `<p class="kecil" style="color:#b91c1c;margin:6px 0 0"><i class="fa-solid fa-triangle-exclamation"></i> Melebihi 60 hari (maksimum nifas): darah seterusnya dikira istihadah. Sila rujuk ustazah.</p>`;
+    butang = `<button class="btn btn-hijau penuh" style="margin-top:8px" onclick="haidTamat()"><i class="fa-solid fa-droplet-slash"></i> ${nifas ? 'Nifas' : 'Haid'} tamat hari ini</button>`;
+  } else {
+    if (a.jangka) { const lagi = hariAntara(a.kini, a.jangka); status = `<p style="font-size:15px;margin:8px 0 4px">${lagi >= 0 ? `Haid seterusnya dijangka <b>${fmtT(a.jangka)}</b> (${lagi === 0 ? 'hari ini' : lagi + ' hari lagi'})` : `Haid dijangka <b>${fmtT(a.jangka)}</b>, lewat <b>${-lagi} hari</b>`}</p>`; }
+    else status = '<p style="font-size:14px;margin:8px 0 4px">Rekod hari pertama haid untuk mula jejak kitaran.</p>';
+    if (a.jangka) { const ov = tambahHari(a.jangka, -14); status += `<p class="kecil" style="margin:0">Anggaran tempoh subur: ${fmtT(tambahHari(ov, -5))} hingga ${fmtT(tambahHari(ov, 1))}</p>`; }
+    butang = `<button class="btn btn-merah penuh" style="margin-top:8px" onclick="haidMula('haid')"><i class="fa-solid fa-droplet"></i> Haid mula hari ini</button>`;
+  }
+  const qd = a.qadha ? `<div class="baris" style="margin-top:10px;background:#fdf2f8;border-radius:10px;padding:8px 10px"><span style="font-size:13.5px"><i class="fa-solid fa-moon"></i> Qadha puasa Ramadan: <b>${a.qadha} hari</b></span><button class="btn btn-garis btn-kecil" onclick="qadhaDah()">+1 dah qadha</button></div>` : '';
+  k.innerHTML = `<div class="baris"><h2 style="margin:0"><i class="fa-solid fa-droplet" style="color:#db2777"></i> Kitaran haid</h2><span class="kecil">${a.bilKit ? `Kitaran ~${a.kitaran} hari · haid ~${a.lama} hari` : 'Peribadi'}</span></div>
+    ${status}${nota}${butang}${qd}
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn btn-kelabu btn-kecil" onclick="borangHaid()"><i class="fa-solid fa-pen"></i> Rekod tarikh lain</button>
+      <button class="btn btn-kelabu btn-kecil" onclick="sejarahHaid()"><i class="fa-solid fa-list"></i> Sejarah</button>
+      ${a.semasa ? '' : '<button class="btn btn-kelabu btn-kecil" onclick="haidMula(\'nifas\')"><i class="fa-solid fa-baby"></i> Mula nifas</button>'}
+      <button class="btn btn-kelabu btn-kecil" onclick="tetapPin()"><i class="fa-solid fa-lock"></i> ${h.pin ? 'Tukar PIN' : 'PIN'}</button>
+    </div>
+    <p class="kecil" style="margin:8px 0 0">Hanya dilihat oleh anda. Panduan fiqh mazhab Syafie secara ringkas; untuk kes luar biasa, rujuk ustazah.</p>`;
+}
+const modalH = (html) => { $('mhIsi').innerHTML = html + '<button class="btn btn-kelabu penuh" style="margin-top:8px" onclick="document.getElementById(\'modalHaid\').style.display=\'none\'">Tutup</button>'; $('modalHaid').style.display = 'flex'; };
+const tutupH = () => { $('modalHaid').style.display = 'none'; };
+window.haidMula = async (j, tarikh) => {
+  const h = haidData(), m = tarikh || tarikhMY(), akhir = h.rekod[h.rekod.length - 1];
+  if (akhir && !akhir.t) { alert('Rekod sebelum ini belum ditamatkan.'); return; }
+  let amaran = '';
+  if (j === 'haid' && akhir && akhir.t && akhir.j !== 'nifas' && hariAntara(akhir.t, m) < 15) amaran = 'Tempoh suci kurang 15 hari daripada haid sebelum ini. Menurut mazhab Syafie darah ini mungkin istihadah. Rujuk ustazah jika ragu.\n\n';
+  if (!confirm(amaran + `Rekod ${j === 'nifas' ? 'nifas' : 'haid'} bermula ${fmtT(m)}?`)) return;
+  h.rekod.push({ id: 'h' + Date.now(), m, t: null, j });
+  try { await simpanHaid(h); paparHaid(); } catch (e) { alert('Gagal simpan: ' + e.message); }
+};
+window.haidTamat = async (tarikh) => {
+  const h = haidData(), r = h.rekod[h.rekod.length - 1]; if (!r || r.t) return;
+  const t = tarikh || tarikhMY(); if (t < r.m) { alert('Tarikh tamat sebelum tarikh mula.'); return; }
+  r.t = t;
+  try {
+    await simpanHaid(h); paparHaid();
+    const hari = hariAntara(r.m, t) + 1;
+    alert((r.j !== 'nifas' && hari === 1 ? 'Jika darah keluar kurang daripada sehari semalam (24 jam), ia bukan haid menurut mazhab Syafie; qadha solat yang ditinggalkan.\n\n' : '') +
+      'Wajib mandi wajib sebelum solat yang seterusnya. Jika darah berhenti dalam waktu sesuatu solat, solat waktu itu wajib dilaksanakan.');
+  } catch (e) { alert('Gagal simpan: ' + e.message); }
+};
+window.borangHaid = () => modalH(`<h2 style="margin:0 0 6px;font-size:18px">Rekod tarikh</h2><p class="kecil" style="margin:0 0 8px">Untuk rekod lepas atau terlupa tanda. Biarkan tarikh tamat kosong jika masih berterusan.</p>
+  <label>Jenis</label><select id="mhJ"><option value="haid">Haid</option><option value="nifas">Nifas</option></select>
+  <label style="margin-top:8px">Tarikh mula</label><input type="date" id="mhM" max="${tarikhMY()}">
+  <label style="margin-top:8px">Tarikh tamat</label><input type="date" id="mhT" max="${tarikhMY()}">
+  <button class="btn btn-hijau penuh" style="margin-top:12px" onclick="simpanBorangHaid()">Simpan</button>`);
+window.simpanBorangHaid = async () => {
+  const m = $('mhM').value, t = $('mhT').value || null, j = $('mhJ').value;
+  if (!m) { alert('Pilih tarikh mula.'); return; } if (t && t < m) { alert('Tarikh tamat sebelum tarikh mula.'); return; }
+  const h = haidData();
+  if (!t && h.rekod.some(r => !r.t)) { alert('Sudah ada rekod yang belum tamat.'); return; }
+  if (h.rekod.some(r => m <= (r.t || '9999-12-31') && (t || '9999-12-31') >= r.m)) { alert('Tarikh bertindih dengan rekod sedia ada.'); return; }
+  h.rekod.push({ id: 'h' + Date.now(), m, t, j });
+  try { await simpanHaid(h); tutupH(); paparHaid(); } catch (e) { alert('Gagal simpan: ' + e.message); }
+};
+window.sejarahHaid = () => {
+  const h = haidData();
+  modalH(`<h2 style="margin:0 0 6px;font-size:18px">Sejarah kitaran</h2>` + (h.rekod.length ? h.rekod.slice().reverse().map(r => `<div class="rutin-baris"><div><b>${r.j === 'nifas' ? 'Nifas' : 'Haid'}</b><p class="kecil">${fmtT(r.m)} hingga ${r.t ? fmtT(r.t) + ` (${hariAntara(r.m, r.t) + 1} hari)` : 'sekarang'}</p></div><button class="btn btn-kelabu btn-kecil" onclick="padamHaid('${r.id}')" aria-label="Padam"><i class="fa-solid fa-trash"></i></button></div>`).join('') : '<p class="kecil">Belum ada rekod.</p>'));
+};
+window.padamHaid = async (id) => {
+  if (!confirm('Padam rekod ini?')) return;
+  const h = haidData(); h.rekod = h.rekod.filter(r => r.id !== id);
+  try { await simpanHaid(h); sejarahHaid(); paparHaid(); } catch (e) { alert('Gagal: ' + e.message); }
+};
+window.qadhaDah = async () => { const h = haidData(); h.qadha_bayar = (h.qadha_bayar || 0) + 1; try { await simpanHaid(h); paparHaid(); } catch (e) { alert('Gagal: ' + e.message); } };
+window.bukaHaid = () => modalH(`<h2 style="margin:0 0 6px;font-size:18px">Masukkan PIN</h2><input type="password" id="mhPin" inputmode="numeric" maxlength="6" autocomplete="off"><button class="btn btn-hijau penuh" style="margin-top:12px" onclick="semakPinHaid()">Buka</button>`);
+window.semakPinHaid = async () => {
+  if (await hashPin($('mhPin').value) !== haidData().pin) { alert('PIN salah.'); return; }
+  try { sessionStorage.setItem(kunciBuka(), '1'); } catch (e) {}
+  tutupH(); paparHaid();
+};
+window.tetapPin = () => modalH(`<h2 style="margin:0 0 6px;font-size:18px">PIN kitaran</h2><p class="kecil" style="margin:0 0 8px">PIN 4 hingga 6 nombor untuk sembunyikan kad ini daripada orang lain yang guna akaun atau telefon yang sama. Kosongkan untuk buang PIN.</p>
+  <input type="password" id="mhPinBaru" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="PIN baharu"><button class="btn btn-hijau penuh" style="margin-top:12px" onclick="simpanPinHaid()">Simpan PIN</button>`);
+window.simpanPinHaid = async () => {
+  const v = $('mhPinBaru').value.trim();
+  if (v && !/^\d{4,6}$/.test(v)) { alert('PIN mesti 4 hingga 6 nombor.'); return; }
+  const h = haidData(); h.pin = v ? await hashPin(v) : '';
+  try { await simpanHaid(h); try { sessionStorage.setItem(kunciBuka(), '1'); } catch (e) {} tutupH(); paparHaid(); alert(v ? 'PIN disimpan. Kad akan dikunci bila app dibuka semula.' : 'PIN dibuang.'); } catch (e) { alert('Gagal: ' + e.message); }
 };
 
 // ---------- Mod puasa sunat (Isnin, Khamis, Hari Putih 13-15 Hijrah) ----------
