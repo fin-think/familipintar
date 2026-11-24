@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Master Kalendar | Famili Pintar</title>
+<title>Kalendar Famili Pintar</title>
 <meta name="robots" content="noindex">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -31,7 +31,7 @@
 <header class="bg-gradient-to-br from-teal-800 to-emerald-950 text-white">
   <div class="max-w-2xl mx-auto px-4 pt-5 pb-6">
     <a href="index.html" class="text-teal-200 text-sm font-semibold"><i class="fa-solid fa-arrow-left"></i> Utama</a>
-    <h1 class="text-2xl font-extrabold mt-2"><i class="fa-regular fa-calendar-days"></i> Master Kalendar</h1>
+    <h1 class="text-2xl font-extrabold mt-2"><i class="fa-regular fa-calendar-days"></i> Kalendar Famili Pintar</h1>
     <p class="text-teal-100 text-sm mt-1">Semua jadual keluarga dalam satu tempat: weCare, goTravel, hari jadi, nowSihat, cuti dan hari kebesaran Islam.</p>
   </div>
 </header>
@@ -233,23 +233,21 @@ function muatIslam(laras) {
   muatIslam(0); pilihanCuti(); lukisPenapis(); lukis();
 })();
 
+// Setiap sumber dimuat berasingan dengan had masa: satu sumber lambat atau gagal tidak menghalang yang lain
+const denganMasa = (p, ms, nama) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error(nama + ': tamat masa')), ms))]);
 onAuthStateChanged(auth, async (u) => {
   if (!u) { location.href = 'index.html'; return; }
-  let laras = 0;
-  try { const t = await getDoc(doc(db, 'tetapan_awam', 'hijrah')); if (t.exists()) laras = Math.max(-1, Math.min(1, parseInt(t.data().laras, 10) || 0)); } catch (e) {}
-  muatIslam(laras);
-  const nodSaya = await bacaNod(u.uid);
-  const akar = nodSaya.find(n => n.is_root); K.negeriMyNasab = (akar && akar.state) || '';
-  muatHariJadi(nodSaya); pilihanCuti(); lukis();
-  const gagal = [];
+  const gagal = [], cuba = async (nama, fn) => { try { await denganMasa(fn(), 15000, nama); } catch (e) { console.warn('[Kalendar]', nama, e && e.message); gagal.push(nama); } lukis(); };
+  let nodSaya = [];
   await Promise.all([
-    muatWeCare(u.uid, nodSaya).catch(e => { console.warn('weCare:', e.message); gagal.push('weCare'); }),
-    muatTrips(u.uid).catch(e => { console.warn('goTravel:', e.message); gagal.push('goTravel'); }),
-    muatRutin(u.uid)
+    cuba('Hari Islam', async () => { let laras = 0; const t = await getDoc(doc(db, 'tetapan_awam', 'hijrah')); if (t.exists()) laras = Math.max(-1, Math.min(1, parseInt(t.data().laras, 10) || 0)); muatIslam(laras); }),
+    cuba('Hari jadi', async () => { nodSaya = await bacaNod(u.uid); const akar = nodSaya.find(n => n.is_root); K.negeriMyNasab = (akar && akar.state) || ''; muatHariJadi(nodSaya); pilihanCuti(); }),
+    cuba('goTravel', () => muatTrips(u.uid)),
+    cuba('nowSihat', () => muatRutin(u.uid))
   ]);
-  $('status').innerHTML = gagal.length ? `<i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Tidak dapat memuatkan: ${gagal.join(', ')}.` : 'Tekan tarikh untuk lihat butiran. Tekan label di atas untuk tapis.';
-  lukis();
-})();
+  await cuba('weCare', () => muatWeCare(u.uid, nodSaya));
+  $('status').innerHTML = gagal.length ? `<i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Tidak dapat memuatkan: ${gagal.join(', ')}. Cuba muat semula halaman.` : 'Tekan tarikh untuk lihat butiran. Tekan label di atas untuk tapis.';
+});
 </script>
 <script src="pwa.js" defer></script>
 </body>
