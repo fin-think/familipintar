@@ -295,8 +295,39 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
             await turunSepupu(c, idC, aras + 1, sumber);
         }
     };
+    // Sepupu yang ada akaun sendiri (cth dijemput sebagai anak saudara): pasangan, anak & cucu dia ambil dari akaunnya
+    const akaunSepupu = async (n) => {
+        let u = n.data.akaun_uid || '';
+        if (!u) {
+            try {
+                const q = await getDocs(query(collection(db, "mynasab_nodes"), where("is_root", "==", true), where("anak_saudara_dari.anak_nod", "==", n.id)));
+                if (!q.empty) u = q.docs[0].data().owner_uid || '';
+            } catch (e) {}
+        }
+        if (!u || u === uidBaru || u === jem.owner_uid) return null;
+        try {
+            const sN = await getDocs(query(collection(db, "mynasab_nodes"), where("owner_uid", "==", u)));
+            return sN.docs.map(x => ({ id: x.id, data: x.data() }));
+        } catch (e) { return null; }
+    };
+    const turunAkaun = async (nd, idS) => {
+        const psg = nd.filter(n => !n.data.is_root && adaRel(n, /^(suami|isteri)$/i));
+        const anak = nd.filter(n => adaRel(n, /^anak$/i));
+        if (!psg.length && !anak.length) return false;
+        for (const p of psg) await tulis(ringkas(p.data), 'Pasangan Sepupu', idS);
+        for (const a of anak) {
+            const idA = await tulis(ringkas(a.data), 'Anak Sepupu', idS);
+            const mnt = nd.filter(n => adaRel(n, /^menantu$/i) && n.data.ref_id === a.id);
+            for (const m of mnt) await tulis(ringkas(m.data), 'Pasangan Anak Sepupu', idA);
+            const rj = new Set([a.id, ...mnt.map(m => m.id)]);
+            for (const c of nd.filter(n => adaRel(n, /^cucu$/i) && rj.has(n.data.ref_id))) await tulis(ringkas(c.data), 'Cucu Sepupu', idA);
+        }
+        return true;
+    };
     const salinSepupu = async (sumber, anakAsal, idSaudara) => {
         const idS = await tulis(ringkas(anakAsal.data), 'Sepupu', idSaudara);
+        const nd = await akaunSepupu(anakAsal);
+        if (nd && await turunAkaun(nd, idS)) return;
         await turunSepupu(anakAsal, idS, 0, sumber);
     };
     const saudara = [];
@@ -362,7 +393,14 @@ async function salinPokokAnakSaudara(jem, uidBaru) {
                 ak.nd.filter(n => adaRel(n, /^(suami|isteri)$/i)), pasanganSd,
                 { list: ak.nd.filter(n => adaRel(n, /^anak$/i)), sumber: ak.nd }, anakSd);
         } else {
-            await salinSaudara(sd.data, L, [], pasanganSd, { list: [], sumber: nodes }, anakSd);
+            // Pasangan bapa/mak saudara mungkin ditambah dalam akaun adik-beradik lain (bukan pokok pengundang)
+            let psgM = pasanganSd;
+            if (!psgM.length) for (const a of akaunAdik) {
+                const s0 = a.nd.find(n => !n.data.is_root && kunciNama(n) === kunciNama(sd));
+                const p0 = s0 ? a.nd.filter(n => adaRel(n, /^ipar$/i) && n.data.ref_id === s0.id) : [];
+                if (p0.length) { psgM = p0; break; }
+            }
+            await salinSaudara(sd.data, L, [], psgM, { list: [], sumber: nodes }, anakSd);
         }
     }
 
@@ -690,7 +728,7 @@ window.segerakPokokAnakSaudara = async (senyap = false) => {
     window.__sedangSegerak = true;
     try { return await segerakPokokDalam(senyap === true); } finally { window.__sedangSegerak = false; }
 };
-const SALINAN_VERSI = 4;   // 4: data akaun adik-beradik diutamakan berbanding rekod manual pengundang
+const SALINAN_VERSI = 5;   // 5: sepupu berakaun (pasangan, anak, cucu) + pasangan bapa/mak saudara dari akaun adik-beradik
 // Makluman kecil selepas kemas kini auto (hilang sendiri)
 function maklumSegerak() {
     try {
