@@ -560,7 +560,10 @@
         if (user) {
             currentUser = user;
             const userNameEl = document.getElementById('displayUserName');
-            if (userNameEl) userNameEl.innerHTML = `${user.email.split('@')[0]}`;
+            if (userNameEl) {
+                userNameEl.textContent = user.email.split('@')[0];
+                getDoc(doc(db, "mynasab_users", user.uid)).then(u => { const n = u.exists() && String(u.data().name || '').trim(); if (n) userNameEl.textContent = n; }).catch(() => {});   // nama akaun, bukan e-mel
+            }
             
             if (authScreen) authScreen.classList.add('hidden');
             if (mainApp) mainApp.classList.remove('hidden');
