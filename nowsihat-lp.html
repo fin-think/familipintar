@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Snap gambar makanan, terus tahu anggaran kalori, protein, gula dan garam, serta dapat nasihat ringkas. Satu langganan untuk anda dan pasangan. Percubaan percuma 15 hari.">
+<meta name="description" content="Snap gambar makanan, terus tahu anggaran kalori, protein, gula dan garam, serta dapat nasihat ringkas. Termasuk meTime, penjejak kitaran ikut fiqh. Satu langganan untuk anda dan pasangan. Percubaan percuma 15 hari.">
 <meta property="og:title" content="nowSihat - Snap Makanan, Terus Tahu Kalori">
 <meta property="og:description" content="Snap gambar makanan, terus dapat anggaran kalori dan nasihat. Cuba percuma 15 hari.">
 <meta property="og:type" content="website">
@@ -146,6 +146,35 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
 .baki { padding-block: 32px 48px; color: var(--muted); font-size: 14.5px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
 .penafian { padding-bottom: 16px; color: var(--muted); font-size: 13.5px; }
 
+
+/* METIME */
+.metime { background: linear-gradient(180deg, color-mix(in srgb, #ec4899 7%, var(--bg)), var(--bg)); }
+.mt-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
+.mt-eyebrow { color: #db2777; }
+.mt-badge { display: inline-block; background: #fce7f3; color: #9d174d; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 4px 12px; margin-bottom: 10px; }
+.mt-senarai { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+.mt-senarai li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+.mt-senarai .ik { width: 34px; height: 34px; border-radius: 10px; background: #fce7f3; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+.mt-senarai b { display: block; font-size: 17px; }
+.mt-senarai span { color: var(--muted); font-size: 15.5px; }
+.mt-banding { margin-top: 26px; border: 1px solid #fbcfe8; border-radius: 12px; overflow: hidden; background: var(--surface); }
+.mt-banding table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.mt-banding th, .mt-banding td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+.mt-banding th { background: #fdf2f8; color: #9d174d; font-size: 13px; }
+.mt-banding td:nth-child(n+2), .mt-banding th:nth-child(n+2) { text-align: center; width: 92px; }
+.mt-banding tr:last-child td { border-bottom: 0; }
+.mt-ya { color: #16a34a; font-weight: 800; } .mt-tak { color: var(--muted); }
+.mt-telefon { max-width: 360px; margin: 0 auto; background: var(--surface); border: 6px solid var(--ink); border-radius: 28px; padding: 16px 14px; box-shadow: 0 20px 40px rgba(0,0,0,.15); display: grid; gap: 10px; font-size: 13px; }
+.mt-kad { border: 1px solid #fbcfe8; border-radius: 14px; padding: 11px 12px; background: var(--surface); }
+.mt-kad h4 { margin: 0 0 4px; font-size: 14px; font-family: var(--font-display); }
+.mt-kal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; margin-top: 6px; }
+.mt-kal i { font-style: normal; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 7px; font-weight: 700; font-size: 11.5px; }
+.mt-kal .h { background: #e11d48; color: #fff; } .mt-kal .j { background: #fce7f3; color: #9d174d; } .mt-kal .s { background: #fef9c3; color: #854d0e; } .mt-kal .o { box-shadow: inset 0 0 0 2px #f59e0b; background: #fef9c3; color: #854d0e; }
+.mt-cip { display: inline-block; border: 1.5px solid #db2777; color: #9d174d; background: #fdf2f8; border-radius: 999px; padding: 2px 9px; font-weight: 700; font-size: 11.5px; margin: 2px 2px 0 0; }
+.mt-suami { background: #fdf2f8; }
+.mt-suami p { margin: 3px 0 0; color: var(--ink); }
+@media (max-width: 860px) { .mt-grid { grid-template-columns: 1fr; gap: 32px; } }
+
 @media (max-width: 860px) {
   .hero-grid, .masalah-grid, .akhir-box { grid-template-columns: minmax(0, 1fr); }
   .hero-grid { gap: 36px; }
@@ -187,7 +216,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
           <a class="btn" href="index.html?daftar=1&utm_source=lp&utm_medium=halaman&utm_campaign=nowsihat">Mula percubaan percuma</a>
           <a class="btn alt" href="#cara">Lihat cara ia berfungsi</a>
         </div>
-        <p class="note">Percubaan percuma <span class="tk-percuba">15</span> hari. Tiada kad kredit diperlukan.</p>
+        <p class="note">Percubaan percuma <span class="tk-percuba">15</span> hari. Tiada kad kredit diperlukan. <a href="#metime" style="color:#db2777;font-weight:800;text-decoration:none">Baharu: meTime 🌸</a></p>
       </div>
 
       <div>
@@ -248,6 +277,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
         <div><span class="lencana">Hanya di nowSihat</span><h3>🌙 Faham puasa sunat</h3><p>Tandakan hari berpuasa dan nasihat terus disesuaikan untuk sahur dan berbuka. App luar negara tak kenal Isnin Khamis.</p></div>
         <div><span class="lencana">Hanya di nowSihat</span><h3>🤝 Coach sebenar, bila anda mahu</h3><p>Kongsi rekod dengan coach diet pilihan anda, yang boleh beri komen dan sasaran. Hanya jika anda setuju, dan boleh dihentikan bila-bila masa.</p></div>
         <div><span class="lencana">Hanya di nowSihat</span><h3>👨‍👩‍👧 Sudah kenal keluarga anda</h3><p>Tarikh lahir, jantina dan pasangan diambil terus dari pokok keluarga myNasab. Tak perlu isi borang panjang.</p></div>
+        <div><span class="lencana">Hanya di nowSihat</span><h3>🌸 meTime: kitaran ikut fiqh</h3><p>Jejak haid dan nifas dengan panduan mazhab Syafie, kiraan qadha puasa, dan panduan suami memahami isteri. <a href="#metime" style="color:var(--brand-text);font-weight:700">Lihat meTime &rarr;</a></p></div>
         <div><span class="lencana">Hanya di nowSihat</span><h3>🍛 Faham hidangan Malaysia</h3><p>Nasi lemak, roti canai, teh tarik. Anggaran ikut saiz hidangan kita, bukan saiz pinggan orang barat.</p></div>
       </div>
 
@@ -255,6 +285,54 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
       <div class="kelebihan asas">
         <div><h3>📸 Snap, terus dapat anggaran</h3><p>Ambil gambar makanan atau minuman dan dapat anggaran kalori, protein, gula dan garam. Tak perlu cari dalam senarai makanan.</p></div>
         <div><h3>📊 Jejak jumlah harian</h3><p>Lihat berapa yang sudah dimakan berbanding sasaran hari ini, dan apa yang perlu dikurangkan atau ditambah.</p></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- METIME -->
+  <section class="metime" id="metime">
+    <div class="wrap mt-grid">
+      <div>
+        <p class="eyebrow mt-eyebrow">Baharu: meTime 🌸</p>
+        <span class="mt-badge">Untuk wanita, dan suami yang mahu memahami</span>
+        <h2>Jejak kitaran haid yang faham fiqh, dan faham isteri.</h2>
+        <p class="sec-lead">App kitaran lain hanya meramal tarikh. meTime turut kira hukum haid dan nifas, qadha puasa Ramadan, dan bantu suami memahami emosi isteri pada setiap fasa.</p>
+        <ul class="mt-senarai">
+          <li><span class="ik">🕌</span><div><b>Panduan fiqh mazhab Syafie</b><span>Amaran bila melebihi 15 hari (istihadah), suci kurang 15 hari, peringatan mandi wajib, dan mod nifas hingga 60 hari.</span></div></li>
+          <li><span class="ik">🌙</span><div><b>Qadha puasa dikira sendiri</b><span>Hari haid yang jatuh dalam Ramadan terus dikira sebagai hutang puasa, dengan butang tanda bila sudah diqadha.</span></div></li>
+          <li><span class="ik">💞</span><div><b>Suami boleh lihat, jika isteri benarkan</b><span>Suami nampak fasa kitaran, keadaan isteri hari ini dan panduan ringkas: bila perlu lebih sabar, bantu dan beri perhatian.</span></div></li>
+          <li><span class="ik">📅</span><div><b>Kalendar, ramalan dan tempoh subur</b><span>Haid, jangkaan 3 bulan, tempoh subur dan anggaran ovulasi dalam satu kalendar. Label kitaran tidak teratur bila perlu.</span></div></li>
+          <li><span class="ik">📝</span><div><b>Log harian dan self-care</b><span>Satu tekan untuk aliran, simptom dan mood. Regangan 5 minit untuk legakan senggugut, dengan pemasa.</span></div></li>
+          <li><span class="ik">🔔</span><div><b>Peringatan yang berhemah</b><span>Makluman 2 hari sebelum, bila lewat, dan amaran tempoh maksimum. Teks notifikasi tidak menyebut perkataan haid.</span></div></li>
+        </ul>
+        <div class="mt-banding">
+          <table>
+            <tr><th>Ciri</th><th>App biasa</th><th>meTime</th></tr>
+            <tr><td>Ramalan haid &amp; tempoh subur</td><td class="mt-ya">✓</td><td class="mt-ya">✓</td></tr>
+            <tr><td>Hukum haid, nifas &amp; istihadah</td><td class="mt-tak">✗</td><td class="mt-ya">✓</td></tr>
+            <tr><td>Kiraan qadha puasa Ramadan</td><td class="mt-tak">✗</td><td class="mt-ya">✓</td></tr>
+            <tr><td>Panduan untuk suami</td><td class="mt-tak">✗</td><td class="mt-ya">✓</td></tr>
+            <tr><td>Satu langganan untuk suami isteri</td><td class="mt-tak">✗</td><td class="mt-ya">✓</td></tr>
+            <tr><td>Dalam Kalendar keluarga (Famili Pintar)</td><td class="mt-tak">✗</td><td class="mt-ya">✓</td></tr>
+          </table>
+        </div>
+        <p class="note" style="margin-top:12px;font-size:14px;color:var(--muted)">Termasuk dalam langganan nowSihat. Data peribadi, hanya dikongsi dengan suami jika anda tick "Benarkan suami lihat".</p>
+      </div>
+
+      <div aria-hidden="true">
+        <div class="mt-telefon">
+          <div class="mt-kad"><h4>🌸 meTime</h4><b style="font-size:15px">Haid seterusnya dijangka 12/12</b><div style="color:var(--muted)">5 hari lagi · kitaran ~28 hari</div></div>
+          <div class="mt-kad"><h4>Disember 2026</h4>
+            <div class="mt-kal"><i>A</i><i>I</i><i>S</i><i>R</i><i>K</i><i>J</i><i>S</i>
+              <i></i><i></i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i>
+              <i>6</i><i>7</i><i>8</i><i>9</i><i>10</i><i>11</i><i class="j">12</i>
+              <i class="j">13</i><i class="j">14</i><i class="j">15</i><i class="j">16</i><i class="j">17</i><i class="j">18</i><i>19</i>
+              <i>20</i><i>21</i><i class="s">22</i><i class="s">23</i><i class="s">24</i><i class="s">25</i><i class="o">26</i></div></div>
+          <div class="mt-kad"><h4>📝 Log hari ini</h4><span class="mt-cip">Senggugut</span><span class="mt-cip">Letih</span><span class="mt-cip">🥺 Sensitif</span></div>
+          <div class="mt-kad mt-suami"><h4>💞 Panduan untuk suami</h4><p>Fasa menjelang haid: elak isu berat, lebihkan pujian dan bantuan kecil. Makanan kegemarannya sangat dihargai.</p></div>
+          <div class="mt-kad"><h4>🌙 Qadha puasa Ramadan</h4><b>6 hari</b> <span style="color:var(--muted)">· tanda bila sudah diqadha</span></div>
+        </div>
       </div>
     </div>
   </section>
@@ -287,7 +365,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
         <article>
           <span class="jawab">Untuk Pasangan</span>
           <h3>Sama-sama, tanpa bising</h3>
-          <p>Setiap orang ada rekod dan sasaran sendiri dalam satu langganan, jadi tiada perlu bergilir guna aplikasi.</p>
+          <p>Setiap orang ada rekod dan sasaran sendiri dalam satu langganan. Dengan meTime, suami juga lebih faham keadaan isteri setiap bulan.</p>
         </article>
         <article>
           <span class="jawab">Untuk Keluarga</span>
@@ -323,7 +401,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
 </main>
 
 <footer class="wrap">
-  <p class="penafian">Anggaran nutrisi dijana oleh AI dan hanya untuk panduan, bukan nasihat perubatan. Gambar dihantar ke Google Gemini untuk dianalisis dan tidak disimpan. Rekod dikongsi dengan coach hanya jika anda bersetuju.</p>
+  <p class="penafian">Anggaran nutrisi dijana oleh AI dan hanya untuk panduan, bukan nasihat perubatan. Gambar dihantar ke Google Gemini untuk dianalisis dan tidak disimpan. Rekod dikongsi dengan coach hanya jika anda bersetuju. Panduan fiqh meTime adalah ringkasan mazhab Syafie; untuk kes luar biasa, rujuk ustazah. Ramalan kitaran dan tempoh subur ialah anggaran dan bukan kaedah perancang keluarga.</p>
   <div class="baki">
     <span>nowSihat, sebahagian daripada <a href="https://familipintar.com/famili-lp.html"><span class="fp-f">Famili</span> <span class="fp-p">Pintar</span></a>.</span>
     <span>Hak Cipta © 2026 HCH x DAEBOOK</span>
