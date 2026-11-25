@@ -846,7 +846,7 @@ if ('Notification' in window) {
         try { const f = await getDoc(doc(db, 'buatapa_profil', user.uid)); if (f.exists()) foto = f.data().foto || ''; } catch (e) {}
         const av = foto.startsWith(GS) ? `<img src="${E(foto)}" alt="">` : E((nama[0] || '?').toUpperCase());
         // JomSalam: bilangan mesej belum dibaca + Hulur Salam menunggu
-        const rangka = (isi) => `<div class="bap"><div class="bap-bar" onclick="__bapTuju(true)"><span class="bap-av">${av}</span><span class="bap-pil">Buat apa hari ni?</span><i class="fa-regular fa-image bap-gb" aria-hidden="true"></i><a href="kalendar.html" class="bap-js" onclick="event.stopPropagation()" title="Kalendar Famili Pintar" aria-label="Kalendar Famili Pintar"><i class="fa-regular fa-calendar-days"></i></a></div>${isi}</div>`;
+        const rangka = (isi) => `<div class="bap"><div class="bap-bar" onclick="__bapTuju(true)"><span class="bap-av">${av}</span><span class="bap-pil">Buat apa hari ni?</span><a href="kalendar.html" class="bap-js" onclick="event.stopPropagation()" title="Kalendar Famili Pintar" aria-label="Kalendar Famili Pintar"><i class="fa-regular fa-calendar-days"></i></a></div>${isi}</div>`;
         const pasang = (isi) => ['kadBuatapa', 'fpmBuatapa'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = rangka(isi); });
         // sirah dahulu (tiada lencana kosong semasa menunggu data)
         const sr = sunnahHariIni(tarikhMalaysia());
