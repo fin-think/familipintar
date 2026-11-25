@@ -66,15 +66,18 @@
   .hari-pil { display: flex; gap: 6px; flex-wrap: wrap; } .hari-pil label { margin: 0; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 999px; padding: 5px 10px; font-size: 13px; } .hari-pil input { width: auto; }
   .streak { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 12.5px; color: #c2410c; background: #ffedd5; border-radius: 999px; padding: 3px 10px; }
   .status-pil { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 3px 10px; }
-  .kh-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px; text-align:center; }
+  .kh-grid { max-width:440px; margin-left:auto; margin-right:auto; display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px; text-align:center; }
   .kh-grid .h { font-size:11px; font-weight:800; color:#64748b; padding:2px 0; }
   .kh-d { aspect-ratio:1/1; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#1e293b; position:relative; cursor:pointer; border:1px solid transparent; }
   .kh-d.haid { background:#e11d48; color:#fff; } .kh-d.jangka { background:#fce7f3; color:#9d174d; } .kh-d.subur { background:#fef9c3; color:#854d0e; }
   .kh-d.ovul { box-shadow: inset 0 0 0 2px #f59e0b; } .kh-d.kini { border-color:#0f766e; } .kh-d.adalog::after { content:''; position:absolute; bottom:3px; width:4px; height:4px; border-radius:9px; background:#7c3aed; }
-  .kh-leg { display:flex; flex-wrap:wrap; gap:10px; font-size:11.5px; color:#475569; margin-top:8px; } .kh-leg i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
+  .kh-leg { justify-content:center; display:flex; flex-wrap:wrap; gap:10px; font-size:11.5px; color:#475569; margin-top:8px; } .kh-leg i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
   .cipL { border:1.5px solid #e2e8f0; background:#fff; border-radius:999px; padding:6px 11px; font-size:13px; font-weight:700; color:#334155; cursor:pointer; }
   .cipL.on { background:#fdf2f8; border-color:#db2777; color:#9d174d; }
   .kh-bar { display:flex; height:12px; border-radius:6px; overflow:hidden; background:#e2e8f0; } .kh-bar b { background:#e11d48; display:block; }
+  .mt-tick { display:flex !important; gap:10px; align-items:flex-start; margin:8px 0 0; font-size:13.5px; font-weight:600; color:#334155; background:#fdf2f8; border:1px solid #fbcfe8; border-radius:12px; padding:10px 12px; cursor:pointer; text-align:left; }
+  .mt-tick input { width:18px !important; height:18px; flex:none; margin:1px 0 0; accent-color:#db2777; }
+  .mt-tick span { flex:1; line-height:1.45; }
   .rutin-baris { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid #e2e8f0; padding: 10px 0; }
   .rutin-baris:first-of-type { border-top: 0; } .rutin-baris b { font-size: 14.5px; } .rutin-baris .kecil { margin: 2px 0 0; }
   .btn-kecil { padding: 7px 12px; font-size: 13px; border-radius: 10px; width: auto; }
@@ -130,10 +133,11 @@
 
   /* DESKTOP */
   @media (min-width: 900px) {
-    .wrap, .hbar, .salam { max-width: 1120px; }
+    .wrap, .salam { max-width: 1120px; }
+    .hbar { max-width: none; padding: 12px 32px; }
     .wrap { padding-bottom: 40px; }
     .navBawah { display: none; }
-    .navAtas { display: flex; gap: 6px; max-width: 1120px; margin: 0 auto; padding: 0 14px 12px; }
+    .navAtas { display: flex; gap: 6px; max-width: none; margin: 0; padding: 0 32px 12px; }
     .navAtas button { border: none; background: rgba(255,255,255,.16); color: #f0fdf4; font: 800 14px 'Nunito', sans-serif; padding: 9px 18px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
     .navAtas button.aktif { background: #fff; color: var(--hijau-gelap); box-shadow: 0 2px 6px rgba(0,0,0,.12); }
     .salam { display: none; }
@@ -936,9 +940,8 @@ function paparHaid() {
       <button class="btn btn-kelabu btn-kecil" onclick="sejarahHaid()"><i class="fa-solid fa-list"></i> Sejarah</button>
       ${a.semasa ? '' : '<button class="btn btn-kelabu btn-kecil" onclick="haidMula(\'nifas\')"><i class="fa-solid fa-baby"></i> Mula nifas</button>'}
     </div>
-    <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:13.5px;background:#fdf2f8;border-radius:10px;padding:9px 10px;cursor:pointer"><input type="checkbox" ${h.notif ? 'checked' : ''} onchange="notifHaid(this.checked)" style="margin-top:3px"> <span><b>Peringatan</b>: 2 hari sebelum haid dijangka, bila haid lewat, dan amaran tempoh maksimum (istihadah). Notifikasi tidak menyebut perkataan haid.</span></label>
-    <label style="display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:13.5px;background:#fdf2f8;border-radius:10px;padding:9px 10px;cursor:pointer"><input type="checkbox" ${h.kongsi ? 'checked' : ''} onchange="kongsiSuami(this.checked)" style="margin-top:3px"> <span><b>Benarkan suami lihat</b> kitaran ini dan panduan untuk memahami isteri. Jika peringatan dihidupkan, suami juga dapat makluman ringkas. Suami lihat dari tab meTime pada profilnya.</span></label>
-    <p class="kecil" style="margin:8px 0 0">${h.kongsi ? 'Dikongsi dengan suami sahaja.' : 'Hanya dilihat oleh anda.'} Panduan fiqh mazhab Syafie secara ringkas; untuk kes luar biasa, rujuk ustazah.</p>`;
+    <label class="mt-tick" style="margin-top:12px"><input type="checkbox" ${h.notif ? 'checked' : ''} onchange="notifHaid(this.checked)"> <span><b>Peringatan</b>: 2 hari sebelum haid dijangka, bila haid lewat, dan amaran tempoh maksimum (istihadah). Notifikasi tidak menyebut perkataan haid.</span></label>
+    <label class="mt-tick"><input type="checkbox" ${h.kongsi ? 'checked' : ''} onchange="kongsiSuami(this.checked)"> <span><b>Benarkan suami lihat</b> kitaran ini dan panduan untuk memahami isteri. Jika peringatan dihidupkan, suami juga dapat makluman ringkas. Suami lihat dari tab meTime pada profilnya.</span></label>`;
   $('kadPanduan').innerHTML = panduanFasa(a, false);
   paparLogHaid(h, false); lukisKalHaid(h, a, false); paparSejarahBar(h, a); paparSelfCare(h, a);
 }
