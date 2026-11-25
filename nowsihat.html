@@ -900,7 +900,7 @@ async function simpanHaid(h) {
   const had = tambahHari(tarikhMY(), -31), log = {};   // log harian disimpan sebulan terakhir sahaja
   Object.keys(h.log || {}).filter(k => k >= had).forEach(k => { log[k] = h.log[k]; });
   const v = { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi, notif: !!h.notif, log };
-  await setDoc(doc(db, 'nowsihat_profil', PID()), { haid: v, haid_notif: !!h.notif }, { merge: true });   // haid_notif: untuk pertanyaan server peringatan
+  await setDoc(doc(db, 'nowsihat_profil', PID()), { haid: v, haid_notif: !!h.notif, ...(S.profil.jantina ? { jantina: S.profil.jantina } : {}) }, { merge: true });   // simpan jantina (diambil dari myNasab) supaya Kalendar FP & peringatan server kenal profil ini   // haid_notif: untuk pertanyaan server peringatan
   S.profil.haid = v;
 }
 function analisisHaid(h) {

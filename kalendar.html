@@ -211,7 +211,7 @@ async function muatRutin(uid) {
     const list = Array.isArray(x.senaman_rutin) ? x.senaman_rutin : (x.senaman ? [x.senaman] : []);
     K.rutin = list.map(r => ({ ...r, nama: JENIS[r.jenis] || 'Brisk walk' }));
     // Kitaran haid/nifas (profil perempuan sahaja): titik peribadi tanpa label pada grid
-    const rek = (x.jantina === 'P' && x.haid && Array.isArray(x.haid.rekod)) ? x.haid.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [];
+    const rek = (x.haid && Array.isArray(x.haid.rekod)) ? x.haid.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [];
     const tambah = (k0, n) => new Date(Date.parse(k0 + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);
     const beza = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000);
     rek.forEach(r => { const t = r.t || HARI_INI; for (let k0 = r.m; k0 <= t; k0 = tambah(k0, 1)) K.haid.add(k0); });
