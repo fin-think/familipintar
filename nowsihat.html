@@ -887,13 +887,13 @@ const HM = 86400000;
 const hariAntara = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / HM);
 const tambahHari = (k, n) => new Date(Date.parse(k + 'T00:00:00Z') + n * HM).toISOString().slice(0, 10);
 const fmtT = (k) => k ? k.split('-').reverse().join('/') : '';
-const haidDari = (prof) => { const h = (prof && prof.haid) || {}; return { rekod: Array.isArray(h.rekod) ? h.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [], qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi, log: (h.log && typeof h.log === 'object') ? { ...h.log } : {} }; };
+const haidDari = (prof) => { const h = (prof && prof.haid) || {}; return { rekod: Array.isArray(h.rekod) ? h.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [], qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi, notif: !!h.notif, log: (h.log && typeof h.log === 'object') ? { ...h.log } : {} }; };
 const haidData = () => haidDari(S.profil);
 async function simpanHaid(h) {
   const had = tambahHari(tarikhMY(), -31), log = {};   // log harian disimpan sebulan terakhir sahaja
   Object.keys(h.log || {}).filter(k => k >= had).forEach(k => { log[k] = h.log[k]; });
-  const v = { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi, log };
-  await setDoc(doc(db, 'nowsihat_profil', PID()), { haid: v }, { merge: true });
+  const v = { rekod: h.rekod.slice(-36), qadha_bayar: h.qadha_bayar || 0, kongsi: !!h.kongsi, notif: !!h.notif, log };
+  await setDoc(doc(db, 'nowsihat_profil', PID()), { haid: v, haid_notif: !!h.notif }, { merge: true });   // haid_notif: untuk pertanyaan server peringatan
   S.profil.haid = v;
 }
 function analisisHaid(h) {
@@ -936,7 +936,8 @@ function paparHaid() {
       <button class="btn btn-kelabu btn-kecil" onclick="sejarahHaid()"><i class="fa-solid fa-list"></i> Sejarah</button>
       ${a.semasa ? '' : '<button class="btn btn-kelabu btn-kecil" onclick="haidMula(\'nifas\')"><i class="fa-solid fa-baby"></i> Mula nifas</button>'}
     </div>
-    <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:13.5px;background:#fdf2f8;border-radius:10px;padding:9px 10px;cursor:pointer"><input type="checkbox" ${h.kongsi ? 'checked' : ''} onchange="kongsiSuami(this.checked)" style="margin-top:3px"> <span><b>Benarkan suami lihat</b> kitaran ini dan panduan untuk memahami isteri. Suami lihat dari tab meTime pada profilnya.</span></label>
+    <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:13.5px;background:#fdf2f8;border-radius:10px;padding:9px 10px;cursor:pointer"><input type="checkbox" ${h.notif ? 'checked' : ''} onchange="notifHaid(this.checked)" style="margin-top:3px"> <span><b>Peringatan</b>: 2 hari sebelum haid dijangka, bila haid lewat, dan amaran tempoh maksimum (istihadah). Notifikasi tidak menyebut perkataan haid.</span></label>
+    <label style="display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:13.5px;background:#fdf2f8;border-radius:10px;padding:9px 10px;cursor:pointer"><input type="checkbox" ${h.kongsi ? 'checked' : ''} onchange="kongsiSuami(this.checked)" style="margin-top:3px"> <span><b>Benarkan suami lihat</b> kitaran ini dan panduan untuk memahami isteri. Jika peringatan dihidupkan, suami juga dapat makluman ringkas. Suami lihat dari tab meTime pada profilnya.</span></label>
     <p class="kecil" style="margin:8px 0 0">${h.kongsi ? 'Dikongsi dengan suami sahaja.' : 'Hanya dilihat oleh anda.'} Panduan fiqh mazhab Syafie secara ringkas; untuk kes luar biasa, rujuk ustazah.</p>`;
   $('kadPanduan').innerHTML = panduanFasa(a, false);
   paparLogHaid(h, false); lukisKalHaid(h, a, false); paparSejarahBar(h, a); paparSelfCare(h, a);
@@ -1046,6 +1047,7 @@ window.mulaSelfCare = (i) => {
   scTimer = setInterval(() => { baki--; const el = $('scBaki'); if (!el || $('modalHaid').style.display === 'none') { clearInterval(scTimer); return; } el.textContent = Math.max(0, baki); if (baki <= 0) mulaSelfCare(i + 1); }, 1000);
 };
 
+window.notifHaid = async (on) => { const h = haidData(); h.notif = !!on; try { await simpanHaid(h); paparHaid(); } catch (e) { alert('Gagal: ' + e.message); } };
 window.kongsiSuami = async (on) => { const h = haidData(); h.kongsi = !!on; try { await simpanHaid(h); paparHaid(); } catch (e) { alert('Gagal: ' + e.message); } };
 // Fasa kitaran (anggaran) & panduan: untuk isteri sendiri atau untuk suami
 function fasaKitaran(a) {
