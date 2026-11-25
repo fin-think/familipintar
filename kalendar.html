@@ -24,6 +24,7 @@
   .cip.mati { opacity:.4; text-decoration:line-through; }
   .ev { display:flex; gap:.7rem; align-items:flex-start; padding:.7rem 0; border-top:1px solid #f1f5f9; }
   .ev:first-child { border-top:0; }
+  @media (min-width:1024px) { .hari { aspect-ratio:auto; height:76px; } }
   .ev .ik { width:2.1rem; height:2.1rem; border-radius:.7rem; display:flex; align-items:center; justify-content:center; flex:none; color:#fff; font-size:.9rem; }
 </style>
 <link rel="stylesheet" href="/kembali.css">
@@ -37,9 +38,10 @@
   </div>
 </header>
 
-<main class="max-w-2xl mx-auto px-4 mt-5 space-y-4">
+<main class="max-w-2xl lg:max-w-6xl mx-auto px-4 lg:px-8 mt-5 space-y-4">
   <div id="penapis" class="flex flex-wrap gap-2"></div>
 
+  <div class="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-5 lg:items-start">
   <section class="kad">
     <div class="flex items-center justify-between">
       <button id="sebelum" class="w-9 h-9 rounded-full bg-slate-100 text-slate-700" aria-label="Bulan sebelum"><i class="fa-solid fa-chevron-left"></i></button>
@@ -51,6 +53,7 @@
     <p id="status" class="text-xs text-slate-500 mt-3"><i class="fa-solid fa-spinner fa-spin"></i> Memuatkan jadual keluarga…</p>
   </section>
 
+  <div class="space-y-4 lg:sticky lg:top-4">
   <section class="kad">
     <h2 id="tajukHari" class="font-extrabold text-slate-800"></h2>
     <div id="senarai" class="mt-1"></div>
@@ -64,6 +67,8 @@
       <span id="infoNegeri" class="text-xs text-slate-500"></span>
     </div>
   </section>
+  </div>
+  </div>
 </main>
 
 <script type="module">
