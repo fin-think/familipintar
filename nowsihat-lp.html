@@ -150,7 +150,12 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
 /* METIME */
 .metime { background: linear-gradient(180deg, color-mix(in srgb, #ec4899 7%, var(--bg)), var(--bg)); }
 .mt-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
-.mt-eyebrow { color: #db2777; }
+.mt-bonus { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 14px; font-family: var(--font-display); font-weight: 800; font-size: 26px; letter-spacing: -.01em; color: #be185d; }
+.mt-bonus span { background: linear-gradient(135deg, #f59e0b, #ec4899); color: #fff; font-size: 17px; letter-spacing: .12em; padding: 7px 14px; border-radius: 999px; box-shadow: 0 6px 18px rgba(236,72,153,.35); animation: mtDenyut 2.4s ease-in-out infinite; }
+.mt-bonus-kecil { display: inline-block; margin-left: 6px; background: linear-gradient(135deg, #f59e0b, #ec4899); color: #fff !important; font-weight: 800; font-size: 13px; letter-spacing: .04em; text-decoration: none; padding: 4px 12px; border-radius: 999px; box-shadow: 0 4px 12px rgba(236,72,153,.3); }
+@keyframes mtDenyut { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .mt-bonus span { animation: none; } }
+
 .mt-badge { display: inline-block; background: #fce7f3; color: #9d174d; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 4px 12px; margin-bottom: 10px; }
 .mt-senarai { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 14px; }
 .mt-senarai li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
@@ -216,7 +221,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
           <a class="btn" href="index.html?daftar=1&utm_source=lp&utm_medium=halaman&utm_campaign=nowsihat">Mula percubaan percuma</a>
           <a class="btn alt" href="#cara">Lihat cara ia berfungsi</a>
         </div>
-        <p class="note">Percubaan percuma <span class="tk-percuba">15</span> hari. Tiada kad kredit diperlukan. <a href="#metime" style="color:#db2777;font-weight:800;text-decoration:none">BONUS: meTime 🌸</a></p>
+        <p class="note">Percubaan percuma <span class="tk-percuba">15</span> hari. Tiada kad kredit diperlukan. <a href="#metime" class="mt-bonus-kecil">🎁 BONUS: meTime 🌸</a></p>
       </div>
 
       <div>
@@ -294,7 +299,7 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
   <section class="metime" id="metime">
     <div class="wrap mt-grid">
       <div>
-        <p class="eyebrow mt-eyebrow">BONUS: meTime 🌸</p>
+        <p class="mt-bonus"><span>🎁 BONUS</span> meTime 🌸</p>
         <span class="mt-badge">Untuk wanita, dan suami yang mahu memahami</span>
         <h2>Jejak kitaran haid yang faham fiqh, dan faham isteri.</h2>
         <p class="sec-lead">App kitaran lain hanya meramal tarikh. meTime turut kira hukum haid dan nifas, qadha puasa Ramadan, dan bantu suami memahami emosi isteri pada setiap fasa.</p>
