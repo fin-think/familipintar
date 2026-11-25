@@ -90,6 +90,7 @@
   body .mt-6{margin-top:12px} body .mt-4{margin-top:10px}
 }
 </style>
+<link rel="stylesheet" href="/kembali.css">
 </head>
 <body class="bg-slate-50">
     
@@ -1354,9 +1355,9 @@ await window.fbSetDoc(window.fbDoc(window.fbDb, "mytadbir_profiles", modRef.curr
       {/* Butang Kembali (Dipindahkan ke sini) */}
       <button 
         onClick={() => window.location.href='index.html'} 
-        className="bg-white/10 hover:bg-white/20 border border-white/20 px-5 py-2 rounded-full font-bold transition-all text-white text-sm shadow-sm flex items-center gap-2 hover:-translate-x-1"
+        className="fp-kembali gelap"
       >
-        &#8592; Kembali
+        <span aria-hidden="true">←</span> Kembali
       </button>
 
       {/* ID Pengguna */}
