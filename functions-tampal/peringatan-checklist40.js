@@ -82,7 +82,8 @@ async function cl40Hantar(dbRef, messaging, uid, medanToken, tokens, payload) {
     let berjaya = 0; const mati = [];
     // Tag sama: telefon yang ada dua token tunjuk satu notifikasi sahaja
     const tag = payload && payload.data && payload.data.tag;
-    const muatan = tag ? { ...payload, webpush: { ...(payload.webpush || {}), notification: { ...((payload.webpush || {}).notification || {}), tag } } } : payload;
+    const wp = (payload && payload.webpush) || {};
+    const muatan = { ...payload, webpush: { ...wp, headers: { Urgency: 'high', TTL: '3600', ...(wp.headers || {}) }, notification: { ...(wp.notification || {}), ...(tag ? { tag } : {}) } } };
     for (const token of [...new Set(tokens)]) {
         try { await messaging.send({ ...muatan, token }); berjaya++; }
         catch (e) {

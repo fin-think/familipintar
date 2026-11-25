@@ -318,6 +318,11 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
       .fp-pasang .ikon { display: inline-block; animation: fpGoyang 2.2s ease-in-out infinite; }
       @keyframes fpGoyang { 0%,100% { transform: rotate(0); } 15% { transform: rotate(-12deg); } 30% { transform: rotate(10deg); } 45% { transform: rotate(0); } }
       @media (prefers-reduced-motion: reduce) { .fp-pasang .ikon { animation: none; } }
+      .fp-pasang .nota { margin-top: 16px; background: #fff; border: 1px dashed #f59e0b; border-left: 5px solid #f59e0b; border-radius: 12px; padding: 14px 16px; font-size: 14.5px; color: #374151; line-height: 1.6; }
+      .fp-pasang .nota > b { display: block; color: #92400e; font-size: 15.5px; margin-bottom: 4px; }
+      .fp-pasang .nota ul { margin: 6px 0 0; padding-left: 20px; }
+      .fp-pasang .nota li { margin: 2px 0; }
+      .fp-pasang .nota li b { color: #111827; }
       @media (max-width: 760px) { .fp-pasang .grid { grid-template-columns: 1fr; } .fp-pasang { padding: 20px 18px; } }
     </style>
     <div class="fp-pasang">
@@ -328,6 +333,16 @@ section h2 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 800; }
         <div><b>🤖 Telefon Android</b><span>Buka familipintar.com di Chrome, tekan menu <b>⋮</b>, kemudian pilih <b>Install app</b> atau <b>Tambah ke skrin utama</b>.</span></div>
         <div><b>🍎 iPhone / iPad</b><span>Buka di <b>Safari</b>, tekan butang <b>Kongsi</b> (petak dengan anak panah ke atas), kemudian pilih <b>Add to Home Screen</b>.</span><br><span class="wajib">Wajib di iPhone untuk terima notifikasi</span></div>
         <div><b>💻 Komputer</b><span>Buka di Chrome atau Edge, tekan ikon <b>Pasang</b> di hujung kanan bar alamat, kemudian <b>Install</b>. App terbuka terus dari desktop.</span></div>
+      </div>
+      <div class="nota">
+        <b>🔔 Notifikasi lambat atau hanya keluar bila buka app? (Android)</b>
+        Telefon Android sering menahan notifikasi untuk jimat bateri. Pergi ke <b>Tetapan → Apps</b>, dan untuk <b>Famili Pintar</b> serta <b>Chrome</b>:
+        <ul>
+          <li><b>Bateri</b>: pilih <b>No restrictions / Tiada sekatan</b></li>
+          <li><b>Pause app activity if unused</b>: matikan</li>
+          <li><b>Auto launch / Autostart</b>: hidupkan (jika ada, cth. Oppo, Xiaomi, Vivo, Realme)</li>
+          <li><b>Notifications</b>: benarkan</li>
+        </ul>
       </div>
     </div>
   </section>

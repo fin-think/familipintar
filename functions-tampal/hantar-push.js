@@ -23,7 +23,8 @@ async function hantarKeSemuaPeranti(dbRef, messaging, uid, userData, payload, pe
     // Satu telefon boleh ada lebih daripada satu token (cth. Chrome + app dipasang, atau token lama). Tag yang sama
     // membuatkan telefon menggantikan notifikasi yang sama, bukan menunjukkan dua kali.
     const tag = payload && payload.data && payload.data.tag;
-    const muatan = tag ? { ...payload, webpush: { ...(payload.webpush || {}), notification: { ...((payload.webpush || {}).notification || {}), tag } } } : payload;
+    const wp = (payload && payload.webpush) || {};
+    const muatan = { ...payload, webpush: { ...wp, headers: { Urgency: 'high', TTL: '3600', ...(wp.headers || {}) }, notification: { ...(wp.notification || {}), ...(tag ? { tag } : {}) } } };
     for (const token of tokenUntuk(userData, per)) {
         try { await messaging.send({ ...muatan, token }); berjaya++; }
         catch (e) {
