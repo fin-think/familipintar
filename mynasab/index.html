@@ -432,8 +432,9 @@
 
     /* 4. Modal Pop-up (Skrin Pengenalan / Edit) Kemas Di Tengah Phone */
     .modal-box {
-        width: 92% !important;
-        padding: 20px 15px !important;
+        width: 90% !important;
+        box-sizing: border-box !important;   /* tanpa ini, padding menambah lebar sehingga kotak rapat ke tepi skrin */
+        padding: 20px 16px !important;
         max-height: 90vh !important;
         overflow-y: auto !important;
     }
