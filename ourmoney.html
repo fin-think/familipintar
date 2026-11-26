@@ -1191,8 +1191,14 @@
             let jum = 0;
             list.forEach(it => {
                 const v = parseFloat(it.value) || 0; jum += v;
-                const bln = txn.filter(t => t.type === 'outflow' && t.fp_instrumen && samaNama(t.fp_instrumen, it.name) && peranRekod(t) === p && String(t.date || '').substring(0, 7) === bulanIniStr).reduce((a, t) => a + (Number(t.amount) || 0), 0);
-                h += `<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed #E0F2FE;font-size:.85rem"><span style="font-weight:700;color:#0C4A6E">${esc(it.name || 'Instrumen')}${isEmasN(it.name) && it.gram != null ? ` <small style="color:#64748b">(${(+it.gram).toFixed(2)} g)</small>` : ''}${bln > 0 ? `<br><small style="color:#059669;font-weight:700">+RM ${formatRM(bln)} bulan ini</small>` : ''}</span><b style="color:#0C4A6E;white-space:nowrap">RM ${formatRM(v)}</b></div>`;
+                // Perubahan bersih bulan ini: top-up (+), keluar ke bank (-), pindah keluar (-) / masuk (+)
+                const bln = txn.filter(t => t.fp_instrumen && peranRekod(t) === p && String(t.date || '').substring(0, 7) === bulanIniStr).reduce((a, t) => {
+                    const d = kesanRekod(t).delta;
+                    if (samaNama(t.fp_instrumen, it.name)) a += d;
+                    if (t.fp_ke && samaNama(t.fp_ke, it.name)) a -= d;
+                    return a;
+                }, 0);
+                h += `<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed #E0F2FE;font-size:.85rem"><span style="font-weight:700;color:#0C4A6E">${esc(it.name || 'Instrumen')}${isEmasN(it.name) && it.gram != null ? ` <small style="color:#64748b">(${(+it.gram).toFixed(2)} g)</small>` : ''}${Math.abs(bln) >= 0.005 ? `<br><small style="color:${bln > 0 ? '#059669' : '#dc2626'};font-weight:700">${bln > 0 ? '+' : '−'}RM ${formatRM(Math.abs(bln))} bulan ini</small>` : ''}</span><b style="color:#0C4A6E;white-space:nowrap">RM ${formatRM(v)}</b></div>`;
             });
             h += `<div style="display:flex;justify-content:space-between;padding-top:6px;font-size:.85rem;font-weight:800;color:#0369A1"><span>Jumlah</span><span>RM ${formatRM(jum)}</span></div>`;
         });
