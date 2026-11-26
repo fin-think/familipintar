@@ -1291,6 +1291,14 @@ if ('Notification' in window) {
     };
 
     // Fungsi tambahan Log Keluar
+    // Permintaan padam akaun (PDPA): buka emel siap diisi kepada sokongan; admin memproses dalam 21 hari
+    window.mintaPadamAkaun = () => {
+        const u = auth.currentUser; if (!u) return;
+        if (!confirm('Minta akaun dan semua data anda dipadam?\n\nIni termasuk pokok keluarga, rekod kewangan, kesihatan dan baki kredit. Tindakan ini tidak boleh dibatalkan selepas diproses.\n\nTekan OK untuk buka emel permintaan.')) return;
+        const subjek = 'Permintaan padam akaun Famili Pintar';
+        const isi = `Saya ingin akaun Famili Pintar saya dan semua data berkaitan dipadam.\n\nEmel akaun: ${u.email}\nID akaun: ${u.uid}\nTarikh permintaan: ${new Date().toLocaleDateString('ms-MY')}\n\nSaya faham baki kredit dan data tidak boleh dipulihkan selepas dipadam.`;
+        location.href = 'mailto:dae.book89@gmail.com?subject=' + encodeURIComponent(subjek) + '&body=' + encodeURIComponent(isi);
+    };
     window.logKeluar = async () => {
         await signOut(auth);
         window.location.reload();
@@ -1613,6 +1621,7 @@ window.pantauLencanaWeCareUtama = async (user) => {
       <button class="tp-item" onclick="location.href='topup.html'"><i class="fa-solid fa-wallet tp-ik" style="background:#fef9c3;color:#a16207"></i><span>Kredit &amp; Top-up<small>Baki: <b id="tpKredit">0</b> kredit</small></span></button>
       <button class="tp-item" onclick="location.href='terma-privasi.html'"><i class="fa-solid fa-shield-halved tp-ik" style="background:#ede9fe;color:#6d28d9"></i><span>Privasi, Terma &amp; Polisi Kredit<small>Cara kami jaga data anda</small></span></button>
       <button class="tp-item" onclick="location.href='mailto:dae.book89@gmail.com'"><i class="fa-solid fa-envelope tp-ik" style="background:#f1f5f9;color:#475569"></i><span>Hubungi sokongan<small>dae.book89@gmail.com</small></span></button>
+      <button class="tp-item" onclick="mintaPadamAkaun()"><i class="fa-solid fa-user-xmark tp-ik" style="background:#f1f5f9;color:#64748b"></i><span>Minta padam akaun<small>Padam akaun dan semua data anda (diproses dalam 21 hari)</small></span></button>
       <button class="tp-item" style="border-bottom:0;color:#dc2626" onclick="tutupTetapan();logKeluar()"><i class="fa-solid fa-right-from-bracket tp-ik" style="background:#fee2e2;color:#dc2626"></i><span>Log keluar</span></button>
     </div>
     <div id="tpPeranti" class="hidden">

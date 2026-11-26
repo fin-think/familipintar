@@ -47,7 +47,7 @@
 <main>
 <div id="v-ms" lang="ms">
   <h1>Dasar Privasi, Terma Penggunaan &amp; Polisi Kredit</h1>
-  <p class="meta">Versi 2.0, dikemas kini 23 November 2026. Terpakai untuk semua aplikasi Famili Pintar di familipintar.com.</p>
+  <p class="meta">Versi 2.1, dikemas kini 26 November 2026. Terpakai untuk semua aplikasi Famili Pintar di familipintar.com.</p>
 
   <div class="ringkas"><p><b>Ringkasnya:</b> kami simpan maklumat yang anda masukkan supaya aplikasi berfungsi untuk keluarga anda. Data peribadi hanya untuk akaun anda, kecuali ruang yang anda sendiri pilih untuk dikongsi. Kami tidak menjual data anda. Kredit ialah bayaran untuk menggunakan ciri berbayar dan tertakluk kepada polisi di Bahagian C.</p></div>
 
@@ -69,7 +69,7 @@
     <tr><th>Kategori</th><th>Contoh</th><th>Digunakan dalam</th></tr>
     <tr><td>Akaun</td><td>Emel, nama, jantina, kata laluan (disimpan secara selamat oleh Firebase Authentication; kami tidak dapat melihat kata laluan anda)</td><td>Semua aplikasi</td></tr>
     <tr><td>Keluarga</td><td>Nama, hubungan, jantina, tarikh lahir, nombor telefon, bandar, negeri dan gambar ahli keluarga, jika anda memasukkannya</td><td>myNasab, myWARIS, myKids dan aplikasi yang membaca pokok keluarga</td></tr>
-    <tr><td>Kesihatan (data sensitif)</td><td>Berat, tinggi, sejarah penyakit, rekod makanan, gambar makanan, senaman, air minuman, maklumat ubat dan temu janji ibu bapa</td><td>myHEALTH, nowSihat, weCare</td></tr>
+    <tr><td>Kesihatan (data sensitif)</td><td>Berat, tinggi, sejarah penyakit, rekod makanan, gambar makanan, senaman, air minuman, rekod kitaran haid dan nifas (meTime), maklumat ubat dan temu janji ibu bapa</td><td>myHEALTH, nowSihat, weCare</td></tr>
     <tr><td>Kewangan</td><td>Transaksi harian, kategori, baki akaun yang anda masukkan, gambar resit, maklumat hutang dan perancangan kewangan</td><td>OurMoney, myDEBT, myFINPLAN, myTADBIR</td></tr>
     <tr><td>Jurnal &amp; penilaian</td><td>Jawapan dan keputusan ujian, catatan jurnal, senarai semak</td><td>myJurnal dan ujian berkaitan</td></tr>
     <tr><td>Bayaran &amp; kredit</td><td>Rekod top up, baki kredit, langganan, komisen affiliate. Maklumat kad atau perbankan diproses oleh Billplz dan <b>tidak disimpan</b> oleh kami.</td><td>Top Up, Affiliate, semua langganan</td></tr>
@@ -79,6 +79,7 @@
   <h3>3. Data kesihatan dan persetujuan jelas</h3>
   <p>Maklumat kesihatan ialah data peribadi sensitif di bawah PDPA. Kami hanya memprosesnya dengan persetujuan jelas anda, iaitu apabila anda sendiri memasukkannya dan bersetuju dengan dasar ini semasa mendaftar atau mula menggunakan nowSihat. Anda boleh memadam maklumat ini pada bila-bila masa dalam aplikasi berkaitan.</p>
   <p>Panduan, anggaran nutrisi dan nasihat dalam aplikasi ialah maklumat umum, <b>bukan nasihat perubatan</b>. Sentiasa ikut nasihat doktor atau pakar diet anda.</p>
+  <p><b>meTime (penjejak kitaran dalam nowSihat).</b> Jika anda menggunakan meTime, kami menyimpan tarikh mula dan tempoh setiap kitaran haid atau nifas, log harian ringkas (aliran, simptom dan mood), status qadha puasa, serta tetapan peringatan anda. Data ini digunakan hanya untuk memaparkan kalendar, ramalan kitaran, panduan dan peringatan kepada anda. Teks notifikasi meTime ditulis tanpa menyebut perkataan haid supaya lebih peribadi di skrin telefon. Panduan fiqh dalam meTime ialah panduan umum mazhab Syafie; rujuk ustaz atau ustazah untuk keadaan khusus.</p>
 
   <h3>4. Gambar makanan dan kecerdasan buatan (AI)</h3>
   <p>Apabila anda mengimbas makanan dalam nowSihat, gambar itu dihantar kepada Google Gemini untuk dianalisis. Gambar <b>tidak disimpan</b> oleh kami; hanya keputusan analisis (nama makanan dan anggaran nutrisi) disimpan dalam akaun anda. Maklumat konteks seperti umur, matlamat dan keadaan kesihatan yang anda pilih turut dihantar bersama supaya nasihat lebih tepat. Penggunaan oleh Google tertakluk kepada terma perkhidmatan Google.</p>
@@ -98,6 +99,7 @@
     <li><b>Anda sahaja,</b> secara asal, untuk data peribadi, jurnal, kesihatan dan kewangan.</li>
     <li><b>Keluarga yang anda pautkan,</b> untuk ruang yang memang dikongsi: pokok keluarga myNasab dan penjagaan ibu bapa di weCare.</li>
     <li><b>Pasangan dalam akaun yang sama</b> (mod Induk/Pasangan) boleh melihat rekod kedua-dua orang dalam akaun itu.</li>
+    <li><b>Suami, untuk meTime,</b> hanya jika isteri menanda <i>Benarkan suami lihat</i>. Suami kemudian nampak fasa kitaran dan panduan ringkas di profilnya, serta peringatan berkaitan. Isteri boleh membatalkan pilihan ini bila-bila masa. Ambil perhatian: dalam akaun bersama (mod Induk/Pasangan), data kedua-dua orang disimpan di bawah akaun yang sama.</li>
     <li><b>Coach nowSihat,</b> hanya jika anda bersetuju, dan hanya bahagian yang anda tanda (rekod makan, berat, senaman, keadaan kesihatan). Anda boleh menghentikan perkongsian bila-bila masa di Profil.</li>
     <li><b>Penyedia perkhidmatan</b> yang membantu kami menjalankan sistem: penyedia awan untuk pangkalan data, log masuk, storan dan notifikasi (Google Firebase), penyedia analisis AI untuk gambar makanan (Google Gemini) dan gateway pembayaran berlesen (Billplz). Mereka hanya memproses data untuk tujuan itu.</li>
     <li><b>Pihak berkuasa,</b> jika dikehendaki oleh undang-undang.</li>
@@ -107,13 +109,13 @@
   <p>Data disimpan dalam Google Firebase, yang mungkin berada di pusat data di luar Malaysia. Dengan menggunakan perkhidmatan ini, anda bersetuju dengan pemindahan tersebut. Google melindungi data dengan penyulitan semasa disimpan dan semasa dihantar.</p>
 
   <h3>8. Tempoh simpanan</h3>
-  <p>Data disimpan selagi akaun anda aktif. Sebahagian data sementara dipadam secara automatik (cth. siaran BAHI selepas tempohnya, mesej JomSalam, kiraan imbasan harian). Rekod bayaran disimpan sekurang-kurangnya 7 tahun untuk tujuan perakaunan dan cukai.</p>
+  <p>Data disimpan selagi akaun anda aktif. Sebahagian data sementara dipadam secara automatik (cth. siaran BAHI selepas tempohnya, mesej JomSalam, kiraan imbasan harian, dan log harian meTime selepas 31 hari; rekod tarikh kitaran kekal sehingga anda memadamnya). Rekod bayaran disimpan sekurang-kurangnya 7 tahun untuk tujuan perakaunan dan cukai.</p>
 
   <h3>9. Hak anda</h3>
   <ul>
     <li>Mengakses dan membetulkan data anda (kebanyakannya boleh dibuat terus dalam aplikasi).</li>
     <li>Menarik balik persetujuan, termasuk untuk data kesihatan dan perkongsian dengan coach.</li>
-    <li>Meminta akaun dan data anda dipadam. Hantar emel kepada kami dari emel akaun anda; kami akan memprosesnya dalam 21 hari. Data yang telah dikongsi dalam pokok keluarga orang lain mungkin kekal dalam salinan mereka.</li>
+    <li>Meminta akaun dan data anda dipadam: tekan <b>Tetapan → Minta padam akaun</b>, atau hantar emel kepada kami dari emel akaun anda; kami akan memprosesnya dalam 21 hari. Data yang telah dikongsi dalam pokok keluarga orang lain mungkin kekal dalam salinan mereka.</li>
   </ul>
 
   <h3>10. Kanak-kanak</h3>
@@ -196,7 +198,7 @@
 
 <div id="v-en" lang="en" hidden>
   <h1>Privacy Policy, Terms of Use &amp; Credit Policy</h1>
-  <p class="meta">Version 2.0, last updated 23 November 2026. Applies to all Famili Pintar applications at familipintar.com. If there is any inconsistency between the Malay and English versions, the Malay version prevails.</p>
+  <p class="meta">Version 2.1, last updated 26 November 2026. Applies to all Famili Pintar applications at familipintar.com. If there is any inconsistency between the Malay and English versions, the Malay version prevails.</p>
 
   <div class="ringkas"><p><b>In short:</b> we store the information you enter so the apps work for your family. Personal data is for your account only, except for spaces you choose to share. We do not sell your data. Credits are payment for paid features and subscriptions and are subject to the policy in Part C.</p></div>
 
@@ -216,7 +218,7 @@
     <tr><th>Category</th><th>Examples</th><th>Used in</th></tr>
     <tr><td>Account</td><td>Email, name, gender, password (stored securely by Firebase Authentication; we cannot see your password)</td><td>All apps</td></tr>
     <tr><td>Family</td><td>Names, relationships, gender, dates of birth, phone numbers, city, state and photos of family members, if you enter them</td><td>myNasab, myWARIS, myKids and apps that read the family tree</td></tr>
-    <tr><td>Health (sensitive data)</td><td>Weight, height, medical history, food records, food photos, exercise, water intake, parents' medication and appointments</td><td>myHEALTH, nowSihat, weCare</td></tr>
+    <tr><td>Health (sensitive data)</td><td>Weight, height, medical history, food records, food photos, exercise, water intake, menstrual and postnatal cycle records (meTime), parents' medication and appointments</td><td>myHEALTH, nowSihat, weCare</td></tr>
     <tr><td>Financial</td><td>Daily transactions, categories, account balances you enter, receipt photos, debt and financial planning information</td><td>OurMoney, myDEBT, myFINPLAN, myTADBIR</td></tr>
     <tr><td>Journal &amp; assessments</td><td>Test answers and results, journal entries, checklists</td><td>myJurnal and related tests</td></tr>
     <tr><td>Payments &amp; credits</td><td>Top-up records, credit balance, subscriptions, affiliate commissions. Card or banking details are processed by Billplz and are <b>not stored</b> by us.</td><td>Top Up, Affiliate, all subscriptions</td></tr>
@@ -226,6 +228,7 @@
   <h3>3. Health data and explicit consent</h3>
   <p>Health information is sensitive personal data under the PDPA. We only process it with your explicit consent, that is, when you enter it yourself and agree to this policy when signing up or starting nowSihat. You may delete this information at any time in the relevant app.</p>
   <p>Guidance, nutrition estimates and advice in the apps are general information, <b>not medical advice</b>. Always follow the advice of your doctor or dietitian.</p>
+  <p><b>meTime (cycle tracker in nowSihat).</b> If you use meTime, we store the start date and length of each menstrual or postnatal (nifas) cycle, a short daily log (flow, symptoms and mood), qadha fasting status, and your reminder settings. This data is used only to show you the calendar, cycle predictions, guidance and reminders. meTime notification text avoids the word "haid" so it stays private on your phone screen. Fiqh guidance in meTime is general guidance based on the Shafi'i school; consult an ustaz or ustazah for specific situations.</p>
 
   <h3>4. Food photos and artificial intelligence (AI)</h3>
   <p>When you scan food in nowSihat, the photo is sent to Google Gemini for analysis. The photo is <b>not stored</b> by us; only the analysis result (food names and nutrition estimates) is saved to your account. Context such as your age, goal and the health conditions you selected is sent with it so the advice is more accurate. Google's processing is subject to Google's terms of service.</p>
@@ -245,6 +248,7 @@
     <li><b>Only you,</b> by default, for personal, journal, health and financial data.</li>
     <li><b>Family members you link,</b> for spaces that are meant to be shared: the myNasab family tree and parent care in weCare.</li>
     <li><b>Your spouse in the same account</b> (Main/Spouse mode) can see both people's records in that account.</li>
+    <li><b>The husband, for meTime,</b> only if the wife ticks <i>Allow husband to view</i>. He then sees the cycle phase and short guidance in his profile, and related reminders. The wife can turn this off at any time. Note: in a shared account (Main/Spouse mode), both people's data is stored under the same account.</li>
     <li><b>A nowSihat coach,</b> only if you agree, and only the parts you tick (food records, weight, exercise, health conditions). You can stop sharing at any time in Profile.</li>
     <li><b>Service providers</b> that help us run the system: a cloud provider for database, sign-in, storage and notifications (Google Firebase), an AI provider for food photo analysis (Google Gemini) and a licensed payment gateway (Billplz). They only process data for these purposes.</li>
     <li><b>Authorities,</b> where required by law.</li>
@@ -254,13 +258,13 @@
   <p>Data is stored in Google Firebase, which may be located in data centres outside Malaysia. By using the service, you agree to this transfer. Google protects data with encryption at rest and in transit.</p>
 
   <h3>8. Retention</h3>
-  <p>Data is kept while your account is active. Some temporary data is deleted automatically (e.g. BAHI posts after their period, JomSalam messages, daily scan counts). Payment records are kept for at least 7 years for accounting and tax purposes.</p>
+  <p>Data is kept while your account is active. Some temporary data is deleted automatically (e.g. BAHI posts after their period, JomSalam messages, daily scan counts, and meTime daily logs after 31 days; cycle date records are kept until you delete them). Payment records are kept for at least 7 years for accounting and tax purposes.</p>
 
   <h3>9. Your rights</h3>
   <ul>
     <li>To access and correct your data (most of it can be done directly in the apps).</li>
     <li>To withdraw consent, including for health data and sharing with a coach.</li>
-    <li>To request deletion of your account and data. Email us from your account email; we will process it within 21 days. Data already shared into other people's family trees may remain in their copies.</li>
+    <li>To request deletion of your account and data: tap <b>Settings → Request account deletion</b> (Tetapan → Minta padam akaun), or email us from your account email; we will process it within 21 days. Data already shared into other people's family trees may remain in their copies.</li>
   </ul>
 
   <h3>10. Children</h3>
