@@ -986,7 +986,7 @@
             });
             h += `<div style="display:flex;justify-content:space-between;padding-top:6px;font-size:.85rem;font-weight:800;color:#0369A1"><span>Jumlah</span><span>RM ${formatRM(jum)}</span></div>`;
         });
-        h += `<div style="font-size:.7rem;color:#64748b;margin-top:8px;line-height:1.4">Baki terkini daripada myFINPLAN. Rekod di <b>Duit Keluar → Simpanan &amp; Pelaburan</b> untuk tambah baki${ada ? '; myTADBIR mengemas kini harta bersih bila dibuka' : ''}.</div>`;
+        h += `<div style="font-size:.7rem;color:#64748b;margin-top:8px;line-height:1.4">Baki terkini daripada myFINPLAN. Rekod di <b>Duit Keluar → Simpanan &amp; Pelaburan</b> untuk tambah baki${ada ? '; Harta Bersih dikira terus daripada baki ini' : ''}.</div>`;
         box.innerHTML = h;
     }
     const AMANAH_KAT0 = '🤝 Amanah Ibu Bapa', HAJI_KAT0 = '🕋 Haji';
@@ -2336,6 +2336,18 @@
                 });
                 // Profil baharu: tolak pertambahan simpanan setiap anak sejak myTADBIR terakhir dikira (tidak bergantung pada tarikh)
                 if (ikutAnak) Object.entries(sm.edu_simpanan_anak).forEach(([id, dikira]) => { se += (simpananEduKini[id] || 0) - (Number(dikira) || 0); });
+                // Harta bersih sentiasa terkini (tanpa perlu buka myTADBIR): ganti aset cair myTADBIR dengan baki instrumen
+                // myFINPLAN terkini, dan hutang dengan baki selepas bayaran. Aset fizikal (rumah, kereta) kekal daripada myTADBIR.
+                try {
+                    const fpS = await getDoc(doc(db, "myfinplan_plans", per === 'pasangan' ? currentUser.uid + '_pasangan' : currentUser.uid));
+                    const fpI = fpS.exists() && Array.isArray(fpS.data().instruments) ? fpS.data().instruments : null;
+                    const asetT = ((snap.data().raw_data || {}).asetList || []);
+                    if (fpI && sm.total_assets != null) {
+                        const jumT = asetT.reduce((a, x) => a + (parseFloat(x.value) || 0), 0);
+                        const jumF = fpI.reduce((a, x) => a + (parseFloat(x.value) || 0), 0);
+                        nw = (Number(sm.total_assets) || 0) - jumT + jumF - Math.max(0, db_ - bh);
+                    }
+                } catch (e) { console.warn('OurMoney: harta bersih guna nilai myTADBIR', e.message); }
                 netWorth += nw; debts += Math.max(0, db_ - bh); eduDeficit += Math.max(0, ed - se);
                 bayarHutang += bh; simpanEdu += se;
             }
