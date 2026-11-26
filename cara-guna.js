@@ -73,7 +73,8 @@
         ['Keluar duit ATM', 'Guna kategori <b>🏧 Pengeluaran tunai</b>. Ia bukan perbelanjaan, cuma pindah dari bank ke tunai.'],
         ['Tersalah rekod', 'Buka senarai transaksi. Tekan <b>✏️</b> untuk edit atau <b>✕</b> untuk padam.'],
         ['Misi & analisis', 'Simpan untuk misi melalui Duit Keluar → pilih misi dalam Kategori. Lihat tab <b>📊 Analisis</b> dan laporan bulanan.'],
-        ['Simpanan & pelaburan', 'Top-up ASB, Tabung Haji, unit trust dan lain-lain: Duit Keluar → kumpulan <b>Simpanan &amp; Pelaburan</b> (ikut instrumen anda di myFINPLAN). Baki di myFINPLAN dan myTADBIR bertambah sendiri, dan tidak dikira sebagai belanja. Tekan <b>Harta Bersih</b> untuk lihat baki terkini.']
+        ['Simpanan & pelaburan', 'Top-up ASB, Tabung Haji, unit trust dan lain-lain: Duit Keluar → kumpulan <b>Simpanan &amp; Pelaburan</b> (ikut instrumen anda di myFINPLAN). Baki di myFINPLAN dan myTADBIR bertambah sendiri, dan tidak dikira sebagai belanja. Tekan <b>Harta Bersih</b> untuk lihat baki terkini.'],
+        ['Baki bank & myFINPLAN', 'Simpanan Bank di myFINPLAN (ikut akaun bank) menjadi Baki Permulaan bank OurMoney. Selepas bersambung, baki bank di myFINPLAN dikemas kini sendiri daripada rekod OurMoney.']
       ]
     },
     buatapa: {

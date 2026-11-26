@@ -207,6 +207,25 @@
         const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 const HARGA_EMAS_LALAI = 385;
+// Simpanan Bank dipecah ikut akaun bank (banks: [{nama, baki}]); baki = jumlah semua akaun.
+// om_sync: true = sudah bersambung dengan OurMoney; baki dikemas kini daripada rekod OurMoney dan dikunci di sini.
+const isBank = n => /simpanan\s*bank/i.test(n || '');
+function kiraBank(el) {
+    const box = el.closest('.asset-entry');
+    let j = 0; box.querySelectorAll('.bankBaki').forEach(i => { j += parseFloat(i.value) || 0; });
+    box.querySelector('.assetValue').value = j.toFixed(2);
+}
+function barisBank(nama, baki, kunci) {
+    const ro = kunci ? 'readonly style="background:#f8fafc"' : '';
+    return `<div class="bank-baris grid grid-cols-[1fr_1fr_auto] gap-2 mb-2 items-center">
+        <input type="text" class="bankNama" placeholder="cth: Maybank" value="${esc(nama)}" ${ro}>
+        <input type="number" step="0.01" class="bankBaki" placeholder="Baki (RM)" value="${baki === '' ? '' : (parseFloat(baki) || 0)}" oninput="kiraBank(this)" ${ro}>
+        ${kunci ? '<span></span>' : '<button type="button" class="text-red-500 text-xs font-bold px-1" onclick="const b=this.closest(\'.asset-entry\');this.parentElement.remove();kiraBank(b.querySelector(\'.assetValue\'))">✕</button>'}
+    </div>`;
+}
+function tambahBarisBank(btn) {
+    btn.insertAdjacentHTML('beforebegin', barisBank('', '', false));
+}
 const isEmas = n => /emas|gold/i.test(n || '');
 function kiraEmas(el) {
     const box = el.closest('.asset-entry');
@@ -245,6 +264,12 @@ function kiraEmas(el) {
     };
     const g = e.querySelector('.assetGram');
     if (g) { o.gram = parseFloat(g.value) || 0; o.price_per_gram = parseFloat(e.querySelector('.assetPrice').value) || 0; }
+    if (e.querySelector('.bankBaki')) {
+        o.banks = [...e.querySelectorAll('.bank-baris')].map(r => ({ nama: (r.querySelector('.bankNama').value || '').trim().slice(0, 30), baki: Math.round((parseFloat(r.querySelector('.bankBaki').value) || 0) * 100) / 100 }))
+            .filter(b => b.nama || b.baki);
+        o.value = Math.round(o.banks.reduce((a, b) => a + b.baki, 0) * 100) / 100;
+        if (e.dataset.omSync === '1') o.om_sync = true;
+    }
     return o;
 })
             };
@@ -258,7 +283,7 @@ function kiraEmas(el) {
             if (Array.isArray(s.instruments)) {
                 document.getElementById('assetsContainer').innerHTML = '';
                 if (s.instruments.length) {
-                    s.instruments.forEach(x => addAsset(x.name, x.value, x.monthly, x.rate, !ASET_ASAS.includes(x.name), { gram: x.gram, price_per_gram: x.price_per_gram }));
+                    s.instruments.forEach(x => addAsset(x.name, x.value, x.monthly, x.rate, !ASET_ASAS.includes(x.name), { gram: x.gram, price_per_gram: x.price_per_gram, banks: x.banks, om_sync: x.om_sync }));
                 } else {
                     isiAsetAsas();
                 }
@@ -328,14 +353,25 @@ function kiraEmas(el) {
     const container = document.getElementById('assetsContainer');
     const div = document.createElement('div');
     div.className = 'asset-entry';
-    const emas = isEmas(labelName);
+    const emas = isEmas(labelName), bank = isBank(labelName);
     let gram = extra.gram, harga = parseFloat(extra.price_per_gram), lama = false;
     if (emas) {
         if (!(harga > 0)) harga = HARGA_EMAS_LALAI;
         if (gram === undefined || gram === null) { lama = val > 0; gram = +(val / harga).toFixed(2); }
         val = +(gram * harga).toFixed(2);
     }
-    const blokBaki = emas ? `
+    let banks = Array.isArray(extra.banks) ? extra.banks.filter(b => b && (b.nama || b.baki)) : [];
+    if (bank && !banks.length && (parseFloat(val) || 0) > 0) banks = [{ nama: '', baki: val }];
+    if (bank && banks.length) val = +banks.reduce((a, b) => a + (parseFloat(b.baki) || 0), 0).toFixed(2);
+    if (bank) div.dataset.omSync = extra.om_sync ? '1' : '';
+    const blokBaki = bank ? `
+        <div class="col-span-2">
+            <label>Akaun bank &amp; baki semasa</label>
+            ${extra.om_sync ? '<span class="hint" style="color:#0369a1;font-weight:700;margin-bottom:6px">🔗 Dikemas kini daripada OurMoney. Ubah baki bank di OurMoney.</span>' : '<span class="hint" style="margin-bottom:6px">Pecahkan ikut akaun bank (cth. Maybank, BIMB). Baki ini menjadi baki permulaan bank dalam OurMoney.</span>'}
+            ${(banks.length ? banks : [{ nama: '', baki: '' }]).map(b => barisBank(b.nama || '', b.baki ?? '', !!extra.om_sync)).join('')}
+            ${extra.om_sync ? '' : '<button type="button" class="text-blue-600 text-xs font-bold" onclick="tambahBarisBank(this)">+ Tambah akaun bank</button>'}
+        </div>
+        <div class="col-span-2"><label>Jumlah Simpanan Bank (RM)</label><input type="number" class="assetValue" value="${val}" readonly style="background:#f8fafc"></div>` : emas ? `
         <div><label>Berat (gram)</label><input type="number" step="0.01" class="assetGram" value="${gram}" oninput="kiraEmas(this)"></div>
         <div><label>Harga Semasa (RM/g)</label><input type="number" step="0.01" class="assetPrice" value="${harga}" oninput="kiraEmas(this)"></div>
         <div class="col-span-2">

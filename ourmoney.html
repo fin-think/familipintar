@@ -938,6 +938,8 @@
         }
         try { kemaskiniSenaraiKategori(); } catch (e) {}
         renderHartaPecahan();
+        const pertama = !fpiSiap; fpiSiap = true;
+        if (pertama && window._bulanBaki) segerakBank(window._bulanBaki);
     }
     window.muatInstrumen = muatInstrumen;
     async function ubahInstrumen(p, nama, delta) {
@@ -963,6 +965,120 @@
             return true;
         } catch (e) { console.warn('OurMoney: baki myFINPLAN tidak dikemas kini:', e.message); return false; }
     }
+    // ===== SAMBUNGAN BAKI BANK OurMoney <-> "Simpanan Bank" myFINPLAN =====
+    // OurMoney (rekod) ialah sumber baki. Simpanan Bank dalam myFINPLAN = baki setiap akaun bank OurMoney (banks[], om_sync: true).
+    // OurMoney kosong tetapi myFINPLAN ada Simpanan Bank: pop up guna baki itu sebagai Baki Permulaan ikut akaun bank.
+    const isBankN = (n) => /simpanan\s*bank/i.test(n || '');
+    let fpiSiap = false, segerakJalan = false;
+    const ditangguh = new Set();
+    async function tulisBankFP(p, banks) {
+        const rf = doc(db, "myfinplan_plans", dokFP(p));
+        const jum = Math.round(banks.reduce((a, b) => a + (Number(b.baki) || 0), 0) * 100) / 100;
+        try {
+            await runTransaction(db, async (tx) => {
+                const sn = await tx.get(rf); if (!sn.exists()) return;
+                const arr = (Array.isArray(sn.data().instruments) ? sn.data().instruments : []).map(x => ({ ...x }));
+                let i = arr.findIndex(x => isBankN(x.name));
+                if (i < 0) { arr.push({ name: 'Simpanan Bank', value: 0, monthly: 0, rate: 0 }); i = arr.length - 1; }
+                const lama = arr[i], kunciLama = JSON.stringify((lama.banks || []).map(b => [b.nama, Number(b.baki)]));
+                if (lama.om_sync && Math.abs((Number(lama.value) || 0) - jum) < 0.005 && kunciLama === JSON.stringify(banks.map(b => [b.nama, Number(b.baki)]))) return;
+                arr[i] = { ...lama, value: jum, banks, om_sync: true };
+                tx.update(rf, { instruments: arr, updated_at: Date.now() });
+            });
+            const f = await getDoc(rf); FPI[p] = f.exists() ? (f.data().instruments || []) : FPI[p];
+        } catch (e) { console.warn('OurMoney: Simpanan Bank myFINPLAN tidak dikemas kini:', e.message); }
+    }
+    const bankOM = (p) => Object.keys(window._bakiAkaun || {}).filter(k => k.startsWith(p + '|') && !k.endsWith('|T'))
+        .map(k => { const id = k.slice(p.length + 1); return { id, nama: namaBank(p, id), baki: Math.round((window._bakiAkaun[k] || 0) * 100) / 100 }; });
+    async function segerakBank(bulan) {
+        if (!fpiSiap || segerakJalan || bulan !== bulanIniStr || modPaparan === 'tahun') return;
+        segerakJalan = true;
+        try {
+            for (const p of senaraiPeranan()) {
+                const ins = FPI[p]; if (!ins) continue;                 // tiada pelan myFINPLAN
+                const bi = ins.find(x => isBankN(x.name)), om = bankOM(p);
+                const jumOM = om.reduce((a, b) => a + b.baki, 0), jumFP = bi ? (Number(bi.value) || 0) : 0;
+                if (om.length) {
+                    if (!bi || bi.om_sync || jumFP <= 0 || Math.abs(jumFP - jumOM) < 0.01) await tulisBankFP(p, om.map(b => ({ nama: b.nama, baki: b.baki })));
+                    else if (!ditangguh.has('k' + p)) { ditangguh.add('k' + p); popupBank(p, 'konflik', bi, jumOM, om); }
+                } else if (bi && !bi.om_sync && jumFP > 0 && !ditangguh.has('i' + p)) {
+                    ditangguh.add('i' + p); popupBank(p, 'import', bi, 0, []);
+                }
+            }
+        } finally { segerakJalan = false; }
+    }
+    window.segerakBank = segerakBank;
+    function pecahFP(bi) {
+        const b = (Array.isArray(bi.banks) ? bi.banks : []).filter(x => x && (Number(x.baki) || 0) > 0).map(x => ({ nama: String(x.nama || '').trim() || 'Bank', baki: Number(x.baki) || 0 }));
+        return b.length ? b : [{ nama: 'Bank', baki: Number(bi.value) || 0 }];
+    }
+    function popupBank(p, jenis, bi, jumOM, om) {
+        const lama = document.getElementById('modalBankFP'); if (lama) lama.remove();
+        const pecah = pecahFP(bi), jumFP = Number(bi.value) || 0, siapa = adaPasangan ? ` (${esc(namaPeranan(p))})` : '';
+        const senarai = pecah.map(b => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #e2e8f0"><span style="font-weight:700">${esc(b.nama)}</span><b>RM ${formatRM(b.baki)}</b></div>`).join('');
+        const isi = jenis === 'import'
+            ? `<h3 style="font-weight:800;font-size:1.05rem;color:#0f172a;margin:0 0 4px">Baki bank RM ${formatRM(jumFP)} daripada myFINPLAN${siapa}</h3>
+               <p style="font-size:.85rem;color:#475569;margin:0 0 10px">Ikut akaun bank anda. Baki ini akan dijadikan <b>Baki Permulaan</b> bank dalam OurMoney, dan selepas ini baki di myFINPLAN dikemas kini terus daripada OurMoney.</p>${senarai}
+               <div style="display:flex;gap:8px;margin-top:14px"><button id="bfpYa" style="flex:1;background:#059669;color:#fff;font-weight:800;border:0;border-radius:10px;padding:10px">Guna baki ini</button><button id="bfpNanti" style="flex:1;background:#f1f5f9;color:#334155;font-weight:800;border:0;border-radius:10px;padding:10px">Nanti</button></div>`
+            : `<h3 style="font-weight:800;font-size:1.05rem;color:#0f172a;margin:0 0 4px">Baki bank tidak sama${siapa}</h3>
+               <p style="font-size:.85rem;color:#475569;margin:0 0 10px">OurMoney: <b>RM ${formatRM(jumOM)}</b><br>myFINPLAN (Simpanan Bank): <b>RM ${formatRM(jumFP)}</b><br>Pilih baki yang betul. Selepas ini kedua-duanya sentiasa sama.</p>
+               <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px"><button id="bfpOM" style="background:#0369a1;color:#fff;font-weight:800;border:0;border-radius:10px;padding:10px">Guna OurMoney (RM ${formatRM(jumOM)})</button><button id="bfpFP" style="background:#059669;color:#fff;font-weight:800;border:0;border-radius:10px;padding:10px">Guna myFINPLAN (RM ${formatRM(jumFP)})</button><button id="bfpNanti" style="background:#f1f5f9;color:#334155;font-weight:800;border:0;border-radius:10px;padding:10px">Nanti</button></div>`;
+        const m = document.createElement('div'); m.id = 'modalBankFP';
+        m.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px';
+        m.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:18px 18px 16px;box-shadow:0 20px 50px rgba(0,0,0,.25)">${isi}</div>`;
+        document.body.appendChild(m);
+        const tutup = () => m.remove();
+        m.querySelector('#bfpNanti').onclick = tutup;
+        const sibuk = (b) => { m.querySelectorAll('button').forEach(x => x.disabled = true); b.textContent = 'Menyimpan...'; };
+        if (jenis === 'import') m.querySelector('#bfpYa').onclick = async (e) => { sibuk(e.target); try { await importBankFP(p, pecah); } catch (er) { alert('Gagal: ' + er.message); } tutup(); };
+        else {
+            m.querySelector('#bfpOM').onclick = async (e) => { sibuk(e.target); await tulisBankFP(p, om.map(b => ({ nama: b.nama, baki: b.baki }))); tutup(); };
+            m.querySelector('#bfpFP').onclick = async (e) => { sibuk(e.target); try { await larasKeFP(p, pecah, om); } catch (er) { alert('Gagal: ' + er.message); } tutup(); };
+        }
+    }
+    const pilihanOrang = (p) => [...document.getElementById('txnUser').options].find(o => (o.dataset.peranan || 'induk') === p) || document.getElementById('txnUser').options[0];
+    // Pastikan setiap bank myFINPLAN ada akaun dalam OurMoney (padan ikut nama); pulangkan id akaun
+    async function pastikanAkaun(p, pecah) {
+        const ada = BANK[p].length ? BANK[p].map(b => ({ ...b })) : [];
+        const ids = pecah.map(b => {
+            let a = ada.find(x => samaNama(x.nama, b.nama));
+            if (!a) { a = { id: ada.length ? 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) : 'utama', nama: b.nama.slice(0, 30) }; ada.push(a); }
+            return a.id;
+        });
+        if (JSON.stringify(ada) !== JSON.stringify(BANK[p])) { await updateDoc(doc(db, "mynasab_users", currentUser.uid), { ['om_bank_' + p]: ada }); BANK[p] = ada; }
+        return ids;
+    }
+    async function importBankFP(p, pecah) {
+        const ids = await pastikanAkaun(p, pecah), opt = pilihanOrang(p);
+        for (let i = 0; i < pecah.length; i++) {
+            if (!(pecah[i].baki > 0)) continue;
+            await addDoc(collection(db, "ourmoney_transactions"), {
+                owner_uid: currentUser.uid, type: 'inflow', category: 'Baki Permulaan', date: bulanIniStr + '-01', amount: Math.round(pecah[i].baki * 100) / 100,
+                note: 'Daripada myFINPLAN', receipt_url: '', created_at: Date.now(), txnUser: opt ? opt.value : 'Induk', txnPeranan: p, txnAccount: 'Bank', bank_id: ids[i]
+            });
+        }
+        await tulisBankFP(p, pecah.map(b => ({ nama: b.nama, baki: b.baki })));
+        try { kemaskiniSenaraiKategori(); } catch (e) {}
+        muatDataOurMoney();
+    }
+    // Guna baki myFINPLAN: rekod Pelarasan baki bagi setiap akaun supaya baki OurMoney sama dengan myFINPLAN
+    async function larasKeFP(p, pecah, om) {
+        const ids = await pastikanAkaun(p, pecah), opt = pilihanOrang(p), d = new Date();
+        const tarikh = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const sasar = {}; pecah.forEach((b, i) => { sasar[ids[i]] = (sasar[ids[i]] || 0) + b.baki; });
+        const semua = new Set([...Object.keys(sasar), ...om.map(b => b.id)]);
+        for (const id of semua) {
+            const kini = (om.find(b => b.id === id) || {}).baki || 0, beza = Math.round(((sasar[id] || 0) - kini) * 100) / 100;
+            if (!beza) continue;
+            await addDoc(collection(db, "ourmoney_transactions"), {
+                owner_uid: currentUser.uid, type: beza > 0 ? 'inflow' : 'outflow', category: KAT_LARAS, pelarasan: true, date: tarikh, amount: Math.abs(beza),
+                note: 'Ikut baki myFINPLAN', receipt_url: '', created_at: Date.now(), txnUser: opt ? opt.value : 'Induk', txnPeranan: p, txnAccount: 'Bank', bank_id: id
+            });
+        }
+        try { kemaskiniSenaraiKategori(); } catch (e) {}
+        muatDataOurMoney();                                  // muat semula akan menyegerak baki baharu ke myFINPLAN
+    }
+
     let hartaBuka = false;
     window.togolHarta = () => { hartaBuka = !hartaBuka; renderHartaPecahan(); };
     function renderHartaPecahan() {
@@ -1098,7 +1214,7 @@
             if (t.length) h += '<optgroup label="Simpanan Percutian">' + t.map(x => `<option value="${esc(x.id)}">${esc(x.label)}</option>`).join('') + '</optgroup>';
             // Instrumen myFINPLAN milik orang yang dipilih. Tabung Haji disorok bila misi haji aktif (guna "Simpanan Haji", ia turut tambah Tabung Haji).
             const pb = perananBorang() || 'induk', ins = (typeof FPI !== 'undefined' && FPI[pb]) || null;
-            const pilihIns = (ins || []).filter(x => x && x.name && !(hajiAktif(pb) && /tabung\s*haji/i.test(x.name)));
+            const pilihIns = (ins || []).filter(x => x && x.name && !isBankN(x.name) && !(hajiAktif(pb) && /tabung\s*haji/i.test(x.name)));
             h += '<optgroup label="Simpanan & Pelaburan">' + (pilihIns.length ? pilihIns.map(x => `<option value="instr:${esc(encodeURIComponent(x.name))}">💼 ${esc(x.name)}</option>`).join('') : '<option value="" disabled>Tambah instrumen (ASB, Tabung Haji, unit trust...) di myFINPLAN dahulu</option>') + '</optgroup>';
         }
         if (type === 'outflow') h += '<optgroup label="Misi Akhirat"><option value="infaq:harian">Infaq / Sedekah</option>' + (perananBorang() && (ibuBapaHidup[perananBorang()] || []).length ? '<option value="amanah:ibubapa">Amanah Ibu Bapa</option>' : '') + (hajiAktif(perananBorang()) ? '<option value="haji:misi">Simpanan Haji</option>' : '') + '</optgroup>';
@@ -2953,6 +3069,7 @@
             window._bakiAkaun = {};
             new Set([...Object.keys(perBank), ...Object.keys(bawaPerBank)]).forEach(k => { window._bakiAkaun[k] = (perBank[k] || 0) + (bpKunci.has(k) ? 0 : (bawaPerBank[k] || 0)); });
             window._bulanBaki = filterVal;
+            setTimeout(() => segerakBank(filterVal), 0);
             const elBawa = document.getElementById('dash-bawa');
             if (elBawa) elBawa.innerText = adaBakiPermulaan && bawaJumlah === 0
                 ? 'Baki Permulaan bulan ini digunakan (baki bulan lepas tidak dibawa lagi)'
@@ -3290,6 +3407,6 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
     <button onclick="simpanLaras()" style="width:100%;background:#4f46e5;color:#fff;padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer;">Simpan Pelarasan</button>
   </div>
 </div>
-<script src="cara-guna.js?v=7" data-app="ourmoney" defer></script>
+<script src="cara-guna.js?v=8" data-app="ourmoney" defer></script>
 </body>
 </html>
