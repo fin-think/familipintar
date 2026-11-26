@@ -67,15 +67,18 @@
       intro: 'Rekod duit masuk dan keluar keluarga setiap hari, dan capai misi simpanan.',
       langkah: [
         ['Pilih paparan', 'Pilih nama anda, pasangan, atau <b>Gabungan</b> di bahagian atas.'],
-        ['Mula dengan baki sebenar', 'Tekan <b>⚖️ Betulkan baki</b> dan masukkan baki sebenar Tunai dan setiap akaun bank.'],
+        ['Mula dengan baki bank', 'Jika Simpanan Bank sudah diisi di <b>myFINPLAN</b> (ikut akaun bank, cth. Maybank, BIMB), OurMoney akan tanya sekali: tekan <b>Guna baki ini</b> untuk jadikan Baki Permulaan. Jika belum, tekan <b>⚖️ Betulkan baki</b> dan masukkan baki sebenar Tunai dan setiap akaun bank.'],
         ['Rekod harian', 'Pilih <b>Duit Keluar</b> atau <b>Duit Masuk</b>, kategori, dan <b>Bank/Tunai</b>, kemudian Simpan Rekod.'],
         ['Banyak akaun bank', 'Dalam pilihan Bank/Tunai, tekan <b>➕ Tambah akaun bank</b>. Pindahan antara akaun guna kategori <b>🔁 Pindah antara akaun</b>.'],
         ['Keluar duit ATM', 'Guna kategori <b>🏧 Pengeluaran tunai</b>. Ia bukan perbelanjaan, cuma pindah dari bank ke tunai.'],
-        ['Tersalah rekod', 'Buka senarai transaksi. Tekan <b>✏️</b> untuk edit atau <b>✕</b> untuk padam.'],
         ['Misi & analisis', 'Simpan untuk misi melalui Duit Keluar → pilih misi dalam Kategori. Lihat tab <b>📊 Analisis</b> dan laporan bulanan.'],
-        ['Simpanan & pelaburan', 'Top-up ASB, Tabung Haji, unit trust dan lain-lain: Duit Keluar → kumpulan <b>Simpanan &amp; Pelaburan</b> (ikut instrumen anda di myFINPLAN). Baki di myFINPLAN dan myTADBIR bertambah sendiri, dan tidak dikira sebagai belanja. Tekan <b>Harta Bersih</b> untuk lihat baki terkini.'],
-        ['Keluar & pindah simpanan', 'Keluar ASB, Tabung Haji atau unit trust ke bank: <b>Duit Masuk → Keluar daripada Simpanan</b> (bukan pendapatan). KWSP ke unit trust: tekan <b>Harta Bersih → 🔁 Pindah antara simpanan</b>. Untuk emas, isi berat (gram) jika tahu.'],
-        ['Baki bank & myFINPLAN', 'Simpanan Bank di myFINPLAN (ikut akaun bank) menjadi Baki Permulaan bank OurMoney. Selepas bersambung, baki bank di myFINPLAN dikemas kini sendiri daripada rekod OurMoney.']
+        ['Top-up simpanan', 'ASB, Tabung Haji, KWSP, unit trust, emas: <b>Duit Keluar → Simpanan &amp; Pelaburan</b> (senarai ikut instrumen anda di myFINPLAN). Baki instrumen bertambah sendiri dan dikira sebagai simpanan, bukan belanja. <b>Simpanan Haji</b> turut menambah baki Tabung Haji.'],
+        ['Keluar simpanan ke bank', 'Keluar ASB, Tabung Haji, unit trust atau jual emas: <b>Duit Masuk → Keluar daripada Simpanan</b>. Instrumen berkurang, baki bank bertambah, dan tidak dikira sebagai pendapatan. Jumlah melebihi baki instrumen dikira keuntungan.'],
+        ['Pindah antara simpanan', 'Cth. KWSP ke unit trust: tekan <b>Harta Bersih → 🔁 Pindah antara simpanan</b>, pilih Dari, Ke dan jumlah. Baki bank tidak berubah.'],
+        ['Emas', 'Tambah <b>Emas Digital</b> atau <b>Emas Fizikal</b> di myFINPLAN. Semasa top-up atau jual, isi <b>berat (gram)</b> jika tahu; jika kosong, gram dikira ikut harga semasa.'],
+        ['Harta bersih', 'Tekan <b>Harta Bersih</b> di tab Ringkasan untuk lihat baki setiap simpanan dan perubahan bulan ini. Angka dikemas kini terus, tanpa perlu buka myTADBIR.'],
+        ['Baki bank sentiasa sama', 'Selepas bersambung, Simpanan Bank di myFINPLAN dikemas kini sendiri daripada rekod OurMoney (dikunci di myFINPLAN). Jika baki berbeza, OurMoney tanya sekali baki mana yang betul.'],
+        ['Tersalah rekod', 'Tekan <b>✏️</b> untuk edit atau <b>✕</b> untuk padam; baki simpanan dilaras semula. Jumlah rekod keluar/pindah simpanan dan emas (gram) tidak boleh diedit: padam dan rekod semula.']
       ]
     },
     buatapa: {
