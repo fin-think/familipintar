@@ -1072,7 +1072,7 @@
             <div class="user-menu">
                 <span id="treeNameDisplay" style="font-weight: bold; color: #2c3e50;">Pengguna</span>
                 <div class="wallet-badge" style="display:none">Kredit: <span id="creditBalance">0</span></div>
-                <button class="fp-kembali" onclick="window.location.href='../index.html'"><span aria-hidden="true">←</span> Kembali</button>
+                <button class="fp-kembali" onclick="var w=false;try{w=sessionStorage.getItem('fp_dari')==='wecare'}catch(e){};window.location.href=w?'../wecare.html':'../index.html'"><span aria-hidden="true">←</span> Kembali</button>
             </div>
         </div>
 
@@ -1269,7 +1269,7 @@
     </div> <!-- Ini penutup dashboardUtama -->
 
     <!-- Muatkan app.js -->
-    <script type="module" src="app.js?v=72"></script>
+    <script type="module" src="app.js?v=73"></script>
     
     <!-- Skrip UI Mudah -->
     <script>

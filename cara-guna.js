@@ -10,6 +10,7 @@
       intro: 'Urus penjagaan ibu bapa bersama adik-beradik: kesihatan, ubat, tugasan dan giliran menjaga.',
       langkah: [
         ['Pilih belah', 'Pilih ibu bapa belah anda atau belah pasangan di bahagian atas. Adik-beradik ditarik terus daripada myNasab.'],
+        ['Jemput adik-beradik', 'Dalam <b>Senarai Penjaga / Anak</b>, tekan <b>👥 Jemput adik-beradik</b> dan kongsi pautan ke WhatsApp. Selepas mereka daftar, mereka terus masuk weCare. weCare dan myNasab ialah app bersambung; myNasab ialah app utama.'],
         ['Profil kesihatan', 'Isi penyakit, ubat harian, alahan dan doktor ibu bapa di <b>Profil & Kesihatan</b>, supaya semua adik-beradik tahu.'],
         ['Tambah tugasan', 'Tekan tarikh pada <b>Kalendar Jagaan</b>. Tanda <b>Tugasan</b> (cth. bawa ke klinik, makan ubat) dan/atau <b>🏠 Balik Kampung</b>, kemudian simpan sekali.'],
         ['Peringatan ubat', 'Tugasan ubat yang ada <b>masa</b> akan dihantar notifikasi kepada semua. Bila sudah beri ubat, tekan <b>✅ DONE</b> supaya yang lain tahu.'],

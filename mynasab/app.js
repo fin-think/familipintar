@@ -40,6 +40,15 @@ const infoLahir = (a) => {
 // --- JEMPUTAN: baca ?jemput=KOD dari pautan ---
 let kodJemput = new URLSearchParams(location.search).get('jemput');
 
+// Aliran weCare: ?dari=wecare (buka dari butang Jemput dalam weCare) dan ?ke=wecare (pautan jemputan dari weCare:
+// selepas daftar, terus ke weCare). Disimpan dalam sessionStorage supaya kekal walaupun URL dibersihkan.
+try {
+    const qp = new URLSearchParams(location.search);
+    if (qp.get('dari') === 'wecare') sessionStorage.setItem('fp_dari', 'wecare');
+    if (qp.get('ke') === 'wecare') sessionStorage.setItem('fp_ke_jemput', 'wecare');
+} catch (e) {}
+const dariWecare = () => { try { return sessionStorage.getItem('fp_dari') === 'wecare'; } catch (e) { return false; } };
+
 // Simpan dalam Session Storage supaya tak hilang bila kena tendang ke muka depan
 if (kodJemput) {
     sessionStorage.setItem('simpanJemput', kodJemput);
@@ -183,6 +192,7 @@ onAuthStateChanged(auth, async (user) => {
                         try {
                             if (bk === 'pokok' && window.bukaPreview) await window.bukaPreview();
                             else if (bk === 'profil' && window.bukaModalEdit) await window.bukaModalEdit('root_' + user.uid);
+                            else if (bk === 'jemput' && window.bukaJemput) await window.bukaJemput();
                         } catch (e) { console.error(e); }
                         setTimeout(tutup, 150);
                     })();
@@ -892,8 +902,9 @@ window.daftarPengguna = async (emel, kataLaluan, namaKeluarga, jantina, dobDafta
             ? `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit. ${window.__statusPautanDaftar === 'menunggu' ? 'Pautan keluarga anda menunggu kelulusan' : 'Anda kini dipautkan dengan keluarga'} ${jem.nama_pengundang}.`
             : `Pendaftaran berjaya! Anda menerima ${kreditAwal} Kredit percuma.`) + `\n\nSeterusnya, sila semak & kemas kini maklumat profil anda sendiri.`);
         if (jem) { try { await httpsCallable(fungsi, 'beritahuPengundang')({}); localStorage.setItem('fp_notis_sertai_' + user.uid, '1'); } catch (e) {} }
-        // Buka terus borang kemaskini profil sendiri selepas daftar, supaya user semak maklumat dia (guna shortcut ?buka=profil sedia ada)
-        location.href = location.pathname + '?buka=profil';
+        // Jemputan dari weCare: terus ke weCare. Selain itu, buka borang kemaskini profil sendiri (shortcut ?buka=profil)
+        let keWecare = false; try { keWecare = sessionStorage.getItem('fp_ke_jemput') === 'wecare'; sessionStorage.removeItem('fp_ke_jemput'); } catch (e) {}
+        location.href = keWecare ? '../wecare.html' : location.pathname + '?buka=profil';
     } catch (error) {
         window.__sedangDaftar = false;
         alert("Ralat pendaftaran: " + error.message);
@@ -1903,7 +1914,7 @@ window.janaPautan = async () => {
         created_at: new Date()
     });
     logAktiviti('jana_pautan', `${anak ? 'Anak saudara' : 'Adik-beradik'} untuk ${sel.options[sel.selectedIndex].dataset.nama || sel.options[sel.selectedIndex].text}${namaAnak ? ' (' + namaAnak + ')' : ''}`);
-    document.getElementById('inputPautan').value = `${location.origin}${location.pathname}?jemput=${kod}`;
+    document.getElementById('inputPautan').value = `${location.origin}${location.pathname}?jemput=${kod}${dariWecare() && !anak ? '&ke=wecare' : ''}`;
     document.getElementById('hasilPautan').classList.remove('hidden');
 };
 
@@ -1913,7 +1924,9 @@ window.kongsiWA = () => {
     if (!pautan) return;
     const sel = document.getElementById('jemputSasaran');
     const anak = sel && sel.selectedIndex >= 0 && sel.options[sel.selectedIndex].dataset.jenis === 'anak_saudara';
-    const teks = anak
+    const teks = (!anak && dariWecare())
+        ? `Assalamualaikum abang/kakak/adik ku. Jom guna weCare dalam Famili Pintar untuk sama-sama jaga mak ayah. Semua adik-beradik nampak jadual ubat, temu janji dan giliran jaga yang sama.\n\nMasuk guna pautan ni (percuma, dapat 20 kredit):\n${pautan}`
+        : anak
         ? `Assalamualaikum. Pak cik/mak cik dah sediakan salasilah keluarga kita di Famili Pintar. Atuk, nenek dan keluarga dah siap ada. Daftar guna pautan ni, terus nampak pokok keluarga:\n${pautan}`
         : [
             'Assalamualaikum abang/kakak/adik ku. Ada satu web apps nama Famili Pintar yang bermanfaat untuk seisi keluarga dan ingin menjemput adik beradik bersama-sama guna myNasab untuk susun salasilah keluarga kita. Dalam Famili Pintar ada apps yang bersambung daripada myNasab yang keluarga masing-masing boleh guna.',

@@ -1121,7 +1121,16 @@ async function muatKeluargaDanNota(groupId) {
     if (teamListMap.size === 0) {
       teamHtml = `<div class="card" style="background:#f8fafc;border-color:#e2e8f0;margin-bottom:12px;font-size:13px;color:var(--muted);">Tiada waris dikesan untuk keluarga ini.</div>`;
     }
+    // Jemput adik-beradik: guna jemputan myNasab (kumpulan weCare dibina daripada pautan adik-beradik dalam pokok)
+    const adaAdik = [...teamListMap.values()].some(v => /Adik-beradik/.test(v.role) && v.email);
+    const urlJemput = 'mynasab/index.html?buka=jemput&dari=wecare';
+    if (!adaAdik) teamHtml += `<div style="background:#f5f3ff;border:1px solid #c4b5fd;border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:13px;color:#4c1d95;line-height:1.5;">
+        <b style="display:block;font-size:14px;margin-bottom:4px;">Belum ada adik-beradik dalam weCare anda</b>
+        Jemput mereka supaya semua nampak jadual ubat, temu janji dan giliran jaga yang sama.</div>`;
+    teamHtml += `<a href="${urlJemput}" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;background:#16a085;color:#fff;padding:12px;border-radius:8px;font-size:14px;font-weight:700;margin-top:4px;">👥 Jemput adik-beradik</a>
+      <p style="font-size:11.5px;color:var(--muted);line-height:1.5;margin:8px 2px 0;">weCare dan myNasab ialah app bersambung. Satu akaun boleh guna kedua-duanya, sama ada didaftar di weCare atau myNasab. <b>myNasab ialah app utama:</b> adik-beradik dalam pokok keluarga myNasab yang menentukan siapa dalam kumpulan weCare.</p>`;
     document.getElementById('teamList').innerHTML = teamHtml;
+    if (!adaAdik && typeof togolPenjaga === 'function') togolPenjaga(true);   // tunjuk galakan jemput walaupun senarai disorok di telefon
     muatNotaKeluarga();
   } catch (e) { console.error("Ralat muatKeluarga:", e); }
 }
@@ -1510,6 +1519,6 @@ window.simpanProfilKesihatan = async () => {
   </div>
 </div>
 
-<script src="cara-guna.js?v=6" data-app="wecare" defer></script>
+<script src="cara-guna.js?v=7" data-app="wecare" defer></script>
 </body>
 </html>
