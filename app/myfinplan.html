@@ -194,7 +194,14 @@
         <div class="bg-white p-6 rounded-xl w-80 shadow-2xl">
             <h3 class="font-bold text-lg mb-4">Tambah Instrumen</h3>
             <label>Nama Instrumen</label>
-            <input type="text" id="newAssetName" placeholder="cth: Saham Global" class="mb-4">
+            <input type="text" id="newAssetName" placeholder="cth: Saham Global" class="mb-2">
+            <div class="flex flex-wrap gap-1.5 mb-4">
+                <button type="button" class="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2.5 py-1" onclick="pilihCepat('Emas Digital')">Emas Digital</button>
+                <button type="button" class="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2.5 py-1" onclick="pilihCepat('Emas Fizikal (Jongkong / Barang Kemas)')">Emas Fizikal</button>
+                <button type="button" class="text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200 rounded-full px-2.5 py-1" onclick="pilihCepat('Unit Trust')">Unit Trust</button>
+                <button type="button" class="text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200 rounded-full px-2.5 py-1" onclick="pilihCepat('SSPN')">SSPN</button>
+                <button type="button" class="text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200 rounded-full px-2.5 py-1" onclick="pilihCepat('Saham')">Saham</button>
+            </div>
             <div class="flex justify-end space-x-2">
                 <button onclick="closeModal()" class="btn-outline">Batal</button>
                 <button onclick="confirmAddAsset()" class="btn-primary">Tambah</button>
@@ -342,6 +349,7 @@ function kiraEmas(el) {
             document.getElementById('assetModal').classList.add('hidden');
         }
 
+        function pilihCepat(n) { document.getElementById('newAssetName').value = n; confirmAddAsset(); }
         function confirmAddAsset() {
             const name = document.getElementById('newAssetName').value || 'Instrumen Baru';
             addAsset(name, 0, 0, 5.0);

@@ -481,6 +481,10 @@
           <div class="field">
             <label>Kategori</label>
             <select id="txnCat" required></select>
+            <div id="txnGramW" style="display:none;margin-top:6px">
+              <input type="number" id="txnGram" step="0.001" min="0" placeholder="Berat emas (gram), pilihan">
+              <small style="display:block;font-size:.7rem;color:#64748b;margin-top:3px">Kosongkan untuk kira gram daripada RM ÷ harga semasa dalam myFINPLAN.</small>
+            </div>
           </div>
 
           <div class="om-baris">
@@ -942,29 +946,119 @@
         if (pertama && window._bulanBaki) segerakBank(window._bulanBaki);
     }
     window.muatInstrumen = muatInstrumen;
-    async function ubahInstrumen(p, nama, delta) {
+    // Tambah/tolak baki instrumen myFINPLAN. Tolakan dihadkan kepada baki sedia ada (lebihan = keuntungan).
+    // gram (pilihan) untuk emas: tambah/tolak gram tepat. Pulangkan { delta, gram } yang benar-benar dikenakan, atau null jika gagal.
+    async function ubahInstrumen(p, nama, delta, gram = null) {
         delta = Math.round((Number(delta) || 0) * 100) / 100;
-        if (!delta || !nama) return true;
+        const adaGram = gram !== null && gram !== '' && !isNaN(Number(gram)) && Number(gram) !== 0;
+        if ((!delta && !adaGram) || !nama) return { delta: 0, gram: null };
         const rf = doc(db, "myfinplan_plans", dokFP(p));
+        let hasil = { delta: 0, gram: null };
         try {
             await runTransaction(db, async (tx) => {
                 const sn = await tx.get(rf);
                 if (!sn.exists()) throw new Error('Tiada pelan myFINPLAN');
                 const arr = (Array.isArray(sn.data().instruments) ? sn.data().instruments : []).map(x => ({ ...x }));
                 let i = arr.findIndex(x => samaNama(x.name, nama));
-                if (i < 0) { if (delta < 0) return; arr.push({ name: nama, value: 0, monthly: 0, rate: 0 }); i = arr.length - 1; }
+                if (i < 0) { if (delta < 0 || (adaGram && Number(gram) < 0)) return; arr.push({ name: nama, value: 0, monthly: 0, rate: 0 }); i = arr.length - 1; }
                 const it = arr[i];
                 if (isEmasN(it.name)) {
-                    // Emas: baki = gram x harga, jadi tambah gram ikut harga semasa dalam myFINPLAN
+                    // Emas: baki = gram x harga semasa myFINPLAN
                     const h = parseFloat(it.price_per_gram) || 385;
                     const g0 = it.gram != null ? (parseFloat(it.gram) || 0) : (parseFloat(it.value) || 0) / h;
-                    it.price_per_gram = h; it.gram = Math.max(0, +(g0 + delta / h).toFixed(3)); it.value = +(it.gram * h).toFixed(2);
-                } else it.value = Math.max(0, Math.round(((parseFloat(it.value) || 0) + delta) * 100) / 100);
+                    let dg = adaGram ? Number(gram) : delta / h;
+                    dg = Math.max(dg, -g0);
+                    it.price_per_gram = h; it.gram = +(g0 + dg).toFixed(3); it.value = +(it.gram * h).toFixed(2);
+                    hasil = { delta: Math.round(dg * h * 100) / 100, gram: +dg.toFixed(3) };
+                } else {
+                    const v0 = parseFloat(it.value) || 0, d = Math.max(delta, -v0);
+                    it.value = Math.round((v0 + d) * 100) / 100;
+                    hasil = { delta: Math.round(d * 100) / 100, gram: null };
+                }
                 tx.update(rf, { instruments: arr, updated_at: Date.now() });
             });
-            return true;
-        } catch (e) { console.warn('OurMoney: baki myFINPLAN tidak dikemas kini:', e.message); return false; }
+            return hasil;
+        } catch (e) { console.warn('OurMoney: baki myFINPLAN tidak dikemas kini:', e.message); return null; }
     }
+    // Kesan rekod pada instrumen (untuk padam/edit). Rekod lama tanpa fp_delta: top-up = +amount.
+    const kesanRekod = (t) => ({ delta: t.fp_delta != null ? Number(t.fp_delta) : (t.type === 'outflow' ? Number(t.amount) || 0 : -(Number(t.amount) || 0)), gram: t.fp_gram != null ? Number(t.fp_gram) : null });
+    async function balikRekod(t) {
+        const p = peranRekod(t), k = kesanRekod(t);
+        await ubahInstrumen(p, t.fp_instrumen, -k.delta, k.gram != null ? -k.gram : null);
+        if (t.fp_ke) await ubahInstrumen(p, t.fp_ke, k.delta, null);
+    }
+    const bakiInstr = (p, nama) => { const it = (FPI[p] || []).find(x => samaNama(x.name, nama)); return it ? (parseFloat(it.value) || 0) : 0; };
+
+    // ===== PINDAH ANTARA SIMPANAN (cth. KWSP -> Unit Trust): baki bank tidak berubah =====
+    window.bukaPindahSimpanan = () => {
+        const pers = senaraiPeranan().filter(p => (FPI[p] || []).some(x => !isBankN(x.name)));
+        if (!pers.length) { alert('Tambah instrumen di myFINPLAN dahulu.'); return; }
+        const lama = document.getElementById('modalPindahFP'); if (lama) lama.remove();
+        const m = document.createElement('div'); m.id = 'modalPindahFP';
+        m.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px';
+        const inp = 'width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:9px 10px;font-size:.9rem;margin-top:4px';
+        m.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:18px">
+            <h3 style="font-weight:800;font-size:1.05rem;color:#0f172a;margin:0 0 4px">🔁 Pindah antara simpanan</h3>
+            <p style="font-size:.8rem;color:#475569;margin:0 0 10px">Cth. KWSP ke Unit Trust. Baki bank tidak berubah, dan tidak dikira sebagai pendapatan atau belanja.</p>
+            ${pers.length > 1 ? `<label style="font-size:.75rem;font-weight:700">Milik</label><select id="pfPer" style="${inp}">${pers.map(p => `<option value="${p}">${esc(namaPeranan(p))}</option>`).join('')}</select>` : `<input type="hidden" id="pfPer" value="${pers[0]}">`}
+            <label style="font-size:.75rem;font-weight:700;display:block;margin-top:8px">Dari</label><select id="pfDari" style="${inp}"></select>
+            <label style="font-size:.75rem;font-weight:700;display:block;margin-top:8px">Ke</label><select id="pfKe" style="${inp}"></select>
+            <input id="pfKeBaru" placeholder="Nama instrumen baharu (cth. Unit Trust Public Mutual)" style="${inp};display:none">
+            <label style="font-size:.75rem;font-weight:700;display:block;margin-top:8px">Jumlah (RM)</label><input id="pfJum" type="number" step="0.01" min="0.01" style="${inp}">
+            <small id="pfBaki" style="display:block;font-size:.72rem;color:#64748b;margin-top:3px"></small>
+            <label style="font-size:.75rem;font-weight:700;display:block;margin-top:8px">Tarikh</label><input id="pfTarikh" type="date" value="${localDateStr}" style="${inp}">
+            <div style="display:flex;gap:8px;margin-top:14px"><button id="pfYa" style="flex:1;background:#0369a1;color:#fff;font-weight:800;border:0;border-radius:10px;padding:10px">Pindah</button><button id="pfBatal" style="flex:1;background:#f1f5f9;color:#334155;font-weight:800;border:0;border-radius:10px;padding:10px">Batal</button></div>
+        </div>`;
+        document.body.appendChild(m);
+        const $m = (id) => m.querySelector('#' + id);
+        const isi = () => {
+            const p = $m('pfPer').value, ins = (FPI[p] || []).filter(x => x.name && !isBankN(x.name));
+            $m('pfDari').innerHTML = ins.map(x => `<option value="${esc(encodeURIComponent(x.name))}">${esc(x.name)} (RM ${formatRM(parseFloat(x.value) || 0)})</option>`).join('');
+            isiKe();
+        };
+        const isiKe = () => {
+            const p = $m('pfPer').value, dari = decodeURIComponent($m('pfDari').value || '');
+            const ins = (FPI[p] || []).filter(x => x.name && !isBankN(x.name) && !samaNama(x.name, dari));
+            $m('pfKe').innerHTML = ins.map(x => `<option value="${esc(encodeURIComponent(x.name))}">${esc(x.name)}</option>`).join('') + '<option value="__baru">+ Instrumen baharu…</option>';
+            $m('pfKeBaru').style.display = $m('pfKe').value === '__baru' ? 'block' : 'none';
+            $m('pfBaki').textContent = dari ? `Baki ${dari}: RM ${formatRM(bakiInstr(p, dari))}` : '';
+        };
+        if ($m('pfPer').tagName === 'SELECT') $m('pfPer').onchange = isi;
+        $m('pfDari').onchange = isiKe;
+        $m('pfKe').onchange = () => { $m('pfKeBaru').style.display = $m('pfKe').value === '__baru' ? 'block' : 'none'; };
+        isi();
+        $m('pfBatal').onclick = () => m.remove();
+        $m('pfYa').onclick = async (e) => {
+            const p = $m('pfPer').value, dari = decodeURIComponent($m('pfDari').value || '');
+            const ke = $m('pfKe').value === '__baru' ? $m('pfKeBaru').value.trim().slice(0, 40) : decodeURIComponent($m('pfKe').value || '');
+            const jum = Math.round((parseFloat($m('pfJum').value) || 0) * 100) / 100, tarikh = $m('pfTarikh').value;
+            if (!dari || !ke) { alert('Pilih instrumen Dari dan Ke.'); return; }
+            if (samaNama(dari, ke)) { alert('Dari dan Ke tidak boleh sama.'); return; }
+            if (isBankN(ke)) { alert('Untuk keluarkan ke bank, guna Duit Masuk → Keluar daripada Simpanan.'); return; }
+            if (!(jum > 0)) { alert('Masukkan jumlah.'); return; }
+            if (!tarikh) { alert('Pilih tarikh.'); return; }
+            const bk = bakiInstr(p, dari);
+            if (jum > bk + 0.005) { alert(`Baki ${dari} cuma RM ${formatRM(bk)}.`); return; }
+            e.target.disabled = true; e.target.textContent = 'Menyimpan...';
+            try {
+                const a = await ubahInstrumen(p, dari, -jum, null);
+                if (!a) throw new Error('Gagal kemas kini myFINPLAN');
+                const b = await ubahInstrumen(p, ke, -a.delta, null);
+                if (!b) { await ubahInstrumen(p, dari, -a.delta, a.gram != null ? -a.gram : null); throw new Error('Gagal kemas kini myFINPLAN'); }
+                const opt = pilihanOrang(p);
+                await addDoc(collection(db, "ourmoney_transactions"), {
+                    owner_uid: currentUser.uid, type: 'outflow', category: `🔁 ${dari} → ${ke}`, pindahan_simpanan: true, fp_arah: 'pindah',
+                    fp_instrumen: dari, fp_ke: ke, fp_delta: a.delta, ...(a.gram != null ? { fp_gram: a.gram } : {}),
+                    date: tarikh, amount: Math.abs(a.delta), note: '', receipt_url: '', created_at: Date.now(),
+                    txnUser: opt ? opt.value : 'Induk', txnPeranan: p, txnAccount: 'Bank'
+                });
+                m.remove();
+                await muatInstrumen(); muatDataMyTadbir();
+                if (modPaparan === 'tahun') lihatTahunan(); else muatDataOurMoney();
+            } catch (er) { alert('Gagal: ' + er.message); e.target.disabled = false; e.target.textContent = 'Pindah'; }
+        };
+    };
+
     // ===== SAMBUNGAN BAKI BANK OurMoney <-> "Simpanan Bank" myFINPLAN =====
     // OurMoney (rekod) ialah sumber baki. Simpanan Bank dalam myFINPLAN = baki setiap akaun bank OurMoney (banks[], om_sync: true).
     // OurMoney kosong tetapi myFINPLAN ada Simpanan Bank: pop up guna baki itu sebagai Baki Permulaan ikut akaun bank.
@@ -1102,7 +1196,8 @@
             });
             h += `<div style="display:flex;justify-content:space-between;padding-top:6px;font-size:.85rem;font-weight:800;color:#0369A1"><span>Jumlah</span><span>RM ${formatRM(jum)}</span></div>`;
         });
-        h += `<div style="font-size:.7rem;color:#64748b;margin-top:8px;line-height:1.4">Baki terkini daripada myFINPLAN. Rekod di <b>Duit Keluar → Simpanan &amp; Pelaburan</b> untuk tambah baki${ada ? '; Harta Bersih dikira terus daripada baki ini' : ''}.</div>`;
+        if (ada) h += `<button type="button" onclick="event.stopPropagation();bukaPindahSimpanan()" style="margin-top:10px;width:100%;background:#E0F2FE;color:#0369A1;font-weight:800;font-size:.8rem;border:1px solid #BAE6FD;border-radius:10px;padding:8px">🔁 Pindah antara simpanan</button>`;
+        h += `<div style="font-size:.7rem;color:#64748b;margin-top:8px;line-height:1.4">Baki terkini daripada myFINPLAN. Tambah: <b>Duit Keluar → Simpanan &amp; Pelaburan</b>. Keluar ke bank: <b>Duit Masuk → Keluar daripada Simpanan</b>${ada ? '; Harta Bersih dikira terus daripada baki ini' : ''}.</div>`;
         box.innerHTML = h;
     }
     const AMANAH_KAT0 = '🤝 Amanah Ibu Bapa', HAJI_KAT0 = '🕋 Haji';
@@ -1115,10 +1210,12 @@
     // Pengeluaran tunai (withdrawal) = pindahan Bank -> Tunai: bukan perbelanjaan, cuma tolak Bank & tambah Tunai.
     const KAT_TUNAI = '🏧 Pengeluaran Tunai (Withdrawal)', KAT_ROKOK = '🚬 Rokok / Vape';
     // Pindahan (bukan pendapatan/perbelanjaan): Bank -> Tunai, atau antara akaun bank
-    const isPindahan = (t) => t && (t.pindahan_tunai === true || t.pindahan_akaun === true || t.pelarasan === true);
+    // pindahan_simpanan: keluar simpanan ke bank (fp_arah 'keluar') atau pindah antara simpanan (fp_arah 'pindah'); bukan pendapatan/belanja
+    const isPindahan = (t) => t && (t.pindahan_tunai === true || t.pindahan_akaun === true || t.pelarasan === true || t.pindahan_simpanan === true);
+    const isPindahInstr = (t) => t && t.fp_arah === 'pindah';
     const isPindahAkaun = (t) => t && t.pindahan_akaun === true;
     // Pelarasan baki: betulkan baki akaun kepada jumlah sebenar; bukan pendapatan/perbelanjaan
-    const isPelarasan = (t) => t && t.pelarasan === true;
+    const isPelarasan = (t) => t && (t.pelarasan === true || (t.pindahan_simpanan === true && t.fp_arah !== 'pindah'));
     const KAT_LARAS = '⚖️ Pelarasan baki';
     const kunciAkaun = (t) => peranRekod(t) + '|' + (t.txnAccount === 'Tunai' ? 'T' : bankIdRekod(t));
     // ===== AKAUN BANK (berasingan untuk Induk & Pasangan): mynasab_users.om_bank_induk / om_bank_pasangan = [{id, nama}] =====
@@ -1216,6 +1313,10 @@
             const pb = perananBorang() || 'induk', ins = (typeof FPI !== 'undefined' && FPI[pb]) || null;
             const pilihIns = (ins || []).filter(x => x && x.name && !isBankN(x.name) && !(hajiAktif(pb) && /tabung\s*haji/i.test(x.name)));
             h += '<optgroup label="Simpanan & Pelaburan">' + (pilihIns.length ? pilihIns.map(x => `<option value="instr:${esc(encodeURIComponent(x.name))}">💼 ${esc(x.name)}</option>`).join('') : '<option value="" disabled>Tambah instrumen (ASB, Tabung Haji, unit trust...) di myFINPLAN dahulu</option>') + '</optgroup>';
+        }
+        if (type !== 'outflow') {
+            const pb2 = perananBorang() || 'induk', ins2 = ((typeof FPI !== 'undefined' && FPI[pb2]) || []).filter(x => x && x.name && !isBankN(x.name) && (parseFloat(x.value) || 0) > 0);
+            if (ins2.length) h += '<optgroup label="Keluar daripada Simpanan (bukan pendapatan)">' + ins2.map(x => `<option value="keluar:${esc(encodeURIComponent(x.name))}">↩️ ${esc(x.name)}</option>`).join('') + '</optgroup>';
         }
         if (type === 'outflow') h += '<optgroup label="Misi Akhirat"><option value="infaq:harian">Infaq / Sedekah</option>' + (perananBorang() && (ibuBapaHidup[perananBorang()] || []).length ? '<option value="amanah:ibubapa">Amanah Ibu Bapa</option>' : '') + (hajiAktif(perananBorang()) ? '<option value="haji:misi">Simpanan Haji</option>' : '') + '</optgroup>';
         selectCat.innerHTML = h;
@@ -1767,7 +1868,7 @@
                 const x = d.data(); if (!x.date) return;
                 const pr = peranRekod(x);
                 if (x.amanah === true && x.type === 'outflow') AMS[pr].rekod.push({ date: x.date, amount: Number(x.amount) || 0 });
-                else if (x.type === 'inflow' && x.category !== 'Baki Permulaan') { const b = String(x.date).substring(0, 7); inMap[pr][b] = (inMap[pr][b] || 0) + (Number(x.amount) || 0); }
+                else if (x.type === 'inflow' && x.category !== 'Baki Permulaan' && !isPindahan(x)) { const b = String(x.date).substring(0, 7); inMap[pr][b] = (inMap[pr][b] || 0) + (Number(x.amount) || 0); }
             });
             for (const p of ['induk', 'pasangan']) {
                 const g = await getDoc(doc(db, "ourmoney_goals", idDok('amanah', p)));
@@ -2300,6 +2401,8 @@
     // Cadangan jumlah bila misi / percutian dipilih dalam dropdown
     selectCat.addEventListener('change', () => {
         const v = selectCat.value, amt = document.getElementById('txnAmount');
+        const gw = document.getElementById('txnGramW');
+        if (gw) { const nm = v.startsWith('instr:') ? decodeURIComponent(v.slice(6)) : v.startsWith('keluar:') ? decodeURIComponent(v.slice(7)) : ''; gw.style.display = nm && isEmasN(nm) ? 'block' : 'none'; }
         let cadang = 0;
         if (v === 'haji:misi') { const pr = perananBorang(); const bk = hajiBakiBulan(pr) || (hajiAktif(pr) ? hajiKira(pr).perlu : 0); if (!amt.value && bk > 0) { amt.type = 'number'; amt.value = (Math.round(bk * 100) / 100).toFixed(2); } return; }
         if (v === 'amanah:ibubapa') { const pr = perananBorang(); const bk = amanahBaki(pr) || (AMS[pr].doc ? Number(AMS[pr].doc.bulanan) : 0); if (!amt.value && bk > 0) { amt.type = 'number'; amt.value = (Math.round(bk * 100) / 100).toFixed(2); } return; }
@@ -2337,6 +2440,7 @@
         const tarikh = document.getElementById('sgTarikh').value;
         if (!(jumlah > 0)) { alert('Jumlah tidak sah.'); return; }
         if (!tarikh) { alert('Sila pilih tarikh.'); return; }
+        if ((t.fp_arah || t.fp_gram != null) && Math.abs(jumlah - Number(t.amount)) > 0.005) { alert('Jumlah rekod simpanan ini tidak boleh diubah. Padam dan rekod semula.'); return; }
         const ubah = { amount: Math.round(jumlah * 100) / 100, date: tarikh, note: document.getElementById('sgNota').value.trim(), updated_at: Date.now() };
         const sg = document.getElementById('sgKaedah').value;
         if (!isPindahAkaun(t) && sg) { if (sg === 'Tunai') { ubah.txnAccount = 'Tunai'; } else { ubah.txnAccount = 'Bank'; ubah.bank_id = sg.slice(5); } }
@@ -2344,7 +2448,11 @@
         const btn = document.getElementById('sgSimpan'); btn.disabled = true; btn.textContent = 'Menyimpan...';
         try {
             await updateDoc(doc(db, "ourmoney_transactions", id), ubah);
-            if (t.fp_instrumen && ubah.amount !== Number(t.amount)) { await ubahInstrumen(peranRekod(t), t.fp_instrumen, ubah.amount - (Number(t.amount) || 0)); await muatInstrumen(); }
+            if (t.fp_instrumen && !t.fp_arah && t.fp_gram == null && ubah.amount !== Number(t.amount)) {
+                const k = await ubahInstrumen(peranRekod(t), t.fp_instrumen, ubah.amount - kesanRekod(t).delta);
+                if (k) await updateDoc(doc(db, "ourmoney_transactions", id), { fp_delta: Math.round((kesanRekod(t).delta + k.delta) * 100) / 100 });
+                await muatInstrumen();
+            }
             window.tutupSunting();
             if (t.is_saving || t.goal_id || t.trip_id) await muatMisi();
             muatDataMyTadbir();
@@ -2405,7 +2513,7 @@
             try {
                 const t = (window._txnPeta || {})[id];
                 await deleteDoc(doc(db, "ourmoney_transactions", id));
-                if (t && t.fp_instrumen) { await ubahInstrumen(peranRekod(t), t.fp_instrumen, -(Number(t.amount) || 0)); await muatInstrumen(); }
+                if (t && t.fp_instrumen) { await balikRekod(t); await muatInstrumen(); }
                 if (t && t.haji) await muatHaji();
                 await muatMisi(); muatDataMyTadbir();
                 if (modPaparan === 'tahun') lihatTahunan(); else muatDataOurMoney();
@@ -2557,6 +2665,9 @@
             } else if (kategori.startsWith('instr:')) {
                 const nm = decodeURIComponent(kategori.slice(6));
                 kategori = '💼 ' + nm; tambahan = { is_saving: true, fp_instrumen: nm };
+            } else if (kategori.startsWith('keluar:')) {
+                const nm = decodeURIComponent(kategori.slice(7));
+                kategori = '↩️ Keluar ' + nm; tambahan = { pindahan_simpanan: true, fp_arah: 'keluar', fp_instrumen: nm };
             } else if (kategori === 'pindahan:tunai') {
                 kategori = KAT_TUNAI; tambahan = { pindahan_tunai: true };
             } else if (kategori === 'pindahan:akaun') {
@@ -2583,12 +2694,21 @@
                 ...(nilaiAcc.startsWith('Bank:') ? { bank_id: nilaiAcc.slice(5) } : {})
             };
 
-            await addDoc(collection(db, "ourmoney_transactions"), txnData);
+            // Instrumen dikemas kini dahulu supaya kesan sebenar (dihadkan kepada baki) disimpan dalam rekod untuk padam/edit
+            let kesan = null;
             if (tambahan.fp_instrumen) {
-                const ok = await ubahInstrumen(txnData.txnPeranan, tambahan.fp_instrumen, txnData.amount);
-                if (!ok && !tambahan.haji) alert('Rekod disimpan, tetapi baki dalam myFINPLAN gagal dikemas kini. Cuba kemas kini baki di myFINPLAN.');
-                await muatInstrumen();
+                const keluar = tambahan.fp_arah === 'keluar', gEl = document.getElementById('txnGram');
+                const gIn = isEmasN(tambahan.fp_instrumen) && gEl && gEl.value !== '' ? Math.abs(parseFloat(gEl.value) || 0) : null;
+                kesan = await ubahInstrumen(txnData.txnPeranan, tambahan.fp_instrumen, keluar ? -txnData.amount : txnData.amount, gIn != null && gIn > 0 ? (keluar ? -gIn : gIn) : null);
+                if (kesan) { txnData.fp_delta = kesan.delta; if (kesan.gram != null) txnData.fp_gram = kesan.gram; }
+                else if (!tambahan.haji) alert('Baki dalam myFINPLAN gagal dikemas kini. Rekod tetap disimpan.');
+                if (kesan && keluar && Math.abs(kesan.delta) < txnData.amount - 0.005) {
+                    const lebih = txnData.amount - Math.abs(kesan.delta);
+                    txnData.note = (txnData.note ? txnData.note + ' · ' : '') + `Lebihan RM ${formatRM(lebih)} dikira keuntungan`;
+                }
             }
+            await addDoc(collection(db, "ourmoney_transactions"), txnData);
+            if (tambahan.fp_instrumen) { const gEl = document.getElementById('txnGram'); if (gEl) gEl.value = ''; await muatInstrumen(); }
             
             document.getElementById('txnAmount').value = '';
             document.getElementById('txnNote').value = '';
@@ -2831,7 +2951,7 @@
         // jadual terperinci
         let htmlJadual = list.map(t => {
             const keluar = t.type === 'outflow';
-            if (isPindahan(t)) return `<tr><td>${String(t.date).split('-').reverse().join('/')}</td><td><b>${esc(t.category || '')}</b> <small>(pindahan, bukan perbelanjaan)</small>${t.note ? `<br><small>${esc(t.note)}</small>` : ''}</td><td>Bank ➜ Tunai</td><td class="r" style="color:#94a3b8">-</td><td class="r" style="color:#94a3b8;font-weight:700">(${formatRM(num(t.amount))})</td></tr>`;
+            if (isPindahan(t)) return `<tr><td>${String(t.date).split('-').reverse().join('/')}</td><td><b>${esc(t.category || '')}</b> <small>(pindahan, bukan perbelanjaan)</small>${t.note ? `<br><small>${esc(t.note)}</small>` : ''}</td><td>${t.pindahan_simpanan ? (t.fp_arah === 'pindah' ? 'Antara simpanan' : 'Simpanan ➜ ' + (t.txnAccount === 'Tunai' ? 'Tunai' : 'Bank')) : t.pelarasan ? 'Pelarasan' : 'Bank ➜ Tunai'}</td><td class="r" style="color:#94a3b8">-</td><td class="r" style="color:#94a3b8;font-weight:700">(${formatRM(num(t.amount))})</td></tr>`;
             return `<tr><td>${String(t.date).split('-').reverse().join('/')}</td><td><b>${esc(t.category || '')}</b>${t.is_saving ? ' <small>(simpanan)</small>' : ''}${t.note ? `<br><small>${esc(t.note)}</small>` : ''}</td><td>${esc(t.txnAccount || '-')}</td><td class="r" style="color:#10b981;font-weight:700">${keluar ? '-' : formatRM(num(t.amount))}</td><td class="r" style="color:#ef4444;font-weight:700">${keluar ? formatRM(num(t.amount)) : '-'}</td></tr>`;
         }).join('');
         const jumIn = list.filter(t => t.type !== 'outflow' && !isPindahan(t)).reduce((s, t) => s + num(t.amount), 0);
@@ -2996,7 +3116,8 @@
                     const nilai = (data.type === 'outflow' ? -1 : 1) * (Number(data.amount) || 0);
                     const per = peranRekod(data), kb = per + '|' + bankIdRekod(data), amt = Number(data.amount) || 0;
                     const tb = (k, v) => { bawaPerBank[k] = (bawaPerBank[k] || 0) + v; };
-                    if (isPindahAkaun(data)) { tb(kb, -amt); tb(per + '|' + (data.bank_ke || 'utama'), amt); }
+                    if (isPindahInstr(data)) {}
+                    else if (isPindahAkaun(data)) { tb(kb, -amt); tb(per + '|' + (data.bank_ke || 'utama'), amt); }
                     else if (data.pindahan_tunai) { tb(kb, -amt); tb(per + '|T', amt); }
                     else tb(kunciAkaun(data), nilai);
                 }
@@ -3011,7 +3132,8 @@
             listSemasa.forEach(t => {
                 window._txnPeta[t.id] = t;
                 const isOut = t.type === 'outflow', pindah = isPindahan(t);
-                if (isPelarasan(t)) { const n = (isOut ? -1 : 1) * t.amount, k = kunciAkaun(t); perBank[k] = (perBank[k] || 0) + n; if (t.txnAccount === 'Tunai') { if (n > 0) tunaiIn += n; else tunaiOut -= n; } else { if (n > 0) bankIn += n; else bankOut -= n; } }
+                if (isPindahInstr(t)) {}
+                else if (isPelarasan(t)) { const n = (isOut ? -1 : 1) * t.amount, k = kunciAkaun(t); perBank[k] = (perBank[k] || 0) + n; if (t.txnAccount === 'Tunai') { if (n > 0) tunaiIn += n; else tunaiOut -= n; } else { if (n > 0) bankIn += n; else bankOut -= n; } }
                 else if (isPindahAkaun(t)) { tambahBank(t, -t.amount); const k = peranRekod(t) + '|' + (t.bank_ke || 'utama'); perBank[k] = (perBank[k] || 0) + t.amount; }
                 else if (pindah) { bankOut += t.amount; tunaiIn += t.amount; tambahBank(t, -t.amount); const kt = peranRekod(t) + '|T'; perBank[kt] = (perBank[kt] || 0) + t.amount; }
                 else if (isOut) {
@@ -3280,7 +3402,7 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
         const KEPERLUAN = ["Rumah / Sewa", "Kereta / Petrol", "Barang Dapur", "Bil Utiliti", "Perubatan", "Yuran / Kos Pendidikan", "Pendidikan", "Belanja Sekolah Harian", "Ansuran Pinjaman", "Insurans / Takaful", "Tol & Parking"];
         const HAD = { "Rumah / Sewa": 35, "Kereta / Petrol": 15, "Barang Dapur": 15, "Makan Luar (Keluarga)": 10, "Makan Luar (Sendiri)": 10, "Makan Luar": 10, "Bil Utiliti": 10, "Pakaian": 5 };
         let pend = 0;
-        arrCur.forEach(t => { if (t.type !== 'outflow' && t.category !== 'Baki Permulaan') pend += Number(t.amount) || 0; });
+        arrCur.forEach(t => { if (t.type !== 'outflow' && t.category !== 'Baki Permulaan' && !isPindahan(t)) pend += Number(t.amount) || 0; });
         const adaPend = pend > 0;
 
         let perlu = 0, mahu = 0;
@@ -3407,6 +3529,6 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
     <button onclick="simpanLaras()" style="width:100%;background:#4f46e5;color:#fff;padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer;">Simpan Pelarasan</button>
   </div>
 </div>
-<script src="cara-guna.js?v=8" data-app="ourmoney" defer></script>
+<script src="cara-guna.js?v=9" data-app="ourmoney" defer></script>
 </body>
 </html>
