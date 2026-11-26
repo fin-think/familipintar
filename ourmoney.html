@@ -581,10 +581,11 @@
             <h3 style="margin-bottom: 12px; color: #1e293b;">Ringkasan myTADBIR</h3>
             
             <div id="tadbir-content-wrapper">
-                <div class="tadbir-row">
-                    <span class="tadbir-label">Harta Bersih (Net Worth)</span>
+                <div class="tadbir-row" id="harta-row" onclick="togolHarta()" style="cursor:pointer" title="Lihat baki simpanan & pelaburan">
+                    <span class="tadbir-label">Harta Bersih (Net Worth) <span id="harta-chev" style="font-size:.75rem;color:#0369A1">▸ lihat baki</span></span>
                     <span class="tadbir-val" id="tadbir-networth">RM 0.00</span>
                 </div>
+                <div id="harta-pecahan" style="display:none;background:#fff;border:1px solid #BAE6FD;border-radius:10px;padding:10px 12px;margin:-2px 0 10px"></div>
                 <div class="tadbir-row">
                     <span class="tadbir-label">Hutang Terkumpul</span>
                     <span class="tadbir-val" id="tadbir-debts" style="color:var(--danger);">RM 0.00</span>
@@ -921,6 +922,73 @@
     let ibuBapaHidup = { induk: [], pasangan: [] };
     const perluInfaq = { induk: false, pasangan: false }, perluAmanah = { induk: false, pasangan: false }, perluHaji = { induk: false, pasangan: false };
     const senaraiPeranan = () => modPengguna === 'gabungan' && adaPasangan ? ['induk', 'pasangan'] : [modPengguna === 'pasangan' && adaPasangan ? 'pasangan' : 'induk'];
+
+    // ===== SIMPANAN & PELABURAN: instrumen user daripada myFINPLAN (myfinplan_plans.instruments) =====
+    // Rekod Duit Keluar ke instrumen = simpanan (is_saving), bukan belanja. Baki instrumen dalam myFINPLAN ditambah,
+    // dan myTADBIR menarik baki baharu sendiri (updated_at myFINPLAN lebih baharu). Simpanan Haji turut menambah "Tabung Haji".
+    const FPI = { induk: null, pasangan: null };               // null = belum ada pelan myFINPLAN
+    const dokFP = (p) => p === 'pasangan' ? currentUser.uid + '_pasangan' : currentUser.uid;
+    const isEmasN = (n) => /emas|gold/i.test(n || '');
+    const samaNama = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+    async function muatInstrumen() {
+        if (!currentUser) return;
+        for (const p of ['induk', 'pasangan']) {
+            try { const f = await getDoc(doc(db, "myfinplan_plans", dokFP(p))); FPI[p] = f.exists() && Array.isArray(f.data().instruments) ? f.data().instruments : null; }
+            catch (e) { FPI[p] = null; }
+        }
+        try { kemaskiniSenaraiKategori(); } catch (e) {}
+        renderHartaPecahan();
+    }
+    window.muatInstrumen = muatInstrumen;
+    async function ubahInstrumen(p, nama, delta) {
+        delta = Math.round((Number(delta) || 0) * 100) / 100;
+        if (!delta || !nama) return true;
+        const rf = doc(db, "myfinplan_plans", dokFP(p));
+        try {
+            await runTransaction(db, async (tx) => {
+                const sn = await tx.get(rf);
+                if (!sn.exists()) throw new Error('Tiada pelan myFINPLAN');
+                const arr = (Array.isArray(sn.data().instruments) ? sn.data().instruments : []).map(x => ({ ...x }));
+                let i = arr.findIndex(x => samaNama(x.name, nama));
+                if (i < 0) { if (delta < 0) return; arr.push({ name: nama, value: 0, monthly: 0, rate: 0 }); i = arr.length - 1; }
+                const it = arr[i];
+                if (isEmasN(it.name)) {
+                    // Emas: baki = gram x harga, jadi tambah gram ikut harga semasa dalam myFINPLAN
+                    const h = parseFloat(it.price_per_gram) || 385;
+                    const g0 = it.gram != null ? (parseFloat(it.gram) || 0) : (parseFloat(it.value) || 0) / h;
+                    it.price_per_gram = h; it.gram = Math.max(0, +(g0 + delta / h).toFixed(3)); it.value = +(it.gram * h).toFixed(2);
+                } else it.value = Math.max(0, Math.round(((parseFloat(it.value) || 0) + delta) * 100) / 100);
+                tx.update(rf, { instruments: arr, updated_at: Date.now() });
+            });
+            return true;
+        } catch (e) { console.warn('OurMoney: baki myFINPLAN tidak dikemas kini:', e.message); return false; }
+    }
+    let hartaBuka = false;
+    window.togolHarta = () => { hartaBuka = !hartaBuka; renderHartaPecahan(); };
+    function renderHartaPecahan() {
+        const box = document.getElementById('harta-pecahan'), chev = document.getElementById('harta-chev');
+        if (!box) return;
+        if (chev) chev.textContent = hartaBuka ? '▾ tutup' : '▸ lihat baki';
+        box.style.display = hartaBuka ? 'block' : 'none';
+        if (!hartaBuka) return;
+        const txn = window._semuaTxnOM || [], pers = senaraiPeranan();
+        let h = '', ada = false;
+        pers.forEach(p => {
+            const list = FPI[p];
+            if (pers.length > 1) h += `<div style="font-weight:800;font-size:.78rem;color:#0369A1;margin:${h ? '10px' : '0'} 0 4px">${esc(namaPeranan(p))}</div>`;
+            if (!list || !list.length) { h += `<div style="font-size:.8rem;color:#64748b">Belum ada instrumen. <a href="app/myfinplan.html" style="color:#0369A1;font-weight:700">Isi di myFINPLAN ➔</a></div>`; return; }
+            ada = true;
+            let jum = 0;
+            list.forEach(it => {
+                const v = parseFloat(it.value) || 0; jum += v;
+                const bln = txn.filter(t => t.type === 'outflow' && t.fp_instrumen && samaNama(t.fp_instrumen, it.name) && peranRekod(t) === p && String(t.date || '').substring(0, 7) === bulanIniStr).reduce((a, t) => a + (Number(t.amount) || 0), 0);
+                h += `<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed #E0F2FE;font-size:.85rem"><span style="font-weight:700;color:#0C4A6E">${esc(it.name || 'Instrumen')}${isEmasN(it.name) && it.gram != null ? ` <small style="color:#64748b">(${(+it.gram).toFixed(2)} g)</small>` : ''}${bln > 0 ? `<br><small style="color:#059669;font-weight:700">+RM ${formatRM(bln)} bulan ini</small>` : ''}</span><b style="color:#0C4A6E;white-space:nowrap">RM ${formatRM(v)}</b></div>`;
+            });
+            h += `<div style="display:flex;justify-content:space-between;padding-top:6px;font-size:.85rem;font-weight:800;color:#0369A1"><span>Jumlah</span><span>RM ${formatRM(jum)}</span></div>`;
+        });
+        h += `<div style="font-size:.7rem;color:#64748b;margin-top:8px;line-height:1.4">Baki terkini daripada myFINPLAN. Rekod di <b>Duit Keluar → Simpanan &amp; Pelaburan</b> untuk tambah baki${ada ? '; myTADBIR mengemas kini harta bersih bila dibuka' : ''}.</div>`;
+        box.innerHTML = h;
+    }
     const AMANAH_KAT0 = '🤝 Amanah Ibu Bapa', HAJI_KAT0 = '🕋 Haji';
     const HJ = { induk: { doc: null, rekod: [], th: 0 }, pasangan: { doc: null, rekod: [], th: 0 } };
     const hajiAktif = (p) => !!(HJ[p] && HJ[p].doc && HJ[p].doc.status === 'aktif');
@@ -1028,6 +1096,10 @@
             if (m.length) h += '<optgroup label="Simpanan Misi Kewangan">' + m.map(x => `<option value="misi:${esc(x.id)}">${esc(x.label)}</option>`).join('') + '</optgroup>';
             const t = (typeof misiSenarai !== 'undefined' ? misiSenarai : []).filter(x => x.trip && !(x.k && x.k.siap));
             if (t.length) h += '<optgroup label="Simpanan Percutian">' + t.map(x => `<option value="${esc(x.id)}">${esc(x.label)}</option>`).join('') + '</optgroup>';
+            // Instrumen myFINPLAN milik orang yang dipilih. Tabung Haji disorok bila misi haji aktif (guna "Simpanan Haji", ia turut tambah Tabung Haji).
+            const pb = perananBorang() || 'induk', ins = (typeof FPI !== 'undefined' && FPI[pb]) || null;
+            const pilihIns = (ins || []).filter(x => x && x.name && !(hajiAktif(pb) && /tabung\s*haji/i.test(x.name)));
+            h += '<optgroup label="Simpanan & Pelaburan">' + (pilihIns.length ? pilihIns.map(x => `<option value="instr:${esc(encodeURIComponent(x.name))}">💼 ${esc(x.name)}</option>`).join('') : '<option value="" disabled>Tambah instrumen (ASB, Tabung Haji, unit trust...) di myFINPLAN dahulu</option>') + '</optgroup>';
         }
         if (type === 'outflow') h += '<optgroup label="Misi Akhirat"><option value="infaq:harian">Infaq / Sedekah</option>' + (perananBorang() && (ibuBapaHidup[perananBorang()] || []).length ? '<option value="amanah:ibubapa">Amanah Ibu Bapa</option>' : '') + (hajiAktif(perananBorang()) ? '<option value="haji:misi">Simpanan Haji</option>' : '') + '</optgroup>';
         selectCat.innerHTML = h;
@@ -1203,7 +1275,7 @@
             await muatDataMyTadbir(); 
             await muatTargetPercutian();
             await muatMisi();
-            muatInfaq(); muatAmanah(); muatHaji(); daftarTokenPush();
+            muatInfaq(); muatAmanah(); muatHaji(); muatInstrumen(); daftarTokenPush();
             muatDataOurMoney();
         } else {
             currentUser = null;
@@ -2156,6 +2228,7 @@
         const btn = document.getElementById('sgSimpan'); btn.disabled = true; btn.textContent = 'Menyimpan...';
         try {
             await updateDoc(doc(db, "ourmoney_transactions", id), ubah);
+            if (t.fp_instrumen && ubah.amount !== Number(t.amount)) { await ubahInstrumen(peranRekod(t), t.fp_instrumen, ubah.amount - (Number(t.amount) || 0)); await muatInstrumen(); }
             window.tutupSunting();
             if (t.is_saving || t.goal_id || t.trip_id) await muatMisi();
             muatDataMyTadbir();
@@ -2214,7 +2287,10 @@
         window.padamRekod = async (id) => {
             if (!confirm("Padam rekod ini?")) return;
             try {
+                const t = (window._txnPeta || {})[id];
                 await deleteDoc(doc(db, "ourmoney_transactions", id));
+                if (t && t.fp_instrumen) { await ubahInstrumen(peranRekod(t), t.fp_instrumen, -(Number(t.amount) || 0)); await muatInstrumen(); }
+                if (t && t.haji) await muatHaji();
                 await muatMisi(); muatDataMyTadbir();
                 if (modPaparan === 'tahun') lihatTahunan(); else muatDataOurMoney();
             } catch (e) { alert("Gagal memadam: " + e.message); }
@@ -2231,7 +2307,7 @@
 
             let netWorth = 0, debts = 0, eduDeficit = 0, bayarHutang = 0, simpanEdu = 0, adaProfil = false;
             const tS = await getDocs(query(collection(db, "ourmoney_transactions"), where("owner_uid", "==", currentUser.uid)));
-            const semuaTxn = []; tS.forEach(d => semuaTxn.push(d.data()));
+            const semuaTxn = []; tS.forEach(d => semuaTxn.push(d.data())); window._semuaTxnOM = semuaTxn;
             // Simpanan pendidikan semasa ikut anak: myKids (simpanan di luar OurMoney) + semua setoran misi pendidikan OurMoney
             const simpananEduKini = {};
             semuaTxn.forEach(x => { const g = String(x.goal_id || ''); if (x.type === 'outflow' && g.startsWith('pendidikan_')) simpananEduKini[g.slice(11)] = (simpananEduKini[g.slice(11)] || 0) + (Number(x.amount) || 0); });
@@ -2279,6 +2355,7 @@
                 if (emptyState) emptyState.classList.remove('hidden');
                 if (btnAction) btnAction.innerText = 'Mula Isi myTADBIR Sekarang ➔';
             }
+            renderHartaPecahan();
         } catch (e) {
             console.error("Gagal muat data myTADBIR:", e);
         }
@@ -2348,7 +2425,10 @@
             } else if (kategori === 'amanah:ibubapa') {
                 kategori = AMANAH_KAT0; tambahan = { amanah: true };
             } else if (kategori === 'haji:misi') {
-                kategori = HAJI_KAT0; tambahan = { haji: true, is_saving: true };
+                kategori = HAJI_KAT0; tambahan = { haji: true, is_saving: true, fp_instrumen: 'Tabung Haji' };
+            } else if (kategori.startsWith('instr:')) {
+                const nm = decodeURIComponent(kategori.slice(6));
+                kategori = '💼 ' + nm; tambahan = { is_saving: true, fp_instrumen: nm };
             } else if (kategori === 'pindahan:tunai') {
                 kategori = KAT_TUNAI; tambahan = { pindahan_tunai: true };
             } else if (kategori === 'pindahan:akaun') {
@@ -2376,6 +2456,11 @@
             };
 
             await addDoc(collection(db, "ourmoney_transactions"), txnData);
+            if (tambahan.fp_instrumen) {
+                const ok = await ubahInstrumen(txnData.txnPeranan, tambahan.fp_instrumen, txnData.amount);
+                if (!ok && !tambahan.haji) alert('Rekod disimpan, tetapi baki dalam myFINPLAN gagal dikemas kini. Cuba kemas kini baki di myFINPLAN.');
+                await muatInstrumen();
+            }
             
             document.getElementById('txnAmount').value = '';
             document.getElementById('txnNote').value = '';
@@ -3193,6 +3278,6 @@ function renderAnalisisKesihatan(pendapatan, belanja, simpanan) {
     <button onclick="simpanLaras()" style="width:100%;background:#4f46e5;color:#fff;padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer;">Simpan Pelarasan</button>
   </div>
 </div>
-<script src="cara-guna.js?v=6" data-app="ourmoney" defer></script>
+<script src="cara-guna.js?v=7" data-app="ourmoney" defer></script>
 </body>
 </html>

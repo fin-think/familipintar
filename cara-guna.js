@@ -72,7 +72,8 @@
         ['Banyak akaun bank', 'Dalam pilihan Bank/Tunai, tekan <b>➕ Tambah akaun bank</b>. Pindahan antara akaun guna kategori <b>🔁 Pindah antara akaun</b>.'],
         ['Keluar duit ATM', 'Guna kategori <b>🏧 Pengeluaran tunai</b>. Ia bukan perbelanjaan, cuma pindah dari bank ke tunai.'],
         ['Tersalah rekod', 'Buka senarai transaksi. Tekan <b>✏️</b> untuk edit atau <b>✕</b> untuk padam.'],
-        ['Misi & analisis', 'Simpan untuk misi melalui Duit Keluar → pilih misi dalam Kategori. Lihat tab <b>📊 Analisis</b> dan laporan bulanan.']
+        ['Misi & analisis', 'Simpan untuk misi melalui Duit Keluar → pilih misi dalam Kategori. Lihat tab <b>📊 Analisis</b> dan laporan bulanan.'],
+        ['Simpanan & pelaburan', 'Top-up ASB, Tabung Haji, unit trust dan lain-lain: Duit Keluar → kumpulan <b>Simpanan &amp; Pelaburan</b> (ikut instrumen anda di myFINPLAN). Baki di myFINPLAN dan myTADBIR bertambah sendiri, dan tidak dikira sebagai belanja. Tekan <b>Harta Bersih</b> untuk lihat baki terkini.']
       ]
     },
     buatapa: {
