@@ -919,7 +919,7 @@ if ('Notification' in window) {
             { const bl = document.getElementById('btnLoceng'); if (bl) bl.style.display = 'inline-block'; window.kiraNotis && window.kiraNotis(); }
             // Aktiviti terakhir (sekali sehari) untuk polisi luput kredit 6 bulan
             try { const kunci = 'fp_aktif_' + user.uid, hari = new Date().toISOString().slice(0, 10);
-                if (localStorage.getItem(kunci) !== hari) { setDoc(doc(db, 'mynasab_users', user.uid), { last_active: Date.now() }, { merge: true }).then(() => localStorage.setItem(kunci, hari)).catch(() => {}); } } catch (e) {}
+                if (!window.__sedangDaftar && localStorage.getItem(kunci) !== hari) { setDoc(doc(db, 'mynasab_users', user.uid), { last_active: Date.now() }, { merge: true }).then(() => localStorage.setItem(kunci, hari)).catch(() => {}); } } catch (e) {}
 
             // --- 1. TUKAR PAPARAN UI KEPADA LOG MASUK DAHULU ---
             if(greetingBox) {
@@ -1029,6 +1029,7 @@ if ('Notification' in window) {
                             // Belum pilih orang: anggap Induk jika akaun belum ada peranti pasangan
                             try { const us = await getDoc(doc(db, "mynasab_users", user.uid)); const fp = us.exists() ? us.data().fcm_pasangan : null; per = (Array.isArray(fp) && fp.length) ? null : 'induk'; } catch (e) { per = null; }
                         }
+                        for (let i = 0; window.__sedangDaftar && i < 30; i++) await new Promise(r => setTimeout(r, 500));   // tunggu profil baharu siap dicipta
                         const kemas = { fcm_token: currentToken, fcm_tokens: arrayUnion(currentToken), fcm_masa: Date.now() };   // fcm_masa: server buang token ini dari akaun lain
                         if (per) kemas['fcm_' + per] = arrayUnion(currentToken);
                         await setDoc(doc(db, "mynasab_users", user.uid), kemas, { merge: true });
@@ -1218,12 +1219,13 @@ if ('Notification' in window) {
             if (new Date(dob) > new Date()) return alert("Tarikh lahir tidak boleh pada masa depan.");
             if (pass.length < 6) return alert("Kata laluan mesti sekurang-kurangnya 6 aksara.");
             
+            // Tetapan dimuat SEBELUM akaun dicipta, dan __sedangDaftar menghalang tulisan lain (last_active, token FCM)
+            // mencipta dokumen profil dahulu. Jika itu berlaku, setDoc di bawah menjadi "update" dan rules menolak kredit percuma.
+            await muatTH(); const KD = th('kredit_daftar', 20);
+            window.__sedangDaftar = true;
             try {
                 const kredensial = await createUserWithEmailAndPassword(auth, emel, pass);
                 const user = kredensial.user;
-
-                // Simpan profil & beri kredit percuma (tetapan kredit_daftar, asal 20)
-                await muatTH(); const KD = th('kredit_daftar', 20);
                 const sumber = window.FPSumber ? window.FPSumber.untukDaftar(false) : {};
                 const refUid = sumber.ref ? await window.FPSumber.selesaikanRef(db, { query, collection, where, getDocs, limit }, sumber.ref, user.uid) : null;
                 await setDoc(doc(db, "mynasab_users", user.uid), {
@@ -1248,8 +1250,12 @@ if ('Notification' in window) {
                 if (ke === 'nowsihat') { window.location.href = 'nowsihat.html'; return; }
                 if (ke === 'ourmoney') { window.location.href = 'ourmoney.html'; return; }
             } catch (error) {
-                alert("Ralat pendaftaran: E-mel ini mungkin telah wujud.");
-            }
+                const k = (error && error.code) || '';
+                if (k === 'auth/email-already-in-use') alert("Emel ini sudah berdaftar. Sila log masuk, atau tekan Lupa kata laluan.");
+                else if (k === 'auth/invalid-email') alert("Format emel tidak sah.");
+                else if (k === 'auth/weak-password') alert("Kata laluan terlalu lemah (sekurang-kurangnya 6 aksara).");
+                else { console.error('Daftar:', error); alert("Ralat pendaftaran: " + (error.message || k) + "\nSila cuba lagi atau hubungi sokongan."); }
+            } finally { window.__sedangDaftar = false; }
         } else {
             alert("Sila isi semua maklumat (Nama, Emel, Tarikh Lahir & Kata Laluan).");
         }

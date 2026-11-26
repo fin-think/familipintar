@@ -4,7 +4,7 @@
 // Harga & tempoh percubaan dibaca dari tetapan_awam/harga (sama macam app).
 // =====================================================================
 // Panggilan dari app: httpsCallable(fns, 'langganApp')({ app: 'wecare' | 'ourmoney', tindakan: 'mula' | 'baharu' })
-//   mula   -> percubaan percuma (sekali sahaja), tempoh = percubaan_hari (asal 30)
+//   mula   -> percubaan percuma (sekali sahaja), tempoh = percubaan_hari (asal 15)
 //   baharu -> potong wecare_kredit / ourmoney_kredit (asal 20), tambah 30 hari dari tarikh tamat semasa (atau hari ini jika dah tamat)
 
 const LA_MEDAN = { wecare: 'wecare_expiry_date', ourmoney: 'ourmoney_expiry_date' };
@@ -19,7 +19,7 @@ exports.langganApp = functions
         if (!medan) throw new functions.https.HttpsError('invalid-argument', 'App tidak sah.');
 
         // Tetapan harga (admin boleh ubah di Tetapan)
-        let percuba = 30, kredit = 20;
+        let percuba = 15, kredit = 20;
         try {
             const s = await db.collection('tetapan_awam').doc('harga').get();
             if (s.exists) {

@@ -778,7 +778,7 @@
             <p>Selamat datang ke <b>OurMoney</b>, modul kewangan komprehensif yang dihubungkan dengan <b>myNasab</b> & <b>JomBercuti</b>.</p>
             
             <b style="color:var(--ink); display:block; margin-top:12px;">1. Langganan Premium</b>
-            <p style="margin-top:4px;">OurMoney adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar kewangan, integrasi percutian, analisis bulanan dan storan gambar (resit) tertakluk kepada caj langganan sebanyak <b><span class="tk-kredit">20</span> Kredit / Sebulan</b>. Anda mendapat <b>percubaan percuma <span class="tk-percuba">30</span> hari</b> bermula sebaik sahaja anda menekan "Saya Faham &amp; Bersetuju". Selepas tempoh percubaan tamat, langganan diteruskan dengan <span class="tk-kredit">20</span> Kredit sebulan.</p>
+            <p style="margin-top:4px;">OurMoney adalah perkhidmatan premium. Penggunaan berterusan bagi kalendar kewangan, integrasi percutian, analisis bulanan dan storan gambar (resit) tertakluk kepada caj langganan sebanyak <b><span class="tk-kredit">20</span> Kredit / Sebulan</b>. Anda mendapat <b>percubaan percuma <span class="tk-percuba">15</span> hari</b> bermula sebaik sahaja anda menekan "Saya Faham &amp; Bersetuju". Selepas tempoh percubaan tamat, langganan diteruskan dengan <span class="tk-kredit">20</span> Kredit sebulan.</p>
 
             <b style="color:var(--ink); display:block; margin-top:12px;">2. Akses Tambahan (Seumur Hidup)</b>
             <p style="margin-top:4px;">Laporan Eksekutif (10 Kredit), Arkib Sejarah Bulan Lepas (1 Kredit) dan Cetakan Laporan Tahunan (5 Kredit) adalah akses seumur hidup yang dicaj sekali sahaja.</p>
@@ -843,7 +843,7 @@
     const TH = {};
     const th = (k, asal, min = 0) => { const v = Number(TH[k]); return TH[k] != null && Number.isFinite(v) && v >= min ? v : asal; };
     async function muatTH() { try { const s = await getDoc(doc(db, 'tetapan_awam', 'harga')); if (s.exists()) Object.assign(TH, s.data()); } catch (e) {} }
-    muatTH().then(() => { document.querySelectorAll('.tk-kredit').forEach(e => e.textContent = th('ourmoney_kredit', 20)); document.querySelectorAll('.tk-percuba').forEach(e => e.textContent = th('percubaan_hari', 30, 1)); });
+    muatTH().then(() => { document.querySelectorAll('.tk-kredit').forEach(e => e.textContent = th('ourmoney_kredit', 20)); document.querySelectorAll('.tk-percuba').forEach(e => e.textContent = th('percubaan_hari', 15, 1)); });
     const storage = getStorage(app); 
 
     let currentUser = null;
@@ -1417,7 +1417,7 @@
         } catch (error) { document.getElementById('modalPaywall').style.display = 'flex'; }
     };
 
-    // Percubaan percuma 30 hari bermula bila pengguna setuju T&C; rujukan ialah akaun, bukan penyemak imbas.
+    // Percubaan percuma 15 hari bermula bila pengguna setuju T&C; rujukan ialah akaun, bukan penyemak imbas.
     window.semakTnC = async () => {
         if (!currentUser) return;
         let belumMula = !localStorage.getItem('ourmoney_tnc_agreed');
@@ -1445,7 +1445,7 @@
                 }
                 await window.semakStatusLangganan(currentUser.uid);
                 const sBaru = await getDoc(userRef); const tm = sBaru.exists() && sBaru.data().ourmoney_expiry_date;
-                if (tm) alert('Percubaan percuma ' + th('percubaan_hari', 30, 1) + ' hari bermula hari ini. Tamat pada ' + new Date(tm).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.');
+                if (tm) alert('Percubaan percuma ' + th('percubaan_hari', 15, 1) + ' hari bermula hari ini. Tamat pada ' + new Date(tm).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.');
             } catch (err) { console.error(err); }
         }
     });
