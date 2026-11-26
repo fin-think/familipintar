@@ -192,6 +192,17 @@ content="https://i.postimg.cc/CMbF0pJN/Chat-GPT-Image-Apr-28-2026-08-32-29-AM.pn
 <script src="sumber.js?v=4"></script>
 <script src="huruf.js?v=1"></script>
 <script src="/pwa.js" defer></script>
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '4247872288775367');
+fbq('track', 'PageView');
+</script>
+<!-- End Meta Pixel -->
 </head>
 <body class="text-slate-800 antialiased overflow-x-hidden">
 
@@ -1225,6 +1236,9 @@ if ('Notification' in window) {
                     terma_versi: '2.0', terma_setuju_pada: Date.now(),
                     created_at: new Date()
                 });
+
+                // Meta Pixel: pendaftaran baru berjaya
+                try { if (window.fbq) fbq('track', 'CompleteRegistration', { content_name: (sumber && sumber.utm_campaign) || 'familipintar' }); } catch (e) {}
 
                 alert(`Tahniah ${nama}! Pendaftaran berjaya. ${KD} Kredit Percuma telah dimasukkan ke dalam dompet anda.`);
                 window.tutupModalAuth();
