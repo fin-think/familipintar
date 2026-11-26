@@ -318,7 +318,17 @@ async function pilih(i) {
   render();
 }
 // Simpan automatik; anggaran kos (jika ada) turut dihantar ke myTADBIR supaya pengguna tak perlu tekan butang
-const simpan = () => setDoc(doc(db,"mykids_plans",S.anak[S.i].id), { owner_uid:S.uid, nama_anak:S.anak[S.i].name, kerjaya:S.plan.ker, tier:S.plan.tier||'awam', tick:S.plan.tick, updated_at:Date.now(),
+// Status simpanan pada butang kos: Menyimpan… -> ✔ Disimpan (masa) / ⚠️ Gagal
+const statusKos = (st) => {
+  const b = document.getElementById('btnKos'); if (!b || !S.kos) return;
+  const jam = new Date().toLocaleTimeString('ms-MY', { hour:'2-digit', minute:'2-digit' });
+  b.style.opacity = st === 'simpan' ? '.75' : '1';
+  b.textContent = st === 'simpan' ? '⏳ Menyimpan ke myTADBIR…'
+    : st === 'ok' ? `✔ Disimpan ke myTADBIR (${RM(S.kos.jumlah)}) · ${jam}`
+    : '⚠️ Gagal disimpan. Tekan untuk cuba lagi';
+};
+const simpan = () => { statusKos('simpan'); return simpanAsal().then(r => { statusKos('ok'); return r; }, er => { statusKos('gagal'); console.warn('myKids: gagal simpan', er.message); }); };
+const simpanAsal = () => setDoc(doc(db,"mykids_plans",S.anak[S.i].id), { owner_uid:S.uid, nama_anak:S.anak[S.i].name, kerjaya:S.plan.ker, tier:S.plan.tier||'awam', tick:S.plan.tick, updated_at:Date.now(),
   ...(S.kos ? { kos_semasa:S.kos.jumlah, jenis_uni:S.kos.jenis, umur_masuk:S.kos.umur, kos_dikemas:Date.now() } : {}) }, { merge:true });
 
 function render() {
@@ -567,12 +577,13 @@ function kosBox(K) {
 document.addEventListener('click', async e => {
   if (e.target.id !== 'btnKos' || !S.kos) return;
   const a = S.anak[S.i];
+  statusKos('simpan');
   try {
     await setDoc(doc(db,"mykids_plans",a.id), { owner_uid:S.uid, nama_anak:a.name, kerjaya:S.plan.ker, tier:S.kos.t,
       kos_semasa:S.kos.jumlah, jenis_uni:S.kos.jenis, umur_masuk:S.kos.umur, kos_dikemas:Date.now(),
       simpanan_semasa:S.plan.simp||0, simpanan_dikemas:Date.now() }, { merge:true });
-    e.target.textContent = '✔ Disimpan. Buka myTADBIR > Unjuran untuk guna anggaran ini';
-  } catch (err) { alert('Gagal menyimpan: ' + err.message); }
+    statusKos('ok');
+  } catch (err) { statusKos('gagal'); alert('Gagal menyimpan: ' + err.message); }
 });
   
 document.addEventListener('click', e => {
