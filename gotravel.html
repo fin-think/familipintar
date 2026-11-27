@@ -760,10 +760,12 @@ window.muatKeluargaRombongan = async () => {
             return hasil;
         };
 
+        const salamUid = new Set();   // adik-beradik Salam Paut (linked_adik) dan rantaian mereka
         const peranKad = (n) => {
             const h = (n.relationship || '').replace(/\s*\(belah[^)]*\)/i, ''); const hl = h.toLowerCase();
             if (n.is_root) {
                 if (n.owner_uid === saya) return 'Anda';
+                if (salamUid.has(n.owner_uid)) return 'Adik-beradik';
                 if (n.owner_uid === indukUid) return sasaranIsPasangan ? 'Ipar' : 'Adik-beradik';
                 return sasaranUid[n.owner_uid] === sasaranIdPusat ? 'Adik-beradik' : 'Ipar';
             }
@@ -810,6 +812,41 @@ if (pilihanBelah === 'saya') { /* isi rumah sahaja */ } else if (pilihanBelah ==
             tambahAdikBerpaut(sasaranIdPusat);
             if (!sayaInduk && kInduk.diri && !sembunyi.includes(indukUid)) { tambahRumah(kInduk, [kInduk.diri, ...kInduk.pasangan], 'sisi'); }
             tambahAdikManual();
+            // Adik-beradik Salam Paut (linked_adik) + adik-beradik mereka (rantaian & jemputan mereka), sama seperti weCare / myNasab
+            {
+                const kIndukDiri = sayaInduk ? null : kInduk.diri;
+                const sebagaiAdikInduk = !!kIndukDiri && sasaranIdPusat === kIndukDiri.id;
+                const baris = [...(kSaya.diri.linked_adik || []), ...(sebagaiAdikInduk ? (kIndukDiri.linked_adik || []) : [])];
+                const adikNod = [];
+                const kumpulAdikNod = (nod) => nod.forEach(n => {
+                    const h = (n.relationship || '').toLowerCase();
+                    if (n.is_root || /ipar|saudara|pasangan|menantu/.test(h) || !/^(adik|abang|kakak|adik-beradik)\b/.test(h)) return;
+                    adikNod.push(n);
+                });
+                if (sebagaiAdikInduk) kumpulAdikNod(nodInduk);
+                const nodSalam = new Map();
+                while (baris.length && nodSalam.size < 30) {
+                    const u = baris.shift();
+                    if (!u || u === saya || u === indukUid || nodSalam.has(u)) continue;
+                    const nu = await ambil(u), ru = (nu.find(n => n.is_root) || {});
+                    nodSalam.set(u, nu);
+                    kumpulAdikNod(nu);
+                    (ru.linked_adik || []).forEach(x => baris.push(x));
+                    try {
+                        const lk = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", u), where("status", "==", "aktif")));
+                        lk.docs.forEach(d => { const l = d.data(); if (l.uid && (!l.sasaran_id || l.sasaran_id === ru.id)) baris.push(l.uid); });
+                    } catch (e) {}
+                }
+                for (const [u, nu] of nodSalam) {
+                    if (sembunyi.includes(u) || akaun.some(x => x.uid === u)) continue;
+                    const k = kelompok(nu); if (!k.diri) continue;
+                    salamUid.add(u);
+                    // Ibu bapa tiada dalam pokok saya: guna ibu bapa yang direkod oleh adik-beradik Salam Paut
+                    if (!kumpulan.atas.length && k.ibuBapa.length) tambahAtasan(k.diri.id, [k.ibuBapa, k.datukNenek, k.moyang, k.buyut, k.cakawari, k.cilawagi], true);
+                    tambahRumah(k, [k.diri, ...k.pasangan], 'sisi');
+                }
+                adikNod.forEach(n => tambah(n, 'sisi'));
+            }
             // Akaun anak saudara (atau adik-beradiknya): bapa/mak saudara + pasangan + sepupu daripada pokok salinan Induk
             const adikAnakSaudara = !sayaInduk && !!kInduk.diri && sasaranIdPusat === kInduk.diri.id && !!kInduk.diri.anak_saudara_dari && !sembunyi.includes(indukUid);
             const S = kSaya.diri.anak_saudara_dari ? kSaya : (adikAnakSaudara ? kInduk : null);
