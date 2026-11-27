@@ -534,6 +534,23 @@ function kiraEmas(el) {
         const hint = (id, teks) => { const e = document.getElementById(id); if (e) e.textContent = teks; };
         let user = null;
         let disentuh = false, adaSimpanan = false;
+        // Instrumen juga dikemas kini oleh OurMoney (top-up, keluar, pindah, baki bank). Simpan versi yang dimuat (asas)
+        // supaya simpanan automatik di sini tidak menimpa perubahan OurMoney yang berlaku selepas halaman dibuka.
+        let asas = null, belumSimpan = false;
+        const salin = o => JSON.parse(JSON.stringify(o || []));
+        const kunciN = x => String((x && x.name) || '').trim().toLowerCase();
+        const nilaiN = x => JSON.stringify([+(x.value || 0), x.gram ?? null, x.price_per_gram ?? null, x.banks || null, !!x.om_sync, +(x.monthly || 0), +(x.rate || 0)]);
+        // page = keadaan halaman, base = semasa dimuat, remote = terkini di pangkalan data
+        function gabungInstrumen(base, page, remote) {
+            const cari = (arr, x) => arr.find(y => kunciN(y) === kunciN(x));
+            const hasil = page.map(p => {
+                const b = cari(base, p), r = cari(remote, p);
+                if (r && (r.om_sync || (b && nilaiN(p) === nilaiN(b)))) return r;   // tidak disentuh di sini: ambil nilai terkini
+                return p;
+            });
+            remote.forEach(r => { if (!cari(base, r) && !cari(page, r)) hasil.push(r); });   // instrumen baharu dari OurMoney
+            return hasil;
+        }
 
         // Simpan automatik ke myTADBIR (menggantikan butang "Simpan ke myTADBIR")
         const AS = AutoSimpan.buat({
@@ -542,12 +559,33 @@ function kiraEmas(el) {
             mesejTunda: 'Tambah sekurang-kurangnya satu instrumen untuk simpan automatik ke myTADBIR.',
             ambil: () => { const s = window.getState(); return (!s.instruments.length && !adaSimpanan) ? null : s; },
             simpan: async (s) => {
-                await setDoc(doc(db, "myfinplan_plans", Peranan.dok(user.uid)), { owner_uid: user.uid, peranan: Peranan.mod, ...s, updated_at: Date.now() });
-                adaSimpanan = true;
+                const rf = doc(db, "myfinplan_plans", Peranan.dok(user.uid));
+                const data = { ...s }; let segarkan = false;
+                try {
+                    const r = await getDoc(rf);
+                    if (r.exists() && asas && (r.data().updated_at || 0) > asas.t) {
+                        data.instruments = gabungInstrumen(asas.ins, s.instruments || [], r.data().instruments || []);
+                        segarkan = JSON.stringify(data.instruments) !== JSON.stringify(s.instruments);
+                    }
+                } catch (e) { console.warn('Semak versi terkini myFINPLAN:', e.message); }
+                const t = Date.now();
+                await setDoc(rf, { owner_uid: user.uid, peranan: Peranan.mod, ...data, updated_at: t });
+                asas = { t, ins: salin(data.instruments) }; adaSimpanan = true; belumSimpan = false;
+                if (segarkan) window.loadState(data);   // papar baki terkini daripada OurMoney
             }
         });
         const dalamLogin = e => e.target && e.target.closest && e.target.closest('#fLog');
-        ['input', 'change'].forEach(ev => document.addEventListener(ev, e => { if (dalamLogin(e)) return; disentuh = true; AS.ubah(); }, true));
+        ['input', 'change'].forEach(ev => document.addEventListener(ev, e => { if (dalamLogin(e)) return; disentuh = true; belumSimpan = true; AS.ubah(); }, true));
+        // Kembali ke tab ini: muat semula jika OurMoney telah mengubah baki (dan tiada suntingan belum disimpan di sini)
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState !== 'visible' || !user || !asas || belumSimpan) return;
+            try {
+                const r = await getDoc(doc(db, "myfinplan_plans", Peranan.dok(user.uid)));
+                if (r.exists() && (r.data().updated_at || 0) > asas.t) {
+                    window.loadState(r.data()); asas = { t: r.data().updated_at || 0, ins: salin(r.data().instruments) };
+                }
+            } catch (e) {}
+        });
         document.addEventListener('click', e => { if (!dalamLogin(e)) AS.ubah(); }, true);
 
         const umurDariDob = (dobStr) => {
@@ -563,7 +601,8 @@ function kiraEmas(el) {
         async function muatSimpanan(uid) {
             try {
                 const s = await getDoc(doc(db, "myfinplan_plans", Peranan.dok(uid)));
-                if (s.exists()) { window.loadState(s.data()); adaSimpanan = true; }
+                if (s.exists()) { window.loadState(s.data()); adaSimpanan = true; asas = { t: s.data().updated_at || 0, ins: salin(s.data().instruments) }; }
+                else asas = { t: 0, ins: [] };
             } catch (e) { console.warn('Gagal muat pelan myFINPLAN:', e.message); }
         }
 
