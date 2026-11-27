@@ -437,11 +437,16 @@ window.semakTnC = async () => {
 
 // Belum ada ibu bapa di myNasab: tunjuk kad makluman (Saya Faham) sahaja. Percubaan BELUM dimulakan;
 // T&C & percubaan keluar bila ibu bapa sudah didaftar. Pelanggan sedia ada: semak langganan seperti biasa.
+window.fahamMula = () => {
+  try { if (currentUser) localStorage.setItem('wecare_mula_faham_' + currentUser.uid, '1'); } catch (e) {}
+  document.getElementById('modalMula').style.display = 'none';
+};
 window.semakMula = async () => {
   if (!currentUser) return;
   let belumMula = true;
   try { const s = await getDoc(doc(db, "mynasab_users", currentUser.uid)); if (s.exists()) belumMula = !s.data().wecare_expiry_date; } catch (e) {}
-  if (belumMula) document.getElementById('modalMula').style.display = 'flex';
+  let dahFaham = false; try { dahFaham = localStorage.getItem('wecare_mula_faham_' + currentUser.uid) === '1'; } catch (e) {}
+  if (belumMula && !dahFaham) document.getElementById('modalMula').style.display = 'flex';   // sekali sahaja; kad ungu kekal sebagai peringatan
   else window.semakStatusLangganan(currentUser.uid);
 };
 
@@ -1558,7 +1563,7 @@ window.simpanProfilKesihatan = async () => {
       <li><b>Jemput adik-beradik</b> supaya semua nampak jadual yang sama.</li>
     </ol>
     <p style="font-size:13px;color:#5b21b6;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 12px;margin:0 0 16px;line-height:1.5;">Percubaan percuma <b><span class="tk-percuba">15</span> hari</b> hanya bermula selepas ibu bapa didaftar dan anda bersetuju dengan terma weCare.</p>
-    <button type="button" onclick="document.getElementById('modalMula').style.display='none'" style="width:100%;background:#7c3aed;color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;">Saya Faham</button>
+    <button type="button" onclick="fahamMula()" style="width:100%;background:#7c3aed;color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;">Saya Faham</button>
   </div>
 </div>
 
