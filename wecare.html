@@ -542,6 +542,9 @@ async function migrasiDataLama(uid, groupBaru) {
       const snap = await getDocs(query(collection(db, nama), where("group_id", "==", uid)));
       for (const d of snap.docs) {
         const x = d.data();
+        // Belah pasangan kekal dalam kumpulan akaun sendiri; data orang lain (cth. adik-beradik pasangan) jangan dipindah
+        if (x.belah === 'pasangan' || (jangkar.pasangan && x.anchor_id === jangkar.pasangan)) continue;
+        if (x.author_uid && x.author_uid !== uid) continue;
         const ubah = { group_id: groupBaru };
         // data lama ditulis dari sudut pandang SAYA, jadi tetapkan jangkar sekarang
         const a = x.belah === 'pasangan' ? jangkar.pasangan : jangkar.induk;
@@ -671,11 +674,21 @@ window.tukarBulan = (arah) => {
   window.renderKalendar();
 };
 
+// Kumpulan ikut belah: belah PASANGAN sentiasa = akaun sendiri (adik-beradik pasangan didaftar melalui jemputan saya,
+// jadi pautan mereka milik saya). Belah induk = kumpulan biasa (tentukanKumpulan). Baca kedua-dua supaya data lama kekal.
+const kumpulanTulis = () => ((document.getElementById('filterBelah') || {}).value === 'pasangan' && currentUser) ? currentUser.uid : currentGroup;
+const kumpulanBaca = () => [...new Set([currentGroup, currentUser && currentUser.uid].filter(Boolean))];
+
 async function muatDataKalendar() {
   if (!currentGroup) return;
-  const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", currentGroup)));
   dataKalendarGlobal = [];
-  snap.forEach(d => { dataKalendarGlobal.push({ ...d.data(), id: d.id }); });
+  const dilihat = new Set();
+  for (const g of kumpulanBaca()) {
+    try {
+      const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", g)));
+      snap.forEach(d => { if (!dilihat.has(d.id)) { dilihat.add(d.id); dataKalendarGlobal.push({ ...d.data(), id: d.id }); } });
+    } catch (e) { console.warn('Kalendar kumpulan', g, e.message); }
+  }
   window.renderKalendar();
   // Dibuka daripada notifikasi ubat: ?tugas=<id> terus tunjuk tugasan (dengan butang DONE)
   const idP = new URLSearchParams(location.search).get('tugas');
@@ -930,7 +943,7 @@ window.simpanTugasKalendar = async (syncGoogle = false) => {
   const author = namaSaya || currentUser.email.split('@')[0];
   try {
     if (editId) await updateDoc(doc(db, "wecare_calendar", editId), { ...rekod[0], updated_at: Date.now() });
-    else for (const r of rekod) await setDoc(doc(collection(db, "wecare_calendar")), { ...r, anchor_id: jb, author, author_uid: currentUser.uid, group_id: currentGroup, created_at: Date.now() });
+    else for (const r of rekod) await setDoc(doc(collection(db, "wecare_calendar")), { ...r, anchor_id: jb, author, author_uid: currentUser.uid, group_id: kumpulanTulis(), created_at: Date.now() });
   } catch (e) { alert("Gagal menyimpan: " + e.message); return; }
 
   if (syncGoogle) {
@@ -1202,7 +1215,7 @@ window.simpanNotaKeluarga = async () => {
   await setDoc(doc(collection(db, "wecare_notes")), {
     note, date, anchor_id: jb,
     author: namaSaya || emelPrefix(), author_uid: currentUser.uid,
-    group_id: currentGroup, created_at: Date.now(),
+    group_id: kumpulanTulis(), created_at: Date.now(),
     dibaca_oleh: [currentUser.uid],   // penulis dianggap sudah baca
     status_baca: false                // dikekalkan supaya kiraan lama di muka depan tidak pecah
   });
@@ -1216,9 +1229,15 @@ const idNotaDilihat = new Set();
 let notaAwalSiap = false;
 async function muatNotaKeluarga() {
   if (unsubscribeNota) unsubscribeNota();   // buang pemantau lama bila tukar belah
-  const q = query(collection(db, "wecare_notes"), where("group_id", "==", currentGroup));
-  unsubscribeNota = onSnapshot(q, (snapshot) => {
-    dataNotaGlobal = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+  // Pantau setiap kumpulan (lihat kumpulanBaca) dan gabungkan
+  const perKumpulan = {};
+  const unsubs = kumpulanBaca().map(g => onSnapshot(query(collection(db, "wecare_notes"), where("group_id", "==", g)), (sn) => {
+    perKumpulan[g] = sn.docs.map(d => ({ ...d.data(), id: d.id }));
+    prosesNota();
+  }, (e) => console.warn('Nota kumpulan', g, e.message)));
+  unsubscribeNota = () => unsubs.forEach(u => u());
+  function prosesNota() {
+    dataNotaGlobal = Object.values(perKumpulan).flat();
     const tkh = document.getElementById('teamNoteDate');
     if (tkh && !tkh.value) tkh.value = kunciTarikh(Date.now());
     document.getElementById('notaHint').innerText = 'Nota muncul di kalendar (🗒️) untuk ' + labelBelah() + ' sahaja.';
@@ -1230,11 +1249,11 @@ async function muatNotaKeluarga() {
       baru.filter(n => notaUntukSaya(n) && belumBaca(n))
           .forEach(n => window.notifTempatan('Pesanan baharu weCare', `${namaPenulis(n)}: ${n.note}`));
     }
-    notaAwalSiap = true;
+    if (Object.keys(perKumpulan).length >= kumpulanBaca().length) notaAwalSiap = true;   // semua kumpulan sudah dimuat sekali
  
     window.renderKalendar();
     window.kemaskiniNotifikasiPWA();
-  });
+  }
 }
  
 // ===== NOTIFIKASI =====
@@ -1393,7 +1412,7 @@ window.janaGiliran = async () => {
   if (!confirm(`${senarai.length} giliran akan dicipta:\n` + senarai.slice(0, 8).map(x => `• ${x.n}: ${x.date} → ${x.end_date}`).join('\n') + (senarai.length > 8 ? `\n… dan ${senarai.length - 8} lagi` : '') + '\n\nTeruskan?')) return;
   try {
     const author = namaSaya || emelPrefix();
-    for (const x of senarai) await setDoc(doc(collection(db, "wecare_calendar")), { title: tajuk, date: x.date, end_date: x.end_date, time: '', for_whom: 'umum', shift_siapa: x.n, note: '', jenis: 'tugas', balik_jenis: '', giliran: true, anchor_id: jb, author, author_uid: currentUser.uid, group_id: currentGroup, created_at: Date.now() });
+    for (const x of senarai) await setDoc(doc(collection(db, "wecare_calendar")), { title: tajuk, date: x.date, end_date: x.end_date, time: '', for_whom: 'umum', shift_siapa: x.n, note: '', jenis: 'tugas', balik_jenis: '', giliran: true, anchor_id: jb, author, author_uid: currentUser.uid, group_id: kumpulanTulis(), created_at: Date.now() });
     window.tutupGiliran(); muatDataKalendar();
   } catch (e) { alert('Gagal mencipta giliran: ' + e.message); }
 };
