@@ -3883,7 +3883,6 @@ window.padamMesej = async (mesejId) => {
         try {
             // Memadam dokumen di Firebase
             await deleteDoc(doc(db, "mynasab_messages", mesejId));
-            console.log("Mesej berjaya dipadam.");
             
             // KEMAS KINI PAPARAN: Panggil semula fungsi buka peti supaya mesej tadi ghaib dari skrin
             window.bukaPetiMesej(); 

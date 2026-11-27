@@ -790,13 +790,7 @@ fbq('track', 'PageView');
 
 // KOD MEMINTA IZIN NOTIFIKASI DARI TELEFON
 if ('Notification' in window) {
-    Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-            console.log("Kebenaran notifikasi telah diberikan oleh pengguna.");
-        } else {
-            console.log("Pengguna tidak membenarkan notifikasi.");
-        }
-    });
+    Notification.requestPermission();
 }
     
     
@@ -1044,7 +1038,6 @@ if ('Notification' in window) {
                                 } catch (e) { console.warn('Papar notifikasi foreground:', e); }
                             });
                         }
-                        console.log("Token FCM berjaya dikemaskini.");
                     }
                 } catch (err) {
                     console.log("Gagal mendapatkan token FCM:", err);

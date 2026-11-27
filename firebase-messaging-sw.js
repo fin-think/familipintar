@@ -52,7 +52,6 @@ self.addEventListener('notificationclick', (event) => {
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-    console.log('[firebase-messaging-sw.js] Mesej Diterima: ', payload);
     
     // Guard: mesej tanpa `data` tidak lagi menyebabkan ralat (sebelum ini payload.data.badgeCount akan crash).
     const d = (payload && payload.data) || {};
