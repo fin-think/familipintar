@@ -672,10 +672,10 @@ async function muatProfilIbuBapa(uidPengguna) {
     }
     // Tiada ibu bapa: weCare bergantung pada myNasab (app utama). Tunjuk langkah mula, bukan sekadar "tiada rekod".
     const mertua = pilihanBelah === 'pasangan';
-    const kadMula = `<div style="background:#f5f3ff;border:1px solid #c4b5fd;border-radius:14px;padding:16px 18px;color:#2c3e50;">
+    const kadMula = `<div style="grid-column:1/-1;background:#f5f3ff;border:1px solid #c4b5fd;border-radius:14px;padding:16px 18px;color:#2c3e50;">
       <b style="display:block;font-size:16px;color:#5b21b6;margin-bottom:4px;">Mula guna weCare dalam 2 langkah</b>
       <p style="margin:0 0 10px;font-size:13px;line-height:1.55;color:#475569;">weCare mengambil maklumat ${mertua ? 'bapa dan ibu mertua' : 'ayah, ibu'} dan adik-beradik daripada <b>myNasab</b>, app utama Famili Pintar. Selagi ${mertua ? 'mertua' : 'ibu bapa'} belum didaftar di myNasab, kalendar dan giliran jaga belum boleh digunakan.</p>
-      <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;">
         <a href="mynasab/index.html?panduan=wecare&dari=wecare" style="display:flex;gap:10px;align-items:center;text-decoration:none;background:#fff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 12px;color:#2c3e50;">
           <span style="flex:none;width:26px;height:26px;border-radius:50%;background:#7c3aed;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;">1</span>
           <span style="flex:1;font-size:13.5px;"><b>Daftar ${mertua ? 'bapa & ibu mertua' : 'ayah & ibu'}</b> di myNasab (butang <b>+ Tambah Ahli</b>)</span><span style="color:#7c3aed;font-weight:800;">➔</span></a>
