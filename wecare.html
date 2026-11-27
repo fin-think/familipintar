@@ -435,6 +435,16 @@ window.semakTnC = async () => {
   else window.semakStatusLangganan(currentUser.uid);
 };
 
+// Belum ada ibu bapa di myNasab: tunjuk kad makluman (Saya Faham) sahaja. Percubaan BELUM dimulakan;
+// T&C & percubaan keluar bila ibu bapa sudah didaftar. Pelanggan sedia ada: semak langganan seperti biasa.
+window.semakMula = async () => {
+  if (!currentUser) return;
+  let belumMula = true;
+  try { const s = await getDoc(doc(db, "mynasab_users", currentUser.uid)); if (s.exists()) belumMula = !s.data().wecare_expiry_date; } catch (e) {}
+  if (belumMula) document.getElementById('modalMula').style.display = 'flex';
+  else window.semakStatusLangganan(currentUser.uid);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   const btnSetuju = document.getElementById('btnSetujuTnC');
   if (btnSetuju) {
@@ -491,7 +501,9 @@ onAuthStateChanged(auth, async (user) => {
     namaSaya = (uData.name && String(uData.name).trim() && uData.name !== 'undefined') ? String(uData.name).trim() : user.email.split('@')[0];
     document.getElementById('displayUserName').innerText = namaSaya;
 
-    semakTnC();
+    // T&C / percubaan disemak selepas profil ibu bapa dimuat (lihat hujung muatProfilIbuBapa):
+    // tiada ibu bapa -> kad "Saya Faham" sahaja (tiada langganan); ada ibu bapa -> T&C & mula percubaan
+    window._tncDisemak = false;
     muatProfilIbuBapa(user.uid);
     await muatKeluargaDanNota(currentGroup);
     muatDataKalendar();
@@ -673,7 +685,11 @@ async function muatProfilIbuBapa(uidPengguna) {
       <p style="margin:10px 0 0;font-size:12px;color:#64748b;">Selepas selesai, tekan <b>Kembali</b> di myNasab untuk balik ke weCare.</p>
     </div>`;
     document.getElementById('ruangProfilIbuBapa').innerHTML = html || kadMula;
-  } catch (e) { console.error("Ralat Profil:", e); }
+    if (!window._tncDisemak) { window._tncDisemak = true; if (html) window.semakTnC(); else window.semakMula(); }
+  } catch (e) {
+    console.error("Ralat Profil:", e);
+    if (!window._tncDisemak) { window._tncDisemak = true; window.semakTnC(); }   // jangan langkau semakan langganan
+  }
 }
 
 // --- KALENDAR ---
@@ -1533,6 +1549,19 @@ window.simpanProfilKesihatan = async () => {
 </script>
 
 <!-- MODAL TERMA & SYARAT -->
+<div id="modalMula" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.8);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;width:100%;max-width:450px;border-radius:16px;padding:24px;box-shadow:0 20px 25px -5px rgba(0,0,0,.1);">
+    <h2 style="margin:0 0 10px;color:var(--ink);font-size:20px;font-weight:800;text-align:center;">Selamat datang ke weCare</h2>
+    <p style="font-size:14px;color:var(--muted);line-height:1.6;margin:0 0 12px;">weCare mengambil maklumat ibu bapa dan adik-beradik daripada <b>myNasab</b>, app utama Famili Pintar. Sebelum mula, lengkapkan 2 langkah ini:</p>
+    <ol style="font-size:14px;color:var(--ink);line-height:1.7;margin:0 0 12px;padding-left:20px;">
+      <li><b>Daftar ayah &amp; ibu</b> di myNasab (butang <b>+ Tambah Ahli</b>).</li>
+      <li><b>Jemput adik-beradik</b> supaya semua nampak jadual yang sama.</li>
+    </ol>
+    <p style="font-size:13px;color:#5b21b6;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 12px;margin:0 0 16px;line-height:1.5;">Percubaan percuma <b><span class="tk-percuba">15</span> hari</b> hanya bermula selepas ibu bapa didaftar dan anda bersetuju dengan terma weCare.</p>
+    <button type="button" onclick="document.getElementById('modalMula').style.display='none'" style="width:100%;background:#7c3aed;color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;">Saya Faham</button>
+  </div>
+</div>
+
 <div id="modalTnC" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.8);z-index:9999;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#fff;width:100%;max-width:450px;border-radius:16px;padding:24px;box-shadow:0 20px 25px -5px rgba(0,0,0,.1);position:relative;">
     <h2 style="margin:0 0 15px;color:var(--ink);font-size:20px;font-weight:800;text-align:center;">Terma & Syarat weCare</h2>
