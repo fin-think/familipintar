@@ -826,7 +826,8 @@ if (pilihanBelah === 'saya') { /* isi rumah sahaja */ } else if (pilihanBelah ==
                 while (baris.length && nodSalam.size < 30) {
                     const u = baris.shift();
                     if (!u || u === saya || u === indukUid || nodSalam.has(u)) continue;
-                    const nu = await ambil(u), ru = (nu.find(n => n.is_root) || {});
+                    // kayakan: tarik juga akaun anak saudara dalam pokok itu (pasangan & anak yang mereka isi sendiri), sama seperti pokok saya
+                    const nu = await kayakan(await ambil(u)), ru = (nu.find(n => n.is_root) || {});
                     nodSalam.set(u, nu);
                     kumpulAdikNod(nu);
                     (ru.linked_adik || []).forEach(x => baris.push(x));
