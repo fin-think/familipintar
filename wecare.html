@@ -437,16 +437,12 @@ window.semakTnC = async () => {
 
 // Belum ada ibu bapa di myNasab: tunjuk kad makluman (Saya Faham) sahaja. Percubaan BELUM dimulakan;
 // T&C & percubaan keluar bila ibu bapa sudah didaftar. Pelanggan sedia ada: semak langganan seperti biasa.
-window.fahamMula = () => {
-  try { if (currentUser) localStorage.setItem('wecare_mula_faham_' + currentUser.uid, '1'); } catch (e) {}
-  document.getElementById('modalMula').style.display = 'none';
-};
+window.fahamMula = () => { document.getElementById('modalMula').style.display = 'none'; };
 window.semakMula = async () => {
   if (!currentUser) return;
   let belumMula = true;
   try { const s = await getDoc(doc(db, "mynasab_users", currentUser.uid)); if (s.exists()) belumMula = !s.data().wecare_expiry_date; } catch (e) {}
-  let dahFaham = false; try { dahFaham = localStorage.getItem('wecare_mula_faham_' + currentUser.uid) === '1'; } catch (e) {}
-  if (belumMula && !dahFaham) document.getElementById('modalMula').style.display = 'flex';   // sekali sahaja; kad ungu kekal sebagai peringatan
+  if (belumMula) document.getElementById('modalMula').style.display = 'flex';   // keluar setiap kali dibuka selagi ibu bapa belum didaftar
   else window.semakStatusLangganan(currentUser.uid);
 };
 
