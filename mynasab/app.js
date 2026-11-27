@@ -2083,6 +2083,18 @@ window.bukaPreviewBesar = async (mod = 'semua', opsyen = {}) => {
 
         const sPautan = sebagai ? { docs: [] } : await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", indukUid), where("status", "==", "aktif")));
         const pautan = sPautan.docs.map(d => d.data());
+        // Saya sendiri dijemput (bukan induk) tetapi ada yang daftar melalui jemputan SAYA (cth. adik-beradik pasangan saya):
+        // pautan mereka milik saya, bukan milik induk, jadi tambah juga. Sasaran root saya = nod saya dalam pokok induk.
+        if (!sebagai && !sayaInduk) {
+            try {
+                const sMilik = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", saya), where("status", "==", "aktif")));
+                sMilik.docs.forEach(d => {
+                    const p = d.data();
+                    if (!p.uid || pautan.some(x => x.uid === p.uid)) return;
+                    pautan.push(p.sasaran_id === 'root_' + saya ? { ...p, sasaran_id: sLinkSaya.data().sasaran_id } : p);
+                });
+            } catch (e) { console.warn('Pautan jemputan saya:', e.message); }
+        }
 
         const sUser = sebagai ? { exists: () => false } : await getDoc(doc(db, "mynasab_users", saya));
 
