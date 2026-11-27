@@ -1355,13 +1355,18 @@ window.pantauLencanaWeCareUtama = async (user) => {
     } catch (err) { console.warn("Ralat Hari Jadi:", err); }
 
     // 3. Pantau Nota (Live) - LOGIK PER-PENGGUNA TERKINI
-    const qNota = query(collection(db, "wecare_notes"), where("group_id", "==", groupUid));
+    // Nota weCare: kumpulan biasa + kumpulan akaun sendiri (belah pasangan, lihat weCare)
     const emelPrefix = user.email.split('@')[0];
+    const notaPerKumpulan = {};
+    [...new Set([groupUid, user.uid].filter(Boolean))].forEach(g => onSnapshot(query(collection(db, "wecare_notes"), where("group_id", "==", g)), (sn) => {
+        notaPerKumpulan[g] = sn.docs;
+        kiraLencanaNota();
+    }, (e) => console.warn('Nota kumpulan', g, e.message)));
 
-    onSnapshot(qNota, (snapshot) => {
+    const kiraLencanaNota = () => {
         let notaBelumBaca = 0;
         
-        snapshot.forEach(docSnap => {
+        Object.values(notaPerKumpulan).flat().forEach(docSnap => {
             const n = docSnap.data();
             
             // Kenal pasti jika nota ini ditulis oleh pengguna yang sedang log masuk
@@ -1384,7 +1389,7 @@ window.pantauLencanaWeCareUtama = async (user) => {
         } else {
             lencana.style.display = 'none';
         }
-    });
+    };
 };
     
 </script>

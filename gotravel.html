@@ -613,6 +613,17 @@ window.muatKeluargaRombongan = async () => {
 
         const sPautan = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", indukUid), where("status", "==", "aktif")));
         const pautan = sPautan.docs.map(d => d.data());
+        // Saya dijemput (bukan induk) tetapi ada yang daftar melalui jemputan SAYA (cth. adik-beradik pasangan): tambah pautan mereka
+        if (!sayaInduk) {
+            try {
+                const sMilik = await getDocs(query(collection(db, "mynasab_links"), where("owner_uid", "==", saya), where("status", "==", "aktif")));
+                sMilik.docs.forEach(d => {
+                    const p = d.data();
+                    if (!p.uid || pautan.some(x => x.uid === p.uid)) return;
+                    pautan.push(p.sasaran_id === 'root_' + saya ? { ...p, sasaran_id: sasaranIdPusat } : p);
+                });
+            } catch (e) { console.warn('Pautan jemputan saya:', e.message); }
+        }
         const sUser = await getDoc(doc(db, "mynasab_users", saya));
         const sembunyi = (sUser.exists() && sUser.data().sembunyi) || [];
 
@@ -1348,8 +1359,16 @@ window.muatKalendarIntegrasi = async (groupUid, nodSaya, nodInduk, sayaInduk, sa
                 if (idK) { jangkarCal.induk = idK; jangkarCal.lamaInduk = idK; }
             } catch (e) {}
         }
-        const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", groupUid)));
-        dataWeCareCal = snap.docs.map(d => ({ ...d.data(), id: d.id })); window.renderKalendarWeCare();
+        // Sama seperti weCare: belah pasangan disimpan dalam kumpulan akaun sendiri, jadi baca kedua-dua kumpulan
+        dataWeCareCal = [];
+        const dilihatCal = new Set();
+        for (const g of [...new Set([groupUid, currentUser.uid].filter(Boolean))]) {
+            try {
+                const snap = await getDocs(query(collection(db, "wecare_calendar"), where("group_id", "==", g)));
+                snap.docs.forEach(d => { if (!dilihatCal.has(d.id)) { dilihatCal.add(d.id); dataWeCareCal.push({ ...d.data(), id: d.id }); } });
+            } catch (e) { console.warn('Kalendar weCare kumpulan', g, e.message); }
+        }
+        window.renderKalendarWeCare();
     } catch (e) { console.warn("Gagal muat kalendar weCare:", e); }
 };
 

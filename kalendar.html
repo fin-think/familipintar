@@ -185,8 +185,13 @@ async function muatWeCare(uid, nodSaya) {
   const nodPemilik = g !== uid ? await bacaNod(g) : nodSaya;
   if (!lk && g !== uid && idDiri(nodPemilik)) j.induk = idDiri(nodPemilik);           // Salam Paut
   j.lamaInduk = idDiri(nodPemilik); j.lamaPasangan = idPasangan(nodPemilik);
-  const s = await getDocs(query(collection(db, 'wecare_calendar'), where('group_id', '==', g)));
-  K.wecare = s.docs.map(d => ({ ...d.data(), id: d.id })).filter(t => {
+  // Belah pasangan disimpan dalam kumpulan akaun sendiri (lihat weCare): baca kedua-dua kumpulan
+  const semua = new Map();
+  for (const gg of [...new Set([g, uid])]) {
+    try { (await getDocs(query(collection(db, 'wecare_calendar'), where('group_id', '==', gg)))).docs.forEach(d => semua.set(d.id, { ...d.data(), id: d.id })); }
+    catch (e) { console.warn('weCare kumpulan', gg, e.message); }
+  }
+  K.wecare = [...semua.values()].filter(t => {
     const a = t.anchor_id || (t.belah === 'pasangan' ? j.lamaPasangan : j.lamaInduk);
     return t.date && (a === j.induk || a === j.pasangan);
   });
