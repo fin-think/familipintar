@@ -790,15 +790,17 @@ window.muatKeluargaRombongan = async () => {
         
         const tambahRumah = (k, orang, jenis) => { orang.forEach(p => tambah(p, jenis)); k.turun.forEach(arr => arr.forEach(c => tambah(c, jenis))); k.menantu.forEach(m => tambah(m, jenis)); };
         const tambahAtasan = (matchId, levels, utama) => { kumpulAtasan(matchId, levels, utama).forEach(p => tambah(p, 'atas')); };
-        const tambahAdikManual = () => {
-            kSaya.adikBeradik.forEach(adik => {
-                tambah(adik, 'sisi'); kSaya.ipar.filter(i => i.ref_id === adik.id).forEach(i => tambah(i, 'sisi'));
-                const anakSini = kSaya.anakSaudara.filter(c => c.ref_id === adik.id);
-                anakSini.forEach(c => { tambah(c, 'sisi'); kSaya.pasanganAnakSaudara.filter(p => p.ref_id === c.id).forEach(p => tambah(p, 'sisi')); });
-                const cucuSini = kSaya.cucuSaudara.filter(c => anakSini.some(a => a.id === c.ref_id)); cucuSini.forEach(c => tambah(c, 'sisi'));
-                kSaya.cicitSaudara.filter(c => cucuSini.some(a => a.id === c.ref_id)).forEach(c => tambah(c, 'sisi'));
+        // Adik-beradik manual dalam sesebuah pokok + pasangan, anak, pasangan anak, cucu & cicit mereka
+        const tambahAdikDari = (k) => {
+            k.adikBeradik.forEach(adik => {
+                tambah(adik, 'sisi'); k.ipar.filter(i => i.ref_id === adik.id).forEach(i => tambah(i, 'sisi'));
+                const anakSini = k.anakSaudara.filter(c => c.ref_id === adik.id);
+                anakSini.forEach(c => { tambah(c, 'sisi'); k.pasanganAnakSaudara.filter(p => p.ref_id === c.id).forEach(p => tambah(p, 'sisi')); });
+                const cucuSini = k.cucuSaudara.filter(c => anakSini.some(a => a.id === c.ref_id)); cucuSini.forEach(c => tambah(c, 'sisi'));
+                k.cicitSaudara.filter(c => cucuSini.some(a => a.id === c.ref_id)).forEach(c => tambah(c, 'sisi'));
             });
         };
+        const tambahAdikManual = () => tambahAdikDari(kSaya);
         const tambahAdikBerpaut = (sasaranId) => {
             akaun.filter(a => a.sasaran === sasaranId && a.uid !== saya && !sembunyi.includes(a.uid)).forEach(a => {
                 const k = kelompok(a.nod); if (k.diri) tambahRumah(k, [k.diri, ...k.pasangan], 'sisi');
@@ -817,12 +819,8 @@ if (pilihanBelah === 'saya') { /* isi rumah sahaja */ } else if (pilihanBelah ==
                 const kIndukDiri = sayaInduk ? null : kInduk.diri;
                 const sebagaiAdikInduk = !!kIndukDiri && sasaranIdPusat === kIndukDiri.id;
                 const baris = [...(kSaya.diri.linked_adik || []), ...(sebagaiAdikInduk ? (kIndukDiri.linked_adik || []) : [])];
-                const adikNod = [];
-                const kumpulAdikNod = (nod) => nod.forEach(n => {
-                    const h = (n.relationship || '').toLowerCase();
-                    if (n.is_root || /ipar|saudara|pasangan|menantu/.test(h) || !/^(adik|abang|kakak|adik-beradik)\b/.test(h)) return;
-                    adikNod.push(n);
-                });
+                const pokokAdik = [];   // pokok (kelompok) yang adik-beradik manualnya juga adik-beradik saya
+                const kumpulAdikNod = (nod) => pokokAdik.push(kelompok(nod));
                 if (sebagaiAdikInduk) kumpulAdikNod(nodInduk);
                 const nodSalam = new Map();
                 while (baris.length && nodSalam.size < 30) {
@@ -845,7 +843,7 @@ if (pilihanBelah === 'saya') { /* isi rumah sahaja */ } else if (pilihanBelah ==
                     if (!kumpulan.atas.length && k.ibuBapa.length) tambahAtasan(k.diri.id, [k.ibuBapa, k.datukNenek, k.moyang, k.buyut, k.cakawari, k.cilawagi], true);
                     tambahRumah(k, [k.diri, ...k.pasangan], 'sisi');
                 }
-                adikNod.forEach(n => tambah(n, 'sisi'));
+                pokokAdik.forEach(k => tambahAdikDari(k));
             }
             // Akaun anak saudara (atau adik-beradiknya): bapa/mak saudara + pasangan + sepupu daripada pokok salinan Induk
             const adikAnakSaudara = !sayaInduk && !!kInduk.diri && sasaranIdPusat === kInduk.diri.id && !!kInduk.diri.anak_saudara_dari && !sembunyi.includes(indukUid);
