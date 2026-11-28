@@ -139,8 +139,8 @@ function eventPada(k) {
     const tajuk = t.jenis === 'balik' ? `${t.shift_siapa || 'Ahli keluarga'} ${t.balik_jenis === 'hari' ? 'balik hari' : 'balik bermalam'}` : t.title;
     ev.push({ s: 'wecare', t: tajuk || 'Tugasan', sub: [t.time, t.shift_siapa && t.shift_siapa !== 'Umum' && t.jenis !== 'balik' ? 'Bertugas: ' + t.shift_siapa : '', untuk].filter(Boolean).join(' · '), url: 'wecare.html?tugas=' + t.id });
   });
-  if (hidup('peribadi') && (K.haid.has(k) || K.jangka.has(k))) ev.push({ s: 'peribadi', t: K.haid.has(k) ? 'Catatan peribadi' : 'Jangkaan peribadi', sub: 'Lihat di nowSihat', url: 'nowsihat.html' });
-  if (hidup('nowsihat')) K.rutin.filter(r => (r.hari || []).includes(dow)).forEach(r => ev.push({ s: 'nowsihat', t: r.nama + ' ' + r.minit + ' minit', sub: 'Rutin senaman' + (r.masa ? ' · ' + r.masa : ''), url: 'nowsihat.html' }));
+  if (hidup('peribadi') && (K.haid.has(k) || K.jangka.has(k))) ev.push({ s: 'peribadi', t: (K.haid.has(k) ? 'Catatan peribadi' : 'Jangkaan peribadi') + (K.haidMilik === 'pasangan' ? ' pasangan' : ''), sub: K.haidMilik === 'pasangan' ? 'Dikongsi oleh pasangan · lihat di nowSihat' : 'Lihat di nowSihat', url: 'nowsihat.html' });
+  if (hidup('nowsihat')) K.rutin.filter(r => (r.hari || []).includes(dow)).forEach(r => ev.push({ s: 'nowsihat', t: r.nama + ' ' + r.minit + ' minit' + (r.siapa ? ' (' + r.siapa + ')' : ''), sub: 'Rutin senaman' + (r.masa ? ' · ' + r.masa : ''), url: 'nowsihat.html' }));
   return ev;
 }
 
@@ -209,6 +209,23 @@ async function muatTrips(uid) {
   [...a.docs, ...b.docs].forEach(d => { const x = d.data(); if (x.date_go) peta.set(d.id, { go: x.date_go, back: x.date_back || x.date_go, nama: x.title || x.destination || 'Percutian', url: x.owner_uid === uid ? 'gotravel.html?trip=' + encodeURIComponent(d.id) : 'gotravel.html' }); });
   K.trips = [...peta.values()];
 }
+// Hari jadi keluarga besar: akaun adik-beradik (pautan jemputan, induk saya, Salam Paut) - diri, pasangan & anak mereka
+async function muatHariJadiBesar(uid, nodSaya) {
+  const uids = new Set(), barisan = [];
+  const tolak = (u) => { if (u && u !== uid && !uids.has(u)) { uids.add(u); barisan.push(u); } };
+  const pautanMilik = async (o) => { try { (await getDocs(query(collection(db, 'mynasab_links'), where('owner_uid', '==', o), where('status', '==', 'aktif')))).docs.forEach(d => tolak(d.data().uid)); } catch (e) {} };
+  try { const s = await getDoc(doc(db, 'mynasab_links', uid)); if (s.exists() && s.data().status === 'aktif') { tolak(s.data().owner_uid); await pautanMilik(s.data().owner_uid); } } catch (e) {}
+  await pautanMilik(uid);
+  ((nodSaya.find(n => n.is_root) || {}).linked_adik || []).forEach(tolak);
+  const tambahan = [];
+  while (barisan.length && uids.size <= 40) {
+    const u = barisan.shift(), nu = await bacaNod(u), akar = nu.find(n => n.is_root);
+    if (!akar) continue;
+    (akar.linked_adik || []).forEach(tolak);
+    nu.forEach(n => { const h = (n.relationship || '').toLowerCase(); if (n.is_root || /^(suami|isteri)/.test(h) || /^anak/.test(h) && !/saudara|angkat menantu/.test(h)) tambahan.push(n); });
+  }
+  muatHariJadi([...nodSaya, ...tambahan]);
+}
 function muatHariJadi(nod) {
   const lihat = new Set();
   K.dob = nod.filter(n => n.dob && n.name && n.status !== 'meninggal').map(n => {
@@ -216,18 +233,15 @@ function muatHariJadi(nod) {
     return m && d ? { nama: String(n.name).trim().split(/\s+/).slice(0, 2).join(' '), mmdd: `${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`, lahir: y || 0, kunci: String(n.name).toLowerCase() + n.dob } : null;
   }).filter(x => x && !lihat.has(x.kunci) && lihat.add(x.kunci));
 }
+// nowSihat: rutin senaman KEDUA-DUA suami isteri (berlabel). Kitaran (meTime): milik pemilik telefon; kitaran pasangan
+// hanya dipapar jika pasangan menanda "Benarkan suami lihat" (haid.kongsi), sama seperti dalam meTime.
 async function muatRutin(uid) {
-  let per = 'induk';
-  try { await Peranan.muat(db, uid, { collection, query, where, getDocs }); per = Peranan.mod === 'pasangan' ? 'pasangan' : 'induk'; } catch (e) {}
-  try {
-    const p = await getDoc(doc(db, 'nowsihat_profil', per === 'pasangan' ? uid + '_pasangan' : uid));
-    const x = p.exists() ? p.data() : {};
-    const list = Array.isArray(x.senaman_rutin) ? x.senaman_rutin : (x.senaman ? [x.senaman] : []);
-    K.rutin = list.map(r => ({ ...r, nama: JENIS[r.jenis] || 'Brisk walk' }));
-    // Kitaran haid/nifas (profil perempuan sahaja): titik peribadi tanpa label pada grid
+  let per = 'induk', adaPasangan = false;
+  try { const inf = await Peranan.muat(db, uid, { collection, query, where, getDocs }); per = Peranan.mod === 'pasangan' ? 'pasangan' : 'induk'; adaPasangan = !!(inf && inf.ada); } catch (e) {}
+  const tambah = (k0, n) => new Date(Date.parse(k0 + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);
+  const beza = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000);
+  const isiKitaran = (x) => {
     const rek = (x.haid && Array.isArray(x.haid.rekod)) ? x.haid.rekod.slice().sort((a, b) => a.m.localeCompare(b.m)) : [];
-    const tambah = (k0, n) => new Date(Date.parse(k0 + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);
-    const beza = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000);
     rek.forEach(r => { const t = r.t || HARI_INI; for (let k0 = r.m; k0 <= t; k0 = tambah(k0, 1)) K.haid.add(k0); });
     const haid = rek.filter(r => r.j !== 'nifas');
     if (haid.length && rek[rek.length - 1].t) {
@@ -237,7 +251,21 @@ async function muatRutin(uid) {
       let mula = tambah(haid[haid.length - 1].m, avg(kit, 28));
       for (let c = 0; c < 3; c++) { for (let d = 0; d < avg(lm, 7); d++) K.jangka.add(tambah(mula, d)); mula = tambah(mula, avg(kit, 28)); }
     }
-  } catch (e) {}
+    return rek.length > 0;
+  };
+  const profil = [{ p: per, saya: true }, ...(adaPasangan ? [{ p: per === 'pasangan' ? 'induk' : 'pasangan', saya: false }] : [])];
+  K.rutin = []; K.haidMilik = '';
+  for (const { p, saya } of profil) {
+    try {
+      const d = await getDoc(doc(db, 'nowsihat_profil', p === 'pasangan' ? uid + '_pasangan' : uid));
+      const x = d.exists() ? d.data() : {};
+      const list = Array.isArray(x.senaman_rutin) ? x.senaman_rutin : (x.senaman ? [x.senaman] : []);
+      const siapa = adaPasangan ? (saya ? 'Anda' : 'Pasangan') : '';
+      list.forEach(r => K.rutin.push({ ...r, nama: JENIS[r.jenis] || 'Brisk walk', siapa }));
+      if (saya) { if (isiKitaran(x)) K.haidMilik = 'diri'; }
+      else if (!K.haidMilik && x.haid && x.haid.kongsi) { if (isiKitaran(x)) K.haidMilik = 'pasangan'; }
+    } catch (e) {}
+  }
 }
 function muatIslam(laras) {
   K.islam = hitungMundur(g0, laras, 20).map(e => ({ k: kunci(e.g.y, e.g.m, e.g.d), n: e.n, h: `${e.h.d}/${e.h.m}/${e.h.y} H · anggaran` }));
@@ -260,7 +288,7 @@ onAuthStateChanged(auth, async (u) => {
     cuba('goTravel', () => muatTrips(u.uid)),
     cuba('nowSihat', () => muatRutin(u.uid))
   ]);
-  await cuba('weCare', () => muatWeCare(u.uid, nodSaya));
+  await Promise.all([cuba('weCare', () => muatWeCare(u.uid, nodSaya)), cuba('Hari jadi keluarga', () => muatHariJadiBesar(u.uid, nodSaya))]);
   $('status').innerHTML = gagal.length ? `<i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Tidak dapat memuatkan: ${gagal.join(', ')}. Cuba muat semula halaman.` : 'Tekan tarikh untuk lihat butiran. Tekan label di atas untuk tapis.';
 });
 </script>
