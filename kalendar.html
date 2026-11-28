@@ -222,7 +222,7 @@ async function muatHariJadiBesar(uid, nodSaya) {
     const u = barisan.shift(), nu = await bacaNod(u), akar = nu.find(n => n.is_root);
     if (!akar) continue;
     (akar.linked_adik || []).forEach(tolak);
-    nu.forEach(n => { const h = (n.relationship || '').toLowerCase(); if (n.is_root || /^(suami|isteri)/.test(h) || /^anak/.test(h) && !/saudara|angkat menantu/.test(h)) tambahan.push(n); });
+    nu.forEach(n => { const h = (n.relationship || '').toLowerCase(); if (n.is_root || /^(suami|isteri)\b/.test(h) || (/^anak\b/.test(h) && !/saudara|menantu/.test(h))) tambahan.push(n); });
   }
   muatHariJadi([...nodSaya, ...tambahan]);
 }
